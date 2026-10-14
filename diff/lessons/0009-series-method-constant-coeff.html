@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power-Series Method</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/series-drill.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 9 · Topic 2: Power series</div>
+<h1>The power-series method: shift, recur, recognise</h1>
+<p class="lede">The goal: take a linear ODE, substitute $y = \sum c_n t^n$, and come out with a recurrence relation, closed-form coefficients and (when there is one) a closed-form solution. You'll practise on equations whose answers you already know from Topic 1, then on ones you don't.</p>
+
+<div class="mission">Why this matters for 5 Nov: there has been a power-series question on every past paper, worth 12–15 marks. The method is mechanical, but marks go on index shifts and on turning a recurrence into a formula for $c_{2k}$ and $c_{2k+1}$. Those two skills are this lesson. Variable-coefficient equations come in <a href="0010-series-variable-coeff.html">Lesson 10</a>.</div>
+
+<h2>0 · Warm-up from Lesson 8 and Topic 1</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> The Maclaurin series of $\cosh t$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\sum_{k=0}^\infty \dfrac{(-1)^k\,t^{2k}}{(2k)!}$</button>
+    <button class="opt" data-key="b">$\sum_{k=0}^\infty \dfrac{t^{2k+1}}{(2k+1)!}$</button>
+    <button class="opt" data-key="c">$\sum_{k=0}^\infty \dfrac{t^{2k}}{(2k)!}$</button>
+    <button class="opt" data-key="d">$\sum_{k=0}^\infty \dfrac{t^{2k}}{k!}$</button>
+  </div>
+  <div class="why">$\cosh t = \tfrac12(e^t + e^{-t})$: the odd powers cancel and the even ones double, so you're left with $t^{2k}/(2k)!$. (a) is $\cos t$, (b) is $\sinh t$ and (d) is $e^{t^2}$. You'll need to tell all four apart today. See <a href="0008-taylor-series-radius.html">Lesson 8</a>.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W2.</strong> The solution of $\;y'' - 9y = 0,\; y(0) = 2,\; y'(0) = 0\;$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$2\cos 3t$</button>
+    <button class="opt" data-key="b">$2\cosh 3t$</button>
+    <button class="opt" data-key="c">$2e^{3t}$</button>
+    <button class="opt" data-key="d">$2\cosh 9t$</button>
+  </div>
+  <div class="why">$\lambda = \pm 3$, so $y = Ae^{3t} + Be^{-3t}$. $y'(0) = 0$ forces $A = B$, and $y(0) = 2$ gives $A = B = 1$. So $y = e^{3t} + e^{-3t} = 2\cosh 3t$. Keep this answer: §7 gets it again from a series.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W3.</strong> If $y = \sum_{n=0}^\infty c_n t^n$, then $y'(0)$ equals…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$2c_2$</button>
+    <button class="opt" data-key="b">$0$</button>
+    <button class="opt" data-key="c">$c_0$</button>
+    <button class="opt" data-key="d">$c_1$</button>
+  </div>
+  <div class="why">$c_n = y^{(n)}(0)/n!$ (Taylor). So $c_0 = y(0)$ and $c_1 = y'(0)$. That's why an IVP at $t = 0$ just tells you $c_0$ and $c_1$.</div>
+</div>
+
+<h2>1 · The method in five steps</h2>
+
+<div class="box">
+<p><strong>Power-series method</strong> (<a href="../lectures/08_MAST20030_Lecture_Notes_Topic2_PowerSeries-LMS.pdf">Lecture 8, slide 3</a>)</p>
+<ol class="steps">
+  <li><strong>Substitute</strong> $y = \sum_{n=0}^\infty c_n t^n$ into the ODE.</li>
+  <li><strong>Change index</strong> in each sum so they all have the same power, $t^m$.</li>
+  <li><strong>Extract low-index terms</strong> so all sums run over the same range of $m$.</li>
+  <li><strong>Solve for the coefficients:</strong> the coefficient of each $t^m$ must be $0$. This gives a <em>recurrence relation</em>. Solve it.</li>
+  <li><strong>Check</strong> that you have the right number of linearly independent solutions: one free constant for first order, two ($c_0$ and $c_1$) for second order.</li>
+</ol>
+</div>
+
+<p>Step 4 uses the fact that a power series equal to $0$ on an interval has every coefficient equal to $0$. Steps 2 and 3 are pure bookkeeping, and that's where the marks get lost.</p>
+
+<h2>2 · Differentiating $\sum c_n t^n$</h2>
+
+<p>Differentiate term by term. (Lesson 12 shows why that's allowed. The lecture calls the result a <em>formal</em> solution until it's checked.)</p>
+
+<div class="box">
+<table>
+<tr><th>Term</th><th>Series</th><th>Natural start</th></tr>
+<tr><td>$y$</td><td>$\sum c_n t^n$</td><td>$n = 0$</td></tr>
+<tr><td>$y'$</td><td>$\sum n\,c_n t^{n-1}$</td><td>$n = 1$</td></tr>
+<tr><td>$y''$</td><td>$\sum n(n-1)\,c_n t^{n-2}$</td><td>$n = 2$</td></tr>
+<tr><td>$t\,y'$</td><td>$\sum n\,c_n t^{n}$</td><td>$n = 1$</td></tr>
+<tr><td>$t^2y''$</td><td>$\sum n(n-1)\,c_n t^{n}$</td><td>$n = 2$</td></tr>
+</table>
+<p>A multiplying $t^p$ just adds $p$ to the power. It never changes the coefficient or the start.</p>
+</div>
+
+<p><strong>Where does the sum start?</strong> Differentiating kills the constant term, so $y'$ naturally starts at $n = 1$. You <em>may</em> still write $n = 0$, because the extra term has the factor $n = 0$ in front of it. The lecture does both (it starts $y''$ at $n = 2$ for $y'' + y = 0$, and at $n = 0$ for Airy). Pick one habit. This lesson always uses the natural start, because then every term you write down is a real one.</p>
+
+<div class="trap"><strong>Lower starts are only free when the factor vanishes</strong><br>$\sum_{n=0} n\,c_n t^{n-1}$ is fine: the $n=0$ term is $0\cdot c_0t^{-1} = 0$. But $\sum_{n=0} c_{n+1}t^{n}$ and $\sum_{n=1} c_{n+1}t^{n}$ are <em>different</em>: the first has the term $c_1$. Only extend a sum downwards when the added terms have a zero factor in front.</div>
+
+<h2>3 · Index shifts</h2>
+
+<div class="box">
+<p><strong>The shift rule.</strong> To turn $t^{n+k}$ into $t^m$:</p>
+<ol class="steps">
+  <li>Set $m = n + k$, so $n = m - k$.</li>
+  <li>Replace <em>every</em> $n$ in the term by $m - k$: the index on $c$ <em>and</em> the factors like $n(n-1)$.</li>
+  <li>New start $=$ old start $+\,k$.</li>
+</ol>
+<p><strong>Check:</strong> put the new start into the new sum. Its first term must be the same as the old first term.</p>
+</div>
+
+<p>Two examples you'll use constantly:</p>
+$$y'' = \sum_{n=2}^\infty n(n-1)c_n t^{n-2} \;\overset{m = n-2}{=}\; \sum_{m=0}^\infty (m+2)(m+1)\,c_{m+2}\,t^m,$$
+$$2t\,y = \sum_{n=0}^\infty 2c_n t^{n+1} \;\overset{m = n+1}{=}\; \sum_{m=1}^\infty 2c_{m-1}\,t^m.$$
+<p>Check the first: at $m = 0$ you get $2\cdot1\cdot c_2t^0$, and the old first term ($n = 2$) is $2\cdot1\cdot c_2t^0$ ✓. A memory hook: if the <em>power</em> goes down by 2, the <em>index</em> on $c$ goes up by 2.</p>
+
+<div class="trap"><strong>The two classic shift errors</strong><br>
+(1) Shifting the $c$-index but not the factor: $\sum_{m=0} m(m-1)c_{m+2}t^m$ is wrong. Every $n$ becomes $m+2$.<br>
+(2) Shifting the wrong way: writing $c_{m-2}$ for $y''$. Use the check: at the start, the powers must agree.</div>
+
+<h3>Shift drill</h3>
+<p>Ten random terms. Work out the answer before you look at the options. Aim for 9 or 10, then do a second set tomorrow.</p>
+<div class="series-drill" data-rounds="10"></div>
+
+<h3>Extracting low-index terms (step 3)</h3>
+<p>After shifting, the sums can start at different $m$. Pull the low terms out of the sum that starts earliest, until every sum starts at the same $m$. The extracted terms are equations on their own: each power of $t$ must have coefficient $0$.</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>1.</strong> For $\;y'' + t\,y = 0$, steps 1–2 give $\displaystyle\sum_{m=0}^\infty (m+2)(m+1)c_{m+2}t^m + \sum_{m=1}^\infty c_{m-1}t^m = 0$. Step 3 gives the extra condition…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$c_2 = 0$</button>
+    <button class="opt" data-key="b">$c_1 = 0$</button>
+    <button class="opt" data-key="c">$c_0 = 0$</button>
+    <button class="opt" data-key="d">$c_3 = 0$</button>
+  </div>
+  <div class="why">Pull the $m = 0$ term out of the first sum: $2c_2 + \sum_{m=1}^\infty\big[(m+2)(m+1)c_{m+2} + c_{m-1}\big]t^m = 0$. The $t^0$ coefficient gives $2c_2 = 0$. The rest gives $c_{m+2} = -c_{m-1}/\big((m+2)(m+1)\big)$ for $m \ge 1$, which steps by 3 (Airy-type, <a href="0010-series-variable-coeff.html">Lesson 10</a>).</div>
+</div>
+
+<h2>4 · First-order example: $y' = 2t\,y$</h2>
+
+<details><summary>Steps 1–2: substitute and shift</summary><div>
+<p>$$\sum_{n=1}^\infty n\,c_n t^{n-1} = \sum_{n=0}^\infty 2c_n t^{n+1}.$$
+Left: $m = n-1$ gives $\sum_{m=0}^\infty (m+1)c_{m+1}t^m$. Right: $m = n+1$ gives $\sum_{m=1}^\infty 2c_{m-1}t^m$.</p></div></details>
+
+<details><summary>Step 3: extract the $m = 0$ term</summary><div>
+<p>$$c_1 + \sum_{m=1}^\infty \big[(m+1)c_{m+1} - 2c_{m-1}\big]t^m = 0.$$
+$t^0$: $c_1 = 0$. For $m \ge 1$: $c_{m+1} = \dfrac{2c_{m-1}}{m+1}$.</p></div></details>
+
+<details><summary>Steps 4–5: solve and recognise</summary><div>
+<p>Odd: $c_1 = 0$, so $c_3 = c_5 = \dots = 0$.<br>
+Even ($m+1 = 2k$): $c_{2k} = \dfrac{2}{2k}c_{2k-2} = \dfrac1k c_{2k-2}$, so $c_2 = c_0$, $c_4 = \tfrac12c_0$, $c_6 = \tfrac{1}{3\cdot2}c_0$, and
+$$c_{2k} = \frac{c_0}{k!}, \qquad y = c_0\sum_{k=0}^\infty \frac{t^{2k}}{k!} = c_0\sum_{k=0}^\infty \frac{(t^2)^k}{k!} = c_0\,e^{t^2}.$$
+One free constant for a first-order ODE ✓. Separation of variables gives the same answer.</p></div></details>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> Run the method on $\;y' = -3t^2y,\; y(0) = 1$. The solution is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{-3t^3}$</button>
+    <button class="opt" data-key="b">$e^{-t^3/3}$</button>
+    <button class="opt" data-key="c">$e^{-t^3}$</button>
+    <button class="opt" data-key="d">$e^{t^3}$</button>
+  </div>
+  <div class="why">$\sum_{m=0}(m+1)c_{m+1}t^m = \sum_{m=2} -3c_{m-2}t^m$. Extracting $m = 0, 1$ gives $c_1 = 0$ and $2c_2 = 0$. Then $c_{m+1} = -3c_{m-2}/(m+1)$, a step of 3: $c_{3k} = -\tfrac{3}{3k}c_{3k-3} = -\tfrac1k c_{3k-3}$, so $c_{3k} = (-1)^k/k!$ and $y = \sum (-t^3)^k/k! = e^{-t^3}$.</div>
+</div>
+
+<h2>5 · Solving a two-term recurrence</h2>
+
+<p>For second-order equations you'll usually get $c_{m+2} = r(m)\,c_m$. That splits into two separate chains:</p>
+<div class="box">
+<p>$$c_{2k} = c_0\prod_{j=0}^{k-1} r(2j), \qquad c_{2k+1} = c_1\prod_{j=0}^{k-1} r(2j+1).$$</p>
+<p><strong>How to do it on paper:</strong> write out $c_2, c_4, c_6$ (and $c_3, c_5, c_7$) <em>without multiplying anything out</em>, spot the pattern, then tidy it with the identities below.</p>
+<table>
+<tr><th>Product</th><th>Closed form</th></tr>
+<tr><td>$2\cdot4\cdot6\cdots(2k)$</td><td>$2^k\,k!$</td></tr>
+<tr><td>$1\cdot3\cdot5\cdots(2k-1)$</td><td>$\dfrac{(2k)!}{2^k\,k!}$ &nbsp;(also written $(2k-1)!!$)</td></tr>
+<tr><td>$1\cdot3\cdot5\cdots(2k+1)$</td><td>$\dfrac{(2k+1)!}{2^k\,k!}$ &nbsp;(also written $(2k+1)!!$)</td></tr>
+<tr><td>$\prod_{j=0}^{k-1}(2j+2)(2j+1)$</td><td>$(2k)!$</td></tr>
+<tr><td>$\prod_{j=0}^{k-1}(2j+3)(2j+2)$</td><td>$(2k+1)!$</td></tr>
+<tr><td>$\prod_{j=0}^{k-1}(-a)$</td><td>$(-a)^k$</td></tr>
+</table>
+<p>The odd-number products come from the even ones: $(2k)! = \big[1\cdot3\cdots(2k-1)\big]\cdot\big[2\cdot4\cdots(2k)\big]$.</p>
+</div>
+
+<div class="trap"><strong>Check $k = 0$</strong><br>An empty product is $1$. Your formula for $c_{2k}$ must give $c_0$ at $k = 0$, and the one for $c_{2k+1}$ must give $c_1$. If $1\cdot3\cdots(2k-1)$ is in a denominator, say "$=1$ when $k = 0$", or use the factorial form, which handles it automatically.</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>3.</strong> $c_{m+2} = \dfrac{3\,c_m}{m+2}$ with $c_0 = 1,\ c_1 = 0$. The solution $\sum c_n t^n$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{3t^2}$</button>
+    <button class="opt" data-key="b">$e^{3t^2/2}$</button>
+    <button class="opt" data-key="c">$e^{9t^2/2}$</button>
+    <button class="opt" data-key="d">$e^{3t^2/4}$</button>
+  </div>
+  <div class="why">$c_2 = \tfrac32$, $c_4 = \tfrac{3}{4}\cdot\tfrac{3}{2}$, … so $c_{2k} = \dfrac{3^k}{2\cdot4\cdots(2k)} = \dfrac{3^k}{2^k k!}$. Then $\sum \dfrac{(3t^2/2)^k}{k!} = e^{3t^2/2}$. (This recurrence comes from $y'' - 3t\,y' - 3y = 0$.)</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>4.</strong> $c_{m+2} = \dfrac{c_m}{m+2}$. The odd coefficients are $c_{2k+1} = $…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{c_1}{2^k\,k!}$</button>
+    <button class="opt" data-key="b">$\dfrac{c_1}{(2k+1)!}$</button>
+    <button class="opt" data-key="c">$\dfrac{2^k\,c_1}{(2k+1)!}$</button>
+    <button class="opt" data-key="d">$\dfrac{2^k\,k!\,c_1}{(2k+1)!}$</button>
+  </div>
+  <div class="why">$c_3 = \tfrac13c_1$, $c_5 = \tfrac1{5\cdot3}c_1$, so $c_{2k+1} = \dfrac{c_1}{1\cdot3\cdots(2k+1)} = \dfrac{2^k k!\,c_1}{(2k+1)!}$. (a) is the <em>even</em> chain's answer. This odd series has no elementary closed form, so you leave it as a sum.</div>
+</div>
+
+<h2>6 · Recognising closed forms</h2>
+
+<div class="box">
+<table>
+<tr><th>Series</th><th>Sum</th></tr>
+<tr><td>$\sum \dfrac{(at)^n}{n!}$</td><td>$e^{at}$</td></tr>
+<tr><td>$\sum \dfrac{(-1)^k(\omega t)^{2k}}{(2k)!}$, &nbsp; $\sum \dfrac{(-1)^k\omega^{2k}t^{2k+1}}{(2k+1)!}$</td><td>$\cos\omega t$, &nbsp; $\dfrac{\sin\omega t}{\omega}$</td></tr>
+<tr><td>$\sum \dfrac{(\omega t)^{2k}}{(2k)!}$, &nbsp; $\sum \dfrac{\omega^{2k}t^{2k+1}}{(2k+1)!}$</td><td>$\cosh\omega t$, &nbsp; $\dfrac{\sinh\omega t}{\omega}$</td></tr>
+<tr><td>$\sum \dfrac{a^k t^{2k}}{k!}$, &nbsp; $\sum \dfrac{a^k t^{2k+1}}{k!}$</td><td>$e^{at^2}$, &nbsp; $t\,e^{at^2}$</td></tr>
+<tr><td>$\sum t^n$</td><td>$\dfrac{1}{1-t}$ &nbsp;($|t|&lt;1$)</td></tr>
+</table>
+<p><strong>Read the denominator:</strong> $t^{2k}$ over $(2k)!$ means $\cos$ or $\cosh$. $t^{2k}$ over $k!$ means $e^{(\cdot)t^2}$. A product of odd numbers ($1\cdot3\cdots$) usually means there's no elementary closed form, so leave it as a sum.</p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>5.</strong> $\displaystyle\sum_{k=0}^\infty \frac{9^k\,t^{2k+1}}{(2k+1)!}$ equals…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac13\sinh 3t$</button>
+    <button class="opt" data-key="b">$3\sinh 3t$</button>
+    <button class="opt" data-key="c">$\tfrac19\sinh 9t$</button>
+    <button class="opt" data-key="d">$\tfrac13\cosh 3t$</button>
+  </div>
+  <div class="why">$9^k t^{2k+1} = \tfrac13(3t)^{2k+1}$, so the sum is $\tfrac13\sum (3t)^{2k+1}/(2k+1)! = \tfrac13\sinh 3t$. Forgetting the $\tfrac13$ is the usual slip.</div>
+</div>
+
+<h2>7 · Check against Topic 1: $y'' - 9y = 0$</h2>
+
+<details><summary>Steps 1–3</summary><div>
+<p>$$\sum_{n=2}^\infty n(n-1)c_nt^{n-2} - \sum_{n=0}^\infty 9c_nt^n = 0 \;\Rightarrow\; \sum_{m=0}^\infty\big[(m+2)(m+1)c_{m+2} - 9c_m\big]t^m = 0.$$
+Both sums already start at $m = 0$, so there's nothing to extract.</p></div></details>
+
+<details><summary>Step 4: recurrence and closed form</summary><div>
+<p>$$c_{m+2} = \frac{9\,c_m}{(m+2)(m+1)}, \quad m \ge 0.$$
+Even: $c_2 = \dfrac{9}{2\cdot1}c_0$, $c_4 = \dfrac{9^2}{4\cdot3\cdot2\cdot1}c_0$, so $c_{2k} = \dfrac{9^k}{(2k)!}c_0$.<br>
+Odd: $c_3 = \dfrac{9}{3\cdot2}c_1$, $c_5 = \dfrac{9^2}{5!}c_1$, so $c_{2k+1} = \dfrac{9^k}{(2k+1)!}c_1$.
+$$y = c_0\sum_{k=0}^\infty\frac{(3t)^{2k}}{(2k)!} + c_1\sum_{k=0}^\infty\frac{9^kt^{2k+1}}{(2k+1)!} = c_0\cosh 3t + \frac{c_1}{3}\sinh 3t.$$</p></div></details>
+
+<details><summary>Step 5 and the IVP</summary><div>
+<p>Two free constants for a second-order ODE ✓. $\cosh 3t$ and $\sinh 3t$ span the same space as $e^{\pm3t}$ ✓. With $y(0) = 2,\ y'(0) = 0$, you get $c_0 = 2,\ c_1 = 0$ and $y = 2\cosh 3t$, which matches W2. <strong>In a series IVP at $t = 0$, read off $c_0 = y(0)$ and $c_1 = y'(0)$. There's no system to solve.</strong></p></div></details>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>6.</strong> For $\;y'' + \omega^2y = 0$ ($\omega&gt;0$) with $y(0) = 0,\ y'(0) = 5$, the series method gives…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$5\sin\omega t$</button>
+    <button class="opt" data-key="b">$5\omega\sin\omega t$</button>
+    <button class="opt" data-key="c">$\tfrac5\omega\sin\omega t$</button>
+    <button class="opt" data-key="d">$\tfrac5\omega\cos\omega t$</button>
+  </div>
+  <div class="why">$c_{m+2} = -\omega^2c_m/\big((m+2)(m+1)\big)$, $c_0 = 0$, $c_1 = 5$. So $c_{2k+1} = 5(-1)^k\omega^{2k}/(2k+1)!$ and $y = \tfrac5\omega\sum (-1)^k(\omega t)^{2k+1}/(2k+1)! = \tfrac5\omega\sin\omega t$. Check: $y'(0) = 5$ ✓.</div>
+</div>
+
+<h2>8 · A step up: $y'' + 2t\,y' + 2y = 0$</h2>
+
+<p>Now the coefficients depend on $t$, so Topic 1 has no ready-made method. The series method doesn't care.</p>
+
+<details><summary>Steps 1–3</summary><div>
+<p>$$\sum_{n=2}^\infty n(n-1)c_nt^{n-2} + \sum_{n=1}^\infty 2n\,c_nt^{n} + \sum_{n=0}^\infty 2c_nt^n = 0.$$
+Shift the first ($m = n-2$). The other two are already in $t^n$, so rename them:
+$$\sum_{m=0}^\infty (m+2)(m+1)c_{m+2}t^m + \sum_{m=1}^\infty 2m\,c_mt^m + \sum_{m=0}^\infty 2c_mt^m = 0.$$
+Step 3: the middle sum's $m = 0$ term would be $2\cdot0\cdot c_0 = 0$, so you can start it at $m = 0$ for free. (Or extract $m = 0$ from the other two: $2c_2 + 2c_0 = 0$, which is the recurrence at $m = 0$ anyway.)</p></div></details>
+
+<details><summary>Step 4: recurrence</summary><div>
+<p>$$(m+2)(m+1)c_{m+2} + 2(m+1)c_m = 0 \;\Rightarrow\; c_{m+2} = -\frac{2\,c_m}{m+2}, \quad m \ge 0.$$
+Cancelling the $(m+1)$ is the step that makes this one nice.</p></div></details>
+
+<details><summary>Step 4: even chain</summary><div>
+<p>$c_2 = -\tfrac22c_0$, $\;c_4 = -\tfrac24c_2 = \tfrac{2^2}{2\cdot4}c_0$, $\;c_6 = -\tfrac{2^3}{2\cdot4\cdot6}c_0$, so
+$$c_{2k} = \frac{(-2)^k}{2\cdot4\cdots(2k)}c_0 = \frac{(-2)^k}{2^k\,k!}c_0 = \frac{(-1)^k}{k!}c_0, \qquad y_1 = \sum_{k=0}^\infty\frac{(-t^2)^k}{k!} = e^{-t^2}.$$</p></div></details>
+
+<details><summary>Step 4: odd chain</summary><div>
+<p>$c_3 = -\tfrac23c_1$, $\;c_5 = \tfrac{2^2}{3\cdot5}c_1$, so
+$$c_{2k+1} = \frac{(-2)^k}{1\cdot3\cdot5\cdots(2k+1)}c_1 = \frac{(-4)^k\,k!}{(2k+1)!}c_1, \qquad y_2 = \sum_{k=0}^\infty\frac{(-4)^k\,k!}{(2k+1)!}t^{2k+1} = t - \tfrac23t^3 + \tfrac4{15}t^5 - \dots$$
+That's an odd-number product, so leave it as a sum. (It's a multiple of $e^{-t^2}\int_0^t e^{s^2}ds$, but you're never asked for that.)</p></div></details>
+
+<details><summary>Step 5, radius, and a check</summary><div>
+<p>$c_0$ and $c_1$ are free, so you have two solutions. One is even and one is odd, so they're independent. Radius: for the odd series, $\left|\dfrac{c_{2k+3}t^{2k+3}}{c_{2k+1}t^{2k+1}}\right| = \dfrac{2t^2}{2k+3} \to 0$, so $R = \infty$ (<a href="0008-taylor-series-radius.html">Lesson 8</a>).<br>
+Check $y_1$: $y_1' = -2te^{-t^2}$ and $y_1'' = (4t^2 - 2)e^{-t^2}$, so $(4t^2 - 2) - 4t^2 + 2 = 0$ ✓.<br>
+Topic 1 cross-check: the ODE is $(y' + 2ty)' = 0$, so $y' + 2ty = C$. With $C = 0$, an integrating factor gives $e^{-t^2}$.</p></div></details>
+
+<p>This has the same structure as the tutorial's $y'' - t\,y' - y = 0$ (week 4, Q2), but with different numbers, and here the even chain closes. Do the tutorial question yourself for homework.</p>
+
+<h2>9 · Practice</h2>
+<p>Paper first, then click.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>7.</strong> Substituting into $\;y'' - y' = 0$ and shifting to $t^m$ gives the recurrence…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$c_{m+2} = \dfrac{c_{m}}{m+2}$</button>
+    <button class="opt" data-key="b">$c_{m+2} = \dfrac{c_{m+1}}{m+2}$</button>
+    <button class="opt" data-key="c">$c_{m+2} = \dfrac{c_{m+1}}{m+1}$</button>
+    <button class="opt" data-key="d">$c_{m+2} = \dfrac{c_{m}}{m+1}$</button>
+  </div>
+  <div class="why">$y' = \sum_{n=1} n c_n t^{n-1} = \sum_{m=0}(m+1)c_{m+1}t^m$, which shifts by 1, not 2. So $(m+2)(m+1)c_{m+2} = (m+1)c_{m+1}$. The chain links <em>consecutive</em> coefficients: $c_n = c_1/n!$ for $n \ge 1$, and $y = c_0 + c_1(e^t - 1)$ ✓.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>8.</strong> For $\;y'' - 4t\,y' - 4y = 0$, the solution with $c_0 = 1,\ c_1 = 0$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{4t^2}$</button>
+    <button class="opt" data-key="b">$\cosh 2t$</button>
+    <button class="opt" data-key="c">$e^{t^2}$</button>
+    <button class="opt" data-key="d">$e^{2t^2}$</button>
+  </div>
+  <div class="why">$(m+2)(m+1)c_{m+2} - 4(m+1)c_m = 0$, so $c_{m+2} = \dfrac{4c_m}{m+2}$. Then $c_{2k} = \dfrac{4^k}{2^kk!} = \dfrac{2^k}{k!}$, and $\sum (2t^2)^k/k! = e^{2t^2}$.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>9.</strong> Same ODE, now with $y(0) = 0,\ y'(0) = 1$. The first three non-zero terms are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$t + \tfrac43t^3 + \tfrac{16}{15}t^5$</button>
+    <button class="opt" data-key="b">$t + 2t^3 + 2t^5$</button>
+    <button class="opt" data-key="c">$t + \tfrac43t^3 + \tfrac{8}{15}t^5$</button>
+    <button class="opt" data-key="d">$t + \tfrac23t^3 + \tfrac{4}{15}t^5$</button>
+  </div>
+  <div class="why">$c_1 = 1$, $c_3 = \tfrac43c_1 = \tfrac43$, $c_5 = \tfrac45c_3 = \tfrac{16}{15}$. (b) uses the even chain's numbers. (c) drops a factor of 2 in $c_5$; (d) uses 2 in place of 4 in the recurrence.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>10.</strong> For $\;y' = (1 + t)\,y,\ y(0) = 1$, the coefficient $c_3$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac12$</button>
+    <button class="opt" data-key="b">$\tfrac16$</button>
+    <button class="opt" data-key="c">$\tfrac23$</button>
+    <button class="opt" data-key="d">$\tfrac56$</button>
+  </div>
+  <div class="why">$\sum_{m=0}(m+1)c_{m+1}t^m = \sum_{m=0}c_mt^m + \sum_{m=1}c_{m-1}t^m$. Extract $m = 0$: $c_1 = c_0 = 1$. For $m \ge 1$: $c_{m+1} = \dfrac{c_m + c_{m-1}}{m+1}$, a <em>three-term</em> recurrence. $c_2 = \tfrac{1+1}{2} = 1$, $c_3 = \tfrac{1+1}{3} = \tfrac23$. Check: $e^{t + t^2/2} = 1 + t + t^2 + \tfrac23t^3 + \dots$ ✓.</div>
+</div>
+
+<h2>10 · Exam-level challenge</h2>
+<p>Fully on paper, then open one step at a time.</p>
+<div class="box">
+<p>Consider $\;y'' + t\,y' + 2y = 0$.</p>
+<p>(a) Substitute $y = \sum_{n=0}^\infty c_nt^n$ and find a recurrence relation between $c_{m+2}$ and $c_m$.<br>
+(b) Find $c_{2k}$ in terms of $c_0$ and $c_{2k+1}$ in terms of $c_1$, in closed form.<br>
+(c) Write down two linearly independent solutions $y_1$ ($c_0 = 1,\ c_1 = 0$) and $y_2$ ($c_0 = 0,\ c_1 = 1$). Express one of them in closed form and verify it by substitution. State the radius of convergence of each.<br>
+(d) Solve the IVP $y(0) = 2,\ y'(0) = -1$, giving the first four non-zero terms.<br>
+(e) Use Abel's identity to find the Wronskian $y_1y_2' - y_1'y_2$ exactly, and hence confirm that $y_1$ and $y_2$ are independent.</p>
+</div>
+
+<details><summary>(a) Recurrence</summary><div>
+<p>$$\sum_{n=2}^\infty n(n-1)c_nt^{n-2} + \sum_{n=1}^\infty n\,c_nt^n + \sum_{n=0}^\infty 2c_nt^n = 0.$$
+Shift the first with $m = n - 2$. Start the second at $m = 0$ for free (its $m = 0$ term is $0$):
+$$\sum_{m=0}^\infty\big[(m+2)(m+1)c_{m+2} + (m+2)c_m\big]t^m = 0 \;\Rightarrow\; \boxed{c_{m+2} = -\frac{c_m}{m+1}}, \quad m \ge 0.$$
+(Note $m\,c_m + 2c_m = (m+2)c_m$, which cancels with the $(m+2)$ on the left.)</p></div></details>
+
+<details><summary>(b) Even and odd chains</summary><div>
+<p>Even ($m = 2j$, divide by $2j+1$): $c_2 = -\tfrac11c_0$, $c_4 = \tfrac{1}{1\cdot3}c_0$, $c_6 = -\tfrac1{1\cdot3\cdot5}c_0$:
+$$c_{2k} = \frac{(-1)^k}{1\cdot3\cdots(2k-1)}c_0 = \frac{(-1)^k\,2^k\,k!}{(2k)!}c_0.$$
+Odd ($m = 2j+1$, divide by $2j+2$): $c_3 = -\tfrac12c_1$, $c_5 = \tfrac1{2\cdot4}c_1$, $c_7 = -\tfrac1{2\cdot4\cdot6}c_1$:
+$$c_{2k+1} = \frac{(-1)^k}{2\cdot4\cdots(2k)}c_1 = \frac{(-1)^k}{2^k\,k!}c_1.$$
+Both give $c_0$ and $c_1$ at $k = 0$ ✓.</p></div></details>
+
+<details><summary>(c) Solutions, closed form, radius</summary><div>
+<p>$$y_1 = \sum_{k=0}^\infty\frac{(-1)^k2^kk!}{(2k)!}t^{2k} = 1 - t^2 + \tfrac13t^4 - \tfrac1{15}t^6 + \dots,\qquad y_2 = \sum_{k=0}^\infty\frac{(-1)^k}{2^kk!}t^{2k+1} = t\sum_{k=0}^\infty\frac{(-t^2/2)^k}{k!} = t\,e^{-t^2/2}.$$
+Verify $y_2$: $y_2' = (1 - t^2)e^{-t^2/2}$ and $y_2'' = (t^3 - 3t)e^{-t^2/2}$, so
+$$(t^3 - 3t) + t(1 - t^2) + 2t = 0 \;✓$$
+Radius: $y_2$ is $t$ times $e^{(\cdot)}$, so $R = \infty$. For $y_1$, $\left|\dfrac{c_{2k+2}t^{2k+2}}{c_{2k}t^{2k}}\right| = \dfrac{t^2}{2k+1} \to 0$, so $R = \infty$.<br>
+$y_1$ is even and $y_2$ is odd, so neither is a multiple of the other.</p></div></details>
+
+<details><summary>(d) The IVP</summary><div>
+<p>$c_0 = y(0) = 2$ and $c_1 = y'(0) = -1$, so $y = 2y_1 - y_2$:
+$$y = 2 - 2t^2 + \tfrac23t^4 - \dots \;-\; t + \tfrac12t^3 - \tfrac18t^5 + \dots = \boxed{2 - t - 2t^2 + \tfrac12t^3 + \dots}$$
+"First four non-zero terms" means in increasing powers, so mix the two series together. Don't give four terms of one series.</p></div></details>
+
+<details><summary>(e) Abel</summary><div>
+<p>Standard form: $p(t) = t$, so $\operatorname{wr} = C\,e^{-\int t\,dt} = C\,e^{-t^2/2}$ (<a href="0003-wronskian-abel-euler.html">Lesson 3</a>).<br>
+At $t = 0$: $\operatorname{wr}(0) = y_1(0)y_2'(0) - y_1'(0)y_2(0) = 1\cdot1 - 0\cdot0 = 1$, so $C = 1$:
+$$y_1y_2' - y_1'y_2 = e^{-t^2/2} \ne 0 \text{ for all } t,$$
+which means they're independent ✓. Choosing $(c_0, c_1) = (1, 0)$ and $(0, 1)$ always gives $\operatorname{wr}(0) = 1$. That's why step 5 of the method is automatic for a second-order ODE whose $y''$ coefficient is non-zero at $t = 0$.</p></div></details>
+
+<h2>11 · Before you close this tab</h2>
+<details><summary>Retrieval: write the five steps, the shift rule and the three product identities from memory, then check</summary><div>
+<p><strong>Five steps:</strong> substitute → shift to $t^m$ → extract low terms → recurrence (each coefficient $= 0$) → check the number of free constants.</p>
+<p><strong>Shift rule:</strong> $t^{n+k}$: set $m = n+k$, replace every $n$ by $m-k$, and the start moves up by $k$. $y'' \to \sum_{m=0}(m+2)(m+1)c_{m+2}t^m$.</p>
+<p><strong>Products:</strong> $2\cdot4\cdots2k = 2^kk!$; $\;1\cdot3\cdots(2k-1) = (2k)!/(2^kk!)$; $\;1\cdot3\cdots(2k+1) = (2k+1)!/(2^kk!)$.</p>
+<p><strong>Recognise:</strong> $t^{2k}/(2k)!$ → $\cos$/$\cosh$. $\;t^{2k}/k!$ → $e^{at^2}$. IVP at $0$: $c_0 = y(0)$, $c_1 = y'(0)$.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/08_MAST20030_Lecture_Notes_Topic2_PowerSeries-LMS.pdf">Lecture 8</a> (the five-step method, $y'' + y = 0$, Airy) and <a href="../lectures/07_MAST20030_Lecture_Notes_Topic2_PowerSeries-LMS.pdf">Lecture 7</a> ($y' = y$ by series). For more worked shifts, see <a href="https://tutorial.math.lamar.edu/Classes/DE/PowerSeries.aspx">Paul's Notes: Review of Power Series</a> (index shifts) and <a href="https://tutorial.math.lamar.edu/Classes/DE/SeriesSolutions.aspx">Paul's Notes: Series Solutions</a>.</p>
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../tutes/tute_week_04.pdf">Tutorial week 4</a>, Q2 (a)–(c): $y'' - ty' - y = 0$. Then recognise the even solution in closed form, which the tutorial solution doesn't do.</li>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic2.pdf">Problem Booklet 2</a>, Q1 (a)(i): $y'' - 4y = 0$ by series, then match it with Topic 1.</li>
+  <li>Booklet Q2 (g): $y'' + ty' + y = 0$. Find both chains and the closed form of one.</li>
+  <li>Optional: Booklet Q1 (b)(i), Q2 (f).</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, do one more set of the shift drill cold, plus quizzes 4, 7 and 10. Redo challenge (a)–(b) without looking.</p>
+
+<div class="ask">💬 Stuck on a shift, or your $c_{2k}$ doesn't match? Ask me in the terminal. Paste or photograph your working and I'll find the line where it goes wrong.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0008-taylor-series-radius.html">Lesson 8, Taylor series &amp; radius</a> and <a href="0003-wronskian-abel-euler.html">Lesson 3, Abel</a></span>
+  <span>Next: <a href="0010-series-variable-coeff.html">Lesson 10, variable coefficients</a></span>
+  <span>Reference: <a href="../reference/topic2-cheatsheet.html">Topic 2 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

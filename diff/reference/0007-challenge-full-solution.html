@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Particular Solution Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 7 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>Consider $\;t^2y'' - t(t+2)\,y' + (t+2)\,y = 2t^3e^{t},\quad t&gt;0$.</p>
+<p>(a) Show that $v = t$ is a complementary solution.<br>
+(b) Use reduction of order to find the general solution. Identify $y_c$ and $y_p$, and prove the complementary solutions are linearly independent.<br>
+(c) Solve the IVP with $y(1) = 0,\; y'(1) = 2e$, and state the interval of validity.</p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · $v = t$ is a complementary solution</h2>
+
+<div class="script">
+<p>With $v = t$: $\;v' = 1$, $\;v'' = 0$. Substituting into the homogeneous equation:</p>
+$$t^2\cdot 0 - t(t+2)\cdot 1 + (t+2)\cdot t = -t(t+2) + t(t+2) = 0.$$
+<p>So $v = t$ is a complementary solution.</p>
+</div>
+<p class="note">The test $Q + tR = 0$ is how you'd spot it, but "show" means substitute and get $0$ on the page.</p>
+
+<h2>(b) 1 · Standard form</h2>
+
+<div class="script">
+<p>Dividing by $t^2$ (valid since $t&gt;0$):</p>
+$$y'' - \frac{t+2}{t}\,y' + \frac{t+2}{t^2}\,y = 2t\,e^{t},$$
+<p>so $\;f_1(t) = -\dfrac{t+2}{t} = -1 - \dfrac2t\;$ and $\;g(t) = 2t\,e^{t}$.</p>
+</div>
+<p class="note">$g = 2te^t$, not $2t^3e^t$. Getting this wrong ruins every line after it. Splitting $f_1$ into $-1 - 2/t$ now makes the next integral one line.</p>
+
+<h2>(b) 2 · Reduce the order</h2>
+
+<div class="script">
+<p>Let $y = u(t)\,t$. Then $y' = u't + u$ and $y'' = u''t + 2u'$. Substituting into the original ODE:</p>
+$$t^2(u''t + 2u') - t(t+2)(u't + u) + (t+2)\,u\,t = 2t^3e^{t}$$
+$$t^3u'' + \big(2t^2 - t^2(t+2)\big)u' + \big(-t(t+2) + t(t+2)\big)u = 2t^3e^{t}$$
+$$t^3u'' - t^3u' = 2t^3e^{t}.$$
+<p>Dividing by $t^3$ and letting $w = u'$:</p>
+$$w' - w = 2e^{t}.$$
+</div>
+<p class="note">Show the line where the $u$ coefficient collapses to $0$. It proves $v$ works and markers look for it. The formula route gives the same thing: $I = v^2e^{\int f_1} = t^2\cdot e^{-t}/t^2 = e^{-t}$ and $Ig/v = 2$. If the question says "use reduction of order", the substitution above is the safe version. The formula is fine as a check.</p>
+
+<h2>(b) 3 · Integrating factor and first integration</h2>
+
+<div class="script">
+<p>Integrating factor $I = e^{\int -1\,dt} = e^{-t}$:</p>
+$$(e^{-t}w)' = 2 \quad\Longrightarrow\quad e^{-t}w = 2t + C_1 \quad\Longrightarrow\quad w = (2t + C_1)\,e^{t}.$$
+</div>
+<p class="note">Keep $C_1$. It becomes your second complementary solution.</p>
+
+<h2>(b) 4 · Second integration</h2>
+
+<div class="script">
+<p>By parts, $\int t\,e^{t}\,dt = t\,e^{t} - \int e^{t}\,dt = (t-1)\,e^{t}$, so</p>
+$$u = \int w\,dt = 2(t-1)\,e^{t} + C_1e^{t} + C_2.$$
+</div>
+
+<h2>(b) 5 · General solution, $y_c$ and $y_p$</h2>
+
+<div class="script">
+$$y = u\,t = 2t(t-1)\,e^{t} + C_1\,t\,e^{t} + C_2\,t = 2t^2e^{t} + (C_1 - 2)\,t\,e^{t} + C_2\,t.$$
+<p>Writing $A = C_1 - 2$ and $B = C_2$:</p>
+$$y = \underbrace{A\,t\,e^{t} + B\,t}_{y_c} \;+\; \underbrace{2t^2e^{t}}_{y_p},$$
+<p>with $A, B$ arbitrary constants.</p>
+</div>
+<p class="note">The $-2te^t$ from $2t(t-1)e^t$ is a complementary solution, so it's absorbed into $A$. Leaving $y_p = 2t(t-1)e^t$ isn't wrong, just untidy. Show the renaming line so the marker can follow it.</p>
+
+<h2>(b) 6 · Linear independence</h2>
+
+<div class="script">
+<p>With $y_1 = t\,e^{t}$, $y_1' = (1+t)\,e^{t}$, and $y_2 = t$, $y_2' = 1$:</p>
+$$\operatorname{wr}[y_1, y_2](t) = \begin{vmatrix} t\,e^{t} & t \\ (1+t)\,e^{t} & 1 \end{vmatrix} = t\,e^{t} - t(1+t)\,e^{t} = -t^2e^{t}.$$
+<p>Since $\operatorname{wr} = -t^2e^{t} \neq 0$ for $t&gt;0$, $\;t\,e^{t}$ and $t$ are linearly independent solutions on $(0,\infty)$. So $y_c = A\,t\,e^{t} + B\,t$ is the general complementary solution.</p>
+</div>
+<p class="note">The sign depends on the order you list them in: the lesson used $[t,\,te^t]$ and got $+t^2e^t$. Either is fine. What matters is "$\neq 0$, so independent", written out. Abel check in the margin: $\operatorname{wr} = C\,e^{-\int f_1} = C\,e^{t + 2\ln t} = C\,t^2e^t$ ✓, with $C = -1$ here.</p>
+
+<h2>(c) 1 · Interval of validity</h2>
+
+<div class="script">
+<p>In standard form, the coefficients $-\dfrac{t+2}{t}$, $\;\dfrac{t+2}{t^2}$ and $2t\,e^{t}$ are continuous except at $t = 0$. The initial point $t_0 = 1$ lies in $(0,\infty)$, so by the existence and uniqueness theorem the IVP has a unique solution on $(0,\infty)$.</p>
+</div>
+<p class="note">Name the theorem and say which functions are continuous. That sentence is usually worth its own mark.</p>
+
+<h2>(c) 2 · Initial conditions</h2>
+
+<div class="script">
+<p>Differentiating the general solution:</p>
+$$y' = 2(t^2 + 2t)\,e^{t} + A(1+t)\,e^{t} + B.$$
+<p>Then</p>
+$$\begin{aligned}
+y(1) &= 2e + Ae + B = 0, &\quad&(1)\\
+y'(1) &= 6e + 2Ae + B = 2e. &&(2)
+\end{aligned}$$
+<p>$(2) - (1)$: $\;4e + Ae = 2e$, so $A = -2$.</p>
+<p>Substituting into $(1)$: $\;2e - 2e + B = 0$, so $B = 0$.</p>
+</div>
+<p class="note">Product rule on $2t^2e^t$: $(4t + 2t^2)e^t$. Number the equations so you can write "(2) − (1)" instead of rewriting both.</p>
+
+<h2>(c) 3 · Answer</h2>
+
+<div class="script">
+$$\boxed{\,y = 2t^2e^{t} - 2t\,e^{t} = 2t(t-1)\,e^{t}, \qquad t\in(0,\infty).\,}$$
+</div>
+
+<h2>Check (on paper if time allows)</h2>
+
+<div class="script">
+<p><em>ICs:</em> $\;y(1) = 2\cdot1\cdot0\cdot e = 0$ ✓. With $y' = 2(2t-1)\,e^{t} + 2t(t-1)\,e^{t} = 2(t^2 + t - 1)\,e^{t}$, $\;y'(1) = 2e$ ✓.</p>
+<p><em>Particular solution:</em> $y_p = 2t^2e^t$, $\;y_p' = 2(t^2 + 2t)\,e^t$, $\;y_p'' = 2(t^2 + 4t + 2)\,e^t$.</p>
+$$\begin{aligned}
+t^2y_p'' - t(t+2)\,y_p' + (t+2)\,y_p &= 2e^t\Big[t^4 + 4t^3 + 2t^2 - t^2(t+2)^2 + t^3 + 2t^2\Big] \\
+&= 2e^t\Big[t^4 + 5t^3 + 4t^2 - (t^4 + 4t^3 + 4t^2)\Big] \\
+&= 2t^3e^{t} \;✓
+\end{aligned}$$
+</div>
+<p class="note">The IC check takes about 20 seconds and catches most arithmetic slips. Only do the $y_p$ check if you have time to spare.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Substituting $v$ and getting $0$ · standard form with $g$ after dividing · the substitution $y = ut$ with the $u$ terms cancelling · $I$ and both integrations with constants · $y_c$ and $y_p$ labelled · the Wronskian with "$\neq 0$, so independent" · the interval and its reason · solving the ICs · the boxed answer with its interval.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0007-particular-solutions.html">Lesson 7, challenge</a></span>
+  <span>Reference: <a href="topic1-cheatsheet.html">Topic 1 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

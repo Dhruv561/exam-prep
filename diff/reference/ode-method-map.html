@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ODE Method Map</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  body.ref main.wide { max-width: 78rem; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 27rem); gap: 2rem; align-items: start; margin-top: 1.4rem; }
+  @media (max-width: 960px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+  /* ---- Legend ---- */
+  .legend { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); margin: .8rem 0 0; }
+  .legend span { display: inline-flex; align-items: center; gap: .4rem; }
+  .sw { display: inline-block; width: 1.1rem; height: .8rem; border-radius: 3px; }
+  .sw.q { border: 2px solid var(--fg); transform: rotate(45deg) scale(.7); width: .8rem; }
+  .sw.m { background: var(--ok-bg); border: 1.5px solid var(--ok); }
+  .sw.f { border: 1.5px dashed var(--muted); }
+  .sw.s { background: var(--accent); border-radius: 50%; width: .8rem; }
+
+  /* ---- Tree ---- */
+  .tree, .tree ul { list-style: none; margin: 0; padding: 0; }
+  .tree ul { padding-left: 1.1rem; }
+  .tree li { position: relative; padding: .3rem 0 .3rem 1.5rem; }
+  .tree > li { padding-left: 0; }
+  .tree ul > li::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; border-left: 2px solid var(--rule); }
+  .tree ul > li:last-child::before { bottom: auto; height: 1.35rem; }
+  .tree ul > li::after { content: ''; position: absolute; left: 0; top: 1.35rem; width: 1.2rem; border-top: 2px solid var(--rule); }
+  .tree li.on::before, .tree li.on::after { border-color: var(--accent); }
+  .tree ul > li.on::before { bottom: auto; height: 1.35rem; }
+  .tree li.through::before { border-color: var(--accent); }
+
+  .row { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; min-height: 2.1rem; }
+  .edge { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 500; color: var(--muted); background: var(--card); border: 1px solid var(--rule); border-radius: 999px; padding: .12rem .6rem; line-height: 1.5; }
+  .edge::after { content: ' →'; }
+  li.on > .row > .edge { color: var(--accent); border-color: var(--accent); }
+
+  .n-q { font-weight: 600; display: inline-flex; align-items: center; gap: .55rem; }
+  .n-q::before { content: ''; flex: none; width: .55rem; height: .55rem; border: 2px solid var(--fg); transform: rotate(45deg); }
+  .n-s { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .85rem; display: inline-flex; align-items: center; gap: .5rem; }
+  .n-s b { flex: none; width: 1.45rem; height: 1.45rem; border-radius: 50%; background: var(--accent); color: var(--bg); font-size: .75rem; display: inline-flex; align-items: center; justify-content: center; }
+  .n-note { font-size: .88rem; color: var(--muted); }
+
+  button.n-m, button.n-f {
+    font: inherit; font-family: Inter, system-ui, sans-serif; font-size: .88rem; font-weight: 600; text-align: left;
+    border-radius: 6px; padding: .35rem .7rem; cursor: pointer; min-height: 2.1rem;
+    display: inline-flex; align-items: center; gap: .5rem; transition: background .12s, box-shadow .12s;
+  }
+  button.n-m { color: var(--ok); background: var(--ok-bg); border: 1.5px solid var(--ok); }
+  button.n-m:hover, button.n-m:focus-visible { box-shadow: 0 0 0 3px var(--ok-bg), 0 0 0 4.5px var(--ok); outline: none; }
+  button.n-m.sel { background: var(--ok); color: var(--bg); }
+  button.n-f { color: var(--muted); background: transparent; border: 1.5px dashed var(--muted); font-weight: 500; }
+  button.n-f:hover, button.n-f:focus-visible { border-color: var(--fg); color: var(--fg); outline: none; }
+  button.n-f.sel { border-style: solid; color: var(--fg); }
+  .tag { font-size: .66rem; font-weight: 600; letter-spacing: .04em; padding: .05rem .4rem; border-radius: 3px; background: var(--bg); color: var(--muted); border: 1px solid var(--rule); }
+  button.n-m.sel .tag { background: transparent; color: var(--bg); border-color: var(--bg); }
+
+  /* ---- Panel ---- */
+  .panel { position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow-y: auto; background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 1.1rem 1.2rem; font-size: .94rem; }
+  @media (max-width: 960px) { .panel { position: static; max-height: none; } }
+  .panel h3 { margin: .2rem 0 .3rem; font-size: 1.2rem; font-weight: 600; }
+  .panel .kicker a { color: var(--accent); }
+  .panel .use { margin: .6rem 0; }
+  .panel .box { background: var(--bg); padding: .5rem .9rem; margin: .7rem 0; }
+  .panel ol.steps > li { margin: .45rem 0; }
+  .label { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin: 1rem 0 .4rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: .35rem; }
+  .chips button { font: inherit; font-family: Inter, system-ui, sans-serif; font-size: .78rem; font-weight: 500; color: var(--fg); background: var(--bg); border: 1px solid var(--rule); border-radius: 999px; padding: .3rem .7rem; cursor: pointer; min-height: 32px; }
+  .chips button:hover, .chips button:focus-visible { border-color: var(--accent); outline: none; }
+  .chips button.act { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .case { background: var(--bg); border: 1px solid var(--rule); border-left: 3px solid var(--accent); border-radius: 4px; padding: .6rem .9rem; margin-top: .5rem; min-height: 4.5rem; }
+  .case > :first-child { margin-top: 0; } .case > :last-child { margin-bottom: 0; }
+  .case .when { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); margin-bottom: .3rem; }
+  .panel .trap { margin: .9rem 0 0; font-size: .9rem; }
+  .hint { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+
+  .log { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); }
+  .log li { margin: .2rem 0; }
+</style>
+</head>
+<body class="ref">
+<main class="wide">
+<div class="kicker">MAST20030 · Reference · Living document</div>
+<h1>Which method? The ODE decision map</h1>
+<p class="lede">Start at the top and answer each question about the equation in front of you. Green boxes are methods you've learned: hover one to see its recipe, click to pin it, then hover the case chips to see what changes when roots are repeated, complex, resonant and so on.</p>
+<p class="hint" id="coverage"></p>
+<div class="legend">
+  <span><i class="sw q"></i>Question to ask</span>
+  <span><i class="sw s"></i>Step in a recipe</span>
+  <span><i class="sw m"></i>Method (covered)</span>
+  <span><i class="sw f"></i>Later topic (filled in when we reach it)</span>
+</div>
+
+<div class="layout">
+  <ul class="tree" id="tree"></ul>
+  <aside class="panel" id="panel" aria-live="polite"></aside>
+</div>
+
+<h2>Changelog</h2>
+<ul class="log" id="log"></ul>
+</main>
+
+<script>
+/* =====================================================================
+   DATA — edit this block after each session.
+   - Add a method: put an entry in METHODS, then reference it from TREE
+     with { m: 'id' }. Each case is { name, when?, body }.
+   - Unlock a later topic: change its entry from `future: true` to a full
+     method (drop `future`, add use/form/steps/cases/traps, set lesson).
+   - Strings are String.raw so LaTeX backslashes work. Never write a
+     dollar sign directly followed by an opening brace.
+   ===================================================================== */
+const R = String.raw;
+
+const META = {
+  covered: 'Topic 1, Lessons 0–7; Topic 2, Lessons 8–12 (power series)',
+  updated: '14 Oct 2026',
+};
+
+const LOG = [
+  ['14 Oct 2026', 'Unlocked Power series (Topic 2): steps, terminating, radius, step-3, three-term, singular-at-0, uniform/genuine cases.'],
+  ['13 Oct 2026', 'Created. Topic 1 fully mapped; Topics 2–6 stubbed as later-topic boxes.'],
+];
+
+const L = n => ({ n, href: `../lessons/${{0:'0000-assumed-knowledge',1:'0001-integrating-factors',2:'0002-reduction-of-order',3:'0003-wronskian-abel-euler',4:'0004-systems-eigenvalues',5:'0005-phase-portraits',6:'0006-inhomogeneous-matrix-exp',7:'0007-particular-solutions',8:'0008-taylor-series-radius',9:'0009-series-method-constant-coeff',10:'0010-series-variable-coeff',11:'0011-singular-points-bessel',12:'0012-uniform-convergence-genuine'}[n]}.html` });
+
+const METHODS = {
+  intfactor: {
+    title: 'Integrating factor', lesson: L(1),
+    use: R`First-order and linear: $y$ and $y'$ appear to the first power, coefficients depend on $t$ only.`,
+    form: R`$$y' + f(t)\,y = g(t) \;\Rightarrow\; I = e^{\int f\,dt},\quad (Iy)' = Ig,\quad y = \frac1I\Big(\int Ig\,dt + C\Big)$$`,
+    steps: [
+      R`Divide so the coefficient of $y'$ is 1. Note what you divided by: its zeros are bad points.`,
+      R`$I = e^{\int f}$ (no constant needed).`,
+      R`$(Iy)' = Ig$. Integrate and <strong>add $C$ before dividing by $I$</strong>.`,
+      R`Apply the IC, state the interval of validity, check by substituting.`,
+    ],
+    cases: [
+      { name: R`$f = a/t$`, body: R`$I = e^{a\ln t} = t^{a}$ for $t>0$. The most common one on exams.` },
+      { name: R`$f = \tan t$`, body: R`$\int\tan t = -\ln\cos t$, so $I = \sec t$. Bad points at $t = \tfrac\pi2 + k\pi$.` },
+      { name: R`$f = \frac{kt}{t^2+1}$`, body: R`$I = (t^2+1)^{k/2}$. Spot it as $\tfrac k2\cdot\tfrac{(t^2+1)'}{t^2+1}$.` },
+      { name: R`$f$ constant`, body: R`$f = a$ gives $I = e^{at}$. (Also solvable as constant-coefficient: $y_c = Ce^{-at}$ plus a guessed $y_p$.)` },
+      { name: R`$g = 0$`, when: 'Homogeneous', body: R`$(Iy)' = 0$ so $y = C/I = Ce^{-\int f}$. No integration of $Ig$ needed.` },
+      { name: R`$\int Ig$ needs parts`, body: R`$\int te^{t}dt = (t-1)e^t$, $\;\int t^2e^t dt = (t^2-2t+2)e^t$. Try the product/quotient rule backwards first: $\big(\tfrac{e^t}{t}\big)' = \tfrac{(t-1)e^t}{t^2}$.` },
+      { name: 'Leading coeff. vanishes', body: R`E.g. $t\,y' + 2y = \dots$: dividing by $t$ makes $t=0$ a bad point. The solution is only guaranteed on the side of $0$ containing $t_0$.` },
+    ],
+    traps: R`Using $g$ from <em>before</em> dividing. Dividing by $I$ before adding $C$ (loses the $C/I$ term).`,
+  },
+
+  chareq: {
+    title: 'Characteristic equation', lesson: L(0),
+    use: R`Linear, homogeneous part has <strong>constant coefficients</strong>: $ay'' + by' + cy$. Gives $y_c$.`,
+    form: R`$$y = e^{\lambda t}\;\Rightarrow\; a\lambda^2 + b\lambda + c = 0$$`,
+    steps: [
+      R`Write the characteristic polynomial (one power of $\lambda$ per derivative).`,
+      R`Find all roots, with multiplicity.`,
+      R`Each root contributes solutions as in the cases below; $y_c$ is the combination.`,
+    ],
+    cases: [
+      { name: 'Distinct real', when: R`$b^2 > 4ac$`, body: R`$y_c = C_1e^{\lambda_1t} + C_2e^{\lambda_2t}$.` },
+      { name: 'Repeated', when: R`$b^2 = 4ac$`, body: R`$y_c = (C_1 + C_2t)\,e^{\lambda t}$. The extra $t$ comes from reduction of order with $v = e^{\lambda t}$.` },
+      { name: 'Complex', when: R`$b^2 < 4ac$, $\lambda = \alpha\pm i\beta$`, body: R`$y_c = e^{\alpha t}\big(C_1\cos\beta t + C_2\sin\beta t\big)$. Pure imaginary ($\alpha=0$) gives undamped oscillation.` },
+      { name: R`Root $\lambda = 0$`, when: R`$c = 0$`, body: R`$e^{0t} = 1$, so a constant appears: $y'' + by' = 0 \Rightarrow y_c = C_1 + C_2e^{-bt}$.` },
+      { name: R`$k$-fold root`, when: 'Higher order', body: R`$e^{\lambda t}, te^{\lambda t}, \dots, t^{k-1}e^{\lambda t}$. A repeated complex pair gives $t^j e^{\alpha t}\cos\beta t$ and $t^j e^{\alpha t}\sin\beta t$.` },
+    ],
+    traps: R`This only gives $y_c$. If $g\ne0$ you still need $y_p$ (Step 2).`,
+  },
+
+  euler: {
+    title: 'Euler (equidimensional) equation', lesson: L(3),
+    use: R`Each derivative's coefficient has the matching power of $t$: $at^2y'' + bty' + cy$. Gives $y_c$.`,
+    form: R`$$y = t^n\;\Rightarrow\; a\,n(n-1) + b\,n + c = 0$$`,
+    steps: [
+      R`Check the pattern: $t^2$ with $y''$, $t$ with $y'$, constant with $y$ (after dividing out any common factor).`,
+      R`Substitute $t^n$; get the indicial quadratic. Careful: it's $n(n-1)$, not $n^2$.`,
+      R`Read off $y_c$ from the cases. ($t = e^x$ turns it into constant coefficients, which is why the cases mirror them.)`,
+    ],
+    cases: [
+      { name: 'Distinct real', body: R`$y_c = C_1t^{n_1} + C_2t^{n_2}$.` },
+      { name: 'Repeated', body: R`$y_c = t^n\,(C_1 + C_2\ln t)$. $\ln t$ plays the role of the extra $t$ in the constant-coefficient case.` },
+      { name: 'Complex', when: R`$n = \alpha\pm i\beta$`, body: R`$y_c = t^\alpha\big(C_1\cos(\beta\ln t) + C_2\sin(\beta\ln t)\big)$, since $t^{i\beta} = e^{i\beta\ln t}$.` },
+      { name: R`Root $n = 0$`, body: R`$t^0 = 1$: a constant is a solution.` },
+      { name: R`$t < 0$`, body: R`Replace $t$ by $|t|$: $|t|^n$, $\ln|t|$. $t = 0$ is always a bad point (leading coefficient $at^2$).` },
+      { name: 'Inhomogeneous', body: R`Forcing $t^k$: guess $At^k$. If $k$ is an $s$-fold root, multiply by $(\ln t)^s$. Or use reduction of order with $v = t^{n_1}$.` },
+    ],
+    traps: R`Writing $n^2$ instead of $n(n-1)$. Forgetting that the interval of validity excludes $t=0$.`,
+  },
+
+  redorder: {
+    title: 'Reduction of order', lesson: L(2),
+    use: R`You know (or can guess) one solution $v$ of the homogeneous equation. Works for <strong>variable coefficients</strong>, and gives $y_c$ <em>and</em> $y_p$ in one go. The course's main method.`,
+    form: R`$$y = uv,\; w = u':\quad w' + \Big(\tfrac{2v'}{v} + f_1\Big)w = \tfrac{g}{v},\quad I = v^2e^{\int f_1},\quad (Iw)' = \tfrac{Ig}{v}$$`,
+    steps: [
+      R`Standard form: divide by the $y''$ coefficient to get $y'' + f_1y' + f_0y = g$.`,
+      R`Find $v$ (given, or by the trial tests in the cases).`,
+      R`$I = v^2e^{\int f_1}$, then $Iw = \int \tfrac{Ig}{v}\,dt + C_1$.`,
+      R`$u = \int w\,dt + C_2$, $y = uv$. <strong>Keep both constants; multiply by $v$.</strong> The constant-free part is $y_p$.`,
+    ],
+    cases: [
+      { name: R`$v = e^{t}$`, when: R`Test on $Py''+Qy'+Ry=0$`, body: R`Works if $P + Q + R = 0$.` },
+      { name: R`$v = e^{-t}$`, body: R`Works if $P - Q + R = 0$.` },
+      { name: R`$v = e^{at}$`, body: R`$a^2P + aQ + R = 0$ for <em>all</em> $t$: set each power of $t$ to zero and solve for $a$.` },
+      { name: R`$v = t$`, body: R`Works if $Q + tR = 0$.` },
+      { name: R`$v = t^n$`, body: R`Euler form ($t^2y''$, $ty'$, $y$): use the indicial equation. Also try $(t+a)^b$ if the coefficients involve $t+a$.` },
+      { name: 'Given wr (Abel)', body: R`$e^{\int f_1} \propto 1/\operatorname{wr}$, so $I = v^2/\operatorname{wr}$ up to a constant. Saves an integration.` },
+      { name: R`$g = 0$`, when: 'Just need a 2nd solution', body: R`$Iw = C_1 \Rightarrow u = C_1\int \tfrac{dt}{I}$. Gives $y_2 = v\int\tfrac{e^{-\int f_1}}{v^2}dt$.` },
+      { name: R`$v$ matches forcing`, body: R`If the forcing looks like one of the $y_c$ terms, choose that one as $v$: the $\int Ig/v$ integral simplifies.` },
+    ],
+    traps: R`$g$ taken before dividing. Dropping $C_1$ or $C_2$. Forgetting the final multiply by $v$.`,
+  },
+
+  undet: {
+    title: 'Undetermined coefficients (shortcut)', lesson: L(7),
+    use: R`Constant-coefficient (or Euler) equation with "nice" forcing: exponentials, polynomials, sin/cos, $t^k$. Fast, and a good check on reduction of order. The course itself teaches reduction of order for $y_p$, so use this when not told which method.`,
+    form: R`$$y_p \sim \text{(shape of } g) \times t^{s}$$`,
+    steps: [
+      R`Find $y_c$ first: you need its roots to detect resonance.`,
+      R`Write the guess for each piece of $g$ (cases). Superpose for sums.`,
+      R`If any guess term already appears in $y_c$, multiply by $t$ (Euler: $\ln t$) until it doesn't.`,
+      R`Substitute and match coefficients.`,
+    ],
+    cases: [
+      { name: R`$e^{kt}$`, body: R`$y_p = Ae^{kt}$.` },
+      { name: 'Polynomial deg $m$', body: R`Full degree-$m$ polynomial $A_mt^m + \dots + A_0$, even if $g$ is missing some powers.` },
+      { name: R`$\cos\omega t$ or $\sin\omega t$`, body: R`$A\cos\omega t + B\sin\omega t$: always both.` },
+      { name: R`poly $\times\, e^{kt}$`, body: R`(full polynomial of the same degree)$\,\times\,e^{kt}$.` },
+      { name: R`$e^{\alpha t}\cos\beta t$`, body: R`$e^{\alpha t}(A\cos\beta t + B\sin\beta t)$.` },
+      { name: 'Resonance', when: R`$k$ is an $s$-fold characteristic root`, body: R`Multiply the guess by $t^s$. E.g. $y''-y = e^t$: guess $Ate^t$. Sign it's needed: your plain guess substitutes to $0$.` },
+      { name: 'Trig resonance', when: R`Roots $\pm i\omega$, forcing $\cos\omega t$`, body: R`$t(A\cos\omega t + B\sin\omega t)$: amplitude grows linearly.` },
+      { name: R`Euler, $t^k$`, body: R`$At^k$; if $k$ is an $s$-fold indicial root, multiply by $(\ln t)^s$.` },
+      { name: R`$\ln t$, $\tan t$, $1/t$ …`, body: R`No finite guess family. Use reduction of order.` },
+    ],
+    traps: R`Guessing only $A\cos\omega t$. Not checking $y_c$ for resonance.`,
+  },
+
+  wronskian: {
+    title: 'Wronskian & Abel', lesson: L(3),
+    use: R`Asked to prove independence, deduce a property of a second solution, or build a missing solution from $\operatorname{wr}$.`,
+    form: R`$$\operatorname{wr}[y_1,y_2] = y_1y_2' - y_1'y_2,\qquad \operatorname{wr}(t) = \operatorname{wr}(t_0)\,e^{-\int_{t_0}^t f_1}$$`,
+    steps: [
+      R`Standard form to read off $f_1$ (for $n$th order use $f_{n-1}$).`,
+      R`Compute wr directly, or get it from Abel without knowing the solutions.`,
+      R`Interpret: independence, a second solution, or a property at a clever $t_0$.`,
+    ],
+    cases: [
+      { name: R`$\operatorname{wr}\neq0$ somewhere`, body: R`The functions are linearly independent.` },
+      { name: R`$\operatorname{wr}\equiv0$, solutions`, body: R`For two solutions of the same linear ODE, wr is either never $0$ or always $0$ (Abel). Always $0$ ⇒ dependent.` },
+      { name: R`$\operatorname{wr}\equiv0$, arbitrary functions`, body: R`Not conclusive: $t^2$ and $t|t|$ have $\operatorname{wr}\equiv0$ but are independent on $\mathbb R$.` },
+      { name: '2nd solution', body: R`$\big(y_2/y_1\big)' = \operatorname{wr}/y_1^2$. Integrate, multiply by $y_1$.` },
+      { name: 'Property proofs', body: R`Evaluate wr at a shared zero or shared max/min of $y_1,y_2$: wr $=0$ there ⇒ dependent everywhere.` },
+      { name: '3rd order', body: R`$\operatorname{wr}$ is a $3\times3$ determinant; Abel uses $f_2$. Knowing two solutions and wr gives an ODE for the third.` },
+    ],
+    traps: R`Using $f_1$ before dividing by the leading coefficient. Sign: $e^{-\int f_1}$.`,
+  },
+
+  ivp: {
+    title: 'IVP: constants & interval of validity', lesson: L(1),
+    use: R`Conditions are given at a single point $t_0$, or you're asked for "the largest interval on which a unique solution is guaranteed".`,
+    form: R`$$n\text{th order} \Rightarrow n \text{ conditions } y(t_0),\dots,y^{(n-1)}(t_0) \text{ at the same } t_0$$`,
+    steps: [
+      R`Standard form (leading coefficient 1). List bad points: zeros of what you divided by, denominators, $\ln(\le0)$, $\sqrt{<0}$, $\tan$ asymptotes.`,
+      R`Interval: largest open interval between bad points containing $t_0$.`,
+      R`Constants: substitute the ICs into the <em>general</em> solution ($y_c + y_p$), not just $y_c$.`,
+    ],
+    cases: [
+      { name: R`$t_0$ between bad points`, body: R`Answer is the open interval between the nearest bad points either side.` },
+      { name: R`$t_0$ is a bad point`, body: R`No guarantee from the theorem: there may be no solution, or infinitely many.` },
+      { name: 'No bad points', body: R`Coefficients continuous everywhere ⇒ $(-\infty,\infty)$.` },
+      { name: 'Conditions at two points', body: R`That's a BVP, not an IVP: existence/uniqueness isn't guaranteed (Topic 5).` },
+    ],
+    traps: R`Applying ICs to $y_c$ only. Reading bad points off the equation before dividing.`,
+  },
+
+  convert: {
+    title: 'ODE ↔ system conversion', lesson: L(4),
+    use: R`To use eigenvalue methods on a higher-order ODE, or to turn a 2×2 system into one 2nd-order ODE.`,
+    form: R`$$y'' + by' + cy = g \;\leftrightarrow\; \mathbf y' = \begin{pmatrix}0&1\\-c&-b\end{pmatrix}\mathbf y + \begin{pmatrix}0\\g\end{pmatrix},\quad \mathbf y = (y, y')$$`,
+    steps: [
+      R`Unknowns: $y, y', \dots, y^{(n-1)}$. Each row says "derivative of this = next one", except the last.`,
+      R`Last row: solve the ODE for $y^{(n)}$: entries are the negated coefficients, forcing goes in the bottom of $\mathbf b$.`,
+    ],
+    cases: [
+      { name: '2nd order → system', body: R`Companion matrix above. Its eigenvalues are the characteristic roots.` },
+      { name: 'System → 2nd order', body: R`$x'' - (\operatorname{tr}A)\,x' + (\det A)\,x = 0$ for a homogeneous $2\times2$ system.` },
+      { name: R`$n$th order`, body: R`$n\times n$ matrix with 1s on the superdiagonal, negated coefficients on the bottom row.` },
+      { name: 'Inhomogeneous', body: R`$g$ goes only in the last component of $\mathbf b$.` },
+    ],
+    traps: R`Forgetting to divide by the $y''$ coefficient first.`,
+  },
+
+  eigen: {
+    title: 'Eigenvalue method', lesson: L(4),
+    use: R`Homogeneous constant-coefficient system $\mathbf y' = A\mathbf y$.`,
+    form: R`$$\lambda^2 - (\operatorname{tr}A)\lambda + \det A = 0,\qquad \mathbf y = C_1\mathbf v_1e^{\lambda_1t} + C_2\mathbf v_2e^{\lambda_2t}$$`,
+    steps: [
+      R`Eigenvalues from $\operatorname{tr}$ and $\det$.`,
+      R`Eigenvectors: for a row $(p,q)$ of $A-\lambda I$, $\mathbf v = (q,-p)$.`,
+      R`Combine; for ICs solve $C_1\mathbf v_1 + C_2\mathbf v_2 = \mathbf y_0$.`,
+    ],
+    cases: [
+      { name: 'Distinct real', body: R`$\mathbf y = C_1\mathbf v_1e^{\lambda_1t} + C_2\mathbf v_2e^{\lambda_2t}$.` },
+      { name: 'Complex', when: R`$\alpha\pm i\beta$`, body: R`Take <em>one</em> $\lambda$ and its $\mathbf v$; expand $\mathbf v e^{\alpha t}(\cos\beta t + i\sin\beta t)$. Real and imaginary parts are two real solutions.` },
+      { name: 'Repeated, 2 eigenvectors', body: R`Only when $A = \lambda I$: every vector is an eigenvector, $\mathbf y = e^{\lambda t}\mathbf y_0$.` },
+      { name: 'Repeated, 1 eigenvector', body: R`The trial gives only one solution. Generalised eigenvectors aren't examinable: use the matrix exponential $e^{At} = e^{\lambda t}(I + Nt)$.` },
+      { name: R`$\lambda = 0$`, when: R`$\det A = 0$`, body: R`$\mathbf v_1$ times a constant: a whole line of critical points.` },
+    ],
+    traps: R`Using both complex eigenvalues (doubles up). Eigenvector order not matching eigenvalue order.`,
+  },
+
+  phase: {
+    title: 'Phase portrait & classification', lesson: L(5),
+    use: R`"Classify the critical point", "determine stability", or "sketch a detailed phase portrait" for $\mathbf y' = A\mathbf y$.`,
+    form: R`$$\text{type from } \det A,\ \operatorname{tr}A,\ \operatorname{tr}^2 - 4\det$$`,
+    steps: [
+      R`Eigen-lines with arrows (inward if $\lambda<0$). These are the orbits with $y/x$ constant.`,
+      R`Asymptotics: node enters tangent to the <strong>slow</strong> eigenvector; saddle leaves along $\lambda>0$.`,
+      R`Nullclines: vertical tangents on $ax+by=0$, horizontal on $cx+dy=0$.`,
+      R`Axis slopes ($x$-axis $c/a$, $y$-axis $d/b$), then ≥4 orbits with arrows.`,
+    ],
+    cases: [
+      { name: 'Saddle', when: R`$\det < 0$`, body: R`Real, opposite signs. Unstable. Orbit → origin only on the $\lambda<0$ line.` },
+      { name: 'Node', when: R`$\det>0,\ \operatorname{tr}^2>4\det$`, body: R`Real, same sign. $\operatorname{tr}<0$ asymptotically stable, $\operatorname{tr}>0$ unstable.` },
+      { name: 'Spiral', when: R`$\det>0,\ \operatorname{tr}^2<4\det,\ \operatorname{tr}\ne0$`, body: R`Complex. Stability by sign of $\operatorname{tr}$. Direction: $c>0$ anticlockwise.` },
+      { name: 'Centre', when: R`$\det>0,\ \operatorname{tr}=0$`, body: R`Pure imaginary. Closed orbits: stable, not asymptotically.` },
+      { name: 'Degenerate node', when: R`$\operatorname{tr}^2 = 4\det$`, body: R`Repeated $\lambda$. One eigen-line (unless $A=\lambda I$, a star). Stability by sign of $\lambda$.` },
+      { name: R`$\det = 0$`, body: R`A line of critical points; orbits are parallel lines moving towards or away from it.` },
+      { name: 'With a parameter', body: R`Write $\operatorname{tr}$ and $\det$ in terms of the parameter; split where $\det=0$, $\operatorname{tr}=0$, $\operatorname{tr}^2=4\det$. Classify each interval and each boundary value.` },
+    ],
+    traps: R`Not handling the boundary parameter values. Calling a centre "asymptotically stable".`,
+  },
+
+  diag: {
+    title: 'Diagonalisation (inhomogeneous systems)', lesson: L(6),
+    use: R`$\mathbf y' = A\mathbf y + \mathbf b(t)$ with diagonalisable $A$.`,
+    form: R`$$A = SDS^{-1},\ \mathbf z = S^{-1}\mathbf y:\quad \mathbf z' = D\mathbf z + S^{-1}\mathbf b,\quad \mathbf y = S\mathbf z$$`,
+    steps: [
+      R`Eigenvalues and eigenvectors; columns of $S$ in the same order as $D$.`,
+      R`Compute $S^{-1}\mathbf b$ (and $\mathbf z(0) = S^{-1}\mathbf y_0$ for an IVP).`,
+      R`Solve each decoupled $z_i' = \lambda_iz_i + h_i(t)$ by integrating factor.`,
+      R`Recouple: $\mathbf y = S\mathbf z$.`,
+    ],
+    cases: [
+      { name: 'Constant forcing', body: R`$z' = \lambda z + k \Rightarrow z = -\tfrac k\lambda + Ce^{\lambda t}$ (for $\lambda\ne0$).` },
+      { name: 'Exponential, no resonance', body: R`$z' = \lambda z + e^{\mu t},\ \mu\ne\lambda \Rightarrow z = \tfrac{e^{\mu t}}{\mu-\lambda} + Ce^{\lambda t}$.` },
+      { name: 'Resonance', when: R`$\mu = \lambda$`, body: R`$z' = \lambda z + e^{\lambda t} \Rightarrow z = (t + C)e^{\lambda t}$. Long-term $\sim te^{\lambda t}$ along that eigenvector.` },
+      { name: R`$\lambda = 0$`, body: R`$z' = h(t)$: just integrate.` },
+    ],
+    traps: R`Forgetting to multiply $\mathbf b$ by $S^{-1}$. Columns of $S$ out of order.`,
+  },
+
+  matexp: {
+    title: 'Matrix exponential', lesson: L(6),
+    use: R`Homogeneous IVP $\mathbf y' = A\mathbf y$, $\mathbf y(0)=\mathbf y_0$, asked for $e^{At}$, or a repeated eigenvalue with one eigenvector.`,
+    form: R`$$\mathbf y = e^{At}\mathbf y_0,\qquad e^{At} = Se^{Dt}S^{-1}$$`,
+    steps: [
+      R`Pick the route from the shape of $A$ (cases).`,
+      R`Check: $e^{A\cdot0} = I$ and $\tfrac{d}{dt}e^{At}\big|_0 = A$.`,
+    ],
+    cases: [
+      { name: 'Diagonalisable', body: R`$e^{At} = S\,\mathrm{diag}(e^{\lambda_1t},e^{\lambda_2t})\,S^{-1}$.` },
+      { name: R`$\lambda I + N$, $N^2=0$`, body: R`$e^{At} = e^{\lambda t}(I + Nt)$. E.g. $\begin{pmatrix}\lambda&1\\0&\lambda\end{pmatrix}\to e^{\lambda t}\begin{pmatrix}1&t\\0&1\end{pmatrix}$.` },
+      { name: 'Rotation form', when: R`$\begin{pmatrix}\alpha&-\beta\\\beta&\alpha\end{pmatrix}$`, body: R`$e^{\alpha t}\begin{pmatrix}\cos\beta t&-\sin\beta t\\\sin\beta t&\cos\beta t\end{pmatrix}$.` },
+      { name: 'Splitting', body: R`$e^{A+B} = e^Ae^B$ <strong>only if $AB = BA$</strong>. $\lambda I$ commutes with everything.` },
+    ],
+    traps: R`Splitting the exponential of non-commuting matrices.`,
+  },
+
+  /* ---------- Later topics: stubs, fill in when covered ---------- */
+  series: {
+    title: 'Power series (about t = 0)', lesson: L(10), topic: 'Topic 2',
+    use: R`Variable (polynomial) coefficients and no solution you can guess, or the question says "use power series". If the $y''$ coefficient vanishes at $0$ (e.g. $t\,y''$), expect only <strong>one</strong> series solution.`,
+    form: R`$$y = \sum_{n\ge0} c_nt^n,\quad y' = \sum_{n\ge1} nc_nt^{n-1},\quad y'' = \sum_{n\ge2} n(n-1)c_nt^{n-2}$$`,
+    steps: [
+      R`Substitute, multiplying each coefficient into its sum (e.g. $(4+t^2)y''$ gives two sums).`,
+      R`Shift every sum to $t^m$: for $t^{n+k}$ put $n = m-k$ everywhere; the start moves up by $k$.`,
+      R`Extract the low-index terms ($m = 0, 1$) so all sums start together. These give conditions like $c_1 = 0$ or $c_2 = 0$.`,
+      R`Recurrence: each coefficient of $t^m$ is $0$. Solve as an even chain (from $c_0$) and an odd chain (from $c_1$); write $c_2, c_4, c_6$ unmultiplied, then the product formula.`,
+      R`Check: 2 free constants for 2nd order (or only 1 if singular at 0). Radius by $R = \lim|c_n/c_{n+1}|$; IVP at 0: $c_0 = y(0)$, $c_1 = y'(0)$.`,
+    ],
+    cases: [
+      { name: 'Terminating', when: R`Two-term recurrence $c_{m+2} = -\frac{N(m)}{D(m)}c_m$`, body: R`If $N(k) = 0$ for an integer $k \ge 0$, the chain with $k$'s parity is a polynomial of degree $k$ ($R = \infty$). For "which parameter gives a polynomial?", set $N(k)=0$.` },
+      { name: 'Radius from P', body: R`$R \ge$ distance from $0$ to the nearest <em>complex</em> root of the $y''$ coefficient: $1+t^2$ gives $1$, $9-t^2$ gives $3$. Agrees with the ratio test for non-terminating series.` },
+      { name: 'Step-3 (Airy)', body: R`$y''$ gives $t^{n-2}$ but the rest give $t^{n+1}$: $c_2 = 0$ is forced and $c_{m+3}$ links to $c_m$.` },
+      { name: 'Three-term', when: R`Leading coefficient has a linear term, e.g. $(1-t)$`, body: R`No closed form expected: tabulate $c_2, c_3, \dots$ for $(c_0,c_1) = (1,0)$ and $(0,1)$, give the first few non-zero terms.` },
+      { name: R`Singular: $t\,y''$`, body: R`Only $c_0$ free, one series solution $y_1$ (write in sum form). Second solution: Abel $\operatorname{wr} = Ce^{-\int f_1}$, $y_2 = y_1\int \operatorname{wr}/y_1^2\,dt$. $\operatorname{wr}\propto 1/t$ gives $\ln t$; $\operatorname{wr}\propto t^{-q/p}$ (non-integer) gives $y_2 = t^{a}\sum d_jt^j$, $a = 1-q/p$. <a href="../lessons/0011-singular-points-bessel.html">Lesson 11</a>` },
+      { name: 'Uniform / genuine', body: R`Radius $R &gt; 0$: uniform on every $[-b,b]$ with $0&lt;b&lt;R$ (not on $(-R,R)$, not on $\mathbb R$), so a genuine solution there. Weierstrass: $|w_n(t)| \le a_n$, $\sum a_n$ converges. <a href="../lessons/0012-uniform-convergence-genuine.html">Lesson 12</a>` },
+      { name: 'Existence interval', body: R`Separate question: divide by $P$, use only <em>real</em> roots, take the interval containing $t_0$ (Topic 1).` },
+    ],
+    traps: R`Shifting the index but not the $n$-factors. Dropping the extracted $m=0,1$ terms. Ignoring complex roots when finding $R$. Answering $R_x$ instead of $\sqrt{R_x}$ for a $t^{2k}$ series.`,
+  },
+  laplace: { future: true, title: 'Laplace transform', topic: 'Topic 3', lectures: '10–14', use: R`Constant-coefficient IVPs, especially with step, impulse or piecewise forcing. Formula sheet provided.` },
+  fourier: { future: true, title: 'Fourier series', topic: 'Topic 4', lectures: '15–19', use: R`Periodic functions or forcing; expanding a function on an interval. Formula sheet provided.` },
+  sepvars: { future: true, title: 'Separation of variables (BVPs & PDEs)', topic: 'Topic 5', lectures: '20–27', use: R`Heat/wave/Laplace equations on a finite domain; boundary conditions at two points.` },
+  ftrans:  { future: true, title: 'Fourier transform', topic: 'Topic 6', lectures: '28', use: R`PDEs on an infinite domain. Formula sheet provided.` },
+};
+
+/* Tree nodes: { q } question, { s, n } numbered step, { m } method, { note }.
+   `kids` is a list of [edge label | null, node]. */
+const TREE = { q: 'What are you solving?', kids: [
+  ['One ODE for y(t)', { q: R`Is it linear? ($y$, $y'$, … only to the first power, coefficients in $t$ only)`, kids: [
+    ['No', { note: R`Not a Topic 1 method. If separable, $y' = f(t)h(y)$, separate and integrate (assumed knowledge).` }],
+    ['Yes', { q: 'What order?', kids: [
+      ['1st order', { m: 'intfactor', kids: [
+        [null, { m: 'ivp' }],
+      ]}],
+      ['2nd order or higher', { note: R`Always $y = y_c + y_p$. Work through the three steps.`, kids: [
+        [null, { s: R`Find $y_c$: what do the coefficients look like?`, n: 1, kids: [
+          [R`Constants`, { m: 'chareq' }],
+          [R`Euler: t²y″, ty′, y`, { m: 'euler' }],
+          [R`Variable, one solution known/guessable`, { m: 'redorder' }],
+          [R`Variable, nothing guessable`, { m: 'series' }],
+          [R`Want it as a system`, { m: 'convert' }],
+        ]}],
+        [null, { s: R`Inhomogeneous ($g \ne 0$)? Find $y_p$`, n: 2, kids: [
+          ['g = 0', { note: R`$y_p = 0$: skip to step 3.` }],
+          ['Told "reduction of order", or variable coeffs', { m: 'redorder' }],
+          ['Const./Euler, forcing e^kt, poly, trig, t^k', { m: 'undet' }],
+          ['Step, impulse, or piecewise forcing', { m: 'laplace' }],
+          ['Periodic forcing', { m: 'fourier' }],
+        ]}],
+        [null, { s: 'Conditions given?', n: 3, kids: [
+          ['All at one point t₀ (IVP)', { m: 'ivp' }],
+          ['At two different points (BVP)', { m: 'sepvars' }],
+        ]}],
+        ['Proving independence / 2nd solution from wr', { m: 'wronskian' }],
+      ]}],
+    ]}],
+  ]}],
+  ["A system y′ = Ay + b", { q: R`Is $\mathbf b = 0$?`, kids: [
+    ['Yes', { m: 'eigen', kids: [
+      ['Classify / sketch', { m: 'phase' }],
+      ['IVP or repeated λ, one eigenvector', { m: 'matexp' }],
+    ]}],
+    ['No', { m: 'diag' }],
+    ['Turn into one ODE', { m: 'convert' }],
+  ]}],
+  ['A PDE for u(x, t)', { q: 'What is the domain?', kids: [
+    ['Finite interval', { m: 'sepvars' }],
+    ['Infinite line', { m: 'ftrans' }],
+  ]}],
+]};
+
+/* =====================================================================
+   RENDERING — shouldn't need editing.
+   ===================================================================== */
+const MATH = [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}];
+const typeset = el => window.renderMathInElement && renderMathInElement(el, { delimiters: MATH, throwOnError: false });
+const esc = s => s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const pretty = s => esc(s).replace(/y_c/g,'y<sub>c</sub>').replace(/y_p/g,'y<sub>p</sub>').replace(/\^kt/g,'<sup>kt</sup>').replace(/t\^k/g,'t<sup>k</sup>');
+
+const treeEl = document.getElementById('tree');
+const panel = document.getElementById('panel');
+let pinned = null;
+
+function nodeHTML(node) {
+  if (node.q) return `<span class="n-q">${node.q}</span>`;
+  if (node.s) return `<span class="n-s"><b>${node.n}</b>${node.s}</span>`;
+  if (node.note) return `<span class="n-note">${node.note}</span>`;
+  const m = METHODS[node.m];
+  if (m.future) return `<button class="n-f" data-m="${node.m}">${m.title}<span class="tag">${m.topic}</span></button>`;
+  return `<button class="n-m" data-m="${node.m}">${m.title}<span class="tag">L${m.lesson.n}</span></button>`;
+}
+function build(node, edge) {
+  const li = document.createElement('li');
+  li.innerHTML = `<div class="row">${edge ? `<span class="edge">${pretty(edge)}</span>` : ''}${nodeHTML(node)}</div>`;
+  if (node.kids) {
+    const ul = document.createElement('ul');
+    node.kids.forEach(([e, k]) => ul.appendChild(build(k, e)));
+    li.appendChild(ul);
+  }
+  return li;
+}
+treeEl.appendChild(build(TREE, null));
+
+function clearPath() { treeEl.querySelectorAll('li.on, li.through, button.sel').forEach(x => x.classList.remove('on','through','sel')); }
+function markPath(id) {
+  clearPath();
+  treeEl.querySelectorAll(`button[data-m="${id}"]`).forEach(btn => {
+    btn.classList.add('sel');
+    let li = btn.closest('li');
+    while (li && li !== treeEl) {
+      li.classList.add('on');
+      // Light up the vertical rail of earlier siblings so the path reads as continuous.
+      let sib = li.previousElementSibling;
+      while (sib) { sib.classList.add('through'); sib = sib.previousElementSibling; }
+      li = li.parentElement.closest('li');
+    }
+  });
+}
+
+function intro() {
+  panel.innerHTML = `
+    <h3>How to use this</h3>
+    <ol class="steps">
+      <li>Read the question at each diamond and follow the pill that matches your equation.</li>
+      <li>Hover a green method to preview it here. Click to pin it (the path that leads to it lights up).</li>
+      <li>In the panel, hover or tap the case chips to see what changes: repeated roots, complex roots, resonance…</li>
+    </ol>
+    <p class="hint">A method can appear in several places: reduction of order gives both $y_c$ and $y_p$, for example.</p>`;
+  typeset(panel);
+}
+
+function show(id) {
+  const m = METHODS[id];
+  if (m.future) {
+    panel.innerHTML = `<div class="kicker">${m.topic} · Lectures ${m.lectures} · not covered yet</div>
+      <h3>${m.title}</h3><p class="use"><strong>Expected use:</strong> ${m.use}</p>
+      <p class="hint">Recipe and cases get added when we reach this topic.</p>`;
+    typeset(panel); return;
+  }
+  const cases = m.cases || [];
+  panel.innerHTML = `
+    <div class="kicker">Lesson ${m.lesson.n} · <a href="${m.lesson.href}">open lesson</a></div>
+    <h3>${m.title}</h3>
+    <p class="use"><strong>Use when:</strong> ${m.use}</p>
+    <div class="box">${m.form}</div>
+    <div class="label">Recipe</div>
+    <ol class="steps">${m.steps.map(s => `<li>${s}</li>`).join('')}</ol>
+    ${cases.length ? `<div class="label">Cases · hover or tap</div>
+      <div class="chips">${cases.map((c, i) => `<button data-i="${i}">${c.name}</button>`).join('')}</div>
+      <div class="case" id="case"></div>` : ''}
+    ${m.traps ? `<div class="trap"><strong>Traps</strong><br>${m.traps}</div>` : ''}`;
+  typeset(panel);
+  if (!cases.length) return;
+  const caseEl = panel.querySelector('#case');
+  const chips = [...panel.querySelectorAll('.chips button')];
+  let pinnedCase = 0;
+  const showCase = i => {
+    chips.forEach((b, j) => b.classList.toggle('act', j === i));
+    const c = cases[i];
+    caseEl.innerHTML = `${c.when ? `<div class="when">${c.when}</div>` : ''}<p>${c.body}</p>`;
+    typeset(caseEl);
+  };
+  chips.forEach((b, i) => {
+    b.addEventListener('mouseenter', () => showCase(i));
+    b.addEventListener('focus', () => showCase(i));
+    b.addEventListener('click', () => { pinnedCase = i; showCase(i); });
+  });
+  panel.querySelector('.chips').addEventListener('mouseleave', () => showCase(pinnedCase));
+  showCase(0);
+}
+
+treeEl.addEventListener('mouseover', e => {
+  const b = e.target.closest('button[data-m]');
+  if (b && !pinned) { show(b.dataset.m); markPath(b.dataset.m); }
+});
+treeEl.addEventListener('mouseleave', () => { if (!pinned) { clearPath(); intro(); } });
+treeEl.addEventListener('click', e => {
+  const b = e.target.closest('button[data-m]');
+  if (!b) return;
+  const id = b.dataset.m;
+  if (pinned === id) { pinned = null; clearPath(); intro(); return; }
+  pinned = id; show(id); markPath(id);
+  if (window.matchMedia('(max-width: 960px)').matches) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && pinned) { pinned = null; clearPath(); intro(); } });
+
+document.getElementById('coverage').innerHTML = `Covers: ${META.covered}. Last updated ${META.updated}.`;
+document.getElementById('log').innerHTML = LOG.map(([d, t]) => `<li><strong>${d}</strong> · ${t}</li>`).join('');
+intro();
+typeset(treeEl);
+</script>
+</body>
+</html>

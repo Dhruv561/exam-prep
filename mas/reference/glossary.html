@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAS Glossary</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body class="ref">
+<main>
+<div class="kicker">MAST30027 · Reference</div>
+<h1>Glossary</h1>
+<p class="lede">Every lesson uses these terms in exactly this sense. New terms get added with each lesson.</p>
+<table>
+<tr><th>Term</th><th>Meaning</th><th>Lesson</th></tr>
+<tr><td>Likelihood \(L(\theta)\)</td><td>The joint density/pmf of the observed data, read as a function of \(\theta\)</td><td><a href="../lessons/0001-mle-fisher-information.html">1</a></td></tr>
+<tr><td>Log-likelihood \(\ell(\theta)\)</td><td>\(\log L(\theta)=\sum_i \log f(x_i;\theta)\) for independent data</td><td>1</td></tr>
+<tr><td>Score</td><td>\(\ell'(\theta)\). The MLE solves score \(=0\)</td><td>1</td></tr>
+<tr><td>MLE \(\hat\theta\)</td><td>The value of \(\theta\) that maximises \(\ell\)</td><td>1</td></tr>
+<tr><td>Observed information \(J(\theta)\)</td><td>\(-\ell''(\theta)\) (minus the Hessian for vector \(\theta\)). Depends on the data</td><td>1</td></tr>
+<tr><td>Fisher information \(\mathcal I(\theta)\)</td><td>\(\mathbb E\,J(\theta;X)\), for the whole sample. Doesn't depend on the data</td><td>1</td></tr>
+<tr><td>Asymptotic normality</td><td>\(\hat\theta\approx N(\theta^*,\mathcal I(\theta^*)^{-1})\) for large \(n\)</td><td>1</td></tr>
+<tr><td>Consistency</td><td>\(\hat\theta\to\theta^*\) in probability as \(n\to\infty\)</td><td>1</td></tr>
+<tr><td>Efficiency</td><td>Asymptotically unbiased, with the smallest possible variance \(\mathcal I^{-1}\)</td><td>1</td></tr>
+<tr><td>Wald CI</td><td>\(\hat\theta\pm z_\alpha\sqrt{\mathcal I(\hat\theta)^{-1}}\) (or with \(J\) in place of \(\mathcal I\))</td><td>1</td></tr>
+<tr><td>Invariance</td><td>The MLE of \(g(\theta)\) is \(g(\hat\theta)\)</td><td>1</td></tr>
+<tr><td>Logit</td><td>\(\eta=\log\frac{p}{1-p}\), with inverse \(p=\frac{e^\eta}{1+e^\eta}\)</td><td>1</td></tr>
+<tr><td>Linear predictor \(\eta\)</td><td>\(x^T\beta=\beta_0+\beta_1x_1+\dots\), linked to the mean by \(g(\cdot)=\eta\)</td><td>1</td></tr>
+<tr><td>Link function \(g\)</td><td>Maps the mean (here \(p\in(0,1)\)) onto the real line: \(g(p_i)=\eta_i\). Binomial choices: logit \(\log\frac{p}{1-p}\), probit \(\Phi^{-1}(p)\), complementary log-log \(\log(-\log(1-p))\)</td><td><a href="../lessons/0002-binomial-regression.html">2</a></td></tr>
+<tr><td>Odds / odds ratio</td><td>Odds \(=p/(1-p)\). In a logit model, raising \(x_j\) by \(\Delta\) multiplies the odds by \(e^{\beta_j\Delta}\) (the odds ratio). Logit link only</td><td>2</td></tr>
+<tr><td>Covariance matrix \(V\) of \(\hat\beta\)</td><td>\(V=\mathcal I(\hat\beta)^{-1}\), R's <code>vcov(model)</code>. SEs are \(\sqrt{V_{jj}}\); \(\operatorname{Var}(t^T\hat\beta)=t^TVt\) needs the covariances</td><td>2</td></tr>
+<tr><td>Saturated model</td><td>One free parameter per observation (\(\tilde p_i=y_i/m_i\)); fits the data exactly, so it has the largest possible log-likelihood \(\ell_{\text{sat}}\)</td><td><a href="../lessons/0003-deviance-lrt-aic.html">3</a></td></tr>
+<tr><td>Deviance \(D\)</td><td>\(2(\ell_{\text{sat}}-\ell(\hat\beta))\) on \(n-p\) df. "Scaled deviance" \(D/\phi\) is the same number for binomial/Poisson (\(\phi=1\))</td><td>3</td></tr>
+<tr><td>Residual / null deviance</td><td>\(D\) of your model (df \(n-p\)) / of the intercept-only model (df \(n-1\)). So \(n=\) null df \(+1\), \(p=n-\) residual df</td><td>3</td></tr>
+<tr><td>Nested models</td><td>A is nested in B if A is B with some parameters constrained (usually set to 0)</td><td>3</td></tr>
+<tr><td>Likelihood ratio test (LRT)</td><td>For nested A ⊂ B: \(D_A-D_B=-2(\ell_A-\ell_B)\approx\chi^2_s\), \(s\) = extra parameters in B</td><td>3</td></tr>
+<tr><td>Wald test</td><td>\(z=\hat\beta_j/\text{se}(\hat\beta_j)\approx N(0,1)\) under \(H_0:\beta_j=0\) (R's <code>z value</code>); \(z^2\approx\) LR</td><td>3</td></tr>
+<tr><td>Deviance goodness-of-fit test</td><td>Model adequate ⇒ \(D\approx\chi^2_{n-p}\), only if \(m_ip_i, m_i(1-p_i)\gtrsim5\); never for 0/1 data</td><td>3</td></tr>
+<tr><td>AIC</td><td>\(2p-2\ell(\hat\beta)\); smaller is better; models needn't be nested. \(\ell=p-\text{AIC}/2\)</td><td>3</td></tr>
+<tr><td>Pearson \(X^2\), dispersion \(\hat\phi\)</td><td>\(X^2=\sum(y_i-\hat\mu_i)^2/v(\hat\mu_i)\); \(\hat\phi=X^2/(n-p)\). \(\hat\phi\gg1\) signals overdispersion (SEs too small)</td><td>3</td></tr>
+<tr><td>Likelihood-ratio confidence region</td><td>\(\{\theta: 2\ell(\hat\theta)-2\ell(\theta)\le\chi^2_k(0.95)\}\), \(k=\dim\theta\): the \(\theta_0\) not rejected by the LRT of \(H_0:\theta=\theta_0\)</td><td><a href="../lessons/0004-topic1-review.html">4</a></td></tr>
+<tr><td>Case-control (retrospective) study</td><td>Cases and controls sampled separately. In a logit model only the intercept shifts (by \(\log\pi_1/\pi_0\)), so odds ratios stay valid but fitted \(p\) are not population risks</td><td>4</td></tr>
+<tr><td>Sparse data</td><td>Many groups with \(m_i\hat p_i\) or \(m_i(1-\hat p_i)&lt;5\): the deviance fit test is invalid, but LRTs between nested models still work</td><td>4</td></tr>
+<tr><td>Exponential family</td><td>\(f(y;\theta,\phi)=\exp\big[\frac{y\theta-b(\theta)}{a(\phi)}+c(y,\phi)\big]\); the support must not depend on \(\theta\); course uses \(a(\phi)=\phi\)</td><td><a href="../lessons/0005-exponential-families.html">5</a></td></tr>
+<tr><td>Canonical parameter \(\theta\)</td><td>The function of the parameters that multiplies \(y\) in \(\log f\). \(\mathbb EY=b'(\theta)\)</td><td>5</td></tr>
+<tr><td>Dispersion parameter \(\phi\)</td><td>Scale parameter in \(a(\phi)\): \(\sigma^2\) (normal), \(1/\nu\) (gamma), 1 (Poisson, binomial). \(\operatorname{Var}Y=a(\phi)b''(\theta)\)</td><td>5</td></tr>
+<tr><td>Variance function \(v(\mu)\)</td><td>\(b''\) written as a function of \(\mu\): \(v=b''\circ(b')^{-1}\), so \(\operatorname{Var}Y=a(\phi)v(\mu)\). Not the variance unless \(\phi=1\)</td><td>5</td></tr>
+<tr><td>Canonical link</td><td>\(g=(b')^{-1}\), so \(g(\mu)=\theta=x^T\beta\). Makes \(X^Ty\) sufficient for \(\beta\); score \(X^T(y-\mu)/a(\phi)\). IWLS weights become \(W_{ii}=v(\mu_i)\) and \(J=\mathcal I\), so Newton–Raphson = Fisher scoring</td><td>5, <a href="../lessons/0006-glm-likelihood-iwls.html">6</a></td></tr>
+<tr><td>GLM</td><td>Independent \(Y_i\) from one exponential family + linear predictor \(\eta_i=x_i^T\beta\) + monotone differentiable link \(g(\mu_i)=\eta_i\); \(\phi\) is not modelled</td><td><a href="../lessons/0006-glm-likelihood-iwls.html">6</a></td></tr>
+<tr><td>Working response \(z_i\)</td><td>\(z_i=\eta_i+(y_i-\mu_i)g'(\mu_i)\), a linearisation of \(g(y_i)\); the response of each IWLS weighted fit</td><td>6</td></tr>
+<tr><td>IWLS weights \(W_{ii}\)</td><td>\(1/\big(g'(\mu_i)^2v(\mu_i)\big)\), the inverse variance of \(z_i\) up to \(a(\phi)\). Poisson-log: \(\mu_i\); Gamma-log: 1</td><td>6</td></tr>
+<tr><td>IWLS</td><td>Start \(\hat\mu^0=y\); repeat \(\hat\beta=(X^TWX)^{-1}X^TWz\) and update \(\mu,z,W\) until \(\hat\beta\) settles. Equals Fisher scoring for any GLM; R's "Fisher Scoring iterations"</td><td>6</td></tr>
+<tr><td>Fisher scoring</td><td>Newton–Raphson with the observed information \(J\) replaced by the Fisher information \(\mathcal I\); same as NR for a canonical link</td><td>6</td></tr>
+<tr><td>Log link (multiplicative effect)</td><td>\(\log\mu=\eta\): raising \(x_j\) by \(\Delta\) multiplies the mean (or rate) by \(e^{\beta_j\Delta}\); CI by exponentiating the endpoints</td><td><a href="../lessons/0007-poisson-gamma-glms.html">7</a></td></tr>
+<tr><td>Rate model / offset</td><td>\(\log\lambda_i=\log t_i+x_i^T\beta\) for counts over exposure \(t_i\); R's <code>offset(log(t))</code> fixes that coefficient at 1 (not estimated, not in \(p\)), so \(e^{\beta_j}\) are rate ratios</td><td>7</td></tr>
+<tr><td>Gamma GLM</td><td>Positive skewed response with \(v(\mu)=\mu^2\), \(\operatorname{Var}Y=\phi\mu^2\) (CV \(=\sqrt\phi\)); canonical link \(1/\mu\) (R default), log link for multiplicative effects</td><td>7</td></tr>
+<tr><td>F test (\(\phi\) estimated)</td><td>Nested A ⊂ B: \(F=\frac{(D_A-D_B)/s}{\hat\phi_B}\approx F_{s,n-p_B}\), with \(\hat\phi_B=X^2_B/(n-p_B)\) from the bigger model; R's <code>anova(A, B, test="F")</code></td><td>7</td></tr>
+<tr><td>Pearson / deviance residual</td><td>\(r_P=(y_i-\hat\mu_i)/\sqrt{v(\hat\mu_i)}\), \(\sum r_P^2=X^2\); \(r_D=\operatorname{sign}(y_i-\hat\mu_i)\sqrt{d_i}\), \(\sum r_D^2=D\) (R's default <code>residuals(m)</code>)</td><td><a href="../lessons/0008-glm-diagnostics.html">8</a></td></tr>
+<tr><td>Leverage \(h_{ii}\)</td><td>Diagonal of the IWLS hat matrix; \(\sum h_{ii}=p\). Potential to move the fit; rule of thumb flags \(h_{ii}&gt;2p/n\). R's <code>hatvalues(m)</code></td><td>8</td></tr>
+<tr><td>Standardised residual</td><td>\(r_{SP}, r_{SD}\): \(r_P\) or \(r_D\) divided by \(\sqrt{(1-h_{ii})\hat\phi}\)</td><td>8</td></tr>
+<tr><td>Jack-knife residual</td><td>Approx. standardised change when \(y_i\) is left out: \(\operatorname{sign}\cdot\sqrt{r_D^2+h\,r_P^2/(1-h)}\) (\(\phi=1\)); R's <code>rstudent(m)</code>. Large ⇒ outlier</td><td>8</td></tr>
+<tr><td>Cook's distance \(C_i\)</td><td>Influence: how far \(\hat\beta\) moves when \(y_i\) is dropped. \(C_i\approx r_P^2h_{ii}/[p\hat\phi(1-h_{ii})^2]\); needs leverage and a residual</td><td>8</td></tr>
+<tr><td>Known dispersion (averaged counts)</td><td>If \(Y\) is the mean of \(k\) iid Poisson\((\mu)\) counts, it is an exponential family with \(\theta=\log\mu\), \(b=e^\theta\), \(\phi=1/k\) known, \(\operatorname{Var}Y=\mu/k\). Estimates unchanged, SEs scale by \(\sqrt{\phi}\)</td><td><a href="../lessons/0009-topic2-review.html">9</a></td></tr>
+<tr><td>Prior weights</td><td>Known per-observation weights \(w_i\) with \(a_i(\phi)=\phi/w_i\) (Faraway). R fits binomial proportions \(y_i/m_i\) with \(m_i\) as prior weights, hence \(V(\mu)=\mu(1-\mu)\)</td><td>9</td></tr>
+</table>
+</main>
+</body>
+</html>

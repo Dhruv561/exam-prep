@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deviance, LRT and AIC</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 3 · Topic 1: Binomial regression &amp; likelihood</div>
+<h1>Deviance, likelihood ratio tests and AIC: reading <code>glm</code> output</h1>
+<p class="lede">The goal: handed two R <code>summary(glm(...))</code> printouts, you can recover both log-likelihoods, test one model against the other, check whether the model fits at all, and say which model you prefer with two numbers to back it up.</p>
+
+<div class="mission">Why this matters for 10 Nov: every past paper has an R-output question worth 7–22 marks. The same sub-questions keep coming back: "what is the log-likelihood of the fitted model and of the saturated model?", "which model is better? Give two quantitative reasons", "what are the degrees of freedom?". This lesson is the binomial version. The overdispersion lesson later adds the quasi-Poisson twist on top of exactly these moves.</div>
+
+<h2>1 · Three models on one dataset</h2>
+<p>Take grouped binomial data: \(Y_i\sim\text{Bin}(m_i,p_i)\) for \(i=1,\dots,n\), with \(\operatorname{logit}p_i = x_i^T\beta\) as in <a href="0002-binomial-regression.html">Lesson 2</a>. Three models matter:</p>
+<ul>
+  <li><strong>Saturated model:</strong> one free \(p_i\) per observation, so \(n\) parameters. Its MLE is \(\tilde p_i = y_i/m_i\): it reproduces the data exactly, so no model on these data can have a higher log-likelihood \(\ell_{\text{sat}}\).</li>
+  <li><strong>Your fitted model:</strong> \(p\) parameters (intercept included), with fitted values \(\hat\mu_i = m_i\hat p_i\) and log-likelihood \(\ell(\hat\beta)\).</li>
+  <li><strong>Null model:</strong> intercept only, one parameter, so every \(p_i\) is the same pooled proportion.</li>
+</ul>
+<p>The <strong>deviance</strong> measures how far your model falls short of the saturated one (<a href="../lectures/BinReg_2_LMS-1.pdf">Binomial Regression II, slide 9</a>):</p>
+$$D = -2\big[\ell(\hat\beta) - \ell_{\text{sat}}\big] = 2\big[\ell_{\text{sat}} - \ell(\hat\beta)\big] \;\ge 0.$$
+<p>For the binomial, the constants cancel and it becomes a sum of one term per observation (slide 11):</p>
+$$D = 2\sum_{i=1}^n\left[\,y_i\log\frac{y_i}{\hat\mu_i} + (m_i-y_i)\log\frac{m_i-y_i}{m_i-\hat\mu_i}\right],$$
+<p>with the convention \(0\log 0 = 0\) when \(y_i = 0\) or \(y_i = m_i\). Small \(D\) means the fitted values are close to the data.</p>
+<p>R prints two deviances. The <strong>residual deviance</strong> is \(D\) for your model, on \(n-p\) degrees of freedom. The <strong>null deviance</strong> is \(D\) for the null model, on \(n-1\) degrees of freedom. Neither changes with what you call the model, so you can read \(n\) and \(p\) straight off the df:</p>
+$$n = \text{null df} + 1, \qquad p = n - \text{residual df}.$$
+
+<div class="trap"><strong>Course convention</strong><br>For the binomial and Poisson, the dispersion \(\phi = 1\), so the <em>scaled</em> deviance \(D/\phi\) and the deviance are the same number (<a href="../lectures/GLM_2_correct_LMS.pdf">GLMs II, slides 3 and 7</a>). The lectures say "scaled deviance" a lot. For this lesson, read it as "deviance".</div>
+
+<div class="quiz num" data-answer="0.805" data-tol="0.005">
+  <p class="q"><strong>1.</strong> One group has \(m=20\) trials and \(y=12\) successes, and the model's fitted probability is \(\hat p = 0.5\). What is this group's contribution \(d_i\) to the deviance (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\hat\mu = 20\times0.5 = 10\). Then \(d = 2\big[12\log\tfrac{12}{10} + 8\log\tfrac{8}{10}\big] = 2\,[2.1879 - 1.7851] = \)<strong>0.805</strong>. The second term is negative, but the total is always \(\ge 0\). If you got a negative number, you probably flipped a fraction inside one of the logs.</div>
+</div>
+
+<div class="quiz num" data-answer="7" data-tol="0">
+  <p class="q"><strong>2.</strong> A binomial <code>glm</code> summary ends with <code>Null deviance: 88.4 on 41 degrees of freedom</code> and <code>Residual deviance: 39.0 on 35 degrees of freedom</code>. How many parameters \(p\) does the model have, intercept included?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(n = 41 + 1 = 42\), so \(p = 42 - 35 = \)<strong>7</strong>. (Equivalently, the model uses \(41 - 35 = 6\) parameters more than the null model, plus the intercept.) A factor with \(k\) levels counts as \(k-1\) parameters, so this could be, say, two numeric predictors plus a 5-level factor.</div>
+</div>
+
+<h2>2 · Does the model fit? The deviance goodness-of-fit test</h2>
+<p>If the model is adequate <em>and</em> each \(m_i p_i\) and \(m_i(1-p_i)\) is at least about 5, then (slide 12)</p>
+$$D \;\overset{d}{\approx}\; \chi^2_{n-p}.$$
+<p>So compare \(D\) with the \(\chi^2_{n-p}\) 95% point. If \(D\) is bigger, the model is missing something (a predictor, an interaction, the right link, or extra variation between groups). A quick sense check: \(\mathbb E\,\chi^2_k = k\), so a residual deviance close to its df is reassuring, and one far above it is a warning.</p>
+
+<div class="trap"><strong>Trap</strong><br>With binary data (\(m_i = 1\): each row is one person who is either 0 or 1), \(m_ip_i\ge5\) fails for every row. Then \(D\) is <em>not</em> \(\chi^2_{n-p}\), so the goodness-of-fit test is meaningless (the saturated model gains a parameter for every new person, so the usual theory doesn't apply: slide 10). You can still <em>compare</em> nested models with differences of deviances, as in the next section.</div>
+
+<div class="box">
+<p><strong>No χ² tables on your calculator.</strong> The Casio FX-82 can't do χ² tail probabilities, so past papers print the critical values for you (an R line like <code>qchisq(0.95, df=...)</code>). Still, know the small ones by heart:</p>
+<div class="tablewrap"><table>
+<tr><th>df</th><td>1</td><td>2</td><td>3</td><td>4</td><td>25</td><td>26</td><td>30</td></tr>
+<tr><th>\(\chi^2_{\text{df}}(0.95)\)</th><td>3.84</td><td>5.99</td><td>7.81</td><td>9.49</td><td>37.65</td><td>38.89</td><td>43.77</td></tr>
+</table></div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>3.</strong> A logistic regression on 500 individual patients (each \(y_i\) is 0 or 1) has residual deviance 512 on 495 df. What can you conclude about fit from this?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It fits badly, since 512 is above 495.</button>
+    <button class="opt" data-key="b">Nothing, since D is not χ² for 0/1 data.</button>
+    <button class="opt" data-key="c">It fits well, since 512 is close to 495.</button>
+    <button class="opt" data-key="d">It is overdispersed, so use quasibinomial.</button>
+  </div>
+  <div class="why">Every \(m_i = 1\), so the "\(m_ip_i\ge5\)" condition fails and \(D\not\approx\chi^2_{495}\). Options (a) and (c) both treat \(D\) as \(\chi^2\). Option (d) is wrong too: with 0/1 data you can't even detect overdispersion this way. Deviance <em>differences</em> between nested models are still fine.</div>
+</div>
+
+<h2>3 · Comparing nested models: the likelihood ratio test</h2>
+<p>Model A is <strong>nested</strong> in model B if you get A by constraining B's parameters (usually setting some to zero). Say B has \(s\) more parameters. Under \(H_0\): "the extra \(s\) parameters are all zero" (slides 5 and 8),</p>
+$$\text{LR} = -2\big[\ell(\hat\beta_A) - \ell(\hat\beta_B)\big] \;\overset{d}{\approx}\;\chi^2_s.$$
+<p>You never need \(\ell\) itself, because \(\ell_{\text{sat}}\) cancels when you subtract two deviances (slide 13):</p>
+$$\boxed{\;\text{LR} = D_A - D_B,\qquad \text{df} = s = \text{df}_A - \text{df}_B\;}$$
+<p>Reject \(H_0\) (keep the bigger model) if \(D_A - D_B\) exceeds the \(\chi^2_s\) 95% point. This works even for 0/1 data. R's <code>anova(modelA, modelB, test="Chisq")</code> prints exactly this: the change in residual deviance, its df, and <code>Pr(&gt;Chi)</code>. Null deviance minus residual deviance is the LRT of "all the predictors at once" against the null model.</p>
+
+<p><strong>Wald test vs LRT.</strong> For one coefficient, the Wald test uses \(z = \hat\beta_j/\text{se}(\hat\beta_j)\), which is the <code>z value</code> column in R. Since \(z^2\overset{d}{\approx}\chi^2_1\), the two tests are asymptotically equivalent and usually agree. When they differ, trust the LRT: the χ² approximation to the likelihood ratio is generally better than the normal approximation to the MLE (slide 6). Faraway names the failure mode: with sparse data the SE can be overestimated, so \(z\) is too small and a real effect can be missed (the Hauck–Donner effect; <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=49">Faraway §2.3, p. 34</a>).</p>
+
+<div class="trap"><strong>Trap: factors</strong><br>A factor with \(k\) levels gets \(k-1\) coefficients, each one a contrast with the baseline level. Their individual \(z\)-tests don't answer "does this factor matter?". Test the whole factor with one LRT on \(k-1\) df. You'll see below that a factor can matter even when none of its individual \(z\)-tests is significant.</div>
+
+<h2>4 · AIC, and recovering \(\ell\) from the printout</h2>
+<p>The Akaike Information Criterion is (slide 14)</p>
+$$\text{AIC} = 2p - 2\ell(\hat\beta).$$
+<p>Smaller is better. The \(2p\) is a penalty for each extra parameter. Unlike the LRT, AIC can compare models that <em>aren't</em> nested. If B has \(s\) more parameters than A,</p>
+$$\text{AIC}_B - \text{AIC}_A = 2s + D_B - D_A.$$
+<p>That makes the two classic exam lines one rearrangement each:</p>
+<div class="box">
+$$\ell(\hat\beta) = p - \frac{\text{AIC}}{2}, \qquad \ell_{\text{sat}} = \ell(\hat\beta) + \frac{D}{2}.$$
+<p style="margin-bottom:0">Get \(p\) from the df (section 1), \(\ell\) from the AIC, then \(\ell_{\text{sat}}\) from the residual deviance. The saturated log-likelihood is the same for every model on the same data, which makes a good check if you're given two summaries.</p>
+</div>
+<p>(R's \(\ell\) includes the \(\log\binom{m_i}{y_i}\) constants. They're in \(\ell_{\text{sat}}\) too, so everything stays consistent: just use the printed AIC as it is.)</p>
+
+<h2>5 · Reading a <code>summary(glm(...))</code> printout</h2>
+<p>A literacy app is trialled in 30 primary-school classes. Class \(i\) has \(m_i\) students (18 to 32), and \(y_i\) of them pass an end-of-term reading test. The predictors are <code>mins</code> (average minutes per week on the app), <code>school</code> (a factor with levels public, catholic and independent; public is the baseline) and <code>size</code> (class size). (These data are simulated for this lesson.)</p>
+
+<pre class="rout"><span class="cmd">&gt; modelA &lt;- glm(cbind(y, m - y) ~ mins + school + size, family = binomial, data = reading)
+&gt; summary(modelA)</span>
+
+Coefficients:
+                   Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)       -0.711628   0.475945  -1.495  0.13486
+mins               0.016827   0.002711   6.206 5.43e-10 ***
+schoolcatholic     0.109420   0.185852   0.589  0.55603
+schoolindependent  0.484317   0.184927   2.619  0.00882 **
+size              <b>-0.017827   0.017391  -1.025</b>  0.30534
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 70.292  on <b>29</b>  degrees of freedom
+Residual deviance: <b>26.721</b>  on <b>25</b>  degrees of freedom
+AIC: <b>144.37</b>
+
+Number of Fisher Scoring iterations: 4</pre>
+
+<pre class="rout"><span class="cmd">&gt; modelB &lt;- glm(cbind(y, m - y) ~ mins + school, family = binomial, data = reading)
+&gt; summary(modelB)</span>
+
+Coefficients:
+                   Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)       -1.150025   0.212379  -5.415 6.13e-08 ***
+mins               0.016192   0.002632   6.152 7.67e-10 ***
+schoolcatholic     0.135831   0.183787   0.739  0.45987
+schoolindependent  0.492351   0.184825   2.664  0.00772 **
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 70.292  on 29  degrees of freedom
+Residual deviance: <b>27.775</b>  on <b>26</b>  degrees of freedom
+AIC: <b>143.42</b>
+
+Number of Fisher Scoring iterations: 4</pre>
+
+<p>Older R versions (and the past papers) also print a <code>Deviance Residuals:</code> five-number summary near the top. You can ignore it for these questions.</p>
+
+<div class="tablewrap"><table>
+<tr><th>You're asked for…</th><th>Read / compute (model A)</th></tr>
+<tr><td>\(n\) and \(p\)</td><td>\(n = 29+1 = 30\), and \(p = 30 - 25 = 5\) (intercept, mins, 2 school dummies, size)</td></tr>
+<tr><td>Wald test of <code>size</code></td><td>\(z = -0.017827/0.017391 = -1.025\), and \(|z| &lt; 1.96\), so not significant (p = 0.305)</td></tr>
+<tr><td>\(\ell\) of the fitted model</td><td>\(5 - 144.37/2 = -67.18\)</td></tr>
+<tr><td>\(\ell\) of the saturated model</td><td>\(-67.18 + 26.721/2 = -53.82\)</td></tr>
+<tr><td>Goodness of fit</td><td>\(26.72 &lt; \chi^2_{25}(0.95) = 37.65\), so no evidence of lack of fit. This is valid because \(m_i\ge18\) and the fitted \(\hat p_i\) are all between 0.32 and 0.71, so \(m_i\hat p_i\) and \(m_i(1-\hat p_i)\) are all at least 5.8</td></tr>
+<tr><td>LRT: drop <code>size</code>?</td><td>\(D_B - D_A = 27.775 - 26.721 = 1.054\) on \(26-25 = 1\) df, below 3.84, so drop it. Compare \(z^2 = 1.025^2 = 1.051\): almost the same, as the theory promises</td></tr>
+</table></div>
+
+<h3>Practice on this output</h3>
+<p>You'll also need one more fact: the model with <code>mins</code> alone (call it model C) has residual deviance 35.368 on 28 df.</p>
+
+<div class="quiz num" data-answer="7.593" data-tol="0.002">
+  <p class="q"><strong>4.</strong> What is the likelihood ratio statistic for testing whether <code>school</code> is needed, given <code>mins</code> (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Model C is nested in model B (set both school coefficients to zero). \(\text{LR} = D_C - D_B = 35.368 - 27.775 = \)<strong>7.593</strong> on \(28 - 26 = 2\) df.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>5.</strong> In model B, <code>schoolcatholic</code> has p = 0.46. Is <code>school</code> a useful predictor once <code>mins</code> is in the model?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">No: one of its two z-tests isn't significant.</button>
+    <button class="opt" data-key="b">Yes: LR = 7.59 &gt; 5.99 on 2 df, so keep it.</button>
+    <button class="opt" data-key="c">Yes: LR = 7.59 &gt; 3.84 on 1 df, so keep it.</button>
+    <button class="opt" data-key="d">No: LR = 7.59 &lt; 7.81 on 3 df, so drop it.</button>
+  </div>
+  <div class="why">A 3-level factor adds \(3-1 = 2\) parameters, so compare with \(\chi^2_2(0.95) = 5.99\). R gives p = 0.022. The catholic dummy only says "catholic ≈ public". The factor matters because independent schools differ. Option (d) counts the levels instead of the parameters, and (c) forgets the factor has two coefficients.</div>
+</div>
+
+<div class="quiz num" data-answer="-67.71" data-tol="0.01">
+  <p class="q"><strong>6.</strong> What is the maximised log-likelihood of model B (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(p = 30 - 26 = 4\), so \(\ell = 4 - 143.42/2 = 4 - 71.71 = \)<strong>−67.71</strong>. The most common slip is using \(p = 3\) (forgetting the intercept) or \(p=26\) (using the df itself).</div>
+</div>
+
+<div class="quiz num" data-answer="-53.82" data-tol="0.02">
+  <p class="q"><strong>7.</strong> Using model B's printout only, what is the log-likelihood of the saturated model (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\ell_{\text{sat}} = \ell_B + D_B/2 = -67.71 + 27.775/2 = \)<strong>−53.82</strong>. It matches the value from model A, as it must: the saturated model doesn't depend on which predictors you chose.</div>
+</div>
+
+<div class="quiz num" data-answer="0.946" data-tol="0.005">
+  <p class="q"><strong>8.</strong> Pretend the AIC lines were torn off. Using only the deviances, what is \(\text{AIC}_A - \text{AIC}_B\) (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">A has \(s=1\) more parameter, so \(\text{AIC}_A - \text{AIC}_B = 2(1) + D_A - D_B = 2 - 1.054 = \)<strong>0.946</strong>. Check: \(144.37 - 143.42 = 0.95\) ✓. An extra parameter is only "worth it" on AIC if it cuts the deviance by more than 2.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>9.</strong> Which model do you prefer, A or B, and why?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A, since its residual deviance is lower than B's.</button>
+    <button class="opt" data-key="b">A, since it has more parameters and a lower AIC.</button>
+    <button class="opt" data-key="c">B, since LR = 1.05 &lt; 3.84 and its AIC is lower.</button>
+    <button class="opt" data-key="d">B, since its null deviance is lower than A's is.</button>
+  </div>
+  <div class="why">That's the "two quantitative reasons" answer exams want: the LRT doesn't reject \(\beta_{\text{size}}=0\) (1.054 on 1 df, p = 0.30), and \(\text{AIC}_B = 143.42 &lt; 144.37 = \text{AIC}_A\). Option (a): the bigger model <em>always</em> has the lower deviance, so that alone proves nothing. Option (b) gets the AICs backwards. Option (d): the null deviance is the same for both.</div>
+</div>
+
+<div class="quiz num" data-answer="1.897" data-tol="0.006">
+  <p class="q"><strong>10.</strong> Under model B, 30 more minutes a week multiplies the odds of passing by \(e^{30\hat\beta_{\text{mins}}} = 1.63\). What is the <em>upper</em> end of a 95% Wald CI for this multiplier (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Build the CI for \(\beta_{\text{mins}}\) first: \(0.016192 \pm 1.96(0.002632) = (0.01103,\ 0.02135)\). Multiply by 30 and exponentiate each end: \((1.392,\ \)<strong>1.897</strong>\()\). Don't exponentiate the SE. Transform the endpoints, exactly like the η-scale CI in <a href="0002-binomial-regression.html">Lesson 2</a>.</div>
+</div>
+
+<h3>Coming later: is φ really 1?</h3>
+<p>The line <code>(Dispersion parameter for binomial family taken to be 1)</code> is an assumption, not an estimate. The check uses the Pearson statistic \(X^2 = \sum_i \dfrac{(y_i-\hat\mu_i)^2}{m_i\hat p_i(1-\hat p_i)}\) (<a href="../lectures/GLM_2_correct_LMS.pdf">GLMs II, slide 12</a>), and \(\hat\phi = X^2/(n-p)\). For model B, \(X^2 = 27.37\), so \(\hat\phi = 27.37/26 = 1.05\): fine. When \(\hat\phi\) is well above 1 (<em>overdispersion</em>), the binomial standard errors are too small, so p-values are too small and you'll keep predictors you shouldn't. The fix (quasi-likelihood, \(\text{SE}\times\sqrt{\hat\phi}\), and an F-test in place of the χ² LRT) has its own lesson. The challenge below gives you a first look.</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>11.</strong> A binomial model has residual deviance 61.3 on 24 df, all \(m_i\hat p_i\) and \(m_i(1-\hat p_i)\) are above 10, and \(X^2/24 = 2.4\). What's the best summary?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Poor fit; likely overdispersed; SEs too small.</button>
+    <button class="opt" data-key="b">Good fit; mild overdispersion; SEs are fine.</button>
+    <button class="opt" data-key="c">Poor fit; the m_i are too small to judge it.</button>
+    <button class="opt" data-key="d">Good fit; deviance is under twice its df.</button>
+  </div>
+  <div class="why">\(\chi^2_{24}(0.95) = 36.4\), so 61.3 is far too big, and the sample-size condition holds, so the test is valid. \(\hat\phi = 2.4\) says the variance is about 2.4 times what the binomial allows. Standard errors are then too small by a factor of about \(\sqrt{2.4}\approx1.55\). (Option (d) is a made-up rule.)</div>
+</div>
+
+<h2>6 · Exam-level challenge</h2>
+<p>Do this on paper in about 15 minutes, then open the steps one at a time. This is the shape of the real R-output question.</p>
+<div class="box">
+<p>Conservationists record 36 turtle nests across four beaches (A, B, C, D). Nest \(i\) has \(m_i\) eggs (60 to 116), and \(y_i\) hatch. The predictors are <code>temp</code> (mean sand temperature, °C), <code>beach</code> (factor, baseline A) and <code>depth</code> (nest depth, cm). (Simulated data.)</p>
+<pre class="rout"><span class="cmd">&gt; model1 &lt;- glm(cbind(y, m - y) ~ temp + beach + depth, family = binomial, data = nests)
+&gt; summary(model1)</span>
+
+Coefficients:
+             Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  4.705183   0.960391   4.899 9.62e-07 ***
+temp        -0.127696   0.029272  -4.362 1.29e-05 ***
+beachB       0.198065   0.127541   1.553   0.1204
+beachC      -0.194445   0.117969  -1.648   0.0993 .
+beachD      -0.028779   0.119728  -0.240   0.8100
+depth        0.008261   0.005189   1.592   0.1114
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 84.699  on 35  degrees of freedom
+Residual deviance: 48.207  on 30  degrees of freedom
+AIC: 224.98
+
+Number of Fisher Scoring iterations: 4
+
+<span class="cmd">&gt; model2 &lt;- glm(cbind(y, m - y) ~ temp + depth, family = binomial, data = nests)
+&gt; summary(model2)</span>
+
+Coefficients:
+             Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  3.773985   0.903030   4.179 2.92e-05 ***
+temp        -0.105003   0.028110  -3.735 0.000187 ***
+depth        0.013794   0.004837   2.852 0.004350 **
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 84.699  on 35  degrees of freedom
+Residual deviance: 58.173  on 33  degrees of freedom
+AIC: 228.95
+
+Number of Fisher Scoring iterations: 4
+
+<span class="cmd">&gt; (phi1 &lt;- sum(residuals(model1, type="pearson")^2)/model1$df.residual)</span>
+[1] 1.583947
+<span class="cmd">&gt; qchisq(0.95, df = c(3, 30, 33))</span>
+[1]  7.814728 43.772972 47.399880</pre>
+<p>(a) For model1, what is the log-likelihood of the fitted model, and of the saturated model?<br>
+(b) Assuming binomial responses, which is better, model1 or model2? Give two quantitative reasons.<br>
+(c) Is model1 an adequate fit? State what you checked first. (The fitted \(\hat p_i\) range from 0.69 to 0.85.)<br>
+(d) Give a 95% CI for the factor by which the odds of hatching change when sand temperature rises by 1 °C, under model1.<br>
+(e) What does <code>phi1</code> suggest, and which of your conclusions in (b) is most at risk because of it?</p>
+</div>
+
+<details><summary>Step 1: part (a)</summary><div>
+<p>\(n = 35+1 = 36\) and \(p = 36 - 30 = 6\) (intercept, temp, three beach dummies, depth). So \(\ell_1 = 6 - 224.98/2 = \boxed{-106.49}\), and \(\ell_{\text{sat}} = -106.49 + 48.207/2 = \boxed{-82.39}\).</p>
+<p><em>Check with model2:</em> \(p = 3\), \(\ell_2 = 3 - 228.95/2 = -111.48\), and \(-111.48 + 58.173/2 = -82.39\) ✓.</p></div></details>
+<details><summary>Step 2: part (b), two quantitative reasons</summary><div>
+<p><strong>LRT:</strong> model2 is nested in model1 (beach coefficients set to 0). \(\text{LR} = 58.173 - 48.207 = 9.966\) on \(33-30 = 3\) df, which is above \(\chi^2_3(0.95) = 7.81\) (p ≈ 0.019). Reject \(H_0\), so beach matters.<br>
+<strong>AIC:</strong> \(224.98 &lt; 228.95\), so model1 has the lower AIC. Check: \(2(3) + 48.207 - 58.173 = -3.97\) ✓.<br>
+So under the binomial assumption, <strong>model1</strong> is better. Notice that no single beach dummy is significant at 5% (p = 0.12, 0.10, 0.81), yet the factor as a whole is. That's the factor trap from section 3.</p></div></details>
+<details><summary>Step 3: part (c), goodness of fit</summary><div>
+<p><em>Check the condition first:</em> \(m_i \ge 60\) and \(0.69\le\hat p_i\le0.85\), so the smallest \(m_i(1-\hat p_i)\) is about \(60\times0.15 = 9 \ge 5\). The χ² approximation is OK.</p>
+<p>\(D = 48.207\) on 30 df, which is above \(\chi^2_{30}(0.95) = 43.77\) (p ≈ 0.019). <strong>Reject adequacy:</strong> model1 doesn't capture all the variation in hatching.</p></div></details>
+<details><summary>Step 4: part (d), odds multiplier</summary><div>
+<p>The CI for \(\beta_{\text{temp}}\) is \(-0.127696 \pm 1.96(0.029272) = (-0.1851,\ -0.0703)\). Exponentiate both ends: \(\boxed{(0.831,\ 0.932)}\), with point estimate \(e^{-0.1277} = 0.880\). Each extra degree cuts the odds of an egg hatching by about 12% (somewhere between 7% and 17%).</p></div></details>
+<details><summary>Step 5: part (e), the overdispersion warning</summary><div>
+<p>\(\hat\phi = 1.58 &gt; 1\), and together with the failed goodness-of-fit test in (c) this points to <strong>overdispersion</strong>: nests vary more than a binomial with these predictors allows (e.g. unmeasured nest-to-nest differences). Under \(\phi=1\) the standard errors are too small, by a factor of about \(\sqrt{1.58} = 1.26\), and the χ² LRT in (b) is too generous.</p>
+<p>The LRT for beach is most at risk. Sneak preview of the overdispersion lesson: the F-statistic is \(\dfrac{9.966/3}{1.584} = 2.10\) on (3, 30) df. The 5% point of \(F_{3,30}\) is 2.92, so once you allow for overdispersion, <strong>beach is no longer significant</strong> (p ≈ 0.12), and model2 would be preferred. Exams love this flip.</p></div></details>
+
+<h2>7 · Before you close this tab</h2>
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) \(D = 2(\ell_{\text{sat}} - \ell)\) on \(n-p\) df. (2) GOF: \(D\approx\chi^2_{n-p}\) only if \(m_ip_i,\ m_i(1-p_i)\gtrsim5\), and never for 0/1 data. (3) LRT for nested A ⊂ B: \(D_A - D_B\sim\chi^2_{s}\), and it works for 0/1 data too. (4) \(\text{AIC} = 2p - 2\ell\), smaller is better, and nesting isn't required. (5) \(\ell = p - \text{AIC}/2\) and \(\ell_{\text{sat}} = \ell + D/2\). (6) \(n = \text{null df}+1\) and \(p = n - \text{residual df}\). (7) Test a factor with one LRT on \(k-1\) df.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/BinReg_2_LMS-1.pdf">Binomial Regression II</a>, slides 3–14 (Wald test, LRT, deviance, AIC), then the "Likelihood Ratio test" and "Deviance" sections of <a href="../extra-notes/Challenger.pdf">Challenger.pdf</a>, where the same numbers are computed by hand and with <code>glm</code>. <a href="../lectures/GLM_2_correct_LMS.pdf">GLMs II</a>, slides 3–10 restate it for every GLM. For a second explanation, read Faraway, <em>Extending the Linear Model with R</em> (2nd ed.): <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=48">§2.3</a> (deviance, the LRT as \(D_S-D_L\), Wald vs LRT), <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=54">§2.5</a> (AIC), <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=56">§2.6</a> (why deviance can't judge fit for 0/1 data), and <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=69">§3.2–3.3</a> (the deviance fit test for grouped binomial data and Pearson's \(X^2\)).</p>
+
+<p><strong>Homework</strong> (by hand, no R needed):</p>
+<ol>
+  <li><strong>Week 3 tutorial, Q2</strong> (<code>infert</code>). Open <a href="../tutes/2026_MAST30027_week3_sol.html">the week 3 solutions</a> and cover everything after the second <code>summary</code>. Using only the two printouts: (a) test whether <code>education</code> is needed with an LRT (state the df and the 5% critical value); (b) compare the AICs, and check the difference using deviances; (c) can you use model1's residual deviance as a goodness-of-fit test here? Why or why not?</li>
+  <li><strong>Faraway, <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=62">Ch. 2</a> Ex. 1(c):</strong> can the residual deviance of a 0/1 (binary) model tell you whether it fits? Explain.</li>
+  <li><strong>Faraway, <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=80">Ch. 3</a> Ex. 2, printout version</strong> (no R needed). Turtle eggs were incubated at five temperatures (27.2, 27.7, 28.3, 28.4, 29.9 °C), three boxes per temperature, 6–13 turtles per box (15 rows); the response is the number of males. At 29.9 °C one box holds 8 turtles; at 27.2 °C one box holds 8. Using only these printouts:
+<pre class="rout"><span class="cmd">&gt; m1 &lt;- glm(cbind(male, female) ~ temp, family = binomial, data = turtle)</span>
+            Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept) -61.3183    12.0224  -5.100 3.39e-07 ***
+temp          2.2110     0.4309   5.132 2.87e-07 ***
+
+    Null deviance: 74.508  on 14  degrees of freedom
+Residual deviance: 24.942  on 13  degrees of freedom
+AIC: 53.836
+
+<span class="cmd">&gt; m2 &lt;- glm(cbind(male, female) ~ temp + I(temp^2), family = binomial, data = turtle)</span>
+             Estimate Std. Error z value Pr(&gt;|z|)  
+(Intercept) -677.5950   268.7984  -2.521   0.0117 *
+temp          45.9173    18.9169   2.427   0.0152 *
+I(temp^2)     -0.7745     0.3327  -2.328   0.0199 *
+
+    Null deviance: 74.508  on 14  degrees of freedom
+Residual deviance: 20.256  on 12  degrees of freedom
+AIC: 51.15</pre>
+(b) Does <code>m1</code> fit? (\(\chi^2_{13}(0.95) = 22.36\).) (c) Is the data sparse? Compute <code>m1</code>'s expected number of females in the 8-turtle box at 29.9 °C and males in the 8-turtle box at 27.2 °C. What does that do to your answer to (b)? (f) Is the quadratic term needed? Do an LRT, then compare it with the Wald \(z^2\). Which model does AIC prefer?</li>
+  <li><em>Optional:</em> <a href="../extra-notes/Challenger.pdf">Challenger.pdf</a>, "Deviance" section. From the fitted and null deviances, get the LRT for temperature and compare it with the Wald \(z^2 = 16.54\). Then decide whether the printed goodness-of-fit p-value of 0.72 can be trusted (each launch has \(m_i = 6\) O-rings and \(\hat p\approx0.08\)).</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1(a). \(\text{LR} = 260.94 - 257.80 = 3.14\) on \(243-241 = 2\) df, which is below 5.99 (R: p = 0.207), so education isn't needed. (b) \(270.94 &lt; 271.8\), so prefer the model without education. Check: \(\text{AIC}_1 - \text{AIC}_2 = 2(2) + 257.80 - 260.94 = 0.86\) ✓. (c) No: <code>case</code> is 0/1 (\(m_i = 1\)), so \(D\) isn't \(\chi^2_{241}\).<br>
+2. No. For 0/1 data the deviance depends only on the fitted \(\hat p_i\), not on how well they match the \(y_i\), so it says nothing about fit (Faraway §2.3); the \(\chi^2_{n-p}\) approximation also needs \(m_i\) large.</p>
+<p>3. (b) \(D = 24.94 &gt; 22.36\) on 13 df (\(p = 0.023\)), which looks like lack of fit. (c) At 29.9: \(\hat\eta = -61.3183 + 2.2110(29.9) = 4.79\), \(\hat p = 0.992\), expected females \(= 8(0.008) \approx 0.07\). At 27.2: \(\hat\eta = -1.18\), \(\hat p = 0.235\), expected males \(\approx 1.9\). Both are far below 5, so the data are sparse and the \(\chi^2\) fit test in (b) is unreliable. (f) \(\text{LR} = 24.942 - 20.256 = 4.69\) on 1 df, above 3.84 (\(p = 0.030\)): keep the quadratic. Wald \(z^2 = 2.328^2 = 5.42\), the same conclusion but not the same number; trust the LRT. AIC: \(51.15 &lt; 53.84\), so AIC also prefers <code>m2</code>, whose \(D = 20.26\) on 12 df (\(p = 0.062\)) shows no lack of fit, with the same sparsity caveat.</p>
+<p>4. \(\text{LR} = 38.898 - 16.912 = 21.99\) on 1 df, the same as the note's 21.985. That's bigger than \(z^2 = 16.54\), but both reject easily. The GOF p-value is <em>not</em> trustworthy: \(m_i\hat p_i \approx 6\times0.08 \approx 0.5\), far below 5.</p></div></details>
+<p><strong>Spacing:</strong> tomorrow, without looking, redo part (a) and Step 2 of the challenge, then Q5.</p>
+
+<div class="ask">💬 Ask me in the terminal if any line of the printout is still a mystery, or if you want another R-output set to practise on. I'm your teacher for this. Paste your answers to the challenge and I'll mark them the way an exam marker would.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0002-binomial-regression.html">Lesson 2, binomial regression</a> · Reference: <a href="../reference/likelihood-cheatsheet.html">Likelihood cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0004-topic1-review.html">Lesson 4, Topic 1 mixed review</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

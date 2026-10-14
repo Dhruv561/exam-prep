@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taylor Series and Radius</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 8 · Topic 2: Power series</div>
+<h1>Taylor series and the radius of convergence</h1>
+<p class="lede">The goal: write down the standard series from memory, build new ones in a line, find the radius of convergence of any power series (gaps included), and prove that a series really equals the function you think it does.</p>
+
+<div class="mission">Why this matters for 5 Nov: every past paper has a power-series question, and nearly all of them end with "find the radius (or interval) of convergence". Recognising a closed form ("this series is $e^{-t^2}$") also saves you marks in Lessons 9–11. This lesson is the toolkit those lessons rely on.</div>
+
+<h2>0 · Warm-up from Topic 1</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W1.</strong> For $\;(t^2-4t)\,y'' + y' + e^{t}y = 0,\;\; y(1) = 2,\; y'(1) = 0$, the largest interval on which a unique solution is guaranteed is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(-\infty,\,4)$</button>
+    <button class="opt" data-key="b">$(0,\,4)$</button>
+    <button class="opt" data-key="c">$(1,\,4)$</button>
+    <button class="opt" data-key="d">$(0,\,\infty)$</button>
+  </div>
+  <div class="why">Divide by $t(t-4)$. The coefficients are continuous except at $t = 0$ and $t = 4$, and $t_0 = 1$ sits between them. Lesson 10 reuses this: a series solution's radius is often the distance to the nearest zero of the leading coefficient.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W2.</strong> Two functions both satisfy $\;y' = \dfrac{y}{1+t},\;\; y(0) = 1\;$ on $(-1,\infty)$. What can you conclude?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">They agree only at $t = 0$</button>
+    <button class="opt" data-key="b">They agree only for $t \ge 0$</button>
+    <button class="opt" data-key="c">They may differ by a constant</button>
+    <button class="opt" data-key="d">They agree on all of $(-1,\infty)$</button>
+  </div>
+  <div class="why">Linear first-order IVP with coefficient $\tfrac{1}{1+t}$ continuous on $(-1,\infty)$, so the solution is unique there (<a href="0001-integrating-factors.html">Lesson 1</a>). §6 turns exactly this into a way of proving "series = function".</div>
+</div>
+
+<h2>1 · Taylor and Maclaurin series</h2>
+
+<div class="box">
+<p>If $f$ is infinitely differentiable at $a$, its <strong>Taylor series about $a$</strong> is
+$$P(t) = \sum_{n=0}^{\infty} \frac{f^{(n)}(a)}{n!}\,(t-a)^n .$$
+With $a = 0$ it's called a <strong>Maclaurin series</strong>. In general we write a power series as $\sum c_n (t-a)^n$, so $c_n = f^{(n)}(a)/n!$.</p>
+</div>
+
+<p>Read that last formula both ways. It turns derivatives into coefficients, and also coefficients into derivatives: $f^{(n)}(a) = n!\,c_n$. So "find $f^{(10)}(0)$" is often a series question in disguise (practice Q7).</p>
+
+<p>Two questions always come with a power series (<a href="../lectures/07_MAST20030_Lecture_Notes_Topic2_PowerSeries-LMS.pdf">Lecture 7</a>): <em>for which $t$ does it converge?</em> (§3–5) and <em>does it converge to $f$?</em> (§6).</p>
+
+<h2>2 · Series to know cold, and building new ones</h2>
+
+<div class="box">
+<table>
+<tr><th>Function</th><th>Maclaurin series</th><th>$R$</th></tr>
+<tr><td>$e^{t}$</td><td>$\displaystyle\sum_{n\ge0}\frac{t^n}{n!}$</td><td>$\infty$</td></tr>
+<tr><td>$\dfrac{1}{1-t}$</td><td>$\displaystyle\sum_{n\ge0} t^n$</td><td>$1$</td></tr>
+<tr><td>$\log(1-t)$</td><td>$\displaystyle-\sum_{n\ge1}\frac{t^n}{n}$</td><td>$1$</td></tr>
+<tr><td>$\sin t$</td><td>$\displaystyle\sum_{k\ge0}\frac{(-1)^k\,t^{2k+1}}{(2k+1)!}$</td><td>$\infty$</td></tr>
+<tr><td>$\cos t$</td><td>$\displaystyle\sum_{k\ge0}\frac{(-1)^k\,t^{2k}}{(2k)!}$</td><td>$\infty$</td></tr>
+<tr><td>$\sinh t$</td><td>$\displaystyle\sum_{k\ge0}\frac{t^{2k+1}}{(2k+1)!}$</td><td>$\infty$</td></tr>
+<tr><td>$\cosh t$</td><td>$\displaystyle\sum_{k\ge0}\frac{t^{2k}}{(2k)!}$</td><td>$\infty$</td></tr>
+<tr><td>$\arctan t$</td><td>$\displaystyle\sum_{k\ge0}\frac{(-1)^k\,t^{2k+1}}{2k+1}$</td><td>$1$</td></tr>
+<tr><td>$(1+t)^{\alpha}$ <em>(optional)</em></td><td>$\displaystyle\sum_{n\ge0}\binom{\alpha}{n}t^n,\;\; \binom{\alpha}{n} = \frac{\alpha(\alpha-1)\cdots(\alpha-n+1)}{n!}$</td><td>$1$</td></tr>
+</table>
+<p>Memory hooks: $\cosh$ and $\sinh$ are the even and odd halves of $e^t$; $\cos$ and $\sin$ are the same with alternating signs. $\log$ means natural log, as in the course.</p>
+</div>
+
+<p>You almost never differentiate $n$ times to get a new series. Use one of three moves on a known series instead.</p>
+
+<div class="box">
+<ol class="steps">
+  <li><strong>Substitute.</strong> Replace $t$ by $-t^2$, $2t$, $t^3$, … The convergence condition comes along: $|{-t^2}| &lt; 1 \Rightarrow |t| &lt; 1$, and $|2t| &lt; 1 \Rightarrow R = \tfrac12$.</li>
+  <li><strong>Multiply by $t^k$.</strong> This shifts every power up by $k$. $R$ doesn't change.</li>
+  <li><strong>Differentiate or integrate term by term</strong> inside $|t-a| &lt; R$. $R$ doesn't change. When you integrate, fix the constant by putting $t = a$. (Why this is allowed: <a href="0012-uniform-convergence-genuine.html">Lesson 12</a>.)</li>
+</ol>
+</div>
+
+<details><summary>Examples: $\;1/(1+t^2)$, $\;\arctan t$, $\;1/(1-t)^2$, $\;\log(1+t^2)$</summary><div>
+<p><strong>Substitute</strong> $t \to -t^2$ in $\tfrac1{1-t}$: $\displaystyle \frac{1}{1+t^2} = \sum_{k\ge0}(-1)^k t^{2k}$, for $|t| &lt; 1$.</p>
+<p><strong>Integrate</strong> that from $0$: $\displaystyle \arctan t = \sum_{k\ge0}\frac{(-1)^k t^{2k+1}}{2k+1}$. The constant is $0$ because $\arctan 0 = 0$.</p>
+<p><strong>Differentiate</strong> $\sum t^n$: $\displaystyle \frac{1}{(1-t)^2} = \sum_{n\ge1} n\,t^{n-1} = \sum_{n\ge0}(n+1)\,t^n$.</p>
+<p><strong>Substitute</strong> $t \to -t^2$ in $\log(1-t)$: $\displaystyle \log(1+t^2) = -\sum_{k\ge1}\frac{(-t^2)^k}{k} = \sum_{k\ge1}\frac{(-1)^{k+1}t^{2k}}{k} = t^2 - \frac{t^4}{2} + \frac{t^6}{3} - \cdots$</p></div></details>
+
+<h2>3 · Radius of convergence: the ratio test</h2>
+
+<div class="box">
+<p><strong>Ratio test for power series</strong> (<a href="../lectures/07_MAST20030_Lecture_Notes_Topic2_PowerSeries-LMS.pdf">Lecture 7</a>, slide 15). For $\sum c_n (t-a)^n$ with $c_n \ne 0$ for all large $n$:
+$$R = \lim_{n\to\infty}\left|\frac{c_n}{c_{n+1}}\right| .$$
+The series converges for $|t-a| &lt; R$ and diverges for $|t-a| &gt; R$. At $|t-a| = R$ you need another test. $R = 0$ and $R = \infty$ are both allowed, and the series always converges at $t = a$.</p>
+</div>
+
+<ol class="steps">
+  <li>Write down $c_n$, the coefficient of $(t-a)^n$. Check that no $c_n$ are zero (if some are, go to §4).</li>
+  <li>Form $c_n / c_{n+1}$ and simplify. With factorials, cancel using $(n+1)! = (n+1)\,n!$ and $(2n+2)! = (2n+2)(2n+1)\,(2n)!$.</li>
+  <li>Take the limit. The interval is $(a - R,\; a + R)$, endpoints untested.</li>
+</ol>
+
+<div class="trap"><strong>Order and centre</strong><br>
+$c_n/c_{n+1}$, <em>not</em> $c_{n+1}/c_n$. The other way round gives $1/R$. Sanity check: a factorial in the denominator (like $e^t$) should give a big $R$; a factorial in the numerator (like $\sum n!\,t^n$) gives $R = 0$. And the interval is centred at $a$: for $(t+1)^n$ the centre is $-1$.</div>
+
+<h3>Example A: a shifted centre</h3>
+<div class="box"><p>$$\sum_{n\ge1}\frac{3^n}{n^2}\,(t+1)^n$$</p></div>
+<details><summary>Solution</summary><div>
+<p>$c_n = 3^n/n^2$ and $a = -1$.
+$$\frac{c_n}{c_{n+1}} = \frac{3^n}{n^2}\cdot\frac{(n+1)^2}{3^{n+1}} = \frac13\Big(1 + \frac1n\Big)^2 \;\to\; \frac13 .$$
+$R = \tfrac13$, so it converges on $\big(-\tfrac43,\, -\tfrac23\big)$ (endpoints untested).</p></div></details>
+
+<h3>Example B: factorials</h3>
+<div class="box"><p>$$\sum_{n\ge0}\frac{(n!)^2}{(2n)!}\,t^n$$</p></div>
+<details><summary>Solution</summary><div>
+<p>$$\frac{c_n}{c_{n+1}} = \frac{(n!)^2}{(2n)!}\cdot\frac{(2n+2)!}{\big((n+1)!\big)^2} = \frac{(2n+2)(2n+1)}{(n+1)^2} = \frac{2(2n+1)}{n+1} \;\to\; 4 .$$
+$R = 4$: converges for $|t| &lt; 4$.</p></div></details>
+
+<h2>4 · Series with gaps: every other (or every third) term</h2>
+
+<p>If $c_n = 0$ for every odd $n$ (say), then $c_n/c_{n+1}$ divides by zero half the time. Two fixes, both from the lecture's Exercise 2.5:</p>
+
+<div class="box">
+<p><strong>Fix 1: substitute.</strong> Write $n = 2k$ and set $x = t^2$. Find $R_x$ for the series in $x$, then $|t^2| &lt; R_x$ gives $|t| &lt; \sqrt{R_x}$. (For $t^{3k}$, use $x = t^3$ and take a cube root.)</p>
+<p><strong>Fix 2: ratio of successive non-zero terms.</strong> Use the general ratio test on the <em>terms</em> $a_k$ (with $t$ inside them): require $\lim |a_{k+1}/a_k| &lt; 1$ and solve for $|t|$.</p>
+</div>
+
+<h3>Example C</h3>
+<div class="box"><p>$$\sum_{k\ge1}\frac{t^{2k}}{k\,9^k}$$</p></div>
+<details><summary>Fix 1: substitute $x = t^2$</summary><div>
+<p>$\sum x^k/(k\,9^k)$ has $c_k = 1/(k\,9^k)$, so $\dfrac{c_k}{c_{k+1}} = \dfrac{(k+1)\,9^{k+1}}{k\,9^k} \to 9$. So $|t^2| &lt; 9$, which gives $|t| &lt; 3$. $\;R = 3$.</p></div></details>
+<details><summary>Fix 2: successive non-zero terms</summary><div>
+<p>$$\left|\frac{a_{k+1}}{a_k}\right| = \frac{t^{2k+2}}{(k+1)\,9^{k+1}}\cdot\frac{k\,9^k}{t^{2k}} = \frac{k}{k+1}\cdot\frac{t^2}{9} \;\to\; \frac{t^2}{9} &lt; 1 \;\Rightarrow\; |t| &lt; 3 .$$
+(Closed form, if you're curious: $-\log\!\big(1 - t^2/9\big)$, which blows up at $t = \pm3$.)</p></div></details>
+
+<div class="trap"><strong>Don't stop at $R_x$</strong><br>The most common slip is answering $9$ here. The ratio of $c_{2k}$ to $c_{2k+2}$ gives the radius <em>in $t^2$</em>. Take the square root (cube root for $t^{3k}$). Odd-only series like $\sum t^{2k+1}/\dots$ work the same way: factor out one $t$ first.</div>
+
+<h2>5 · Endpoints (just know this exists)</h2>
+<p>At $|t-a| = R$ the ratio-test limit equals $1$, which says nothing. Example: $\sum_{n\ge1} t^n/n$ has $R = 1$; at $t = 1$ it's the harmonic series (diverges), and at $t = -1$ it's alternating (converges). So its interval of convergence is $[-1,\,1)$. If a question asks for the <em>interval</em>, test each endpoint with the series tests on the formula sheet. Otherwise $R$ and the open interval are enough.</p>
+
+<h2>6 · Does the series equal the function?</h2>
+
+<p><strong>Not automatically.</strong> The lecture's counterexample (<a href="../lectures/07_MAST20030_Lecture_Notes_Topic2_PowerSeries-LMS.pdf">Lecture 7</a>, Exercise 2.6): $f(t) = e^{-1/t^2}$ for $t \ne 0$, $f(0) = 0$. It's smooth, and every derivative at $0$ is $0$. So its Maclaurin series is $0 + 0\,t + 0\,t^2 + \dots = 0$, which converges everywhere ($R = \infty$) but equals $f$ only at $t = 0$. Convergence and "converges to $f$" are different questions.</p>
+
+<p>So how do you prove $\sum c_n t^n = f(t)$? The course uses the uniqueness of IVPs, as in Lecture 7's $y' = y$ example and Tutorial 4 Q1:</p>
+
+<div class="box">
+<ol class="steps">
+  <li><strong>Find a first-order IVP that $f$ solves.</strong> Differentiate $f$ and write $f'$ in terms of $f$ (or as an explicit function of $t$). Add $y(a) = f(a)$.</li>
+  <li><strong>Show the series solves the same IVP</strong> for $|t-a| &lt; R$: differentiate term by term, shift the index, compare coefficients. Check the initial value.</li>
+  <li><strong>Quote uniqueness</strong> (linear first-order IVP, coefficients continuous on the interval). Two solutions of the same IVP agree, so series $= f$ on $|t-a| &lt; R$.</li>
+</ol>
+</div>
+
+<h3>Example D</h3>
+<div class="box"><p>Show that $\displaystyle S(t) = \sum_{n\ge0}(n+1)\,t^n$ equals $\dfrac{1}{(1-t)^2}$ for $|t| &lt; 1$, using an IVP in $y$ itself (not just $y' = $ a known function).</p></div>
+
+<details><summary>Radius</summary><div>
+<p>$c_n/c_{n+1} = (n+1)/(n+2) \to 1$, so $R = 1$.</p></div></details>
+
+<details><summary>Step 1: an IVP for $f = (1-t)^{-2}$</summary><div>
+<p>$f' = 2(1-t)^{-3} = \dfrac{2}{1-t}\,f$, and $f(0) = 1$. So $f$ solves
+$$y' = \frac{2}{1-t}\,y, \qquad y(0) = 1,$$
+whose coefficient is continuous on $(-\infty, 1) \supset (-1,1)$.</p></div></details>
+
+<details><summary>Step 2: the series solves it too</summary><div>
+<p>$S' = \sum_{n\ge1} n(n+1)\,t^{n-1}$. Multiply by $(1-t)$:
+$$(1-t)S' = \sum_{n\ge1} n(n+1)\,t^{n-1} - \sum_{n\ge1} n(n+1)\,t^{n}.$$
+Shift the first sum ($n \to n+1$): $\sum_{n\ge0}(n+1)(n+2)\,t^n$. The second can start at $n = 0$ (that term is $0$). So
+$$(1-t)S' = \sum_{n\ge0}\big[(n+1)(n+2) - n(n+1)\big]t^n = \sum_{n\ge0} 2(n+1)\,t^n = 2S .$$
+And $S(0) = c_0 = 1$ ✓.</p></div></details>
+
+<details><summary>Step 3: conclude</summary><div>
+<p>$S$ and $f$ solve the same linear IVP on $(-1, 1)$, so by uniqueness $S(t) = \dfrac{1}{(1-t)^2}$ for $|t| &lt; 1$.</p></div></details>
+
+<p>Here you already knew the answer (differentiate $\sum t^n$). The point is the method: in Lessons 9–11 a series falls out of an ODE, and this is how you pin down what it equals.</p>
+
+<h2>7 · Practice</h2>
+<p>Paper first, then click.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> The radius of convergence of $\displaystyle\sum_{n\ge1}\frac{3^n}{n}\,t^n$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$3$</button>
+    <button class="opt" data-key="b">$1$</button>
+    <button class="opt" data-key="c">$\tfrac13$</button>
+    <button class="opt" data-key="d">$\infty$</button>
+  </div>
+  <div class="why">$\dfrac{c_n}{c_{n+1}} = \dfrac{3^n}{n}\cdot\dfrac{n+1}{3^{n+1}} = \dfrac{n+1}{3n} \to \dfrac13$. Answer (a) is the flipped ratio.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> The radius of convergence of $\displaystyle\sum_{n\ge1}\frac{n!}{n^n}\,t^n$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e$</button>
+    <button class="opt" data-key="b">$1/e$</button>
+    <button class="opt" data-key="c">$1$</button>
+    <button class="opt" data-key="d">$0$</button>
+  </div>
+  <div class="why">$\dfrac{c_n}{c_{n+1}} = \dfrac{n!}{n^n}\cdot\dfrac{(n+1)^{n+1}}{(n+1)!} = \dfrac{(n+1)^n}{n^n} = \Big(1 + \dfrac1n\Big)^n \to e$, a limit on the formula sheet.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>3.</strong> $\displaystyle\sum_{n\ge1}\frac{(t-2)^n}{n\,4^n}$ converges on which open interval (endpoints aside)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(-4,\,4)$</button>
+    <button class="opt" data-key="b">$(-2,\,6)$</button>
+    <button class="opt" data-key="c">$(-6,\,2)$</button>
+    <button class="opt" data-key="d">$(\tfrac74,\,\tfrac94)$</button>
+  </div>
+  <div class="why">$c_n/c_{n+1} = (n+1)\,4/n \to 4$, centred at $a = 2$: $(2-4,\,2+4)$. Option (a) forgets the centre; (c) uses the wrong sign; (d) flips the ratio.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>4.</strong> The radius of convergence of $\displaystyle\sum_{k\ge0}\frac{(-1)^k\,t^{3k}}{8^k}$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$8$</button>
+    <button class="opt" data-key="b">$\tfrac12$</button>
+    <button class="opt" data-key="c">$\tfrac18$</button>
+    <button class="opt" data-key="d">$2$</button>
+  </div>
+  <div class="why">With $x = t^3$ it's geometric with ratio $-x/8$, so $|t^3| &lt; 8$ and $|t| &lt; 2$. It sums to $\dfrac{8}{8+t^3}$, which blows up at $t = -2$: consistent. Answer (a) forgot the cube root.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>5.</strong> The radius of convergence of $\displaystyle\sum_{n\ge0}\frac{(2n)!}{(n!)^2}\,t^n$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$4$</button>
+    <button class="opt" data-key="b">$2$</button>
+    <button class="opt" data-key="c">$\tfrac14$</button>
+    <button class="opt" data-key="d">$\tfrac12$</button>
+  </div>
+  <div class="why">This is Example B upside down: $\dfrac{c_n}{c_{n+1}} = \dfrac{(n+1)^2}{(2n+2)(2n+1)} = \dfrac{n+1}{2(2n+1)} \to \dfrac14$.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>6.</strong> The coefficient of $t^5$ in the Maclaurin series of $\dfrac{t}{(1+t)^2}$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$-5$</button>
+    <button class="opt" data-key="b">$5$</button>
+    <button class="opt" data-key="c">$6$</button>
+    <button class="opt" data-key="d">$-6$</button>
+  </div>
+  <div class="why">$\tfrac1{(1-t)^2} = \sum (n+1)t^n$. Substitute $t \to -t$: $\sum (-1)^n(n+1)t^n$. Multiply by $t$: $\sum (-1)^n (n+1)\,t^{n+1}$. For $t^5$, $n = 4$: $(+1)(5) = 5$. The series is $t - 2t^2 + 3t^3 - 4t^4 + 5t^5 - \cdots$</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>7.</strong> For $f(t) = t^2\cos(t^3)$, the value of $f^{(8)}(0)$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$-8!/2$</button>
+    <button class="opt" data-key="b">$8!/2$</button>
+    <button class="opt" data-key="c">$-1/2$</button>
+    <button class="opt" data-key="d">$8!/24$</button>
+  </div>
+  <div class="why">$\cos x = 1 - \tfrac{x^2}{2} + \dots$ with $x = t^3$, times $t^2$: $\;f = t^2 - \tfrac12 t^8 + \tfrac1{24}t^{14} - \cdots$. So $c_8 = -\tfrac12$ and $f^{(8)}(0) = 8!\,c_8$. Option (c) is $c_8$ itself. Differentiating eight times by hand would take a page.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>8.</strong> $f$ is smooth on $\mathbb R$ and its Maclaurin series has $R = \infty$. Then…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">the series equals $f$ on all of $\mathbb R$</button>
+    <button class="opt" data-key="b">the series equals $f$ for $|t| &lt; 1$ only</button>
+    <button class="opt" data-key="c">$f$ must be a polynomial in $t$</button>
+    <button class="opt" data-key="d">the series may equal $f$ only at $t = 0$</button>
+  </div>
+  <div class="why">$e^{-1/t^2}$ (with $f(0) = 0$) has Maclaurin series $0$: $R = \infty$, but it matches $f$ only at $t = 0$. To prove equality you need an argument like §6.</div>
+</div>
+
+<h2>8 · Mini-challenge: the binomial series</h2>
+<p>This chains every move in the lesson. Fully on paper, then open one step at a time.</p>
+<div class="box">
+<p>Let $\alpha$ be real but <em>not</em> a non-negative integer, and
+$$B(t) = \sum_{n\ge0} c_n t^n, \qquad c_n = \binom{\alpha}{n} = \frac{\alpha(\alpha-1)\cdots(\alpha-n+1)}{n!}, \quad c_0 = 1 .$$
+(a) Show that $c_{n+1} = \dfrac{\alpha-n}{n+1}\,c_n$, and hence that $R = 1$.<br>
+(b) Show that $(1+t)\,B' = \alpha B$ and $B(0) = 1$.<br>
+(c) Conclude that $B(t) = (1+t)^{\alpha}$ for $|t| &lt; 1$.<br>
+(d) Hence write the first four non-zero terms of the Maclaurin series of $\dfrac{1}{\sqrt{1+t^2}}$, and state its radius of convergence.</p>
+</div>
+
+<details><summary>(a) Recurrence and radius</summary><div>
+<p>$c_{n+1}$ has one more factor $(\alpha - n)$ on top and one more factor $(n+1)$ in the $n!$, so $c_{n+1} = \dfrac{\alpha-n}{n+1}c_n$. None of the $c_n$ is $0$, because $\alpha$ isn't a non-negative integer. Then
+$$\left|\frac{c_n}{c_{n+1}}\right| = \left|\frac{n+1}{\alpha-n}\right| \to 1, \qquad R = 1 .$$
+(If $\alpha = 0, 1, 2, \dots$ the series stops at $n = \alpha$: a polynomial with $R = \infty$.)</p></div></details>
+
+<details><summary>(b) The ODE</summary><div>
+<p>$B' = \sum_{n\ge1} n c_n t^{n-1} = \sum_{n\ge0}(n+1)c_{n+1}t^n$ and $tB' = \sum_{n\ge0} n c_n t^n$. So
+$$(1+t)B' = \sum_{n\ge0}\big[(n+1)c_{n+1} + n c_n\big]t^n = \sum_{n\ge0}\big[(\alpha - n)c_n + n c_n\big]t^n = \alpha\sum_{n\ge0} c_n t^n = \alpha B,$$
+using (a). $B(0) = c_0 = 1$.</p></div></details>
+
+<details><summary>(c) Uniqueness</summary><div>
+<p>$f = (1+t)^\alpha$ has $f' = \alpha(1+t)^{\alpha-1}$, so $(1+t)f' = \alpha f$ and $f(0) = 1$. Both $B$ and $f$ solve $y' = \dfrac{\alpha}{1+t}\,y$, $y(0) = 1$, a linear IVP whose coefficient is continuous on $(-1,\infty)$. So $B = f$ on $|t| &lt; 1$.</p></div></details>
+
+<details><summary>(d) Substitute</summary><div>
+<p>$\alpha = -\tfrac12$: $\;c_1 = -\tfrac12,\;\; c_2 = \dfrac{(-\frac12)(-\frac32)}{2} = \dfrac38,\;\; c_3 = \dfrac{(-\frac12)(-\frac32)(-\frac52)}{6} = -\dfrac{5}{16}$. Substitute $t \to t^2$:
+$$\frac{1}{\sqrt{1+t^2}} = 1 - \frac{t^2}{2} + \frac{3t^4}{8} - \frac{5t^6}{16} + \cdots, \qquad |t^2| &lt; 1 \;\Rightarrow\; R = 1 .$$</p></div></details>
+
+<h2>9 · Before you close this tab</h2>
+<details><summary>Retrieval: write the series table, the radius formula, the gap fix and the three-step IVP proof from memory, then check</summary><div>
+<p><strong>Table:</strong> $e^t,\ \tfrac1{1-t},\ \log(1-t),\ \sin,\ \cos,\ \sinh,\ \cosh,\ \arctan$ as in §2. $R = \infty$ for the factorial ones ($e^t$, $\sin$, $\cos$, $\sinh$, $\cosh$), $R = 1$ for the rest.</p>
+<p><strong>Radius:</strong> $R = \lim |c_n/c_{n+1}|$, interval $(a-R,\, a+R)$, endpoints need another test.</p>
+<p><strong>Gaps:</strong> $x = t^2$ (or $t^3$), find $R_x$, then take the root. Or ratio of successive non-zero terms, $&lt; 1$.</p>
+<p><strong>Series $= f$:</strong> IVP for $f$ → series solves the same IVP → uniqueness. Remember $e^{-1/t^2}$: convergence alone proves nothing.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/07_MAST20030_Lecture_Notes_Topic2_PowerSeries-LMS.pdf">Lecture 7</a> (all of it, 17 slides). For more worked radius examples, <a href="https://tutorial.math.lamar.edu/Classes/DE/PowerSeries.aspx">Paul's Notes: Power Series review</a> and <a href="https://tutorial.math.lamar.edu/Classes/DE/TaylorSeries.aspx">Taylor Series review</a>.</p>
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../tutes/tute_week_04.pdf">Tutorial 4</a>, Q1 (a) and (b): the $\log(1-t)$ version of §6. Solutions: <a href="../tutes/tute_week_04_sol.pdf">tute_week_04_sol.pdf</a>.</li>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic2.pdf">Problem Booklet 2</a>, Q3 (b), (e), (f): the $e^{-1/t^2}$ counterexample done properly.</li>
+  <li>Booklet Q1 (a)(iv) and (b)(iv): write the Taylor series of $\cosh 2t$, $\sinh 2t$, $\cos 2t$, $\sin 2t$ by substitution (no derivatives).</li>
+  <li>Optional: Booklet Q3 (c), (d).</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo quizzes 2, 4 and 7 cold, plus challenge (b) without looking.</p>
+
+<div class="ask">💬 Stuck on a limit, or got a different radius? Ask me in the terminal. Paste or photograph your working and I'll mark it line by line.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0001-integrating-factors.html">Lesson 1</a> (IVP uniqueness)</span>
+  <span>Reference: <a href="../reference/topic2-cheatsheet.html">Topic 2 cheat sheet</a></span>
+  <span>Previous: <a href="0007-particular-solutions.html">Lesson 7</a> · Next: <a href="0009-series-method-constant-coeff.html">Lesson 9, the series method</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

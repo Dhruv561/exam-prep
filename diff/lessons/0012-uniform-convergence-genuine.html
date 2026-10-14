@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uniform Convergence</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/series-plot.js"></script>
+<style>
+  .model { border-left: 3px solid var(--ok); padding: .2rem 0 .2rem .9rem; margin: .8rem 0; }
+  .model p { margin: .35rem 0; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 12 · Topic 2: Power series</div>
+<h1>Uniform convergence, the Weierstrass test, and genuine solutions</h1>
+<p class="lede">The goal: write the four-line Weierstrass argument an examiner wants, on any series (power, trig or exponential), and answer "radius? uniform where? genuine?" in exact, mark-earning wording.</p>
+
+<div class="mission">Why this matters for 5 Nov: almost every power-series question ends with "determine the radius of convergence and the intervals on which it converges uniformly; quoting results from lectures, is it a genuine solution?". There is often a separate Weierstrass-test part on a series with $\cos$ and exponentials. These are cheap marks if your wording is right, and most people lose them by writing "uniform on $(-R,R)$" or "uniform on $\mathbb R$".</div>
+
+<h2>0 · Warm-up from Lessons 8–11</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> The radius of convergence of $\;\displaystyle\sum_{n=1}^\infty \frac{n\,t^n}{3^n}\;$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$R = 1/3$</button>
+    <button class="opt" data-key="b">$R = 1$</button>
+    <button class="opt" data-key="c">$R = 3$</button>
+    <button class="opt" data-key="d">$R = \infty$</button>
+  </div>
+  <div class="why">$R = \lim\big|c_n/c_{n+1}\big| = \lim \dfrac{n}{3^n}\cdot\dfrac{3^{n+1}}{n+1} = 3$. The factor $n$ doesn't change the radius.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W2.</strong> The radius of convergence of $\;\displaystyle\sum_{k=0}^\infty \frac{t^{2k}}{4^k}\;$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$R = 2$</button>
+    <button class="opt" data-key="b">$R = 4$</button>
+    <button class="opt" data-key="c">$R = 1/4$</button>
+    <button class="opt" data-key="d">$R = 16$</button>
+  </div>
+  <div class="why">Every other coefficient is $0$, so $c_n/c_{n+1}$ is useless. Use the ratio of consecutive <em>terms</em>: $\big|t^{2k+2}/4^{k+1}\big| \big/ \big|t^{2k}/4^k\big| = t^2/4 &lt; 1 \iff |t| &lt; 2$ (<a href="0008-taylor-series-radius.html">Lesson 8</a>).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W3.</strong> Substitute $y = \sum c_n t^n$ into $\;t\,y'' + 3y' + t\,y = 0$. The coefficient of $t^0$ forces…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$c_0 = 0$</button>
+    <button class="opt" data-key="b">$c_2 = 0$</button>
+    <button class="opt" data-key="c">$c_0 = c_1$</button>
+    <button class="opt" data-key="d">$c_1 = 0$</button>
+  </div>
+  <div class="why">$t\,y''$ and $3y'$ both produce $t^{n-1}$: together $\sum n(n+2)c_n t^{n-1}$. At $n = 1$ that's $3c_1 t^0$, and $t\,y$ has no $t^0$ term, so $c_1 = 0$ (<a href="0011-singular-points-bessel.html">Lesson 11</a>). We'll use this ODE's series in §8.</div>
+</div>
+
+<h2>1 · Why the method needs this</h2>
+
+<p>Step 1 of the power-series method differentiates $y = \sum c_n t^n$ <em>term by term</em>. For a finite sum that's obviously fine. For an infinite sum it's a claim that needs proof:
+$$\frac{d}{dt}\sum_{n=0}^\infty c_n t^n \overset{?}{=} \sum_{n=0}^\infty \frac{d}{dt}\big(c_n t^n\big).$$
+Until you've justified it, the series you found is only a <strong>formal</strong> solution. The justification is <strong>uniform convergence</strong> (<a href="../lectures/09_MAST20030_Lecture_Notes_Topic2_PowerSeries-LMS.pdf">Lecture 9, slides 8–14</a>).</p>
+
+<h2>2 · Pointwise vs uniform</h2>
+
+<div class="box">
+<p><strong>Pointwise:</strong> for each fixed $t \in D$, $W_N(t) \to W(t)$ as $N\to\infty$.</p>
+<p><strong>Uniform on $D$:</strong> the <em>worst</em> error over the whole domain goes to $0$:
+$$\lim_{N\to\infty}\ \max_{t\in D}\ \big|W_N(t) - W(t)\big| = 0.$$
+(Strictly, $\sup$ rather than $\max$.) A series $\sum w_n$ converges uniformly if its partial sums $W_N = \sum_{n\le N} w_n$ do.</p>
+</div>
+
+<p>Uniform is stronger: one $N$ has to make the error small <em>everywhere in $D$ at once</em>. The domain is part of the statement. "Converges uniformly" with no $D$ means nothing.</p>
+
+<h3>The standard example: $W_N(t) = t^N$</h3>
+<p>For $0 \le t &lt; 1$, $t^N \to 0$, and at $t = 1$, $t^N = 1$. So the pointwise limit is $W(t) = 0$ for $t&lt;1$, $W(1) = 1$. Drag $N$ up. Then drag $b$ below $1$.</p>
+
+<div id="plot-tN"></div>
+
+<ul>
+  <li><strong>On $D = [0,1]$:</strong> for $t$ just below $1$, $t^N$ is still close to $1$ while $W = 0$. So $\max_{D}|t^N - W| = 1$ for <em>every</em> $N$. That doesn't go to $0$: <strong>not uniform</strong>.</li>
+  <li><strong>On $D = [0,b]$ with $b&lt;1$:</strong> the worst point is $t = b$, so the max error is $b^N \to 0$: <strong>uniform</strong>.</li>
+</ul>
+<p>Same sequence, different verdicts. The trouble always lives near a point that's excluded or "on the edge", and shrinking the domain away from it fixes things.</p>
+
+<h2>3 · A quick test for NON-uniform convergence</h2>
+
+<div class="box">
+<p><strong>Theorem.</strong> If continuous functions $W_N$ converge uniformly to $W$ on $D$, then $W$ is continuous on $D$.</p>
+<p><strong>Use it backwards:</strong> continuous $W_N$ (or continuous terms $w_n$) with a <em>discontinuous</em> limit ⇒ the convergence is <strong>not uniform</strong>.</p>
+</div>
+
+<p>$t^N$ on $[0,1]$: each $t^N$ is continuous, the limit jumps at $t = 1$, so not uniform. One line, no max needed.</p>
+
+<details><summary>Example: $\displaystyle\sum_{n=0}^\infty t(1-t)^n$ on $[0,1]$</summary><div>
+<p>For $0 &lt; t \le 1$ it's geometric with ratio $1 - t \in [0,1)$: the sum is $\dfrac{t}{1 - (1-t)} = 1$. At $t = 0$ every term is $0$, so the sum is $0$.<br>
+The terms are continuous, the sum jumps from $0$ to $1$ at $t=0$, so the convergence is <strong>not uniform on $[0,1]$</strong>.<br>
+On $[\tfrac12, 1]$ it <em>is</em> uniform: $|t(1-t)^n| \le 1\cdot(\tfrac12)^n$ and $\sum(\tfrac12)^n$ converges (Weierstrass, §4).</p></div></details>
+
+<div class="trap"><strong>Only works one way</strong><br>A <em>continuous</em> limit proves nothing. $W_N(t) = N t\,e^{-Nt}$ on $[0,\infty)$ tends to $0$ (continuous) pointwise, but its maximum, at $t = 1/N$, is $e^{-1}$ for every $N$. Not uniform.</div>
+
+<h2>4 · The Weierstrass test: the exact write-up</h2>
+
+<div class="box">
+<p><strong>Weierstrass test</strong> (also called the M-test, with $M_n$ in place of $a_n$). Let $w_n$ be functions on $D$. If there are <em>numbers</em> $a_n$ with
+$$\max_{t\in D}|w_n(t)| \le a_n \quad\text{and}\quad \sum a_n \text{ converges},$$
+then $\sum w_n(t)$ converges uniformly on $D$.</p>
+</div>
+
+<p>Write it in four lines, every time:</p>
+<div class="box">
+<ol class="steps">
+  <li><strong>Name things.</strong> "Let $w_n(t) = \dots$ and $D = \dots$."</li>
+  <li><strong>Bound, with no $t$ left.</strong> "For all $t \in D$, $|w_n(t)| \le \dots = a_n$." Use $|\cos|,|\sin| \le 1$; $|t| \le b$ on $[-b,b]$; $e^{-nt} \le e^{-na}$ on $[a,\infty)$; make denominators smaller and numerators larger.</li>
+  <li><strong>$\sum a_n$ converges, and say why.</strong> Geometric ($|r| &lt; 1$), $p$-series ($\sum 1/n^p$, $p&gt;1$), or ratio test ($\lim a_{n+1}/a_n &lt; 1$).</li>
+  <li><strong>Conclude.</strong> "Hence, by the Weierstrass test, $\sum w_n$ converges uniformly on $D$."</li>
+</ol>
+</div>
+
+<h3>Example A: trig, $p$-series</h3>
+<div class="box"><p>Show $\displaystyle\sum_{n=1}^\infty \frac{\cos(nt)}{n^2}$ converges uniformly on $\mathbb R$.</p></div>
+<details><summary>Model write-up</summary><div>
+<p>Let $w_n(t) = \cos(nt)/n^2$, $D = \mathbb R$. For all $t\in\mathbb R$, $|w_n(t)| \le \dfrac{1}{n^2} = a_n$, since $|\cos(nt)| \le 1$. $\sum 1/n^2$ converges ($p$-series, $p = 2 &gt; 1$). Hence, by the Weierstrass test, the series converges uniformly on $\mathbb R$.</p></div></details>
+
+<p>Here's that series. $D$ is the whole window, the tail bound $\sum_{n&gt;N} 1/n^2$ is an upper bound on the error for every $t$, and here it's hit exactly at $t = 0$, where every $\cos(nt) = 1$.</p>
+<div id="plot-cos"></div>
+
+<h3>Example B: trig with exponential growth inside</h3>
+<div class="box"><p>Show $\displaystyle\sum_{n=0}^\infty 3^{-n}\sin(2^n t)$ converges uniformly on $\mathbb R$.</p></div>
+<details><summary>Model write-up</summary><div>
+<p>Let $w_n(t) = 3^{-n}\sin(2^n t)$, $D = \mathbb R$. For all $t$, $|w_n(t)| \le 3^{-n} = a_n$. $\sum (1/3)^n$ is geometric with ratio $\tfrac13 &lt; 1$, so it converges. Hence, by the Weierstrass test, the series converges uniformly on $\mathbb R$.</p>
+<p>What's inside the $\sin$ doesn't matter, however fast it grows. Only the bound on $|\sin|$ counts.</p></div></details>
+
+<h3>Example C: a power series on $[-b,b]$</h3>
+<div class="box"><p>Show $\displaystyle\sum_{n=1}^\infty \frac{n^2\,t^n}{5^n}$ converges uniformly on $[-b,b]$ for any $0&lt;b&lt;5$.</p></div>
+<details><summary>Model write-up</summary><div>
+<p>Let $w_n(t) = n^2t^n/5^n$, $D = [-b,b]$. For all $t\in D$, $|t| \le b$, so $|w_n(t)| \le \dfrac{n^2b^n}{5^n} = a_n$. Ratio test:
+$$\frac{a_{n+1}}{a_n} = \Big(\frac{n+1}{n}\Big)^2\frac{b}{5} \to \frac b5 &lt; 1,$$
+so $\sum a_n$ converges. Hence, by the Weierstrass test, the series converges uniformly on $[-b,b]$.</p>
+<p>Note where $b &lt; 5$ was used: in the last inequality. That's exactly why you can't take $b = R$.</p></div></details>
+
+<h3>Example D: exponential in $t$, so the domain matters</h3>
+<div class="box"><p>Show $\displaystyle\sum_{n=1}^\infty e^{-nt}\sin(nt)$ converges uniformly on $[a,\infty)$ for any $a &gt; 0$.</p></div>
+<details><summary>Model write-up</summary><div>
+<p>Let $w_n(t) = e^{-nt}\sin(nt)$, $D = [a,\infty)$. For $t \ge a$, $e^{-nt} \le e^{-na}$, so $|w_n(t)| \le e^{-na} = (e^{-a})^n = a_n$. Geometric with ratio $e^{-a} &lt; 1$ since $a&gt;0$, so $\sum a_n$ converges. Hence, by the Weierstrass test, the series converges uniformly on $[a,\infty)$.</p>
+<p>On $(0,\infty)$ the best bound is $|w_n| \le 1$, and $\sum 1$ diverges, so the test gives nothing. In fact it's not uniform there: the sum behaves like $\tfrac{1}{2t}$ as $t\to0^+$, while each partial sum stays bounded.</p></div></details>
+
+<div class="trap"><strong>Four ways to lose the marks</strong><br>
+(1) <strong>$a_n$ still contains $t$</strong>, e.g. "$|t^n/n| \le |t|^n/n$, which is summable for $|t|&lt;1$". That only proves pointwise convergence.<br>
+(2) <strong>"$\sum a_n$ converges because $a_n \to 0$."</strong> False: $\sum 1/n$ diverges. Name a test.<br>
+(3) <strong>No "for all $t\in D$"</strong>, or no named $D$.<br>
+(4) <strong>Reading a failed test as a "no".</strong> If your $\sum a_n$ diverges, the Weierstrass test is <em>inconclusive</em>. To prove non-uniform, use §3 or compute the max error.</div>
+
+<h2>5 · Differentiating term by term</h2>
+
+<div class="box">
+<p><strong>Theorem (differentiating a series).</strong> Let $P(t) = \sum w_n(t)$ with each $w_n$ continuously differentiable on $D = [a,b]$. If $\sum w_n$ converges uniformly on $D$ <strong>and</strong> $\sum w_n'$ converges uniformly on $D$, then
+$$P'(t) = \sum_{n} w_n'(t) \quad\text{on } D.$$</p>
+</div>
+
+<p>For a second-order ODE you need it <strong>twice</strong>: the series, its first-derivative series and its second-derivative series all converge uniformly.</p>
+
+<details><summary>Example: how often can $\sum 3^{-n}\sin(2^n t)$ be differentiated term by term?</summary><div>
+<p>The series itself: uniform on $\mathbb R$ (Example B).<br>
+Derivative series: $\sum 3^{-n}2^n\cos(2^nt) = \sum (\tfrac23)^n\cos(2^n t)$. $|{\cdot}| \le (\tfrac23)^n$, geometric with ratio $\tfrac23 &lt; 1$: uniform. So term-by-term differentiation <strong>once</strong> is valid on every $[a,b]$.<br>
+Second derivative series: $-\sum (\tfrac43)^n\sin(2^nt)$. The best bound is $(\tfrac43)^n$, whose sum diverges, so the theorem can't be applied a second time.</p></div></details>
+
+<h2>6 · Power series: uniform on closed intervals strictly inside</h2>
+
+<div class="box">
+<p><strong>Theorem.</strong> Every power series converges uniformly on every closed interval that lies <em>strictly within</em> its interval of convergence. For $\sum c_nt^n$ with radius $R&gt;0$: on every $[-b,b]$ with $0&lt;b&lt;R$.</p>
+<p><strong>Why</strong> (tute week 4, Q4): on $[-b,b]$, $|c_nt^n| \le |c_n|\,b^n = a_n$, and $\sum |c_n|b^n$ converges because $b$ is inside the radius. Then apply the Weierstrass test.</p>
+</div>
+
+<p>The term-by-term derivative $\sum nc_nt^{n-1}$ has the <strong>same</strong> radius (the ratio test gives the same limit), so it's also uniform on every $[-b,b]$. That's why the method works.</p>
+
+<h3>Why not on the open interval $(-R,R)$?</h3>
+<p>Take $\sum_{n=0}^\infty t^n = \dfrac{1}{1-t}$, $R = 1$. The error is
+$$\Big|\sum_{n=0}^N t^n - \frac{1}{1-t}\Big| = \frac{|t|^{N+1}}{1-t}.$$
+On $[-b,b]$ the max is $b^{N+1}/(1-b) \to 0$: uniform. On $(-1,1)$, as $t\to1^-$ the error blows up, for <strong>every</strong> $N$. The max error is $\infty$, so it's not uniform. Slide $b$ to $1$.</p>
+
+<div id="plot-geo"></div>
+
+<p>The quick version of this argument: each partial sum is a polynomial, so it's bounded on a bounded interval. If the limit is unbounded there, the error is unbounded.</p>
+
+<div class="trap"><strong>$R = \infty$ does NOT mean "uniform on $\mathbb R$"</strong><br>$e^t = \sum t^n/n!$ has $R=\infty$. But for fixed $N$, $e^t - \sum_{n\le N}t^n/n!$ grows without bound as $t\to\infty$ (exponential beats polynomial). So it's not uniform on $\mathbb R$. The correct answer is <strong>"uniformly on every closed bounded interval $[-b,b]$, $b&gt;0$"</strong>. This holds for every power series that isn't a polynomial. Contrast Example A: $\sum\cos(nt)/n^2$ isn't a power series, and that one <em>is</em> uniform on $\mathbb R$.</div>
+
+<p><strong>Endpoints:</strong> the theorem says nothing about $t = \pm R$. Sometimes a direct Weierstrass test reaches them, e.g. $\sum t^n/n^2$ ($R=1$) is uniform on $[-1,1]$ since $|t^n/n^2| \le 1/n^2$. In a "quoting lecture results" answer, stick to $[-b,b]$ with $b&lt;R$.</p>
+
+<h2>7 · Formal vs genuine</h2>
+
+<div class="box">
+<p><strong>Formal solution:</strong> a series whose coefficients make the <em>term-by-term differentiated</em> series satisfy the ODE. It might not converge, and might not really satisfy the ODE.</p>
+<p><strong>Genuine solution:</strong> the series and all its derivatives up to the order of the ODE converge uniformly. Then term-by-term differentiation is allowed, and the series really solves the ODE.</p>
+<p><strong>Lecture result</strong> (<a href="../lectures/09_MAST20030_Lecture_Notes_Topic2_PowerSeries-LMS.pdf">Lecture 9, slide 14</a>): if the formal power series solution has <strong>non-zero</strong> radius of convergence, then on any closed interval strictly within it, the series converges uniformly, can be differentiated term by term, and is a genuine solution.</p>
+</div>
+
+<details><summary>A formal solution that is NOT genuine</summary><div>
+<p>$t^2y' + y = t$. Try $y = \sum_{k\ge0} a_k t^{k+1}$: the $t^1$ coefficient gives $a_0 = 1$, then $a_k + k\,a_{k-1} = 0$, so $a_k = (-1)^k k!$:
+$$y = \sum_{k=0}^\infty (-1)^k k!\,t^{k+1} = t - t^2 + 2t^3 - 6t^4 + \cdots$$
+$R = \lim |a_k/a_{k+1}| = \lim \tfrac{1}{k+1} = 0$. It diverges for every $t\ne0$, so it's <strong>formal only</strong>. The lecture result needs $R&gt;0$.</p></div></details>
+
+<h2>8 · The standard short-answer trio</h2>
+
+<p>You've found the formal solution of $\;t\,y'' + 3y' + t\,y = 0\;$ with $c_0 = 1$ (from W3: $c_1 = 0$ and $c_{m+2} = -c_m/\big((m+2)(m+4)\big)$):
+$$y_1(t) = \sum_{k=0}^\infty \frac{(-1)^k\,t^{2k}}{4^k\,k!\,(k+1)!} = 1 - \frac{t^2}{8} + \frac{t^4}{192} - \cdots$$
+Answer the three questions as you would in the exam. Write yours first, then compare.</p>
+
+<details><summary>(i) What is the radius of convergence?</summary><div class="model">
+<p>Odd coefficients vanish, so use the ratio of consecutive non-zero terms:
+$$\left|\frac{w_{k+1}}{w_k}\right| = \frac{t^{2}\,4^k\,k!\,(k+1)!}{4^{k+1}(k+1)!\,(k+2)!} = \frac{t^2}{4(k+1)(k+2)} \to 0 &lt; 1 \quad\text{for every } t.$$
+So the series converges for all $t$, and <strong>$R = \infty$</strong>.</p></div></details>
+
+<details><summary>(ii) On which intervals does it converge uniformly?</summary><div class="model">
+<p>"A power series converges uniformly on every closed interval lying strictly within its interval of convergence (lecture theorem). Since $R = \infty$, $y_1$ converges uniformly on <strong>every closed bounded interval $[-b,b]$, $b&gt;0$</strong>."</p>
+<p>Do not write "on $\mathbb R$" or "on $(-\infty,\infty)$". If asked to show it directly: on $[-b,b]$, $|w_k| \le a_k = \dfrac{b^{2k}}{4^k k!(k+1)!}$, and $a_{k+1}/a_k = \dfrac{b^2}{4(k+1)(k+2)} \to 0 &lt; 1$. Then apply Weierstrass.</p></div></details>
+
+<details><summary>(iii) Quoting results from lectures, is it a genuine solution?</summary><div class="model">
+<p>"Yes. The formal series has non-zero radius $R=\infty$. By the lecture result, on every closed interval $[-b,b]$ it converges uniformly, and so do its term-by-term derivatives $y_1'$ and $y_1''$ (power series with the same radius). By the theorem on differentiating a series, term-by-term differentiation up to second order is valid on $[-b,b]$, so $y_1$ satisfies the ODE there. As $b$ is arbitrary, $y_1$ is a genuine solution for all $t\in\mathbb R$."</p>
+<p>The marks are for: <em>$R&gt;0$</em>, <em>uniform on closed intervals inside</em>, <em>derivatives up to the order of the ODE also uniform</em>, <em>term-by-term differentiation justified</em>.</p></div></details>
+
+<p>With a finite radius, e.g. $R = 2$, change (ii) to "every $[-b,b]$ with $0&lt;b&lt;2$" and (iii) to "genuine on $(-2,2)$, i.e. on every such $[-b,b]$".</p>
+
+<h2>9 · Practice</h2>
+<p>Paper first, then click.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> $\sum_{n\ge0} t^n/n!$ has $R = \infty$. By lecture results it converges uniformly…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">on the whole real line $\mathbb R$</button>
+    <button class="opt" data-key="b">on every closed interval $[-b,b]$</button>
+    <button class="opt" data-key="c">only on the closed interval $[-1,1]$</button>
+    <button class="opt" data-key="d">nowhere, as the radius is infinite</button>
+  </div>
+  <div class="why">For fixed $N$, $e^t - S_N(t) \to \infty$ as $t\to\infty$, so the max error on $\mathbb R$ is infinite. Uniform on every bounded $[-b,b]$ only.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> $\sum_{n\ge0} t^n/3^n$ has $R = 3$. The best answer to "where does it converge uniformly?" is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">on $(-3,3)$</button>
+    <button class="opt" data-key="b">on $[-3,3]$</button>
+    <button class="opt" data-key="c">on $[-b,b]$, $0&lt;b&lt;3$</button>
+    <button class="opt" data-key="d">on $[-b,b]$, every $b&gt;0$</button>
+  </div>
+  <div class="why">It's $\dfrac{1}{1-t/3}$, which blows up as $t\to3^-$, so (a) fails. It diverges at $t=\pm3$ (terms are $(\pm1)^n$), so (b) fails, and so does (d) for $b \ge 3$.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> For $\sum_{n\ge1}\dfrac{2+\sin(nt)}{n^2+t^2}$ on $\mathbb R$, a valid Weierstrass bound $a_n$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$a_n = 3/n^2$</button>
+    <button class="opt" data-key="b">$a_n = 1/n^2$</button>
+    <button class="opt" data-key="c">$a_n = 3/n$</button>
+    <button class="opt" data-key="d">$a_n = 3/(n^2+t^2)$</button>
+  </div>
+  <div class="why">Numerator $\le 3$, and making the denominator smaller ($n^2+t^2 \ge n^2$) gives $3/n^2$, a convergent $p$-series. (b) is too small (numerator up to $3$). (c) is a valid bound but $\sum 3/n$ diverges. (d) still has $t$ in it.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>4.</strong> A student writes: "For $|t|&lt;1$, $\big|t^n/n\big| \le |t|^n$, and $\sum|t|^n$ converges. So $\sum t^n/n$ converges uniformly on $(-1,1)$." The main error is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">the bound $|t^n/n| \le |t|^n$ is false</button>
+    <button class="opt" data-key="b">a geometric series never converges</button>
+    <button class="opt" data-key="c">the test needs a ratio test, not geometric</button>
+    <button class="opt" data-key="d">the bound $|t|^n$ still depends on $t$</button>
+  </div>
+  <div class="why">$a_n$ must be a number. Fix: on $[-b,b]$, $b&lt;1$, use $a_n = b^n$. (On $(-1,1)$ it isn't uniform: the sum $-\ln(1-t)$ is unbounded as $t\to1^-$.)</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>5.</strong> For $\sum_{n\ge1}\dfrac{(-1)^n}{n+t^2}$ on $\mathbb R$, the best bound is $1/n$, and $\sum 1/n$ diverges. From the Weierstrass test you can conclude…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">the series is not uniformly convergent</button>
+    <button class="opt" data-key="b">the series diverges for some value of $t$</button>
+    <button class="opt" data-key="c">nothing either way about uniformity</button>
+    <button class="opt" data-key="d">it converges uniformly, not absolutely</button>
+  </div>
+  <div class="why">The test only ever says "yes". When it fails, you've learnt nothing. (This series happens to be uniform on $\mathbb R$, by an alternating-series tail bound, but that isn't a Weierstrass argument.)</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>6.</strong> $\sum_{n\ge0} t(1-t)^n$: on which domain is the convergence uniform?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$[0,1]$, since every term is continuous</button>
+    <button class="opt" data-key="b">$[\tfrac12,1]$, by a geometric bound</button>
+    <button class="opt" data-key="c">neither, as the limit is discontinuous</button>
+    <button class="opt" data-key="d">both, since the sum is always $1$</button>
+  </div>
+  <div class="why">On $[0,1]$ the sum is $0$ at $t=0$ and $1$ elsewhere: discontinuous, so not uniform. On $[\tfrac12,1]$, $|t(1-t)^n| \le (\tfrac12)^n$, and Weierstrass applies.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>7.</strong> How many times does the lecture theorem let you differentiate $\sum_{n\ge1}\sin(nt)/n^3$ term by term on any $[a,b]$?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">zero times</button>
+    <button class="opt" data-key="b">exactly once</button>
+    <button class="opt" data-key="c">exactly twice</button>
+    <button class="opt" data-key="d">infinitely often</button>
+  </div>
+  <div class="why">Series: $\le 1/n^3$ ✓. First derivative series $\sum\cos(nt)/n^2$: $\le 1/n^2$ ✓. Second derivative series $-\sum\sin(nt)/n$: the bound $1/n$ isn't summable, so the theorem doesn't apply again.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>8.</strong> A formal power series solution of a second-order ODE has radius $R = 0$. Quoting lecture results, it is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">formal, but not shown to be genuine</button>
+    <button class="opt" data-key="b">genuine, as it satisfies the ODE formally</button>
+    <button class="opt" data-key="c">genuine, but only on the interval $(-R,R)$</button>
+    <button class="opt" data-key="d">genuine at every point $t$ except $t=0$</button>
+  </div>
+  <div class="why">The lecture result needs $R&gt;0$. With $R=0$ the series diverges for every $t \ne 0$, as for $\sum(-1)^kk!\,t^{k+1}$ in §7.</div>
+</div>
+
+<h2>10 · Exam-level challenge</h2>
+<p>Fully on paper, then open one part at a time.</p>
+<div class="box">
+<p>Consider $\;t(1-t)\,y'' + (2 - 3t)\,y' - y = 0$.</p>
+<p>(a) Substitute $y = \sum_{n\ge0}c_nt^n$. Find the recurrence relation, and show that the formal solution with $c_0 = 1$ is $\;y_1 = \sum_{n\ge0}\dfrac{t^n}{n+1}$.<br>
+(b) Find the radius of convergence and the intervals on which $y_1$ converges uniformly.<br>
+(c) Using the Weierstrass test directly (not just quoting the theorem), show that $y_1'$ and $y_1''$ converge uniformly on $[-b,b]$ for $0&lt;b&lt;1$. Hence explain why $y_1$ is a genuine solution on $(-1,1)$.<br>
+(d) Given $y_1 = -\ln(1-t)/t$ for $0&lt;|t|&lt;1$, show that $y_1$ does <em>not</em> converge uniformly on $(-1,1)$.<br>
+(e) Show that $G(t) = \sum_{n\ge0}2^{-n}\cos(3^nt)$ is continuous on $\mathbb R$. Explain why the lecture theorem can't be used to show $G$ is differentiable.</p>
+</div>
+
+<details><summary>(a) Recurrence</summary><div>
+<p>Expand $t(1-t)y'' = t\,y'' - t^2y''$ and collect by power:
+$$\underbrace{\sum_n \big[n(n-1) + 2n\big]c_n t^{n-1}}_{t\,y'' + 2y'} \;-\; \underbrace{\sum_n\big[n(n-1) + 3n + 1\big]c_n t^{n}}_{t^2y'' + 3t\,y' + y} = 0.$$
+The brackets are $n(n+1)$ and $(n+1)^2$. Shift the first sum ($n = m+1$) and match $t^m$, $m\ge0$:
+$$(m+1)(m+2)\,c_{m+1} - (m+1)^2c_m = 0 \;\Rightarrow\; c_{m+1} = \frac{m+1}{m+2}\,c_m.$$
+(At $n=0$ the first sum's term is $0\cdot c_0\,t^{-1}$, so nothing is forced.) Telescoping: $c_n = \dfrac{1}{2}\cdot\dfrac23\cdots\dfrac{n}{n+1}\,c_0 = \dfrac{c_0}{n+1}$. With $c_0 = 1$, $y_1 = \sum t^n/(n+1)$.</p></div></details>
+
+<details><summary>(b) Radius and uniform intervals</summary><div>
+<p>$R = \lim\big|c_n/c_{n+1}\big| = \lim\dfrac{n+2}{n+1} = 1$. By the lecture theorem, $y_1$ converges uniformly on every closed interval $[-b,b]$ with $0&lt;b&lt;1$.</p></div></details>
+
+<details><summary>(c) Weierstrass on the derivatives, and genuineness</summary><div>
+<p>$y_1' = \sum_{n\ge1}\dfrac{n\,t^{n-1}}{n+1}$. For $t\in[-b,b]$: $\Big|\dfrac{n\,t^{n-1}}{n+1}\Big| \le b^{n-1} = a_n$, using $\tfrac{n}{n+1}&lt;1$. Geometric with ratio $b&lt;1$, so it converges. Uniform by Weierstrass.</p>
+<p>$y_1'' = \sum_{n\ge2}\dfrac{n(n-1)\,t^{n-2}}{n+1}$. For $t\in[-b,b]$: $|{\cdot}| \le n\,b^{n-2} = a_n$, using $\tfrac{n-1}{n+1}&lt;1$. Ratio test: $\dfrac{a_{n+1}}{a_n} = \dfrac{n+1}{n}\,b \to b &lt; 1$, so it converges. Uniform by Weierstrass.</p>
+<p>The series itself is uniform on $[-b,b]$ too ($|t^n/(n+1)| \le b^n$). So the series and its derivatives up to order 2 all converge uniformly on $[-b,b]$. By the differentiating-a-series theorem (applied twice), term-by-term differentiation is valid, and the formal solution really satisfies the ODE on $[-b,b]$. Every $t\in(-1,1)$ lies in some such $[-b,b]$, so $y_1$ is a genuine solution on $(-1,1)$.</p></div></details>
+
+<details><summary>(d) Not uniform on $(-1,1)$</summary><div>
+<p>As $t\to1^-$, $-\ln(1-t)\to\infty$, so $y_1(t) = -\ln(1-t)/t\to\infty$. Each partial sum $S_N$ is a polynomial, so $|S_N(t)| \le M_N$ on $(-1,1)$ for some constant $M_N$. Hence $\sup_{(-1,1)}|S_N - y_1| = \infty$ for every $N$, which doesn't tend to $0$. Not uniform on $(-1,1)$.</p></div></details>
+
+<details><summary>(e) The cosine series</summary><div>
+<p>Let $w_n(t) = 2^{-n}\cos(3^nt)$, $D = \mathbb R$. For all $t$, $|w_n(t)| \le 2^{-n} = a_n$, geometric with ratio $\tfrac12$, so it converges. By Weierstrass, the series converges uniformly on $\mathbb R$. Each $w_n$ is continuous, and a uniform limit of continuous functions is continuous, so $G$ is continuous on $\mathbb R$.</p>
+<p>The derivative series is $-\sum(\tfrac32)^n\sin(3^nt)$. Its terms have $\max_t|w_n'| = (\tfrac32)^n \to \infty$, so no summable $a_n$ exists. The Weierstrass test can't give uniform convergence of $\sum w_n'$, so the theorem doesn't apply. (In fact $G$ is differentiable <em>nowhere</em>. This is Weierstrass's famous continuous-but-nowhere-differentiable function.)</p></div></details>
+
+<h2>11 · Before you close this tab</h2>
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p><strong>Uniform on $D$:</strong> $\lim_N\max_{t\in D}|W_N - W| = 0$. <strong>Non-uniform test:</strong> continuous terms with a discontinuous limit.</p>
+<p><strong>Weierstrass, in four lines:</strong> name $w_n$ and $D$ → for all $t\in D$, $|w_n|\le a_n$ (no $t$) → $\sum a_n$ converges (geometric / $p$ / ratio) → uniform on $D$.</p>
+<p><strong>Term by term:</strong> $\sum w_n$ and $\sum w_n'$ both uniform on $[a,b]$. Order-$k$ ODE: the derivatives up to order $k$.</p>
+<p><strong>Power series:</strong> uniform on every $[-b,b]$, $0&lt;b&lt;R$, but not necessarily on $(-R,R)$, and never on $\mathbb R$ unless it's a polynomial.</p>
+<p><strong>Genuine:</strong> $R&gt;0$ ⇒ genuine on each closed interval strictly inside.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/09_MAST20030_Lecture_Notes_Topic2_PowerSeries-LMS.pdf">Lecture 9</a>, slides 8–14 (definitions and all four theorems, in the wording the examiners use). For a second explanation, see Wikipedia: <a href="https://en.wikipedia.org/wiki/Uniform_convergence">Uniform convergence</a> (with the $x^n$ example) and <a href="https://en.wikipedia.org/wiki/Weierstrass_M-test">Weierstrass M-test</a>.</p>
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic2.pdf">Problem Booklet 2</a>, Q1 (a)(ii) and (b)(ii): Weierstrass on your series solutions. Use the four-line write-up.</li>
+  <li>Booklet Q6 (a), (b): the continuity test.</li>
+  <li><a href="../tutes/tute_week_04.pdf">Tutorial week 4</a>, Q3 (the Q2 series only, checking both derivatives) and Q4 (prove the closed-interval theorem). Solutions: <a href="../tutes/tute_week_04_sol.pdf">tute_week_04_sol.pdf</a>.</li>
+  <li>Optional: Booklet Q6 (c) (uniform convergence doesn't preserve differentiability); tute Q3 for the Q1 series.</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo quizzes 1, 4 and 7 cold, and write the three model answers of §8 for $\sum t^n/(n+1)$ without looking.</p>
+
+<div class="ask">💬 Unsure whether your write-up would get full marks? Paste it into the terminal and I'll mark it line by line against the examiner's checklist.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0008-taylor-series-radius.html">Lesson 8</a> and <a href="0011-singular-points-bessel.html">Lesson 11</a></span>
+  <span>Reference: <a href="../reference/topic2-cheatsheet.html">Topic 2 cheat sheet</a></span>
+  <span>Previous: <a href="0011-singular-points-bessel.html">Lesson 11, singular points</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+
+<script>
+(function () {
+  const PI = Math.PI;
+  SeriesPlot.mount(document.getElementById('plot-tN'), {
+    seq: (N, t) => (t <= 1 ? Math.pow(t, N) : NaN),
+    limit: (t) => (t < 1 ? 0 : NaN),
+    x: [0, 1.04], y: [-0.08, 1.12],
+    N: { min: 1, max: 80, value: 4 },
+    win: { label: 'b', min: 0.5, max: 1, step: 0.01, value: 1,
+           D: (b) => [0, b], text: (b) => (b < 1 ? `D = [0, ${b.toFixed(2)}]` : 'D = [0, 1]') },
+    sup: (N, b) => (b < 1 ? { value: Math.pow(b, N), t: b } : { value: 1, t: Math.pow(0.97, 1 / N) }),
+    supNote: (N, b) => (b < 1 ? '(= bᴺ → 0)' : '(a sup, for every N)'),
+    dots: [{ t: 1, y: 1 }, { t: 1, y: 0, open: true }],
+    labels: { seq: 'W_N(t) = tᴺ', limit: 'limit W(t)' },
+    aria: 'Plot of t to the N on [0,1] against its discontinuous limit, with the maximum error marked',
+  });
+  SeriesPlot.mount(document.getElementById('plot-cos'), {
+    term: (n, t) => Math.cos(n * t) / (n * n), n0: 1,
+    limit: (t) => { const s = ((t % (2 * PI)) + 2 * PI) % (2 * PI); return PI * PI / 6 - PI * s / 2 + s * s / 4; },
+    x: [-2 * PI, 2 * PI], y: [-1, 1.85],
+    N: { min: 1, max: 30, value: 3 },
+    sup: (N) => { let s = 0; for (let n = 1; n <= N; n++) s += 1 / (n * n); return { value: PI * PI / 6 - s, t: 0 }; },
+    tail: (N) => { let s = 0; for (let n = 1; n <= N; n++) s += 1 / (n * n); return PI * PI / 6 - s; },
+    xTicks: [{ v: -2 * PI, label: '−2π' }, { v: -PI, label: '−π' }, { v: PI, label: 'π' }, { v: 2 * PI, label: '2π' }],
+    labels: { seq: 'S_N(t) = Σ cos(nt)/n²', limit: 'limit' },
+    aria: 'Partial sums of the sum of cos(nt) over n squared, against the limit, on the whole real line',
+  });
+  SeriesPlot.mount(document.getElementById('plot-geo'), {
+    term: (n, t) => Math.pow(t, n), n0: 0,
+    limit: (t) => (t < 1 ? 1 / (1 - t) : NaN),
+    x: [-1, 1], y: [-0.5, 8],
+    N: { min: 1, max: 40, value: 5 },
+    win: { label: 'b', min: 0.5, max: 1, step: 0.01, value: 0.8,
+           D: (b) => [-b, b], text: (b) => (b < 1 ? `D = [−${b.toFixed(2)}, ${b.toFixed(2)}]` : 'D = (−1, 1)') },
+    sup: (N, b) => (b < 1 ? { value: Math.pow(b, N + 1) / (1 - b), t: b } : { value: Infinity, t: 0.995 }),
+    supNote: (N, b) => (b < 1 ? '(= bᴺ⁺¹/(1−b))' : '(unbounded as t → 1⁻)'),
+    labels: { seq: 'S_N(t) = Σ tⁿ', limit: '1/(1−t)' },
+    aria: 'Partial sums of the geometric series against 1 over 1 minus t, with the maximum error on [-b, b]',
+  });
+})();
+</script>
+</body>
+</html>

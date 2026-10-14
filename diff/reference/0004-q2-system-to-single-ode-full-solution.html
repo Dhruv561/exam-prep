@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>System to Single ODE</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 4 · Quiz Q2 · Full written solution</div>
+<h1>Quiz Q2: turning a system into one ODE for $x$</h1>
+<p class="lede">The quiz lets you jump straight to the answer with the trace/determinant shortcut. An exam usually says "derive" or "show", so you need the elimination written out. Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>Consider the system $\;x' = 3x - y,\quad y' = 4x - 2y.$</p>
+<p>(a) Show that $x(t)$ satisfies a single second-order linear ODE, and find it.</p>
+<p>(b) Given $x(0) = 1$ and $y(0) = 0$, find the initial conditions for that ODE, then solve for $x(t)$ and $y(t)$.</p>
+</div>
+<p class="note">Part (b) isn't in the quiz. It's added because exams usually attach ICs, and getting $x'(0)$ and recovering $y$ are where marks are lost.</p>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>0 · The idea</h2>
+<p>The two equations are linked: $x'$ depends on $y$, and $y'$ depends on $x$. The trick is that the first equation can be <strong>rearranged to give $y$ in terms of $x$ and $x'$</strong>:</p>
+$$x' = 3x - y \quad\Longrightarrow\quad y = 3x - x'.$$
+<p>So $y$ isn't really a separate unknown. Once you know $x$, you know $y$. Every time a $y$ or a $y'$ appears, you can swap it for something involving only $x$. Differentiating is what lets you bring in the second equation.</p>
+
+<h2>1 · Differentiate the first equation</h2>
+
+<div class="script">
+<p>Differentiating $x' = 3x - y$ with respect to $t$:</p>
+$$x'' = 3x' - y'. \tag{1}$$
+</div>
+<p class="note">Why differentiate? The answer has to be second order, so you need an $x''$. Differentiating also produces a $y'$, which is exactly what the second equation tells you.</p>
+
+<h2>2 · Substitute the second equation for $y'$</h2>
+
+<div class="script">
+<p>Using $y' = 4x - 2y$ in (1):</p>
+$$x'' = 3x' - (4x - 2y) = 3x' - 4x + 2y. \tag{2}$$
+</div>
+<p class="note">Keep the brackets until you've distributed the minus sign. Writing $3x' - 4x - 2y$ is the most common slip at this step.</p>
+
+<h2>3 · Eliminate $y$ using the first equation</h2>
+
+<div class="script">
+<p>From $x' = 3x - y$ we have $y = 3x - x'$. Substituting into (2):</p>
+$$\begin{aligned}
+x'' &amp;= 3x' - 4x + 2(3x - x') \\
+&amp;= 3x' - 4x + 6x - 2x' \\
+&amp;= x' + 2x.
+\end{aligned}$$
+<p>Hence</p>
+$$\boxed{\,x'' - x' - 2x = 0.\,}$$
+</div>
+<p class="note">Now there's no $y$ left, so you're done. Gather the $x'$ terms ($3x' - 2x' = x'$) and the $x$ terms ($-4x + 6x = 2x$) separately.</p>
+
+<h2>4 · Check with trace and determinant (scratch work)</h2>
+
+<div class="script">
+<p>$A = \begin{pmatrix}3 &amp; -1\\ 4 &amp; -2\end{pmatrix}$, $\;\operatorname{tr}A = 3 + (-2) = 1$, $\;\det A = (3)(-2) - (-1)(4) = -6 + 4 = -2$.</p>
+$$x'' - (\operatorname{tr}A)\,x' + (\det A)\,x = x'' - x' - 2x \;✓$$
+</div>
+<p class="note">Do this in the margin. If it doesn't match, there's a sign slip in steps 2 or 3. In $\det A = ad - bc$, $b = -1$ and $c = 4$, so $-bc = +4$.</p>
+
+<h2>5 · Initial conditions for the single ODE</h2>
+
+<div class="script">
+<p>We need $x(0)$ and $x'(0)$. We have $x(0) = 1$, and from the first equation of the system,</p>
+$$x'(0) = 3x(0) - y(0) = 3(1) - 0 = 3.$$
+</div>
+<p class="note">A second-order ODE needs $x(0)$ and $x'(0)$, but the question gives you $x(0)$ and $y(0)$. The system equation for $x'$ converts one into the other. Don't write $x'(0) = 0$ by copying $y(0)$.</p>
+
+<h2>6 · Solve for $x(t)$</h2>
+
+<div class="script">
+<p>Trying $x = e^{\lambda t}$: $\;\lambda^2 - \lambda - 2 = (\lambda - 2)(\lambda + 1) = 0$, so $\lambda = 2, -1$ and</p>
+$$x = C_1e^{2t} + C_2e^{-t}, \qquad x' = 2C_1e^{2t} - C_2e^{-t}.$$
+<p>Applying the ICs:</p>
+$$x(0) = C_1 + C_2 = 1, \qquad x'(0) = 2C_1 - C_2 = 3.$$
+<p>Adding these: $3C_1 = 4$, so $C_1 = \tfrac43$ and $C_2 = -\tfrac13$. Therefore</p>
+$$x(t) = \tfrac13\big(4e^{2t} - e^{-t}\big).$$
+</div>
+
+<h2>7 · Recover $y(t)$</h2>
+
+<div class="script">
+<p>From $y = 3x - x'$:</p>
+$$\begin{aligned}
+y &amp;= \big(4e^{2t} - e^{-t}\big) - \tfrac13\big(8e^{2t} + e^{-t}\big) \\
+&amp;= \tfrac13\big(12e^{2t} - 3e^{-t} - 8e^{2t} - e^{-t}\big) \\
+&amp;= \tfrac43\big(e^{2t} - e^{-t}\big).
+\end{aligned}$$
+$$\boxed{\,x(t) = \tfrac13\big(4e^{2t} - e^{-t}\big), \qquad y(t) = \tfrac43\big(e^{2t} - e^{-t}\big).\,}$$
+</div>
+<p class="note">Use the same rearrangement as in step 3, not a second ODE for $y$. Solving a separate ODE for $y$ would bring in two new constants that you'd then have to match up. Here $y$ comes out with no new constants.</p>
+
+<h2>8 · Verify</h2>
+
+<div class="script">
+<p>$x(0) = \tfrac13(4 - 1) = 1$ ✓ and $y(0) = \tfrac43(1 - 1) = 0$ ✓.</p>
+<p>$y' = \tfrac43\big(2e^{2t} + e^{-t}\big)$ and $4x - 2y = \tfrac13\big(16e^{2t} - 4e^{-t}\big) - \tfrac83\big(e^{2t} - e^{-t}\big) = \tfrac13\big(8e^{2t} + 4e^{-t}\big)$ ✓.</p>
+</div>
+<p class="note">You only need to check the second equation. The first one, $x' = 3x - y$, holds automatically because that's how you built $y$.</p>
+
+<h2>Why the shortcut always works</h2>
+<p>Do the same steps for a general system $x' = ax + by,\; y' = cx + dy$ with $b \neq 0$:</p>
+<ol class="steps">
+  <li>Differentiate: $x'' = ax' + by'$.</li>
+  <li>Substitute $y'$: $x'' = ax' + b(cx + dy) = ax' + bcx + d\,(by)$.</li>
+  <li>Eliminate using $by = x' - ax$: $x'' = ax' + bcx + d(x' - ax) = (a + d)x' - (ad - bc)x$.</li>
+  <li>So $x'' - (a + d)x' + (ad - bc)x = 0$, that is, $x'' - (\operatorname{tr}A)x' + (\det A)x = 0$.</li>
+</ol>
+<p>Notice that step 3 substitutes for $by$ as a whole, so you never divide by $b$. If $b = 0$, the first equation is just $x' = ax$ and doesn't involve $y$ at all, so solve it directly.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Differentiating the $x'$ equation · substituting for $y'$ with brackets · $y = 3x - x'$ stated · the final ODE · $x'(0)$ found from the system, not guessed · $y$ recovered from $y = 3x - x'$ · the boxed answers.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0004-systems-eigenvalues.html">Lesson 4, quiz Q2</a></span>
+  <span>Reference: <a href="topic1-cheatsheet.html">Topic 1 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

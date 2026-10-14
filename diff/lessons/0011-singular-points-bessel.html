@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Singular Points, Bessel</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 11 · Topic 2: Power series</div>
+<h1>When $t = 0$ is singular: one series solution, and where the second one hides</h1>
+<p class="lede">The goal: take an equation like $t\,y'' + b\,y' + \dots = 0$, show the series method gives only <em>one</em> solution, write it in sum form with its radius, then use Abel's identity to say exactly what the missing second solution looks like near $0$: a $\log t$, a blow-up, or $t^a\sum d_jt^j$ with $a$, $d_1$, $d_2$ found.</p>
+
+<div class="mission">Why this matters for 5 Nov: a "singular at 0" power-series question has been a full multi-part exam question. The marks come from four moves: the forced coefficient, the sum-form solution, the radius, and the Wronskian argument for the second solution. All four are below, and the challenge chains them in exam order.</div>
+
+<h2>0 · Warm-up from Lessons 3 and 8</h2>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W1.</strong> By Abel, two solutions of $\;t^2y'' + t\,y' + (t^2 - 1)\,y = 0\;$ have Wronskian…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$C\,t$</button>
+    <button class="opt" data-key="b">$C/t^2$</button>
+    <button class="opt" data-key="c">$C\,e^{-t}$</button>
+    <button class="opt" data-key="d">$C/t$</button>
+  </div>
+  <div class="why">Standard form first: $f_1 = t/t^2 = 1/t$. Then $\operatorname{wr} = C\,e^{-\int f_1} = C\,e^{-\ln t} = C/t$. You'll use exactly this move in §4.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W2.</strong> Using $R = \lim |c_n/c_{n+1}|$, the radius of convergence of $\;\sum n\,t^n/2^n\;$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$1/2$</button>
+    <button class="opt" data-key="b">$2$</button>
+    <button class="opt" data-key="c">$1$</button>
+    <button class="opt" data-key="d">$\infty$</button>
+  </div>
+  <div class="why">$\dfrac{c_n}{c_{n+1}} = \dfrac{n}{2^n}\cdot\dfrac{2^{n+1}}{n+1} = \dfrac{2n}{n+1} \to 2$. (<a href="0008-taylor-series-radius.html">Lesson 8</a>.)</div>
+</div>
+
+<h2>1 · What goes wrong when the $y''$ coefficient vanishes at $0$</h2>
+
+<p>The lecture's example is Bessel's equation of order zero, $\;t\,y'' + y' + t\,y = 0$ (<a href="../lectures/09_MAST20030_Lecture_Notes_Topic2_PowerSeries-LMS.pdf">Lecture 9, slides 4–7</a>). In standard form, $f_1 = 1/t$, which isn't continuous at $t = 0$. So the Topic 1 existence theorem says nothing about an interval containing $0$, and there's no promise of two nice solutions there.</p>
+
+<p>In the series calculation, it shows up like this. Because $y''$ is multiplied by $t$, the $y''$ and $y'$ sums both carry $t^{n-1}$, so the recurrence links $c_{n+1}$ to $c_n$ (or $c_{n+2}$ to $c_n$ with $c_1$ pinned down by the lowest power). Either way <strong>only $c_0$ is free</strong>, so you get <strong>one</strong> power-series solution.</p>
+
+<div class="box">
+<p><strong>The recipe</strong> for $P(t)\,y'' + \dots = 0$ with $P(0) = 0$:</p>
+<ol class="steps">
+  <li><strong>Substitute</strong> $y = \sum c_nt^n$ without dividing (multiplying by $t$ keeps everything as powers). Group the terms with the same power: here $n(n-1)c_n$ and $b\,n\,c_n$ combine to $n(n-1+b)\,c_n\,t^{n-1}$.</li>
+  <li><strong>Lowest power ($t^{-1}$ after shifting, or the $n = 0, 1$ terms).</strong> Its coefficient is either automatically $0$ (so $c_0$ is free) or it forces something, typically <strong>$c_1 = 0$</strong>.</li>
+  <li><strong>Recurrence → closed form.</strong> Set $c_0 = 1$ and multiply out the chain into a product, then into factorials.</li>
+  <li><strong>Radius</strong> from $R = \lim|c_n/c_{n+1}|$ (or the $t^2$ version for every-other-term series).</li>
+  <li><strong>Second solution</strong> isn't a power series: Abel + reduction of order (§4–5).</li>
+</ol>
+</div>
+
+<h2>2 · Example A: one free constant</h2>
+<div class="box"><p>$$t\,y'' + y' - y = 0$$</p></div>
+
+<details><summary>Substitute and match powers</summary><div>
+<p>$$\sum_{n=0}^\infty n(n-1)c_nt^{n-1} + \sum_{n=0}^\infty n\,c_nt^{n-1} - \sum_{n=0}^\infty c_nt^n = \sum_{n=0}^\infty n^2c_nt^{n-1} - \sum_{n=0}^\infty c_nt^n = 0.$$
+The $n = 0$ term of the first sum is $0\cdot c_0\,t^{-1} = 0$, so nothing is forced and $c_0$ is free. Shift ($m = n - 1$) so both sums carry $t^m$:
+$$\sum_{m=0}^\infty \big[(m+1)^2c_{m+1} - c_m\big]t^m = 0 \quad\Longrightarrow\quad c_{m+1} = \frac{c_m}{(m+1)^2}.$$</p></div></details>
+
+<details><summary>Closed form, sum form, radius</summary><div>
+<p>$c_1 = c_0$, $c_2 = \dfrac{c_0}{1^2\cdot 2^2}$, …, $\;c_n = \dfrac{c_0}{(n!)^2}$. Only $c_0$ is free, so with $c_0 = 1$:
+$$y_1(t) = \sum_{n=0}^\infty \frac{t^n}{(n!)^2} = 1 + t + \frac{t^2}{4} + \frac{t^3}{36} + \cdots$$
+$R = \lim \dfrac{c_n}{c_{n+1}} = \lim (n+1)^2 = \infty$.</p>
+<p>Is it a genuine solution? Yes, because $R = \infty$; the argument is in <a href="0012-uniform-convergence-genuine.html">Lesson 12</a>.</p></div></details>
+
+<div class="trap"><strong>"Only one solution" is the answer, not a mistake</strong><br>Constant-coefficient equations give $c_{n+2}$ in terms of $c_n$, so $c_0$ and $c_1$ are both free. Here the step is $1$, and $c_1 = c_0$ is <em>determined</em>. If you find yourself writing "$c_1$ arbitrary", recheck the lowest-power term.</div>
+
+<h2>3 · Example B: a forced coefficient</h2>
+<div class="box"><p>$$t\,y'' + 3y' + t\,y = 0$$</p></div>
+
+<details><summary>Substitute; the $t^0$ term forces $c_1 = 0$</summary><div>
+<p>$$\sum_{n=0}^\infty n(n+2)\,c_nt^{n-1} + \sum_{n=0}^\infty c_nt^{n+1} = 0.$$
+$n = 0$: $0\cdot c_0 = 0$, fine. $n = 1$: the $t^0$ term is $1\cdot 3\,c_1$, and nothing else has $t^0$, so <strong>$c_1 = 0$</strong>.<br>
+For $t^{m+1}$ ($m \ge 0$): $(m+2)(m+4)\,c_{m+2} + c_m = 0$, so
+$$c_{m+2} = -\frac{c_m}{(m+2)(m+4)}.$$
+$c_1 = 0$ kills every odd coefficient.</p></div></details>
+
+<details><summary>Closed form and radius</summary><div>
+<p>With $m = 2k-2$: $\;c_{2k} = -\dfrac{c_{2k-2}}{2k(2k+2)} = -\dfrac{c_{2k-2}}{4k(k+1)}$. Chaining $k$ times,
+$$c_{2k} = \frac{(-1)^k c_0}{\prod_{j=1}^k 4j(j+1)} = \frac{(-1)^k c_0}{4^k\,k!\,(k+1)!}.$$
+With $c_0 = 1$:
+$$y_1(t) = \sum_{k=0}^\infty \frac{(-1)^k\,t^{2k}}{4^k\,k!\,(k+1)!} = 1 - \frac{t^2}{8} + \frac{t^4}{192} - \cdots$$
+Every other term is zero, so apply the ratio test to the $t^{2k}$ coefficients: $\left|\dfrac{c_{2k}}{c_{2k+2}}\right| = 4(k+1)(k+2) \to \infty$, which is $R^2$. So $R = \infty$.</p>
+<p>Check the product: $j(j+1)$ for $j = 1..k$ is $(1\cdot2)(2\cdot3)\cdots(k(k+1)) = k!\,(k+1)!$. Compare the lecture's Bessel answer $\sum (-1)^kt^{2k}/(4^k(k!)^2)$: changing the $y'$ coefficient from $1$ to $3$ turns one $k!$ into $(k+1)!$.</p></div></details>
+
+<h2>4 · The second solution: Abel + reduction of order</h2>
+
+<p>Lecture 9 finds the second Bessel solution by reduction of order: $y_2 = J_0\displaystyle\int \frac{dr}{r\,J_0^2}$. Abel gives the same thing faster (<a href="0003-wronskian-abel-euler.html">Lesson 3</a>, §2):</p>
+
+<div class="box">
+$$\operatorname{wr} = y_1y_2' - y_1'y_2 = C\,e^{-\int f_1} \quad\Longrightarrow\quad \Big(\frac{y_2}{y_1}\Big)' = \frac{\operatorname{wr}}{y_1^2} \quad\Longrightarrow\quad y_2 = y_1\int \frac{\operatorname{wr}}{y_1^2}\,dt.$$
+<p>For $p\,t\,y'' + q\,y' + (\dots)\,y = 0$: $\;f_1 = \dfrac{q}{p\,t}$, so $\;\operatorname{wr} = C\,t^{-q/p}$. Since $y_1(0) = 1$, the expansion $\dfrac{1}{y_1^2} = 1 + \dots$ is an ordinary power series, and the leading behaviour of $y_2$ comes from $\int t^{-q/p}\,dt$:</p>
+<table>
+<tr><th>$\operatorname{wr}$</th><th>$y_2$ near $t = 0$</th></tr>
+<tr><td>$C/t$ $\;(q = p)$</td><td>$C\,y_1\ln t + y_1\times$(power series): <strong>log singularity</strong></td></tr>
+<tr><td>$C\,t^{-q/p}$, $\;q/p$ not an integer</td><td>$t^{a}\sum d_jt^j$ with $a = 1 - q/p$ (§5)</td></tr>
+<tr><td>$C\,t^{-q/p}$, $\;q/p = 2, 3, \dots$</td><td>blows up like $t^{1-q/p}$; a $\ln t$ term may come along too</td></tr>
+</table>
+</div>
+
+<h3>Example A: $\operatorname{wr} \propto 1/t$ gives $\ln t$</h3>
+<details><summary>Show $y_2$ diverges like $\log t$ as $t \to 0^+$</summary><div>
+<p>$f_1 = 1/t$, so $\operatorname{wr} = C/t$. From $y_1 = 1 + t + \tfrac14t^2 + \cdots$: $\;y_1^2 = 1 + 2t + \tfrac32t^2 + \cdots$ and $\dfrac1{y_1^2} = 1 - 2t + \tfrac52t^2 - \cdots$
+$$\Big(\frac{y_2}{y_1}\Big)' = \frac{C}{t\,y_1^2} = C\Big(\frac1t - 2 + \frac52t - \cdots\Big) \;\Longrightarrow\; \frac{y_2}{y_1} = C\Big(\ln t - 2t + \frac54t^2 - \cdots\Big).$$
+Take $C = 1$: $\;y_2 = y_1(t)\ln t + y_1(t)\big(-2t + \tfrac54t^2 - \cdots\big)$. As $t\to0^+$, $y_1 \to 1$ and the bracket $\to 0$, so $y_2 \sim \ln t \to -\infty$.</p>
+<p>The same thing in one line, which is what an exam "show" needs: $(y_2/y_1)' = C/(t\,y_1^2)$ and $y_1^2 \to 1$, so $(y_2/y_1)' \sim C/t$, hence $y_2 \sim C\ln t$. Since it isn't bounded at $0$, it can't be a power series.</p></div></details>
+
+<h3>Example B: $\operatorname{wr} \propto t^{-3}$ gives a $t^{-2}$ blow-up</h3>
+<details><summary>Leading behaviour of $y_2$</summary><div>
+<p>$f_1 = 3/t$, so $\operatorname{wr} = C\,t^{-3}$. With $y_1^2 = 1 - \tfrac14t^2 + \cdots$, $\;1/y_1^2 = 1 + \tfrac14t^2 + \cdots$:
+$$\Big(\frac{y_2}{y_1}\Big)' = C\Big(t^{-3} + \frac14t^{-1} + \cdots\Big) \;\Longrightarrow\; \frac{y_2}{y_1} = C\Big(-\frac{1}{2t^2} + \frac14\ln t + \cdots\Big).$$
+So $y_2 \sim -\dfrac{C}{2t^2}$ as $t \to 0^+$, and it carries a $\ln t$ term as well.</p></div></details>
+
+<h2>5 · Non-integer power: find $a$, $d_1$, $d_2$ from the Wronskian</h2>
+<div class="box"><p>$$2t\,y'' + 3y' - y = 0$$</p></div>
+
+<details><summary>First solution</summary><div>
+<p>$\sum n(2n+1)\,c_nt^{n-1} - \sum c_nt^n = 0$, so $\;c_{m+1}(m+1)(2m+3) = c_m$. Chaining, with $3\cdot5\cdots(2n+1) = \dfrac{(2n+1)!}{2^n\,n!}$:
+$$c_n = \frac{c_0}{n!\cdot 3\cdot5\cdots(2n+1)} = \frac{2^n}{(2n+1)!}\;(c_0 = 1), \qquad y_1 = \sum_{n=0}^\infty \frac{2^n\,t^n}{(2n+1)!} = 1 + \frac t3 + \frac{t^2}{30} + \cdots$$
+$R = \lim \tfrac12(2n+2)(2n+3) = \infty$.</p></div></details>
+
+<details><summary>Abel: what power, and why it can't be a power series</summary><div>
+<p>$f_1 = \dfrac{3}{2t}$, so $\operatorname{wr} = C\,t^{-3/2}$. If $y_2$ were a power series, $y_1y_2' - y_1'y_2$ would be one too, and so bounded near $0$. But $C\,t^{-3/2}$ is unbounded (and $C \ne 0$ for independent solutions). So try
+$$y_2 = t^{a}\,(1 + d_1t + d_2t^2 + \cdots).$$</p></div></details>
+
+<details><summary>Substitute into $y_1y_2' - y_1'y_2 = C\,t^{-3/2}$</summary><div>
+<p>$y_2' = t^{a-1}\big(a + (a+1)d_1t + (a+2)d_2t^2 + \cdots\big)$ and $y_1' = \tfrac13 + \tfrac1{15}t + \cdots$. Factor out $t^{a-1}$:
+$$y_1y_2' - y_1'y_2 = t^{a-1}\Big[\big(1 + \tfrac t3 + \tfrac{t^2}{30}\big)\big(a + (a+1)d_1t + (a+2)d_2t^2\big) - \big(\tfrac t3 + \tfrac{t^2}{15}\big)\big(1 + d_1t\big) + \cdots\Big].$$
+The right side is <em>exactly</em> $C\,t^{-3/2}$, so match powers:</p>
+<ul>
+  <li>$t^{a-1}$: $\;a - 1 = -\tfrac32$, so $\boxed{a = -\tfrac12}$, and $C = a = -\tfrac12$.</li>
+  <li>$t^{a}$: $\;(a+1)d_1 + \tfrac a3 - \tfrac13 = 0 \;\Rightarrow\; \tfrac12d_1 - \tfrac12 = 0 \;\Rightarrow\; \boxed{d_1 = 1}$.</li>
+  <li>$t^{a+1}$: $\;(a+2)d_2 + \tfrac{(a+1)d_1}{3} + \tfrac{a}{30} - \tfrac{d_1}{3} - \tfrac1{15} = 0 \;\Rightarrow\; \tfrac32d_2 + \tfrac16 - \tfrac1{60} - \tfrac13 - \tfrac1{15} = 0 \;\Rightarrow\; \boxed{d_2 = \tfrac16}$.</li>
+</ul>
+<p>$$y_2 = t^{-1/2}\Big(1 + t + \frac{t^2}{6} + \cdots\Big).$$</p></div></details>
+
+<div class="box">
+<p><strong>Bookkeeping formula</strong> (saves the expanding): with $y_1 = \sum c_it^i$ and $y_2 = t^a\sum d_jt^j$, the coefficient of $t^{a-1+k}$ in $y_1y_2' - y_1'y_2$ is
+$$\sum_{i+j=k} c_i\,d_j\,(a + j - i),$$
+which must be $C$ for $k = 0$ and $0$ for $k \ge 1$. For $k = 2$: $\;(a+2)d_2 + a\,c_1d_1 + (a-2)\,c_2 = 0$.</p>
+</div>
+
+<div class="trap"><strong>Two slips that cost the $d$'s</strong><br>
+(1) Forgetting that $y_1'y_2$ starts at $t^a$, one power <em>higher</em> than $y_1y_2'$. Factor $t^{a-1}$ out of both before matching.<br>
+(2) Matching to "$C\,t^{-3/2} + $ more terms". Abel gives the Wronskian <em>exactly</em>, so every higher coefficient is $0$.</div>
+
+<h2>6 · The direct route: generalised series and the indicial equation</h2>
+
+<p>You can also substitute $y = t^\lambda\sum_{j\ge0} d_jt^j$ ($d_0 \ne 0$) straight into the ODE. This is the Frobenius method (Booklet Q4). It goes beyond the lecture notes, so you only need the first steps.</p>
+
+<details><summary>Example C again, directly</summary><div>
+<p>$$2t\,y'' + 3y' - y = \sum_{j=0}^\infty d_j(j+\lambda)(2j+2\lambda+1)\,t^{j+\lambda-1} - \sum_{j=0}^\infty d_jt^{j+\lambda} = 0.$$
+<strong>Lowest power</strong> $t^{\lambda-1}$ (only $j = 0$): $\;d_0\,\lambda(2\lambda+1) = 0$. This is the <strong>indicial equation</strong>, so $\lambda = 0$ (gives $y_1$) or $\lambda = -\tfrac12$.<br>
+<strong>Recurrence:</strong> $\;d_{j+1}(j+1+\lambda)(2j+2\lambda+3) = d_j$. At $\lambda = -\tfrac12$: $\;d_{j+1} = \dfrac{d_j}{(j+1)(2j+1)}$, so $d_1 = 1$, $d_2 = \tfrac16$ ✓.</p>
+<p>In fact $d_j = 2^j/(2j)!$, so $y_2 = t^{-1/2}\cosh\sqrt{2t}$ and $y_1 = \dfrac{\sinh\sqrt{2t}}{\sqrt{2t}}$. You won't be asked to spot that, but it's a nice check.</p></div></details>
+
+<div class="box">
+<p><strong>Reading off the indicial equation</strong> (the lowest power only sees these terms):</p>
+<ul>
+  <li>$p\,t\,y'' + q\,y' + \dots$: $\;\lambda\,(p\lambda - p + q) = 0$, so $\lambda = 0$ or $1 - q/p$. Same exponent as Abel's.</li>
+  <li>$\alpha t^2y'' + \beta t\,y' + (\gamma + \delta t)\,y$: $\;\alpha\lambda(\lambda-1) + \beta\lambda + \gamma = 0$. That's the Euler indicial equation from <a href="0003-wronskian-abel-euler.html">Lesson 3</a>, because near $0$ the $\delta t$ term is negligible.</li>
+</ul>
+<p>Roots that differ by a non-integer give two generalised series. Equal roots (as in Bessel, $\lambda = 0, 0$) give a $\ln t$. Roots differing by an integer may give a $\ln t$ (Example B: $\lambda = 0, -2$).</p>
+</div>
+
+<h2>7 · Practice</h2>
+<p>Paper first, then click.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> The power-series solution of $\;t\,y'' + y' + 2y = 0\;$ with $c_0 = 1$ has $c_n = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(-2)^n/n!$</button>
+    <button class="opt" data-key="b">$2^n/(n!)^2$</button>
+    <button class="opt" data-key="c">$(-2)^n/(n!)^2$</button>
+    <button class="opt" data-key="d">$(-2)^n/(2n)!$</button>
+  </div>
+  <div class="why">$\sum n^2c_nt^{n-1} + 2\sum c_nt^n = 0$ gives $(m+1)^2c_{m+1} = -2c_m$. Chaining gives $(-2)^n$ on top and $(1\cdot2\cdots n)^2$ underneath. Option (a) forgets that both $y''$ and $y'$ feed the $n^2$.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> For $\;t\,y'' + 5y' + t\,y = 0$, substituting $\sum c_nt^n$ shows that $c_1$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">forced to be $0$</button>
+    <button class="opt" data-key="b">free, like $c_0$</button>
+    <button class="opt" data-key="c">equal to $-c_0/5$</button>
+    <button class="opt" data-key="d">equal to $-c_0/4$</button>
+  </div>
+  <div class="why">The $t^0$ coefficient is $1\cdot(1+4)\,c_1 = 5c_1$, and $t\,y$ only starts at $t^1$. So $5c_1 = 0$. Then $c_{m+2} = -c_m/((m+2)(m+6))$ fixes every even coefficient from $c_0$.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>3.</strong> $\;t(1-t)\,y'' + (1-3t)\,y' - y = 0\;$ has a series solution with $c_0 = 1$. Its radius of convergence is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\infty$</button>
+    <button class="opt" data-key="b">$1/3$</button>
+    <button class="opt" data-key="c">$0$</button>
+    <button class="opt" data-key="d">$1$</button>
+  </div>
+  <div class="why">The $t^n$ coefficient is $(n+1)^2c_{n+1} - (n+1)^2c_n$, so every $c_n = 1$ and $y_1 = \sum t^n = \dfrac1{1-t}$. $R = 1$: the distance to the other zero of $t(1-t)$, as in <a href="0010-series-variable-coeff.html">Lesson 10</a>.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>4.</strong> For $\;4t\,y'' + 3y' + y = 0$, a second solution has the form $t^a\sum d_jt^j$ with $a = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$-3/4$</button>
+    <button class="opt" data-key="b">$1/4$</button>
+    <button class="opt" data-key="c">$3/4$</button>
+    <button class="opt" data-key="d">$-1/4$</button>
+  </div>
+  <div class="why">$\operatorname{wr} = C\,t^{-3/4}$, and $y_1y_2' \approx a\,t^{a-1}$, so $a - 1 = -\tfrac34$. Indicial check: $4\lambda(\lambda-1) + 3\lambda = \lambda(4\lambda-1)$, so $\lambda = \tfrac14$ ✓. Option (a) is the Wronskian's power, not $y_2$'s.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>5.</strong> The indicial equation of $\;2t^2y'' - t\,y' + (1 - t)\,y = 0\;$ has roots…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\lambda = \tfrac12,\ 1$</button>
+    <button class="opt" data-key="b">$\lambda = -\tfrac12,\ -1$</button>
+    <button class="opt" data-key="c">$\lambda = 1,\ 2$</button>
+    <button class="opt" data-key="d">$\lambda = 0,\ \tfrac32$</button>
+  </div>
+  <div class="why">Euler part: $2\lambda(\lambda-1) - \lambda + 1 = 2\lambda^2 - 3\lambda + 1 = (2\lambda-1)(\lambda-1)$. The $-t\,y$ term only enters the recurrence. Option (d) drops the "$+1$".</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>6.</strong> For $\;t\,y'' + 5y' + t\,y = 0$, as $t\to0^+$ the second solution $y_2$ behaves like…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\ln t$</button>
+    <button class="opt" data-key="b">$t^{-5}$</button>
+    <button class="opt" data-key="c">$t^{-4}$</button>
+    <button class="opt" data-key="d">$t^{4}$</button>
+  </div>
+  <div class="why">$\operatorname{wr} = C\,t^{-5}$, so $(y_2/y_1)' \sim C\,t^{-5}$ and $y_2 \sim -\tfrac C4\,t^{-4}$. The indicial roots are $\lambda(\lambda+4) = 0$, which agrees. Option (b) forgets to integrate.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>7.</strong> If $y_1, y_2$ were both power series with $R &gt; 0$, then $y_1y_2' - y_1'y_2$ would be…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">zero for all $t$</button>
+    <button class="opt" data-key="b">exactly $C/t$</button>
+    <button class="opt" data-key="c">undefined at $t = 0$</button>
+    <button class="opt" data-key="d">a power series in $t$</button>
+  </div>
+  <div class="why">Products and derivatives of power series are power series, so they're finite at $0$. Abel says $\operatorname{wr} = C\,t^{-q/p}$, which is unbounded. So $C = 0$, which would make $y_2$ a multiple of $y_1$. That's the one-line proof that the second solution can't be a power series.</div>
+</div>
+
+<h2>8 · Exam-level challenge</h2>
+<p>About 15 marks. Write the whole thing on paper, then open one part at a time.</p>
+<div class="box">
+<p>Consider $\;3t\,y'' + y' - y = 0,\quad t &gt; 0$.</p>
+<p>(a) Substitute $y = \sum_{n\ge0} c_nt^n$. Show that this gives only one linearly independent power-series solution, and write it, with $c_0 = 1$, in sum form with an explicit formula for $c_n$. <em>[5]</em><br>
+(b) Find its radius of convergence. <em>[2]</em><br>
+(c) Let $y_2$ be a second, linearly independent solution. Use Abel's identity to find $\operatorname{wr}[y_1, y_2]$, and explain why $y_2$ can't be a power series about $t = 0$. <em>[3]</em><br>
+(d) Show that $y_2 = t^{a}\sum_{j\ge0}d_jt^j$ with $d_0 = 1$ is consistent with (c). Find $a$, $d_1$ and $d_2$ by substituting the first terms of $y_1$ into the Wronskian equation. <em>[5]</em></p>
+</div>
+
+<details><summary>(a) Substitute and find the recurrence</summary><div>
+<p>$$3\sum n(n-1)c_nt^{n-1} + \sum n\,c_nt^{n-1} - \sum c_nt^n = \sum_{n=0}^\infty n(3n-2)\,c_nt^{n-1} - \sum_{n=0}^\infty c_nt^n = 0.$$
+The $n = 0$ term is $0$. Shifting:
+$$\sum_{m=0}^\infty\big[(m+1)(3m+1)\,c_{m+1} - c_m\big]t^m = 0 \quad\Longrightarrow\quad c_{m+1} = \frac{c_m}{(m+1)(3m+1)}.$$
+Every $c_n$ is determined by $c_0$, so there's only one free constant and one independent series solution.</p></div></details>
+
+<details><summary>(a) Closed form and sum form</summary><div>
+<p>$$c_n = \frac{c_0}{\prod_{k=1}^n k(3k-2)} = \frac{c_0}{n!\cdot1\cdot4\cdot7\cdots(3n-2)}.$$
+With $c_0 = 1$:
+$$y_1(t) = \sum_{n=0}^\infty \frac{t^n}{n!\,\prod_{k=1}^n(3k-2)} = 1 + t + \frac{t^2}{8} + \frac{t^3}{168} + \cdots$$
+(The empty product for $n = 0$ is $1$.) There's no factorial form for $1\cdot4\cdot7\cdots$, so the product is the closed form.</p></div></details>
+
+<details><summary>(b) Radius</summary><div>
+<p>$$R = \lim_{n\to\infty}\left|\frac{c_n}{c_{n+1}}\right| = \lim_{n\to\infty}(n+1)(3n+1) = \infty.$$
+So the series converges for all $t$. (Uniform convergence and "genuine": <a href="0012-uniform-convergence-genuine.html">Lesson 12</a>.)</p></div></details>
+
+<details><summary>(c) Abel, and why $y_2$ isn't a power series</summary><div>
+<p>Standard form: $y'' + \dfrac{1}{3t}y' - \dfrac{1}{3t}y = 0$, so $f_1 = \dfrac1{3t}$ and
+$$\operatorname{wr}[y_1,y_2] = C\,e^{-\int\frac{dt}{3t}} = C\,t^{-1/3}, \qquad C \ne 0 \text{ (independent)}.$$
+If $y_2$ were a power series with $R &gt; 0$, then $y_1y_2' - y_1'y_2$ would be a power series, and bounded as $t\to0^+$. But $C\,t^{-1/3}\to\infty$. Contradiction.</p></div></details>
+
+<details><summary>(d) Find $a$</summary><div>
+<p>$y_2 = t^a(1 + d_1t + d_2t^2 + \cdots)$, so $y_2' = t^{a-1}\big(a + (a+1)d_1t + (a+2)d_2t^2 + \cdots\big)$. Also $y_1 = 1 + t + \tfrac18t^2 + \cdots$ and $y_1' = 1 + \tfrac14t + \cdots$
+$$y_1y_2' - y_1'y_2 = t^{a-1}\Big[\big(1 + t + \tfrac18t^2\big)\big(a + (a+1)d_1t + (a+2)d_2t^2\big) - \big(t + \tfrac14t^2\big)\big(1 + d_1t\big) + \cdots\Big].$$
+Lowest power: $a\,t^{a-1} = C\,t^{-1/3}$, so $\boxed{a = \tfrac23}$ (and $C = \tfrac23$). A non-integer $a$ is consistent with (c).</p></div></details>
+
+<details><summary>(d) Find $d_1$ and $d_2$</summary><div>
+<p>Every higher power must vanish, because the Wronskian is exactly $C\,t^{-1/3}$.<br>
+$t^{a}$: $\;(a+1)d_1 + a - 1 = 0 \;\Rightarrow\; \tfrac53d_1 - \tfrac13 = 0 \;\Rightarrow\; \boxed{d_1 = \tfrac15}$.<br>
+$t^{a+1}$: $\;(a+2)d_2 + (a+1)d_1 + \tfrac a8 - d_1 - \tfrac14 = 0 \;\Rightarrow\; \tfrac83d_2 + \tfrac13 + \tfrac1{12} - \tfrac15 - \tfrac14 = 0$.<br>
+The constants sum to $\tfrac{20 + 5 - 12 - 15}{60} = -\tfrac1{30}$, so $\tfrac83d_2 = \tfrac1{30}$ and $\boxed{d_2 = \tfrac1{80}}$.
+$$y_2 = t^{2/3}\Big(1 + \frac t5 + \frac{t^2}{80} + \cdots\Big).$$
+Bookkeeping check: $(a+2)d_2 + a\,c_1d_1 + (a-2)c_2 = \tfrac83d_2 + \tfrac2{15} - \tfrac16 = 0$ ✓.</p>
+<p>Notice that $y_2 \to 0$ as $t\to0^+$, so it's bounded. But $y_2' \sim \tfrac23t^{-1/3}$ blows up, so $y_2$ isn't differentiable at $0$. Bounded doesn't mean power series.</p></div></details>
+
+<details><summary>Check by the direct route (not asked)</summary><div>
+<p>Indicial: $3\lambda(\lambda-1) + \lambda = \lambda(3\lambda-2) = 0$, so $\lambda = \tfrac23$ ✓. Recurrence at $\lambda = \tfrac23$: $\;d_{j+1}(j+1)(3j+5) = d_j$, so $d_1 = \tfrac15$ and $d_2 = \tfrac1{5\cdot16} = \tfrac1{80}$ ✓.</p></div></details>
+
+<p>Then compare your script with the <a href="../reference/0011-challenge-full-solution.html">full written solution</a>, which shows what to write on the paper.</p>
+
+<h2>9 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, write why only one series solution appears, the Abel formula for $y_2$, and how to read off $a$; then check</summary><div>
+<p><strong>One solution:</strong> $t\,y''$ and $y'$ both give $t^{n-1}$, so the recurrence steps by $1$ (or $c_1$ is forced to $0$), and only $c_0$ is free.</p>
+<p><strong>Second solution:</strong> $\operatorname{wr} = C\,e^{-\int f_1}$, and $(y_2/y_1)' = \operatorname{wr}/y_1^2$, so $y_2 = y_1\int \operatorname{wr}/y_1^2\,dt$. For $\operatorname{wr} \propto 1/t$ you get $y_2 \sim C\ln t$.</p>
+<p><strong>Power:</strong> for $p\,t\,y'' + q\,y' + \dots$: $\operatorname{wr} = C\,t^{-q/p}$, and $a = 1 - q/p$ (also the non-zero indicial root). Then $d_1, d_2$ come from setting the higher powers of the Wronskian to $0$.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/09_MAST20030_Lecture_Notes_Topic2_PowerSeries-LMS.pdf">Lecture 9</a>, slides 4–7 (Bessel order zero, then reduction of order with $v = J_0$). For the generalised series, <a href="https://en.wikipedia.org/wiki/Frobenius_method">Wikipedia: Frobenius method</a> covers the indicial equation and the log case, and <a href="https://tutorial.math.lamar.edu/Classes/DE/SeriesSolutions.aspx">Paul's Notes: Series Solutions</a> has the ordinary-point method for comparison.</p>
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic2.pdf">Problem Booklet 2</a>, Q2 (i) and (j). Write each answer in sum form with closed-form $c_n$, then give the radius.</li>
+  <li>Booklet Q5 (a) and (b): the lecture's Bessel equation, using §4's method.</li>
+  <li>Booklet Q4: generalised series with a $t^2$ leading coefficient. Read the indicial equation off the Euler part.</li>
+  <li>Optional: Booklet Q2 (c) (the lecture example again) and Q5 (c).</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo quizzes 2, 4 and 6 cold, plus the challenge's (d) without looking.</p>
+
+<div class="ask">💬 Stuck on a step, or got a different answer? Ask me in the terminal. Paste or photograph your working and I'll mark it line by line.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0003-wronskian-abel-euler.html">Lesson 3</a> and <a href="0010-series-variable-coeff.html">Lesson 10</a></span>
+  <span>Reference: <a href="../reference/topic2-cheatsheet.html">Topic 2 cheat sheet</a></span>
+  <span>Next: <a href="0012-uniform-convergence-genuine.html">Lesson 12, uniform convergence</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

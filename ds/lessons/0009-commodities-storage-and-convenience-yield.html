@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Commodities and Convenience Yield</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.widget { background: var(--card); border: 1px solid var(--rule); border-radius: 6px; padding: 1rem 1.2rem; margin: 1.2rem 0; font-family: Inter, system-ui, sans-serif; font-size: .85rem; }
+.widget .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .5rem 1rem; }
+.widget label { display: flex; flex-direction: column; gap: .2rem; }
+.widget input { font: inherit; padding: .35rem .5rem; border: 1px solid var(--rule); border-radius: 5px; background: var(--bg); color: var(--fg); min-height: 40px; }
+.widget .out { margin-top: .8rem; line-height: 1.7; }
+.widget .out b { font-weight: 600; }
+.cls td:nth-child(n+4) { font-family: Inter, system-ui, sans-serif; font-size: .82rem; }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 9 · Topic 3: Forward &amp; futures pricing</div>
+<h1>Commodities: storage, convenience yield, and the shape of the futures curve</h1>
+<p class="lede">The goal: price a futures contract on a stored commodity, tell when a "mispriced" quote is a real arbitrage and when it's just a convenience yield, and read contango and backwardation (both senses) off any set of prices.</p>
+
+<div class="mission">Why this matters for 5 Nov: both 2026 MST streams had a 2-mark "investment commodity with storage payable at the end, which strategy and how much profit per ounce" MCQ, a 1-mark industry-vs-normal contango/backwardation classifier, and a 1-mark "read the curve after a supply shock" question. Recent finals ask you to back out a convenience yield to 2 decimals and then explain in words why the cheap futures is not an arbitrage. That's 4+ marks from this lesson alone.</div>
+
+<p>This lesson assumes Lessons 6–8: cost of carry \(F_0 = S_0e^{rT}\), income and yields, and the two arbitrage tables (cash-and-carry when \(F\) is too high, reverse cash-and-carry when \(F\) is too low).</p>
+
+<h2>1 · Storage: one more cost of "owning it at T"</h2>
+
+<p>Keep asking the Lesson 6 question: <em>what would I have to do today to own one unit at time \(T\)?</em> For a share: borrow \(S_0\), buy it, wait. For gold or wheat there's one more bill: <strong>storage</strong> (vault fees, insurance, silo rent, for livestock even feed). Someone who buys the futures instead skips that bill, so a fair futures price must include it. Otherwise everyone would buy futures rather than store.</p>
+
+<p>Two ways storage is quoted (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">Lecture 3, slides 27–29</a>; Hull Ch. 5):</p>
+<ul>
+  <li><strong>A dollar amount.</strong> Let \(U\) = the <strong>present value</strong> of all storage costs over the contract's life (minus any income). Then
+  $$F_0 = (S_0 + U)\,e^{rT}.$$
+  Reason: at \(t=0\) you'd need \(S_0 + U\) in cash (buy the asset and set aside today's value of the storage bills), and you borrow all of it until \(T\).</li>
+  <li><strong>A proportion of the price.</strong> Storage of \(u\) per annum (continuously compounded) acts like a negative yield, the mirror image of a dividend yield \(q\):
+  $$F_0 = S_0\,e^{(r+u)T}.$$</li>
+</ul>
+
+<div class="trap"><strong>"Payable at the end"</strong><br>
+\(U\) is a <em>present</em> value. If the exam says storage of $\(C\) is <strong>payable at the end</strong> (time \(T\)), either discount it, \(U = Ce^{-rT}\), and use \((S_0+U)e^{rT}\), or skip the round trip and add it at \(T\):
+$$F_0 = S_0e^{rT} + C.$$
+Both give the same number. What you must not do is plug \(C\) in as \(U\) (that compounds a cost that's already at \(T\)), or forget it. If storage is paid <em>in advance</em> each quarter, \(U\) is the sum of each payment discounted from its own date.</div>
+
+<div class="box">
+<p><strong>Example.</strong> Gold: spot $2,400/oz, \(r = 5\%\) (continuous), 6-month futures, storage $6/oz payable in 6 months.</p>
+<p>\(F_0 = 2{,}400e^{0.05\times0.5} + 6 = 2{,}460.76 + 6 = \$2{,}466.76\).<br>
+Check via \(U\): \(U = 6e^{-0.025} = 5.85\), and \((2{,}400 + 5.85)e^{0.025} = 2{,}466.76\) ✓.</p>
+</div>
+
+<details><summary>Predict first: storage costs rise. Does the fair futures price rise or fall? Who is now "more willing" to hold futures instead of metal?</summary><div>
+<p>It rises. Holding metal got dearer, so the alternative (a futures contract, which needs no vault) is worth more, and longs will pay more for it. Storage pushes \(F\) up the same way interest does, and opposite to dividends.</p></div></details>
+
+<h3>The arbitrage tables, with storage added</h3>
+<p>Same two strategies as Lesson 6; storage just sits in the "carry" leg. Fair price \(F^* = S_0e^{rT} + C\) (storage \(C\) per unit, paid at \(T\)).</p>
+
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Quoted \(F_0 &gt; F^*\): cash-and-carry</th><th>t = 0</th><th>t = T</th></tr>
+<tr><td>Borrow \(S_0\)</td><td>\(+S_0\)</td><td>\(-S_0e^{rT}\)</td></tr>
+<tr><td>Buy 1 unit spot, store it</td><td>\(-S_0\)</td><td>\(-C\) (storage)</td></tr>
+<tr><td>Short futures at \(F_0\), deliver the unit</td><td>0</td><td>\(+F_0\)</td></tr>
+<tr><td><strong>Net</strong></td><td>0</td><td>\(F_0 - S_0e^{rT} - C = F_0 - F^* &gt; 0\)</td></tr>
+</table>
+</div>
+
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Quoted \(F_0 &lt; F^*\): reverse cash-and-carry (an investor who holds the metal)</th><th>t = 0</th><th>t = T</th></tr>
+<tr><td>Sell 1 unit from inventory</td><td>\(+S_0\)</td><td>\(+C\) (storage saved)</td></tr>
+<tr><td>Invest the proceeds at \(r\)</td><td>\(-S_0\)</td><td>\(+S_0e^{rT}\)</td></tr>
+<tr><td>Long futures at \(F_0\): get the unit back</td><td>0</td><td>\(-F_0\)</td></tr>
+<tr><td><strong>Net</strong> (and you hold the metal again)</td><td>0</td><td>\(F^* - F_0 &gt; 0\)</td></tr>
+</table>
+</div>
+
+<p>Notice who runs the reverse trade: someone who <em>already holds</em> the metal purely as an investment. For them, swapping "metal in a vault" for "cash earning interest + a futures that returns the metal at \(T\)" is a strict improvement whenever \(F_0 &lt; F^*\), and they save the storage bill too. That willingness is the whole reason the equality holds for investment commodities. Keep it in mind for section 2.</p>
+
+<h2>2 · Consumption commodities: why only one direction works</h2>
+
+<p>An <strong>investment asset</strong> is held by enough people purely as an investment (gold, silver). A <strong>consumption asset</strong> is held mainly to be <em>used up</em>: crude oil, copper, wheat, coal (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">slide 30</a>).</p>
+
+<p><strong>A refiner's story.</strong> A refinery has 2 million barrels of crude in its tanks. A trader rings: "the one-year futures is $4 below full carry. Sell me your crude today, invest the cash, buy the futures, and you'll have your oil back in a year plus a profit." The refiner says no. The plant has to run <em>next week</em>. A futures contract can't be fed into a distillation column. If the tanks run dry during an outage or a shipping disruption, the refinery shuts, losing far more than $4 a barrel. Having the barrels <em>on hand now</em> is worth something to them that a futures contract doesn't give.</p>
+
+<p>So for a consumption commodity:</p>
+<ul>
+  <li><strong>\(F_0\) too high</strong> (above full carry): <em>anyone</em> can run cash-and-carry. Borrow, buy oil, store it, short futures. Nobody has to give anything up. Arbitrage works, so \(F_0\) can't stay above.</li>
+  <li><strong>\(F_0\) too low</strong>: the reverse trade needs someone to <em>sell inventory</em>, and the people who hold inventory won't, because they need it. You can't short-sell crude to yourself. Nothing pushes \(F_0\) back up.</li>
+</ul>
+<p>Only the upper bound survives (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">slide 31</a>):</p>
+$$F_0 \le (S_0 + U)\,e^{rT} \qquad\text{or}\qquad F_0 \le S_0e^{(r+u)T}.$$
+
+<table>
+<tr><th>Quoted \(F_0\) vs full carry \(F^*\)</th><th>Investment commodity (gold, silver)</th><th>Consumption commodity (oil, copper, wheat)</th></tr>
+<tr><td>\(F_0 &gt; F^*\)</td><td>Arbitrage: cash-and-carry</td><td>Arbitrage: cash-and-carry</td></tr>
+<tr><td>\(F_0 = F^*\)</td><td>Fair, no arbitrage</td><td>Fair, convenience yield \(y = 0\) (inventories ample)</td></tr>
+<tr><td>\(F_0 &lt; F^*\)</td><td>Arbitrage: reverse cash-and-carry (holders sell and buy futures)</td><td><strong>Not</strong> an arbitrage: implies \(y &gt; 0\)</td></tr>
+</table>
+
+<div class="trap"><strong>Distractors to recognise</strong><br>
+"No arbitrage because gold/silver may have a convenience yield": wrong, investment assets have \(y = 0\), since investors happily sell them. "No arbitrage because storage costs allow any futures premium": wrong, storage allows a premium of exactly carry, no more. "Arbitrage on the cheap oil futures": wrong for a consumption commodity; the gap is the convenience yield.</div>
+
+<h2>3 · Convenience yield: put a number on "having it now"</h2>
+
+<p>The <strong>convenience yield</strong> \(y\) is the benefit of holding the physical commodity, expressed as a continuously compounded rate. Define it as the rate that turns the inequality into an equality (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">slide 33</a>):</p>
+$$F_0e^{yT} = (S_0 + U)e^{rT} \quad\Longrightarrow\quad y = \frac{1}{T}\ln\!\left[\frac{(S_0+U)e^{rT}}{F_0}\right] = \frac1T\ln\frac{F^*}{F_0}.$$
+<p>With proportional storage: \(F_0 = S_0e^{(r+u-y)T}\), so \(y = r + u - \tfrac1T\ln(F_0/S_0)\).</p>
+
+<p>Read it as: <em>how far below full carry is the futures, as an annual rate?</em> \(y\) is not observed directly; you back it out of prices, the way you'd back out a yield from a bond price.</p>
+
+<ul>
+  <li><strong>Inventories plentiful</strong>: nobody fears running out → \(y \approx 0\) → \(F_0 \approx\) full carry → futures above spot.</li>
+  <li><strong>Inventories scarce</strong> (or a shortage feared): barrels on hand are precious → \(y\) large → \(F_0\) far below full carry, often below spot.</li>
+  <li>\(y = 0\) for investment assets.</li>
+</ul>
+
+<h3>One formula for every asset: cost of carry</h3>
+<p>The <strong>cost of carry</strong> \(c\) = interest to finance the asset + storage − income it pays: \(c = r - q + u\) (Hull Ch. 5; notes "Cost of Carry"). Then</p>
+$$\text{investment asset: } F_0 = S_0e^{cT}, \qquad \text{consumption asset: } F_0 = S_0e^{(c-y)T}.$$
+<table>
+<tr><th>Asset</th><th>\(c\)</th></tr>
+<tr><td>Non-dividend stock</td><td>\(r\)</td></tr>
+<tr><td>Stock index</td><td>\(r - q\)</td></tr>
+<tr><td>Currency</td><td>\(r - r_f\)</td></tr>
+<tr><td>Commodity</td><td>\(r + u\) (then subtract \(y\) if it's a consumption good)</td></tr>
+</table>
+<p>Rule of thumb: <strong>\(F &gt; S\) exactly when \(c - y &gt; 0\)</strong>. Anything that makes holding the spot asset more attractive (dividends, foreign interest, convenience) pulls \(F\) down relative to \(S\); anything that makes holding it costly (interest, storage) pushes \(F\) up.</p>
+
+<h3>Try it</h3>
+<div class="widget" id="w">
+<div class="grid">
+  <label>Spot \(S_0\) <input id="wS" type="number" value="70" step="0.5"></label>
+  <label>Storage paid at \(T\) (per unit) <input id="wC" type="number" value="2.5" step="0.1"></label>
+  <label>\(r\) (% p.a., cont.) <input id="wr" type="number" value="4.5" step="0.25"></label>
+  <label>\(T\) (years) <input id="wT" type="number" value="1" step="0.25" min="0.05"></label>
+  <label>Quoted futures \(F_0\) <input id="wF" type="number" value="72" step="0.5"></label>
+</div>
+<div class="out" id="wout"></div>
+</div>
+<p>Play: raise the quote above full carry, then push it below spot. Watch which verdict changes for oil but not for gold.</p>
+
+<h2>4 · Contango and backwardation: two different comparisons</h2>
+
+<p>The same two words are used for two different comparisons. The 2026 MSTs test both, so always ask <em>"compared with what?"</em></p>
+
+<table>
+<tr><th>Sense</th><th>Compares \(F_0\) with</th><th>Contango</th><th>Backwardation</th></tr>
+<tr><td><strong>"Industry"</strong> (curve shape)</td><td>today's spot \(S_0\) (or nearer futures)</td><td>\(F_0 &gt; S_0\): upward-sloping curve</td><td>\(F_0 &lt; S_0\): downward-sloping curve</td></tr>
+<tr><td><strong>"Normal"</strong> (Hull Ch. 5)</td><td>expected future spot \(E[S_T]\)</td><td>\(F_0 &gt; E[S_T]\)</td><td>\(F_0 &lt; E[S_T]\)</td></tr>
+</table>
+
+<p><strong>Why would \(F_0\) differ from \(E[S_T]\) at all?</strong> A futures contract costs nothing to enter, so the long's expected profit is \(E[S_T] - F_0\). Hull's argument: if the commodity's price has <strong>positive systematic risk</strong> (it moves with the market, so the risk can't be diversified away), whoever is long wants a reward for bearing it, so \(F_0 &lt; E[S_T]\): <strong>normal backwardation</strong>. Keynes's version (hedging pressure): producers hedge by going short; speculators must take the long side and need to be paid for it, which again pushes \(F_0\) below \(E[S_T]\). If the price has negative systematic risk, or hedgers are net long, you get normal contango. With zero systematic risk, \(F_0 = E[S_T]\).</p>
+
+<div class="trap"><strong>The two senses are independent</strong><br>
+Industry uses \(S_0\); normal uses \(E[S_T]\). A market can be in industry contango and normal backwardation at the same time (e.g. \(S_0 = 50\), \(F_0 = 53\), \(E[S_T] = 55\)). Storage costs are irrelevant to the classification: you only compare three numbers.</div>
+
+<p>Classify each before looking at the right-hand columns:</p>
+<table class="cls">
+<tr><th>\(S_0\)</th><th>\(F_0\)</th><th>\(E[S_T]\)</th><th>Industry</th><th>Normal</th></tr>
+<tr><td>60</td><td>63</td><td>61</td><td>contango (63 &gt; 60)</td><td>contango (63 &gt; 61)</td></tr>
+<tr><td>60</td><td>63</td><td>66</td><td>contango</td><td>backwardation (63 &lt; 66)</td></tr>
+<tr><td>60</td><td>57</td><td>55</td><td>backwardation</td><td>contango (57 &gt; 55)</td></tr>
+<tr><td>60</td><td>57</td><td>59</td><td>backwardation</td><td>backwardation</td></tr>
+<tr><td>60</td><td>60</td><td>58</td><td>neither (flat)</td><td>contango</td></tr>
+</table>
+
+<h2>5 · Reading the futures curve</h2>
+
+<p>The <strong>futures curve</strong> (term structure) plots today's futures prices against maturity. The <strong>prompt</strong> contract is the nearest maturity; <strong>deferred</strong> contracts are further out. Each maturity implies its own \(y\), so the curve's slope tells you how badly the market wants barrels <em>now</em>.</p>
+
+<div class="box">
+<p><strong>A supply shock, in numbers.</strong> Crude, \(r = 4\%\), storage \(u = 2\%\) p.a. Implied \(y = r + u - \tfrac1T\ln(F/S)\).</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th></th><th>Spot</th><th>3-month</th><th>6-month</th><th>12-month</th></tr>
+<tr><td>Before</td><td>75.0</td><td>74.6</td><td>74.0</td><td>73.0</td></tr>
+<tr><td>implied \(y\)</td><td></td><td>8.1%</td><td>8.7%</td><td>8.7%</td></tr>
+<tr><td>After a shipping-lane disruption</td><td>90.0</td><td>86.5</td><td>83.5</td><td>79.0</td></tr>
+<tr><td>implied \(y\)</td><td></td><td>21.9%</td><td>21.0%</td><td>19.0%</td></tr>
+</table>
+</div>
+<p>Spot jumped 15 but the 12-month only 6: the market expects the disruption to ease, so the value of having oil <em>now</em> is much higher than the value of oil next year. The curve gets <strong>steeper in backwardation</strong> and the implied convenience yield jumps, most at the short end. This is the lecture's Strait of Hormuz discussion.</p>
+</div>
+
+<table>
+<tr><th>Event</th><th>Prompt vs deferred</th><th>Curve</th><th>Implied \(y\)</th></tr>
+<tr><td>Supply shock, inventories scarce</td><td>prompt rises more</td><td>steeper backwardation</td><td>up</td></tr>
+<tr><td>Glut, storage tanks filling</td><td>prompt falls more</td><td>deeper contango, toward full carry</td><td>down, toward 0</td></tr>
+<tr><td>Storage itself gets dearer (\(u\) up)</td><td>deferred rises relative to prompt</td><td>more contango allowed</td><td>unchanged if spread widens by \(u\)</td></tr>
+<tr><td>Interest rates rise</td><td>deferred rises relative to prompt</td><td>more contango</td><td>unchanged if spread widens by \(r\)</td></tr>
+</table>
+
+<p>Contango has a ceiling: no curve can sit above full carry (\(y \ge 0\) roughly), because then cash-and-carry kicks in. Backwardation has no floor from arbitrage, which is why backwardated curves can be very steep. The same "carry" logic links two futures: \(F_2 \le F_1e^{r(t_2-t_1)}\) with no storage (buy the near contract, take delivery, hold, deliver on the far one). That's <a href="../tutes/Tutorial%203.pdf">Tutorial 3, Q5</a>, and Lesson 10 uses it.</p>
+
+<h2>6 · Practice</h2>
+<p>Continuous compounding throughout. Numeric answers: type a number; for rates, type a percentage (e.g. 4.25).</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> Holding other inputs fixed, why does a higher storage cost raise the fair futures price of gold?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Storage costs make gold scarcer, so its spot price must rise too</button>
+    <button class="opt" data-key="b">The short pays the storage, so it demands a larger margin deposit</button>
+    <button class="opt" data-key="c">A futures buyer avoids the storage bill, so futures are worth more</button>
+    <button class="opt" data-key="d">Convenience yield rises with storage, so the futures must rise as well</button>
+  </div>
+  <div class="why">The long futures holder gets the gold at \(T\) without paying for a vault. Competition between "buy and store" and "buy futures" makes \(F_0\) include the storage cost. (a) confuses futures with spot; (d) has it backwards: convenience yield lowers \(F\), and gold's \(y\) is zero anyway.</div>
+</div>
+
+<div class="quiz num" data-answer="1029.84" data-tol="0.02">
+  <p class="q"><strong>2.</strong> Platinum (an investment commodity) trades at $980/oz. Storage is $2.40/oz per quarter, payable at the <em>start</em> of each quarter. \(r = 4\%\). What is the one-year futures price?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$/oz</span></div>
+  <div class="why">Payments at 0, 0.25, 0.5, 0.75: \(U = 2.40(1 + e^{-0.01} + e^{-0.02} + e^{-0.03}) = 9.4577\). \(F_0 = (980 + 9.4577)e^{0.04} = \$1{,}029.84\). If you got 1,029.99 you compounded \(4\times2.40\) for a full year (ignoring timing); if you got 1,019.99 you forgot storage.</div>
+</div>
+
+<div class="quiz num" data-answer="52.11" data-tol="0.01">
+  <p class="q"><strong>3.</strong> An investment commodity costs $50 spot. Storage is 1.5% of its value per year (continuous), \(r = 4\%\). What is the 9-month futures price?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(F_0 = S_0e^{(r+u)T} = 50e^{(0.04+0.015)\times0.75} = 50e^{0.04125} = \$52.11\). Proportional storage adds to \(r\) in the exponent, just as a yield \(q\) subtracts.</div>
+</div>
+
+<div class="quiz" data-answer="e">
+  <p class="q"><strong>4.</strong> Palladium, treated as an investment commodity, is $1,050/oz spot. Storage is $5/oz for six months, payable at the end. \(r = 6\%\). The 6-month futures is quoted at $1,060. Which is correct for an investor who already holds palladium?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Short futures, buy spot with borrowed money; earn about $26.98 per ounce</button>
+    <button class="opt" data-key="b">Sell palladium, invest proceeds, go long futures; earn about $21.98 per ounce</button>
+    <button class="opt" data-key="c">There is no arbitrage, since palladium may carry a positive convenience yield</button>
+    <button class="opt" data-key="d">There is no arbitrage, since futures may sit below spot plus storage</button>
+    <button class="opt" data-key="e">Sell palladium, invest proceeds, go long futures; earn about $26.98 per ounce</button>
+  </div>
+  <div class="why">Fair \(F^* = 1{,}050e^{0.03} + 5 = 1{,}081.98 + 5 = 1{,}086.98\). The quote of 1,060 is <em>below</em>, so do the reverse trade: sell metal, invest, buy futures. At \(T\): \(+1{,}081.98\) from the investment, \(+5\) storage saved, \(-1{,}060\) for the futures = <strong>$26.98</strong>. (b) forgets the storage saved. (a) is the wrong direction. (c) fails because investment assets have \(y = 0\): holders do sell.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>5.</strong> Predict first. For crude oil, the one-year futures is $3 <em>below</em> spot-plus-full-carry. What is the best interpretation?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Arbitrage: sell oil short, invest the cash, and go long the futures</button>
+    <button class="opt" data-key="b">No arbitrage: holders need their oil, so it implies a positive y</button>
+    <button class="opt" data-key="c">Arbitrage: borrow, buy oil, store it, and go short on the futures</button>
+    <button class="opt" data-key="d">No arbitrage: the gap implies that storage costs must be negative now</button>
+  </div>
+  <div class="why">The reverse trade needs someone to sell physical oil, and the holders (refiners, users) won't part with inventory they need. So only \(F_0 \le\) full carry is enforced and the gap is a convenience yield. (c) loses money when \(F\) is too low.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>6.</strong> Now the copper futures is <em>above</em> spot-plus-full-carry. What follows?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">No arbitrage, since copper is purely a consumption commodity here</button>
+    <button class="opt" data-key="b">No arbitrage, since a higher convenience yield fills the gap</button>
+    <button class="opt" data-key="c">Arbitrage: sell copper, invest the proceeds, and go long futures</button>
+    <button class="opt" data-key="d">Arbitrage: borrow, buy copper, store it, and then short futures</button>
+  </div>
+  <div class="why">Cash-and-carry needs nobody to give up inventory; anyone can buy and store. So the upper bound holds even for consumption goods. (b) is backwards: \(y \ge 0\) can only push \(F\) <em>down</em>, never explain \(F\) above carry.</div>
+</div>
+
+<div class="quiz num" data-answer="12.66" data-tol="0.02">
+  <p class="q"><strong>7.</strong> Wheat: spot $6.20/bu, 6-month futures $6.05/bu, \(r = 4\%\), storage $0.12/bu for six months payable at the end. What convenience yield (% p.a., continuous) is the market implying?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% p.a.</span></div>
+  <div class="why">Full carry \(F^* = 6.20e^{0.02} + 0.12 = 6.4452\). \(y = \tfrac{1}{0.5}\ln(6.4452/6.05) = 2\times0.06328 = \)<strong>12.66%</strong>. Don't forget to divide by \(T\): \(\ln(F^*/F_0)\) alone (6.33%) is the 6-month amount.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>8.</strong> Grain silos are overflowing after a record harvest. Predict the effect on the implied convenience yield and the shape of the wheat futures curve.</p>
+  <div class="opts">
+    <button class="opt" data-key="a">y falls toward zero; the curve moves toward full-carry contango</button>
+    <button class="opt" data-key="b">y rises sharply; the curve moves into steeper backwardation shape</button>
+    <button class="opt" data-key="c">y falls toward zero; the curve moves into steeper backwardation</button>
+    <button class="opt" data-key="d">y rises sharply; the curve moves toward full-carry contango shape</button>
+  </div>
+  <div class="why">Plentiful stocks mean nobody pays extra to hold grain now, so \(y \to 0\) and \(F\) climbs toward \(S_0e^{(r+u)T}\), above spot: contango. Scarcity does the opposite.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>9.</strong> Zinc: spot $2,900, 1-year futures $2,840, analysts' expected spot in a year $2,800. Which is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Industry contango and normal contango</button>
+    <button class="opt" data-key="b">Industry backwardation and normal backwardation</button>
+    <button class="opt" data-key="c">Industry backwardation and normal contango</button>
+    <button class="opt" data-key="d">Industry contango and normal backwardation</button>
+  </div>
+  <div class="why">Industry: \(F = 2{,}840 &lt; S_0 = 2{,}900\) → backwardation. Normal: \(F = 2{,}840 &gt; E[S_T] = 2{,}800\) → contango. Two separate comparisons; don't let one decide the other.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>10.</strong> Coffee: spot $3.10/lb, 6-month futures $3.25, expected spot in six months $3.40. Which is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Industry backwardation and normal contango</button>
+    <button class="opt" data-key="b">Industry contango and normal backwardation</button>
+    <button class="opt" data-key="c">Industry contango and normal contango</button>
+    <button class="opt" data-key="d">Cannot classify without storage costs</button>
+  </div>
+  <div class="why">\(3.25 &gt; 3.10\) → industry contango. \(3.25 &lt; 3.40\) → normal backwardation: longs expect to earn \(0.15\), their reward for risk. Storage costs affect the <em>level</em> of \(F\), not how you classify given numbers.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>11.</strong> According to Hull, why might futures prices sit <em>below</em> the expected future spot price (normal backwardation)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Storage costs push futures below the expected spot</button>
+    <button class="opt" data-key="b">Arbitrageurs short futures until they equal the spot</button>
+    <button class="opt" data-key="c">The clearing house fixes futures below expected spot</button>
+    <button class="opt" data-key="d">Longs bearing systematic risk need an expected reward</button>
+  </div>
+  <div class="why">Expected profit to a long is \(E[S_T] - F_0\). With positive systematic risk (or hedgers net short, so speculators must be net long) the longs demand a positive expected payoff, so \(F_0 &lt; E[S_T]\). Arbitrage ties \(F\) to \(S_0\) and carry, not to \(E[S_T]\); storage raises \(F\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>12.</strong> A glut hits natural gas: storage caverns are nearly full. The prompt contract falls 25% while the 12-month falls only 5%. Which is most accurate?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Deeper contango and a lower implied convenience yield than before</button>
+    <button class="opt" data-key="b">Deeper backwardation and a higher implied convenience yield than before</button>
+    <button class="opt" data-key="c">The futures are now underpriced, so reverse cash-and-carry arbitrage exists</button>
+    <button class="opt" data-key="d">The risk-free rate must have risen by around twenty points</button>
+  </div>
+  <div class="why">Deferred now sits further above prompt: contango deepens, and since \(y = r + u - \tfrac1T\ln(F/S)\) the bigger \(F/S\) means a smaller \(y\). Gas on hand is worth little when everyone has too much. It's the mirror image of a supply shock.</div>
+</div>
+
+<div class="quiz num" data-answer="4.04" data-tol="0.02">
+  <p class="q"><strong>13.</strong> A commodity has spot 100 and 1-year futures 103. \(r = 5\%\), storage \(u = 2\%\) p.a. What convenience yield (% p.a.) does this imply?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% p.a.</span></div>
+  <div class="why">\(F_0 = S_0e^{(r+u-y)T}\) → \(y = 0.05 + 0.02 - \ln(1.03) = 0.07 - 0.02956 = \)<strong>4.04%</strong>. Note \(F &gt; S\) (contango) yet \(y &gt; 0\): contango just means \(c - y &gt; 0\), not \(y = 0\).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>14.</strong> Consider: (i) for gold, \(F_0 = (S_0 + U)e^{rT}\) holds as an equality; (ii) for crude oil, \(F_0 \ge (S_0 + U)e^{rT}\); (iii) convenience yield is zero for investment assets; (iv) storage "payable at the end" is added at \(T\) without compounding. Which are true?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">(i), (ii) and (iii) only</button>
+    <button class="opt" data-key="b">(i), (iii) and (iv) only</button>
+    <button class="opt" data-key="c">(i), (ii) and (iv) only</button>
+    <button class="opt" data-key="d">(ii), (iii) and (iv) only</button>
+  </div>
+  <div class="why">(ii) has the inequality the wrong way round: consumption commodities satisfy \(F_0 \le\) full carry. The other three are true.</div>
+</div>
+
+<h2>7 · Exam-level challenge</h2>
+<p>Write it all out on paper, then open the steps one at a time.</p>
+<div class="box">
+<p>Copper trades at $9,400 per tonne. The 9-month futures is quoted at $9,250/t. The risk-free rate is 4.5% p.a. (continuous), and storing a tonne for 9 months costs $90, payable at the end of the 9 months. Analysts expect spot copper to be $9,100 in 9 months.</p>
+<p>(a) What would the futures price be under full cost of carry?<br>
+(b) What convenience yield (% p.a., 2 decimals) is the market attributing to copper?<br>
+(c) The futures looks cheap. Is there an exploitable arbitrage? Explain without calculations.<br>
+(d) Suppose instead the 9-month futures were quoted at $9,900. Set out the arbitrage with cash flows at \(t = 0\) and \(t = T\), and give the profit per tonne.<br>
+(e) Using the original quote, classify the market in both the "industry" and "normal" sense.<br>
+(f) A strike closes two large mines. Predict the effect on the prompt–deferred spread and on the implied convenience yield.</p>
+</div>
+
+<details><summary>Step 1: part (a), full carry</summary><div>
+<p>\(F^* = 9{,}400e^{0.045\times0.75} + 90 = 9{,}722.66 + 90 = \)<strong>$9,812.66</strong>. (Same via \(U = 90e^{-0.03375} = 87.01\): \((9{,}400 + 87.01)e^{0.03375} = 9{,}812.66\).)</p></div></details>
+<details><summary>Step 2: part (b), convenience yield</summary><div>
+<p>\(9{,}250e^{0.75y} = 9{,}812.66\) → \(y = \tfrac{1}{0.75}\ln(9{,}812.66/9{,}250) = \tfrac{0.059051}{0.75} = \)<strong>7.87% p.a.</strong></p></div></details>
+<details><summary>Step 3: part (c), why it's not an arbitrage</summary><div>
+<p>Exploiting a futures that is too cheap needs the reverse trade: sell copper now, invest the cash, buy futures. Copper is a <strong>consumption</strong> commodity: those holding it (fabricators, wire makers) keep it to use, value having it on hand, and won't sell it to earn $562 a tonne over 9 months. Short-selling physical copper isn't practical. So nothing forces \(F_0\) up to full carry, and the gap reflects a convenience yield of 7.87% rather than a riskless profit.</p></div></details>
+<details><summary>Step 4: part (d), the cash-and-carry table</summary><div>
+<p>\(9{,}900 &gt; 9{,}812.66\): futures too high, which works for any commodity.</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>t = 0</th><th>t = 0.75</th></tr>
+<tr><td>Borrow 9,400 at 4.5%</td><td>+9,400</td><td>−9,722.66</td></tr>
+<tr><td>Buy 1 t copper, store it</td><td>−9,400</td><td>−90</td></tr>
+<tr><td>Short 9-month futures at 9,900, deliver</td><td>0</td><td>+9,900</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>0</strong></td><td><strong>+87.34</strong></td></tr>
+</table>
+</div>
+<p>Profit <strong>$87.34 per tonne</strong> at \(T\). Forget storage and you'd claim 177.34.</p></div></details>
+<details><summary>Step 5: parts (e) and (f)</summary><div>
+<p>(e) \(F_0 = 9{,}250 &lt; S_0 = 9{,}400\): <strong>industry backwardation</strong>. \(F_0 = 9{,}250 &gt; E[S_T] = 9{,}100\): <strong>normal contango</strong>.<br>
+(f) Supply now is scarcer than later (strikes end), so spot and prompt rise more than deferred: steeper backwardation, and the implied convenience yield rises, most at short maturities.</p></div></details>
+
+<h2>8 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, write the investment and consumption pricing relations, the formula for \(y\), why the reverse trade fails for oil, and both meanings of contango. Then check</summary><div>
+<p>Investment: \(F_0 = (S_0+U)e^{rT}\) or \(S_0e^{(r+u)T}\); storage at end: \(S_0e^{rT} + C\). Consumption: \(F_0 \le\) these. \(y = \tfrac1T\ln(F^*/F_0)\); \(F_0 = S_0e^{(c-y)T}\), \(c = r - q + u\). Reverse fails because holders need the physical good and won't sell it. Industry: \(F\) vs \(S_0\); normal: \(F\) vs \(E[S_T]\). Shortage → steeper backwardation, higher \(y\).</p></div></details>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, Ch. 5: "Commodity futures" (storage, consumption commodities, convenience yields), "The cost of carry", "Delivery options" and "Futures prices and expected future spot prices" (systematic risk, normal backwardation and contango). Lecture: <a href="../lectures/Lecture%203_Futures%20Pricing.pdf">Lecture 3, slides 27–33</a>.</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%203.pdf">Tutorial 3</a>, Q5 (prove \(F_2 \le F_1e^{r(t_2-t_1)}\); think "buy the near contract, take delivery, carry it to \(t_2\)"). Check against the <a href="../tutes/Tutorial%203%20solutions.pdf">solutions</a>. Then redo challenge parts (b) and (c) tomorrow without notes: the "explain" sentence is worth as much as the number.</p>
+<p><strong>Spacing:</strong> before Lesson 10, redo Q4, Q7 and Q9 here, plus the cash-and-carry table from Lesson 6 and one yield question from Lesson 7, and notice it's the same table each time with a different carry term.</p>
+
+<div class="ask">💬 Not sure whether a cheap futures is an arbitrage or a convenience yield in some new setup (a currency? a stock? electricity, which can't be stored at all)? Ask me in the terminal. I'm your teacher for this, and those edge cases are exactly where the intuition gets tested.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0008-currency-forwards.html">Lesson 8, currency forwards</a></span>
+  <span>Reference: <a href="../reference/futures-cheatsheet.html">Futures cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0010-valuing-forward-and-futures-contracts.html">Lesson 10, valuing forwards and futures</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+<script>
+(function () {
+  var ids = ['wS', 'wC', 'wr', 'wT', 'wF'];
+  function v(id) { return parseFloat(document.getElementById(id).value); }
+  function f2(x) { return x.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function run() {
+    var S = v('wS'), C = v('wC'), r = v('wr') / 100, T = v('wT'), F = v('wF');
+    var out = document.getElementById('wout');
+    if (![S, C, r, T, F].every(isFinite) || T <= 0 || F <= 0 || S <= 0) { out.textContent = 'Enter positive numbers.'; return; }
+    var fair = S * Math.exp(r * T) + C, gap = F - fair, y = Math.log(fair / F) / T;
+    var inv, con;
+    if (Math.abs(gap) < 0.005) { inv = 'fair, no arbitrage'; con = 'fair, y = 0'; }
+    else if (gap > 0) { inv = 'cash-and-carry arbitrage, profit ' + f2(gap) + ' per unit at T'; con = 'same cash-and-carry arbitrage, profit ' + f2(gap); }
+    else { inv = 'reverse cash-and-carry (holders sell), profit ' + f2(-gap) + ' per unit at T'; con = 'not an arbitrage: implied convenience yield y = ' + (y * 100).toFixed(2) + '% p.a.'; }
+    out.innerHTML = 'Full carry F* = S₀e<sup>rT</sup> + storage = <b>' + f2(fair) + '</b> · quote minus F* = <b>' + f2(gap) + '</b><br>' +
+      'Industry sense: <b>' + (F > S ? 'contango' : F < S ? 'backwardation' : 'flat') + '</b> (F vs S₀)<br>' +
+      'Investment commodity (gold): <b>' + inv + '</b><br>' +
+      'Consumption commodity (oil): <b>' + con + '</b>';
+  }
+  ids.forEach(function (id) { document.getElementById(id).addEventListener('input', run); });
+  run();
+})();
+</script>
+</body>
+</html>

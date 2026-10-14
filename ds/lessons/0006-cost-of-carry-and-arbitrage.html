@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cost of Carry</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.widget { font-family: Inter, system-ui, sans-serif; font-size: .9rem; }
+.widget .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .6rem 1rem; margin: .6rem 0; }
+.widget label { display: flex; flex-direction: column; gap: .2rem; color: var(--muted); font-size: .8rem; }
+.widget input { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--rule); border-radius: 4px; padding: .35rem .5rem; min-height: 36px; }
+.widget .out { border-top: 1px solid var(--rule); margin-top: .6rem; padding-top: .6rem; line-height: 1.6; }
+.widget .out b { color: var(--accent); }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 6 · Topic 3: Forward &amp; futures pricing</div>
+<h1>Cost of carry and arbitrage</h1>
+<p class="lede">The goal: given a spot price, a rate and a maturity, work out what a forward on a no-income asset <em>must</em> cost, and if the quote is wrong, write down the riskless trade (every leg, every cash flow, at \(t=0\) and \(t=T\)) and its profit.</p>
+
+<div class="mission">Why this matters for 5 Nov: past finals carry a multi-part "show why a riskless profit exists, then tabulate the trades at t=0 and t=T" question, and the MSTs had a 2-mark "which arbitrage strategy earns how much" MCQ. Every later pricing formula (income, yields, currencies, storage, even options) is this same argument with extra terms bolted on.</div>
+
+<p>This lesson assumes <a href="0001-futures-and-margin-accounts.html">Lesson 1</a> (long/short payoffs, arbitrage as "riskless profit with no net investment") and <a href="0002-forwards-vs-futures.html">Lesson 2</a> (forwards settle once at \(T\)).</p>
+
+<h2>1 · Investment vs consumption assets</h2>
+
+<p>An <strong>investment asset</strong> is one that a significant number of people hold purely as an investment: shares, bonds, stock indices. A <strong>consumption asset</strong> is held mainly to be used up: crude oil, copper, wheat. Gold and silver are both, but for pricing forwards and futures we treat them as <strong>investment</strong> assets (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">Lecture 3, slide 3</a>; Hull §5.1).</p>
+
+<p><strong>Why the distinction matters.</strong> Every arbitrage below needs, in one direction, people who own the asset to be willing to <em>sell</em> it today and buy it back later through a forward. An investor is happy to do that: they get the same asset back at \(T\) and pocket the difference. A refinery that needs oil to keep its plant running is not; it holds oil for its usefulness, not its return. So for investment assets arbitrage pins the forward price to an exact number; for consumption assets it only gives an upper bound (Lesson 9).</p>
+
+<h2>2 · Measuring interest rates: continuous compounding</h2>
+
+<p>This course uses <strong>continuously compounded</strong> rates almost everywhere (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">slides 5–7</a>; Hull §4.2). If interest is added \(m\) times a year at nominal rate \(r_m\), $1 grows in one year to \((1 + r_m/m)^m\). Let \(m\to\infty\) and that becomes \(e^{r}\). So with a continuous rate \(r\):</p>
+$$\text{grow: } A \to A\,e^{rT}, \qquad \text{discount: } A \text{ at } T \to A\,e^{-rT} \text{ today.}$$
+
+<p><strong>Converting.</strong> Two rates are equivalent if they grow $1 to the same amount in a year: \(e^{r_c} = (1 + r_m/m)^m\). Take logs, or solve the other way:</p>
+$$r_c = m\ln\!\left(1 + \frac{r_m}{m}\right), \qquad r_m = m\left(e^{r_c/m} - 1\right), \qquad \text{effective annual} = e^{r_c} - 1.$$
+
+<div class="box">
+<p><strong>Lecture examples.</strong> 10% compounded quarterly: \(r_c = 4\ln(1.025) = 0.098770 = 9.88\%\). Continuous compounding always needs a slightly <em>lower</em> quoted rate to do the same job, because interest earns interest more often.<br>
+10% continuously compounded: effective annual rate \(= e^{0.10} - 1 = 0.105171 = 10.52\%\) (the slide shows 10.51% by truncating; either would be accepted).</p>
+</div>
+
+<div class="trap"><strong>Check the compounding first</strong><br>
+If a question gives "5.2% p.a. compounded quarterly" (or semi-annually, monthly), convert to continuous <em>before</em> using \(e^{rT}\). Plugging the quoted rate straight into \(e^{rT}\) is the most common one-step error. If it says "continuously compounded", use it as is.</div>
+
+<div class="box widget" id="conv">
+<p><strong>Rate converter.</strong> Type a nominal rate and its compounding frequency.</p>
+<div class="grid">
+  <label>Nominal rate \(r_m\) (% p.a.)<input id="c-r" type="number" step="0.01" value="10"></label>
+  <label>Times per year \(m\)<input id="c-m" type="number" step="1" min="1" value="4"></label>
+</div>
+<div class="out" id="c-out"></div>
+</div>
+
+<h2>3 · The four assumptions, and futures ≈ forwards</h2>
+
+<p>Lecture 3 (slide 9; Hull §5.3) assumes that market participants:</p>
+<ol class="steps">
+  <li>pay no transaction costs;</li>
+  <li>pay the same tax rate on all net trading profits;</li>
+  <li>can borrow and lend at the same risk-free rate;</li>
+  <li>take advantage of arbitrage opportunities as they occur.</li>
+</ol>
+<p>They don't have to hold for everyone, only for a few large players (big banks and funds). Their trading is what pushes prices back into line.</p>
+
+<p><strong>Why we can price futures as forwards.</strong> A futures contract's cash flows are messy (daily settlement), a forward's are one payment at \(T\). When interest rates are constant, the two have the same price (slide 10; Hull Ch. 5 shows the proof in an appendix). The gap only appears when rates move randomly and are correlated with the asset, and it's small for short contracts. So in this subject \(F_0\) means either.</p>
+
+<h2>4 · The forward price is the cost of buying today and carrying to T</h2>
+
+<p>Notation (glossary): \(S_0\) spot today, \(F_0\) forward price today for delivery at \(T\) (years), \(r\) the continuously compounded risk-free rate for maturity \(T\).</p>
+
+<p>Take an investment asset that pays <strong>no income</strong> and has <strong>no storage cost</strong> (a non-dividend share, a zero-coupon bond, gold ignoring storage). You want to own one unit at \(T\). There are two ways:</p>
+<ul>
+  <li><strong>Route A, buy now and carry:</strong> borrow \(S_0\), buy the asset today, hold it. At \(T\) you own it and owe \(S_0e^{rT}\).</li>
+  <li><strong>Route B, buy forward:</strong> go long a forward today (costs nothing) and pay \(F_0\) at \(T\).</li>
+</ul>
+<p>Both leave you owning one unit at \(T\), with nothing paid today. So they must cost the same at \(T\): \(F_0 = S_0e^{rT}\). The forward price is just the spot price plus the <strong>cost of carry</strong> (here only the interest on the money tied up).</p>
+
+<p>The lecture writes the same argument as a cash-flow table (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">slides 11–12</a>): borrow, buy, and <em>sell</em> forward.</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Trade</th><th>Cash flow at \(t=0\)</th><th>Cash flow at \(t=T\)</th></tr>
+<tr><td>Borrow \(S_0\) at \(r\)</td><td>\(+S_0\)</td><td>\(-S_0e^{rT}\)</td></tr>
+<tr><td>Buy one unit of the asset</td><td>\(-S_0\)</td><td>\(+S_T\) (it's worth this)</td></tr>
+<tr><td>Short one forward at \(F_0\)</td><td>\(0\)</td><td>\(F_0 - S_T\)</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>\(0\)</strong></td><td><strong>\(F_0 - S_0e^{rT}\)</strong></td></tr>
+</table>
+</div>
+<p>\(S_T\) cancels: the net payoff is known today. A position that costs nothing and has a <em>known</em> payoff must pay zero, or everyone would pile in. Hence</p>
+$$\boxed{F_0 = S_0\,e^{rT}} \quad \text{(investment asset, no income, no storage).}$$
+
+<div class="box">
+<p><strong>Lecture example (slide 13).</strong> A 4-month forward on a zero-coupon bond priced at $930 today; the 4-month rate is 6% continuously compounded. \(F_0 = 930\,e^{0.06\times 4/12} = 930\,e^{0.02} = \$948.79\). (The bond matures in a year, but that doesn't matter: it pays nothing during the 4 months, so it's a no-income asset for this forward.)</p>
+</div>
+
+<h3>Predict first: what moves F?</h3>
+<details><summary>If \(r\) rises, does \(F_0\) rise or fall? If \(T\) lengthens? Decide, then check</summary><div>
+<p>Both make \(F_0\) <strong>rise</strong>. Carrying the asset ties up money for longer or at a higher rate, so buying-and-carrying costs more, and the forward must match. With \(S_0 = 100\):</p>
+<table class="ledger">
+<tr><th>Change</th><th>\(F_0\)</th></tr>
+<tr><td>\(T=1\), \(r = 3\%,\ 5\%,\ 7\%\)</td><td>103.05, 105.13, 107.25</td></tr>
+<tr><td>\(r=5\%\), \(T = 0.25,\ 0.5,\ 1,\ 2\)</td><td>101.26, 102.53, 105.13, 110.52</td></tr>
+</table>
+<p>And if \(r = 0\), \(F_0 = S_0\): with no cost of carry, owning later costs the same as owning now.</p></div></details>
+
+<h3>Why the expected future spot price isn't in the formula</h3>
+<p>A common confusion: "surely the forward price should be what people expect \(S_T\) to be?" No. The formula comes from <em>replication</em>, not forecasting: anyone can manufacture a forward from the spot asset and a loan, at cost \(S_0e^{rT}\), whatever they think \(S_T\) will be. If the market expects the share to soar, that belief is already in \(S_0\) today; it does not enter separately. This is why \(S_T\) cancelled in the table. Arbitrage, not forecasts.</p>
+
+<h2>5 · When the quote is wrong: the two arbitrages</h2>
+
+<p>The universal rule: <strong>buy the cheap one, sell the expensive one.</strong> The two "things" are (i) the forward at the quoted \(F_0\), and (ii) the synthetic forward "buy spot and carry", which costs \(S_0e^{rT}\) at \(T\).</p>
+
+<p><strong>Short selling</strong> (needed for the second strategy; Hull §5.2): you borrow the asset from a broker, sell it today for \(S_0\), and must buy it back later to return it. You gain if the price falls. (If the asset pays income meanwhile, you owe it to the lender; that's Lesson 7.)</p>
+
+<h3>Case 1: \(F_0 \gt S_0e^{rT}\), forward too expensive → cash-and-carry</h3>
+<p>Sell the expensive forward; buy the cheap spot asset with borrowed money and carry it to \(T\) (slide 14).</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Trade</th><th>\(t=0\)</th><th>\(t=T\)</th></tr>
+<tr><td>Borrow \(S_0\) at \(r\)</td><td>\(+S_0\)</td><td>\(-S_0e^{rT}\)</td></tr>
+<tr><td>Buy one unit spot</td><td>\(-S_0\)</td><td>deliver it (worth \(S_T\))</td></tr>
+<tr><td>Short forward at \(F_0\)</td><td>\(0\)</td><td>receive \(F_0\) for the unit</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>\(0\)</strong></td><td><strong>\(F_0 - S_0e^{rT} \gt 0\)</strong></td></tr>
+</table>
+</div>
+
+<h3>Case 2: \(F_0 \lt S_0e^{rT}\), forward too cheap → reverse cash-and-carry</h3>
+<p>Buy the cheap forward; sell the expensive spot asset (short it, or sell units you own) and invest the cash.</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Trade</th><th>\(t=0\)</th><th>\(t=T\)</th></tr>
+<tr><td>Short sell one unit</td><td>\(+S_0\)</td><td>return the unit (cost \(S_T\))</td></tr>
+<tr><td>Invest \(S_0\) at \(r\)</td><td>\(-S_0\)</td><td>\(+S_0e^{rT}\)</td></tr>
+<tr><td>Long forward at \(F_0\)</td><td>\(0\)</td><td>pay \(F_0\), receive the unit</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>\(0\)</strong></td><td><strong>\(S_0e^{rT} - F_0 \gt 0\)</strong></td></tr>
+</table>
+</div>
+<p>Either way the profit at \(T\) is \(\lvert F_0 - S_0e^{rT}\rvert\) per unit, and its value today is that times \(e^{-rT}\), which equals \(\lvert F_0e^{-rT} - S_0\rvert\). With a cash-settled forward, "deliver/receive the unit" becomes "sell/buy the unit at \(S_T\) and receive \(\pm(F_0 - S_T)\) in cash": the net is identical.</p>
+
+<h3>Scenario table: same asset, three quotes</h3>
+<p>\(S_0 = 100\), \(r = 5\%\) continuous, \(T = 1\): fair \(F_0 = 100e^{0.05} = 105.13\).</p>
+<div class="tablewrap">
+<table>
+<tr><th>Quoted \(F_0\)</th><th>Which is cheap?</th><th>What you do</th><th>Profit at \(T\)</th></tr>
+<tr><td>108.00</td><td>spot-and-carry</td><td>borrow 100, buy, short forward</td><td>\(108 - 105.13 = 2.87\)</td></tr>
+<tr><td>105.13</td><td>neither</td><td>nothing: no arbitrage</td><td>0</td></tr>
+<tr><td>102.00</td><td>the forward</td><td>short spot, invest 100, long forward</td><td>\(105.13 - 102 = 3.13\)</td></tr>
+</table>
+</div>
+<p>What stays fixed: the net cash flow at \(t=0\) is always zero, and \(S_T\) never appears in the profit. What changes: the direction of every leg flips with the sign of \(F_0 - S_0e^{rT}\).</p>
+
+<div class="trap"><strong>Three traps</strong><br>
+(1) Comparing \(F_0\) with \(S_0\) instead of \(S_0e^{rT}\): a forward above spot is normal, not a mispricing. (2) Getting the direction backwards: the forward is "expensive" when \(F_0\) is above fair, so you <em>short</em> it. (3) Saying "the profit depends on where the price ends up": if \(S_T\) is in your final answer, a leg is missing.</div>
+
+<p><strong>The "replace your holding" variant.</strong> An investor who already <em>owns</em> the asset doesn't need to short sell. If the forward is too cheap, they sell their holding, invest the cash, and go long forwards. At \(T\) the forward hands the asset back, so their exposure is restored, plus \(S_0e^{rT} - F_0\) per unit. Real-sized questions add a conversion step: dollar value ÷ index level = index units; units ÷ units per contract = number of contracts.</p>
+
+<div class="box widget" id="arb">
+<p><strong>Arbitrage checker.</strong> Change the inputs and watch the strategy flip.</p>
+<div class="grid">
+  <label>Spot \(S_0\)<input id="a-s" type="number" step="0.01" value="100"></label>
+  <label>Rate \(r\) (% p.a., continuous)<input id="a-r" type="number" step="0.01" value="5"></label>
+  <label>Maturity \(T\) (years)<input id="a-t" type="number" step="0.01" value="1"></label>
+  <label>Quoted \(F_0\)<input id="a-f" type="number" step="0.01" value="108"></label>
+</div>
+<div class="out" id="a-out"></div>
+</div>
+
+<h2>6 · Practice</h2>
+<p>Numeric answers: type a number (commas and $ are fine). Rates as a percentage to 4 decimal places (e.g. 9.8770).</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> For which asset can arbitrage alone pin the forward price to an exact value from the spot price and the interest rate?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Crude oil stocks held by refineries</button>
+    <button class="opt" data-key="b">Wheat stored by a flour mill</button>
+    <button class="opt" data-key="c">A share that pays no dividends</button>
+    <button class="opt" data-key="d">Copper bought by a cable maker</button>
+  </div>
+  <div class="why">A non-dividend share is an investment asset: holders will happily sell it and buy it back through a forward if that's profitable, so both arbitrages work and \(F_0 = S_0e^{rT}\) exactly. The others are consumption assets: their holders won't give up physical stock, so the reverse arbitrage fails and only an upper bound holds.</div>
+</div>
+
+<div class="quiz num" data-answer="7.8441" data-tol="0.001">
+  <p class="q"><strong>2.</strong> A bank quotes 8% p.a. compounded semi-annually. What is the equivalent continuously compounded rate, in %?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(r_c = 2\ln(1 + 0.08/2) = 2\ln(1.04) = 0.078441 = 7.8441\%\). Lower than 8%, as it should be: continuous compounding earns interest-on-interest more often.</div>
+</div>
+
+<div class="quiz num" data-answer="6.0150" data-tol="0.001">
+  <p class="q"><strong>3.</strong> Going the other way: 6% p.a. continuously compounded is equivalent to what rate compounded monthly, in %?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(r_{12} = 12\left(e^{0.06/12} - 1\right) = 12(e^{0.005} - 1) = 0.060150 = 6.0150\%\). Slightly <em>higher</em>, since monthly compounding needs a bigger quoted rate to keep up with continuous.</div>
+</div>
+
+<div class="quiz num" data-answer="7.2508" data-tol="0.001">
+  <p class="q"><strong>4.</strong> What is the effective annual rate equivalent to 7% p.a. continuously compounded, in %?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(e^{0.07} - 1 = 0.072508 = 7.2508\%\). This is what $1 actually grows by in one year.</div>
+</div>
+
+<div class="quiz num" data-answer="66.1969" data-tol="0.01">
+  <p class="q"><strong>5.</strong> A share paying no dividends trades at $64. The 9-month risk-free rate is 4.5% p.a. continuously compounded. What is the no-arbitrage 9-month forward price?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(F_0 = 64\,e^{0.045\times0.75} = 64\,e^{0.03375} = \$66.20\). Remember \(T\) in years: 9 months is 0.75.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>6.</strong> The risk-free rate rises from 4% to 6%, with the spot price and maturity unchanged. The no-arbitrage forward price of a no-income asset:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">rises, because carrying the asset now costs more interest</button>
+    <button class="opt" data-key="b">falls, because the asset becomes less attractive to hold</button>
+    <button class="opt" data-key="c">stays put, because the spot price has not changed</button>
+    <button class="opt" data-key="d">falls, because future cash flows are discounted more heavily</button>
+  </div>
+  <div class="why">\(F_0 = S_0e^{rT}\) increases in \(r\). The route "borrow, buy, carry" costs more interest, so the forward must cost more. (d) is the tempting one: discounting matters for the <em>value today</em> of a payment, but \(F_0\) is a price paid <em>at</em> \(T\), so it's grown forward, not discounted.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>7.</strong> Analysts raise their forecast of a non-dividend share's price in 6 months from $50 to $60. The share's price today and the risk-free rate don't change. The 6-month forward price:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">rises towards 60, as forwards track expected future spot</button>
+    <button class="opt" data-key="b">rises to the average of today's spot and the forecast</button>
+    <button class="opt" data-key="c">falls, as buyers expect higher prices later and wait</button>
+    <button class="opt" data-key="d">is unchanged, as only \(S_0\), \(r\) and \(T\) set it</button>
+  </div>
+  <div class="why">The forward is pinned by replication: anyone can build it from the share and a loan for \(S_0e^{rT}\). If someone quoted a forward near $60, you'd borrow, buy the share and sell the forward for a riskless profit. Forecasts only matter through \(S_0\) itself.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>8.</strong> For a no-income investment asset the quoted forward price is <em>above</em> \(S_0e^{rT}\). Which strategy locks in a riskless profit?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Short the asset, invest the cash, and go long the forward</button>
+    <button class="opt" data-key="b">Borrow the cash, buy the asset, and go short the forward</button>
+    <button class="opt" data-key="c">Buy the asset with cash and also go long the forward</button>
+    <button class="opt" data-key="d">Short the asset, borrow the cash, and go short the forward</button>
+  </div>
+  <div class="why">The forward is the expensive side, so sell it; buy the cheap side (spot) with borrowed money: cash-and-carry. (a) is the right trade for the <em>opposite</em> mispricing. (c) is long twice, so it's a bet, not an arbitrage. (d) is short twice.</div>
+</div>
+
+<p>Questions 9–10: a no-income share trades at $120, the 6-month rate is 3% p.a. continuously compounded, and a dealer quotes a 6-month forward at $123.50.</p>
+
+<div class="quiz num" data-answer="1.6864" data-tol="0.01">
+  <p class="q"><strong>9.</strong> What riskless profit per share is locked in at \(T\)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Fair \(F_0 = 120e^{0.015} = 121.8136\). The quote is \(123.50\), above fair, so cash-and-carry: borrow 120, buy, short the forward. At \(T\): receive 123.50, repay 121.8136, profit \(\$1.69\).</div>
+</div>
+
+<div class="quiz num" data-answer="1.6613" data-tol="0.01">
+  <p class="q"><strong>10.</strong> What is that profit worth today?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(1.6864\,e^{-0.015} = \$1.66\). Same thing: \(123.50\,e^{-0.015} - 120 = 1.66\). If you typed 1.69 you gave the time-\(T\) amount.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>11.</strong> A non-dividend share trades at $42. The 1-year rate is 5% p.a. continuously compounded and the 1-year forward is quoted at $43.00. Which statement is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Borrow cash, buy the stock, and short the forward: earn about $1.15 at T.</button>
+    <button class="opt" data-key="b">Short the stock, invest the proceeds, go long forward: earn about $1.15 at T.</button>
+    <button class="opt" data-key="c">Short the stock, invest the proceeds, go long forward: earn exactly $1.00 at T.</button>
+    <button class="opt" data-key="d">No arbitrage exists, because the quoted forward price is already above the spot.</button>
+    <button class="opt" data-key="e">No arbitrage exists, because nobody can know what the stock will be worth.</button>
+  </div>
+  <div class="why">Fair \(F_0 = 42e^{0.05} = 44.15\). The quote 43 is <em>below</em> fair, so the forward is cheap: buy it, and short the stock. At \(T\): investment pays 44.15, pay 43 for the share and return it, profit \(\$1.15\). (a) has the right number, wrong direction. (c) forgets interest. (d) compares with \(S_0\) instead of \(S_0e^{rT}\). (e) misses that \(S_T\) cancels.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>12.</strong> A super fund holds an index portfolio (no dividends over the period). The 6-month index forward is quoted below \(S_0e^{rT}\). To earn a riskless profit while ending with the same index exposure at \(T\), it should:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">keep the shares, borrow some cash, and go short index forwards</button>
+    <button class="opt" data-key="b">keep the shares, and simply go long some extra index forwards</button>
+    <button class="opt" data-key="c">sell the shares, invest the cash, and go long index forwards</button>
+    <button class="opt" data-key="d">sell the shares, hold the cash, and go short index forwards</button>
+  </div>
+  <div class="why">The forward is cheap, so it should own the index through the forward instead of physically: sell, invest at \(r\), go long. At \(T\) the forward restores the exposure and it keeps \(S_0e^{rT} - F_0\) per unit. (b) doubles its exposure, which is speculation. (d) hedges the exposure away and earns nothing extra.</div>
+</div>
+
+<div class="quiz num" data-answer="11516.78" data-tol="1">
+  <p class="q"><strong>13.</strong> Gold (treat as an investment asset, ignore storage) trades at $2,400/oz. The 6-month rate is 4% p.a. continuously compounded. A dealer quotes a 6-month forward at $2,460/oz. You arbitrage using 10 contracts of 100 oz each. Total profit at \(T\)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Fair \(F_0 = 2{,}400e^{0.02} = 2{,}448.48\). Quote above fair → borrow \(2{,}400\times1{,}000 = 2.4\)m, buy 1,000 oz, short 10 forwards. Profit \(= (2{,}460 - 2{,}448.4832)\times1{,}000 = \$11{,}516.78\). Forgetting the 1,000 oz gives 11.52.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>14.</strong> Crude oil trades at $80/bbl, the 1-year rate is 4% continuously compounded, and 1-year oil futures are $81 (below \(80e^{0.04} = 83.26\)). A colleague calls this a riskless reverse cash-and-carry. Best response?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Not riskless: oil holders won't sell spot, as they need it</button>
+    <button class="opt" data-key="b">Riskless: sell oil short, invest the cash, and go long futures</button>
+    <button class="opt" data-key="c">Riskless: borrow cash, buy the oil, and go short the futures</button>
+    <button class="opt" data-key="d">Not riskless: oil futures must always be priced above spot prices</button>
+  </div>
+  <div class="why">Oil is a consumption asset. The reverse trade needs someone to sell physical oil now and buy it back via futures, but refiners hold it to run their plants (the convenience yield of Lesson 9), so \(F_0 \lt S_0e^{rT}\) can persist. (c) is the trade for an <em>overpriced</em> future. (d) is false: oil futures are often below spot (backwardation).</div>
+</div>
+
+<h2>7 · Exam-level challenge</h2>
+<p>Write it all out on paper, then open the steps one at a time. Round the continuous rate to 4 decimal places (as a decimal, e.g. 0.0517) and carry everything else in full.</p>
+<div class="box">
+<p>The Harbour 50 is a price index whose stocks pay no dividends over the next 9 months; it has no costs other than financing. An arbitrage desk sees:</p>
+<table class="ledger">
+<tr><td>Harbour 50 index level</td><td>4,800</td></tr>
+<tr><td>Dealer quote, 9-month cash-settled forward</td><td>5,010</td></tr>
+<tr><td>Contract size</td><td>50 index units</td></tr>
+<tr><td>Risk-free rate</td><td>5.2% p.a., compounded quarterly</td></tr>
+<tr><td>Desk borrowing limit</td><td>AUD 24 million</td></tr>
+</table>
+<p>Ignore taxes, transaction costs, margins and short-sale limits; entering a forward costs nothing.<br>
+(a) Show that a riskless profit exists.<br>
+(b) Using the full borrowing limit, set out the trades at \(t=0\) with the cash flow of each and the net. How many contracts?<br>
+(c) Set out the trades at \(T\) and the profit, and show it does not depend on the index level at \(T\). What is it worth today?<br>
+(d) Suppose instead the quote were 4,950, and a super fund holds AUD 24 million of the index. What should it do, and what does it earn at \(T\)?</p>
+</div>
+
+<details><summary>Step 1: convert the rate</summary><div>
+<p>\(r_c = 4\ln(1 + 0.052/4) = 4\ln(1.013) = 0.051665 \to\) <strong>0.0517</strong>.</p></div></details>
+<details><summary>Step 2: part (a), fair forward vs quote</summary><div>
+<p>\(F_0 = 4{,}800\,e^{0.0517\times0.75} = 4{,}800\,e^{0.038775} = 4{,}989.7755\). The quote 5,010 is <strong>above</strong> fair by \(20.2245\) points, so the forward is overpriced: cash-and-carry. (Without rounding \(r_c\) you'd get 4,989.6441; this is why exams state the rounding rule.)</p></div></details>
+<details><summary>Step 3: part (b), units, contracts and t=0 table</summary><div>
+<p>Units: \(24{,}000{,}000 / 4{,}800 = 5{,}000\) index units. Contracts: \(5{,}000/50 = \) <strong>100</strong>, short.</p>
+<table class="ledger">
+<tr><th>Trade at \(t=0\)</th><th>Cash flow</th></tr>
+<tr><td>Borrow at 0.0517 for 9 months</td><td>+24,000,000</td></tr>
+<tr><td>Buy 5,000 index units at 4,800</td><td>−24,000,000</td></tr>
+<tr><td>Short 100 forwards at 5,010</td><td>0</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>0</strong></td></tr>
+</table></div></details>
+<details><summary>Step 4: part (c), t=T table and profit</summary><div>
+<table class="ledger">
+<tr><th>Trade at \(T\)</th><th>Cash flow</th></tr>
+<tr><td>Sell 5,000 units at \(S_T\)</td><td>\(+5{,}000S_T\)</td></tr>
+<tr><td>Short forwards settle: \(100\times50\times(5{,}010 - S_T)\)</td><td>\(25{,}050{,}000 - 5{,}000S_T\)</td></tr>
+<tr><td>Repay loan \(24{,}000{,}000\,e^{0.038775}\)</td><td>−24,948,877.48</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>+101,122.52</strong></td></tr>
+</table>
+<p>The \(5{,}000S_T\) terms cancel, so the profit is the same whether the index crashes or soars. Check: \(5{,}000\times20.2245 = 101{,}122.50\) (the 2-cent gap is rounding of \(F_0\)). Today's value: \(101{,}122.52\,e^{-0.038775} = \) <strong>AUD 97,276.54</strong>.</p></div></details>
+<details><summary>Step 5: part (d), the holder's version</summary><div>
+<p>Now 4,950 \(\lt\) 4,989.7755: the forward is cheap. The fund sells its 5,000 units (+24,000,000), invests at \(r\) (−24,000,000), and goes <strong>long 100 forwards</strong> at 4,950 (0). Net 0.<br>
+At \(T\): investment pays 24,948,877.48; the long forwards pay \(5{,}000(S_T - 4{,}950)\); buying back 5,000 units costs \(5{,}000S_T\). Net \(= 24{,}948{,}877.48 - 24{,}750{,}000 = \) <strong>AUD 198,877.48</strong>, and the fund ends holding the index again, exactly as before.</p></div></details>
+
+<h2>8 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, write the no-income forward price, both arbitrage tables, and the rate conversion formulas. Then check</summary><div>
+<p>\(F_0 = S_0e^{rT}\): two routes to owning the asset at \(T\) must cost the same. If \(F_0 \gt S_0e^{rT}\): borrow, buy, short forward. If \(F_0 \lt S_0e^{rT}\): short (or sell) the asset, invest, long forward. Net 0 at \(t=0\); profit \(\lvert F_0 - S_0e^{rT}\rvert\) at \(T\), independent of \(S_T\). \(r_c = m\ln(1 + r_m/m)\), \(r_m = m(e^{r_c/m} - 1)\), effective \(= e^{r_c} - 1\). Arbitrage pins \(F_0\) only for investment assets.</p></div></details>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, Ch. 4 §4.2 (measuring interest rates, continuous compounding) and Ch. 5 §§5.1–5.4 (investment vs consumption assets, short selling, assumptions, forward price for an investment asset). These go with <a href="../lectures/Lecture%203_Futures%20Pricing.pdf">Lecture 3</a>, slides 1–14.</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%203.pdf">Tutorial 3</a>, Q1(a) (<a href="../tutes/Tutorial%203%20solutions.pdf">solutions</a>). Then, as an extension, re-do this lesson's challenge for the desk (which holds no index) with the quote at 4,900: which trades, which direction, and what profit at \(T\)? (Answer: short 5,000 units, invest, long 100 forwards; AUD 448,877.48.) Q1(b), Q2 and Q3 come after Lessons 7 and 10.</p>
+<p><strong>Spacing:</strong> tomorrow, before Lesson 7, redo Q2, Q11 and challenge steps 2–4 without looking, and redo Lesson 5's beta-hedge contract-count question (the "units ÷ contract size" step is the same skill).</p>
+
+<div class="ask">💬 Not sure which side is "cheap" in a question you've found, or how to lay out a cash-flow table for it? Paste the numbers in the terminal and ask me. I'm your teacher for this, and I'll walk through the direction check with you.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0005-hedging-with-stock-index-futures.html">Lesson 5, hedging with stock index futures</a></span>
+  <span>Reference: <a href="../reference/futures-cheatsheet.html">Futures cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0007-assets-with-income-and-yield.html">Lesson 7, assets with income and yield</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+<script>
+(function () {
+  function num(id) { return parseFloat(document.getElementById(id).value); }
+  function f(x, d) { return x.toLocaleString('en-AU', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function conv() {
+    var r = num('c-r') / 100, m = num('c-m'), out = document.getElementById('c-out');
+    if (!(m >= 1) || isNaN(r)) { out.textContent = 'Enter a rate and m ≥ 1.'; return; }
+    var rc = m * Math.log(1 + r / m);
+    out.innerHTML = 'Continuous: <b>' + f(rc * 100, 4) + '%</b> · effective annual: <b>' + f((Math.exp(rc) - 1) * 100, 4) + '%</b>';
+  }
+  function arb() {
+    var S = num('a-s'), r = num('a-r') / 100, T = num('a-t'), F = num('a-f'), out = document.getElementById('a-out');
+    if ([S, r, T, F].some(isNaN)) { out.textContent = 'Fill in all four inputs.'; return; }
+    var fair = S * Math.exp(r * T), gap = F - fair, pv = Math.abs(gap) * Math.exp(-r * T), what;
+    if (Math.abs(gap) < 0.005) what = 'Quote equals fair value: <b>no arbitrage</b>.';
+    else if (gap > 0) what = 'Forward is <b>too expensive</b> → cash-and-carry: borrow ' + f(S, 2) + ', buy the asset, short the forward.';
+    else what = 'Forward is <b>too cheap</b> → reverse cash-and-carry: short the asset, invest ' + f(S, 2) + ', go long the forward.';
+    out.innerHTML = 'Fair \\(F_0 = S_0e^{rT}\\) = <b>' + f(fair, 4) + '</b><br>' + what +
+      '<br>Profit per unit at T: <b>' + f(Math.abs(gap), 4) + '</b> · worth today: <b>' + f(pv, 4) + '</b>';
+    if (window.renderMathInElement) renderMathInElement(out, { delimiters: [{ left: '\\(', right: '\\)', display: false }], throwOnError: false });
+  }
+  ['c-r', 'c-m'].forEach(function (id) { document.getElementById(id).addEventListener('input', conv); });
+  ['a-s', 'a-r', 'a-t', 'a-f'].forEach(function (id) { document.getElementById(id).addEventListener('input', arb); });
+  window.addEventListener('load', function () { conv(); arb(); });
+})();
+</script>
+</body>
+</html>

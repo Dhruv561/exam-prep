@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Currency Forwards</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.fxw { border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.2rem; margin: 1.4rem 0; font-family: Inter, system-ui, sans-serif; font-size: .85rem; }
+.fxw .ctl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem 1.2rem; }
+.fxw label { display: flex; flex-direction: column; }
+.fxw input { width: 100%; accent-color: var(--accent); }
+.fxw .out { margin-top: .8rem; line-height: 1.7; }
+.fxw .out b { font-variant-numeric: tabular-nums; }
+@media (max-width: 480px) { .fxw .ctl { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 8 · Topic 3: Forward &amp; futures pricing</div>
+<h1>Currency forwards: interest rates set the exchange rate you lock in</h1>
+<p class="lede">The goal: given a spot rate quoted as "X per Y", two interest rates and a few forward quotes, you can say which currency is "foreign", price every forward to 4 decimals, spot the mispriced one and lay out the arbitrage with amounts. You'll also be able to say which way an importer or exporter should hedge.</p>
+
+<div class="mission">Why this matters for 5 Nov: past finals have a full question on exactly this. You get a spot rate against the AUD, two continuously compounded rates and two or more forward quotes, and you have to find the mispriced one and exploit it. The 2026 MSTs also asked which forward position an importer or exporter should take, and why rising forward premiums make hedging dearer for importers. Most lost marks come from the quoting convention, so this lesson spends most of its time there.</div>
+
+<p>This lesson assumes <a href="0006-cost-of-carry-and-arbitrage.html">Lesson 6</a> (\(F_0 = S_0e^{rT}\), cash-and-carry tables) and <a href="0007-assets-with-income-and-yield.html">Lesson 7</a> (an asset paying a known yield \(q\): \(F_0 = S_0e^{(r-q)T}\)).</p>
+
+<h2>1 · First, read the quote: which currency is the "asset"?</h2>
+
+<p>An exchange rate is a price, so ask what is being priced and what you're paying with. In the quote <strong>"58.20 INR per AUD"</strong>:</p>
+<ul>
+  <li>The thing being priced, the "1 unit of", is <strong>1 AUD</strong>. In the pricing formula this is the <strong>foreign currency</strong>: treat it like a share you can buy.</li>
+  <li>The currency the price is counted in, the "58.20 of", is <strong>INR</strong>. This is the <strong>domestic currency</strong>: treat it like your money.</li>
+</ul>
+<p>So \(S_0\) = the <strong>spot rate</strong>, the price today in domestic currency of one unit of foreign currency, and \(F_0\) = the <strong>forward rate</strong>, the price agreed today in domestic currency for one unit of foreign currency delivered at \(T\) (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">Lecture 3, slide 24</a>). \(r\) is the domestic (here Indian) risk-free rate and \(r_f\) the foreign (here Australian) one.</p>
+
+<div class="trap"><strong>"Domestic" means the quote's units, not where you live</strong><br>
+An Australian trader looking at "58.20 INR per AUD" must still use \(r\) = the <em>Indian</em> rate and \(r_f\) = the <em>Australian</em> rate. The labels come from how the price is written, never from your passport. Before any calculation, rewrite the quote as a sentence: "1 [foreign] costs \(S_0\) [domestic]". Market shorthand like "EUR/USD 1.12" means 1 EUR = 1.12 USD, so USD per EUR, and EUR is foreign.</div>
+
+<h3>Flip the quote and the rates swap roles</h3>
+<p>The same market can be quoted the other way: \(1/58.20 = 0.017182\) AUD per INR. Now INR is the thing being priced (foreign) and AUD is the money (domestic), so \(r\) becomes the Australian rate and \(r_f\) the Indian one. Both versions agree, because
+$$\frac{1}{S_0e^{(r_{INR}-r_{AUD})T}} = \frac{1}{S_0}\,e^{(r_{AUD}-r_{INR})T}.$$
+The forward in one direction is just 1 over the forward in the other. If you ever get confused, flip the quote so the currency you understand sits in the "per" slot.</p>
+
+<h2>2 · Why a foreign currency is an asset paying a yield</h2>
+
+<p>Hold 1 AUD and you don't just sit on it: you can deposit it in an Australian bank and earn the Australian risk-free rate. A foreign currency is therefore like a share paying a continuous dividend yield, and that yield is \(r_f\) (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">slide 24</a>; Hull Ch. 5, "Forward and futures contracts on currencies"). Plug \(q = r_f\) into Lesson 7's formula:</p>
+$$\boxed{F_0 = S_0\,e^{(r - r_f)T}}$$
+<p>In international finance this is called <strong>covered interest parity (CIP)</strong>. "Covered" means the exchange-rate risk is covered with a forward, so the whole trade is riskless.</p>
+
+<h3>The derivation: two ways to own 1 unit of foreign currency at \(T\)</h3>
+<p>You want exactly 1 foreign unit (say 1 EUR) at \(T\), and you count in domestic currency (USD).</p>
+<ol class="steps">
+  <li><strong>Route A, buy now and bank it.</strong> Buy \(e^{-r_fT}\) EUR today at spot, costing \(S_0e^{-r_fT}\) USD. Deposit them at \(r_f\): they grow to exactly 1 EUR at \(T\).</li>
+  <li><strong>Route B, buy forward.</strong> Go long a forward to buy 1 EUR at \(F_0\). To have the \(F_0\) USD ready at \(T\), set aside \(F_0e^{-rT}\) USD today at \(r\).</li>
+  <li>Both routes end with 1 EUR at \(T\) and no risk, so they must cost the same today: \(S_0e^{-r_fT} = F_0e^{-rT}\), which rearranges to \(F_0 = S_0e^{(r-r_f)T}\).</li>
+</ol>
+
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Cash-and-carry on a currency</th><th>\(t=0\) (USD)</th><th>\(t=T\) (USD)</th></tr>
+<tr><td>Borrow USD at \(r\)</td><td>\(+S_0e^{-r_fT}\)</td><td>\(-S_0e^{-r_fT}e^{rT}\)</td></tr>
+<tr><td>Buy \(e^{-r_fT}\) EUR spot, deposit at \(r_f\)</td><td>\(-S_0e^{-r_fT}\)</td><td>(grows to 1 EUR)</td></tr>
+<tr><td>Short forward: deliver the 1 EUR for \(F_0\)</td><td>0</td><td>\(+F_0\)</td></tr>
+<tr><td><strong>Net</strong></td><td>0</td><td>\(F_0 - S_0e^{(r-r_f)T}\)</td></tr>
+</table>
+</div>
+<p>Zero outlay today, a known amount at \(T\). No arbitrage means that amount is zero, which is the formula again. If it's positive, run this table (section 4). If it's negative, run it in reverse.</p>
+
+<div class="box">
+<p><strong>Lecture example</strong> (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">slide 25</a>). Spot 1 EUR = 1.12 USD. Six-month rates: USD 6%, EUR 3%, both continuously compounded. USD is domestic (the price is in USD), EUR is foreign.</p>
+$$F_0 = 1.12\,e^{(0.06-0.03)(0.5)} = 1.1369 \text{ USD per EUR}.$$
+<p>Buying EUR 1,000,000 under this forward costs \(1{,}000{,}000\times1.1369 = \text{USD }1{,}136{,}900\) at \(T\).</p>
+</div>
+
+<h2>3 · Forward premium and discount: the forward takes away the interest advantage</h2>
+
+<p>The foreign currency is at a <strong>forward premium</strong> when \(F_0 &gt; S_0\) and at a <strong>forward discount</strong> when \(F_0 &lt; S_0\). The formula says which one happens: it depends only on the sign of \(r - r_f\).</p>
+
+<p><strong>Why high-interest currencies trade at a forward discount.</strong> Suppose EUR deposits paid 8% and USD deposits 3%. If the forward were equal to spot, everyone would borrow USD at 3%, convert, earn 8% in EUR, and convert back at the forward with no exchange risk: a free 5% a year. That can't last. Arbitrageurs selling EUR forward push the forward down until converting back costs exactly the extra interest earned. <em>The forward discount is the bill for the higher interest.</em> To a first approximation, \(F_0/S_0 \approx 1 + (r-r_f)T\).</p>
+
+<table>
+<tr><th>Scenario</th><th>Forward vs spot</th><th>Foreign currency is at a…</th><th>Why</th></tr>
+<tr><td>\(r &gt; r_f\) (domestic rate higher)</td><td>\(F_0 &gt; S_0\)</td><td>forward premium</td><td>Holding foreign currency earns less, so you pay more to receive it later instead</td></tr>
+<tr><td>\(r &lt; r_f\) (foreign rate higher)</td><td>\(F_0 &lt; S_0\)</td><td>forward discount</td><td>Holding it earns more, so the forward must pay you less to compensate</td></tr>
+<tr><td>\(r = r_f\)</td><td>\(F_0 = S_0\)</td><td>neither</td><td>No carry either way</td></tr>
+<tr><td>Same gap, longer \(T\)</td><td>Gap from spot widens</td><td>bigger premium or discount</td><td>The interest gap compounds for longer</td></tr>
+<tr><td>\(r_f\) rises, all else fixed</td><td>\(F_0\) falls</td><td>smaller premium or bigger discount</td><td>The foreign asset's "yield" went up</td></tr>
+</table>
+
+<div class="trap"><strong>A premium is not a forecast</strong><br>
+"The forward is above spot, so the market expects the foreign currency to rise" is a tempting MCQ option and is wrong under CIP. The gap between forward and spot is pure interest arithmetic, enforced by arbitrage. It tells you which country has higher rates, not where the exchange rate is heading.</div>
+
+<h3>Predict first: forward above or below spot?</h3>
+<p>For each, say which currency is foreign, then predict the direction before opening.</p>
+<details><summary>(a) 1.5600 CAD per GBP. Canada 2.75%, UK 4.00%</summary><div>
+<p>GBP is foreign (priced), CAD is domestic. \(r - r_f = 2.75\% - 4.00\% &lt; 0\), so the forward is <strong>below</strong> spot: GBP, the higher-rate currency, is at a forward discount.</p></div></details>
+<details><summary>(b) The same market quoted as 0.6410 GBP per CAD</summary><div>
+<p>Now CAD is foreign and GBP domestic. \(r - r_f = 4.00\% - 2.75\% &gt; 0\), so the forward is <strong>above</strong> spot: CAD is at a forward premium. That's consistent with (a): if the CAD-per-GBP forward is below 1.5600, its reciprocal, the GBP-per-CAD forward, must be above \(1/1.5600 = 0.6410\). Same market, seen from the other side.</p></div></details>
+<details><summary>(c) 158.00 JPY per USD. Japan 0.50%, US 4.25%</summary><div>
+<p>USD is foreign. \(r - r_f &lt; 0\): the forward is <strong>below</strong> 158.00. The USD, with higher rates, is at a forward discount against the yen.</p></div></details>
+<details><summary>(d) 0.6550 USD per AUD. US 4.00%, Australia 3.60%</summary><div>
+<p>AUD is foreign (even for an Australian!). \(r - r_f = 0.40\% &gt; 0\): forward <strong>above</strong> spot, AUD at a small forward premium. Section 4's second example uses this market.</p></div></details>
+
+<div class="fxw" id="fxw">
+<div class="ctl">
+  <label>Spot \(S_0\) (domestic per foreign): <span id="fS"></span><input type="range" id="iS" min="0.50" max="2.00" step="0.01" value="1.12"></label>
+  <label>Maturity \(T\) (years): <span id="fT"></span><input type="range" id="iT" min="0.25" max="5" step="0.25" value="0.5"></label>
+  <label>Domestic rate \(r\): <span id="fr"></span><input type="range" id="ir" min="0" max="0.12" step="0.0025" value="0.06"></label>
+  <label>Foreign rate \(r_f\): <span id="frf"></span><input type="range" id="irf" min="0" max="0.12" step="0.0025" value="0.03"></label>
+</div>
+<div class="out" id="fout"></div>
+</div>
+<p>Start at the lecture example (1.1369), then drag \(r_f\) above \(r\) and watch the premium turn into a discount. Notice the flipped quote always moves the opposite way.</p>
+
+<h2>4 · Covered interest arbitrage, in both directions</h2>
+
+<p>Same recipe as Lesson 6: compute the fair forward, compare, then <strong>sell the expensive one and buy the cheap one</strong>. The only new step is that "buy the asset and carry it" means "buy foreign currency and deposit it at \(r_f\)".</p>
+
+<table>
+<tr><th>Market forward is…</th><th>Foreign currency forward is…</th><th>Strategy</th></tr>
+<tr><td>above fair \(S_0e^{(r-r_f)T}\)</td><td>too expensive: sell it</td><td>Borrow domestic, buy foreign spot, deposit at \(r_f\), <strong>short</strong> the forward</td></tr>
+<tr><td>below fair</td><td>too cheap: buy it</td><td>Borrow foreign, sell it spot for domestic, deposit at \(r\), <strong>long</strong> the forward to buy back the foreign currency and repay</td></tr>
+</table>
+
+<p><strong>Size it from the end.</strong> Pick the foreign amount to be delivered at \(T\) (say 1,000,000). Then the foreign amount to buy or borrow today is \(1{,}000{,}000\,e^{-r_fT}\). Everything else follows.</p>
+
+<h3>Direction 1: forward too high (Tutorial 3, Q4)</h3>
+<div class="box">
+<p>Two-month rates: Switzerland 2%, US 5% (continuous). Spot CHF = USD 0.80, futures for two months USD 0.81. The price is in USD, so USD is domestic, CHF foreign.</p>
+<p>Fair: \(0.80\,e^{(0.05-0.02)(2/12)} = 0.8040\). The market's 0.81 is too high, so short the CHF forward. Sized for CHF 1,000,000 at \(T\):</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>\(t=0\)</th><th>\(t=T\)</th></tr>
+<tr><td>Borrow USD at 5%</td><td>+797,337.77 USD</td><td>−804,010.02 USD</td></tr>
+<tr><td>Buy \(10^6e^{-0.02/6} = \) CHF 996,672.22 at 0.80</td><td>−797,337.77 USD</td><td></td></tr>
+<tr><td>Deposit the CHF at 2%</td><td></td><td>grows to CHF 1,000,000</td></tr>
+<tr><td>Short forward: deliver CHF 1,000,000 at 0.81</td><td>0</td><td>+810,000.00 USD</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>0</strong></td><td><strong>+5,989.98 USD</strong></td></tr>
+</table>
+</div>
+<p>Check: profit \(\approx (0.81 - 0.8040)\times10^6\). (The tiny difference is rounding the fair price to 4 decimals; use the unrounded chain for the table.)</p>
+</div>
+
+<h3>Direction 2: forward too low</h3>
+<div class="box">
+<p>Spot 0.6550 USD per AUD. Six-month rates: US 4.00%, Australia 3.60%. A dealer quotes the six-month forward at 0.6520. USD is domestic, AUD foreign.</p>
+<p>Fair: \(0.6550\,e^{(0.04-0.036)(0.5)} = 0.6563\). The market's 0.6520 is too cheap, so go long the AUD forward and do the carry in reverse:</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>\(t=0\)</th><th>\(t=T\)</th></tr>
+<tr><td>Borrow \(10^6e^{-0.018}\) = AUD 982,161.03 at 3.6%</td><td>+982,161.03 AUD</td><td>−1,000,000 AUD</td></tr>
+<tr><td>Sell the AUD spot at 0.6550</td><td>−982,161.03 AUD, +643,315.48 USD</td><td></td></tr>
+<tr><td>Deposit the USD at 4%</td><td>−643,315.48 USD</td><td>+656,311.31 USD</td></tr>
+<tr><td>Long forward: buy AUD 1,000,000 at 0.6520</td><td>0</td><td>−652,000.00 USD, +1,000,000 AUD</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>0</strong></td><td><strong>+4,311.31 USD</strong></td></tr>
+</table>
+</div>
+<p>The AUD received under the forward repays the AUD loan exactly. Notice that an Australian borrowing AUD here is still borrowing the "foreign" currency of this quote.</p>
+</div>
+
+<h3>Several maturities on one screen</h3>
+<p>Exams give one spot rate and two or three forward quotes for different months. Work out each maturity's \(T\) in years (months ÷ 12, counting from today to the end of the stated month if told contracts expire then), compute each fair forward to 4 decimals, and compare quote by quote. Usually one matches and one doesn't, and you only trade the one that doesn't. The challenge in section 7 is exactly this.</p>
+
+<div class="trap"><strong>The two classic slips</strong><br>
+(1) Using \(r\) and \(r_f\) the wrong way round because you assumed AUD is domestic. With "X per AUD", AUD is <em>foreign</em>. (2) Getting the direction right but trading the wrong currency: "short the forward" in an "X per AUD" quote means you deliver AUD and receive X. Always write the currency next to every amount in your table.</div>
+
+<h2>5 · Hedging: importers go long, exporters go short</h2>
+
+<p>Ask which way the firm is <em>naturally</em> exposed, then take the opposite forward position (Hull Ch. 3 and 5; <a href="../lectures/Lecture%203_Futures%20Pricing.pdf">Lecture 3</a>).</p>
+<ul>
+  <li>An <strong>importer</strong> with a foreign-currency <strong>payable</strong> will have to buy the foreign currency later. It loses if the foreign currency rises, so it is <strong>naturally short</strong> the foreign currency. Hedge: <strong>long</strong> a forward on the foreign currency (agree now to buy it at \(F_0\)).</li>
+  <li>An <strong>exporter</strong> with a foreign-currency <strong>receivable</strong> will have to sell the foreign currency later. It loses if the foreign currency falls, so it is <strong>naturally long</strong>. Hedge: <strong>short</strong> a forward on the foreign currency.</li>
+</ul>
+
+<p>Scenarios for a US importer owing EUR 1,000,000 in six months, hedged with the lecture's 1.1369 forward:</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>EUR at \(T\) (USD)</th><th>Unhedged cost</th><th>Long forward payoff</th><th>Hedged cost</th></tr>
+<tr><td>1.0500 (EUR falls)</td><td>1,050,000</td><td>−86,900</td><td>1,136,900</td></tr>
+<tr><td>1.1369 (as forward)</td><td>1,136,900</td><td>0</td><td>1,136,900</td></tr>
+<tr><td>1.2000 (EUR rises)</td><td>1,200,000</td><td>+63,100</td><td>1,136,900</td></tr>
+</table>
+</div>
+<p>The hedge locks in \(F_0\times\) amount whatever happens. It gives up the gain if the EUR falls; that's the price of certainty, not a mistake.</p>
+
+<div class="trap"><strong>Which currency are you long?</strong><br>
+Being long one currency forward is being short the other. A New Zealand exporter receiving USD who wants to sell USD forward is, in a "USD per NZD" quote, <em>buying NZD</em>: long that contract. Translate "naturally short X" into "I want to buy X at \(T\)", then find the side of the quoted contract that does that.</div>
+
+<h3>When forward premiums rise, importers pay more to hedge</h3>
+<p>In 2026 the class discussed a Reuters report that Indian importers with USD payables faced higher hedging costs after a geopolitical oil shock. The mechanics: in an "INR per USD" quote the USD is foreign. India's rates exceed US rates, so the USD trades at a forward premium in rupees. An importer hedging a USD payable goes long USD forward and locks in \(F_0\) rupees per dollar. If the forward premium widens, \(F_0\) sits further above spot, so the importer locks in <strong>more rupees for every dollar</strong> it owes. The hedge still removes uncertainty; it just removes it at a worse rate. (In practice premiums can also widen with hedging demand and market stress, beyond the pure CIP rate gap.)</p>
+<p>A firm doesn't have to hedge 100%. The <strong>hedge ratio</strong> here is the share of the exposure covered. If the shock (and the home currency's weakness) is expected to persist until the payment date, a higher ratio makes sense despite the dearer forward; if it's expected to fade quickly, a firm may keep the ratio low and wait for hedging costs to fall. Either way it's a judgement about the shock's duration against the cost of the hedge.</p>
+
+<h3>Rules of thumb</h3>
+<ol class="steps">
+  <li>Rewrite the quote as "1 [foreign] = \(S_0\) [domestic]". \(r\) belongs to the currency you pay with, \(r_f\) to the currency you're pricing.</li>
+  <li>The forward moves toward the lower-interest currency: the high-rate currency is at a forward discount, the low-rate one at a premium.</li>
+  <li>Forward too high → borrow domestic, buy foreign, deposit, sell forward. Too low → the mirror image.</li>
+  <li>Payable = naturally short = long forward. Receivable = naturally long = short forward.</li>
+</ol>
+
+<h2>6 · Practice</h2>
+<p>Numeric answers: type a number. Exchange rates to 4 decimals.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> A screen shows 1 GBP = 2.0500 AUD. In \(F_0 = S_0e^{(r-r_f)T}\), which rate is \(r\) and which is \(r_f\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">r is the GBP rate and rf the AUD rate</button>
+    <button class="opt" data-key="b">r is the AUD rate and rf the GBP rate</button>
+    <button class="opt" data-key="c">r is the higher rate and rf the lower one</button>
+    <button class="opt" data-key="d">r is your home rate and rf the other one</button>
+  </div>
+  <div class="why">The price is in AUD per GBP: GBP is the thing priced (foreign), AUD is the money (domestic). So \(r\) = AUD rate, \(r_f\) = GBP rate. (d) is the classic trap: residency is irrelevant, only the quote's units matter.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>2.</strong> Spot is 152.00 JPY per USD. Rates: US 4.5%, Japan 0.5%. Predict the six-month forward rate relative to spot.</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Above spot: the USD is at a forward premium</button>
+    <button class="opt" data-key="b">Equal to spot: rates cancel over six months</button>
+    <button class="opt" data-key="c">Above spot: the JPY is at a forward discount</button>
+    <button class="opt" data-key="d">Below spot: the USD is at a forward discount</button>
+  </div>
+  <div class="why">USD is foreign, JPY domestic: \(r - r_f = 0.5\% - 4.5\% &lt; 0\), so \(F_0 &lt; S_0\). The higher-rate currency (USD) trades at a forward discount, which offsets the extra interest a USD deposit earns. (a) and (c) say the same wrong thing two ways.</div>
+</div>
+
+<div class="quiz num" data-answer="0.9123" data-tol="0.0001">
+  <p class="q"><strong>3.</strong> Spot is 0.9150 AUD per NZD. Rates: Australia 3.85%, New Zealand 4.25%, continuously compounded. What is the nine-month forward rate (AUD per NZD)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">AUD per NZD</span></div>
+  <div class="why">NZD is foreign, AUD domestic. \(F_0 = 0.9150\,e^{(0.0385-0.0425)(0.75)} = 0.9150\,e^{-0.003} = 0.9123\). Below spot, as NZD has the higher rate.</div>
+</div>
+
+<div class="quiz num" data-answer="1.0962" data-tol="0.0001">
+  <p class="q"><strong>4.</strong> Same market, quoted the other way. What is the nine-month forward in NZD per AUD?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">NZD per AUD</span></div>
+  <div class="why">Now AUD is foreign and NZD domestic: \((1/0.9150)\,e^{(0.0425-0.0385)(0.75)} = 1.0929\times e^{0.003} = 1.0962\). Or simply \(1/0.91226 = 1.0962\). The rates swap roles when the quote flips, and the answers agree.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>5.</strong> A Singapore furniture retailer must pay GBP 2.5 million to a UK supplier in five months. To lock in its SGD cost using the forward market, it should:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">go short GBP forwards, as it is naturally short GBP</button>
+    <button class="opt" data-key="b">go long SGD forwards, as it is naturally long GBP</button>
+    <button class="opt" data-key="c">go long GBP forwards, as it is naturally short GBP</button>
+    <button class="opt" data-key="d">short GBP spot today and then invest the SGD proceeds</button>
+    <button class="opt" data-key="e">do nothing, as forwards can hedge only foreign currency inflows</button>
+  </div>
+  <div class="why">A payable means it must buy GBP later and loses if GBP rises: naturally short GBP. Offset that with a long GBP forward. (a) gets the exposure right but doubles it. (b) is backwards on both counts: going long SGD means selling GBP. (d) adds more short GBP exposure. Forwards hedge outflows as well as inflows, so (e) is false.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>6.</strong> A New Zealand wine exporter will receive USD 3 million in four months. Its bank quotes forwards in USD per NZD. Which position on that contract hedges the exporter?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Short the contract: it locks in selling NZD for USD</button>
+    <button class="opt" data-key="b">Long the contract: it locks in buying USD with NZD</button>
+    <button class="opt" data-key="c">No position at all: a USD receivable carries no risk</button>
+    <button class="opt" data-key="d">Long the contract: it locks in buying NZD with USD</button>
+  </div>
+  <div class="why">The exporter is naturally long USD and wants to sell USD for NZD at \(T\), i.e. buy NZD. In a USD-per-NZD quote, NZD is the foreign "asset", so buying NZD forward is the <em>long</em> side. (b) mislabels what a long in this contract does; (a) would add to the USD exposure.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>7.</strong> Why does a currency with high interest rates typically trade at a forward discount?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The forward discount offsets the extra interest earned abroad</button>
+    <button class="opt" data-key="b">Traders forecast that high-rate currencies will soon depreciate</button>
+    <button class="opt" data-key="c">Central banks legally cap forward rates on such currencies</button>
+    <button class="opt" data-key="d">High rates make spot rates more volatile than forwards</button>
+  </div>
+  <div class="why">If the forward equalled spot, you could borrow the low-rate currency, earn the high rate and convert back with no risk. Covered interest arbitrage pushes the forward down until the conversion loss equals the interest gain. (b) is the "forward as forecast" error: CIP says nothing about expectations.</div>
+</div>
+
+<div class="quiz num" data-answer="15582.46" data-tol="5">
+  <p class="q"><strong>8.</strong> Spot is 1.5200 CAD per EUR. One-year rates: Canada 3.00%, euro area 2.20%, continuously compounded. A dealer quotes the one-year forward at 1.5400. Sized so that EUR 2,000,000 is delivered under the forward, what is the arbitrage profit at \(T\) in CAD?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">CAD</span></div>
+  <div class="why">Fair \(= 1.52\,e^{0.008} = 1.532209\). The quote is too high, so borrow CAD, buy \(2\text{m}\times e^{-0.022}\) EUR spot, deposit at 2.2%, short the EUR forward. At \(T\): receive \(1.54\times2\text{m} = 3{,}080{,}000\), repay \(2\text{m}\times1.532209 = 3{,}064{,}417.54\). Profit ≈ CAD 15,582.46.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>9.</strong> Spot is quoted in USD per EUR, and the market's six-month forward is <em>below</em> \(S_0e^{(r-r_f)T}\). Which strategy earns a riskless profit?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Borrow USD, buy EUR spot, invest EUR, sell EUR forward</button>
+    <button class="opt" data-key="b">Borrow EUR, sell for USD, invest USD, sell EUR forward</button>
+    <button class="opt" data-key="c">Borrow EUR, sell for USD, invest USD, buy EUR forward</button>
+    <button class="opt" data-key="d">Borrow USD, buy EUR spot, invest EUR, buy EUR forward</button>
+  </div>
+  <div class="why">The EUR forward is cheap, so buy it. The rest is the reverse carry: borrow EUR, convert to USD, earn \(r\), then use the forward to buy back the EUR that repays the loan. (a) is the right trade for an <em>expensive</em> forward. (b) and (d) leave you with an open currency position.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>10.</strong> With the INR-per-USD spot rate unchanged, the six-month USD forward premium widens. For an Indian importer hedging a USD payable with a forward:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It locks in fewer rupees per dollar, so hedging costs less</button>
+    <button class="opt" data-key="b">It locks in more rupees per dollar, so hedging costs more</button>
+    <button class="opt" data-key="c">It changes nothing at all, since a forward costs nothing upfront</button>
+    <button class="opt" data-key="d">It makes the forward useless, so options are the only hedge</button>
+  </div>
+  <div class="why">The importer goes long USD forward and pays \(F_0\) rupees per dollar. A bigger premium means \(F_0\) is further above spot, so the locked-in rupee bill is larger. (c) confuses "no upfront payment" with "no cost": the cost shows up in the rate you lock in.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>11.</strong> The one-year AUD-per-USD forward is above the spot rate, and CIP holds. What can you conclude?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">US interest rates are below Australian interest rates</button>
+    <button class="opt" data-key="b">Traders expect the USD to rise in value</button>
+    <button class="opt" data-key="c">US interest rates are above Australian interest rates</button>
+    <button class="opt" data-key="d">An arbitrage exists, since forwards should equal spot</button>
+  </div>
+  <div class="why">USD is foreign, AUD domestic. \(F_0 &gt; S_0\) means \(r - r_f &gt; 0\): the Australian rate exceeds the US rate. (b) reads the premium as a forecast, which CIP doesn't support; (d) forgets that forwards equal spot only when the two rates are equal.</div>
+</div>
+
+<div class="quiz num" data-answer="4.60" data-tol="0.01">
+  <p class="q"><strong>12.</strong> Spot is 0.6600 USD per AUD, the one-year forward is 0.6567 (fairly priced), and the US rate is 4.10% continuously compounded. What Australian rate does this imply, in % p.a. continuously compounded?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">Rearrange: \(r_f = r - \ln(F_0/S_0)/T = 0.041 - \ln(0.6567/0.66) = 0.041 + 0.00501 = 4.60\%\). Forward below spot, so AUD must be the higher-rate currency, as found.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>13.</strong> An Australian importer usually hedges 40% of its USD payables. A shock has weakened the AUD and widened USD forward premiums. Which reasoning is most sound?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">If the shock should last, cut the ratio to save costs</button>
+    <button class="opt" data-key="b">Always move to a 100% hedge, since forwards remove all costs</button>
+    <button class="opt" data-key="c">The ratio does not matter, since forward premiums always shrink back</button>
+    <button class="opt" data-key="d">If the shock should last, raise the ratio despite the cost</button>
+  </div>
+  <div class="why">A long-lived shock means the AUD may stay weak (or weaken further) until the payment date, so locking in more of the payable is worth the dearer forward. If the shock looks short-lived, waiting with a lower ratio is defensible. (b) is false: a forward removes uncertainty, not cost.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>14.</strong> Spot stays at 1 EUR = 1.0900 USD. The ECB raises euro rates by half a percentage point; US rates are unchanged. The one-year USD-per-EUR forward:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">rises, because the euro now earns more interest</button>
+    <button class="opt" data-key="b">falls, because the euro now earns more interest</button>
+    <button class="opt" data-key="c">stays put, because the spot rate did not move</button>
+    <button class="opt" data-key="d">rises, because higher rates attract money to euros</button>
+  </div>
+  <div class="why">EUR is foreign, so \(r_f\) rose and \(r - r_f\) fell: \(F_0\) falls. The euro's "yield" went up, so a forward buyer, who misses that yield, pays less. (d) is a spot-market story; with spot held fixed, the forward must move the other way.</div>
+</div>
+
+<h2>7 · Exam-level challenge</h2>
+<p>Round to 4 decimals at each step, write the currency on every amount, then open the steps one at a time.</p>
+<div class="box">
+<p>Today is 1 February. You trade FX for a Sydney bank. Spot is <strong>96.80 JPY per AUD</strong>. Risk-free rates, continuously compounded: Japan 0.80% p.a., Australia 3.70% p.a. Your screen shows forward quotes expiring at the end of each month:</p>
+<table class="ledger">
+<tr><th>Expiry</th><th>Forward (JPY per AUD)</th></tr>
+<tr><td>End of May</td><td>95.8688</td></tr>
+<tr><td>End of August</td><td>95.6100</td></tr>
+<tr><td>End of November</td><td>94.4887</td></tr>
+</table>
+<p>(a) Which currency is domestic and which foreign here? Compute the fair forward for each expiry.<br>
+(b) Is there an arbitrage? If so, set it out with cash flows at \(t=0\) and \(T\), sized so AUD 1,000,000 changes hands under the forward, and state the profit.<br>
+(c) A Brisbane importer of Japanese machinery owes JPY 150 million at the end of August. What forward position (long or short <em>this</em> contract) hedges it, and what AUD cost does it lock in at the dealer's quote?<br>
+(d) Suppose instead the Bank of Japan raises its rate to 1.80% before the importer hedges (spot and the Australian rate unchanged). Without the dealer error, does the fair August forward rise or fall, and is that good or bad for the importer? Give the new fair forward and AUD cost.</p>
+</div>
+
+<details><summary>Step 1: part (a), labels and fair prices</summary><div>
+<p>The price is in JPY per AUD, so <strong>JPY is domestic</strong> (\(r = 0.80\%\)) and <strong>AUD is foreign</strong> (\(r_f = 3.70\%\)), even though you sit in Sydney. Maturities: 4, 7 and 10 months.</p>
+<p>May: \(96.80\,e^{(0.008-0.037)(4/12)} = 95.8688\). August: \(96.80\,e^{(-0.029)(7/12)} = 95.1762\). November: \(96.80\,e^{(-0.029)(10/12)} = 94.4887\).</p>
+<p>All below spot: AUD, the higher-rate currency, is at a forward discount.</p></div></details>
+
+<details><summary>Step 2: part (b), which quote is wrong and which way</summary><div>
+<p>May and November match. August is quoted at 95.6100 against a fair 95.1762: <strong>too high</strong>. The AUD forward is overpriced, so sell it: borrow JPY (domestic), buy AUD spot, deposit the AUD at 3.70%, short the August forward.</p></div></details>
+
+<details><summary>Step 3: part (b), the cash-flow table</summary><div>
+<p>AUD to buy today: \(1{,}000{,}000\,e^{-0.037(7/12)} = 978{,}647.9201\). JPY to borrow: \(978{,}647.9201\times96.80 = 94{,}733{,}118.6657\).</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>\(t=0\)</th><th>End of August</th></tr>
+<tr><td>Borrow JPY at 0.80%</td><td>+94,733,118.67 JPY</td><td>−95,176,239.70 JPY</td></tr>
+<tr><td>Buy AUD 978,647.92 at 96.80</td><td>−94,733,118.67 JPY</td><td></td></tr>
+<tr><td>Deposit AUD at 3.70%</td><td></td><td>grows to AUD 1,000,000</td></tr>
+<tr><td>Short August forward: deliver AUD 1,000,000 at 95.61</td><td>0</td><td>+95,610,000.00 JPY</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>0</strong></td><td><strong>+433,760.30 JPY</strong></td></tr>
+</table>
+</div>
+<p>Loan repayment: \(94{,}733{,}118.6657\,e^{0.008(7/12)} = 95{,}176{,}239.70\). Check: \((95.61 - 95.1762)\times10^6 \approx 433{,}800\), the gap being rounding in the fair price.</p></div></details>
+
+<details><summary>Step 4: part (c), the importer</summary><div>
+<p>Owing JPY means it must buy JPY in August: <strong>naturally short JPY</strong>. To buy JPY forward it must sell AUD forward, and AUD is the "asset" in this quote, so it goes <strong>short</strong> the JPY-per-AUD August forward.</p>
+<p>At the dealer's 95.61: AUD cost \(= 150{,}000{,}000 / 95.61 = \text{AUD }1{,}568{,}873.55\). It is on the same side as the arbitrageur, so the dealer's error helps it: at the fair 95.1762 it would pay AUD 1,576,024.26.</p></div></details>
+
+<details><summary>Step 5: part (d), Japanese rates rise</summary><div>
+<p>Predict first: \(r\) (JPY, domestic) rises, so \(r - r_f\) is less negative and the forward discount on AUD shrinks: \(F_0\) <strong>rises</strong>. New fair: \(96.80\,e^{(0.018-0.037)(7/12)} = 95.7331\).</p>
+<p>More JPY per AUD is <strong>good for the importer</strong>, who is selling AUD for JPY: cost \(= 150{,}000{,}000/95.7331 = \text{AUD }1{,}566{,}856.89\), about AUD 9,167 less than at the old fair rate. The intuition: holding JPY now earns more, so a forward buyer of JPY (who forgoes that interest) gets a better rate.</p></div></details>
+
+<h2>8 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, write the formula, say how to pick r and rf from "X per Y", state both arbitrage recipes and the importer/exporter rule. Then check</summary><div>
+<p>\(F_0 = S_0e^{(r-r_f)T}\). In "X per Y", Y is foreign (\(r_f\)), X is domestic (\(r\)); flip the quote and they swap. Forward too high: borrow domestic, buy foreign spot, deposit at \(r_f\), short forward. Too low: borrow foreign, sell spot, deposit at \(r\), long forward. High-rate currency at a forward discount. Payable → naturally short → long forward; receivable → naturally long → short forward. A bigger forward premium makes a long-forward hedge dearer.</p></div></details>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, Ch. 5, the section on forward and futures contracts on currencies (the two-routes argument and interest rate parity), with <a href="../lectures/Lecture%203_Futures%20Pricing.pdf">Lecture 3, slides 24–25</a>. A short second explanation: <a href="https://www.investopedia.com/terms/c/covered-interest-rate-parity.asp">Investopedia: covered interest rate parity</a>.</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%203.pdf">Tutorial 3</a>, Q4: redo it cold, including the full cash-flow table for CHF 1,000,000 (<a href="../tutes/Tutorial%203%20solutions.pdf">solutions</a>). Then write a 3-sentence answer to Q3 (index futures with a yield) and notice it's the same recipe with \(q\) in place of \(r_f\). Q6 (forward vs futures for a currency hedge) belongs to <a href="0010-valuing-forward-and-futures-contracts.html">Lesson 10</a>; read it now and just predict which instrument wins in each case.</p>
+<p><strong>Spacing:</strong> tomorrow, redo Q4, Q9 and the challenge's step 3 without looking. Then redo Lesson 7's known-yield arbitrage question and Lesson 6's cash-and-carry table: they're the same skeleton.</p>
+
+<div class="ask">💬 Stuck on which currency is "foreign" in a quote, or which side of a contract an importer takes? Paste the quote and the situation in the terminal and ask me. I'm your teacher for this, and I'll walk you through rewriting it as "1 [foreign] = … [domestic]".</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0007-assets-with-income-and-yield.html">Lesson 7, assets with income and yield</a></span>
+  <span>Reference: <a href="../reference/futures-cheatsheet.html">Futures cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0009-commodities-storage-and-convenience-yield.html">Lesson 9, commodities, storage and convenience yield</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+<script>
+(function () {
+  var ids = ['iS', 'iT', 'ir', 'irf'];
+  function pct(x) { return (x * 100).toFixed(2) + '%'; }
+  function upd() {
+    var S = +document.getElementById('iS').value, T = +document.getElementById('iT').value;
+    var r = +document.getElementById('ir').value, rf = +document.getElementById('irf').value;
+    document.getElementById('fS').textContent = S.toFixed(2);
+    document.getElementById('fT').textContent = T.toFixed(2);
+    document.getElementById('fr').textContent = pct(r);
+    document.getElementById('frf').textContent = pct(rf);
+    var F = S * Math.exp((r - rf) * T), d = F - S;
+    var lab = Math.abs(d) < 5e-5 ? 'neither premium nor discount' : (d > 0 ? 'a forward <b>premium</b>' : 'a forward <b>discount</b>');
+    document.getElementById('fout').innerHTML =
+      'Forward F<sub>0</sub> = <b>' + F.toFixed(4) + '</b> domestic per foreign (' + (d >= 0 ? '+' : '') + (100 * d / S).toFixed(2) + '% vs spot): the foreign currency is at ' + lab + '.<br>' +
+      'Flipped quote: spot <b>' + (1 / S).toFixed(4) + '</b>, forward <b>' + (1 / F).toFixed(4) + '</b> foreign per domestic, with the rates swapping roles.';
+  }
+  ids.forEach(function (id) { document.getElementById(id).addEventListener('input', upd); });
+  upd();
+})();
+</script>
+</body>
+</html>

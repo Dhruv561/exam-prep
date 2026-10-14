@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poisson and gamma GLMs</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 7 · Topic 2: Exponential families &amp; GLMs</div>
+<h1>Poisson and gamma GLMs in R output: rates, offsets and an unknown dispersion</h1>
+<p class="lede">The goal: handed a <code>summary(glm(..., family=poisson))</code> or <code>family=Gamma</code> printout, you can turn each coefficient into a multiplicative effect, explain an offset, predict a mean with a CI, and run the right test. That's a χ² LRT when \(\phi=1\), and an F test with \(\hat\phi = X^2/(n-p)\) when \(\phi\) is unknown.</p>
+
+<div class="mission">Why this matters for 10 Nov: the R-output GLM question (7–22 marks every year) is almost always Poisson. The F test with an estimated \(\phi\) is its hardest step. You'll meet that F test here first, for the gamma, where \(\phi\) really is unknown. The overdispersion lesson then reuses exactly the same machinery for quasi-Poisson.</div>
+
+<p>You already have the tools from the binomial case (<a href="0003-deviance-lrt-aic.html">Lesson 3</a>): \(n = \text{null df}+1\), \(p = n - \text{residual df}\), \(D_A - D_B\) for nested models, and \(\ell = p - \text{AIC}/2\). You also know each family's \(v(\mu)\) and \(\phi\) (<a href="0005-exponential-families.html">Lesson 5</a>) and the GLM set-up (<a href="0006-glm-likelihood-iwls.html">Lesson 6</a>). This lesson changes two things: the link (log, so effects multiply) and what happens when \(\phi\) has to be estimated.</p>
+
+<h2>1 · Log link: effects multiply the mean</h2>
+<p>With the log link (canonical for the Poisson: <a href="../lectures/GLM_1_LMS-1.pdf#page=5">GLMs I, slide 5</a>; also the usual choice for the gamma),</p>
+$$\log\mu_i = \eta_i = \beta_0 + \beta_1x_{i1}+\dots \quad\Longrightarrow\quad \mu_i = e^{\beta_0}\,e^{\beta_1x_{i1}}\cdots$$
+<p>Raising \(x_j\) by \(\Delta\) (others fixed) multiplies the mean by \(e^{\beta_j\Delta}\). For a factor dummy, \(e^{\beta_j}\) is the ratio of that level's mean to the baseline's. A CI for the multiplier comes from a CI for \(\beta_j\) with its endpoints exponentiated, the same move as the odds ratio in <a href="0002-binomial-regression.html">Lesson 2</a>, except that here it is the <em>mean</em> (or the rate) that gets multiplied, not the odds.</p>
+
+<p>Running example: the number of "great" discoveries each year, 1860–1959 (R's <code>discoveries</code>, <a href="../tutes/2026_MAST30027_week4_questions.qmd">week 4 tute, Q2</a>), with \(Y_i\sim\text{Poisson}(\mu_i)\).</p>
+
+<pre class="rout"><span class="cmd">&gt; disc.df &lt;- data.frame(year = 1860:1959, disc = discoveries)
+&gt; m0 &lt;- glm(disc ~ 1, family = poisson, data = disc.df)</span>
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)   <b>1.1314</b>     0.0568   19.92   &lt;2e-16 ***
+
+    Null deviance: 164.68  on 99  degrees of freedom
+Residual deviance: 164.68  on 99  degrees of freedom
+AIC: 435.69
+
+<span class="cmd">&gt; model1 &lt;- glm(disc ~ year, family = poisson, data = disc.df)
+&gt; summary(model1)</span>
+Coefficients:
+             Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) 11.354807   3.775677   3.007  0.00264 **
+year        <b>-0.005360   0.001982</b>  -2.705  0.00683 **
+---
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 164.68  on 99  degrees of freedom
+Residual deviance: <b>157.32</b>  on 98  degrees of freedom
+AIC: 430.32
+
+<span class="cmd">&gt; model2 &lt;- glm(disc ~ year + I(year^2), family = poisson, data = disc.df)
+&gt; summary(model2)</span>
+Coefficients:
+              Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) -1.482e+03  3.163e+02  -4.685 2.79e-06 ***
+year         1.561e+00  3.318e-01   4.705 2.54e-06 ***
+I(year^2)   -4.106e-04  8.699e-05  -4.720 2.35e-06 ***
+---
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 164.68  on 99  degrees of freedom
+Residual deviance: <b>132.84</b>  on <b>97</b>  degrees of freedom
+AIC: 407.85
+
+<span class="cmd">&gt; range(fitted(model2))</span>
+[1] 1.058631 4.241185
+<span class="cmd">&gt; qchisq(0.95, df = c(1, 2, 97))</span>
+[1]   3.841459   5.991465 120.989644</pre>
+
+<div class="quiz num" data-answer="0.948" data-tol="0.002">
+  <p class="q"><strong>1.</strong> Under <code>model1</code>, by what factor does the expected number of discoveries change over one decade (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(e^{10\hat\beta_{\text{year}}} = e^{10(-0.005360)} = e^{-0.0536} = \)<strong>0.948</strong>, so about 5% fewer discoveries per decade. Multiply \(\beta\) by \(\Delta\) <em>before</em> exponentiating: \(10\times e^{-0.00536}\) is not a multiplier at all.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> What does the intercept 1.1314 of the null model <code>m0</code> tell you?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Fitted mean discoveries per year equal the sample mean, 3.1</button>
+    <button class="opt" data-key="b">Fitted mean discoveries per year equal 1.13, the intercept itself</button>
+    <button class="opt" data-key="c">Discoveries rise by about 113 percent each year on average</button>
+    <button class="opt" data-key="d">The log of total discoveries over the century is 1.13</button>
+  </div>
+  <div class="why">With no predictors, \(\hat\mu = e^{\hat\beta_0} = e^{1.1314} = 3.10\), which is \(\bar y\). The Poisson MLE of a common mean is the sample mean, and the log link just reports it on the log scale. Option (b) forgets to undo the link. Option (c) treats the intercept as a slope.</div>
+</div>
+
+<h2>2 · Poisson: φ = 1, so Lesson 3 carries over</h2>
+<p>The Poisson deviance (<a href="../lectures/GLM_2_correct_LMS.pdf#page=5">GLMs II, slide 5</a>) is \(D = \sum_i d_i\) with</p>
+$$d_i = -2\Big[y_i\log\frac{\hat\mu_i}{y_i} - (\hat\mu_i - y_i)\Big] = 2\Big[y_i\log\frac{y_i}{\hat\mu_i} - (y_i-\hat\mu_i)\Big].$$
+<p>Since \(\phi = 1\), the scaled deviance is just \(D\), and both tests from Lesson 3 work unchanged (slides 7–8):</p>
+<ul>
+  <li><strong>Goodness of fit:</strong> \(D\approx\chi^2_{n-p}\) if the model is adequate, but only when every \(\lambda_i\gtrsim5\) (the Poisson version of \(m_ip_i\ge5\)).</li>
+  <li><strong>LRT for nested A ⊂ B:</strong> \(D_A - D_B\approx\chi^2_s\), where \(s = \text{df}_A - \text{df}_B\). This needs no \(\lambda_i\ge5\) condition.</li>
+  <li><strong>AIC:</strong> \(\text{AIC} = 2p - 2\ell\), so \(\ell = p - \text{AIC}/2\), exactly as before.</li>
+</ul>
+
+<div class="quiz num" data-answer="24.48" data-tol="0.01">
+  <p class="q"><strong>3.</strong> What is the likelihood ratio statistic for adding <code>I(year^2)</code> to <code>model1</code> (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(157.32 - 132.84 = \)<strong>24.48</strong> on \(98-97 = 1\) df, far above 3.84 (R: p = \(7.5\times10^{-7}\)). Compare the Wald test: \(z^2 = 4.720^2 = 22.3\). Same conclusion: the rate rose and then fell, peaking at \(-\hat\beta_1/(2\hat\beta_2) \approx 1901\).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>4.</strong> <code>model2</code> has \(D = 132.84\) on 97 df, and \(\chi^2_{97}(0.95) = 120.99\). What do you conclude about its fit?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It fits badly: 132.84 exceeds the 5% point 120.99.</button>
+    <button class="opt" data-key="b">It fits well: 132.84 is close to 97 df.</button>
+    <button class="opt" data-key="c">Unreliable test: every fitted mean is below 5 here.</button>
+    <button class="opt" data-key="d">Overdispersed, so switch to a gamma model right away.</button>
+  </div>
+  <div class="why">The fitted means run from 1.06 to 4.24, so the \(\lambda_i\ge5\) rule of thumb (slide 7) fails for every year and \(D\) needn't be close to \(\chi^2_{97}\). Option (a) does the arithmetic right but skips the condition check, which is where the marks are. (The LRT in Q3 is still fine.) Option (d): a gamma is for positive continuous data, not counts.</div>
+</div>
+
+<h2>3 · Rate models and the offset</h2>
+<p>Often a count \(Y_i\) piles up over an exposure \(t_i\) that differs between rows: time observed, population, number of policyholders. Then it's the <em>rate</em> \(\lambda_i/t_i\) that depends on the predictors (<a href="../tutes/2026_MAST30027_week5_questions.qmd">week 5 tute, Q2 preamble</a>; <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=105">Faraway §5.3, p. 89</a>):</p>
+$$\log\frac{\lambda_i}{t_i} = x_i^T\beta \quad\Longleftrightarrow\quad \log\lambda_i = \underbrace{\log t_i}_{\text{offset}} + x_i^T\beta.$$
+<p>That's an ordinary Poisson GLM with log link, plus one extra term \(\log t_i\) whose coefficient is <strong>fixed at 1</strong>, not estimated. R writes it as <code>offset(log(t))</code>. It doesn't appear in the coefficient table and doesn't count in \(p\).</p>
+
+<p>Data: car insurance claims in 64 risk cells (<code>Insurance</code> in the MASS package). <code>Holders</code> is the number of policyholders in the cell, <code>Claims</code> the number of claims they made. Predictors: <code>District</code> (1–4, where 4 is the major cities), car <code>Group</code> (engine size: &lt;1l, 1–1.5l, 1.5–2l, &gt;2l), and driver <code>Age</code> (&lt;25, 25–29, 30–35, &gt;35). Baselines are District 1, &lt;1l and &lt;25. (We turned the ordered factors into ordinary ones, so R prints one dummy per level, as for every other factor in this course.)</p>
+
+<pre class="rout"><span class="cmd">&gt; m1 &lt;- glm(Claims ~ offset(log(Holders)) + District + Group + Age,
++           family = poisson, data = ins)
+&gt; summary(m1)</span>
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) <b>-1.82174</b>    0.07679 -23.724  &lt; 2e-16 ***
+District2    0.02587    0.04302   0.601 0.547597
+District3    0.03852    0.05051   0.763 0.445657
+District4    <b>0.23421</b>    0.06167   3.798 0.000146 ***
+Group1-1.5l  0.16134    0.05053   3.193 0.001409 **
+Group1.5-2l  0.39281    0.05500   7.142 9.18e-13 ***
+Group&gt;2l     <b>0.56341</b>    0.07232   7.791 6.65e-15 ***
+Age25-29    -0.19101    0.08286  -2.305 0.021149 *
+Age30-35    -0.34495    0.08137  -4.239 2.24e-05 ***
+Age&gt;35      -0.53667    0.06996  -7.672 1.70e-14 ***
+---
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 236.26  on 63  degrees of freedom
+Residual deviance: <b>51.42</b>  on <b>54</b>  degrees of freedom
+AIC: 388.74
+
+<span class="cmd">&gt; predict(m1, newdata = data.frame(District = "4", Group = "&gt;2l", Age = "&lt;25",
++                                   Holders = 100), type = "link", se.fit = TRUE)</span>
+$fit
+       1
+<b>3.581048</b>
+$se.fit
+[1] <b>0.1024086</b>
+
+<span class="cmd">&gt; mfree &lt;- glm(Claims ~ log(Holders) + District + Group + Age, family = poisson, data = ins)
+&gt; coef(summary(mfree))[1:2, ]</span>
+              Estimate Std. Error   z value     Pr(&gt;|z|)
+(Intercept)  -2.777752  0.6891623 -4.030622 5.562955e-05
+log(Holders)  <b>1.201696  0.1441354</b>  8.337266 7.602785e-17
+<span class="cmd">&gt; c(deviance(mfree), df.residual(mfree))</span>
+[1] 49.45001 53.00000</pre>
+
+<p>Reading it: \(e^{\hat\beta_0} = e^{-1.82174} = 0.162\) is the claim rate <em>per policyholder</em> per quarter in the baseline cell. Every other \(e^{\hat\beta_j}\) multiplies that rate.</p>
+
+<div class="quiz num" data-answer="1.264" data-tol="0.002">
+  <p class="q"><strong>5.</strong> By what factor is the claim rate per policyholder in District 4 higher than in District 1, other things equal (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(e^{0.23421} = \)<strong>1.264</strong>: about 26% more claims per policyholder in the major cities. Because of the offset, this compares <em>rates</em>. District 4 might have far fewer holders and so fewer claims in total, but the coefficient has already adjusted for that.</div>
+</div>
+
+<div class="quiz num" data-answer="43.89" data-tol="0.05">
+  <p class="q"><strong>6.</strong> For a cell with 100 policyholders in District 4, car group &gt;2l, age &lt;25, the predicted number of claims is \(e^{3.581048} = 35.9\). Using the <code>predict</code> output, what is the <em>upper</em> end of a 95% CI for this mean (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Check \(\hat\eta\) by hand first: \(-1.82174 + 0.23421 + 0.56341 + \log 100 = -1.02412 + 4.60517 = 3.58105\). The offset enters \(\eta\) with coefficient 1. CI on the \(\eta\) scale: \(3.581048 \pm 1.96(0.1024086) = (3.3803,\ 3.7818)\). Exponentiate both ends: \((29.38,\ \)<strong>43.89</strong>\()\) claims. You need R's <code>se.fit</code> here because \(\operatorname{Var}\hat\eta = t^TVt\) involves covariances the summary doesn't show (<a href="0002-binomial-regression.html">Lesson 2</a>).</div>
+</div>
+
+<div class="quiz num" data-answer="1.40" data-tol="0.01">
+  <p class="q"><strong>7.</strong> <code>mfree</code> estimates the coefficient of \(\log(\text{Holders})\) instead of fixing it at 1. What is the Wald statistic for \(H_0\): that coefficient \(=1\) (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(z = (1.201696 - 1)/0.1441354 = \)<strong>1.40</strong>, below 1.96, so the data are consistent with 1. The LRT agrees: \(51.42 - 49.45 = 1.97\) on \(54-53 = 1\) df, below 3.84. (Faraway runs this check in <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=106">§5.3</a>.) Note the null is 1, not 0, so you can't read it off R's <code>z value</code> column (8.34, which tests 0).</div>
+</div>
+
+<details><summary>Explain why (write 2–3 sentences, then compare): why use an offset, and why is its coefficient 1 rather than estimated?</summary><div>
+<p><strong>Model answer.</strong> The expected count is proportional to the exposure: twice the policyholders, twice the expected claims, all else equal. So \(\lambda_i = t_i\times\text{rate}_i\), and taking logs gives \(\log\lambda_i = \log t_i + x_i^T\beta\), where \(\log t_i\) has coefficient exactly 1 by construction. Fixing it at 1 makes every other \(e^{\beta_j}\) a ratio of <em>rates per unit exposure</em>. If we left out the offset, the predictors would be credited with differences that are really just differences in exposure. (Estimating the coefficient freely, as <code>mfree</code> does, is a check on proportionality, not the model we report.)</p></div></details>
+
+<h3>Does m1 fit?</h3>
+<p>\(D = 51.42\) on 54 df, which is below \(\chi^2_{54}(0.95) = 72.15\) (R: p = 0.57). But the fitted counts run from 1.1 to 398 and 5 of the 64 cells are below 5, so treat that p-value as approximate. Most cells are large, so the conclusion "no evidence of lack of fit" stands. (The retrieval box at the end has an LRT for <code>District</code> on this output.)</p>
+
+<h2>4 · Gamma: φ is unknown, so estimate it and switch to F</h2>
+<p>For positive, right-skewed continuous responses whose SD grows with the mean, a gamma GLM has \(v(\mu) = \mu^2\), so \(\operatorname{Var}Y = \phi\mu^2\) and the coefficient of variation is \(\sqrt\phi\) (<a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=192">Faraway §9.1, pp. 176–177</a>). Its deviance is \(D = -2\sum_i\big[\log(y_i/\hat\mu_i) - (y_i-\hat\mu_i)/\hat\mu_i\big]\). R's default link is the canonical inverse link \(1/\mu\). The log link is the one to use when you want multiplicative effects, and the interpretation from section 1 carries over word for word.</p>
+
+<p>Now \(\phi\) is a genuine unknown, and three things change (<a href="../lectures/GLM_2_correct_LMS.pdf#page=7">GLMs II, slides 7–9</a>):</p>
+<ol class="steps">
+  <li><strong>Estimate \(\phi\) with Pearson's statistic</strong> (<a href="../lectures/GLM_1_LMS-1.pdf#page=16">GLMs I, slide 16</a>): \(\hat\phi = \dfrac{X^2}{n-p}\), where \(X^2 = \sum_i\dfrac{(y_i-\hat\mu_i)^2}{v(\hat\mu_i)} = \sum_i \Big(\dfrac{y_i-\hat\mu_i}{\hat\mu_i}\Big)^2\) for the gamma, the sum of squared Pearson residuals (slide 12). This is the number R prints as <code>(Dispersion parameter for Gamma family taken to be ...)</code>. It is <em>not</em> \(D/(n-p)\).</li>
+  <li><strong>No goodness-of-fit test.</strong> The scaled deviance \(D/\phi\) can't be used to test adequacy when \(\phi\) is estimated (slide 7).</li>
+  <li><strong>Nested models: F, not χ².</strong> If A (\(p-s\) parameters) is nested in B (\(p\) parameters), then under \(H_0\)
+  $$F = \frac{(D_A - D_B)/s}{\hat\phi_B} \;\approx\; F_{s,\;n-p},$$
+  where \(\hat\phi_B = X^2_B/(n-p)\) comes from the <strong>bigger</strong> model (slide 9). This is what <code>anova(A, B, test="F")</code> prints.</li>
+</ol>
+<p>Also, because the SEs contain \(\hat\phi\), R labels the Wald column <code>t value</code> rather than <code>z value</code>.</p>
+
+<p>Data: corn yield (bushels/acre) at seven nitrogen levels, 44 plots (<code>cornnit</code> in faraway, <a href="../tutes/2026_MAST30027_week5_questions.qmd">week 5 tute, Q1</a>). The tute fits an identity link; here's the log-link version, plus a model with nitrogen as a 7-level factor. The straight-line model in \(\log(N+1)\) is nested in it, because the factor model lets each nitrogen level have any mean it likes.</p>
+
+<pre class="rout"><span class="cmd">&gt; gA &lt;- glm(yield ~ log(nitrogen + 1), family = Gamma(link = "log"), data = cornnit)
+&gt; summary(gA)</span>
+Coefficients:
+                  Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)       4.492899   0.039914 112.566  &lt; 2e-16 ***
+log(nitrogen + 1) 0.090801   0.009603   9.456  5.8e-12 ***
+---
+(Dispersion parameter for Gamma family taken to be <b>0.01832654</b>)
+
+    Null deviance: <b>2.40614</b>  on 43  degrees of freedom
+Residual deviance: <b>0.89019</b>  on <b>42</b>  degrees of freedom
+AIC: <b>382.42</b>
+
+<span class="cmd">&gt; gB &lt;- glm(yield ~ factor(nitrogen), family = Gamma(link = "log"), data = cornnit)
+&gt; summary(gB)</span>
+Coefficients:
+                    Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)          4.48352    0.04266 105.094  &lt; 2e-16 ***
+factor(nitrogen)50   0.40361    0.06841   5.900 8.59e-07 ***
+factor(nitrogen)75   0.38977    0.08261   4.718 3.36e-05 ***
+factor(nitrogen)100  0.45711    0.06841   6.682 7.55e-08 ***
+factor(nitrogen)150  0.44916    0.08261   5.437 3.64e-06 ***
+factor(nitrogen)200  0.49322    0.06841   7.210 1.49e-08 ***
+factor(nitrogen)300  0.45813    0.08261   5.545 2.59e-06 ***
+---
+(Dispersion parameter for Gamma family taken to be <b>0.02002057</b>)
+
+    Null deviance: 2.40614  on 43  degrees of freedom
+Residual deviance: <b>0.85306</b>  on <b>37</b>  degrees of freedom
+AIC: 390.54
+
+<span class="cmd">&gt; sum(residuals(gB, type = "pearson")^2) / df.residual(gB)</span>
+[1] 0.02002057
+<span class="cmd">&gt; anova(gA, gB, test = "F")</span>
+Model 1: yield ~ log(nitrogen + 1)
+Model 2: yield ~ factor(nitrogen)
+  Resid. Df Resid. Dev Df Deviance     F Pr(&gt;F)
+1        42    0.89019
+2        37    0.85306  5 0.037136 <b>0.371</b> 0.8652
+<span class="cmd">&gt; anova(gA, test = "F")</span>
+                  Df Deviance Resid. Df Resid. Dev      F    Pr(&gt;F)
+NULL                                 43    2.40614
+log(nitrogen + 1)  1   1.5159        42    0.89019 <b>82.719</b> 1.761e-11 ***
+<span class="cmd">&gt; qf(0.95, df1 = c(1, 5), df2 = c(42, 37))</span>
+[1] 4.072654 2.469650</pre>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>8.</strong> What does the line <code>sum(residuals(gB, type = "pearson")^2) / df.residual(gB)</code> compute?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The residual deviance of gB divided by its df</button>
+    <button class="opt" data-key="b">The scaled deviance of gB, used to test fit</button>
+    <button class="opt" data-key="c">The Pearson statistic X² for gB, before any scaling</button>
+    <button class="opt" data-key="d">The Pearson estimate of φ, which summary(gB) also prints</button>
+  </div>
+  <div class="why">It's \(X^2/(n-p)\) with \(n - p = 37\), and it reproduces the summary's 0.02002057 exactly. The deviance-based version would be \(0.85306/37 = 0.02306\), a different number, so option (a) is wrong. Option (c) forgets the division by the df.</div>
+</div>
+
+<div class="quiz num" data-answer="0.371" data-tol="0.002">
+  <p class="q"><strong>9.</strong> Using only the two summaries, compute the F statistic for \(H_0\): the straight line in \(\log(N+1)\) is enough (3 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(s = 42 - 37 = 5\) and \(D_A - D_B = 0.89019 - 0.85306 = 0.03713\). Then \(F = \dfrac{0.03713/5}{0.02002057} = \)<strong>0.371</strong> on \((5, 37)\) df, far below \(F_{5,37}(0.95) = 2.47\), so keep the simpler model gA. If you used gA's \(\hat\phi = 0.01833\) you'd get 0.405: close here, but wrong in principle (see below).</div>
+</div>
+
+<div class="quiz num" data-answer="-188.21" data-tol="0.01">
+  <p class="q"><strong>10.</strong> What is the maximised log-likelihood of gA (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">For the gamma, R's AIC counts \(\phi\) as a parameter, so it uses \(p+1 = 3\), not 2 (check: <code>attr(logLik(gA), "df")</code> is 3). So \(\ell = 3 - 382.42/2 = \)<strong>−188.21</strong>. Using \(p = 2\) gives −189.21, the classic slip. For the Poisson and binomial, \(\phi\) is fixed at 1, so it's just \(p\).</div>
+</div>
+
+<div class="trap"><strong>Trap: AIC for the gamma</strong><br>R's gamma \(\ell\) is evaluated at \(\phi = D/n\) (an approximate MLE), not at the Pearson \(\hat\phi\) in the summary, and each model uses its own. That's why the slide-10 shortcut \(\text{AIC}_B - \text{AIC}_A = 2s + (D_B - D_A)/\phi\) only roughly matches R's AIC difference for gamma models. In an exam, take AIC from the printout and use \(p+1\) when recovering \(\ell\).</div>
+
+<details><summary>Explain why (2–3 sentences): why compare to an F distribution and not \(\chi^2_s\) when \(\phi\) is estimated?</summary><div>
+<p><strong>Model answer.</strong> If \(\phi\) were known, \((D_A - D_B)/\phi\approx\chi^2_s\). Replacing \(\phi\) with \(\hat\phi = X^2/(n-p)\), itself roughly \(\phi\,\chi^2_{n-p}/(n-p)\), turns "\(\chi^2_s/s\) over an independent \(\chi^2_{n-p}/(n-p)\)" into an \(F_{s,n-p}\) (exactly so for the normal linear model, approximately otherwise: slide 9). Using \(\chi^2_s\) would ignore the uncertainty in \(\hat\phi\), giving p-values that are too small. The F's second df, \(n-p\), is the residual df of the bigger model, because that's where \(\hat\phi\) comes from.</p></div></details>
+
+<details><summary>Explain why (2–3 sentences): why take \(\hat\phi\) from the <em>bigger</em> model B, and why is there no deviance goodness-of-fit test for the gamma?</summary><div>
+<p><strong>Model answer.</strong> Under \(H_0\) both models are correct, but under the alternative only B is. So B's Pearson residuals estimate \(\phi\) without being inflated by the very lack of fit we're testing for. A's \(\hat\phi\) would be biased upward when \(H_0\) is false, which shrinks \(F\) and loses power. For the fit test, \(D/\phi\approx\chi^2_{n-p}\) needs a known \(\phi\). Our only estimate of \(\phi\) comes from the same residuals, so it absorbs any lack of fit as "extra dispersion". Nothing independent is left to judge \(D\) against: \(0.89019/0.01833 = 48.6\) on 42 df tells you nothing (slide 7).</p></div></details>
+
+<div class="box">
+<p><strong>Side by side</strong></p>
+<div class="tablewrap"><table>
+<tr><th></th><th>Poisson</th><th>Gamma</th></tr>
+<tr><td>\(v(\mu)\), \(\phi\)</td><td>\(\mu\); \(\phi=1\)</td><td>\(\mu^2\); \(\phi\) unknown, \(\hat\phi=X^2/(n-p)\)</td></tr>
+<tr><td>Wald column</td><td><code>z value</code></td><td><code>t value</code> (SE includes \(\sqrt{\hat\phi}\))</td></tr>
+<tr><td>Fit test</td><td>\(D\) vs \(\chi^2_{n-p}\) if all \(\lambda_i\gtrsim5\)</td><td>none</td></tr>
+<tr><td>Nested A ⊂ B</td><td>\(D_A-D_B\) vs \(\chi^2_s\)</td><td>\(\frac{(D_A-D_B)/s}{\hat\phi_B}\) vs \(F_{s,n-p}\)</td></tr>
+<tr><td>\(\ell\) from AIC</td><td>\(p - \text{AIC}/2\)</td><td>\((p+1) - \text{AIC}/2\)</td></tr>
+</table></div>
+</div>
+
+<p>Coming in Topic 3: for overdispersed counts, the quasi-Poisson model estimates \(\phi\) just like this, and the exam's F test is exactly this formula.</p>
+
+<h2>5 · Exam-level challenge</h2>
+<p>Do this on paper in about 20 minutes, then open the steps one at a time.</p>
+<div class="box">
+<p>A water utility records the time (hours) to repair 50 burst mains. Predictors: <code>diam</code> (pipe diameter, cm), <code>soil</code> (factor: clay, loam, sand; baseline clay) and <code>depth</code> (m). Repair times are positive and right-skewed, with spread growing with the mean, so a gamma GLM with log link is fitted. (Simulated data.)</p>
+<pre class="rout"><span class="cmd">&gt; model1 &lt;- glm(hours ~ diam + soil + depth, family = Gamma(link = "log"), data = mains)
+&gt; summary(model1)</span>
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)  1.128416   0.272809   4.136 0.000152 ***
+diam         0.025575   0.003715   6.884 1.51e-08 ***
+soilloam    -0.487491   0.164317  -2.967 0.004805 **
+soilsand    -0.158320   0.127691  -1.240 0.221452
+depth       -0.037300   0.108466  -0.344 0.732533
+---
+(Dispersion parameter for Gamma family taken to be 0.1578778)
+
+    Null deviance: 17.2773  on 49  degrees of freedom
+Residual deviance:  7.1464  on 45  degrees of freedom
+AIC: 231.49
+
+<span class="cmd">&gt; model2 &lt;- glm(hours ~ diam + depth, family = Gamma(link = "log"), data = mains)
+&gt; summary(model2)</span>
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)  1.020869   0.297651   3.430  0.00127 **
+diam         0.025233   0.004217   5.984 2.85e-07 ***
+depth       -0.055332   0.123897  -0.447  0.65722
+---
+(Dispersion parameter for Gamma family taken to be 0.2069351)
+
+    Null deviance: 17.277  on 49  degrees of freedom
+Residual deviance:  8.464  on 47  degrees of freedom
+AIC: 236.17
+
+<span class="cmd">&gt; sum(residuals(model1, type = "pearson")^2)</span>
+[1] 7.104503
+<span class="cmd">&gt; predict(model1, newdata = data.frame(diam = 40, soil = "sand", depth = 1.5),
++         type = "link", se.fit = TRUE)</span>
+$fit
+       1
+1.937164
+$se.fit
+[1] 0.08737868
+<span class="cmd">&gt; qf(0.95, df1 = 2, df2 = c(45, 47))</span>
+[1] 3.204317 3.195056</pre>
+<p>(a) What are \(n\) and \(p\) for model1? Show that the printed dispersion 0.1578778 is the Pearson estimate, and say what it implies about the coefficient of variation of repair times.<br>
+(b) Interpret the <code>soilloam</code> coefficient as a multiplicative effect, with a 95% CI.<br>
+(c) Test whether soil type is needed, given diameter and depth. State the statistic, its distribution and df, and your conclusion.<br>
+(d) Explain why the test in (c) is not \(\chi^2\), and why the residual deviance 7.1464 on 45 df cannot be used to check model1's fit.<br>
+(e) Find the maximised log-likelihood of each model. Which model do you prefer? Give two quantitative reasons.<br>
+(f) Predict the mean repair time for a 40 cm main in sandy soil at 1.5 m depth, with a 95% CI. Check \(\hat\eta\) by hand.</p>
+</div>
+
+<details><summary>Step 1: part (a)</summary><div>
+<p>\(n = 49+1 = 50\) and \(p = 50 - 45 = 5\) (intercept, diam, two soil dummies, depth). \(\hat\phi = X^2/(n-p) = 7.104503/45 = 0.157878\), which matches the printout, so R's dispersion line is the Pearson estimate (the deviance version would be \(7.1464/45 = 0.1588\)). Since \(\operatorname{Var}Y = \phi\mu^2\), the CV is \(\sqrt{\hat\phi} = \sqrt{0.1579} = 0.397\): the SD of repair time is about 40% of its mean, whatever the mean.</p></div></details>
+<details><summary>Step 2: part (b)</summary><div>
+<p>\(e^{-0.487491} = 0.614\). CI for \(\beta\): \(-0.487491 \pm 1.96(0.164317) = (-0.8096,\ -0.1654)\), so for the multiplier \(\boxed{(0.445,\ 0.848)}\). Mean repair time in loam is about 61% of that in clay (a 39% reduction), for the same diameter and depth. (Using \(t_{45}(0.975) = 2.01\) instead of 1.96 is also fine, since \(\phi\) is estimated, and it barely changes the answer.)</p></div></details>
+<details><summary>Step 3: part (c)</summary><div>
+<p>model2 is nested in model1 (both soil coefficients set to 0), with \(s = 47 - 45 = 2\).</p>
+$$F = \frac{(8.4640 - 7.1464)/2}{0.1578778} = \frac{0.6588}{0.1579} = 4.17 \;\sim\; F_{2,45}\text{ under }H_0.$$
+<p>\(4.17 &gt; F_{2,45}(0.95) = 3.20\), so reject \(H_0\): soil type matters (R: p = 0.022). Note \(\hat\phi\) is model1's (the bigger model) and the denominator df is 45, model1's residual df.</p></div></details>
+<details><summary>Step 4: part (d)</summary><div>
+<p>\(\phi\) is unknown and replaced by \(\hat\phi\), which has its own sampling error (roughly \(\phi\chi^2_{45}/45\)). The ratio of the scaled deviance difference over \(s\) to \(\hat\phi\) is then approximately \(F_{2,45}\), not \(\chi^2_2/2\). Treating \(\hat\phi\) as known would overstate significance. For fit: \(D/\phi\approx\chi^2_{n-p}\) requires \(\phi\) known. Here \(\hat\phi\) is computed from the same residuals, so any lack of fit is absorbed into \(\hat\phi\) and there is no independent yardstick (GLMs II, slide 7). \(7.1464/0.1579 = 45.3\) on 45 df is close to 45 more or less by construction.</p></div></details>
+<details><summary>Step 5: part (e)</summary><div>
+<p>The gamma AIC counts \(\phi\): model1 has \(5+1 = 6\) parameters, model2 has \(3+1 = 4\). \(\ell_1 = 6 - 231.49/2 = \boxed{-109.75}\), \(\ell_2 = 4 - 236.17/2 = \boxed{-114.09}\).</p>
+<p>Prefer <strong>model1</strong>: (i) the F test in (c) rejects dropping soil (F = 4.17 &gt; 3.20, p = 0.022); (ii) \(\text{AIC}_1 = 231.49 &lt; 236.17 = \text{AIC}_2\). (You might go further and drop <code>depth</code>, since \(t = -0.34\).) Neither soil dummy alone tells the whole story (sand is not significant on its own), which is why the factor is tested as a block on 2 df.</p></div></details>
+<details><summary>Step 6: part (f)</summary><div>
+<p>\(\hat\eta = 1.128416 + 0.025575(40) - 0.158320 - 0.037300(1.5) = 1.128416 + 1.023000 - 0.158320 - 0.055950 = 1.937146\), which matches R's 1.937164 up to rounding. \(\hat\mu = e^{1.937164} = \boxed{6.94\text{ hours}}\). CI: \(1.937164\pm1.96(0.08737868) = (1.7659,\ 2.1084)\), and exponentiating gives \(\boxed{(5.85,\ 8.24)}\) hours. Build the CI on the \(\eta\) scale and transform the endpoints. Don't use \(\hat\mu\pm1.96\,\text{se}\).</p></div></details>
+
+<h2>6 · Before you close this tab</h2>
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) Log link: \(+\Delta\) in \(x_j\) multiplies the mean by \(e^{\beta_j\Delta}\). CI: exponentiate the endpoints. (2) Rate model: \(\log\lambda_i = \log t_i + x_i^T\beta\), with the offset's coefficient fixed at 1, so \(e^{\beta_j}\) are rate ratios. (3) Poisson: \(\phi=1\); GOF \(D\sim\chi^2_{n-p}\) only if \(\lambda_i\gtrsim5\); LRT \(D_A-D_B\sim\chi^2_s\). (4) Gamma: \(v(\mu)=\mu^2\), \(\hat\phi = X^2/(n-p)\) (R's printed dispersion), no GOF test, \(F = \frac{(D_A-D_B)/s}{\hat\phi_B}\sim F_{s,n-p_B}\). (5) \(\ell\) from AIC: \(p\) for the Poisson, \(p+1\) for the gamma.</p>
+<p><em>Quick one:</em> the insurance model without <code>District</code> has \(D = 65.291\) on 57 df and AIC 396.61. LRT? (\(65.291 - 51.42 = 13.87\) on 3 df \(&gt; 7.81\), so keep District; AIC agrees, 388.74 &lt; 396.61.)</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/GLM_2_correct_LMS.pdf#page=3">GLMs II</a>, slides 3–10 (scaled deviance, the Poisson deviance, when the deviance tests fit, the F test when \(\phi\) is estimated, AIC), with <a href="../lectures/GLM_1_LMS-1.pdf#page=16">GLMs I, slides 16–17</a> for \(\hat\phi = X^2/(n-p)\). Then the week 5 tute and its <a href="../tutes/2026_MAST30027_week5_sol.html">solutions</a> (Q1 checks \(\hat\phi\) and the F statistic by hand). For a second explanation, read Faraway, <em>Extending the Linear Model with R</em> (2nd ed.): <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=105">§5.3 rate models</a> (its worked example uses an exam dataset, so read the method and skip the numbers) and <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=192">§9.1 gamma GLM</a> (why \(X^2/(n-p)\) is preferred over \(D/(n-p)\), with a gamma rate model with an offset on p. 179).</p>
+
+<p><strong>Homework</strong> (by hand, no R needed):</p>
+<ol>
+  <li><strong>Week 4 tutorial, Q2</strong> (<code>discoveries</code>), printout version. Use the three printouts in section 1, plus this one:
+<pre class="rout"><span class="cmd">&gt; predict(model2, newdata = data.frame(year = 1900), type = "link", se.fit = TRUE)</span>
+$fit
+       1
+1.444545
+$se.fit
+[1] 0.07654625</pre>
+(a) Do all three LRTs: null vs <code>year</code>, null vs <code>year + year²</code>, and <code>year</code> vs <code>year + year²</code> (df and 5% critical value for each). Has the discovery rate stayed constant? (b) Find \(\ell\) for <code>m0</code>, <code>model1</code> and <code>model2</code> from their AICs, then \(\ell_{\text{sat}}\) from each. Do they agree? (c) Give the expected number of discoveries in 1900 with a 95% CI. (d) Can <code>m0</code>'s deviance (164.68 on 99 df) test "constant rate"? Explain in two sentences.</li>
+  <li><strong>Week 5 tutorial, Q1</strong> (<code>cornnit</code>), printout version of the tute's own identity-link fit:
+<pre class="rout"><span class="cmd">&gt; gmod3 &lt;- glm(yield ~ log(nitrogen + 1), data = cornnit, family = Gamma(link = "identity"))
+&gt; summary(gmod3)</span>
+                  Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)         88.875      3.571   24.89  &lt; 2e-16 ***
+log(nitrogen + 1)   10.337      1.009   10.24 5.46e-13 ***
+
+(Dispersion parameter for Gamma family taken to be 0.01810187)
+
+    Null deviance: 2.40614  on 43  degrees of freedom
+Residual deviance: 0.87603  on 42  degrees of freedom
+AIC: 381.71
+
+<span class="cmd">&gt; anova(gmod3, test = "F")</span>
+                  Df Deviance Resid. Df Resid. Dev      F    Pr(&gt;F)
+NULL                                 43    2.40614
+log(nitrogen + 1)  1   1.5301        42    0.87603 84.528 1.297e-11 ***</pre>
+(a) What would <code>sum(residuals(gmod3, "pearson")^2)/42</code> print, and why? (b) Check the F statistic 84.528 from the summary alone. (c) Interpret the slope 10.337. How does an identity-link slope differ from gA's 0.090801? (d) Find \(\ell\) for gmod3, and use AIC to choose between gmod3 and gA (they aren't nested). (e) Square the slope's t value and compare it with the F statistic 84.53. Why aren't they equal?</li>
+  <li><strong>Faraway, <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=118">Ch. 5</a> Ex. 7(d)–(e)</strong> (<code>esdcomp</code>: complaints against 44 emergency doctors), printout version:
+<pre class="rout"><span class="cmd">&gt; pm &lt;- glm(complaints ~ offset(log(visits)) + residency + gender + revenue + hours,
++           family = poisson, data = esdcomp)</span>
+              Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) -8.1202460  0.8502806  -9.550   &lt;2e-16 ***
+residencyY  -0.2090058  0.2011520  -1.039   0.2988
+genderM      0.1954338  0.2181525   0.896   0.3703
+revenue      0.0015761  0.0028294   0.557   0.5775
+hours        0.0007019  0.0003505   2.002   0.0452 *
+
+    Null deviance: 63.435  on 43  degrees of freedom
+Residual deviance: 54.518  on 39  degrees of freedom
+AIC: 187.3
+
+<span class="cmd">&gt; pm2 &lt;- glm(complaints ~ offset(log(visits)) + hours, family = poisson, data = esdcomp)</span>
+              Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) -7.7422837  0.5083727 -15.230   &lt;2e-16 ***
+hours        0.0007728  0.0003252   2.376   0.0175 *
+
+    Null deviance: 63.435  on 43  degrees of freedom
+Residual deviance: 57.347  on 42  degrees of freedom
+AIC: 184.13
+
+<span class="cmd">&gt; qchisq(0.95, df = c(3, 39)); sum(fitted(pm) &lt; 5)</span>
+[1]  7.814728 54.572228
+[1] 37</pre>
+(a) What is being modelled, and what does the offset do? (b) Interpret the <code>hours</code> coefficient of <code>pm2</code> per 100 extra hours worked. (c) Test <code>pm2</code> against <code>pm</code>, and compare AICs. (d) Does <code>pm</code> fit? Mind the last line. (e) Predict the expected complaints for a doctor with 2000 visits and 1500 hours under <code>pm2</code>.</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1(a). \(164.68 - 157.32 = 7.36\) on 1 df (&gt; 3.84, p = 0.0067); \(164.68 - 132.84 = 31.84\) on 2 df (&gt; 5.99, p ≈ \(1.2\times10^{-7}\)); \(157.32 - 132.84 = 24.48\) on 1 df (&gt; 3.84). The rate is not constant: it rises and then falls. (b) \(\ell_0 = 1 - 435.69/2 = -216.85\), \(\ell_1 = 2 - 430.32/2 = -213.16\), \(\ell_2 = 3 - 407.85/2 = -200.93\). Adding \(D/2\) gives \(\ell_{\text{sat}} = -134.5\) all three times ✓. (c) \(e^{1.444545} = 4.24\), CI \(e^{1.444545\pm1.96(0.07655)} = (3.65,\ 4.93)\). (d) Not reliably: \(\hat\mu = 3.1 &lt; 5\) for every year, so \(D\not\approx\chi^2_{99}\). Use the LRTs in (a) instead.</p>
+<p>2(a). About 0.01810 (R gives 0.01810169): Pearson \(X^2/(n-p)\) is what R prints as the dispersion. The 7th-digit difference from 0.01810187 is because <code>summary</code> uses the working weights from the last IWLS iteration. (b) \((2.40614 - 0.87603)/1 \,/\, 0.01810187 = 84.53\) ✓ on (1, 42) df, far above 4.07. (c) With an identity link the effect is additive: each unit increase in \(\log(N+1)\) adds 10.3 bushels/acre to the mean yield. gA's slope multiplies the mean: \(e^{0.0908} = 1.095\) per unit of \(\log(N+1)\). (d) \(\ell = (2+1) - 381.71/2 = -187.86\), versus gA's −188.21. AIC: \(381.71 &lt; 382.42\), so identity is slightly preferred, though the difference is tiny. Same response and same family, so the AICs are comparable. (e) \(t^2 = 10.24^2 = 104.9\), not 84.5. The Wald \(t^2\) uses the curvature of \(\ell\) at \(\hat\beta\), while F uses the drop in deviance: two different approximations that agree only asymptotically (like \(z^2\) vs the LRT in Lesson 3). Both reject overwhelmingly.</p>
+<p>3(a). The complaint <em>rate per visit</em>; \(\log(\text{visits})\) with coefficient 1 makes doctors with more visits expect proportionally more complaints. (b) \(e^{100(0.0007728)} = 1.080\): about 8% more complaints per visit for each extra 100 hours. (c) \(57.347 - 54.518 = 2.83\) on 3 df &lt; 7.81, so drop residency, gender and revenue. AIC: \(184.13 &lt; 187.3\) agrees. (d) \(D = 54.52\) is just under 54.57, but 37 of 44 fitted counts are below 5, so the \(\chi^2_{39}\) approximation is unreliable: no fit conclusion either way. (e) \(\hat\eta = -7.74228 + 0.0007728(1500) + \log 2000 = 1.0178\), so \(\hat\mu = 2.77\) complaints.</p></div></details>
+<p><strong>Spacing:</strong> tomorrow, without looking, redo Q6, Q9 and Step 3 of the challenge.</p>
+
+<div class="ask">💬 Ask me in the terminal if any line of these printouts is still a mystery (the offset, the <code>t value</code> column, the gamma AIC), or if you want another gamma or rate-model set to practise on. I'm your teacher for this. Paste your challenge answers and I'll mark them the way an exam marker would.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0006-glm-likelihood-iwls.html">Lesson 6, GLM likelihood and IWLS</a> · Reference: <a href="../reference/glm-cheatsheet.html">GLM cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0008-glm-diagnostics.html">Lesson 8, GLM diagnostics</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

@@ -1,0 +1,159 @@
+---
+title: "MAST30027: Binomial Regression"
+subtitle: "Week 2"
+date: ""
+
+format:
+  html:
+    self-contained: true
+    css: CSSBackground.css
+    html-math-method: mathml
+resources:
+  - ../images/Banner.png
+---
+
+**Objectives of the Tutorial/Lab**
+By the end of this tutorial, you should be able to:
+
+- Fit binomial regression models in R.
+- Perform model selection using AIC and interpret the final model.
+- Construct confidence intervals for model parameters and predictions: use the link functions and asymptotic properties of maximum likelihood estimators (MLEs).
+
+## Question 1
+
+The dataset `wbca` comes from a study of breast cancer in Wisconsin.
+There are $681$ cases of potentially cancerous tumors of which $238$ are actually malignant.
+Determining whether a tumor is really malignant is traditionally determined by an
+invasive surgical procedure.
+The purpose of this study was to determine whether a new procedure called fine needle aspiration, which draws only a small sample of tissue, could be effective in determining tumor status.
+
+:::: {.subquestions}
+::: {.subquestion}
+Load the data and read descriptions of the variables using
+
+```r
+library(faraway)
+data(wbca)
+?wbca
+```
+
+```{r, echo=FALSE}
+library(faraway)
+data(wbca)
+```
+
+
+:::
+
+::: {.subquestion}
+Fit a binary regression model (logistic regression in this case) using `glm`.
+Include all the variables in your model (shorthand for this in an R model is `~ .`).
+
+```{r}
+
+```
+
+
+:::
+
+::: {.subquestion}
+Use the `step` function to search for a model with minimal AIC.
+Include all variables in the `scope` (type `?step` to see how to use `step`).
+
+You should end up with the model `cbind(Class, 1 - Class) ~ Adhes + BNucl + Chrom + Mitos + NNucl + Thick + UShap`.
+
+```{r}
+
+```
+
+
+:::
+
+::: {.subquestion}
+Using the reduced model, use `predict` to estimate the outcome for a new patient with predictors 1, 1, 3, 1, 1, 4, 1.
+You will need to put `newdata = list(Adhes=1, BNucl=1, Chrom=3, Mitos=1, NNucl=1, Thick=4, UShap=1)` and `type="response"`.
+
+To get a 95% CI for your estimate, use `predict` with `type="link"` and `se.fit=TRUE`, to obtain the estimate and its standard error **on the linear scale**.
+Use these to get a symmetric CI on the linear scale, which you can then transform back to the response scale.
+
+```{r}
+
+```
+
+
+
+:::
+
+::: {.subquestion}
+Suppose that a cancer is classified as benign if $p\geq 0.5$ and malignant if $p<0.5$.
+Compute the number of errors of both types that will be made if this method is
+applied to the current data with the reduced model.
+
+```{r}
+
+```
+
+
+
+:::
+
+::: {.subquestion}
+Suppose we change the cutoff to 0.9 so that $p<0.9$ is classified as malignant and
+$p\geq 0.9$ as benign.
+Compute the number of errors in this case.
+
+Consider how you might determine the cutoff in practice.
+
+:::
+::::
+
+## Question 2
+
+The National Institute of Diabetes and Digestive and Kidney Diseases conducted a study on 768 adult female Pima Indians living near Phoenix.
+The purpose of the study was to investigate factors related to diabetes.
+The data may be found in the the dataset `pima`. Read the help file (`?pima`) to get a description of the predictor and response variables. There are missing observations for many variables, which have been recorded as zeros.
+The easiest (not necessarily the best) way to deal with these is to remove the relevant observations from the data set.
+
+```{r, echo=FALSE}
+data(pima)
+```
+
+```{r}
+missing <- with(pima, missing <- glucose==0 | diastolic==0 | triceps==0 | bmi == 0)
+pima <- pima[!missing,]
+```
+
+:::: {.subquestions}
+::: {.subquestion}
+Fit a model with `test` as the response and all the other variables as predictors.
+
+```{r}
+
+```
+
+
+:::
+
+::: {.subquestion}
+Do women who test positive have higher diastolic blood pressures? Is the diastolic
+blood pressure significant in the regression model? Explain the distinction between
+the two questions and discuss why the answers are only apparently contradictory.
+
+```{r}
+
+```
+
+
+:::
+
+::: {.subquestion}
+Predict the outcome for a woman with predictor values `pregnant=1, glucose=99, diastolic=64, triceps=22, insulin=76, bmi=27, diabetes=0.25, age=25`. Give a confidence interval for your prediction.
+
+```{r}
+
+```
+
+
+:::
+::::
+

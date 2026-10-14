@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Euler Complex Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 3 · Quiz Q6 · Full written solution</div>
+<h1>Quiz Q6, written out as an exam answer</h1>
+<p class="lede">The quiz only asked you to pick the answer. An exam asks you to derive it and prove the solutions are independent. Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>Consider $\;t^2y'' + t\,y' + 9y = 0,\quad t&gt;0.$</p>
+<p>(a) By trying solutions of the form $y = t^n$, find two real-valued solutions.</p>
+<p>(b) Show that they form a fundamental set of solutions on $(0,\infty)$, and write down the general solution.</p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>1 · Trial solution</h2>
+
+<div class="script">
+<p>Let $y = t^n$, so $y' = n\,t^{n-1}$ and $y'' = n(n-1)\,t^{n-2}$. Substituting:</p>
+$$t^2\cdot n(n-1)\,t^{n-2} + t\cdot n\,t^{n-1} + 9\,t^n = \big(n(n-1) + n + 9\big)\,t^n = 0.$$
+<p>Since $t^n \neq 0$ for $t&gt;0$, the indicial equation is</p>
+$$n(n-1) + n + 9 = n^2 + 9 = 0 \quad\Longrightarrow\quad n = \pm 3i.$$
+</div>
+<p class="note">Show the substitution line, even though you've memorised $an(n-1)+bn+c$. "By trying solutions of the form $t^n$" means the marker wants to see the trial. Write $n(n-1)$ first, then simplify. Jumping straight to $n^2+9$ looks like the $n^2+bn+c$ slip, even when it's right.</p>
+
+<h2>2 · Complex solution to real solutions</h2>
+
+<div class="script">
+<p>For $t&gt;0$, $\;t^{3i} = e^{3i\ln t} = \cos(3\ln t) + i\sin(3\ln t)$ is a complex-valued solution.</p>
+<p>The ODE is linear with real coefficients, so if $u + iv$ is a solution then substituting gives $L[u] + i\,L[v] = 0$, and both $L[u] = 0$ and $L[v] = 0$. Hence the real and imaginary parts are solutions:</p>
+$$y_1 = \cos(3\ln t), \qquad y_2 = \sin(3\ln t).$$
+</div>
+<p class="note">The root $n = -3i$ gives the complex conjugate, $\cos(3\ln t) - i\sin(3\ln t)$, so it adds nothing new. $\alpha = 0$ here, so there's no $t^\alpha$ factor in front. Writing $\cos 3t$ is the classic slip: that's the constant-coefficient answer.</p>
+
+<h2>3 · Verify one solution (if time allows)</h2>
+
+<div class="script">
+<p>For $y_1 = \cos(3\ln t)$, by the chain rule:</p>
+$$y_1' = -\frac{3}{t}\sin(3\ln t), \qquad y_1'' = \frac{3}{t^2}\sin(3\ln t) - \frac{9}{t^2}\cos(3\ln t).$$
+$$t^2y_1'' + t\,y_1' + 9y_1 = \big(3\sin - 9\cos\big) - 3\sin + 9\cos = 0 \;✓$$
+</div>
+<p class="note">Not required, because §2 already proved it. Do it if the derivation felt shaky. Note that $y_1''$ needs the product rule on $-\tfrac3t\cdot\sin(3\ln t)$. You also need $y_1'$ and $y_2'$ for the Wronskian next, so none of this is wasted.</p>
+
+<h2>4 · Standard form and interval</h2>
+
+<div class="script">
+<p>Dividing by $t^2$ (valid since $t&gt;0$):</p>
+$$y'' + \frac1t\,y' + \frac{9}{t^2}\,y = 0.$$
+<p>The coefficients $\tfrac1t$ and $\tfrac{9}{t^2}$ are continuous on $(0,\infty)$.</p>
+</div>
+<p class="note">This line is what lets you say "never zero on $(0,\infty)$" and "general solution" with confidence. It's also the setup for the Abel check in §6.</p>
+
+<h2>5 · Wronskian</h2>
+
+<div class="script">
+<p>With $y_1' = -\tfrac3t\sin(3\ln t)$ and $y_2' = \tfrac3t\cos(3\ln t)$:</p>
+$$\begin{aligned}
+\operatorname{wr}[y_1,y_2](t) &= \begin{vmatrix} \cos(3\ln t) & \sin(3\ln t) \\[2pt] -\tfrac3t\sin(3\ln t) & \tfrac3t\cos(3\ln t) \end{vmatrix} \\[4pt]
+&= \frac3t\cos^2(3\ln t) + \frac3t\sin^2(3\ln t) \\[4pt]
+&= \frac3t.
+\end{aligned}$$
+<p>Since $\operatorname{wr} = \dfrac3t \neq 0$ for all $t&gt;0$, $\;y_1$ and $y_2$ are linearly independent solutions on $(0,\infty)$. A second-order linear ODE has a two-dimensional solution space, so they form a fundamental set.</p>
+</div>
+<p class="note">The last two sentences carry the marks. "$\neq 0$, therefore independent, therefore fundamental set" has to be written out, not left implied. Watch the sign: it's $y_1y_2' - y_1'y_2$, and $-y_1'y_2 = +\tfrac3t\sin^2$, which is what lets $\cos^2+\sin^2 = 1$ kick in.</p>
+
+<h2>6 · Abel check (scratch work)</h2>
+
+<div class="script">
+<p>From the standard form, $f_1 = \tfrac1t$, so by Abel's identity $\operatorname{wr} = C\,e^{-\int 1/t\,dt} = \dfrac{C}{t}$. This agrees with $\operatorname{wr} = \dfrac3t$, with $C = 3$ ✓.</p>
+</div>
+<p class="note">Optional on the paper, but do it in the margin. Abel tells you the shape $C/t$ in five seconds. If your determinant came out as anything else, like $\tfrac3t\cos(6\ln t)$ from a sign slip, you'd know to recheck. Here $C = 3$ is fixed because we picked this particular pair of solutions.</p>
+
+<h2>7 · General solution</h2>
+
+<div class="script">
+$$\boxed{\,y = C_1\cos(3\ln t) + C_2\sin(3\ln t), \qquad t&gt;0,\,}$$
+<p>where $C_1, C_2$ are arbitrary real constants.</p>
+</div>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+The $t^n$ substitution · the indicial equation with $n(n-1)$ visible · $n = \pm3i$ · $t^{3i} = e^{3i\ln t}$ with Euler's formula · why the real and imaginary parts are solutions · the Wronskian determinant · "$\neq 0$, so independent, so fundamental set" · the boxed answer with $t&gt;0$.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0003-wronskian-abel-euler.html">Lesson 3, quiz Q6</a></span>
+  <span>Reference: <a href="topic1-cheatsheet.html">Topic 1 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

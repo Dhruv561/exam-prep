@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MLE and Fisher Information</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 1 · Topic 1: Binomial regression &amp; likelihood</div>
+<h1>From log-likelihood to the MLE's asymptotic distribution</h1>
+<p class="lede">The goal: given a one-parameter density and an iid sample, write the log-likelihood, find the MLE, compute the Fisher information, and state the MLE's approximate distribution, all by hand in about ten minutes.</p>
+
+<div class="mission">Why this matters for 10 Nov: every past paper from 2017 to 2022 opens with exactly this four-part question, for 7–10 marks. It's also what Binomial Regression I is built on: the Wald confidence intervals and tests for logistic regression in the next lessons are this recipe with more parameters.</div>
+
+<h2>1 · Likelihood in one paragraph</h2>
+<p>Suppose \(X_1,\dots,X_n\) are independent, each with density (or mass function) \(f(x;\theta)\), and \(\theta\) is unknown. Once you've seen the data, read the joint density as a function of \(\theta\). That's the <strong>likelihood</strong> \(L(\theta)=\prod_i f(x_i;\theta)\). Logs turn the product into a sum, which is much easier to differentiate:</p>
+$$\ell(\theta) = \log L(\theta) = \sum_{i=1}^n \log f(x_i;\theta).$$
+<p>The <strong>maximum likelihood estimate</strong> \(\hat\theta\) is the \(\theta\) that maximises \(\ell\): the parameter value under which the data you actually saw are most probable (<a href="../lectures/BinReg_1_LMS.pdf">Binomial Regression I, slide 27</a>). Terms in \(\ell\) that don't involve \(\theta\) can be dropped or written as a constant \(c\).</p>
+
+<h2>2 · The four-step recipe</h2>
+<ol class="steps">
+  <li><strong>Log-likelihood.</strong> Write \(\log f(x_i;\theta)\), simplify with log rules, then sum over \(i\). Collect data into sums like \(\sum x_i\), \(\sum x_i^2\), \(\sum\log x_i\).</li>
+  <li><strong>MLE.</strong> Solve the score equation \(\ell'(\theta)=0\) for \(\theta\), then confirm \(\ell''(\hat\theta)&lt;0\), so it's a maximum.</li>
+  <li><strong>Information.</strong> The <em>observed information</em> is \(J(\theta) = -\ell''(\theta)\), and it depends on the data. The <em>Fisher information</em> is its expectation, \(\mathcal I(\theta) = \mathbb E\,[J(\theta;X)]\): replace each data sum by its expected value (e.g. \(\sum X_i \to n\,\mathbb E X\)) (slides 31–32).</li>
+  <li><strong>Asymptotic distribution.</strong> For large \(n\),
+  $$\hat\theta \;\overset{d}{\approx}\; N\!\big(\theta,\ \mathcal I(\theta)^{-1}\big)$$
+  (slide 35). In practice you plug in \(\hat\theta\) to estimate the variance. That gives the <strong>Wald interval</strong> \(\hat\theta \pm z_{\alpha}\sqrt{\mathcal I(\hat\theta)^{-1}}\), with \(z = 1.96\) for 95% (slide 38).</li>
+</ol>
+
+<div class="trap"><strong>Course convention</strong><br>In MAST30027, \(\mathcal I(\theta)\) is the information in the <em>whole sample</em>: it already contains the \(n\). So the variance is just \(1/\mathcal I(\theta)\). Many textbooks (e.g. <a href="https://ocw.mit.edu/courses/18-650-statistics-for-applications-fall-2016/resources/lecture-3-maximum-likelihood-estimation/">MIT 18.650</a>) define a per-observation \(I_1(\theta)\) and write \(\sqrt n(\hat\theta-\theta)\to N(0, 1/I_1)\). It's the same result, because \(\mathcal I = nI_1\). Don't divide by \(n\) twice.</div>
+
+<h3>Worked example</h3>
+<p>Let \(X_1,\dots,X_n\) be iid with density \(f(x;\theta)=\dfrac{x}{\theta}\,e^{-x^2/(2\theta)}\) for \(x&gt;0\), where \(\theta&gt;0\). You may use \(\mathbb E X^2 = 2\theta\).</p>
+<div class="box">
+<p><strong>1.</strong> \(\log f = \log x - \log\theta - \dfrac{x^2}{2\theta}\), so \(\ell(\theta) = c - n\log\theta - \dfrac{1}{2\theta}\sum x_i^2\).</p>
+<p><strong>2.</strong> \(\ell'(\theta) = -\dfrac{n}{\theta} + \dfrac{1}{2\theta^2}\sum x_i^2 = 0 \;\Rightarrow\; \boxed{\hat\theta = \dfrac{1}{2n}\sum x_i^2}\).</p>
+<p><strong>3.</strong> \(\ell''(\theta) = \dfrac{n}{\theta^2} - \dfrac{1}{\theta^3}\sum x_i^2\). This has data in it, so take the expectation: \(\mathbb E\sum X_i^2 = 2n\theta\), giving
+$$\mathcal I(\theta) = -\frac{n}{\theta^2} + \frac{2n\theta}{\theta^3} = \frac{n}{\theta^2}.$$</p>
+<p><strong>4.</strong> \(\hat\theta \overset{d}{\approx} N\!\big(\theta,\ \theta^2/n\big)\).</p>
+<p><em>Check the maximum:</em> \(\ell''(\hat\theta) = \dfrac{n}{\hat\theta^2} - \dfrac{2n\hat\theta}{\hat\theta^3} = -\dfrac{n}{\hat\theta^2} &lt; 0\) ✓. <em>Numbers:</em> with \(n=25\) and \(\sum x_i^2=200\), \(\hat\theta = 4\) and the standard error is \(4/5 = 0.8\).</p>
+</div>
+
+<h2>3 · The variations exams use</h2>
+<ul>
+  <li><strong>\(\ell''\) has no data in it.</strong> Then \(J=\mathcal I\) and there's no expectation to take. Say so in one line, because it earns the mark.</li>
+  <li><strong>\(\ell''\) has data in it</strong> (as above). You need \(\mathbb E X\) or \(\mathbb E X^2\). Exams either give the mean or expect you to know it for standard distributions.</li>
+  <li><strong>An unusual parametrisation:</strong> rate vs mean (\(1/\lambda\)), variance vs precision \(\tau = 1/\sigma^2\), or a known mean that isn't 0. Work in <em>the parameter they name</em>. The MLE changes by plugging in (<em>invariance</em>: the MLE of \(g(\theta)\) is \(g(\hat\theta)\)), but the information doesn't just plug in. Redo step 3 in the new parameter.</li>
+  <li><strong>Discrete data</strong> (geometric, binomial): exactly the same recipe, with the pmf in place of the pdf.</li>
+</ul>
+
+<h2>4 · Practice</h2>
+<p>Use paper. Questions 1–4 share one model: \(X_1,\dots,X_n\) iid <strong>geometric</strong>, counting failures before the first success,
+\(P(X=x) = p(1-p)^x\) for \(x=0,1,2,\dots\), with \(\mathbb E X = (1-p)/p\).</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> The log-likelihood \(\ell(p)\) is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(n\log p + \log(1-p)\)</button>
+    <button class="opt" data-key="b">\(n\log p + \textstyle\sum x_i\log(1-p)\)</button>
+    <button class="opt" data-key="c">\(\textstyle\sum x_i\log p + n\log(1-p)\)</button>
+    <button class="opt" data-key="d">\(\log p + \textstyle\sum x_i\log(1-p)\)</button>
+  </div>
+  <div class="why">\(\log f(x_i) = \log p + x_i\log(1-p)\). Summing gives \(n\log p\) (one per observation) plus \(\log(1-p)\sum x_i\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> The MLE is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\hat p = 1/(1+\bar x)\)</button>
+    <button class="opt" data-key="b">\(\hat p = 1/\bar x\phantom{(1+)}\)</button>
+    <button class="opt" data-key="c">\(\hat p = \bar x/(1+\bar x)\)</button>
+    <button class="opt" data-key="d">\(\hat p = 1 - 1/\bar x\phantom{()}\)</button>
+  </div>
+  <div class="why">\(\ell' = \dfrac{n}{p} - \dfrac{\sum x_i}{1-p} = 0 \Rightarrow n(1-p) = p\sum x_i \Rightarrow p = \dfrac{n}{n+\sum x_i} = \dfrac{1}{1+\bar x}\). It's also what invariance suggests: the sample mean estimates \(\mathbb E X = (1-p)/p\).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>3.</strong> The Fisher information \(\mathcal I(p)\) is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(n/\big(p(1-p)\big)\phantom{^2}\)</button>
+    <button class="opt" data-key="b">\(n/p^2\phantom{(1-p)}\)</button>
+    <button class="opt" data-key="c">\(n/\big(p^2(1-p)\big)\)</button>
+    <button class="opt" data-key="d">\(n(1-p)/p^2\phantom{()}\)</button>
+  </div>
+  <div class="why">\(\ell'' = -\dfrac{n}{p^2} - \dfrac{\sum x_i}{(1-p)^2}\). Then \(\mathbb E\sum X_i = n(1-p)/p\), so
+  \(\mathcal I = \dfrac{n}{p^2} + \dfrac{n}{p(1-p)} = \dfrac{n\big[(1-p)+p\big]}{p^2(1-p)} = \dfrac{n}{p^2(1-p)}\). Option (b) is what you get if you forget the second term.</div>
+</div>
+
+<div class="quiz num" data-answer="0.0306" data-tol="0.0006">
+  <p class="q"><strong>4.</strong> With \(n = 50\) and \(\sum x_i = 150\), what is the estimated standard error of \(\hat p\) (to 4 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\hat p = 1/(1+3) = 0.25\). The variance is \(\mathcal I(\hat p)^{-1} = \hat p^2(1-\hat p)/n = 0.0625\times0.75/50 = 0.0009375\), so the SE is <strong>0.0306</strong>. The 95% Wald interval is \(0.25 \pm 1.96\times0.0306 = (0.190,\ 0.310)\).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>5.</strong> For iid \(X_i\) with \(f(x;\theta) = \theta x^{\theta-1}\) on \(0&lt;x&lt;1\), why is no expectation needed to get \(\mathcal I(\theta)\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Because the MLE has a closed form here</button>
+    <button class="opt" data-key="b">Because the support does not depend on θ</button>
+    <button class="opt" data-key="c">Because the log-likelihood is linear in θ</button>
+    <button class="opt" data-key="d">Because the second derivative has no data</button>
+  </div>
+  <div class="why">\(\ell = n\log\theta + (\theta-1)\sum\log x_i\), so \(\ell'' = -n/\theta^2\), which contains no \(x_i\). That means \(J = \mathcal I = n/\theta^2\). (A support that doesn't depend on θ is a regularity condition for the asymptotics, not the reason here.)</div>
+</div>
+
+<div class="quiz num" data-answer="2.62" data-tol="0.005">
+  <p class="q"><strong>6.</strong> Same model, with \(n = 40\) and \(\sum\log x_i = -20\). What is the <em>upper</em> end of the 95% Wald interval for \(\theta\) (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\hat\theta = -n/\sum\log x_i = 2\). The SE is \(\sqrt{\hat\theta^2/n} = 2/\sqrt{40} = 0.316\), so the interval is \(2 \pm 1.96(0.316) = (1.38,\ \)<strong>2.62</strong>\()\).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>7.</strong> A single observation \(Y\sim\text{Bin}(m,p)\), with \(m\) known. Its Fisher information for \(p\) is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(m\,p(1-p)\)</button>
+    <button class="opt" data-key="b">\(m/\big(p(1-p)\big)\)</button>
+    <button class="opt" data-key="c">\(1/\big(p(1-p)\big)\)</button>
+    <button class="opt" data-key="d">\(m/p^2\phantom{(1-)}\)</button>
+  </div>
+  <div class="why">\(\ell = c + y\log p + (m-y)\log(1-p)\), so \(\ell'' = -\dfrac{y}{p^2} - \dfrac{m-y}{(1-p)^2}\). With \(\mathbb E Y = mp\), \(\mathcal I = \dfrac{m}{p} + \dfrac{m}{1-p} = \dfrac{m}{p(1-p)}\). Option (a) is the <em>variance</em> of \(Y\), and it's the information for the logit \(\eta\) instead of \(p\). See the challenge.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>8.</strong> In this course, if \(\mathcal I(\theta) = 3n/\theta^2\), then \(\operatorname{Var}(\hat\theta)\) is approximately…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\theta^2/(3n^2)\)</button>
+    <button class="opt" data-key="b">\(3n/\theta^2\phantom{()}\)</button>
+    <button class="opt" data-key="c">\(\theta^2/(3n)\phantom{^2}\)</button>
+    <button class="opt" data-key="d">\(\theta^2/3\phantom{(n)^2}\)</button>
+  </div>
+  <div class="why">The course's \(\mathcal I\) already includes \(n\), so the variance is just \(1/\mathcal I\). Option (a) divides by \(n\) twice, the mix-up between conventions from the box above.</div>
+</div>
+
+<h2>5 · Exam-level challenge</h2>
+<p>This is the bridge to binomial regression. Solve it on paper, then open the steps one at a time.</p>
+<div class="box">
+<p>Seeds are planted in \(k\) trays. Tray \(i\) has \(m_i\) seeds (known), and \(Y_i\sim\text{Bin}(m_i,p)\) germinate, independently across trays.</p>
+<p>(a) Write \(\ell(p)\), find \(\hat p\), and find \(\mathcal I(p)\).<br>
+(b) With 20 trays of 10 seeds and 140 germinated in total, give a 95% Wald CI for \(p\).<br>
+(c) Now write the model in terms of the <strong>logit</strong> \(\eta = \log\dfrac{p}{1-p}\), so \(p = \dfrac{e^\eta}{1+e^\eta}\). Find \(\hat\eta\) and \(\mathcal I(\eta)\), build a 95% CI for \(\eta\), and transform it into a CI for \(p\).</p>
+</div>
+
+<details><summary>Step 1: part (a)</summary><div>
+<p>\(\ell(p) = c + \sum y_i\log p + \sum(m_i-y_i)\log(1-p)\). Setting \(\ell'=0\) gives \(\hat p = \sum y_i/\sum m_i\), the pooled proportion. As in Q7, \(\mathcal I(p) = \dfrac{\sum m_i}{p(1-p)}\).</p></div></details>
+<details><summary>Step 2: part (b)</summary><div>
+<p>\(\hat p = 140/200 = 0.7\). The SE is \(\sqrt{0.7\times0.3/200} = 0.0324\), so the CI is \(0.7 \pm 0.0635 = \boxed{(0.636,\ 0.764)}\).</p></div></details>
+<details><summary>Step 3: part (c), the likelihood in η</summary><div>
+<p>Use \(\log p - \log(1-p) = \eta\) and \(\log(1-p) = -\log(1+e^\eta)\), the same trick as <a href="../lectures/BinReg_1_LMS.pdf">slide 14</a>:
+$$\ell(\eta) = c + \eta\sum y_i - \sum m_i\,\log(1+e^\eta).$$
+Then \(\ell'(\eta) = \sum y_i - \sum m_i\,p = 0\), so \(\hat p = 0.7\) as before and \(\hat\eta = \log(0.7/0.3) = 0.847\) (invariance). Differentiating again, \(\ell''(\eta) = -\sum m_i\,p(1-p)\). That has no data, so \(\mathcal I(\eta) = \sum m_i\,p(1-p) = 200(0.21) = 42\).</p></div></details>
+<details><summary>Step 4: CI for η, then for p</summary><div>
+<p>The SE is \(1/\sqrt{42} = 0.154\), so the CI for \(\eta\) is \(0.847 \pm 0.302 = (0.545,\ 1.150)\). Apply \(p = e^\eta/(1+e^\eta)\) to each end: \(\boxed{(0.633,\ 0.759)}\).</p>
+<p>Notice it's <em>not</em> symmetric about 0.7, and it can never leave \([0,1]\). The interval from (b) could, if \(p\) were near 0 or 1. That's why the lecture builds CIs on the \(\eta\) scale and transforms back (<a href="../lectures/BinReg_1_LMS.pdf">slide 40</a>). It's also your first logistic regression: one with only an intercept, \(\eta = \beta_0\). Compare \(\mathcal I(\eta) = \sum m_i p(1-p)\) with the top-left entry of \(\mathcal I(\beta)\) on slide 34.</p></div></details>
+
+<h2>6 · Before you close this tab</h2>
+<details><summary>Retrieval: write the four steps and the asymptotic result from memory</summary><div>
+<p>(1) \(\ell = \sum\log f(x_i;\theta)\). (2) Solve \(\ell'=0\) and check \(\ell''&lt;0\). (3) \(J = -\ell''\) and \(\mathcal I = \mathbb E J\) (replace data sums by expectations). (4) \(\hat\theta\approx N(\theta, \mathcal I(\theta)^{-1})\), Wald CI \(\hat\theta\pm1.96/\sqrt{\mathcal I(\hat\theta)}\).</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../annotated-slides/1_GLM_intro%20annotated.pdf">GLM intro (annotated)</a>, then <a href="../lectures/BinReg_1_LMS.pdf">Binomial Regression I</a>, slides 26–38, which is exactly this lesson in the course's notation. For a second explanation in the course's convention (information of the whole sample), read Faraway, <em>Extending the Linear Model with R</em>, <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=391">Appendix A.1</a> (pp. 375–378: likelihood, score, Fisher information, \(\widehat{\text{var}}(\hat\theta)=\mathcal I^{-1}(\hat\theta)\), worked on the binomial). Or see <a href="https://ocw.mit.edu/courses/18-650-statistics-for-applications-fall-2016/resources/lecture-3-maximum-likelihood-estimation/">MIT 18.650 Lecture 3 (MLE)</a>. Mind the per-observation convention there.</p>
+<p><strong>Homework:</strong> run the full four-step recipe on each of these (answers below, so try first):</p>
+<ol>
+  <li>\(X_i\) iid Bernoulli(\(p\)).</li>
+  <li>\(X_i\) iid \(N(\mu, 4)\), variance known.</li>
+  <li>\(X_i\) iid with \(f(x;\beta) = \beta^2 x e^{-\beta x}\), \(x&gt;0\). Also give the MLE of the mean \(2/\beta\).</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1. \(\hat p = \bar x\), \(\mathcal I = n/(p(1-p))\), \(\hat p\approx N(p, p(1-p)/n)\). This needs the expectation, as in Q7 with \(m=1\).<br>
+2. \(\hat\mu = \bar x\), \(\mathcal I = n/4\) (no data in \(\ell''\)), \(\hat\mu \approx N(\mu, 4/n)\). Here it's exact, not just approximate.<br>
+3. \(\ell = c + 2n\log\beta - \beta\sum x_i\), \(\hat\beta = 2/\bar x\), \(\mathcal I = 2n/\beta^2\), \(\hat\beta\approx N(\beta, \beta^2/(2n))\). By invariance, the MLE of the mean is \(2/\hat\beta = \bar x\).</p></div></details>
+<p><strong>Spacing:</strong> tomorrow, before Lesson 2, redo Q3 and the challenge's step 3 without looking.</p>
+
+<div class="ask">💬 Stuck on a step, or want more distributions to practise on? Ask me in the terminal. I'm your teacher for this. You can paste or photograph your derivation and I'll mark it like an exam marker.</div>
+
+<div class="nav">
+  <span>Reference: <a href="../reference/likelihood-cheatsheet.html">Likelihood cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0002-binomial-regression.html">Lesson 2, binomial regression and a CI for p</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

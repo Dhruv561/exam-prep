@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Particular Solutions</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 7 · Topic 1: Linear ODEs &amp; IVPs · Targeted</div>
+<h1>Particular solutions: what to substitute, and when</h1>
+<p class="lede">The goal: look at any inhomogeneous linear ODE and know straight away which of two methods to use. One is a machine that always works. The other is a fast shortcut for nice equations. Then run the method without second-guessing.</p>
+
+<div class="mission">Why this matters for 5 Nov: almost every Topic 1 question ends with "find the general solution", and the marks for $y_p$ are where most people stall. Lessons 2 and 3 taught the machine. This lesson is about choosing it confidently, plus a shortcut you can use to check it.</div>
+
+<h2>0 · Warm-up from Lessons 2–3</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W1.</strong> For $\;t\,y'' + 2y' = 6t\;$ ($t&gt;0$), the $g$ you use in reduction of order is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$6t$</button>
+    <button class="opt" data-key="b">$6$</button>
+    <button class="opt" data-key="c">$6t^2$</button>
+    <button class="opt" data-key="d">$6/t$</button>
+  </div>
+  <div class="why">Divide by $t$ first: $y'' + \tfrac2t y' = 6$. Using $g$ from before dividing is the most common way $y_p$ comes out wrong.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W2.</strong> You know $v = t^2$ and, from Abel, $\operatorname{wr} = t^3$. The reduction-of-order factor $I = v^2e^{\int f_1}$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$t^7$</button>
+    <button class="opt" data-key="b">$t^{-1}$</button>
+    <button class="opt" data-key="c">$t$</button>
+    <button class="opt" data-key="d">$t^{5}$</button>
+  </div>
+  <div class="why">$e^{\int f_1} = 1/\operatorname{wr}$ (Abel with $C = 1$), so $I = v^2/\operatorname{wr} = t^4/t^3 = t$. If you already have the Wronskian, $I$ costs no integral.</div>
+</div>
+
+<h2>1 · The decision: which method?</h2>
+
+<p>There are only two ways to get $y_p$ for a single second-order ODE in this course. You never <em>have</em> to guess, because the machine always works. Guessing is just faster when the equation is nice.</p>
+
+<div class="box">
+<ol class="steps">
+  <li><strong>First order?</strong> Use an integrating factor (Lesson 1). $y_p$ is the $\int Ig$ part.</li>
+  <li><strong>Does the question say "reduction of order", or give you $v$?</strong> Use <strong>the machine</strong> (§2). Do what you're told.</li>
+  <li><strong>Constant coefficients or Euler, and the forcing is built from $e^{kt}$, polynomials, $\sin$/$\cos$ (or $t^k$ and $\ln t$ for Euler)?</strong> Use <strong>the shortcut</strong> (§3): predict the shape of $y_p$, substitute it, and match coefficients.</li>
+  <li><strong>Anything else</strong> (coefficients that depend on $t$, or forcing like $1/t$ or $\tan t$)? Use <strong>the machine</strong>. Find $v$ with the Lesson 2 tests first.</li>
+  <li><strong>A system $\mathbf y' = A\mathbf y + \mathbf b$?</strong> Diagonalise (Lesson 6). That's the course's official method for constant-coefficient inhomogeneous problems (<a href="../lectures/06_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 6, summary slide</a>).</li>
+</ol>
+</div>
+
+<p>"I never know what to substitute" has a fixed answer for each method. In the machine you <em>always</em> substitute $y = u\,v$. In the shortcut, a table (§3) tells you the shape.</p>
+
+<h2>2 · The machine: reduction of order</h2>
+
+<div class="box">
+<p><strong>Five steps, the same every time.</strong> You need one complementary solution $v$.</p>
+<ol class="steps">
+  <li><strong>Standard form.</strong> Divide by the $y''$ coefficient. Read off $f_1$ and $g$, <em>after</em> dividing.</li>
+  <li>$I = v^2e^{\int f_1}$. (Or $I = v^2/\operatorname{wr}$ if you already have the Wronskian.)</li>
+  <li>$(Iw)' = \dfrac{Ig}{v}$. Integrate, and add $C_1$.</li>
+  <li>$w = \dfrac{1}{I}(\dots)$, then $u = \displaystyle\int w\,dt$. Add $C_2$.</li>
+  <li>$y = uv$. <strong>The terms with no constant are $y_p$.</strong> The terms with $C_1$ and $C_2$ are $y_c$.</li>
+</ol>
+</div>
+
+<p>You never decide what $y_p$ looks like. It's whatever is left without a $C$. The only skill involved is doing the two integrals.</p>
+
+<div class="trap"><strong>Pick the right $v$</strong><br>If you know both complementary solutions, use the one that <em>matches the forcing</em> as $v$. Then $g/v$ simplifies, and the integrals usually avoid by-parts. Example A shows both choices.</div>
+
+<h3>Example A: constant coefficients, resonant forcing</h3>
+<div class="box"><p>$$y'' - 4y' + 3y = 2e^{3t}$$</p></div>
+
+<details><summary>Complementary solutions</summary><div>
+<p>$\lambda^2 - 4\lambda + 3 = (\lambda-1)(\lambda-3)$, so $y_c = C_1e^{t} + C_2e^{3t}$. The forcing $e^{3t}$ matches one of them, so take $v = e^{3t}$.</p></div></details>
+
+<details><summary>Steps 1–3</summary><div>
+<p>Already in standard form: $f_1 = -4$, $g = 2e^{3t}$.
+$$I = e^{6t}\cdot e^{-4t} = e^{2t}, \qquad \frac{Ig}{v} = \frac{e^{2t}\cdot 2e^{3t}}{e^{3t}} = 2e^{2t}.$$
+$$(e^{2t}w)' = 2e^{2t} \;\Rightarrow\; e^{2t}w = e^{2t} + C_1 \;\Rightarrow\; w = 1 + C_1e^{-2t}.$$</p></div></details>
+
+<details><summary>Steps 4–5</summary><div>
+<p>$u = t - \tfrac{C_1}{2}e^{-2t} + C_2$, so
+$$y = uv = \underbrace{t\,e^{3t}}_{y_p} \;-\; \tfrac{C_1}{2}e^{t} + C_2e^{3t}.$$
+There were no by-parts integrals at all. With $v = e^{t}$ instead, you'd get $Ig/v = 2$, then $w = (2t + C_1)e^{2t}$, and $\int 2t\,e^{2t}$ needs by-parts. That still works, but it's slower.</p></div></details>
+
+<h3>Example B: Euler, resonant forcing</h3>
+<div class="box"><p>$$t^2y'' - 2t\,y' + 2y = 2t^2, \qquad t&gt;0$$</p></div>
+
+<details><summary>Complementary solutions</summary><div>
+<p>Indicial: $n(n-1) - 2n + 2 = (n-1)(n-2)$, so $y_c = C_1t + C_2t^2$. The forcing is $t^2$, so take $v = t^2$.</p></div></details>
+
+<details><summary>The machine</summary><div>
+<p>Standard form: $f_1 = -2/t$, $\;g = 2$ (not $2t^2$!).
+$$I = t^4\cdot t^{-2} = t^2, \qquad \frac{Ig}{v} = \frac{t^2\cdot 2}{t^2} = 2.$$
+$$(t^2w)' = 2 \;\Rightarrow\; w = \frac2t + \frac{C_1}{t^2} \;\Rightarrow\; u = 2\ln t - \frac{C_1}{t} + C_2.$$
+$$y = uv = \underbrace{2t^2\ln t}_{y_p} - C_1t + C_2t^2.$$</p></div></details>
+
+<h3>Example C: variable coefficients (machine only)</h3>
+<div class="box"><p>$$t\,y'' - (2t+1)\,y' + (t+1)\,y = t^2e^{t}, \qquad t&gt;0$$</p></div>
+<p>The coefficients depend on $t$ and it isn't Euler, so the shortcut table doesn't apply. This is the case where people freeze, and the machine doesn't care.</p>
+
+<details><summary>Find $v$</summary><div>
+<p>$P + Q + R = t - (2t+1) + (t+1) = 0$, so $v = e^{t}$.</p></div></details>
+
+<details><summary>Steps 1–3</summary><div>
+<p>Divide by $t$: $f_1 = -2 - \tfrac1t$, $\;g = t\,e^{t}$.
+$$e^{\int f_1} = e^{-2t - \ln t} = \frac{e^{-2t}}{t}, \qquad I = e^{2t}\cdot\frac{e^{-2t}}{t} = \frac1t, \qquad \frac{Ig}{v} = \frac{1}{t}\cdot\frac{t\,e^{t}}{e^{t}} = 1.$$
+$$\Big(\frac wt\Big)' = 1 \;\Rightarrow\; w = t^2 + C_1t.$$</p></div></details>
+
+<details><summary>Steps 4–5</summary><div>
+<p>$u = \tfrac{t^3}{3} + \tfrac{C_1}{2}t^2 + C_2$, so
+$$y = \underbrace{\tfrac13\,t^3e^{t}}_{y_p} + A\,t^2e^{t} + B\,e^{t}.$$
+That gives $y_c$ for free as well: $t^2e^t$ is the second complementary solution.</p></div></details>
+
+<h2>3 · The shortcut: predict the shape</h2>
+
+<p>When the coefficients are constant, every derivative of $e^{kt}$, $t^m$, $\sin$ or $\cos$ stays in the same family. So $y_p$ must be built from the same pieces as the forcing. Write the shape with unknown constants, substitute, and match coefficients.</p>
+
+<div class="box">
+<p><strong>Constant coefficients</strong> (roots $\lambda$ of the characteristic equation):</p>
+<table>
+<tr><th>Forcing $g$</th><th>Try</th></tr>
+<tr><td>$e^{kt}$</td><td>$A\,e^{kt}$</td></tr>
+<tr><td>Polynomial of degree $m$</td><td>A full polynomial of degree $m$: $A_mt^m + \dots + A_0$</td></tr>
+<tr><td>$\cos\omega t$ or $\sin\omega t$</td><td>$A\cos\omega t + B\sin\omega t$ (always both)</td></tr>
+<tr><td>Products, like $t\,e^{kt}$</td><td>Product of the shapes: $(At + B)\,e^{kt}$</td></tr>
+</table>
+<p><strong>Resonance rule:</strong> if the forcing's exponent ($k$, or $0$ for a polynomial, or $\pm i\omega$ for trig) is a root of multiplicity $s$, multiply the whole guess by $t^s$.</p>
+
+<p style="margin-top:1rem"><strong>Euler equations</strong> are constant-coefficient in disguise: $t = e^{s}$ turns $t^k$ into $e^{ks}$ and $\ln t$ into $s$. So:</p>
+<table>
+<tr><th>Forcing $g$</th><th>Try</th></tr>
+<tr><td>$t^k$</td><td>$A\,t^k$</td></tr>
+<tr><td>$\ln t$ or a constant</td><td>$A\ln t + B$, or just $A$</td></tr>
+</table>
+<p><strong>Resonance rule:</strong> if $k$ is a root of the indicial equation of multiplicity $s$, multiply by $(\ln t)^s$.</p>
+</div>
+
+<div class="trap"><strong>Two ways the shortcut goes wrong</strong><br>
+(1) <strong>Missing resonance.</strong> Trying $Ae^{3t}$ in Example A gives $A(9 - 12 + 3)e^{3t} = 0 \ne 2e^{3t}$. If the left side vanishes, you've hit resonance, so multiply by $t$.<br>
+(2) <strong>Half a trig guess.</strong> $\cos t$ forcing still needs $A\cos t + B\sin t$, unless there's no $y'$ term. Derivatives swap $\sin$ and $\cos$.</div>
+
+<details><summary>Check Example A with the shortcut</summary><div>
+<p>$k = 3$ is a single root, so try $y = A\,t\,e^{3t}$: $\;y' = A(1 + 3t)e^{3t}$, $\;y'' = A(6 + 9t)e^{3t}$.
+$$A\big[(6+9t) - 4(1+3t) + 3t\big]e^{3t} = 2A\,e^{3t} = 2e^{3t} \;\Rightarrow\; A = 1 \;✓$$
+The $t$ terms cancel. They always do when your resonance factor is right.</p></div></details>
+
+<details><summary>Check Example B with the shortcut</summary><div>
+<p>$k = 2$ is a single root of $(n-1)(n-2)$, so try $y = A\,t^2\ln t$. Then $y' = A(2t\ln t + t)$ and $y'' = A(2\ln t + 3)$.
+$$A\,t^2\big[(2\ln t + 3) - (4\ln t + 2) + 2\ln t\big] = A\,t^2 = 2t^2 \;\Rightarrow\; A = 2 \;✓$$</p></div></details>
+
+<p><strong>In an exam:</strong> if the question doesn't name a method, the shortcut is a fully valid way to find $y_p$ for constant-coefficient or Euler equations. If it says "use reduction of order", use the machine, and then use the shortcut in the margin as a check.</p>
+
+<h2>4 · Reading off $y_p$</h2>
+
+<p>$y_p$ isn't unique. Any particular solution plus any complementary solution is another particular solution (Lesson 2, §1). So:</p>
+<ul>
+  <li>If the machine gives you $y_p = 2t(t-1)e^{t} = 2t^2e^{t} - 2t\,e^{t}$ and $t\,e^{t}$ is in $y_c$, you can drop the $-2t\,e^t$. It gets absorbed into a constant.</li>
+  <li>Different methods, or different choices of $v$, can give $y_p$'s that look different but differ only by a $y_c$. Both are right.</li>
+</ul>
+
+<h2>5 · Practice</h2>
+<p>Paper first, then click.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> The shape of $y_p$ for $\;y'' + y' - 6y = 5e^{2t}$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$A\,e^{2t}$</button>
+    <button class="opt" data-key="b">$A\,t\,e^{2t}$</button>
+    <button class="opt" data-key="c">$A\,t^2e^{2t}$</button>
+    <button class="opt" data-key="d">$A\,e^{-3t}$</button>
+  </div>
+  <div class="why">$\lambda^2 + \lambda - 6 = (\lambda-2)(\lambda+3)$. $k = 2$ is a single root, so multiply by $t$ once. Substituting gives $A\big[(4+4t) + (1+2t) - 6t\big] = 5A = 5$, so $y_p = t\,e^{2t}$.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>2.</strong> The shape of $y_p$ for $\;y'' + 4y = 8\cos 2t$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$A\cos 2t + B\sin 2t$</button>
+    <button class="opt" data-key="b">$t\,(A\cos 2t + B\sin 2t)$</button>
+    <button class="opt" data-key="c">$A\,t\cos 2t$</button>
+    <button class="opt" data-key="d">$A\,e^{2t}$</button>
+  </div>
+  <div class="why">The roots are $\pm 2i$, which match the forcing's $\pm i\omega = \pm 2i$, so multiply by $t$. Option (a) misses the resonance: it substitutes to $0$. Option (c) drops the $\sin$ half. Working it out gives $y_p = 2t\sin 2t$.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>3.</strong> A particular solution of $\;t^2y'' - t\,y' + y = t,\;\; t&gt;0$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac12\,t$</button>
+    <button class="opt" data-key="b">$t\ln t$</button>
+    <button class="opt" data-key="c">$\tfrac12\,t(\ln t)^2$</button>
+    <button class="opt" data-key="d">$\tfrac12\,t^2$</button>
+  </div>
+  <div class="why">Indicial: $n^2 - 2n + 1 = (n-1)^2$, a <em>double</em> root at $n = 1$, and the forcing is $t^1$. So try $A\,t(\ln t)^2$, which substitutes to $2A\,t = t$ and gives $A = \tfrac12$. Options (a) and (b) are both complementary solutions: they give $0$.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>4.</strong> For $\;t^2y'' - 3t\,y' + 3y = t^4\;$ with $v = t$, the right side $Ig/v$ of $(Iw)' = Ig/v$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$t^2$</button>
+    <button class="opt" data-key="b">$1$</button>
+    <button class="opt" data-key="c">$t$</button>
+    <button class="opt" data-key="d">$t^4$</button>
+  </div>
+  <div class="why">$f_1 = -3/t$ and $g = t^2$ after dividing. $I = t^2\cdot t^{-3} = 1/t$, so $Ig/v = \tfrac1t\cdot t^2/t = 1$. Option (a) comes from using $g = t^4$. Then $w = t^2 + C_1t$, so $u = t^3/3 + \dots$ and $y_p = t^4/3$. Check with the shortcut: $4$ isn't an indicial root ($n = 1, 3$), and $A\,t^4$ gives $(12 - 12 + 3)A = 1$ ✓.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>5.</strong> For $\;y'' - 2y' - 3y = 4e^{-t}$, which $v$ keeps the machine free of by-parts integrals?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$v = e^{-t}$</button>
+    <button class="opt" data-key="b">$v = e^{3t}$</button>
+    <button class="opt" data-key="c">Either, they're equally easy</button>
+    <button class="opt" data-key="d">Neither: you need the shortcut</button>
+  </div>
+  <div class="why">$v = e^{-t}$ matches the forcing. $I = e^{-2t}e^{-2t} = e^{-4t}$ and $Ig/v = 4e^{-4t}$, so $Iw = -e^{-4t} + C_1$, $w = -1 + C_1e^{4t}$, and $y_p = -t\,e^{-t}$. With $v = e^{3t}$ you get $w = (4t + C_1)e^{-4t}$, which needs by-parts.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>6.</strong> The general solution of some ODE is $\;y = t\,e^{t} + C_1e^{-t} + C_2e^{t}$. Which is <em>not</em> a valid particular solution?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$t\,e^{t}$</button>
+    <button class="opt" data-key="b">$t\,e^{t} + 5e^{t}$</button>
+    <button class="opt" data-key="c">$t\,e^{t} - e^{-t}$</button>
+    <button class="opt" data-key="d">$t\,e^{t} + t$</button>
+  </div>
+  <div class="why">(b) and (c) are $t\,e^t$ plus a complementary solution, so they're also particular solutions. $t$ isn't in $y_c$, so (d) doesn't solve the ODE.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>7.</strong> A particular solution of $\;t^2y'' - 2y = 6,\;\; t&gt;0$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$-3$</button>
+    <button class="opt" data-key="b">$3$</button>
+    <button class="opt" data-key="c">$6\ln t$</button>
+    <button class="opt" data-key="d">$-3\ln t$</button>
+  </div>
+  <div class="why">A constant is $t^0$. The indicial equation $n^2 - n - 2 = (n-2)(n+1)$ doesn't have $0$ as a root, so try $y = A$: $\;-2A = 6$, so $A = -3$. Thirty seconds, with no reduction of order needed.</div>
+</div>
+
+<h2>6 · Exam-level challenge</h2>
+<p>This chains finding $v$, the machine, Abel, independence and initial conditions. Fully on paper, then open one step at a time.</p>
+<div class="box">
+<p>Consider $\;t^2y'' - t(t+2)\,y' + (t+2)\,y = 2t^3e^{t},\quad t&gt;0$.</p>
+<p>(a) Show that $v = t$ is a complementary solution.<br>
+(b) Use reduction of order to find the general solution. Identify $y_c$ and $y_p$, and prove the complementary solutions are linearly independent.<br>
+(c) Solve the IVP with $y(1) = 0,\; y'(1) = 2e$, and state the interval of validity.</p>
+</div>
+
+<details><summary>(a) Check $v = t$</summary><div>
+<p>$v' = 1$, $v'' = 0$: $\;t^2\cdot 0 - t(t+2)\cdot 1 + (t+2)\,t = 0$ ✓. (The quick test is $Q + tR = 0$.)</p></div></details>
+
+<details><summary>(b) Step 1: standard form and $I$</summary><div>
+<p>Divide by $t^2$: $\;f_1 = -\dfrac{t+2}{t} = -1 - \dfrac2t$, $\;g = 2t\,e^{t}$.
+$$e^{\int f_1} = e^{-t - 2\ln t} = \frac{e^{-t}}{t^2}, \qquad I = t^2\cdot\frac{e^{-t}}{t^2} = e^{-t}, \qquad \frac{Ig}{v} = \frac{e^{-t}\cdot 2t\,e^{t}}{t} = 2.$$</p></div></details>
+
+<details><summary>(b) Step 2: integrate twice</summary><div>
+<p>$(e^{-t}w)' = 2 \Rightarrow e^{-t}w = 2t + C_1 \Rightarrow w = (2t + C_1)\,e^{t}.$<br>
+$u = 2(t-1)e^{t} + C_1e^{t} + C_2$, using $\int t\,e^t\,dt = (t-1)e^t$.
+$$y = uv = 2t(t-1)e^{t} + C_1\,t\,e^{t} + C_2\,t.$$</p></div></details>
+
+<details><summary>(b) Step 3: read off $y_c$ and $y_p$</summary><div>
+<p>$2t(t-1)e^t = 2t^2e^t - 2t\,e^t$, and $t\,e^t$ is in $y_c$, so absorb it into the constant:
+$$y = \underbrace{2t^2e^{t}}_{y_p} + \underbrace{A\,t\,e^{t} + B\,t}_{y_c}.$$
+Independence: $\operatorname{wr}[t,\,t\,e^t] = t\,(1+t)e^t - 1\cdot t\,e^t = t^2e^{t} \ne 0$ for $t&gt;0$ ✓.<br>
+Abel check: $\operatorname{wr} = C\,e^{-\int f_1} = C\,e^{t + 2\ln t} = C\,t^2e^t$ ✓. And $I = v^2/\operatorname{wr} = t^2/(t^2e^t) = e^{-t}$ ✓.</p></div></details>
+
+<details><summary>(c) Initial conditions and interval</summary><div>
+<p>$y' = 2(t^2 + 2t)e^{t} + A(1+t)e^{t} + B$.
+$$\begin{aligned} y(1) &= 2e + Ae + B = 0, &(1)\\ y'(1) &= 6e + 2Ae + B = 2e. &(2)\end{aligned}$$
+$(2) - (1)$: $4e + Ae = 2e$, so $A = -2$. Then $(1)$ gives $B = 0$.
+$$\boxed{y = 2t(t-1)\,e^{t}}, \qquad t\in(0,\infty).$$
+The only bad point after dividing by $t^2$ is $t = 0$, and $t_0 = 1 &gt; 0$.</p></div></details>
+
+<p>Once you've checked the steps, compare your script against the <a href="../reference/0007-challenge-full-solution.html">full written solution</a>, which shows every line you'd write in the exam.</p>
+
+<h2>7 · Before you close this tab</h2>
+<details><summary>Retrieval: write the five-step machine, the decision list and the resonance rule from memory, then check</summary><div>
+<p><strong>Machine:</strong> standard form ($g$ after dividing) → $I = v^2e^{\int f_1}$ → $(Iw)' = Ig/v$, $+C_1$ → $u = \int w$, $+C_2$ → $y = uv$, and the constant-free part is $y_p$.</p>
+<p><strong>Decide:</strong> told to, or variable coefficients → machine. Constant-coefficient or Euler with nice forcing → shortcut. System → diagonalise.</p>
+<p><strong>Resonance:</strong> exponent is an $s$-fold root → multiply by $t^s$ (or $(\ln t)^s$ for Euler).</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/02_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 2</a> (reduction of order) and <a href="https://tutorial.math.lamar.edu/Classes/DE/UndeterminedCoefficients.aspx">Paul's Notes: Undetermined Coefficients</a>, which has many more shortcut examples, including the resonance cases.</p>
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic1.pdf">Problem Booklet 1</a>, Q3 (e), (f), (h), using the shortcut. In (f), write $\sinh t = \tfrac12(e^t - e^{-t})$ first, and watch for resonance.</li>
+  <li>Booklet Q4 (d): Euler with polynomial forcing, using the shortcut.</li>
+  <li>Booklet Q4 (c), using the machine. $t^4e^t$ forcing on an Euler equation isn't in the shortcut table, so this is a good test of the decision list.</li>
+  <li>Optional: Booklet Q3 (g); redo Q4 (d) with the machine and check you get the same $y_p$.</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo quizzes 2, 3 and 5 cold, plus the challenge's (b) without looking.</p>
+
+<div class="ask">💬 Stuck on a step, or got a different answer? Ask me in the terminal. Paste or photograph your working and I'll mark it line by line.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0002-reduction-of-order.html">Lesson 2</a> and <a href="0003-wronskian-abel-euler.html">Lesson 3</a></span>
+  <span>Reference: <a href="../reference/topic1-cheatsheet.html">Topic 1 cheat sheet</a></span>
+  <span>Previous: <a href="0006-inhomogeneous-matrix-exp.html">Lesson 6, inhomogeneous systems</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

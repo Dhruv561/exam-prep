@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wronskian, Abel, Euler</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 3 · Topic 1: Linear ODEs &amp; IVPs</div>
+<h1>Wronskian, Abel's identity and Euler equations</h1>
+<p class="lede">The goal: prove that two solutions really are independent, get the Wronskian <em>without</em> solving the ODE, and solve any $t^2y'' + bty' + cy = 0$ in all three of its cases.</p>
+
+<div class="mission">Why this matters for 5 Nov: past papers ask you to prove linear independence, use Abel's identity to deduce something about a second solution, and solve Euler-type equations, including the $\log t$ and $\cos(\log t)$ cases. All of this has to be memorised, because the 2024 formula sheet had nothing on Topic 1.</div>
+
+<h2>0 · Warm-up from Lessons 1–2</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> Which quick test shows that $e^{-t}$ solves $\;(t+2)\,y'' + (t+1)\,y' - y = 0$?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$P + Q + R = 0$</button>
+    <button class="opt" data-key="b">$Q + tR = 0$</button>
+    <button class="opt" data-key="c">$P - Q + R = 0$</button>
+    <button class="opt" data-key="d">None of them</button>
+  </div>
+  <div class="why">$P - Q + R = (t+2) - (t+1) - 1 = 0$. And $Q + tR = t + 1 - t = 1 \ne 0$, so $t$ isn't a solution.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W2.</strong> In reduction of order, $I = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$v^2e^{\int f_1}$</button>
+    <button class="opt" data-key="b">$v\,e^{\int f_1}$</button>
+    <button class="opt" data-key="c">$v^2e^{\int f_0}$</button>
+    <button class="opt" data-key="d">$e^{\int f_1}/v^2$</button>
+  </div>
+  <div class="why">$I = v^2 e^{\int f_1}$ and $(Iw)' = Ig/v$. Keep it in your head: you'll see $e^{\int f_1}$ again in Abel's identity below.</div>
+</div>
+
+<h2>1 · Linear independence and the Wronskian</h2>
+
+<p>Two functions are <strong>linearly dependent</strong> if one is a constant multiple of the other <em>for all $t$</em>. If not, they're independent (<a href="../lectures/03_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 3, slide 4</a>). For two functions you can usually just look. For three or more, or for a "prove it" question, use the Wronskian:</p>
+
+<div class="box">
+$$\operatorname{wr}[y_1,y_2](t) = \det\begin{pmatrix} y_1 & y_2 \\ y_1' & y_2' \end{pmatrix} = y_1y_2' - y_1'y_2.$$
+<ul>
+  <li>$\operatorname{wr} \ne 0$ at <strong>some</strong> $t$ $\;\Rightarrow\;$ independent.</li>
+  <li>Dependent $\;\Rightarrow\;$ $\operatorname{wr} = 0$ for <strong>all</strong> $t$.</li>
+  <li>$\operatorname{wr} = 0$ at one $t$ tells you <strong>nothing</strong> on its own.</li>
+</ul>
+<p>For $n$ functions, put row $k$ as the $(k-1)$th derivatives and take the $n\times n$ determinant (<a href="../lectures/03_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 3, slide 12</a>).</p>
+</div>
+
+<div class="trap"><strong>Careful with the converse</strong><br>$\operatorname{wr} \equiv 0$ does <em>not</em> prove dependence for arbitrary functions. Peano's counterexample is $t^2$ and $t\,|t|$: they're independent on $\mathbb R$, but their Wronskian is zero everywhere (Booklet Q15b). The converse <em>does</em> hold when both functions solve the same linear ODE. That's Abel's identity, next.</div>
+
+<p>In an exam, "show they form a fundamental set" means: compute $\operatorname{wr}$, simplify it, then point to one $t$ where it isn't zero. Write that last sentence out, because it's the mark.</p>
+
+<h2>2 · Abel's identity</h2>
+
+<p>If $y_1, y_2$ both solve $\;y'' + f_1(t)\,y' + f_0(t)\,y = 0\;$ (standard form!), then (<a href="../lectures/03_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 3, slide 6</a>)</p>
+<div class="box">
+$$\operatorname{wr}[y_1,y_2](t) = \operatorname{wr}[y_1,y_2](t_0)\; e^{-\int_{t_0}^{t} f_1(\tau)\,d\tau}.$$
+<p>An exponential is never zero, so for two solutions the Wronskian is either <strong>never zero</strong> or <strong>always zero</strong>. There's no in between.</p>
+</div>
+
+<p>It's worth three different kinds of marks:</p>
+<ol class="steps">
+  <li><strong>Wronskian without solving.</strong> You only need $f_1$. For $t\,y'' + 2y' + (\dots)y = 0$: $f_1 = 2/t$, so $\operatorname{wr} = C\,e^{-2\ln t} = C/t^2$.</li>
+  <li><strong>Second solution from the first.</strong> $y_1y_2' - y_1'y_2 = \operatorname{wr}$ is a first-order ODE for $y_2$. Divide by $y_1^2$:
+  $$\Big(\frac{y_2}{y_1}\Big)' = \frac{\operatorname{wr}}{y_1^2}.$$
+  Integrate once. This is reduction of order in a faster form.</li>
+  <li><strong>Deduce a property.</strong> Evaluate $\operatorname{wr}$ at one cleverly chosen point. If it's zero there, it's zero everywhere, so the solutions are dependent. For example, two solutions that both vanish at the same $t_0$ must be multiples of each other.</li>
+</ol>
+
+<details><summary>Why is Abel true? (Two lines. Try it first.)</summary><div>
+<p>Differentiate: $\operatorname{wr}' = y_1y_2'' - y_1''y_2$ (the $y_1'y_2'$ terms cancel). Substitute $y_i'' = -f_1y_i' - f_0y_i$: the $f_0$ terms cancel and you're left with $\operatorname{wr}' = -f_1\,\operatorname{wr}$. That's a first-order linear ODE (Lesson 1), and its solution is the formula above.</p>
+<p>For an $n$th-order equation the same argument gives $\operatorname{wr}' = -f_{n-1}\operatorname{wr}$, where $f_{n-1}$ is the coefficient of $y^{(n-1)}$ in standard form (<a href="https://en.wikipedia.org/wiki/Abel%27s_identity">Abel's identity, general form</a>). This version isn't on the lecture slide, but it is how you'd tackle a third-order "find the Wronskian" part.</p>
+</div></details>
+
+<h2>3 · Euler equations</h2>
+
+<p>An <strong>Euler (equidimensional) equation</strong> has each derivative matched with the same power of $t$:
+$$a\,t^2y'' + b\,t\,y' + c\,y = 0, \qquad t &gt; 0.$$
+Trial $y = t^n$. Every term then becomes a multiple of $t^n$ (<a href="../lectures/03_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 3, slides 9–10</a>; <a href="https://tutorial.math.lamar.edu/Classes/DE/EulerEquations.aspx">Paul's Notes: Euler Equations</a>):</p>
+<div class="box">
+<p><strong>Indicial equation:</strong> $\;a\,n(n-1) + b\,n + c = 0.$</p>
+<table>
+<tr><th>Roots</th><th>Two independent solutions</th></tr>
+<tr><td>Real, distinct $n_1 \ne n_2$</td><td>$t^{n_1},\;\; t^{n_2}$</td></tr>
+<tr><td>Repeated $n$</td><td>$t^{n},\;\; t^{n}\ln t$</td></tr>
+<tr><td>Complex $\alpha \pm i\beta$</td><td>$t^{\alpha}\cos(\beta\ln t),\;\; t^{\alpha}\sin(\beta\ln t)$</td></tr>
+</table>
+</div>
+<p>The complex case comes from $t^{i\beta} = e^{i\beta\ln t} = \cos(\beta\ln t) + i\sin(\beta\ln t)$. The ODE has real coefficients, so the real and imaginary parts are each solutions.</p>
+
+<div class="trap"><strong>Two classic slips</strong><br>
+(1) Writing $n^2 + bn + c$. It's $n(n-1)$, so the $y''$ term contributes $-an$ as well.<br>
+(2) In the complex case, writing $\cos(\beta t)$. It's $\cos(\beta\ln t)$. That's what you get with constant coefficients, not Euler equations.</div>
+
+<h3>Worked example: repeated root, second solution by Abel</h3>
+<p>Solve $\;t^2y'' - 3ty' + 4y = 0,\;\; t&gt;0.$</p>
+<div class="box">
+<p><strong>Indicial:</strong> $n(n-1) - 3n + 4 = n^2 - 4n + 4 = (n-2)^2$, so the only root is $n = 2$ and $y_1 = t^2$.</p>
+<p><strong>Abel:</strong> standard form gives $f_1 = -3/t$, so $\operatorname{wr} = C\,e^{\int 3/t} = Ct^3$. Take $C = 1$.</p>
+<p><strong>Second solution:</strong> $\Big(\dfrac{y_2}{t^2}\Big)' = \dfrac{t^3}{t^4} = \dfrac1t \;\Rightarrow\; y_2 = t^2\ln t.$</p>
+<p><strong>Check independence:</strong> $\operatorname{wr}[t^2, t^2\ln t] = t^2(2t\ln t + t) - 2t\cdot t^2\ln t = t^3 \ne 0$ for $t&gt;0$ ✓</p>
+<p>$$\boxed{y = C_1t^2 + C_2t^2\ln t}$$</p>
+</div>
+
+<h2>4 · Practice</h2>
+<p>Paper first, then click.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> $\operatorname{wr}[e^{2t}, e^{5t}] = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$7e^{7t}$</button>
+    <button class="opt" data-key="b">$3e^{7t}$</button>
+    <button class="opt" data-key="c">$-3e^{7t}$</button>
+    <button class="opt" data-key="d">$10e^{7t}$</button>
+  </div>
+  <div class="why">$e^{2t}\cdot5e^{5t} - 2e^{2t}\cdot e^{5t} = 3e^{7t}$. In general $\operatorname{wr}[e^{at},e^{bt}] = (b-a)e^{(a+b)t}$, which is nonzero exactly when $a \ne b$.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>2.</strong> $y_1, y_2$ solve $\;t\,y'' + 2y' + e^t y = 0\;$ on $t&gt;0$, with $\operatorname{wr}(1) = 3$. Then $\operatorname{wr}(t) = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$3t^2$</button>
+    <button class="opt" data-key="b">$3e^{-2t}$</button>
+    <button class="opt" data-key="c">$3e^{2(1-t)}$</button>
+    <button class="opt" data-key="d">$3/t^2$</button>
+  </div>
+  <div class="why">Standard form: $f_1 = 2/t$. Abel: $3\exp\big(-\int_1^t 2/\tau\,d\tau\big) = 3e^{-2\ln t} = 3/t^2$. The $e^t$ term doesn't matter: $f_0$ never enters Abel. Option (c) is the skipped-standard-form mistake ($f_1 = 2$).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> $y_1, y_2$ solve $y'' + p(t)y' + q(t)y = 0$ on an interval ($p,q$ continuous), and <em>both have a local maximum at the same point $t_0$</em>. What follows?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">They are linearly dependent</button>
+    <button class="opt" data-key="b">They are linearly independent</button>
+    <button class="opt" data-key="c">Their Wronskian is never zero</button>
+    <button class="opt" data-key="d">Nothing can be concluded</button>
+  </div>
+  <div class="why">$y_1'(t_0) = y_2'(t_0) = 0$, so $\operatorname{wr}(t_0) = y_1y_2' - y_1'y_2 = 0$. By Abel it's then zero everywhere, which for solutions means dependent. This "evaluate at a clever point" move is the exam pattern.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>4.</strong> General solution of $\;t^2y'' + 4ty' + 2y = 0,\;\; t&gt;0$:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$C_1t + C_2t^2$</button>
+    <button class="opt" data-key="b">$C_1e^{-t} + C_2e^{-2t}$</button>
+    <button class="opt" data-key="c">$C_1t^{-1} + C_2t^{-2}$</button>
+    <button class="opt" data-key="d">$C_1t^{-1} + C_2t^{-1}\ln t$</button>
+  </div>
+  <div class="why">$n(n-1) + 4n + 2 = n^2 + 3n + 2 = (n+1)(n+2)$, so $n = -1, -2$. Option (b) treats it as constant-coefficient. Option (a) has the wrong signs.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>5.</strong> General solution of $\;t^2y'' + 5ty' + 4y = 0,\;\; t&gt;0$:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$C_1t^{-2} + C_2t^{2}$</button>
+    <button class="opt" data-key="b">$C_1t^{-2} + C_2t^{-2}\ln t$</button>
+    <button class="opt" data-key="c">$C_1t^{-2} + C_2\,t^{-1}$</button>
+    <button class="opt" data-key="d">$C_1t^{-2} + C_2t^{-2}e^{t}$</button>
+  </div>
+  <div class="why">$n^2 + 4n + 4 = (n+2)^2$: a repeated root, $n = -2$. The second solution gets a $\ln t$. Check with Abel: $f_1 = 5/t$, so $\operatorname{wr}\propto t^{-5}$, and $(y_2/t^{-2})' = t^{-5}/t^{-4} = 1/t$ ✓</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>6.</strong> General solution of $\;t^2y'' + ty' + 9y = 0,\;\; t&gt;0$:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$C_1\cos 3t + C_2\sin 3t$</button>
+    <button class="opt" data-key="b">$C_1t^{3} + C_2t^{-3}$</button>
+    <button class="opt" data-key="c">$C_1\cos(\ln 3t) + C_2\sin(\ln 3t)$</button>
+    <button class="opt" data-key="d">$C_1\cos(3\ln t) + C_2\sin(3\ln t)$</button>
+  </div>
+  <div class="why">$n(n-1) + n + 9 = n^2 + 9$, so $n = \pm 3i$ ($\alpha = 0$, $\beta = 3$). Option (a) is the constant-coefficient slip. Booklet Q6 is this pattern with $\beta = 1$ and forcing. <a href="../reference/0003-q6-euler-complex-full-solution.html">Full exam-style write-up</a>.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>7.</strong> One solution of $\;t^2y'' - ty' + 5y = 0,\;\; t&gt;0$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$t\cos(2\ln t)$</button>
+    <button class="opt" data-key="b">$t^2\cos(\ln t)$</button>
+    <button class="opt" data-key="c">$\cos(2\ln t)$</button>
+    <button class="opt" data-key="d">$e^{t}\cos 2t$</button>
+  </div>
+  <div class="why">$n(n-1) - n + 5 = n^2 - 2n + 5$, so $n = 1 \pm 2i$. Then $\alpha = 1$ gives the factor $t^1$, and $\beta = 2$ goes inside: $t\cos(2\ln t)$. Forgetting $t^\alpha$ gives option (c).</div>
+</div>
+
+<h2>5 · Exam-level challenge</h2>
+<p>This chains Euler, Abel, reduction of order (Lesson 2) and ICs. Fully on paper, then open one step at a time.</p>
+<div class="box">
+<p>Consider $\;t^2y'' - 3ty' + 4y = t^2,\quad t&gt;0$.</p>
+<p>(a) Find one complementary solution by trialling $t^n$.<br>
+(b) Use Abel's identity to find a second, and prove the two are linearly independent.<br>
+(c) Find the general solution of the inhomogeneous ODE.<br>
+(d) Solve the IVP with $y(1) = 1,\; y'(1) = 0$, and state the interval of validity.</p>
+</div>
+
+<details><summary>(a) and (b): the worked example above</summary><div>
+<p>It's the same $y_c$ as in §3: $y_1 = t^2$, $y_2 = t^2\ln t$, and $\operatorname{wr} = t^3 \ne 0$ on $t &gt; 0$, so they're independent. In the exam, write the Wronskian computation out in full.</p></div></details>
+<details><summary>(c) Step 1: standard form and $I$</summary><div>
+<p>Divide by $t^2$: $f_1 = -3/t$, $g = 1$. With $v = t^2$:
+$$I = v^2e^{\int f_1} = t^4\cdot t^{-3} = t, \qquad \frac{Ig}{v} = \frac{t}{t^2} = \frac1t.$$
+(Notice that $e^{\int f_1} = 1/\operatorname{wr}$. Lesson 2's $I$ was Abel in disguise all along.)</p></div></details>
+<details><summary>(c) Step 2: integrate twice</summary><div>
+<p>$(tw)' = 1/t \Rightarrow tw = \ln t + C_1 \Rightarrow w = \dfrac{\ln t}{t} + \dfrac{C_1}{t}.$<br>
+$u = \tfrac12(\ln t)^2 + C_1\ln t + C_2$, using $\int \frac{\ln t}{t}dt = \tfrac12(\ln t)^2$ (substitute $s = \ln t$).
+$$y = uv = \tfrac12\,t^2(\ln t)^2 + C_1t^2\ln t + C_2t^2.$$
+$y_p = \tfrac12t^2(\ln t)^2$. The forcing $t^2$ is itself a complementary solution, so $y_p$ needs an extra $\ln t$. That's the resonance pattern again. Stuck on this step? <a href="0007-particular-solutions.html">Lesson 7</a> is all about finding $y_p$.</p></div></details>
+<details><summary>(d) Initial conditions and interval</summary><div>
+<p>$y(1) = C_2 = 1$. For $y'$, use $y = t^2u$: $y' = 2tu + t^2u'$, so $y'(1) = 2C_2 + C_1 = 0 \Rightarrow C_1 = -2$:
+$$\boxed{y = t^2\Big(\tfrac12(\ln t)^2 - 2\ln t + 1\Big)}, \qquad t\in(0,\infty).$$
+The bad point after dividing by $t^2$ is $t = 0$, and $t_0 = 1 &gt; 0$.</p></div></details>
+
+<h2>6 · Before you close this tab</h2>
+<details><summary>Retrieval: write Abel's identity, the indicial equation and the three-case table from memory, then check</summary><div>
+<p>$\operatorname{wr}(t) = \operatorname{wr}(t_0)e^{-\int_{t_0}^t f_1}$, with $f_1$ from standard form. Indicial: $an(n-1) + bn + c = 0$. Cases: $t^{n_1}, t^{n_2}$ / $\;t^n, t^n\ln t$ / $\;t^\alpha\cos(\beta\ln t), t^\alpha\sin(\beta\ln t)$. Second solution: $(y_2/y_1)' = \operatorname{wr}/y_1^2$.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="https://tutorial.math.lamar.edu/Classes/DE/EulerEquations.aspx">Paul's Online Notes: Euler Equations</a> derives all three cases, and <a href="https://tutorial.math.lamar.edu/Classes/DE/Wronskian.aspx">Paul's Notes: The Wronskian</a> has more independence examples. Course version: <a href="../lectures/03_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 3</a>, especially Exercise 1.8, where Abel produces $\log r$.</p>
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic1.pdf">Problem Booklet 1</a>, Q4 (a), (b), (c): Euler $y_c$, then reduction of order for the forcing.</li>
+  <li>Booklet Q6 (a)–(c): the $\cos(\log t)$ case. (Lesson 2 told you to leave this until now.)</li>
+  <li>Tutorial week 2, Q2(c): Wronskian check.</li>
+  <li>Optional: Booklet Q4 (d), (e), Q15 (b) (Peano's counterexample).</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, before Lesson 4, redo quizzes 2, 3 and 7 cold, plus Lesson 2's challenge Step 3.</p>
+
+<div class="ask">💬 Stuck on a step, or got a different answer? Ask me in the terminal. Paste or photograph your working and I'll mark it line by line.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0002-reduction-of-order.html">Lesson 2, reduction of order</a></span>
+  <span>Reference: <a href="../reference/topic1-cheatsheet.html">Topic 1 cheat sheet</a></span>
+  <span>Next: <a href="0004-systems-eigenvalues.html">Lesson 4, systems &amp; eigenvalues</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

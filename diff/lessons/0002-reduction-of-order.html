@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reduction of Order</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 2 · Topic 1: Linear ODEs &amp; IVPs</div>
+<h1>Reduction of order: from one solution to all of them</h1>
+<p class="lede">The goal: given a second-order linear ODE and one complementary solution (or a hint to find one), produce the full general solution, apply the initial conditions, and check it.</p>
+
+<div class="mission">Why this matters for 5 Nov: a reduction-of-order question shows up on nearly every past paper, often worth 10+ marks across its parts. Lecture 2 calls finding the first solution "usually the difficult task", and exam questions make you do that part too.</div>
+
+<h2>0 · Warm-up from Lesson 1</h2>
+<p>Retrieval first. Answer from memory: you'll use both skills again below.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W1.</strong> The integrating factor for $\;t\,y' + 3y = \sin t\;$ ($t&gt;0$) is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{3t}$</button>
+    <button class="opt" data-key="b">$t^{3}$</button>
+    <button class="opt" data-key="c">$t^{-3}$</button>
+    <button class="opt" data-key="d">$3t$</button>
+  </div>
+  <div class="why">Standard form first: $y' + \tfrac{3}{t}y = \tfrac{\sin t}{t}$, so $I = e^{3\ln t} = t^3$. $e^{3t}$ is the skipped-standard-form mistake.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W2.</strong> Largest interval with a guaranteed unique solution: $\;(t^2-9)\,y'' + y' + \dfrac{y}{t} = 0,\;\; y(1)=0,\; y'(1)=1$.</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(-3,\,3)$</button>
+    <button class="opt" data-key="b">$(1,\,3)$</button>
+    <button class="opt" data-key="c">$(0,\,3)$</button>
+    <button class="opt" data-key="d">$(0,\,\infty)$</button>
+  </div>
+  <div class="why">Divide by $t^2-9$. The bad points are $t=\pm3$ (from the division) and $t=0$ (from $y/t$). The interval containing $t_0=1$ is $(0,3)$.</div>
+</div>
+
+<h2>1 · General = complementary + particular</h2>
+
+<p>Write a linear ODE as $Ty = g$, where $T = \frac{d^2}{dt^2} + f_1(t)\frac{d}{dt} + f_0(t)$ is a linear operator, just like a matrix in $A\mathbf v = \mathbf w$ (<a href="../lectures/02_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 2, slides 2–5</a>). The recipe is the same as in linear algebra:</p>
+<ul>
+  <li><strong>Complementary solutions</strong> $y_c$ solve $Ty_c = 0$. They form a vector space, the <em>solution space</em>. For a 2nd-order ODE it is <strong>2-dimensional</strong>, so $y_c = C_1 y_1 + C_2 y_2$ with $y_1, y_2$ linearly independent (<a href="../lectures/03_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 3, slide 3</a>).</li>
+  <li>A <strong>particular solution</strong> $y_p$ is <em>any one</em> solution of $Ty_p = g$.</li>
+  <li><strong>General solution</strong>: $y = y_c + y_p$. Two constants for a 2nd-order ODE, so you need two initial conditions.</li>
+</ul>
+<p>You've seen this already: in Lesson 1, Q7, $y = t - 1 + Ce^{-t}$ is $y_p = t-1$ plus $y_c = Ce^{-t}$.</p>
+
+<details><summary>Why is "any one" particular solution enough? (Try it first: it's a past-paper short answer.)</summary><div>
+<p>Let $y$ be any solution and $y_p$ a fixed particular one. Then $T(y - y_p) = Ty - Ty_p = g - g = 0$ because $T$ is linear. So $y - y_p$ is a complementary solution, which means $y = y_c + y_p$. Different choices of $y_p$ differ by a complementary solution, which just gets absorbed into $C_1, C_2$.</p>
+</div></details>
+
+<h2>2 · The method</h2>
+
+<p>Suppose you know one non-zero complementary solution $v(t)$. Look for the general solution in the form $y = u(t)\,v(t)$ (<a href="../lectures/02_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 2, slides 10–12</a>; <a href="https://tutorial.math.lamar.edu/Classes/DE/ReductionofOrder.aspx">Paul's Notes: Reduction of Order</a>).</p>
+
+<ol class="steps">
+  <li><strong>Standard form.</strong> Divide by the coefficient of $y''$: $\;y'' + f_1 y' + f_0 y = g$. (Same trap as Lesson 1.)</li>
+  <li><strong>Substitute $y = uv$.</strong> Because $Tv = 0$, every $u$-term (without a derivative) cancels. With $w = u'$ you get a <em>first-order</em> linear ODE:
+    $$w' + \Big(\frac{2v'}{v} + f_1\Big)w = \frac{g}{v}.$$</li>
+  <li><strong>Integrating factor</strong> (Lesson 1 again):
+    $$I = v^2\, e^{\int f_1\,dt}, \qquad (I w)' = \frac{I g}{v}.$$</li>
+  <li><strong>Integrate twice.</strong> Get $w$ (constant $C_1$), then $u = \int w\,dt$ (constant $C_2$), then $y = uv$. Apply ICs, then check.</li>
+</ol>
+
+<div class="box">
+<p><strong>Memorise one line:</strong> $\;I = v^2 e^{\int f_1}$, $\;(Iw)' = Ig/v$, $\;y = v\displaystyle\int\!\frac{1}{I}\Big(\int \frac{Ig}{v}\,dt\Big)dt.$</p>
+<p>If you blank in the exam, you can always rebuild it: substitute $y=uv$, use $y' = u'v+uv'$ and $y'' = u''v + 2u'v' + uv''$, and watch the $u$-terms vanish.</p>
+</div>
+
+<div class="trap"><strong>Three ways to lose marks</strong><br>
+(1) Using $f_1$ before dividing by the $y''$ coefficient.<br>
+(2) Dropping $C_1$ inside the first integral. That constant <em>is</em> your second complementary solution.<br>
+(3) Forgetting the last multiply by $v$: $u$ is not the answer, $uv$ is.</div>
+
+<h2>3 · Finding $v$ when it isn't given</h2>
+
+<p>For $P(t)\,y'' + Q(t)\,y' + R(t)\,y = 0$, try these in order. Each test takes ten seconds.</p>
+<table>
+<tr><th>Trial</th><th>Works when</th></tr>
+<tr><td>$y = e^{t}$</td><td>$P + Q + R = 0$</td></tr>
+<tr><td>$y = e^{-t}$</td><td>$P - Q + R = 0$</td></tr>
+<tr><td>$y = e^{at}$</td><td>$a^2P + aQ + R = 0$ for every $t$: group by powers of $t$ and make each bracket vanish</td></tr>
+<tr><td>$y = t$</td><td>$Q + tR = 0$</td></tr>
+<tr><td>$y = t^n$</td><td>Every term has the same power of $t$ (e.g. $t^2y'', ty', y$). That's an Euler equation, Lesson 3</td></tr>
+<tr><td>$y = (t+a)^b$</td><td>The question tells you to: substitute and match coefficients</td></tr>
+</table>
+<p>If the question says "show that $v$ is a complementary solution", substitute it and show you get 0. That's easy marks, so write it out.</p>
+
+<h3>Worked example</h3>
+<p>Solve $\;(t+1)\,y'' - (t+2)\,y' + y = (t+1)^2 e^{t},\quad y(0)=1,\; y'(0)=0$.</p>
+<div class="box">
+<p><strong>Find $v$.</strong> $P+Q+R = (t+1) - (t+2) + 1 = 0$, so $v = e^{t}$.</p>
+<p><strong>1. Standard form.</strong> $f_1 = -\dfrac{t+2}{t+1} = -1 - \dfrac{1}{t+1}$, $\;g = (t+1)e^t$. The only bad point is $t=-1$, so the solution lives on $(-1,\infty)$.</p>
+<p><strong>2–3.</strong> $\int f_1 = -t - \ln(t+1)$, so $I = e^{2t}\cdot\dfrac{e^{-t}}{t+1} = \dfrac{e^{t}}{t+1}$. And $\dfrac{Ig}{v} = \dfrac{e^t}{t+1}\cdot(t+1) = e^t$.</p>
+<p><strong>4.</strong> $(Iw)' = e^t \Rightarrow Iw = e^t + C_1 \Rightarrow w = (t+1) + C_1(t+1)e^{-t}$.<br>
+$u = \int w\,dt = \tfrac{t^2}{2} + t - C_1(t+2)e^{-t} + C_2$, using $\int (t+1)e^{-t}dt = -(t+2)e^{-t}$.<br>
+$y = uv = \big(\tfrac{t^2}{2}+t\big)e^t \;-\; C_1(t+2) \;+\; C_2 e^t$.</p>
+<p>Read it off: $y_c = A(t+2) + Be^t$ and $y_p = \big(\tfrac{t^2}{2}+t\big)e^t$. (Rename $-C_1 = A$, $C_2 = B$.)</p>
+<p><strong>ICs.</strong> $y(0) = 2A + B = 1$ and $y'(0) = 1 + A + B = 0$, so $A = 2$, $B = -3$:
+$$\boxed{y = \big(\tfrac{t^2}{2} + t - 3\big)e^{t} + 2t + 4}$$</p>
+<p><em>Check $y_c$:</em> $y = t+2$ gives $0 - (t+2) + (t+2) = 0$ ✓</p>
+</div>
+
+<h2>4 · Practice</h2>
+<p>Paper first, then click.</p>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>1.</strong> $y_1 = t^2$ and $y_2 = 3t^2$ both solve a 2nd-order linear homogeneous ODE. Is $C_1t^2 + 3C_2t^2$ its general solution?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Yes: two solutions, two constants</button>
+    <button class="opt" data-key="b">Yes: any two solutions span it</button>
+    <button class="opt" data-key="c">No: you also need a $y_p$ term</button>
+    <button class="opt" data-key="d">No: they're linearly dependent</button>
+  </div>
+  <div class="why">$y_2 = 3y_1$, so $C_1t^2 + 3C_2t^2 = (C_1+3C_2)t^2$ is really one constant. The solution space is 2D, so you need two <em>linearly independent</em> solutions. There's no $y_p$ because the ODE is homogeneous.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> After substituting $y = uv$, which coefficient no longer appears in the ODE for $w = u'$?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$f_0$, the coefficient of $y$</button>
+    <button class="opt" data-key="b">$f_1$, the coefficient of $y'$</button>
+    <button class="opt" data-key="c">$g$, the forcing function</button>
+    <button class="opt" data-key="d">None: all three still appear</button>
+  </div>
+  <div class="why">The $u$-terms collect into $u\,Tv = 0$, which takes $f_0$ with it. That's why the result is first order in $w$. $f_1$ survives in $I = v^2e^{\int f_1}$, and $g$ survives as $g/v$.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>3.</strong> Which is a complementary solution of $\;(1-t)\,y'' + t\,y' - y = 0$?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Only $e^{t}$</button>
+    <button class="opt" data-key="b">Only $t$</button>
+    <button class="opt" data-key="c">Both of them</button>
+    <button class="opt" data-key="d">Neither of them</button>
+  </div>
+  <div class="why">$P+Q+R = (1-t) + t - 1 = 0$, so $e^t$ works. $Q + tR = t - t = 0$, so $t$ works too. Two independent solutions means you get $y_c = C_1e^t + C_2t$ with no reduction of order needed. Always run every quick test.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>4.</strong> Trialling $y = e^{at}$ in $\;t\,y'' - (2t+1)\,y' + (t+1)\,y = 0$, which $a$ works?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$a = -1$</button>
+    <button class="opt" data-key="b">$a = 1$</button>
+    <button class="opt" data-key="c">$a = 2$</button>
+    <button class="opt" data-key="d">No $a$</button>
+  </div>
+  <div class="why">$a^2t - (2t+1)a + (t+1) = t\,(a-1)^2 + (1-a)$. Both brackets must vanish for <em>every</em> $t$, so $a = 1$. (The quick test agrees: $P+Q+R = 0$.)</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>5.</strong> For $\;t^2y'' + t\,y' - 4y = 0$ with $v = t^2$, the reduction-of-order integrating factor is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$t^{4}e^{t^2/2}$</button>
+    <button class="opt" data-key="b">$t^{4}$</button>
+    <button class="opt" data-key="c">$t^{3}$</button>
+    <button class="opt" data-key="d">$t^{5}$</button>
+  </div>
+  <div class="why">Standard form: $f_1 = 1/t$, so $e^{\int f_1} = t$ and $I = v^2\cdot t = t^5$. Then $(t^5w)' = 0$ gives $w = Ct^{-5}$, $u = -\tfrac{C}{4}t^{-4}$, and $y = uv \propto t^{-2}$. The first option is what you get if you skip standard form and use $f_1 = t$.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>6.</strong> $v = e^{t}/t$ solves $\;t\,y'' + 2y' - t\,y = 0$. The integrating factor $I$ for the $w$-equation is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{2t}$</button>
+    <button class="opt" data-key="b">$t^2e^{2t}$</button>
+    <button class="opt" data-key="c">$e^{2t}/t^2$</button>
+    <button class="opt" data-key="d">$t^{2}$</button>
+  </div>
+  <div class="why">$f_1 = 2/t$, so $e^{\int f_1} = t^2$. Then $I = v^2 t^2 = \dfrac{e^{2t}}{t^2}\cdot t^2 = e^{2t}$. The $t^2$ factors cancel. That kind of tidy cancellation is a sign you're on track.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>7.</strong> Carry on from Q6. The second, linearly independent complementary solution is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$t\,e^{-t}$</button>
+    <button class="opt" data-key="b">$e^{-t}$</button>
+    <button class="opt" data-key="c">$e^{-t}/t$</button>
+    <button class="opt" data-key="d">$e^{t}\ln t$</button>
+  </div>
+  <div class="why">$g = 0$, so $(e^{2t}w)' = 0 \Rightarrow w = Ce^{-2t} \Rightarrow u = -\tfrac{C}{2}e^{-2t}$. Then $y = uv \propto e^{-2t}\cdot\dfrac{e^t}{t} = \dfrac{e^{-t}}{t}$. If you picked $e^{-t}$, you forgot to multiply $u$ by $v$ and dropped the $1/t$.</div>
+</div>
+
+<h2 id="challenge">5 · Exam-level challenge</h2>
+<p>No $v$ is given, the forcing isn't simple, and there are ICs to fit. Do it fully on paper, then open one step at a time.</p>
+<div class="box">
+<p>Solve $\;t\,y'' - (t+2)\,y' + 2y = t(t-1)\,e^{t},\quad y(1) = 5,\;\; y'(1) = 4 + e,\quad t&gt;0.$</p>
+<p>Also state the general complementary solution, and the interval on which your answer is valid.</p>
+</div>
+
+<details><summary>Step 1: find $v$</summary><div>
+<p>Quick tests: $P+Q+R = t - (t+2) + 2 = 0$, so $v = e^t$. (Check $y = t$: $Q + tR = t - 2 \neq 0$, so that one fails.) The bad point after dividing by $t$ is $t = 0$, and $t_0 = 1$, so the interval is $(0,\infty)$.</p></div></details>
+<details><summary>Step 2: standard form and $I$</summary><div>
+<p>$f_1 = -1 - \dfrac{2}{t}$ and $g = (t-1)e^t$. Then $e^{\int f_1} = e^{-t}t^{-2}$, so $I = e^{2t}\cdot e^{-t}t^{-2} = \dfrac{e^t}{t^2}$, and
+$$\frac{Ig}{v} = \frac{e^t}{t^2}(t-1) = \frac{(t-1)e^t}{t^2}.$$</p></div></details>
+<details><summary>Step 3: the first integral (the trick)</summary><div>
+<p>Spot that $\dfrac{(t-1)e^t}{t^2} = \Big(\dfrac{e^t}{t}\Big)'$ by the quotient rule. So $Iw = \dfrac{e^t}{t} + C_1$, and
+$$w = \frac{t^2}{e^t}\Big(\frac{e^t}{t} + C_1\Big) = t + C_1t^2e^{-t}.$$
+On an exam, an integrand like this is almost always a derivative of something simple. Try quotient or product rule backwards before reaching for parts.</p></div></details>
+<details><summary>Step 4: second integral and general solution</summary><div>
+<p>$\int t^2 e^{-t}dt = -(t^2+2t+2)e^{-t}$, so $u = \tfrac{t^2}{2} - C_1(t^2+2t+2)e^{-t} + C_2$, and
+$$y = uv = \tfrac12 t^2 e^t + A\,(t^2+2t+2) + B\,e^t.$$
+So $y_c = A(t^2+2t+2) + Be^t$ and $y_p = \tfrac12t^2e^t$. Check $t^2+2t+2$: $2t - (t+2)(2t+2) + 2(t^2+2t+2) = 0$ ✓</p></div></details>
+<details><summary>Step 5: initial conditions</summary><div>
+<p>$y(1) = \tfrac e2 + 5A + Be = 5$ and $y'(1) = \tfrac{3e}{2} + 4A + Be = 4 + e$. Subtracting gives $A - e = 1 - e$, so $A = 1$ and then $B = -\tfrac12$:
+$$\boxed{y = \tfrac12\,(t^2-1)\,e^t + t^2 + 2t + 2}, \qquad t\in(0,\infty).$$</p></div></details>
+
+<p>Once you've checked the steps, compare your script against the <a href="0002-challenge-full-solution.html">full written solution</a>, which shows every line you'd write in the exam.</p>
+
+<h2>6 · Before you close this tab</h2>
+<details><summary>Retrieval: write the four steps and the formula for $I$ from memory, then check</summary><div>
+<p>(1) Standard form. (2) $y = uv$, $w = u'$: the ODE becomes first order. (3) $I = v^2e^{\int f_1}$, $(Iw)' = Ig/v$. (4) Integrate twice (keep both constants), multiply by $v$, apply ICs, check.</p>
+<p>Plus the quick tests for $v$: $P+Q+R=0 \Rightarrow e^t$; $\;P-Q+R=0 \Rightarrow e^{-t}$; $\;Q+tR=0 \Rightarrow t$.</p></div></details>
+
+<p><strong>Primary source:</strong> read <a href="https://tutorial.math.lamar.edu/Classes/DE/ReductionofOrder.aspx">Paul's Online Notes: Reduction of Order</a>. It derives the method by direct substitution, which is the "rebuild it if you blank" route. Then compare with <a href="../lectures/02_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 2, slides 9–16</a>, where Exercise 1.5 shows a full inhomogeneous case in the course's notation.</p>
+<p><strong>Homework (official practice):</strong></p>
+<ul>
+  <li><a href="../tutes/tute_week_02.pdf">Tutorial week 2</a>, Q2–Q4. Q2(b) says derive from first principles: do it, because that's the derivation you'd rebuild in the exam. Solutions: <a href="../tutes/tute_week_02_sol.pdf">tute_week_02_sol</a>.</li>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic1.pdf">Problem Booklet 1</a>, Q5 (a)–(b), including the "what if the ICs are at $t=0$?" part. Link that to Lesson 1's interval rule.</li>
+  <li>Leave booklet Q6 for after Lesson 3: it needs $\cos(\log t)$.</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo Q5, Q7 and the challenge cold, plus Lesson 1's Q10.</p>
+
+<div class="ask">💬 Stuck on a step, or got a different answer? Ask me in the terminal. I'm your teacher for this. Paste or photograph your working and I'll mark it line by line.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0001-integrating-factors.html">Lesson 1, integrating factors</a></span>
+  <span>Reference: <a href="../reference/topic1-cheatsheet.html">Topic 1 cheat sheet</a></span>
+  <span>Next: <a href="0003-wronskian-abel-euler.html">Lesson 3, Wronskian, Abel &amp; Euler</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

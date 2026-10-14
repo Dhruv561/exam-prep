@@ -1,0 +1,94 @@
+---
+title: "MAST30027: Bayesian Inference and Simulations Methods"
+subtitle: "Week 8 - Solutions"
+date: ""
+
+format:
+  html:
+    self-contained: true
+    css: CSSBackground.css
+    html-math-method: mathml
+resources:
+  - ../images/Banner.png
+---
+
+**Objectives of the Tutorial/Lab**
+By the end of this tutorial, you should be able to:
+
+- Understand the basics of Bayesian models, including priors, posteriors, and marginal distributions.
+- Derive posterior and marginal distributions for normal distributions.
+- Understand the simulation process for discrete random variables.
+- Simulate continuous random variables using the inversion method.
+
+## Question 1
+
+Let $X_1,\cdots, X_n$ be a random sample from a $N(\theta,\sigma^2)$ population, and suppose that the prior distribution on $\theta$ is $N(\mu, \tau^2)$.
+Here we assume that $\sigma^2$, $\mu$ and $\tau^2$ are all known.
+
+:::: {.subquestions}
+::: {.subquestion}
+Find $p(\bar{x},\theta)$, the joint pdf of $\bar{X}$ and $\theta$.
+
+```{r}
+
+```
+
+:::
+
+::: {.subquestion}
+Show that $p(\theta|\bar{x})$ is normal with mean and variance given by
+$E(\theta|\bar{x})=\frac{n\tau^2}{n\tau^2+\sigma^2}\bar{x}
++\frac{\sigma^2}{n\tau^2+\sigma^2}\mu$ and
+$\text{Var}(\theta|\bar{x})=\frac{\sigma^2\tau^2}{n\tau^2+\sigma^2}$.
+
+```{r}
+
+```
+
+:::
+
+::: {.subquestion}
+Show that the marginal pdf of $\bar{X}$, i.e., $p(\bar{x})$, is the pdf of $N(\mu, \frac{\sigma^2}{n}+\tau^2)$.
+
+```{r}
+
+```
+
+\newpage
+
+:::
+::::
+
+## Question 2
+
+Here is some code for simulating a discrete random variable $Y$.
+What is the probability mass function (pmf) of $Y$?
+```r
+Y.sim <- function() {
+  U <- runif(1)
+  Y <- 1
+  while (U > 1 - 1/(1+Y)) {
+    Y <- Y + 1
+  }
+  return(Y)
+}
+```
+
+```{r}
+
+```
+
+## Question 3
+
+Consider the continuous random variable $X$ with pdf given by:
+
+$$
+f_X(x)=\frac{\exp{(-x)}}{(1+\exp{(-x)})^2}\quad -\infty<x<\infty.
+$$
+
+$X$ is said to have a standard logistic distribution.  Find the cdf for this random variable.
+Simulate a sample of size 10 from the distribution using the inversion method.
+
+```{r}
+
+```

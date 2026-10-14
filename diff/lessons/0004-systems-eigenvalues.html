@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Systems and Eigenvalues</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 4 · Topic 1: Linear ODEs &amp; IVPs</div>
+<h1>Systems: from one high-order ODE to $\mathbf y' = A\mathbf y$, solved by eigenvalues</h1>
+<p class="lede">The goal: switch freely between an $n$th-order ODE and a first-order system, then solve any constant-coefficient system, including complex eigenvalues, and fit initial conditions.</p>
+
+<div class="mission">Why this matters for 5 Nov: past papers ask you to "write in vector form", to go from a system back to a single 2nd-order ODE, and to solve a 2×2 IVP by eigenvalues. Every phase-portrait question (Lesson 5) also starts with this lesson's eigen-work.</div>
+
+<h2>0 · Warm-up from Lesson 3</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W1.</strong> Indicial roots $n = 2 \pm i$ give which solution?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{2t}\cos t$</button>
+    <button class="opt" data-key="b">$t^2\cos(\ln t)$</button>
+    <button class="opt" data-key="c">$t^2\cos t$</button>
+    <button class="opt" data-key="d">$t\cos(2\ln t)$</button>
+  </div>
+  <div class="why">$t^{\alpha}\cos(\beta\ln t)$ with $\alpha = 2$, $\beta = 1$. Option (a) is the constant-coefficient version, which is what you'll get <em>today</em> from $e^{\lambda t}$ trials. Keep the two apart.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W2.</strong> By Abel, the Wronskian of two solutions of $y'' + 4y' + 7y = 0$ is proportional to…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{4t}$</button>
+    <button class="opt" data-key="b">$e^{-7t}$</button>
+    <button class="opt" data-key="c">$t^{-4}$</button>
+    <button class="opt" data-key="d">$e^{-4t}$</button>
+  </div>
+  <div class="why">$f_1 = 4$, so $e^{-\int 4} = e^{-4t}$. Hold on to this: $-4$ is the trace of this lesson's matrix for that ODE, and that's no accident.</div>
+</div>
+
+<h2>1 · Any $n$th-order linear ODE is a first-order system</h2>
+
+<p>Name the derivatives: $z_1 = y,\; z_2 = y',\;\dots,\; z_n = y^{(n-1)}$. Each $z_k' = z_{k+1}$, and the last line is the ODE solved for $y^{(n)}$ (<a href="../lectures/04_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 4, slide 3</a>). For second order:</p>
+<div class="box">
+$$y'' + by' + cy = g(t) \quad\Longleftrightarrow\quad \frac{d}{dt}\begin{pmatrix} y \\ v\end{pmatrix} = \begin{pmatrix} 0 &amp; 1 \\ -c &amp; -b \end{pmatrix}\begin{pmatrix} y \\ v\end{pmatrix} + \begin{pmatrix} 0 \\ g(t)\end{pmatrix}, \qquad v = y'.$$
+<p>The top row is always "$y' = v$". The bottom row holds the <strong>negated</strong> coefficients. ICs $y(t_0), y'(t_0)$ become the vector $\mathbf y(t_0)$.</p>
+</div>
+
+<h3>Third order (and higher): same recipe, one more row</h3>
+<p>Worked example: write $\;y''' - 3y'' + 2y' - 7y = 0\;$ as $\mathbf z' = A\mathbf z$.</p>
+<div class="box">
+<p><strong>1. Name the derivatives.</strong> Use one variable for each derivative <em>below</em> the highest order: $z_1 = y,\; z_2 = y',\; z_3 = y''$.</p>
+<p><strong>2. The easy rows.</strong> Each variable's derivative is the next variable:
+$$z_1' = y' = z_2, \qquad z_2' = y'' = z_3.$$
+In the matrix these rows are $(0, 1, 0)$ and $(0, 0, 1)$: a diagonal of 1s sitting just above the main diagonal.</p>
+<p><strong>3. The last row.</strong> $z_3' = y'''$, so solve the ODE for $y'''$ (move everything else to the right, which flips the signs):
+$$y''' = 7y - 2y' + 3y'' = 7z_1 - 2z_2 + 3z_3.$$
+Read off the coefficients in the order $z_1, z_2, z_3$ (that is, $y, y', y''$): $(7,\; -2,\; 3)$.</p>
+<p><strong>4. Assemble.</strong>
+$$\frac{d}{dt}\begin{pmatrix} z_1 \\ z_2 \\ z_3\end{pmatrix} = \begin{pmatrix} 0 &amp; 1 &amp; 0 \\ 0 &amp; 0 &amp; 1 \\ 7 &amp; -2 &amp; 3 \end{pmatrix}\begin{pmatrix} z_1 \\ z_2 \\ z_3\end{pmatrix}.$$
+ICs $y(0), y'(0), y''(0)$ become $\mathbf z(0)$.</p>
+<p><strong>General pattern</strong> for $y^{(n)} + a_{n-1}y^{(n-1)} + \dots + a_1y' + a_0y = g(t)$: the top $n-1$ rows are the shifted 1s, the bottom row is $(-a_0,\; -a_1,\; \dots,\; -a_{n-1})$, ordered from <em>lowest</em> derivative to highest, and $g(t)$ goes in the last entry of the forcing vector.</p>
+</div>
+<div class="trap"><strong>Two slips on the bottom row</strong><br>(1) Forgetting to negate: the bottom row comes from $y^{(n)} = \dots$, so every coefficient flips sign. (2) Writing it in the order the ODE lists the terms (highest derivative first). The row must follow the order of $\mathbf z$: $y$ first, then $y'$, then $y''$. Also, if $y'''$ has a coefficient other than 1, divide through by it first.</div>
+
+<p><strong>Going back</strong> (system → one 2nd-order ODE): for $x' = ax + by,\; y' = cx + dy$, differentiate the first equation, substitute $y'$, then eliminate $y$ using $by = x' - ax$. The result is always</p>
+<div class="box">
+$$x'' - (\operatorname{tr}A)\,x' + (\det A)\,x = 0, \qquad \operatorname{tr}A = a + d,\;\; \det A = ad - bc.$$
+<p>That's the characteristic polynomial of $A$, $\;\lambda^2 - (\operatorname{tr}A)\lambda + \det A$. So the ODE and the matrix have the same $\lambda$'s, which is why you can use whichever route is easier.</p>
+</div>
+
+<h2>2 · The eigenvalue method</h2>
+
+<p>For $\mathbf y' = A\mathbf y$ with constant $A$, trial $\mathbf y = \mathbf v e^{\lambda t}$. Then $\lambda\mathbf v e^{\lambda t} = A\mathbf v e^{\lambda t}$, so $A\mathbf v = \lambda\mathbf v$: <strong>$\lambda$ is an eigenvalue and $\mathbf v$ an eigenvector</strong> (<a href="../lectures/04_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 4, slides 11–15</a>; <a href="https://tutorial.math.lamar.edu/Classes/DE/RealEigenvalues.aspx">Paul's Notes: Real Eigenvalues</a>).</p>
+
+<ol class="steps">
+  <li><strong>Eigenvalues:</strong> $\det(A - \lambda I) = 0$. For 2×2, use $\lambda^2 - (\operatorname{tr}A)\lambda + \det A = 0$.</li>
+  <li><strong>Eigenvectors:</strong> one row of $(A - \lambda I)\mathbf v = 0$ is enough for 2×2. If the row is $(p,\;q)$, take $\mathbf v = (q,\,-p)$. Check with the other row.</li>
+  <li><strong>General solution:</strong> $\mathbf y = C_1\mathbf v_1e^{\lambda_1t} + C_2\mathbf v_2e^{\lambda_2t}$.</li>
+  <li><strong>Independence:</strong> $\operatorname{wr}[\mathbf y_1,\mathbf y_2] = \det\big(\mathbf y_1\;\;\mathbf y_2\big) \ne 0$ (<a href="../lectures/04_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">slide 10</a>). Distinct eigenvalues always pass.</li>
+  <li><strong>ICs:</strong> at $t = 0$, solve $C_1\mathbf v_1 + C_2\mathbf v_2 = \mathbf y_0$, a 2×2 linear system.</li>
+</ol>
+
+<h3>Complex eigenvalues $\lambda = \alpha \pm i\beta$</h3>
+<p>Take <em>one</em> of them, say $\alpha + i\beta$, with eigenvector $\mathbf v$. Expand $\mathbf v\,e^{\alpha t}(\cos\beta t + i\sin\beta t)$. Its <strong>real part and imaginary part</strong> are two independent real solutions (<a href="https://tutorial.math.lamar.edu/Classes/DE/ComplexEigenvalues.aspx">Paul's Notes: Complex Eigenvalues</a>). Throw the conjugate away: it gives the same two.</p>
+<ol class="steps">
+  <li><strong>Rewrite the exponential:</strong> $e^{\lambda t} = e^{\alpha t}(\cos\beta t + i\sin\beta t)$ (Euler's formula).</li>
+  <li><strong>Multiply by the eigenvector</strong>, one component at a time. FOIL it out and use $i^2 = -1$.</li>
+  <li><strong>Split:</strong> collect the terms with no $i$ into one vector (the real part) and the terms multiplying $i$ into another (the imaginary part, written <em>without</em> the $i$). Then $\mathbf y = C_1(\text{real}) + C_2(\text{imag})$.</li>
+</ol>
+<div class="trap"><strong>Multiply by $e^{\lambda t}$, not by $\lambda$</strong><br>$\mathbf v\lambda$ is just $A\mathbf v$, which isn't a solution. You only use $\lambda$ to build $e^{\lambda t}$. Also watch the $i\cdot i\sin$ term: it turns into $-\sin$ and moves over to the real part.</div>
+
+<h3>Same idea for one $n$th-order ODE</h3>
+<p>For $y^{(n)} + \dots + a_0y = 0$ with constant coefficients, trial $y = e^{\lambda t}$ and get a degree-$n$ polynomial (<a href="../lectures/03_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 3, slide 13</a>):</p>
+<table>
+<tr><th>Root</th><th>Solutions it contributes</th></tr>
+<tr><td>Real $\lambda$, $k$-fold</td><td>$e^{\lambda t},\; te^{\lambda t},\;\dots,\; t^{k-1}e^{\lambda t}$</td></tr>
+<tr><td>$\alpha \pm i\beta$</td><td>$e^{\alpha t}\cos\beta t,\;\; e^{\alpha t}\sin\beta t$</td></tr>
+</table>
+<p>Compare with Euler (Lesson 3): there, $\ln t$ plays the role of $t$ and $t^{n}$ plays the role of $e^{\lambda t}$.</p>
+
+<div class="trap"><strong>Repeated eigenvalue, one eigenvector</strong><br>For a <em>system</em>, if a repeated $\lambda$ has only one eigenvector, the trial fails to give two solutions (Booklet Q10). The booklet says generalised eigenvectors are not examinable. The matrix exponential (Lesson 6) handles it.</div>
+
+<h3>Worked example: complex eigenvalues with an IVP</h3>
+<p>Solve $\;x' = x - 5y,\;\; y' = x - 3y,\;\; x(0) = 1,\; y(0) = 1.$</p>
+<div class="box">
+<p><strong>Eigenvalues.</strong> $\operatorname{tr} = -2$, $\det = -3 + 5 = 2$, so $\lambda^2 + 2\lambda + 2 = 0$ and $\lambda = -1 \pm i$.</p>
+<p><strong>Eigenvector for $-1 + i$.</strong> The second row of $A - \lambda I$ is $(1,\; -2 - i)$, so $\mathbf v = (2 + i,\; 1)$. Check the first row: $(2 - i)(2 + i) - 5 = 5 - 5 = 0$ ✓</p>
+<p><strong>Expand.</strong> The complex solution is $\mathbf v e^{\lambda t}$ with $\lambda = -1 + i$. Split the exponent and use Euler's formula $e^{i\theta} = \cos\theta + i\sin\theta$:
+$$e^{(-1+i)t} = e^{-t}\,e^{it} = e^{-t}(\cos t + i\sin t).$$
+The $e^{-t}$ is real, so leave it out front and multiply each component of $\mathbf v$ by $(\cos t + i\sin t)$ separately.</p>
+<p><em>Top component.</em> FOIL out all four products:
+$$\begin{aligned}
+(2 + i)(\cos t + i\sin t) &amp;= 2\cos t + 2i\sin t + i\cos t + i^2\sin t \\
+&amp;= 2\cos t + 2i\sin t + i\cos t - \sin t \qquad (i^2 = -1)\\
+&amp;= \underbrace{(2\cos t - \sin t)}_{\text{no } i} + i\,\underbrace{(\cos t + 2\sin t)}_{\text{had an } i}.
+\end{aligned}$$</p>
+<p><em>Bottom component.</em> $1\cdot(\cos t + i\sin t) = \underbrace{\cos t}_{\text{no } i} + i\,\underbrace{\sin t}_{\text{had an } i}.$</p>
+<p><em>Stack them.</em> Put the "no $i$" pieces in one vector and the "had an $i$" pieces in another, then put the $e^{-t}$ back:
+$$\begin{pmatrix}2+i\\1\end{pmatrix}e^{-t}(\cos t + i\sin t) =e^{-t}\begin{pmatrix}2\cos t - \sin t\\ \cos t\end{pmatrix} + i\,e^{-t}\begin{pmatrix}\cos t + 2\sin t\\ \sin t\end{pmatrix}.$$</p>
+<p><strong>General solution.</strong> $\mathbf y = C_1(\text{real part}) + C_2(\text{imaginary part})$.</p>
+<p><strong>ICs.</strong> At $t = 0$: $C_1(2, 1) + C_2(1, 0) = (1, 1)$, so $C_1 = 1$ and $C_2 = -1$:
+$$\boxed{x = e^{-t}(\cos t - 3\sin t),\qquad y = e^{-t}(\cos t - \sin t)}$$</p>
+<p><em>Check:</em> $x(0) = 1$, $y(0) = 1$ ✓. Also $y' = -e^{-t}(\cos t - \sin t) + e^{-t}(-\sin t - \cos t) = e^{-t}(-2\cos t)$, and $x - 3y = e^{-t}(-2\cos t)$ ✓</p>
+</div>
+
+<h2>3 · Practice</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> Writing $\;y''' - 2y'' + y' + 5y = 0\;$ as $\mathbf z' = A\mathbf z$ with $\mathbf z = (y, y', y'')$, the bottom row of $A$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(5,\; 1,\; -2)$</button>
+    <button class="opt" data-key="b">$(-2,\; 1,\; 5)$</button>
+    <button class="opt" data-key="c">$(-5,\; -1,\; 2)$</button>
+    <button class="opt" data-key="d">$(2,\; -1,\; -5)$</button>
+  </div>
+  <div class="why">$y''' = -5y - y' + 2y''$, so the row is $(-f_0, -f_1, -f_2) = (-5, -1, 2)$ in the order $y, y', y''$. Option (a) forgot to negate.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> $x' = 3x - y,\;\; y' = 4x - 2y$, as a single ODE for $x$:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$x'' - x' - 2x = 0$</button>
+    <button class="opt" data-key="b">$x'' + x' - 2x = 0$</button>
+    <button class="opt" data-key="c">$x'' - x' + 2x = 0$</button>
+    <button class="opt" data-key="d">$x'' - 5x' - 2x = 0$</button>
+  </div>
+  <div class="why">$\operatorname{tr} = 1$, $\det = -6 + 4 = -2$, so $x'' - x' - 2x = 0$. Longhand: $x'' = 3x' - y' = 3x' - 4x + 2y$ and $y = 3x - x'$, which gives the same thing. <a href="../reference/0004-q2-system-to-single-ode-full-solution.html">Full exam-style write-up</a>.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>3.</strong> $A = \begin{pmatrix}1 &amp; 2\\ 3 &amp; 2\end{pmatrix}$. The eigenvector for $\lambda = 4$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(1,\; -1)$</button>
+    <button class="opt" data-key="b">$(2,\; 3)$</button>
+    <button class="opt" data-key="c">$(3,\; 2)$</button>
+    <button class="opt" data-key="d">$(1,\; 1)$</button>
+  </div>
+  <div class="why">Row 1 of $A - 4I$ is $(-3,\; 2)$, so $\mathbf v = (2,\; 3)$. Check row 2: $3\cdot2 - 2\cdot3 = 0$ ✓. $(1,-1)$ belongs to the other eigenvalue, $\lambda = -1$.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>4.</strong> General solution of $\;x' = 2x + y,\;\; y' = x + 2y$:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$C_1(1,1)e^{t} + C_2(1,-1)e^{3t}$</button>
+    <button class="opt" data-key="b">$C_1(1,2)e^{3t} + C_2(2,1)e^{t}$</button>
+    <button class="opt" data-key="c">$C_1(1,1)e^{2t} + C_2(1,-1)e^{2t}$</button>
+    <button class="opt" data-key="d">$C_1(1,1)e^{3t} + C_2(1,-1)e^{t}$</button>
+  </div>
+  <div class="why">$\lambda^2 - 4\lambda + 3 = 0$, so $\lambda = 3, 1$. Then $A(1,1) = (3,3)$ and $A(1,-1) = (1,-1)$. Option (a) pairs each eigenvector with the wrong eigenvalue, which is the commonest slip. Always check $A\mathbf v = \lambda\mathbf v$.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>5.</strong> $\operatorname{wr}\big[(1,1)e^{3t},\; (1,-1)e^{t}\big] = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$0$</button>
+    <button class="opt" data-key="b">$2e^{4t}$</button>
+    <button class="opt" data-key="c">$-2e^{4t}$</button>
+    <button class="opt" data-key="d">$-2e^{3t}$</button>
+  </div>
+  <div class="why">$\det\begin{pmatrix} e^{3t} &amp; e^{t}\\ e^{3t} &amp; -e^{t}\end{pmatrix} = -e^{4t} - e^{4t} = -2e^{4t} \ne 0$, so they're independent. Its exponent is $4t = (\operatorname{tr}A)\,t$: that's Abel's identity again.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>6.</strong> $x' = 3y,\;\; y' = -3x,\;\; x(0) = 1,\; y(0) = 2$. Then $x(t) = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\cos 3t + 2\sin 3t$</button>
+    <button class="opt" data-key="b">$\cos 3t - 2\sin 3t$</button>
+    <button class="opt" data-key="c">$2\cos 3t + \sin 3t$</button>
+    <button class="opt" data-key="d">$e^{3t} + e^{-3t}$</button>
+  </div>
+  <div class="why">$\lambda = \pm3i$, so $x = A\cos3t + B\sin3t$. Then $x(0) = 1$ gives $A = 1$, and $x'(0) = 3y(0) = 6 = 3B$ gives $B = 2$. Using the system to get $x'(0)$ is often quicker than eigenvectors.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>7.</strong> General solution of $\;y''' - 3y'' + 3y' - y = 0$:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(C_1 + C_2 + C_3)e^{t}$</button>
+    <button class="opt" data-key="b">$(C_1 + C_2t + C_3t^2)e^{t}$</button>
+    <button class="opt" data-key="c">$C_1e^{t} + C_2e^{-t} + C_3e^{3t}$</button>
+    <button class="opt" data-key="d">$(C_1 + C_2\ln t + C_3\ln^2 t)e^{t}$</button>
+  </div>
+  <div class="why">$\lambda^3 - 3\lambda^2 + 3\lambda - 1 = (\lambda - 1)^3$, a triple root. Option (a) is really one constant, so it can't be the general solution of a 3rd-order ODE. Option (d) mixes in Euler.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>8.</strong> How many of $\;e^{t},\, e^{-t},\, \cos t,\, \sin t\;$ solve $\;y'''' - y = 0$?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Only $e^{\pm t}$</button>
+    <button class="opt" data-key="b">Only $\cos t,\sin t$</button>
+    <button class="opt" data-key="c">Exactly three of them</button>
+    <button class="opt" data-key="d">All four of them</button>
+  </div>
+  <div class="why">$\lambda^4 = 1 \Rightarrow (\lambda^2 - 1)(\lambda^2 + 1) = 0$, so $\lambda = \pm1, \pm i$. Four roots give four independent solutions, matching the order.</div>
+</div>
+
+<h2>4 · Exam-level challenge</h2>
+<div class="box">
+<p>Consider $\;x' = 3x - 2y,\;\; y' = 4x - y,\;\; x(0) = 2,\; y(0) = 0.$</p>
+<p>(a) Solve the IVP using eigenvalues and eigenvectors. Give a real answer.<br>
+(b) Convert the system into a single 2nd-order ODE for $x$, with both initial conditions, and confirm that your $x(t)$ solves it.</p>
+</div>
+
+<details><summary>(a) Step 1: eigenvalues</summary><div>
+<p>$\operatorname{tr} = 2$, $\det = -3 + 8 = 5$, so $\lambda^2 - 2\lambda + 5 = 0$ and $\lambda = 1 \pm 2i$.</p></div></details>
+<details><summary>(a) Step 2: eigenvector for $1 + 2i$</summary><div>
+<p>Row 1 of $A - \lambda I$ is $(2 - 2i,\; -2)$, so take $\mathbf v = (2,\; 2 - 2i)$, or divide by 2 to get $(1,\; 1 - i)$. Check row 2: $4\cdot1 + (-2 - 2i)(1 - i) = 4 + (-2 + 2i - 2i + 2i^2) = 4 - 4 = 0$ ✓</p></div></details>
+<details><summary>(a) Step 3: real and imaginary parts</summary><div>
+<p>$$\begin{pmatrix}1\\1-i\end{pmatrix}e^{t}(\cos2t + i\sin2t) = e^t\begin{pmatrix}\cos2t\\ \cos2t + \sin2t\end{pmatrix} + i\,e^t\begin{pmatrix}\sin2t\\ \sin2t - \cos2t\end{pmatrix}.$$
+(Second component: $(1 - i)(\cos + i\sin) = \cos + \sin + i(\sin - \cos)$.)</p></div></details>
+<details><summary>(a) Step 4: ICs and answer</summary><div>
+<p>$C_1(1, 1) + C_2(0, -1) = (2, 0)$, so $C_1 = 2$ and $C_2 = 2$:
+$$\boxed{x = 2e^{t}(\cos2t + \sin2t),\qquad y = 4e^{t}\sin2t}$$</p></div></details>
+<details><summary>(b) The single ODE</summary><div>
+<p>$x'' - (\operatorname{tr})x' + (\det)x = 0$, i.e. $\;x'' - 2x' + 5x = 0$, with $x(0) = 2$ and $x'(0) = 3x(0) - 2y(0) = 6$.<br>
+Roots $1 \pm 2i$ give $x = e^t(A\cos2t + B\sin2t)$. Then $x(0) = A = 2$, and $x'(0) = A + 2B = 6$ gives $B = 2$ ✓. Same answer. In an exam, use this route to check the system route.</p></div></details>
+
+<h2>5 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, write the 2×2 companion matrix, the tr/det characteristic polynomial, and the complex-eigenvalue recipe</summary><div>
+<p>$y'' + by' + cy = 0 \leftrightarrow \begin{pmatrix}0&amp;1\\-c&amp;-b\end{pmatrix}$. $\;\lambda^2 - (\operatorname{tr}A)\lambda + \det A = 0$. Complex: take one $\lambda$ and its $\mathbf v$, expand $\mathbf v e^{\alpha t}(\cos\beta t + i\sin\beta t)$, and keep the real and imaginary parts.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="https://tutorial.math.lamar.edu/Classes/DE/ComplexEigenvalues.aspx">Paul's Online Notes: Complex Eigenvalues</a> does the real/imaginary split slowly. Course version: <a href="../lectures/04_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 4</a> (the vehicle-platoon example). For more practice with solutions, see <a href="https://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/">MIT 18.03SC</a> Unit IV.</p>
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../tutes/tute_week_03.pdf">Tutorial week 3</a>, Q1 (a)–(c) and Q3 (a)–(b). Save Q1(d) and Q3(c)–(d) for Lesson 5.</li>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic1.pdf">Problem Booklet 1</a>, Q7 (a), (c), (e); Q9 (a); Q11 (a).</li>
+  <li>Optional: Booklet Q8, Q10 (see what goes wrong with a repeated eigenvalue), Q11 (b).</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo quizzes 2, 4 and 6 plus Lesson 3's quiz 7 cold.</p>
+
+<div class="ask">💬 Eigenvectors coming out ugly, or not matching the booklet's? Any nonzero multiple is correct. Paste yours in the terminal and I'll check it.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0003-wronskian-abel-euler.html">Lesson 3, Wronskian &amp; Euler</a></span>
+  <span>Reference: <a href="../reference/topic1-cheatsheet.html">Topic 1 cheat sheet</a></span>
+  <span>Next: <a href="0005-phase-portraits.html">Lesson 5, phase portraits</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

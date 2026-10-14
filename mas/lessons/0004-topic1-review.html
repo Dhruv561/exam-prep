@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topic 1 Mixed Review</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  figure { margin: 1rem 0; }
+  figcaption { font-size: .85rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 4 · Topic 1: Binomial regression &amp; likelihood</div>
+<h1>Topic 1 mixed review: likelihood, binomial <code>glm</code> output, and confidence regions</h1>
+<p class="lede">The goal: without your notes, do a one-parameter MLE question and a full binomial R-output question at exam speed, in a shuffled order, and find out which lesson you need to go back to.</p>
+
+<div class="mission">Why this matters for 10 Nov: the MLE question (7–10 marks) and the R-output question (7–22 marks) together are about a third of every recent paper. In the exam the skills come mixed up and out of lesson order. This review practises them that way, which feels harder than rereading. That's the point: effortful recall is what makes the skills stick.</div>
+
+<div class="trap"><strong>Rules for this lesson</strong><br>Close Lessons 1–3, the cheat sheet and the slides. Use paper and a calculator only. If you're stuck, write down your best attempt before you open any answer. Each wrong first try is useful: the table at the end says where to go back to.</div>
+
+<h2>1 · Recall first (5 minutes)</h2>
+<p>On a blank page, write from memory:</p>
+<ol>
+  <li>The four-step recipe that takes a density \(f(x;\theta)\) to a Wald CI for \(\theta\).</li>
+  <li>The deviance \(D\) in terms of log-likelihoods, and its degrees of freedom.</li>
+  <li>The LRT for nested models A ⊂ B in terms of deviances, and its df.</li>
+  <li>AIC, and how you get \(\ell(\hat\beta)\) and \(\ell_{\text{sat}}\) back from the printout.</li>
+  <li>The three steps for a 95% CI for \(p\) at a new \(x_0\).</li>
+  <li>When the deviance goodness-of-fit test is invalid.</li>
+</ol>
+<details><summary>Check your page</summary><div>
+<p>1. \(\ell(\theta)=\sum\log f(x_i;\theta)\); solve \(\ell'(\theta)=0\) and check \(\ell''&lt;0\); \(\mathcal I(\theta)=\mathbb E[-\ell''(\theta)]\) for the whole sample; \(\hat\theta\overset{d}{\approx}N(\theta,\mathcal I(\theta)^{-1})\), so the CI is \(\hat\theta\pm1.96/\sqrt{\mathcal I(\hat\theta)}\) (<a href="0001-mle-fisher-information.html">Lesson 1</a>).<br>
+2. \(D=2[\ell_{\text{sat}}-\ell(\hat\beta)]\) on \(n-p\) df.<br>
+3. \(D_A-D_B\approx\chi^2_s\), where \(s=\text{df}_A-\text{df}_B\) is the number of extra parameters in B.<br>
+4. \(\text{AIC}=2p-2\ell(\hat\beta)\), so \(\ell(\hat\beta)=p-\text{AIC}/2\) and \(\ell_{\text{sat}}=\ell(\hat\beta)+D/2\), with \(p=n-\text{residual df}\) and \(n=\text{null df}+1\) (<a href="0003-deviance-lrt-aic.html">Lesson 3</a>).<br>
+5. \(\hat\eta_0=x_0^T\hat\beta\); \(\text{se}=\sqrt{x_0^TVx_0}\) with all the covariances; apply \(g^{-1}\) to both ends of \(\hat\eta_0\pm1.96\,\text{se}\) (<a href="0002-binomial-regression.html">Lesson 2</a>).<br>
+6. When some \(m_ip_i\) or \(m_i(1-p_i)\) is below about 5: always for 0/1 data, and also for sparse grouped data. Deviance <em>differences</em> between nested models are still fine.</p>
+<p style="margin-bottom:0">Count the lines you got fully right, out of 6. Below 5? Reread the "Before you close this tab" box of the lesson you missed before going on.</p></div></details>
+
+<h2>2 · The exhibits</h2>
+<p>All the questions in section 3 use one of these three exhibits, the way an exam question hands you a setup and then asks (a), (b), (c). Read them once now. Each question is tagged with the exhibit it uses.</p>
+
+<h3><span class="exhibit-tag">Exhibit A</span>Grain sizes (one-parameter MLE)</h3>
+<div class="box">
+<p>A soil lab models particle diameters \(X_1,\dots,X_n\) (mm) as iid lognormal: \(\log X_i\sim N(\log\theta,\ \sigma^2)\) with \(\sigma^2=\tfrac14\) known and \(\theta&gt;0\) unknown. (\(\theta\) is the median diameter.) The density is</p>
+$$f(x;\theta)=\frac{1}{x\,\sigma\sqrt{2\pi}}\exp\!\left(-\frac{(\log x-\log\theta)^2}{2\sigma^2}\right),\qquad x&gt;0.$$
+<p style="margin-bottom:0">You may use \(\mathbb E[\log X_i]=\log\theta\). A sample of \(n=25\) grains gives \(\sum\log x_i=30\).</p>
+</div>
+
+<h3><span class="exhibit-tag">Exhibit B</span>Oesophageal cancer (binomial <code>glm</code>)</h3>
+<p>The <code>esoph</code> data (base R) come from a case-control study in Ille-et-Vilaine, France. Each of the 88 rows is one combination of age group, alcohol group and tobacco group, with <code>ncases</code> cancer cases and <code>ncontrols</code> controls (\(m_i\) = ncases + ncontrols ranges from 1 to 60; 12 rows have \(m_i=1\)). Here <code>age</code> is a score 1–6 (1 = 25–34, 2 = 35–44, …, 5 = 65–74, 6 = 75+), <code>alc</code> is a score 1–4 (1 = 0–39 g/day, 2 = 40–79, 3 = 80–119, 4 = 120+), and <code>tob</code> is a factor with baseline 0–9 g/day. (The factors were converted to unordered ones so that R uses ordinary dummy variables.)</p>
+<p>Because cases and controls were sampled separately, \(p_i\) is the probability that a subject <em>in this study</em> with those characteristics is a case. Retrospective sampling only shifts the intercept of a logit model, so the odds ratios still estimate population odds ratios (<a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=89">Faraway §4.3, p. 73</a>).</p>
+
+<pre class="rout"><span class="cmd">&gt; m1 &lt;- glm(cbind(ncases, ncontrols) ~ age + alc + tob, family = binomial, data = esoph2)
+&gt; summary(m1)</span>
+
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) -6.73857    0.47180 -14.283  &lt; 2e-16 ***
+age          0.74873    0.08192   9.140  &lt; 2e-16 ***
+alc          1.10547    0.10388  10.642  &lt; 2e-16 ***
+tob10-19     0.43383    0.22682   1.913   0.0558 .
+tob20-29     0.59999    0.27139   2.211   0.0270 *
+tob30+       1.51171    0.32343   4.674 2.95e-06 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 367.95  on 87  degrees of freedom
+Residual deviance: 106.91  on 82  degrees of freedom
+AIC: 233.96
+
+Number of Fisher Scoring iterations: 4
+
+<span class="cmd">&gt; round(vcov(m1), 5)</span>
+            (Intercept)      age      alc tob10-19 tob20-29   tob30+
+(Intercept)     0.22259 -0.03248 -0.03245 -0.02106 -0.02765 -0.04706
+age            -0.03248  0.00671  0.00228  0.00118  0.00231  0.00592
+alc            -0.03245  0.00228  0.01079 -0.00159 -0.00068  0.00145
+tob10-19       -0.02106  0.00118 -0.00159  0.05145  0.02032  0.02077
+tob20-29       -0.02765  0.00231 -0.00068  0.02032  0.07365  0.02174
+tob30+         -0.04706  0.00592  0.00145  0.02077  0.02174  0.10461</pre>
+
+<pre class="rout"><span class="cmd">&gt; m2 &lt;- glm(cbind(ncases, ncontrols) ~ age + alc, family = binomial, data = esoph2)
+&gt; summary(m2)</span>
+
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) -6.22839    0.43591 -14.288   &lt;2e-16 ***
+age          0.69201    0.07863   8.801   &lt;2e-16 ***
+alc          1.13609    0.10150  11.193   &lt;2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 367.95  on 87  degrees of freedom
+Residual deviance: 129.81  on 85  degrees of freedom
+AIC: 250.87
+
+Number of Fisher Scoring iterations: 5
+
+<span class="cmd">&gt; qchisq(0.95, df = c(3, 82))</span>
+[1]   7.814728 104.138738</pre>
+
+<h3><span class="exhibit-tag">Exhibit C</span>A likelihood-ratio confidence region (new, from the week 3 tute)</h3>
+<p>Lesson 1 gave you the Wald interval. <a href="../lectures/BinReg_1_LMS.pdf#page=41">Binomial Regression I, slide 41</a> gives a second route. If \(\theta\) has \(k\) components, then at the true value \(2\ell(\hat\theta)-2\ell(\theta)\overset{d}{\approx}\chi^2_k\), so a 95% confidence <em>region</em> is</p>
+$$\big\{\theta:\ 2\ell(\hat\theta)-2\ell(\theta)\le\chi^2_k(0.95)\big\}.$$
+<p>For logistic regression with one predictor, \(\theta=(\alpha,\beta)\), so \(k=2\) and the cut-off is \(\chi^2_2(0.95)=5.99\). The slide adds that this approximation is generally better than the normal approximation for \(\hat\theta\), so it holds for smaller samples. <a href="../tutes/2026_MAST30027_week3_sol.html">Week 3 tute Q1</a> draws this region for the Challenger data. Here it is for <a href="0002-binomial-regression.html">Lesson 2</a>'s driving-test data (5 groups of 40 learners; \(\hat\alpha=-1.99151\), \(\hat\beta=0.07853\)), with \(\ell\) written without its constant, exactly as in the tute:</p>
+
+<pre class="rout"><span class="cmd">&gt; logL &lt;- function(beta) { eta &lt;- beta[1] + beta[2]*hours; sum(passed*eta - 40*log(1 + exp(eta))) }
+&gt; logL(c(-1.99151, 0.07853))    # the MLE</span>
+[1] -112.7542
+<span class="cmd">&gt; logL(c(-1.39, 0.0985))        # point P1</span>
+[1] -135.7569
+<span class="cmd">&gt; logL(c(-1.2, 0.05))           # point P2</span>
+[1] -115.5116
+<span class="cmd">&gt; logL(c(-2.6, 0.095))          # point P3</span>
+[1] -113.9307
+<span class="cmd">&gt; qchisq(0.95, df = 2)</span>
+[1] 5.991465</pre>
+<p>For comparison, the separate 95% Wald intervals are \(\alpha\in(-2.761,\ -1.222)\) and \(\beta\in(0.0535,\ 0.1035)\), and the estimated correlation between \(\hat\alpha\) and \(\hat\beta\) is \(-0.91\).</p>
+
+<h2>3 · Mixed practice</h2>
+<p>The order is shuffled on purpose. Note the exhibit tag, find the setup, and work on paper.</p>
+
+<div class="quiz num" data-answer="0.313" data-tol="0.002">
+  <p class="q"><strong>1.</strong> <span class="exhibit-tag">B</span>Under <code>m1</code>, what is the fitted probability that a study subject aged 65–74 who drinks 40–79 g/day and smokes 0–9 g/day is a case (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(x_0=(1,\ 5,\ 2,\ 0,\ 0,\ 0)\): age score 5, alcohol score 2, and tobacco at baseline, so all three tob dummies are 0. \(\hat\eta_0=-6.73857+5(0.74873)+2(1.10547)=-0.78398\), so \(\hat p_0=1/(1+e^{0.78398})=\)<strong>0.313</strong>. The usual slip is using the group's label (65) instead of its score (5).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> <span class="exhibit-tag">A</span>For the whole sample of \(n=25\), the Fisher information \(\mathcal I(\theta)\) is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(4/\theta^2\phantom{0}\)</button>
+    <button class="opt" data-key="b">\(100/\theta\phantom{^2}\)</button>
+    <button class="opt" data-key="c">\(100/\theta^2\)</button>
+    <button class="opt" data-key="d">\(25/(4\theta^2)\)</button>
+  </div>
+  <div class="why">Write \(u_i=\log x_i-\log\theta\). Then \(\ell(\theta)=c-\dfrac{1}{2\sigma^2}\sum u_i^2\), and \(du_i/d\theta=-1/\theta\), so
+  $$\ell'(\theta)=\frac{1}{\sigma^2\theta}\sum u_i,\qquad \ell''(\theta)=-\frac{1}{\sigma^2\theta^2}\sum u_i-\frac{n}{\sigma^2\theta^2}.$$
+  The twist: \(\ell''\) contains data (\(\sum u_i\)), so take the expectation. \(\mathbb E\,u_i=0\), so \(\mathcal I(\theta)=\dfrac{n}{\sigma^2\theta^2}=\dfrac{25}{(1/4)\theta^2}=\dfrac{100}{\theta^2}\). Option (a) is the information in a single grain (the course's \(\mathcal I\) includes the \(n\)), and (d) multiplies by \(\sigma^2\) instead of dividing.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>3.</strong> <span class="exhibit-tag">C</span>Which of the points P1, P2, P3 lie inside the 95% likelihood-ratio confidence region for \((\alpha,\beta)\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">P1 and P2 only</button>
+    <button class="opt" data-key="b">P2 and P3 only</button>
+    <button class="opt" data-key="c">P1 and P3 only</button>
+    <button class="opt" data-key="d">P1, P2 and P3</button>
+  </div>
+  <div class="why">Compute \(2[\ell(\hat\alpha,\hat\beta)-\ell(\alpha,\beta)]\) and compare it with 5.99. P1: \(2(-112.7542+135.7569)=46.01\), far outside. P2: \(2(2.7574)=5.51\), just inside. P3: \(2(1.1765)=2.35\), inside. Notice that P1 sits inside <em>both</em> Wald intervals, and P2 sits outside both. The explain box after Q11 shows why.</div>
+</div>
+
+<div class="quiz num" data-answer="22.90" data-tol="0.01">
+  <p class="q"><strong>4.</strong> <span class="exhibit-tag">B</span>What is the likelihood ratio statistic for testing whether tobacco is needed, given age and alcohol (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why"><code>m2</code> is <code>m1</code> with the three tob coefficients set to 0, so it's nested. \(\text{LR}=D_{m2}-D_{m1}=129.81-106.91=\)<strong>22.90</strong> on \(85-82=3\) df, which is far above \(\chi^2_3(0.95)=7.81\): keep tobacco. AIC agrees: \(233.96&lt;250.87\) (check: \(2(3)+106.91-129.81=-16.90\) ✓).</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences each)</strong></p>
+<p>(i) What does <code>pchisq(deviance(m2) - deviance(m1), df = 3, lower.tail = FALSE)</code> compute? R returns <code>[1] 4.223913e-05</code>.<br>(ii) <code>tob10-19</code> has p = 0.056. Why doesn't that tell you whether tobacco matters?</p>
+<details><summary>Model answers</summary><div>
+<p>(i) It's the p-value of the LRT in Q4: the probability that a \(\chi^2_3\) variable exceeds the observed drop in deviance, 22.90. <code>lower.tail = FALSE</code> gives the upper tail \(P(\chi^2_3&gt;22.90)\), and df = 3 because <code>m1</code> has three more parameters. Since \(4.2\times10^{-5}&lt;0.05\), reject \(H_0\) that all three tobacco coefficients are 0.</p>
+<p>(ii) Each z-test compares one tobacco level with the 0–9 g/day baseline, holding the other dummies in the model. "Does tobacco matter?" is the joint hypothesis that all three coefficients are 0, which needs one LRT on \(4-1=3\) df. A factor can matter even if some of its single contrasts aren't significant (<a href="0003-deviance-lrt-aic.html">Lesson 3, §3</a>).</p></div></details>
+</div>
+
+<div class="quiz num" data-answer="3.971" data-tol="0.003">
+  <p class="q"><strong>5.</strong> <span class="exhibit-tag">A</span>Find \(\hat\theta\), then give the upper end of the 95% Wald interval \(\hat\theta\pm1.96/\sqrt{\mathcal I(\hat\theta)}\) (3 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\ell'=0\Rightarrow\sum(\log x_i-\log\theta)=0\Rightarrow\log\hat\theta=\tfrac1n\sum\log x_i=1.2\), so \(\hat\theta=e^{1.2}=3.3201\), the geometric mean. The SE is \(\sqrt{\hat\theta^2/100}=0.33201\). CI: \(3.3201\pm0.6507=(2.669,\ \)<strong>3.971</strong>\()\). A side fact: at \(\hat\theta\) the data term \(\sum u_i\) is exactly 0, so here the observed information \(J(\hat\theta)\) equals \(\mathcal I(\hat\theta)\).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>6.</strong> <span class="exhibit-tag">B</span>What does this line compute?</p>
+<pre class="rout"><span class="cmd">&gt; sum((esoph2$ncases + esoph2$ncontrols) * fitted(m1) &lt; 5)</span>
+[1] 77</pre>
+  <div class="opts">
+    <button class="opt" data-key="a">The number of rows where fewer than five cases were observed</button>
+    <button class="opt" data-key="b">The number of rows whose deviance residual is larger than five</button>
+    <button class="opt" data-key="c">The number of predictors whose z value is smaller than five</button>
+    <button class="opt" data-key="d">The number of rows whose expected case count is below five</button>
+  </div>
+  <div class="why">For a binomial <code>glm</code>, <code>fitted(m1)</code> returns the fitted probabilities \(\hat p_i\). Multiplying by \(m_i\) gives the expected number of cases \(m_i\hat p_i\), and <code>sum(... &lt; 5)</code> counts the TRUEs. So 77 of the 88 rows fail the "\(m_ip_i\ge5\)" rule of thumb. Option (a) would use <code>ncases</code>, the observed count.</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p><code>m1</code> has residual deviance 106.91 on 82 df, and \(\chi^2_{82}(0.95)=104.14\). A classmate concludes "<code>m1</code> fits badly". Is that justified?</p>
+<details><summary>Model answer</summary><div>
+<p>No. The test \(D\approx\chi^2_{n-p}\) needs \(m_ip_i\) and \(m_i(1-p_i)\) to be at least about 5 (<a href="../lectures/BinReg_2_LMS-1.pdf#page=12">Binomial Regression II, slide 12</a>), and 77 of the 88 rows have fewer than 5 expected cases (12 rows have a single subject). The data are sparse, so \(D\) need not be close to \(\chi^2_{82}\) and the comparison with 104.14 means little either way. Deviance <em>differences</em> between nested models, like the LRT in Q4, are still valid.</p></div></details>
+</div>
+
+<div class="quiz num" data-answer="5.11" data-tol="0.02">
+  <p class="q"><strong>7.</strong> <span class="exhibit-tag">B</span>Under <code>m1</code>, the odds of being a case for a 30+ g/day smoker are \(e^{1.51171-0.59999}=2.49\) times those of a 20–29 g/day smoker of the same age and alcohol intake. What is the upper end of its 95% CI (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">This is \(t^T\hat\beta\) with \(t=(0,0,0,0,-1,1)\), so you need the covariance:
+  $$\operatorname{Var}(\hat\beta_{30+}-\hat\beta_{20\text{-}29})=0.10461+0.07365-2(0.02174)=0.13478,\quad\text{se}=0.3671.$$
+  CI for the log-odds ratio: \(0.91172\pm1.96(0.3671)=(0.1922,\ 1.6313)\). Exponentiate: \((1.21,\ \)<strong>5.11</strong>\()\). Without the covariance term the se is 0.422 and the upper end becomes 5.69.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>8.</strong> <span class="exhibit-tag">B</span>Refitting <code>m1</code> with a probit link gives AIC 229.42, against 233.96 for the logit. Remember that <code>esoph</code> is a case-control study. Which link should you report?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Logit, because case-control sampling then only shifts its intercept.</button>
+    <button class="opt" data-key="b">Probit, because its AIC is lower by 4.5 units.</button>
+    <button class="opt" data-key="c">Probit, because an LRT between the links favours it.</button>
+    <button class="opt" data-key="d">Logit, because the probit fit's deviance is not valid.</button>
+  </div>
+  <div class="why">Under retrospective sampling, \(\operatorname{logit}p^*(x)=\log(\pi_1/\pi_0)+\operatorname{logit}p(x)\), so only the logit intercept is distorted and the slopes still estimate population log odds ratios. No such identity holds for the probit (<a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=89">Faraway §4.3, p. 73</a>). The AIC difference is real, but the links only differ much in the tails, and the data alone rarely settle the choice (<a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=87">Faraway §4.2, p. 71</a>). (c) is wrong because two links with the same predictors aren't nested, so there is no LRT between them; AIC is the right tool. (d): the probit deviance is as valid as the logit's.</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Name one situation where you'd choose a complementary log-log link over the logit, and say what you'd see in the fitted curve.</p>
+<details><summary>Model answer</summary><div>
+<p>The cloglog curve \(p=1-\exp(-e^\eta)\) isn't symmetric about \(p=\tfrac12\): it leaves 0 slowly and approaches 1 quickly (<a href="../lectures/BinReg_1_LMS.pdf#page=21">Binomial Regression I, slides 19–21</a>; <a href="0002-binomial-regression.html">Lesson 2, §1</a>). Choose it when theory says so, for example when "failure" means at least one event of a Poisson process happened, so \(p=1-e^{-\lambda}\) and \(\log\lambda\) is linear (a Gumbel latent variable in <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=84">Faraway §4.2</a>). In the middle range of \(p\) the three links fit almost identically, so the choice matters mainly when you predict in the tails.</p></div></details>
+</div>
+
+<div class="quiz num" data-answer="4.039" data-tol="0.003">
+  <p class="q"><strong>9.</strong> <span class="exhibit-tag">A</span>Now reparametrise with \(\mu=\log\theta\). Find \(\mathcal I(\mu)\), build the 95% Wald CI for \(\mu\), and transform it back to a CI for \(\theta\). What is the upper end (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\ell(\mu)=c-2\sum(\log x_i-\mu)^2\), so \(\ell''(\mu)=-4n=-100\). That has no data in it, so \(\mathcal I(\mu)=100\) and the SE is 0.1. By invariance \(\hat\mu=\log\hat\theta=1.2\). CI for \(\mu\): \(1.2\pm0.196=(1.004,\ 1.396)\). Since \(\theta=e^\mu\) is increasing, transform the ends: \((2.729,\ \)<strong>4.039</strong>\()\). Note that \(\mathcal I(\mu)\ne\mathcal I(\theta)\) evaluated at \(e^\mu\): information has to be recomputed in the new parameter (<a href="0001-mle-fisher-information.html">Lesson 1, §3</a>).</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Q5 and Q9 give two different 95% intervals for \(\theta\). Which would you report, and why?</p>
+<details><summary>Model answer</summary><div>
+<p>The \(\mu\)-scale interval, (2.73, 4.04). In \(\mu\) the log-likelihood is exactly quadratic, so \(\hat\mu=\overline{\log x}\sim N(\mu,\sigma^2/n)\) exactly and the Wald interval has exactly 95% coverage. Transforming its ends keeps \(\theta&gt;0\) and gives the right skew (longer on the upper side). The \(\theta\)-scale interval relies on the normal approximation for \(\hat\theta\), is forced to be symmetric, and with a smaller \(n\) could even include negative values. It's the same idea as building a CI for \(p\) on the \(\eta\) scale.</p></div></details>
+</div>
+
+<div class="quiz num" data-answer="0.251" data-tol="0.002">
+  <p class="q"><strong>10.</strong> <span class="exhibit-tag">B</span>Back to Q1's subject (65–74, 40–79 g/day, 0–9 g/day). What is the <em>lower</em> end of the 95% CI for that probability (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">With \(x_0=(1,5,2,0,0,0)\), only the intercept, age and alc rows and columns of \(V\) are involved:
+  $$\begin{aligned}x_0^TVx_0&amp;=V_{00}+25V_{aa}+4V_{cc}+2(5)V_{0a}+2(2)V_{0c}+2(10)V_{ac}\\&amp;=0.22259+0.16775+0.04316-0.32480-0.12980+0.04560=0.02450,\end{aligned}$$
+  so the se is 0.1565. CI for \(\eta\): \(-0.78398\pm0.30679=(-1.0908,\ -0.4772)\). Transforming gives \((\)<strong>0.251</strong>\(,\ 0.383)\). If you dropped the covariances, the se would be 0.658, about four times too big.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>11.</strong> <span class="exhibit-tag">C</span>Why is the cut-off \(\chi^2_2(0.95)=5.99\) and not \(\chi^2_1(0.95)=3.84\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The test is two-sided so both tails are used.</button>
+    <button class="opt" data-key="b">The model's residual deviance has two degrees of freedom.</button>
+    <button class="opt" data-key="c">The null fixes both α and β at once.</button>
+    <button class="opt" data-key="d">The two marginal Wald intervals each contribute one df.</button>
+  </div>
+  <div class="why">A point \((\alpha_0,\beta_0)\) is in the region exactly when the LRT of \(H_0:(\alpha,\beta)=(\alpha_0,\beta_0)\) against the fitted model is <em>not</em> rejected at 5%. That null restricts both parameters, so the LR statistic has \(k=2\) df (<a href="../lectures/BinReg_1_LMS.pdf#page=41">slide 41</a>; the LRT of <a href="../lectures/BinReg_2_LMS-1.pdf#page=8">Binomial Regression II, slide 8</a> with 2 constraints). (b): the residual df here is \(5-2=3\). The χ² test is already one-tailed: large LR is evidence against \(H_0\).</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>P1 lies inside both Wald intervals but outside the region, and P2 lies outside both but inside the region. How can that happen?</p>
+<details><summary>Model answer and the picture</summary><div>
+<p>\(\hat\alpha\) and \(\hat\beta\) are strongly negatively correlated (−0.91): a steeper slope can be offset by a lower intercept and fit almost as well, so the region is a thin ellipse tilted from top-left to bottom-right. P1 raises <em>both</em> \(\alpha\) and \(\beta\), which pushes every fitted \(p_i\) up, so the fit is terrible even though each coordinate on its own is plausible. P2 moves along the ridge (higher \(\alpha\), lower \(\beta\)), so the fit barely changes. The "box" of two separate intervals ignores this correlation.</p>
+<figure>
+<svg viewBox="0 0 600 340" role="img" aria-label="95% likelihood-ratio confidence region for (alpha, beta): a thin tilted ellipse, with the rectangle formed by the two marginal Wald intervals" style="width:100%;height:auto;font-family:Inter,system-ui,sans-serif;font-size:12px">
+<line x1="60" y1="295" x2="580" y2="295" style="stroke:var(--muted)"/>
+<line x1="60" y1="15" x2="60" y2="295" style="stroke:var(--muted)"/>
+<line x1="120.0" y1="295" x2="120.0" y2="300" style="stroke:var(--muted)"/><text x="120.0" y="313" text-anchor="middle" style="fill:var(--muted)">-3</text>
+<line x1="220.0" y1="295" x2="220.0" y2="300" style="stroke:var(--muted)"/><text x="220.0" y="313" text-anchor="middle" style="fill:var(--muted)">-2.5</text>
+<line x1="320.0" y1="295" x2="320.0" y2="300" style="stroke:var(--muted)"/><text x="320.0" y="313" text-anchor="middle" style="fill:var(--muted)">-2</text>
+<line x1="420.0" y1="295" x2="420.0" y2="300" style="stroke:var(--muted)"/><text x="420.0" y="313" text-anchor="middle" style="fill:var(--muted)">-1.5</text>
+<line x1="520.0" y1="295" x2="520.0" y2="300" style="stroke:var(--muted)"/><text x="520.0" y="313" text-anchor="middle" style="fill:var(--muted)">-1</text>
+<line x1="55" y1="271.7" x2="60" y2="271.7" style="stroke:var(--muted)"/><text x="52" y="275.7" text-anchor="end" style="fill:var(--muted)">0.05</text>
+<line x1="55" y1="193.9" x2="60" y2="193.9" style="stroke:var(--muted)"/><text x="52" y="197.9" text-anchor="end" style="fill:var(--muted)">0.07</text>
+<line x1="55" y1="116.1" x2="60" y2="116.1" style="stroke:var(--muted)"/><text x="52" y="120.1" text-anchor="end" style="fill:var(--muted)">0.09</text>
+<line x1="55" y1="38.3" x2="60" y2="38.3" style="stroke:var(--muted)"/><text x="52" y="42.3" text-anchor="end" style="fill:var(--muted)">0.11</text>
+<text x="320.0" y="334" text-anchor="middle" style="fill:var(--fg)">α (intercept)</text>
+<text x="14" y="155.0" text-anchor="middle" transform="rotate(-90 14 155.0)" style="fill:var(--fg)">β (hours)</text>
+<rect x="167.9" y="63.4" width="307.7" height="194.6" style="fill:none;stroke:var(--muted);stroke-dasharray:5 4"/>
+<path d="M120.0,47.1 L119.6,44.2 L119.8,41.3 L120.1,39.8 L121.8,36.9 L123.3,35.4 L125.6,34.0 L130.0,32.5 L133.3,32.0 L138.7,31.8 L144.0,32.0 L148.2,32.5 L152.0,33.1 L156.7,34.0 L160.0,34.7 L163.2,35.4 L168.0,36.6 L170.7,37.4 L174.0,38.3 L178.7,39.8 L181.3,40.6 L184.0,41.5 L187.5,42.7 L191.6,44.2 L194.7,45.3 L197.3,46.3 L200.0,47.3 L203.3,48.5 L206.9,50.0 L210.5,51.5 L213.3,52.6 L216.0,53.7 L218.7,54.9 L221.3,56.0 L224.2,57.3 L227.5,58.8 L230.8,60.2 L234.0,61.7 L237.1,63.1 L240.0,64.5 L242.7,65.7 L245.3,67.0 L248.0,68.3 L250.7,69.6 L253.3,70.9 L256.0,72.2 L258.7,73.6 L261.3,74.9 L264.0,76.3 L266.8,77.7 L269.6,79.2 L272.4,80.6 L275.1,82.1 L277.9,83.5 L280.6,85.0 L283.3,86.5 L286.0,87.9 L288.7,89.4 L291.3,90.8 L293.9,92.3 L296.5,93.8 L299.1,95.2 L301.7,96.7 L304.3,98.1 L306.8,99.6 L309.3,101.0 L312.0,102.6 L314.7,104.1 L317.3,105.7 L320.0,107.3 L322.7,108.9 L325.3,110.5 L328.0,112.1 L330.7,113.7 L333.3,115.3 L336.0,117.0 L338.5,118.5 L340.9,120.0 L343.2,121.5 L345.5,122.9 L347.8,124.4 L350.1,125.8 L352.4,127.3 L354.7,128.8 L357.3,130.5 L360.0,132.2 L362.7,134.0 L365.3,135.7 L368.0,137.5 L370.2,139.0 L372.4,140.4 L374.6,141.9 L376.7,143.3 L378.9,144.8 L381.3,146.5 L384.0,148.3 L386.7,150.2 L389.3,152.0 L391.5,153.5 L393.6,155.0 L395.6,156.5 L397.7,157.9 L400.0,159.6 L402.7,161.5 L405.3,163.4 L407.8,165.2 L409.7,166.7 L411.7,168.1 L413.7,169.6 L416.0,171.3 L418.7,173.3 L421.3,175.4 L423.3,176.9 L425.2,178.3 L427.1,179.8 L429.3,181.5 L432.0,183.6 L434.5,185.6 L436.3,187.1 L438.1,188.5 L440.0,190.0 L442.7,192.2 L445.3,194.4 L447.0,195.8 L448.7,197.3 L450.7,198.9 L453.3,201.2 L455.6,203.1 L457.2,204.6 L458.9,206.0 L461.3,208.2 L463.8,210.4 L465.4,211.9 L467.0,213.3 L469.3,215.5 L471.6,217.7 L473.1,219.2 L474.7,220.6 L477.3,223.3 L479.0,225.0 L480.5,226.5 L482.7,228.8 L484.6,230.8 L485.9,232.3 L488.0,234.6 L489.8,236.7 L491.1,238.1 L493.3,240.9 L494.6,242.5 L496.0,244.3 L497.8,246.9 L498.9,248.3 L500.7,251.2 L501.6,252.7 L503.2,255.6 L504.0,257.4 L505.0,260.0 L505.9,262.9 L506.2,265.8 L505.8,268.8 L504.4,271.7 L502.9,273.1 L500.3,274.6 L496.0,275.8 L493.3,276.1 L488.0,276.2 L485.1,276.0 L480.0,275.5 L474.7,274.6 L472.0,274.0 L468.0,273.1 L464.0,272.1 L461.3,271.4 L457.0,270.2 L453.3,269.1 L450.7,268.3 L447.6,267.3 L443.3,265.8 L440.0,264.7 L437.3,263.7 L434.7,262.8 L431.2,261.5 L427.4,260.0 L424.0,258.7 L421.3,257.6 L418.7,256.5 L416.0,255.4 L413.0,254.2 L409.5,252.7 L406.1,251.2 L402.8,249.8 L400.0,248.6 L397.3,247.4 L394.7,246.2 L392.0,244.9 L389.3,243.7 L386.7,242.5 L383.6,241.0 L380.5,239.6 L377.5,238.1 L374.5,236.7 L371.5,235.2 L368.5,233.8 L365.6,232.3 L362.7,230.8 L360.0,229.5 L357.3,228.1 L354.7,226.7 L352.0,225.4 L349.3,224.0 L346.7,222.6 L344.0,221.2 L341.3,219.8 L338.7,218.3 L336.0,216.9 L333.3,215.4 L330.7,214.0 L328.0,212.5 L325.3,211.1 L322.7,209.6 L320.0,208.1 L317.3,206.6 L314.7,205.1 L312.0,203.6 L309.3,202.0 L306.7,200.5 L304.0,199.0 L301.3,197.4 L298.7,195.8 L296.2,194.4 L293.7,192.9 L291.3,191.5 L288.9,190.0 L286.4,188.5 L284.0,187.1 L281.6,185.6 L279.3,184.2 L276.9,182.7 L274.5,181.2 L272.0,179.7 L269.3,178.0 L266.7,176.3 L264.0,174.6 L261.3,172.9 L258.7,171.2 L256.1,169.6 L253.9,168.1 L251.6,166.7 L249.4,165.2 L247.2,163.8 L245.0,162.3 L242.7,160.7 L240.0,158.9 L237.3,157.1 L234.7,155.3 L232.0,153.5 L229.9,152.1 L227.8,150.6 L225.7,149.2 L223.7,147.7 L221.3,146.1 L218.7,144.2 L216.0,142.3 L213.4,140.4 L211.4,139.0 L209.4,137.5 L207.4,136.0 L205.3,134.5 L202.7,132.5 L200.0,130.5 L197.7,128.8 L195.8,127.3 L193.9,125.8 L192.0,124.4 L189.3,122.3 L186.7,120.2 L184.6,118.5 L182.8,117.1 L180.9,115.6 L178.7,113.8 L176.0,111.6 L173.9,109.8 L172.1,108.3 L170.4,106.9 L168.0,104.8 L165.3,102.5 L163.7,101.0 L162.1,99.6 L160.0,97.7 L157.3,95.3 L155.7,93.8 L154.1,92.3 L152.0,90.3 L149.6,87.9 L148.1,86.5 L146.6,85.0 L144.0,82.3 L142.4,80.6 L141.1,79.2 L138.7,76.5 L137.1,74.8 L135.9,73.3 L133.4,70.4 L132.3,69.0 L130.7,66.9 L129.0,64.6 L127.9,63.1 L126.0,60.2 L125.1,58.8 L123.4,55.8 L122.7,54.4 L121.4,51.5 L120.4,48.5 L120.0,47.1 Z" style="fill:var(--accent);fill-opacity:.15;stroke:var(--accent);stroke-width:2"/>
+<circle cx="321.7" cy="160.7" r="4" style="fill:var(--fg)"/><text x="328.7" y="154.7" style="fill:var(--fg)">MLE</text>
+<circle cx="442.0" cy="83.1" r="4" style="fill:var(--bg);stroke:var(--fg);stroke-width:1.5"/><text x="449.0" y="87.1" style="fill:var(--fg)">P1</text>
+<circle cx="480.0" cy="271.7" r="4" style="fill:var(--bg);stroke:var(--fg);stroke-width:1.5"/><text x="487.0" y="275.7" style="fill:var(--fg)">P2</text>
+<circle cx="200.0" cy="96.7" r="4" style="fill:var(--bg);stroke:var(--fg);stroke-width:1.5"/><text x="207.0" y="100.7" style="fill:var(--fg)">P3</text>
+<text x="471.5" y="58.4" text-anchor="end" style="fill:var(--muted)">box: the two marginal 95% Wald CIs</text>
+<text x="124.0" y="174.4" text-anchor="middle" style="fill:var(--accent)">LR region</text>
+</svg>
+<figcaption>Shaded: the 95% LR region \(2\ell(\hat\alpha,\hat\beta)-2\ell(\alpha,\beta)\le5.99\) for the driving data (contour computed in R, as in week 3 tute Q1). Dashed: the box formed by the two separate 95% Wald intervals.</figcaption>
+</figure></div></details>
+</div>
+
+<h2>4 · Exam-level challenge (12 marks, about 20 minutes)</h2>
+<p>Write full answers on paper, with a sentence of explanation for every number, then open the steps one at a time.</p>
+<div class="box">
+<p>Continue with <span class="exhibit-tag">Exhibit B</span>. A colleague treats age group and alcohol group as factors (baseline 25–34 and 0–39 g/day) instead of scores.</p>
+<pre class="rout"><span class="cmd">&gt; m3 &lt;- glm(cbind(ncases, ncontrols) ~ agegp + alcgp + tob, family = binomial, data = esoph2)
+&gt; summary(m3)</span>
+
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  -6.8954     1.0859  -6.350 2.16e-10 ***
+agegp35-44    1.9809     1.1041   1.794 0.072786 .
+agegp45-54    3.7763     1.0680   3.536 0.000407 ***
+agegp55-64    4.3352     1.0650   4.070 4.69e-05 ***
+agegp65-74    4.8964     1.0764   4.549 5.39e-06 ***
+agegp75+      4.8265     1.1213   4.304 1.67e-05 ***
+alcgp40-79    1.4346     0.2501   5.737 9.63e-09 ***
+alcgp80-119   1.9807     0.2848   6.956 3.51e-12 ***
+alcgp120+     3.6029     0.3850   9.357  &lt; 2e-16 ***
+tob10-19      0.4381     0.2283   1.919 0.055039 .
+tob20-29      0.5126     0.2730   1.878 0.060398 .
+tob30+        1.6410     0.3441   4.769 1.85e-06 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 367.953  on 87  degrees of freedom
+Residual deviance:  82.337  on 76  degrees of freedom
+AIC: 221.39
+
+Number of Fisher Scoring iterations: 6
+
+<span class="cmd">&gt; round(vcov(m3)[8:9, 8:9], 5)</span>
+            alcgp80-119 alcgp120+
+alcgp80-119     0.08109   0.04402
+alcgp120+       0.04402   0.14825
+<span class="cmd">&gt; m3p &lt;- update(m3, family = binomial(link = "probit"))
+&gt; c(AIC(m3), AIC(m3p))</span>
+[1] 221.3918 219.6172
+<span class="cmd">&gt; qchisq(0.95, df = c(6, 76))</span>
+[1] 12.59159 97.35097</pre>
+<p>(a) Explain why <code>m1</code> is nested in <code>m3</code>. Test <code>m1</code> against <code>m3</code>: state \(H_0\), the statistic, its df, and your conclusion. <em>[3]</em><br>
+(b) Find the maximised log-likelihood of <code>m3</code> and of the saturated model, and check the second against <code>m1</code>. Which model does AIC prefer? <em>[3]</em><br>
+(c) Under <code>m3</code>, estimate the odds ratio of being a case for 120+ g/day versus 80–119 g/day drinkers (same age and tobacco), with a 95% CI. Interpret it in one sentence. <em>[3]</em><br>
+(d) The colleague writes: "82.34 &lt; 97.35, so <code>m3</code> fits well." Comment. (Under <code>m3</code>, 75 of the 88 rows have \(m_i\hat p_i&lt;5\).) <em>[1]</em><br>
+(e) <code>m3p</code> has the lower AIC. Should you switch to the probit link? Give two reasons. <em>[2]</em></p>
+</div>
+
+<details><summary>Step 1: part (a), nesting and the LRT</summary><div>
+<p><strong>Nesting.</strong> In <code>m3</code> each age group gets its own coefficient. <code>m1</code> forces them onto a straight line in the score: group \(k\) gets \((k-1)\beta_{\text{age}}\), relative to 25–34. The same goes for alcohol. So <code>m1</code> is <code>m3</code> with linear constraints on the coefficients: 5 age dummies become 1 slope (4 constraints) and 3 alcohol dummies become 1 slope (2 constraints). Check with the df: \(p_{m3}=88-76=12\) and \(p_{m1}=88-82=6\), so \(s=6\).</p>
+<p><strong>LRT.</strong> \(H_0\): the age and alcohol effects are linear in the scores (<code>m1</code> is adequate). \(\text{LR}=106.91-82.34=24.57\) on 6 df, above \(\chi^2_6(0.95)=12.59\) (p ≈ 0.0004). Reject \(H_0\): the scores are too restrictive, so prefer <code>m3</code>. (The age coefficients show why: they rise steeply to 55–64 and then level off.)</p></div></details>
+<details><summary>Step 2: part (b), log-likelihoods and AIC</summary><div>
+<p>\(\ell_{m3}=12-221.39/2=\boxed{-98.70}\) and \(\ell_{\text{sat}}=-98.70+82.337/2=\boxed{-57.53}\).<br>
+Check with <code>m1</code>: \(\ell_{m1}=6-233.96/2=-110.98\), and \(-110.98+106.91/2=-57.53\) ✓. The saturated model doesn't depend on the predictors.<br>
+AIC: \(221.39&lt;233.96\), so AIC also prefers <code>m3</code>. Check: \(2(6)+82.34-106.91=-12.57\) ✓.</p></div></details>
+<details><summary>Step 3: part (c), an odds ratio between two non-baseline levels</summary><div>
+<p>The log-odds ratio is \(\hat\beta_{120+}-\hat\beta_{80\text{-}119}=3.6029-1.9807=1.6222\), so the odds ratio is \(e^{1.6222}=\boxed{5.06}\).<br>
+\(\operatorname{Var}=0.14825+0.08109-2(0.04402)=0.14130\), so the se is 0.3759, and the CI is \(\exp(1.6222\pm0.7368)=\boxed{(2.42,\ 10.58)}\).<br>
+"Holding age and tobacco fixed, the odds of oesophageal cancer for people drinking 120+ g/day are estimated to be about 5 times those for 80–119 g/day drinkers (95% CI 2.4 to 10.6)." Because of the case-control design, this is an odds ratio, not a risk: you can't turn it into a probability of getting cancer.</p></div></details>
+<details><summary>Step 4: part (d), goodness of fit</summary><div>
+<p>The comparison isn't valid. \(D\approx\chi^2_{76}\) needs \(m_ip_i\) and \(m_i(1-p_i)\) of about 5 or more, and 75 of 88 rows have fewer than 5 expected cases, so the data are sparse. The 82.34 vs 97.35 comparison can't be used as evidence of good (or bad) fit.</p></div></details>
+<details><summary>Step 5: part (e), link choice</summary><div>
+<p>No. (1) AIC differs by only \(221.39-219.62=1.77\); the logit and probit curves are nearly identical except in the tails, and the data can't really tell them apart (Faraway §4.2). (2) The study is case-control: with the logit, retrospective sampling only shifts the intercept, so the coefficients are valid log odds ratios, as used in (c). Probit coefficients have no odds interpretation and aren't protected this way (Faraway §4.3). Report the logit. (And the links aren't nested, so AIC, not an LRT, is the only way to compare them.)</p></div></details>
+
+<h2>5 · Score yourself</h2>
+<p>Use your first attempts. Each miss points to the place to revisit before Lesson 5.</p>
+<div class="tablewrap"><table>
+<tr><th>If you missed…</th><th>Skill</th><th>Revisit</th></tr>
+<tr><td>Q2, Q5</td><td>Log-likelihood → MLE → \(\mathcal I(\theta)\) when \(\ell''\) has data</td><td><a href="0001-mle-fisher-information.html">Lesson 1</a> §2 (the recipe and worked example)</td></tr>
+<tr><td>Q9, the explain box after it</td><td>Reparametrisation, invariance, transforming a CI</td><td><a href="0001-mle-fisher-information.html">Lesson 1</a> §3 and challenge steps 3–4</td></tr>
+<tr><td>Q1, Q10</td><td>Predicting \(p\) and its CI via \(\eta\) and <code>vcov</code></td><td><a href="0002-binomial-regression.html">Lesson 2</a> §3 (worked example)</td></tr>
+<tr><td>Q7, challenge (c)</td><td>Odds ratio between two levels: covariance needed</td><td><a href="0002-binomial-regression.html">Lesson 2</a> §3, trap (1)</td></tr>
+<tr><td>Q8, challenge (e), cloglog box</td><td>Link choice</td><td><a href="0002-binomial-regression.html">Lesson 2</a> §1; Faraway §4.2–4.3</td></tr>
+<tr><td>Q4, challenge (a)</td><td>LRT between nested models, factor df</td><td><a href="0003-deviance-lrt-aic.html">Lesson 3</a> §3</td></tr>
+<tr><td>Challenge (b)</td><td>\(\ell\) and \(\ell_{\text{sat}}\) from AIC and \(D\)</td><td><a href="0003-deviance-lrt-aic.html">Lesson 3</a> §4</td></tr>
+<tr><td>Q6, challenge (d)</td><td>When the deviance fit test is invalid</td><td><a href="0003-deviance-lrt-aic.html">Lesson 3</a> §2</td></tr>
+<tr><td>Q3, Q11</td><td>LR confidence region</td><td>Exhibit C above; <a href="../lectures/BinReg_1_LMS.pdf#page=41">Binomial Regression I, slide 41</a>; homework 1</td></tr>
+</table></div>
+<p>9 or more of 11 first-try, and the challenge mostly right: go on to Lesson 5. Otherwise, do the revisits first, then redo only the questions you missed.</p>
+
+<p><strong>Primary source:</strong> <a href="../lectures/BinReg_1_LMS.pdf#page=37">Binomial Regression I, slides 37–41</a> (Wald CIs for \(t^T\theta\), the CI for \(p\), and the likelihood-ratio region) and <a href="../lectures/BinReg_2_LMS-1.pdf">Binomial Regression II</a>, slides 3–14. For the two new ideas here, read Faraway, <em>Extending the Linear Model with R</em> (2nd ed.), <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=84">§4.2 Link Functions and §4.3 Prospective and Retrospective Sampling, pp. 68–74</a>.</p>
+
+<h2>6 · Homework (by hand, no R needed)</h2>
+<ol>
+  <li><strong>Week 3 tutorial, Q1, printout version</strong> (<a href="../tutes/2026_MAST30027_week3_questions.qmd">questions</a>, <a href="../tutes/2026_MAST30027_week3_sol.html">solutions</a>). Using the tute's own <code>logLR</code> function for the Challenger model:
+<pre class="rout"><span class="cmd">&gt; coef(summary(logitmod))[, 1:2]</span>
+              Estimate Std. Error
+(Intercept) 11.6629897 3.29626315
+temp        -0.2162337 0.05317703
+<span class="cmd">&gt; cov2cor(vcov(logitmod))</span>
+            (Intercept)       temp
+(Intercept)   1.0000000 -0.9940411
+temp         -0.9940411  1.0000000
+<span class="cmd">&gt; logLR(10, -0.2, logitmod$coefficients, orings)</span>
+[1] 3.187976
+<span class="cmd">&gt; logLR(5, -0.1, logitmod$coefficients, orings)</span>
+[1] 11.42469
+<span class="cmd">&gt; logLR(20, -0.35, logitmod$coefficients, orings)</span>
+[1] 5.341669</pre>
+  (a) What does <code>logLR(a, b, ...)</code> compute, and what does <code>contour(a_vec, b_vec, z, levels = qchisq(0.95, 2))</code> draw? (b) Which of the three points are in the 95% region? (c) Give the separate 95% Wald intervals for \(\alpha\) and \(\beta\). Is \((20, -0.35)\) inside them? Explain the apparent contradiction with (b). (d) With 23 launches and few damaged O-rings, why might you trust the LR region more than the Wald intervals?</li>
+  <li><strong>Week 3 tutorial, Q2, printout version</strong> (<code>infert</code>). Use <code>model2</code>'s printout in <a href="../tutes/2026_MAST30027_week3_sol.html">the solutions</a> (<code>induced</code>: estimate 1.18966, se 0.28987; AIC 270.94; residual deviance 260.94 on 243 df) and this refit, which treats <code>induced</code> (0, 1 or 2 prior induced abortions) as a factor:
+<pre class="rout"><span class="cmd">&gt; model3 &lt;- glm(case ~ age + parity + spontaneous + factor(induced), data = infert, family = binomial())</span>
+                 Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)      -2.83575    1.00888  -2.811  0.00494 **
+age               0.05312    0.03015   1.762  0.07809 .
+parity           -0.71006    0.18087  -3.926 8.64e-05 ***
+spontaneous       1.92350    0.29827   6.449 1.13e-10 ***
+factor(induced)1  1.14018    0.40334   2.827  0.00470 **
+factor(induced)2  2.40383    0.59514   4.039 5.37e-05 ***
+
+    Null deviance: 316.17  on 247  degrees of freedom
+Residual deviance: 260.91  on 242  degrees of freedom
+AIC: 272.91</pre>
+  (a) In <code>model2</code>, give the odds ratio for one extra induced abortion with a 95% CI, in one sentence. (b) Is <code>model2</code> nested in <code>model3</code>? How many df does the LRT have, and is the linear coding of <code>induced</code> adequate? Which model does AIC prefer? (c) This is a case-control study. Which of <code>model2</code>'s coefficients can't be interpreted for the population, and why? (d) Can the residual deviance 260.94 on 243 df be used to check fit?</li>
+  <li><strong>Faraway, <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=64">Ch. 2</a> Ex. 4 (b)–(d), printout version</strong> (<code>nodal</code>, from the <code>boot</code> package: 53 prostate-cancer patients; <code>r</code> = 1 if the cancer has spread to the lymph nodes; all five predictors are 0/1 indicators).
+<pre class="rout"><span class="cmd">&gt; mod1 &lt;- glm(r ~ aged + stage + grade + xray + acid, family = binomial, data = nodal)</span>
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  -3.0794     0.9868  -3.121   0.0018 **
+aged         -0.2917     0.7540  -0.387   0.6988
+stage         1.3729     0.7838   1.752   0.0799 .
+grade         0.8720     0.8156   1.069   0.2850
+xray          1.8008     0.8104   2.222   0.0263 *
+acid          1.6839     0.7915   2.128   0.0334 *
+
+    Null deviance: 70.252  on 52  degrees of freedom
+Residual deviance: 47.611  on 47  degrees of freedom
+AIC: 59.611
+
+<span class="cmd">&gt; mod2 &lt;- glm(r ~ stage + xray + acid, family = binomial, data = nodal)</span>
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  -3.0518     0.8420  -3.624  0.00029 ***
+stage         1.6453     0.7297   2.255  0.02414 *
+xray          1.9116     0.7771   2.460  0.01390 *
+acid          1.6378     0.7539   2.172  0.02983 *
+
+    Null deviance: 70.252  on 52  degrees of freedom
+Residual deviance: 49.180  on 49  degrees of freedom
+AIC: 57.18
+
+<span class="cmd">&gt; qchisq(0.95, c(2, 5))</span>
+[1]  5.991465 11.070498</pre>
+  (b) Is there evidence that at least some of the five predictors are related to the response? (c) Can <code>mod2</code> be used instead of <code>mod1</code>? Give two quantitative reasons. (d) Using <code>mod2</code>, by how much does a serious x-ray result multiply the odds of nodal involvement? Give a 95% CI and say why it's so wide.</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1. (a) <code>logLR</code> is \(2\ell(\hat\alpha,\hat\beta)-2\ell(a,b)\). The <code>contour</code> line traces where it equals \(\chi^2_2(0.95)=5.99\), the boundary of the 95% LR region. (b) \((10,-0.2)\): 3.19, inside. \((5,-0.1)\): 11.42, outside. \((20,-0.35)\): 5.34, inside. (c) \(\alpha\): \(11.663\pm1.96(3.296)=(5.20,\ 18.12)\); \(\beta\): \(-0.2162\pm1.96(0.0532)=(-0.320,\ -0.112)\). \((20,-0.35)\) is outside both, yet inside the region, because the correlation is −0.994: the region is a very thin ridge along which a larger \(\alpha\) is offset by a more negative \(\beta\). (d) The χ² approximation for the LR statistic is generally better in small samples than the normal approximation for \(\hat\theta\) (slide 41), and with 23 launches and mostly zero damage the Wald SEs are rough.</p>
+<p>2. (a) \(e^{1.18966}=3.29\), CI \(\exp(1.18966\pm1.96\times0.28987)=(1.86,\ 5.80)\): holding the other predictors fixed, each extra prior induced abortion multiplies the odds of infertility by about 3.3. (b) Yes: the numeric coding forces the level-2 effect to be twice the level-1 effect (1 constraint), so the LRT has \(243-242=1\) df. \(\text{LR}=260.94-260.91=0.03&lt;3.84\) (R: p = 0.86), so the linear coding is fine. AIC: \(270.94&lt;272.91\), so prefer <code>model2</code>. (c) The intercept: case-control sampling shifts it by \(\log(\pi_1/\pi_0)\), so predicted probabilities don't estimate population risk. The slopes (log odds ratios) are fine (Faraway §4.3). (d) No: the response is 0/1, so \(m_i=1\) and \(D\) isn't \(\chi^2_{243}\).</p>
+<p>3. (b) \(70.252-47.611=22.64\) on \(52-47=5\) df, above 11.07 (p ≈ 0.0004): yes. (c) \(\text{LR}=49.180-47.611=1.57\) on 2 df, below 5.99 (p = 0.46), so dropping <code>aged</code> and <code>grade</code> is fine; and \(\text{AIC}\) is \(57.18&lt;59.61\). Use <code>mod2</code>. (d) \(e^{1.9116}=6.76\), CI \(\exp(1.9116\pm1.96\times0.7771)=(1.47,\ 31.0)\). It's wide because there are only 53 binary responses, so the se of 0.78 on the log scale becomes a factor of about \(e^{1.52}\approx4.6\) in each direction.</p></div></details>
+
+<p><strong>Spacing:</strong> in two days, without looking, redo Q7, Q9 and challenge part (a). Then do the same review style again at the end of Topic 2 (Lesson 9).</p>
+
+<div class="ask">💬 Ask me in the terminal about anything that felt shaky, especially the confidence region or the case-control point, which are new here. I'm your teacher for this. Paste or photograph your challenge answers and I'll mark them out of 12 the way an exam marker would.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0003-deviance-lrt-aic.html">Lesson 3, deviance, LRT and AIC</a> · Reference: <a href="../reference/likelihood-cheatsheet.html">Likelihood cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0005-exponential-families.html">Lesson 5, exponential families</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

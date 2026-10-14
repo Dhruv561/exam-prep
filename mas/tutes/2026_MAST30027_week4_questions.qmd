@@ -1,0 +1,45 @@
+---
+title: "MAST30027: Exponential Families and Generalised Linear Models II"
+subtitle: "Week 4 - Solutions"
+date: ""
+
+format:
+  html:
+    self-contained: true
+    css: CSSBackground.css
+    html-math-method: mathml
+resources:
+  - ../images/Banner.png
+---
+
+**Objectives of the Tutorial/Lab**
+By the end of this tutorial, you should be able to:
+
+- Show whether a given distribution belongs to the exponential family.
+- Fit a Poisson regression model for count data.
+- Visualise the final model and access whether it supports the conclusion.
+
+## Question 1
+
+The binomial random variable $Y \sim \text{bin}(m, p)$ for known $m$ (not a parameter) has mass function:
+$$
+f(y; p) = {m \choose y} p^y (1-p)^{m-y} \text{ for } y = 0, 1, \ldots, m.
+$$
+Show that the binomial distribution is an exponential family.
+
+```{r}
+
+```
+
+## Question 2
+
+The dataset `discoveries` lists the number of great scientific discoveries for the years 1860 to 1959, as chosen by "The World Almanac and Book of Facts", 1975 Edition.
+Has the discovery rate remained constant over time?
+
+To answer this question, fit a Poisson regression model with a log link, and use the deviance to compare a null model with models including the year and year squared as predictors.
+
+Load the dataset using the command `data(discoveries)`. 
+
+```{r}
+
+```

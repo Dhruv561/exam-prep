@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Integrating Factors</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 1 · Topic 1: Linear ODEs &amp; IVPs</div>
+<h1>Solving first-order linear IVPs with an integrating factor</h1>
+<p class="lede">The goal: given any first-order linear IVP, even one set up to trip you, get the right answer and check it in under five minutes.</p>
+
+<div class="mission">Why this matters for 5 Nov: the integrating factor is the method you'll use the most. You need it inside reduction of order (Lesson 2) and to solve decoupled systems (Lesson 6), so a small slip here costs marks all through the exam.</div>
+
+<h2>1 · Spot what you're dealing with</h2>
+
+<p>A <strong>linear ODE</strong> in an unknown $y(t)$ is one you can write as
+$$f_n(t)\,y^{(n)} + \dots + f_1(t)\,y' + f_0(t)\,y = g(t).$$
+The coefficients can be <em>any</em> functions of $t$, however messy. But $y$ and its derivatives must appear on their own, to the first power: no $y^2$, no $y\,y'$, no $\sin y$. (<a href="../lectures/01_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 1, slide 9</a>; <a href="https://tutorial.math.lamar.edu/Classes/DE/Definitions.aspx">Paul's Notes: Definitions</a>.)</p>
+
+<ul>
+  <li><strong>Order</strong>: the highest derivative that appears.</li>
+  <li><strong>Homogeneous</strong> if $g(t)=0$; <strong>inhomogeneous</strong> if not.</li>
+  <li>An <strong>initial value problem (IVP)</strong> for an $n$th-order ODE gives $n$ conditions, $y(t_0), y'(t_0), \dots, y^{(n-1)}(t_0)$, all at the <em>same</em> point $t_0$. Conditions at two different points make it a boundary value problem, which is Topic 5. (<a href="../lectures/01_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 1, slides 11–12</a>.)</li>
+</ul>
+
+<div class="trap"><strong>Exam trap</strong><br>Move every $y$-term to the left <em>before</em> you decide whether it's homogeneous. $y'' = (t+1)\,y$ has no forcing term at all.</div>
+
+<h2>2 · The integrating factor method</h2>
+
+<p>This works for any first-order linear ODE. (<a href="../lectures/01_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 1, slides 13–14</a>; <a href="https://tutorial.math.lamar.edu/Classes/DE/Linear.aspx">Paul's Notes: Linear Equations</a>.)</p>
+
+<ol class="steps">
+  <li><strong>Standard form.</strong> Divide so that the coefficient of $y'$ is exactly 1:
+    $$y' + f(t)\,y = g(t).$$</li>
+  <li><strong>Integrating factor.</strong> $I(t) = e^{\int f(t)\,dt}$. Leave out the constant here; any one antiderivative works.</li>
+  <li><strong>Collapse the left side.</strong> $\dfrac{d}{dt}\big[I\,y\big] = I\,g$.</li>
+  <li><strong>Integrate, then add $+C$,</strong> and only after that divide by $I$. If it's an IVP, use the condition to find $C$. Then substitute back to check.</li>
+</ol>
+
+<details><summary>Why does step 3 work? (Try to explain it before you open this.)</summary><div>
+<p>$I$ is chosen so that $I' = f\,I$, because differentiating $e^{\int f}$ gives $f\,e^{\int f}$. So by the product rule
+$$(I y)' = I y' + I' y = I\,(y' + f y) = I\,g.$$
+That's the whole method: multiply by whatever turns the left side into the derivative of a product.</p>
+</div></details>
+
+<div class="trap"><strong>The two marks people lose most</strong><br>
+(1) Skipping step 1. For $t\,y' - 2y = \dots$, you have $f = -2/t$, not $-2$.<br>
+(2) Adding $+C$ <em>after</em> dividing by $I$. The constant has to be divided by $I$ too, and that's what gives terms like $Ce^{-t}$ or $C/t^2$.</div>
+
+<h3>Worked example</h3>
+<p>Solve $t\,y' + 2y = 4t^2$, $\;y(1) = 2$, $\;t&gt;0$.</p>
+<div class="box">
+<p><strong>1.</strong> $y' + \tfrac{2}{t}\,y = 4t$ &nbsp;&nbsp; <strong>2.</strong> $I = e^{2\ln t} = t^2$</p>
+<p><strong>3.</strong> $(t^2 y)' = 4t^3$ &nbsp;&nbsp; <strong>4.</strong> $t^2 y = t^4 + C \;\Rightarrow\; y = t^2 + C/t^2$</p>
+<p>$y(1) = 1 + C = 2 \Rightarrow C = 1$, so $\boxed{y = t^2 + t^{-2}}$.</p>
+<p><em>Check:</em> $t y' + 2y = (2t^2 - 2t^{-2}) + (2t^2 + 2t^{-2}) = 4t^2$ ✓</p>
+</div>
+
+<h2>3 · Where is the solution valid?</h2>
+
+<p>Course problems often ask for "the largest interval on which a unique solution is guaranteed", and you're expected to answer it <em>without</em> solving the ODE. The theorem (<a href="../lectures/03_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 3, slide 3</a>) says: in standard form, if every coefficient and $g$ is continuous on an interval containing $t_0$, then the IVP has exactly one solution on that <em>whole</em> interval.</p>
+
+<ol class="steps">
+  <li>Divide by the leading coefficient to get standard form. (For a 2nd-order ODE, divide by the coefficient of $y''$.)</li>
+  <li>List every bad point: zeros of what you divided by, zeros of denominators, $\ln$ of non-positive numbers, $\sqrt{\ }$ of negatives, $\tan$'s asymptotes.</li>
+  <li>The answer is the largest open interval between bad points that contains $t_0$.</li>
+</ol>
+
+<div class="box">
+<p><strong>Example.</strong> $(t^2-4)\,y' + y = \dfrac{1}{t-5}$, $\;y(3) = 0$.</p>
+<p>Standard form: $y' + \dfrac{1}{t^2-4}\,y = \dfrac{1}{(t-5)(t^2-4)}$. The bad points are $t = -2,\ 2,\ 5$. Since $t_0 = 3$ lies between 2 and 5, the answer is $\boxed{(2,\,5)}$.</p>
+</div>
+
+<div class="trap"><strong>Exam trap</strong><br>Bad points can come from $g$ too, not just from what you divided by. And if $t_0$ is itself a bad point, the theorem guarantees nothing.</div>
+
+<h2>4 · Practice</h2>
+<p>Do any working on paper before you click. You get immediate feedback.</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>1.</strong> Classify $\;t^3 y''' - e^t y' + y = 0$.</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Linear, homogeneous</button>
+    <button class="opt" data-key="b">Linear, inhomogeneous</button>
+    <button class="opt" data-key="c">Nonlinear equation</button>
+  </div>
+  <div class="why">Coefficients like $t^3$ and $e^t$ are fine because they're functions of $t$ only. It's third order, and $g = 0$.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> Classify $\;y'' + y\,y' = 0$.</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Linear, homogeneous</button>
+    <button class="opt" data-key="b">Linear, inhomogeneous</button>
+    <button class="opt" data-key="c">Nonlinear equation</button>
+  </div>
+  <div class="why">The coefficient of $y'$ is $y$ itself, so the unknown is multiplied by its own derivative. That makes it nonlinear.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> Classify $\;y'' = (t+1)\,y$.</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Linear, homogeneous</button>
+    <button class="opt" data-key="b">Linear, inhomogeneous</button>
+    <button class="opt" data-key="c">Nonlinear equation</button>
+  </div>
+  <div class="why">Rearrange to $y'' - (t+1)\,y = 0$. The right-hand side was a $y$-term, not a forcing term.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>4.</strong> Classify $\;y' + \cos(y) = t$.</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Linear, homogeneous</button>
+    <button class="opt" data-key="b">Linear, inhomogeneous</button>
+    <button class="opt" data-key="c">Nonlinear equation</button>
+  </div>
+  <div class="why">$\cos(y)$ puts the unknown inside a function. (Compare $\cos(t)\,y$, which is fine.)</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>5.</strong> $\;y'' + y = 0,\;\; y(0) = 1,\;\; y'(\pi) = 0$ is a…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Initial value problem</button>
+    <button class="opt" data-key="b">Boundary value problem</button>
+  </div>
+  <div class="why">The two conditions are at <em>different</em> points ($t=0$ and $t=\pi$). An IVP needs all of them at one $t_0$, even when one condition is on $y'$.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>6.</strong> The integrating factor for $\;t\,y' - 2y = t^3\cos t\;$ ($t&gt;0$) is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{-2t}$</button>
+    <button class="opt" data-key="b">$t^{-2}$</button>
+    <button class="opt" data-key="c">$t^{2}$</button>
+    <button class="opt" data-key="d">$t^{-3}$</button>
+  </div>
+  <div class="why">Divide by $t$: $y' - \tfrac{2}{t}y = t^2\cos t$, so $I = e^{-2\ln t} = t^{-2}$. Then $(y/t^2)' = \cos t$ and $y = t^2\sin t + Ct^2$. If you picked $e^{-2t}$, you skipped standard form.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>7.</strong> The general solution of $\;y' + y = t\;$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="b">$y = t + 1 + Ce^{-t}$</button>
+    <button class="opt" data-key="a">$y = t - 1 + Ce^{-t}$</button>
+    <button class="opt" data-key="c">$y = t - 1 + C\phantom{e^{-t}}$</button>
+    <button class="opt" data-key="d">$y = t - 1 + Ce^{t}$</button>
+  </div>
+  <div class="why">$(e^t y)' = te^t$. By parts, $\int te^t\,dt = (t-1)e^t + C$. Divide by $e^t$: $y = t - 1 + Ce^{-t}$. Answer “$t-1+C$” is the add-$C$-after-dividing mistake. Keep this one in mind: $Ce^{-t}$ and $t-1$ are the <em>complementary</em> and <em>particular</em> solutions in Lesson 2.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>8.</strong> The integrating factor for $\;y' + \tan(t)\,y = \cos^2 t\;$ on $-\tfrac{\pi}{2}&lt;t&lt;\tfrac{\pi}{2}$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\cos t$</button>
+    <button class="opt" data-key="b">$e^{\tan t}$</button>
+    <button class="opt" data-key="c">$\sec t$</button>
+    <button class="opt" data-key="d">$\ln(\sec t)$</button>
+  </div>
+  <div class="why">$\int \tan t\,dt = -\ln\cos t = \ln\sec t$, so $I = e^{\ln \sec t} = \sec t$. Exam questions like log algebra inside the exponent.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>9.</strong> Now solve it with $y(0) = 1$.</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$y = \sec t\,(1 + \sin t)$</button>
+    <button class="opt" data-key="b">$y = \cos t + \sin t$</button>
+    <button class="opt" data-key="c">$y = \sin t\cos t + 1$</button>
+    <button class="opt" data-key="d">$y = \cos t\,(1 + \sin t)$</button>
+  </div>
+  <div class="why">$(y\sec t)' = \sec t\cos^2 t = \cos t$, so $y\sec t = \sin t + C$ and $y = \cos t\,(\sin t + C)$. Then $y(0) = C = 1$. Check: $y' + \tan t\,y = (\cos 2t - \sin t) + (\sin^2 t + \sin t) = \cos^2 t$ ✓</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>10.</strong> Largest interval on which $\;(t-4)\,y' + \ln(t)\,y = \dfrac{1}{t-2},\;\; y(3) = 1\;$ is guaranteed a unique solution:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(0,\,4)$</button>
+    <button class="opt" data-key="b">$(2,\,\infty)$</button>
+    <button class="opt" data-key="c">$(2,\,4)$</button>
+    <button class="opt" data-key="d">$(0,\,2)$</button>
+  </div>
+  <div class="why">Standard form: $f = \dfrac{\ln t}{t-4}$, $g = \dfrac{1}{(t-2)(t-4)}$. The bad points are $t \le 0$ (from $\ln$), $t = 2$ (from $g$) and $t = 4$ (what you divided by). The interval containing $t_0 = 3$ is $(2,4)$. If you picked $(0,4)$, you missed the bad point coming from $g$. Don't try to solve this one: its integrating factor has no closed form. <a href="../worked/0001-q10-interval.html">Full worked solution</a>.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>11.</strong> Same question for $\;t\,y' + 3y = t^2,\;\; y(-1) = 0$:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(-\infty,\,0)$</button>
+    <button class="opt" data-key="b">$(0,\,\infty)$</button>
+    <button class="opt" data-key="c">$(-\infty,\,\infty)$</button>
+    <button class="opt" data-key="d">$(-1,\,\infty)$</button>
+  </div>
+  <div class="why">$f = 3/t$ breaks at $0$, and $t_0 = -1 &lt; 0$. Solving confirms it: $y = \tfrac{t^2}{5} + \tfrac{1}{5t^3}$, which blows up at $t = 0$, so the solution really can't be continued past it.</div>
+</div>
+
+<h2>5 · Exam-level challenge</h2>
+<p>Solve it fully on paper first, then open the steps one at a time to check your work.</p>
+<div class="box">
+<p>Solve $\;(t^2+1)\,y' + 3t\,y = 6t,\quad y(0) = -1.\;$ On what interval is the solution valid, and what happens to $y$ as $t\to\infty$?</p>
+</div>
+
+<details><summary>Step 1: standard form and $I$</summary><div>
+<p>$y' + \dfrac{3t}{t^2+1}\,y = \dfrac{6t}{t^2+1}$. Then $\int \frac{3t}{t^2+1}dt = \tfrac32\ln(t^2+1)$, so $I = (t^2+1)^{3/2}$.</p></div></details>
+<details><summary>Step 2: collapse and integrate</summary><div>
+<p>$\big[(t^2+1)^{3/2}y\big]' = 6t\,(t^2+1)^{1/2}$. Substitute $u = t^2+1$: the integral is $2(t^2+1)^{3/2} + C$.</p></div></details>
+<details><summary>Step 3: solve, apply the IC, find the limit</summary><div>
+<p>$y = 2 + C\,(t^2+1)^{-3/2}$. From $y(0) = 2 + C = -1$ we get $C = -3$:
+$$\boxed{y = 2 - 3\,(t^2+1)^{-3/2}}, \qquad y \to 2 \text{ as } t\to\infty.$$
+It's valid for all $t\in\mathbb{R}$, because $t^2+1$ is never zero, so standard form has no bad points.
+Notice $y = 2$ is a constant particular solution. You could have spotted it straight from the ODE by trying $y = $ const: $3t\,y = 6t$.</p></div></details>
+
+<h2>6 · Before you close this tab</h2>
+<details><summary>Retrieval: write the four steps from memory, then check here</summary><div>
+<p>(1) Standard form, with the coefficient of $y'$ equal to 1. (2) $I = e^{\int f}$. (3) $(Iy)' = Ig$. (4) Integrate, add $+C$, divide by $I$, apply the IC, check.</p></div></details>
+
+<p><strong>Primary source:</strong> read <a href="https://tutorial.math.lamar.edu/Classes/DE/Linear.aspx">Paul's Online Notes: Linear Differential Equations</a>. Examples 3–6 are at about exam level. Then skim <a href="../lectures/01_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 1</a> to see the course's notation.</p>
+<p><strong>Homework (official practice):</strong> <a href="../problem-booklet/MAST20030ProblemBooklet_Topic1.pdf">Problem Booklet 1</a>, Q1 (a)–(g) and Q2 (a)–(g). For each Q2 part, state the interval of validity <em>before</em> you solve. Answers are at the back of the booklet. Q2(f) and (g) have a twist where the answer depends on the sign of $t_0$.</p>
+<p><strong>Spacing:</strong> tomorrow, before Lesson 2, redo Q6, Q10 and the challenge without looking.</p>
+
+<div class="ask">💬 Stuck on a step, or want more problems at this level? Ask me in the terminal. I'm your teacher for this. You can also paste in your working and I'll mark it.</div>
+
+<div class="nav">
+  <span>Reference: <a href="../reference/topic1-cheatsheet.html">Topic 1 cheat sheet</a></span>
+  <span>Next: <a href="0002-reduction-of-order.html">Lesson 2, reduction of order</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

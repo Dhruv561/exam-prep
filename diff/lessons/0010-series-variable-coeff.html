@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Series: Variable Coefficients</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* Lesson 10 only: recurrence tables */
+  table.rec td, table.rec th { text-align: center; }
+  table.rec td:first-child, table.rec th:first-child { text-align: left; }
+  .tblwrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 10 · Topic 2: Power series</div>
+<h1>Series solutions when the coefficients aren't constant</h1>
+<p class="lede">The goal: take any $P(t)\,y'' + Q(t)\,y' + R(t)\,y = 0$ with polynomial coefficients and $P(0)\neq 0$, and turn it into a recurrence. Then spot when a series stops (a polynomial solution), find the radius of convergence two ways, and handle step-3 and three-term recurrences without panicking.</p>
+
+<div class="mission">Why this matters for 5 Nov: every past paper has a 12–15 mark "use power series about $x=0$ to solve…" question. It's almost always a quadratic leading coefficient like $(a\pm x^2)\,y''$. One or both solutions often terminate, and the follow-ups ask for the interval of convergence and the largest interval on which an IVP has a unique solution. This lesson covers the whole question.</div>
+
+<h2>0 · Warm-up from Lessons 1, 8 and 9</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> Putting $m = n-2$ in $\displaystyle\sum_{n=2}^{\infty} n(n-1)\,c_n\,t^{n-2}$ gives…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\displaystyle\sum_{m=0}^{\infty} m(m-1)\,c_{m+2}\,t^{m}$</button>
+    <button class="opt" data-key="b">$\displaystyle\sum_{m=0}^{\infty} (m+2)(m+1)\,c_{m}\,t^{m+2}$</button>
+    <button class="opt" data-key="c">$\displaystyle\sum_{m=0}^{\infty} (m+2)(m+1)\,c_{m+2}\,t^{m}$</button>
+    <button class="opt" data-key="d">$\displaystyle\sum_{m=2}^{\infty} (m+2)(m+1)\,c_{m+2}\,t^{m}$</button>
+  </div>
+  <div class="why">Replace every $n$ by $m+2$: $n(n-1)\to(m+2)(m+1)$, $c_n\to c_{m+2}$, $t^{n-2}\to t^m$, and $n=2$ becomes $m=0$ (<a href="0009-series-method-constant-coeff.html">Lesson 9</a>).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W2.</strong> The radius of convergence of $\displaystyle\sum_{k=0}^{\infty} \frac{t^{2k}}{9^k}$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$9$</button>
+    <button class="opt" data-key="b">$3$</button>
+    <button class="opt" data-key="c">$1/3$</button>
+    <button class="opt" data-key="d">$81$</button>
+  </div>
+  <div class="why">Every other term is missing, so take the ratio of successive <em>non-zero</em> terms: $\dfrac{t^{2k+2}/9^{k+1}}{t^{2k}/9^k} = \dfrac{t^2}{9} &lt; 1 \iff |t| &lt; 3$ (<a href="0008-taylor-series-radius.html">Lesson 8</a>; <a href="../lectures/07_MAST20030_Lecture_Notes_Topic2_PowerSeries-LMS.pdf">Lecture 7, Exercise 2.5</a>).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W3.</strong> For $\;(t-2)\,y'' + y = 0,\; y(5)=1,\; y'(5)=0$, the largest interval on which a unique solution is guaranteed is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(-\infty,\infty)$</button>
+    <button class="opt" data-key="b">$(-\infty,2)$</button>
+    <button class="opt" data-key="c">$(0,5)$</button>
+    <button class="opt" data-key="d">$(2,\infty)$</button>
+  </div>
+  <div class="why">Standard form: $y'' + \frac{1}{t-2}\,y = 0$. The coefficient is continuous except at $t=2$, and $t_0 = 5 &gt; 2$ (<a href="0001-integrating-factors.html">Lesson 1</a>). You'll use exactly this in §7.</div>
+</div>
+
+<h2>1 · The template: expand, shift, extract</h2>
+
+<p>The <a href="../lectures/08_MAST20030_Lecture_Notes_Topic2_PowerSeries-LMS.pdf">five-step method (Lecture 8, slide 3)</a> doesn't change. What's new is step 0: <strong>multiply the polynomial coefficients into the sums</strong> before shifting. Each term of $P$, $Q$ and $R$ becomes its own sum.</p>
+
+<p>Take the exam family $\;(a + \alpha t^2)\,y'' + b\,t\,y' + c\,y = 0\;$ with $a \neq 0$. Substituting $y = \sum c_n t^n$:</p>
+$$\underbrace{\sum_{n=2}^\infty a\,n(n-1)c_n t^{n-2}}_{a\,y''} + \underbrace{\sum_{n=2}^\infty \alpha\,n(n-1)c_n t^{n}}_{\alpha t^2 y''} + \underbrace{\sum_{n=1}^\infty b\,n\,c_n t^{n}}_{bty'} + \underbrace{\sum_{n=0}^\infty c\,c_n t^{n}}_{cy} = 0.$$
+
+<ol class="steps">
+  <li><strong>Shift</strong> so every sum has $t^m$. Only the first needs it ($m = n-2$). It runs from $m=0$. The others keep $m=n$.</li>
+  <li><strong>Extract</strong> the low terms. The sums start at $m = 0, 2, 1, 0$, so pull out $m=0$ and $m=1$ separately:
+  $$m=0:\;\; 2a\,c_2 + c\,c_0 = 0, \qquad m=1:\;\; 6a\,c_3 + (b + c)\,c_1 = 0.$$</li>
+  <li><strong>Combine</strong> what's left (all from $m=2$) and set each coefficient to zero:
+  $$a(m+2)(m+1)\,c_{m+2} + \big[\alpha\,m(m-1) + b\,m + c\big]\,c_m = 0.$$</li>
+  <li><strong>Check</strong> whether the $m=0,1$ equations are just the general recurrence at $m=0,1$. Here they are, because $\alpha m(m-1)$ and $bm$ vanish there. So one recurrence holds for all $m \ge 0$.</li>
+</ol>
+
+<div class="box">
+<p><strong>The two-term recurrence for $(a + \alpha t^2)\,y'' + b\,t\,y' + c\,y = 0$:</strong></p>
+$$c_{m+2} = -\,\frac{\alpha\,m(m-1) + b\,m + c}{a\,(m+2)(m+1)}\;c_m, \qquad m = 0, 1, 2, \dots$$
+<p>Even coefficients come from $c_0$ and odd ones from $c_1$, giving two independent solutions. <strong>Always factorise the numerator.</strong> That's where §3 and §4 come from.</p>
+</div>
+
+<div class="trap"><strong>Use the box as a check, not a shortcut</strong><br>In the exam, write out the four sums, the shift and the extracted $m=0,1$ lines. That working carries most of the marks. Use the box to check your recurrence in ten seconds. Also, the extraction isn't always harmless. In §5 and §6 the low terms say something new (like $c_2 = 0$).</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>1.</strong> For $\;(5 - t^2)\,y'' + 3t\,y' + y = 0$, the recurrence is $c_{m+2} = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{m^2+4m+1}{5(m+2)(m+1)}\,c_m$</button>
+    <button class="opt" data-key="b">$-\dfrac{m^2-4m-1}{5(m+2)(m+1)}\,c_m$</button>
+    <button class="opt" data-key="c">$\dfrac{m^2-3m-1}{5(m+2)(m+1)}\,c_m$</button>
+    <button class="opt" data-key="d">$\dfrac{m^2-4m-1}{5(m+2)(m+1)}\,c_m$</button>
+  </div>
+  <div class="why">$\alpha = -1$, $b = 3$, $c = 1$: $\;-m(m-1) + 3m + 1 = -(m^2 - 4m - 1)$. The minus in front of the box formula cancels it. Option (c) is what you get by writing $-m^2$ instead of $-m(m-1)$.</div>
+</div>
+
+<h2>2 · Worked example: one solution stops, one doesn't</h2>
+
+<p>Solve $\;(4 + t^2)\,y'' + 2t\,y' - 6y = 0\;$ using power series about $t = 0$. Try each step on paper before opening it.</p>
+
+<details><summary>Step 1: substitute and shift</summary><div>
+$$\sum_{n=2}^\infty 4n(n-1)c_n t^{n-2} + \sum_{n=2}^\infty n(n-1)c_n t^{n} + \sum_{n=1}^\infty 2n\,c_n t^{n} - \sum_{n=0}^\infty 6c_n t^{n} = 0.$$
+<p>First sum with $m = n-2$: $\displaystyle\sum_{m=0}^\infty 4(m+2)(m+1)c_{m+2}t^m$. The rest with $m = n$.</p>
+</div></details>
+
+<details><summary>Step 2: extract $m = 0, 1$ and get the recurrence</summary><div>
+<p>$m=0$: $\;8c_2 - 6c_0 = 0 \Rightarrow c_2 = \tfrac34 c_0$.<br>
+$m=1$: $\;24c_3 + 2c_1 - 6c_1 = 0 \Rightarrow c_3 = \tfrac16 c_1$.<br>
+$m\ge2$: $\;4(m+2)(m+1)c_{m+2} + \big[m(m-1) + 2m - 6\big]c_m = 0$, and $m^2 + m - 6 = (m+3)(m-2)$:</p>
+$$c_{m+2} = -\frac{(m+3)(m-2)}{4(m+2)(m+1)}\,c_m.$$
+<p>At $m=0$ this gives $\tfrac{6}{8} = \tfrac34$, and at $m = 1$ it gives $\tfrac{4}{24} = \tfrac16$. Both match, so it holds for all $m\ge0$.</p>
+</div></details>
+
+<details><summary>Step 3: the even series stops</summary><div>
+<p>The factor $(m-2)$ is zero at $m=2$, so $c_4 = 0$. Then $c_6 = c_8 = \dots = 0$, because each one is a multiple of the one before.</p>
+$$y_1 = c_0\Big(1 + \tfrac34 t^2\Big)\;\propto\; 4 + 3t^2.$$
+<p>Check: $(4+t^2)(6) + 2t(6t) - 6(4 + 3t^2) = 24 + 6t^2 + 12t^2 - 24 - 18t^2 = 0$ ✓.</p>
+</div></details>
+
+<details><summary>Step 4: the odd series doesn't stop, so find its general term</summary><div>
+<p>$(m+3)(m-2)$ is never zero for odd $m$. With $c_1 = 1$: $\;c_3 = \tfrac16,\; c_5 = -\tfrac{1}{80},\; c_7 = \tfrac{1}{560}, \dots$</p>
+<p>For a closed form, put $m = 2j+1$:
+$$\frac{c_{2j+3}}{c_{2j+1}} = -\frac{(2j+4)(2j-1)}{4(2j+3)(2j+2)} = -\frac14\cdot\frac{j+2}{j+1}\cdot\frac{2j-1}{2j+3}.$$
+Multiply for $j = 0,\dots,k-1$. The middle factor telescopes to $k+1$. In the last one, the numerators $-1, 1, 3, \dots, 2k-3$ cancel the denominators $3, 5, \dots, 2k+1$ except for $\dfrac{(-1)(1)}{(2k-1)(2k+1)}$:</p>
+$$c_{2k+1} = \Big(-\frac14\Big)^k (k+1)\,\frac{-1}{(2k-1)(2k+1)} = \frac{(-1)^{k+1}(k+1)}{4^k\,(4k^2-1)}.$$
+<p>Check: $k=0$ gives $1$ ✓, $k=1$ gives $\tfrac16$ ✓, $k=2$ gives $-\tfrac{3}{240} = -\tfrac1{80}$ ✓.</p>
+$$y_2 = \sum_{k=0}^\infty \frac{(-1)^{k+1}(k+1)}{4^k(4k^2-1)}\,t^{2k+1} = t + \frac{t^3}{6} - \frac{t^5}{80} + \frac{t^7}{560} - \cdots$$
+</div></details>
+
+<details><summary>Step 5: radius of convergence, two ways</summary><div>
+<p><strong>Ratio test</strong> on successive non-zero terms:
+$$\left|\frac{c_{m+2}\,t^{m+2}}{c_m\,t^m}\right| = \frac{(m+3)|m-2|}{4(m+2)(m+1)}\,t^2 \;\longrightarrow\; \frac{t^2}{4} &lt; 1 \iff |t| &lt; 2.$$
+<strong>Singular points:</strong> $4 + t^2 = 0$ at $t = \pm 2i$, which are a distance $2$ from $0$. The two answers agree: $R = 2$.</p>
+$$\boxed{y = C_1\,(4 + 3t^2) + C_2\sum_{k=0}^\infty \frac{(-1)^{k+1}(k+1)}{4^k(4k^2-1)}\,t^{2k+1}, \qquad |t| &lt; 2.}$$
+<p>The polynomial is valid for all $t$. The series converges for $|t| &lt; 2$, i.e. on the interval $(-2, 2)$. Endpoints aren't examined.</p>
+</div></details>
+
+<h2>3 · When does a series stop?</h2>
+
+<div class="box">
+<p><strong>Termination rule.</strong> In $c_{m+2} = (\text{stuff})\,c_m$, if the numerator is zero at some integer $m = k \ge 0$ (and $c_k \neq 0$), then $c_{k+2} = c_{k+4} = \dots = 0$. The solution with the same parity as $k$ is a <strong>polynomial of degree $k$</strong>.</p>
+<ul>
+  <li>Integer root $k$ even: the $c_0$ series stops. Integer root odd: the $c_1$ series stops.</li>
+  <li>Two non-negative integer roots of different parity: <strong>both</strong> solutions are polynomials.</li>
+  <li>Two even roots, say $0$ and $4$: the series already stops at the first one.</li>
+  <li>No non-negative integer root: neither stops.</li>
+</ul>
+</div>
+
+<p>Exam questions often hide a parameter: "for which $\lambda$ is there a polynomial solution?". Set the numerator to zero at $m = k$ and solve for the parameter.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> $\;(2 - t^2)\,y'' + t\,y' + c\,y = 0\;$ has a cubic polynomial solution when $c = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$8$</button>
+    <button class="opt" data-key="b">$-1$</button>
+    <button class="opt" data-key="c">$3$</button>
+    <button class="opt" data-key="d">$0$</button>
+  </div>
+  <div class="why">Numerator $-m(m-1) + m + c = -m^2 + 2m + c$. Zero at $m = 3$: $c = 9 - 6 = 3$. The odd series is then $t - \tfrac13 t^3$. In general $c = k(k-2)$ gives degree $k$: $c=-1$ is linear, $c = 0$ is constant and $c = 8$ is quartic.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>3.</strong> For $\;(1 + t^2)\,y'' - 6t\,y' + 12y = 0$, which is true?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Only the even solution is a polynomial; $R = 1$</button>
+    <button class="opt" data-key="b">Both solutions are polynomials; $R = \infty$</button>
+    <button class="opt" data-key="c">Only the odd solution is a polynomial; $R = 1$</button>
+    <button class="opt" data-key="d">Neither solution is a polynomial; $R = 1$</button>
+  </div>
+  <div class="why">$m(m-1) - 6m + 12 = m^2 - 7m + 12 = (m-3)(m-4)$. The root $m=4$ stops the even series: $1 - 6t^2 + t^4$. The root $m=3$ stops the odd one: $t - t^3$. Polynomials converge everywhere, so $R = \infty$ for both.</div>
+</div>
+
+<h2>4 · Radius of convergence, two ways</h2>
+
+<div class="box">
+<ol class="steps">
+  <li><strong>From the recurrence (what you prove).</strong> For $c_{m+2} = r(m)\,c_m$: the series converges when $\lim |r(m)|\,t^2 &lt; 1$. For the $(a + \alpha t^2)$ family, $r(m) \to -\alpha/a$, so $R = \sqrt{|a/\alpha|}$.</li>
+  <li><strong>From $P(t)$ (what you check against).</strong> Find all roots of the leading coefficient, <em>including complex ones</em>. The series about $0$ is guaranteed to converge at least for $|t| &lt; \rho$, where $\rho$ is the distance from $0$ to the nearest root (<a href="https://math.libretexts.org/Bookshelves/Differential_Equations/Elementary_Differential_Equations_with_Boundary_Value_Problems_(Trench)/07%3A_Series_Solutions_of_Linear_Second_Order_Equations/7.03%3A_Series_Solutions_Near_an_Ordinary_Point_I">Trench, Theorem 7.3.1</a>).</li>
+</ol>
+<p>For $a + \alpha t^2$, the roots are $\pm\sqrt{-a/\alpha}$. They're real or imaginary depending on signs, but at distance $\sqrt{|a/\alpha|}$ either way. So the two methods agree.</p>
+</div>
+
+<div class="trap"><strong>Three traps</strong><br>
+(1) $1 + t^2$ has no real roots, but that doesn't make $R = \infty$. The roots $\pm i$ give $R = 1$.<br>
+(2) The distance is a <em>guarantee</em> ($R \ge \rho$), not always the exact answer. A solution that terminates has $R = \infty$ whatever $P$ is. Practice P3 has a non-polynomial solution with $R = \infty$, too.<br>
+(3) "Interval of convergence" means write $(-R, R)$. The endpoints aren't examined.</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>4.</strong> Series solutions about $0$ of $\;(t^2 + 2t + 5)\,y'' + y' - y = 0\;$ are guaranteed to converge for $|t| &lt; $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\sqrt5$</button>
+    <button class="opt" data-key="b">$2$</button>
+    <button class="opt" data-key="c">$1$</button>
+    <button class="opt" data-key="d">$5$</button>
+  </div>
+  <div class="why">$t^2 + 2t + 5 = 0$ gives $t = -1 \pm 2i$, and $|{-1} \pm 2i| = \sqrt{1 + 4} = \sqrt5$. Option (b) is the imaginary part on its own. Option (c) is the real part on its own.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>5.</strong> A recurrence is $\;c_{m+2} = \dfrac{m+5}{4(m+2)}\,c_m$. The radius of convergence of the (non-terminating) series is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$4$</button>
+    <button class="opt" data-key="b">$1/2$</button>
+    <button class="opt" data-key="c">$1/4$</button>
+    <button class="opt" data-key="d">$2$</button>
+  </div>
+  <div class="why">$\dfrac{m+5}{4(m+2)} \to \dfrac14$, so the condition is $\tfrac14 t^2 &lt; 1$, or $|t| &lt; 2$. The step is $2$, so the limit compares with $t^2$, not $t$. That's why the answer isn't $4$.</div>
+</div>
+
+<h2>5 · Step-3 recurrences (Airy type)</h2>
+
+<p>When the terms of the ODE differ by a power of $t^3$ instead of $t^2$, the recurrence jumps by 3. The extraction step then <strong>forces</strong> a coefficient to vanish (<a href="../lectures/08_MAST20030_Lecture_Notes_Topic2_PowerSeries-LMS.pdf">Lecture 8, Airy equation, slides 7–9</a>).</p>
+
+<p><strong>Example.</strong> $\;y'' + t^2\,y' + 2t\,y = 0.$</p>
+<div class="box">
+<p>$\displaystyle\sum_{n=2}^\infty n(n-1)c_n t^{n-2} + \sum_{n=1}^\infty n\,c_n t^{n+1} + \sum_{n=0}^\infty 2c_n t^{n+1} = 0.$ The common power is $t^{m+1}$. In the first sum put $n = m+3$ (so it starts at $m=-1$). In the others put $n=m$:</p>
+$$\underbrace{2c_2}_{m=-1} + \sum_{m=0}^\infty\Big[(m+3)(m+2)\,c_{m+3} + (m+2)\,c_m\Big]t^{m+1} = 0.$$
+<p>So <strong>$c_2 = 0$</strong> and $\;c_{m+3} = -\dfrac{c_m}{m+3}$. There are three chains: $c_0 \to c_3 \to c_6$, $\;c_1 \to c_4 \to c_7$, $\;c_2 = 0 \to c_5 = c_8 = \dots = 0$.</p>
+<p>$c_{3k} = \dfrac{(-1)^k}{3^k\,k!}\,c_0$, so $\;y_1 = \displaystyle\sum_{k=0}^\infty \frac{(-1)^k}{k!}\Big(\frac{t^3}{3}\Big)^k = e^{-t^3/3}$.</p>
+<p>$c_{3k+1} = \dfrac{(-1)^k}{4\cdot7\cdots(3k+1)}\,c_1$, so $\;y_2 = t - \dfrac{t^4}{4} + \dfrac{t^7}{28} - \dfrac{t^{10}}{280} + \cdots$</p>
+<p>Ratio of successive non-zero terms: $\dfrac{|t|^3}{m+3} \to 0$, so $R = \infty$. The leading coefficient is $1$, which has no roots, and that agrees.</p>
+</div>
+
+<p>Rule of thumb: if the other terms carry $t^{n+k-2}$ against the $y''$ term's $t^{n-2}$ (here $t^{n+1}$ vs $t^{n-2}$, a step of $k = 3$), then $c_2, \dots, c_{k-1}$ all vanish. You get two solutions from $c_0$ and $c_1$, with gaps of $k$.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>6.</strong> For $\;y'' + t^3\,y = 0$, which coefficients are forced to be zero?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$c_2$ only</button>
+    <button class="opt" data-key="b">$c_2$, $c_3$ and $c_4$</button>
+    <button class="opt" data-key="c">$c_2$ and $c_3$</button>
+    <button class="opt" data-key="d">$c_3$ and $c_4$</button>
+  </div>
+  <div class="why">$y''$ gives $t^0, t^1, t^2, \dots$ but $t^3y$ starts at $t^3$. The coefficients of $t^0, t^1, t^2$ are $2c_2, 6c_3, 12c_4$, which all have to be $0$. Then $c_{m+5} = -c_m/\big((m+5)(m+4)\big)$, a step of 5.</div>
+</div>
+
+<h2>6 · Three-term recurrences and the table method</h2>
+
+<p>If $P(t)$ has a <strong>linear</strong> term, like $1 + t$, the shifted sums land on three different indices. You get $c_{m+2}$ in terms of $c_{m+1}$ <em>and</em> $c_m$. A closed form is usually hopeless, so the question says <strong>"give the first six non-zero terms"</strong>.</p>
+
+<p><strong>Example.</strong> $\;(1 + t)\,y'' + 2y = 0.$</p>
+<p>$(1+t)\sum n(n-1)c_nt^{n-2} = \sum n(n-1)c_nt^{n-2} + \sum n(n-1)c_nt^{n-1}$. Shift by $m = n-2$ and $m = n-1$ respectively:</p>
+$$\sum_{m=0}^\infty\Big[(m+2)(m+1)\,c_{m+2} + (m+1)m\,c_{m+1} + 2c_m\Big]t^m = 0,$$
+<p>(the middle sum really starts at $m=1$, but its $m=0$ term is $0$ anyway), so</p>
+$$c_{m+2} = -\frac{m(m+1)\,c_{m+1} + 2\,c_m}{(m+2)(m+1)}.$$
+
+<p><strong>The table.</strong> One row per $m$. Write the formula with the numbers plugged in, then run both solutions side by side: $y_1$ with $(c_0, c_1) = (1, 0)$ and $y_2$ with $(0, 1)$.</p>
+<div class="tblwrap">
+<table class="rec">
+<tr><th>$m$</th><th>$c_{m+2} = $</th><th>$y_1$: $(1,0)$</th><th>$y_2$: $(0,1)$</th></tr>
+<tr><td>0</td><td>$-\tfrac{0\cdot c_1 + 2c_0}{2}$</td><td>$c_2 = -1$</td><td>$c_2 = 0$</td></tr>
+<tr><td>1</td><td>$-\tfrac{2c_2 + 2c_1}{6}$</td><td>$c_3 = \tfrac13$</td><td>$c_3 = -\tfrac13$</td></tr>
+<tr><td>2</td><td>$-\tfrac{6c_3 + 2c_2}{12}$</td><td>$c_4 = 0$</td><td>$c_4 = \tfrac16$</td></tr>
+<tr><td>3</td><td>$-\tfrac{12c_4 + 2c_3}{20}$</td><td>$c_5 = -\tfrac1{30}$</td><td>$c_5 = -\tfrac1{15}$</td></tr>
+<tr><td>4</td><td>$-\tfrac{20c_5 + 2c_4}{30}$</td><td>$c_6 = \tfrac1{45}$</td><td>$c_6 = \tfrac1{30}$</td></tr>
+<tr><td>5</td><td>$-\tfrac{30c_6 + 2c_5}{42}$</td><td>$c_7 = -\tfrac1{70}$</td><td>$c_7 = -\tfrac{13}{630}$</td></tr>
+</table>
+</div>
+$$y_1 = 1 - t^2 + \frac{t^3}{3} - \frac{t^5}{30} + \frac{t^6}{45} - \frac{t^7}{70} + \cdots, \qquad y_2 = t - \frac{t^3}{3} + \frac{t^4}{6} - \frac{t^5}{15} + \frac{t^6}{30} - \frac{13t^7}{630} + \cdots$$
+
+<div class="trap"><strong>"Non-zero" means skip the zeros</strong><br>$c_4 = 0$ in $y_1$, so you need $c_7$ to reach six non-zero terms. A zero in a three-term recurrence does <em>not</em> mean the series stops: the next coefficient still gets fed by the one before it. Termination only works for two-term recurrences.</div>
+
+<p><strong>Radius:</strong> $1 + t = 0$ at $t = -1$, so both series converge at least for $|t| &lt; 1$. (It's exactly $1$ here, but proving that from a three-term recurrence is hard and isn't asked. Compare the <a href="../problem-booklet/MAST20030ProblemBooklet_Topic2.pdf">Booklet answer to Q2(a)</a>.)</p>
+
+<p>Speed tips: simplify each $c$ as soon as you get it. Fill in the $y_1$ column, then the $y_2$ column (not row by row). After each line, put your numbers back into the formula as a check.</p>
+
+<h2>7 · Follow-up: largest interval of guaranteed existence</h2>
+
+<p>"Given $y(t_0) = \dots,\; y'(t_0) = \dots$, without solving, state the largest interval on which a unique solution is guaranteed." This is the <strong>Topic 1 existence theorem</strong>, not the radius of convergence (<a href="../lectures/01_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 1</a>; <a href="0001-integrating-factors.html">Lesson 1</a>).</p>
+<ol class="steps">
+  <li>Divide by $P(t)$: $\;y'' + \dfrac{Q}{P}\,y' + \dfrac{R}{P}\,y = 0$.</li>
+  <li>The coefficients are continuous except at the <strong>real</strong> roots of $P$. Complex roots don't matter here.</li>
+  <li>The answer is the open interval between consecutive real roots that contains $t_0$.</li>
+</ol>
+
+<div class="trap"><strong>Radius vs existence interval</strong><br>Complex roots limit the <em>series</em> but not existence. For $(4 + t^2)y'' + \dots$ the series has $R = 2$, but a unique solution exists on all of $\mathbb R$. Conversely, the existence interval can lie <em>outside</em> $(-R, R)$, e.g. $(3, \infty)$ when $t_0 = 4$ and $P = 9 - t^2$. The series about $0$ says nothing there.</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>7.</strong> For $\;(t^2 - 4t + 3)\,y'' + y = 0,\; y(2) = 0,\; y'(2) = 1$, the largest interval on which a unique solution is guaranteed is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(1,3)$</button>
+    <button class="opt" data-key="b">$(-1,1)$</button>
+    <button class="opt" data-key="c">$(3,\infty)$</button>
+    <button class="opt" data-key="d">$(-\infty,1)$</button>
+  </div>
+  <div class="why">$t^2 - 4t + 3 = (t-1)(t-3)$, and $t_0 = 2$ lies between the roots. Option (b) is the guaranteed interval of convergence of a series about $0$ (the nearest root is $1$), which is a different question.</div>
+</div>
+
+<h2>8 · Practice (a notch above the notes)</h2>
+<p>Do each one fully on paper, then open the solution.</p>
+
+<div class="box">
+<p><strong>P1.</strong> Solve $\;(3 + t^2)\,y'' - 2t\,y' + 2y = 0\;$ by power series about $0$. What is $R$?</p>
+<p><strong>P2.</strong> $\;y'' + t^2\,y = 0$. Show which coefficients are forced to be zero, find the recurrence, and give the first three non-zero terms of each solution.</p>
+<p><strong>P3.</strong> $\;(1 + t)\,y'' + t\,y' - y = 0$. Find the recurrence and the first five non-zero terms of the solution with $y(0) = 1,\; y'(0) = 0$, and the solution with $y(0) = 0,\; y'(0) = 1$. Then recognise both in closed form. What does that say about the radius?</p>
+</div>
+
+<details><summary>P1 solution</summary><div>
+<p>$\displaystyle\sum_{n=2} 3n(n-1)c_nt^{n-2} + \sum_{n=2} n(n-1)c_nt^n - \sum_{n=1} 2n\,c_nt^n + \sum_{n=0} 2c_nt^n = 0.$</p>
+<p>$m = 0$: $6c_2 + 2c_0 = 0$. $\;m = 1$: $18c_3 - 2c_1 + 2c_1 = 0 \Rightarrow c_3 = 0$.<br>
+General: $3(m+2)(m+1)c_{m+2} + (m^2 - 3m + 2)\,c_m = 0$, so
+$$c_{m+2} = -\frac{(m-1)(m-2)}{3(m+2)(m+1)}\,c_m.$$</p>
+<p>Odd: root $m = 1$, so $c_3 = 0$ and $y_2 = t$. Even: $c_2 = -\tfrac{2}{6}c_0 = -\tfrac13c_0$, then root $m=2$ gives $c_4 = 0$, so $y_1 = 1 - \tfrac13t^2 \propto 3 - t^2$.</p>
+$$y = C_1(3 - t^2) + C_2\,t,\qquad R = \infty.$$
+<p>Both solutions terminate, so the guarantee from $\pm i\sqrt3$ ($R \ge \sqrt3$) is beaten. Check: $(3+t^2)(-2) - 2t(-2t) + 2(3 - t^2) = 0$ ✓.</p>
+</div></details>
+
+<details><summary>P2 solution</summary><div>
+<p>$\displaystyle\sum_{n=2} n(n-1)c_nt^{n-2} + \sum_{n=0} c_nt^{n+2} = 0.$ Match $t^{m+2}$: put $n = m+4$ in the first (from $m = -2$):</p>
+$$\underbrace{2c_2}_{t^0} + \underbrace{6c_3\,t}_{t^1} + \sum_{m=0}^\infty\big[(m+4)(m+3)\,c_{m+4} + c_m\big]t^{m+2} = 0.$$
+<p>So $c_2 = c_3 = 0$ and $c_{m+4} = -\dfrac{c_m}{(m+4)(m+3)}$, a step of 4.</p>
+<p>$c_4 = -\tfrac1{12}c_0,\; c_8 = \tfrac1{672}c_0$, and $c_5 = -\tfrac1{20}c_1,\; c_9 = \tfrac1{1440}c_1$:</p>
+$$y_1 = 1 - \frac{t^4}{12} + \frac{t^8}{672} - \cdots,\qquad y_2 = t - \frac{t^5}{20} + \frac{t^9}{1440} - \cdots,\qquad R = \infty.$$
+<p>(Ratio of successive non-zero terms: $t^4/\big((m+4)(m+3)\big) \to 0$.)</p>
+</div></details>
+
+<details><summary>P3 solution</summary><div>
+<p>$\displaystyle\sum_{n=2} n(n-1)c_nt^{n-2} + \sum_{n=2} n(n-1)c_nt^{n-1} + \sum_{n=1} n\,c_nt^n - \sum_{n=0} c_nt^n = 0$, and shifting gives</p>
+$$(m+2)(m+1)\,c_{m+2} + (m+1)m\,c_{m+1} + (m-1)\,c_m = 0 \;\Rightarrow\; c_{m+2} = -\frac{m(m+1)\,c_{m+1} + (m-1)\,c_m}{(m+2)(m+1)}.$$
+<table class="rec">
+<tr><th>$m$</th><th>$c_{m+2} =$</th><th>$(1,0)$</th><th>$(0,1)$</th></tr>
+<tr><td>0</td><td>$-\tfrac{0 - c_0}{2}$</td><td>$\tfrac12$</td><td>$0$</td></tr>
+<tr><td>1</td><td>$-\tfrac{2c_2 + 0}{6}$</td><td>$-\tfrac16$</td><td>$0$</td></tr>
+<tr><td>2</td><td>$-\tfrac{6c_3 + c_2}{12}$</td><td>$\tfrac1{24}$</td><td>$0$</td></tr>
+<tr><td>3</td><td>$-\tfrac{12c_4 + 2c_3}{20}$</td><td>$-\tfrac1{120}$</td><td>$0$</td></tr>
+</table>
+<p>$y_1 = 1 + \dfrac{t^2}{2} - \dfrac{t^3}{6} + \dfrac{t^4}{24} - \dfrac{t^5}{120} + \cdots = e^{-t} + t$ (it's $e^{-t}$ with the $-t$ term cancelled).<br>
+$y_2 = t$ exactly: once $c_2 = c_3 = 0$, every later coefficient is $0$ too.</p>
+<p>So $y = A\,e^{-t} + B\,t$, and both are entire, so $R = \infty$, even though $1 + t$ vanishes at $-1$. The singular-point distance is only a lower bound. (Check $e^{-t}$: $(1+t)e^{-t} - te^{-t} - e^{-t} = 0$ ✓.)</p>
+</div></details>
+
+<h2>9 · Exam-level challenge (12 marks)</h2>
+<p>Treat this as exam conditions: about 18 minutes, on paper, then open one part at a time.</p>
+<div class="box">
+<p>Consider $\;(9 - t^2)\,y'' + t\,y' + 3y = 0.$</p>
+<p>(a) Substitute $y = \sum_{n\ge0} c_nt^n$ and show that $\;c_{n+2} = \dfrac{n-3}{9(n+2)}\,c_n\;$ for $n \ge 0$. <em>[4]</em><br>
+(b) Hence find a polynomial solution. <em>[2]</em><br>
+(c) Find a second, linearly independent solution as a series. Give its first four non-zero terms and a formula for its general coefficient, and find its radius of convergence. <em>[4]</em><br>
+(d) Without solving, state the largest interval on which the IVP with $y(4) = 1,\; y'(4) = 0$ has a unique solution. Explain why the series from (c) can't be used to find it. <em>[2]</em></p>
+</div>
+
+<details><summary>(a) The recurrence</summary><div>
+$$\sum_{n=2}^\infty 9n(n-1)c_nt^{n-2} - \sum_{n=2}^\infty n(n-1)c_nt^n + \sum_{n=1}^\infty n\,c_nt^n + \sum_{n=0}^\infty 3c_nt^n = 0.$$
+<p>First sum: $m = n - 2$ gives $\sum_{m\ge0} 9(m+2)(m+1)c_{m+2}t^m$. Others $m = n$.<br>
+$m=0$: $18c_2 + 3c_0 = 0$. $\;m=1$: $54c_3 + c_1 + 3c_1 = 0$.<br>
+$m\ge2$: $9(m+2)(m+1)c_{m+2} + \big[-m(m-1) + m + 3\big]c_m = 0$, where $-m^2 + 2m + 3 = -(m-3)(m+1)$. So</p>
+$$c_{m+2} = \frac{(m-3)(m+1)}{9(m+2)(m+1)}\,c_m = \frac{m-3}{9(m+2)}\,c_m.$$
+<p>The $m=0,1$ lines give $c_2 = -\tfrac16c_0$ and $c_3 = -\tfrac2{27}c_1$, which match the formula at $m = 0, 1$. So it holds for all $m \ge 0$.</p>
+</div></details>
+
+<details><summary>(b) Polynomial solution</summary><div>
+<p>The factor $(m-3)$ vanishes at $m=3$, so $c_5 = c_7 = \dots = 0$. With $c_0 = 0$, $c_1 = 1$: $c_3 = -\tfrac2{27}$, so</p>
+$$y_1 = t - \frac{2t^3}{27} \;\propto\; 27t - 2t^3.$$
+<p>Check: $(9 - t^2)(-12t) + t(27 - 6t^2) + 3(27t - 2t^3) = -108t + 12t^3 + 27t - 6t^3 + 81t - 6t^3 = 0$ ✓.</p>
+</div></details>
+
+<details><summary>(c) Even series and its radius</summary><div>
+<p>With $c_0 = 1$, $c_1 = 0$, the factor $2k - 3$ is never zero:
+$c_2 = -\tfrac16,\; c_4 = \tfrac{-1}{36}c_2 = \tfrac1{216},\; c_6 = \tfrac{1}{54}c_4 = \tfrac{1}{11664}$.</p>
+<p>General term, with $m = 2j$: $\;c_{2j+2} = \dfrac{2j-3}{18(j+1)}\,c_{2j}$, so</p>
+$$c_{2k} = \prod_{j=0}^{k-1}\frac{2j-3}{18(j+1)} = \frac{(-3)(-1)(1)(3)\cdots(2k-5)}{18^k\,k!}.$$
+$$y_2 = 1 - \frac{t^2}{6} + \frac{t^4}{216} + \frac{t^6}{11664} + \cdots = \sum_{k=0}^\infty c_{2k}\,t^{2k}.$$
+<p>(Optional tidy form: $c_{2k} = \dfrac{3\binom{2k}{k}}{(2k-1)(2k-3)\,36^k}$.)</p>
+<p><strong>Radius:</strong> $\left|\dfrac{c_{2k+2}t^{2k+2}}{c_{2k}t^{2k}}\right| = \dfrac{|2k-3|}{18(k+1)}\,t^2 \to \dfrac{t^2}{9} &lt; 1$, so $R = 3$. This agrees with the roots $t = \pm3$ of $9 - t^2$. The interval of convergence is $(-3, 3)$.</p>
+<p>$y_2$ is even and $y_1$ is odd, so neither is a multiple of the other: they're linearly independent.</p>
+</div></details>
+
+<details><summary>(d) Existence interval</summary><div>
+<p>Standard form: $\;y'' + \dfrac{t}{9 - t^2}\,y' + \dfrac{3}{9 - t^2}\,y = 0$. The coefficients are continuous except at $t = \pm3$. Since $t_0 = 4 &gt; 3$, a unique solution is guaranteed on $\boxed{(3, \infty)}$.</p>
+<p>The series in (c) only converges on $(-3, 3)$, which doesn't contain $t_0 = 4$. So it can't be used to fit the initial conditions. The polynomial $y_1$ exists everywhere, but the general solution on $(3, \infty)$ needs a second solution there too.</p>
+</div></details>
+
+<p>When you've checked the parts, compare your script against the <a href="../reference/0010-challenge-full-solution.html">full written solution</a>, which shows every line you'd write in the exam.</p>
+
+<h2>10 · Before you close this tab</h2>
+<details><summary>Retrieval: write the box recurrence, the termination rule, both radius methods and the existence-interval recipe from memory, then check</summary><div>
+<p><strong>Recurrence:</strong> $(a + \alpha t^2)y'' + bty' + cy = 0 \Rightarrow c_{m+2} = -\dfrac{\alpha m(m-1) + bm + c}{a(m+2)(m+1)}c_m$. Derive it in the exam: four sums, shift, extract $m=0,1$.</p>
+<p><strong>Terminate:</strong> numerator zero at an integer $k\ge0$ → the parity-$k$ solution is a degree-$k$ polynomial. Two-term recurrences only.</p>
+<p><strong>Radius:</strong> ratio of successive non-zero terms (compare with $t^2$ for step 2), and check against the distance to the nearest complex root of $P$ (a guaranteed minimum).</p>
+<p><strong>Step $k$:</strong> $c_2,\dots,c_{k-1}$ forced to $0$. <strong>Three-term:</strong> use the table, skip zeros, and don't claim it terminates.</p>
+<p><strong>Existence:</strong> divide by $P$, use only the real roots, take the interval containing $t_0$.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/08_MAST20030_Lecture_Notes_Topic2_PowerSeries-LMS.pdf">Lecture 8</a> (method and Airy equation). Then <a href="https://tutorial.math.lamar.edu/Classes/DE/SeriesSolutions.aspx">Paul's Notes: Series Solutions</a>: read Examples 2 and 3 only (Airy about $0$ and about $-2$). Skip Example 4 for now: it overlaps a past-paper question you're saving to sit cold. For the radius guarantee, see <a href="https://math.libretexts.org/Bookshelves/Differential_Equations/Elementary_Differential_Equations_with_Boundary_Value_Problems_(Trench)/07%3A_Series_Solutions_of_Linear_Second_Order_Equations/7.03%3A_Series_Solutions_Near_an_Ordinary_Point_I">Trench §7.3, Theorem 7.3.1</a>.</p>
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic2.pdf">Problem Booklet 2</a>, Q2 (e): one solution terminates and one doesn't. Find the radius both ways.</li>
+  <li>Booklet Q2 (b): complex singular points. Get the recurrence, the first six non-zero terms of each, and $R$.</li>
+  <li>Booklet Q2 (a): three-term recurrence. Use the table method for six non-zero terms of each.</li>
+  <li>Optional: Booklet Q2 (d), (h) and (f). For (h), watch the step size.</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo quizzes 1, 2, 4 and 7 cold, and the challenge's (a) and (c) without looking.</p>
+
+<div class="ask">💬 Got a different coefficient, or not sure your extraction lines are enough for full marks? Ask me in the terminal. Paste or photograph your working and I'll mark it line by line.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0009-series-method-constant-coeff.html">Lesson 9</a> and <a href="0008-taylor-series-radius.html">Lesson 8</a></span>
+  <span>Next: <a href="0011-singular-points-bessel.html">Lesson 11, singular points</a></span>
+  <span>Reference: <a href="../reference/topic2-cheatsheet.html">Topic 2 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

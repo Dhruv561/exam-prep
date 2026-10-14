@@ -1,0 +1,68 @@
+---
+title: "MAST30027: Generalised Linear Models I"
+subtitle: "Week 3 - Solutions"
+date: ""
+
+format:
+  html:
+    self-contained: true
+    css: CSSBackground.css
+    html-math-method: mathml
+resources:
+  - ../images/Banner.png
+---
+
+**Objectives of the Tutorial/Lab**
+By the end of this tutorial, you should be able to:
+
+- Compute the likelihood for generalised linear models (GLMs).
+- Construct confidence regions for bivariate model parameters.
+- Perform model selection using log-likelihood ratio test (LRT).
+
+## Question 1
+
+Consider the binomial regression model with logit link fitted to the Challenger data in class.
+Using the log likelihood ratio, plot a 95% confidence region for $(\alpha, \beta)$.
+
+One way of doing this is to use the function `contour`:
+
+:::: {.subquestions}
+::: {.subquestion}
+Let $(\hat\alpha^*, \hat\beta^*)$ be the MLE, then for a grid of $\alpha$ and $\beta$ values calculate $2 l(\hat\alpha^*, \hat\beta^*) - 2 l(\alpha, \beta)$.
+
+
+```{r}
+
+```
+
+
+:::
+
+::: {.subquestion}
+The contour line with value $\chi^2_2(0.95)$ will delineate the confidence region.
+
+```{r}
+
+```
+
+:::
+::::
+
+## Question 2
+
+The `infert` dataset from the `survival` package presents data from a study of infertility after spontaneous and induced abortion. You can load the dataset using the following command.
+```r
+library(survival)
+data(infert)
+?infert
+str(infert)
+```
+
+The response is `case`, with $1$ indicating infertility and $0$ fertility. The data comes from a case-control study, the aim of which was to estimate the effect of the number of prior induced and spontaneous abortions on the probability of becoming infertile. We will consider education, age and parity (something numeric, whatever it is) as other predictors.
+
+Fit a binomial regression model with `case` as a response variable and induced (the number of prior induced abortions), spontaneous (the number of prior spontaneous abortions), education, age and parity as predictors. Test whether the education is important to predict the probability of becoming infertile when all other predictors are in the model.
+
+```{r}
+
+```
+

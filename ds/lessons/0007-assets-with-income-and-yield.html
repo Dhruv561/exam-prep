@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Income, Yield and Index Futures</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.widget { border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.2rem; margin: 1.4rem 0; font-family: Inter, system-ui, sans-serif; font-size: .88rem; }
+.widget label { display: grid; grid-template-columns: 7.5rem 1fr 4.5rem; gap: .6rem; align-items: center; margin: .35rem 0; }
+.widget input[type=range] { width: 100%; accent-color: var(--accent); }
+.widget output { font-variant-numeric: tabular-nums; text-align: right; }
+.widget .result { margin-top: .8rem; font-size: 1rem; }
+.widget .result strong { font-size: 1.15rem; }
+.widget .tag { display: inline-block; padding: .1rem .5rem; border-radius: 4px; background: var(--card); border: 1px solid var(--rule); margin-left: .4rem; }
+td.pos { color: var(--ok); } td.neg { color: var(--bad); }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 7 · Topic 3: Forward &amp; futures pricing</div>
+<h1>Assets that pay you: income, yield and index futures</h1>
+<p class="lede">The goal: price a forward on anything that pays income (a coupon bond, a dividend stock, a share index) with one idea, say at a glance whether \(F_0\) sits above or below spot, and set out an index arbitrage in either direction with full cash-flow tables.</p>
+
+<div class="mission">Why this matters for 5 Nov: past finals ask for the no-arbitrage price of an index futures contract for a maturity you have to pick yourself (counting months to "the last day of the month", rounding to 4 decimals at each step), and then feed that price into a beta-hedge contract count from Lesson 5. The MSTs add 5-option arbitrage MCQs that mix up the direction and the size of the profit. This lesson covers all three.</div>
+
+<p>This lesson assumes <a href="0006-cost-of-carry-and-arbitrage.html">Lesson 6</a>: continuous compounding, converting rates, \(F_0 = S_0e^{rT}\) for an asset with no income, and the cash-and-carry / reverse cash-and-carry tables.</p>
+
+<h2>1 · One idea: carry = financing cost − income you collect</h2>
+
+<p>Lesson 6 asked: <em>what would I have to do today to own the asset at \(T\)?</em> Borrow \(S_0\), buy the asset, hold it. At \(T\) you own it and owe \(S_0e^{rT}\). A forward is just another way to own it at \(T\), so the two must cost the same: \(F_0 = S_0e^{rT}\).</p>
+
+<p>Now suppose the asset <strong>pays you something while you hold it</strong>: a coupon on a bond, a dividend on a share. Run the same story. You borrow and buy, but along the way cash comes in, and you use it to pay down the loan. At \(T\) you owe less. So the "do-it-yourself forward" is cheaper, and the forward price must be lower too.</p>
+
+<div class="box">
+<p><strong>Mental model.</strong> The <strong>cost of carry</strong> is what it costs, net, to hold the asset until \(T\):</p>
+$$\text{carry} = \underbrace{\text{financing cost}}_{\text{interest on }S_0} \;-\; \underbrace{\text{income you collect}}_{\text{coupons, dividends}}$$
+<p>\(F_0 = S_0 + \text{carry}\), roughly. Positive carry puts \(F_0\) above spot; if the income is worth more than the interest, carry is negative and \(F_0\) sits <em>below</em> spot. (Lesson 9 adds storage costs as a third term: income with a minus sign.)</p>
+</div>
+
+<p>Who gets the income? Only the person who <em>holds the asset</em> between now and \(T\). That's the seller of a forward (who keeps the asset until delivery), not the buyer (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">Lecture 3, slide 16</a>):</p>
+<ul>
+  <li>The <strong>seller</strong> keeps the asset until \(T\) and pockets the income, so they're happy to sell for less.</li>
+  <li>The <strong>buyer</strong> misses the income, so they'll only pay less.</li>
+</ul>
+
+<h2>2 · Known cash income: \(F_0 = (S_0 - I)e^{rT}\)</h2>
+
+<p><strong>Known income</strong> means cash payments whose amounts and dates are known today: a coupon bond, or a stock with an announced dividend. Let \(I\) be the <strong>present value of all the income paid during the life of the forward</strong>, each payment discounted at the rate for <em>its own</em> date:</p>
+$$I = \sum_{t_i \le T} D_i\, e^{-r_i t_i}, \qquad F_0 = (S_0 - I)\,e^{rT}.$$
+<p>Why it must be true: \(S_0 - I\) is the price of "the asset, stripped of the income it pays before \(T\)". That stripped asset pays nothing, so the Lesson 6 rule applies to it (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">slide 15</a>; Hull Ch. 5).</p>
+
+<div class="box">
+<p><strong>Lecture example (slides 17–18).</strong> A 9-month forward on a coupon bond priced at $900. A $40 coupon arrives in 4 months. Rates (continuously compounded): 3% for 4 months, 4% for 9 months.</p>
+<ol class="steps">
+  <li>PV of the coupon, at the <strong>4-month</strong> rate: \(I = 40e^{-0.03\times4/12} = 40e^{-0.01} = 39.60\).</li>
+  <li>Forward price, at the <strong>9-month</strong> rate: \(F_0 = (900 - 39.60)e^{0.04\times0.75} = 860.40\times e^{0.03} = \$886.60\).</li>
+</ol>
+<p>Compare: with no coupon it would be \(900e^{0.03} = 927.41\). The coupon knocks about $40.80 (its value carried forward to \(T\)) off the forward price.</p>
+</div>
+
+<div class="trap"><strong>Two rates, two jobs</strong><br>
+Discount each income payment at the rate for <em>its</em> date; grow \(S_0 - I\) at the rate for the forward's maturity \(T\). Using the 9-month rate for the coupon is the classic slip. And only income paid <strong>on or before \(T\)</strong> goes into \(I\): a dividend paid after the forward matures goes to whoever owns the stock then (the buyer), so it doesn't lower \(F_0\).</div>
+
+<h3>The arbitrage behind it, with the dividend in the table</h3>
+<p>A stock trades at $60 and pays a $0.90 dividend in 3 months. \(r = 5\%\) for all maturities. A 6-month forward is quoted at <strong>$61.20</strong>.</p>
+<p>Fair price: \(I = 0.90e^{-0.05\times0.25} = 0.8888\), so \(F_0 = (60 - 0.8888)e^{0.05\times0.5} = 59.1112\times1.0253 = \$60.61\).</p>
+
+<details><summary>Predict first: is $61.20 too high or too low, and which way do you trade?</summary><div>
+<p>Too high (61.20 &gt; 60.61). Sell the expensive thing (the forward), buy the cheap thing (the stock, with borrowed money): <strong>cash and carry</strong>. The trick is to split the loan in two so the dividend repays one part exactly.</p></div></details>
+
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>t = 0</th><th>t = 3 months</th><th>t = T (6 months)</th></tr>
+<tr><td>Borrow 0.8888 for 3 months</td><td>+0.8888</td><td>−0.90</td><td></td></tr>
+<tr><td>Borrow 59.1112 for 6 months</td><td>+59.1112</td><td></td><td>−60.6076</td></tr>
+<tr><td>Buy 1 share</td><td>−60.00</td><td>+0.90 (dividend)</td><td>deliver the share</td></tr>
+<tr><td>Short forward at 61.20</td><td>0</td><td></td><td>+61.20</td></tr>
+<tr><td><strong>Net</strong></td><td>0</td><td>0</td><td class="pos"><strong>+0.5924</strong></td></tr>
+</table>
+</div>
+<p>The dividend you receive at 3 months exactly repays the 3-month loan (\(0.8888e^{0.0125} = 0.90\)). That's what "\(S_0 - I\)" means in cash terms: \(I\) is the part of today's price you can finance out of the income itself. Profit \(= 61.20 - 60.6076 = \$0.59\) per share, which is \(F_{\text{quoted}} - F_0\).</p>
+
+<p>If the quote were <em>below</em> $60.61, flip every row: short the share (and owe the $0.90 dividend to the lender of the share at 3 months), invest the proceeds, go long the forward. Practice Q14 does this.</p>
+
+<h3>Scenarios: change the dividend, keep everything else</h3>
+<p>Same stock: \(S_0 = 60\), \(r = 5\%\), \(T = 6\) months. Predict the direction for each row before reading the last column.</p>
+<table class="ledger">
+<tr><th>Dividend</th><th>\(I\)</th><th>\(F_0\)</th><th>vs base</th></tr>
+<tr><td>None</td><td>0</td><td>61.52</td><td>higher</td></tr>
+<tr><td>Base: $0.90 at 3 months</td><td>0.8888</td><td>60.61</td><td>—</td></tr>
+<tr><td>Bigger: $1.20 at 3 months</td><td>1.1851</td><td>60.30</td><td>lower</td></tr>
+<tr><td>Earlier: $0.90 at 1 month</td><td>0.8963</td><td>60.60</td><td>a touch lower</td></tr>
+<tr><td>Moved to 8 months (after \(T\))</td><td>0</td><td>61.52</td><td>back to no income</td></tr>
+</table>
+<details><summary>Why does paying earlier lower \(F_0\) only slightly?</summary><div>
+<p>Paying earlier means less discounting, so \(I\) rises a little (0.8963 vs 0.8888). Another way to see it: the holder gets the cash sooner and can repay debt sooner, saving a little interest. The effect is tiny because it's only two months of interest on 90 cents. A bigger dividend matters far more than a slightly earlier one.</p></div></details>
+
+<h2>3 · Known yield: \(F_0 = S_0e^{(r-q)T}\)</h2>
+
+<p>Some assets pay income in proportion to their price instead of as fixed dollar amounts. A <strong>known yield</strong> \(q\) is income paid at a rate of \(q\) per annum of the asset's value, continuously compounded (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">slide 19</a>). A share index is the standard example: hundreds of stocks paying dividends at different dates add up to something close to a steady flow, so we model it as a yield.</p>
+
+<p>Why the formula: if you <strong>reinvest</strong> the income in more of the asset, your holding grows at rate \(q\). So to own exactly 1 unit at \(T\), you only need to buy \(e^{-qT}\) units today, costing \(S_0e^{-qT}\). Borrow that and the debt at \(T\) is \(S_0e^{-qT}e^{rT}\). That's the do-it-yourself forward:</p>
+$$F_0 = S_0e^{-qT}\cdot e^{rT} = S_0e^{(r-q)T}.$$
+<p>Same idea as before: \(S_0e^{-qT}\) plays the role of \(S_0 - I\) (the price stripped of the income), and \(r - q\) is the net carry rate.</p>
+
+<div class="box">
+<p><strong>Lecture example (slide 20).</strong> A 6-month forward on an asset worth $25 that pays 2% of its price once in the six months. \(r = 10\%\) continuously compounded.</p>
+<ol class="steps">
+  <li>2% per half-year is 4% p.a. with <strong>semi-annual</strong> compounding. Convert (Lesson 6): \(q = m\ln(1 + R/m) = 2\ln(1.02) = 0.0396\).</li>
+  <li>\(F_0 = 25e^{(0.10 - 0.0396)\times0.5} = \$25.77\).</li>
+</ol>
+</div>
+
+<div class="trap"><strong>Read how the yield is quoted</strong><br>
+The formula needs \(q\) continuously compounded per annum. Exam questions usually say "dividend yield … per annum, continuously compounded", so use it as given. If it's quoted per period or with another compounding frequency, convert first, exactly like an interest rate.</div>
+
+<h3>Scenarios: where does \(F_0\) sit relative to spot?</h3>
+<p>\(S_0 = 100\), \(r = 6\%\), \(T = 1\) year. Only \(q\) changes.</p>
+<table class="ledger">
+<tr><th>Yield \(q\)</th><th>Net carry \(r - q\)</th><th>\(F_0\)</th><th>\(F_0\) vs spot</th></tr>
+<tr><td>0% (no income)</td><td>+6%</td><td>106.18</td><td>above</td></tr>
+<tr><td>3% (\(q &lt; r\))</td><td>+3%</td><td>103.05</td><td>above, less so</td></tr>
+<tr><td>6% (\(q = r\))</td><td>0</td><td>100.00</td><td>equal</td></tr>
+<tr><td>9% (\(q &gt; r\))</td><td>−3%</td><td>97.04</td><td>below</td></tr>
+</table>
+<p><strong>Rule of thumb:</strong> the sign of \(r - q\) tells you which side of spot the forward sits on, and the longer \(T\), the further away. When the income outweighs the interest, holding the asset pays you, so a later delivery is worth <em>less</em> than owning it now. (Tutorial 3 Q2 is a near-case of \(q \approx r\): its forward comes out almost equal to spot.)</p>
+
+<div class="widget" id="yw">
+  <label>Spot \(S_0\) <input type="range" id="ws" min="50" max="150" step="1" value="100"><output id="wso">100</output></label>
+  <label>Rate \(r\) (%) <input type="range" id="wr" min="0" max="12" step="0.25" value="6"><output id="wro">6.00</output></label>
+  <label>Yield \(q\) (%) <input type="range" id="wq" min="0" max="12" step="0.25" value="3"><output id="wqo">3.00</output></label>
+  <label>\(T\) (years) <input type="range" id="wt" min="0.25" max="3" step="0.25" value="1"><output id="wto">1.00</output></label>
+  <div class="result">\(F_0 = S_0e^{(r-q)T} =\) <strong id="wf">103.05</strong> <span class="tag" id="wtag">above spot</span></div>
+  <div id="wnote" style="color:var(--muted);margin-top:.3rem"></div>
+</div>
+<script>
+(function(){
+  const g = id => document.getElementById(id);
+  function upd(){
+    const S=+g('ws').value, r=+g('wr').value/100, q=+g('wq').value/100, T=+g('wt').value;
+    const F=S*Math.exp((r-q)*T);
+    g('wso').textContent=S; g('wro').textContent=(r*100).toFixed(2); g('wqo').textContent=(q*100).toFixed(2); g('wto').textContent=T.toFixed(2);
+    g('wf').textContent=F.toFixed(2);
+    const d=F-S;
+    g('wtag').textContent = Math.abs(d)<0.005 ? 'equal to spot' : (d>0 ? 'above spot' : 'below spot');
+    g('wnote').textContent = 'Net carry r − q = ' + ((r-q)*100).toFixed(2) + '% p.a.; F − S = ' + d.toFixed(2) + '. Try q > r, then stretch T.';
+  }
+  ['ws','wr','wq','wt'].forEach(id=>g(id).addEventListener('input',upd)); upd();
+})();
+</script>
+
+<h3>No income, cash income, yield: the same idea three times</h3>
+<table>
+<tr><th>Asset pays</th><th>Price stripped of income</th><th>Forward price</th></tr>
+<tr><td>Nothing</td><td>\(S_0\)</td><td>\(S_0e^{rT}\)</td></tr>
+<tr><td>Known cash amounts</td><td>\(S_0 - I\)</td><td>\((S_0 - I)e^{rT}\)</td></tr>
+<tr><td>Known yield \(q\)</td><td>\(S_0e^{-qT}\)</td><td>\(S_0e^{(r-q)T}\)</td></tr>
+</table>
+<p>Strip out the income the buyer won't get, then grow what's left at the risk-free rate. Lesson 8 does it once more: a foreign currency "yields" its foreign interest rate, so \(q\) becomes \(r_f\).</p>
+
+<h2>4 · Stock index futures</h2>
+
+<p>A <strong>stock index</strong> (e.g. the S&amp;P/ASX 200) is a weighted average of share prices, quoted in points. An index futures contract is cash-settled at a dollar <strong>multiplier</strong> per point: $25 for the ASX SPI 200 (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">slide 21</a>; <a href="https://www.asx.com.au/content/dam/asx/participants/derivatives-market/ird/asx24-contract-specifications.pdf">ASX contract specs</a>). Treat the index as an asset with dividend yield \(q\):</p>
+$$F_0 = S_0e^{(r-q)T}, \qquad \text{contract value} = F_0 \times \$25.$$
+<p>Lecture example (slide 22): index 3,529, \(r = 10\%\), \(q = 5\%\), 1 year: \(F_0 = 3{,}529e^{0.05} = 3{,}710\) points, so one contract covers \(3{,}710 \times 25 = \$92{,}750\) of stock. That dollar figure is the \(V_F\) in Lesson 5's beta-hedge formula \(N^* = (\beta - \beta^*)V_A/V_F\).</p>
+
+<div class="trap"><strong>Counting \(T\) in exam questions</strong><br>
+Finals say things like "futures expire on the last day of the month" and give today's date. Pick the first contract month that expires <em>after</em> your hedge ends, then count whole months from today to that expiry: today 31 July → December contract (31 Dec) is 5 months, \(T = 5/12 = 0.4167\). If told to round to 4 decimals at each step, round \(T\), the exponent, \(e^{(\cdot)}\) and \(F_0\) in turn.</div>
+
+<h2>5 · Index arbitrage, both directions</h2>
+<p><strong>Index arbitrage</strong> is trading the stocks in an index against the index futures when \(F_0\) strays from \(S_0e^{(r-q)T}\) (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">slide 23</a>). The rule never changes: <em>buy the cheap side, sell the dear side, and let the loan or deposit link them</em>.</p>
+
+<h3>Futures too cheap: Tutorial 3, Q3</h3>
+<p>Index 400, \(r = 10\%\), \(q = 4\%\), 4-month futures quoted at 405.</p>
+<details><summary>Predict first: fair price, then direction</summary><div>
+<p>\(F_0 = 400e^{(0.10 - 0.04)\times4/12} = 400e^{0.02} = 408.08\). The quote of 405 is <strong>too low</strong>: go <strong>long futures</strong> and <strong>short the stocks</strong> (reverse cash and carry).</p></div></details>
+<p>Per unit of the index (you short \(e^{-qT}\) units because the short position's dividends, which you must pay to the share lender, are covered by shorting a little more, so the short grows to exactly 1 unit by \(T\)):</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>t = 0</th><th>t = T</th></tr>
+<tr><td>Short \(e^{-0.04/3} = 0.9868\) units of the stocks</td><td>+394.70</td><td>owe 1 unit: −\(S_T\)</td></tr>
+<tr><td>Invest proceeds at 10% for 4 months</td><td>−394.70</td><td>+408.08</td></tr>
+<tr><td>Long futures at 405</td><td>0</td><td>\(S_T - 405\)</td></tr>
+<tr><td><strong>Net</strong></td><td>0</td><td class="pos"><strong>+3.08</strong></td></tr>
+</table>
+</div>
+<p>\(S_T\) cancels, so the profit \(408.08 - 405 = 3.08\) points per unit is riskless. On a $25-per-point contract that's \(3.0805\times25 = \$77.01\) per contract.</p>
+
+<h3>Futures too dear: buy the stocks, short the futures</h3>
+<p>Index 7,200, \(r = 4\%\), \(q = 3.5\%\), 3 months: \(F_0 = 7{,}200e^{0.005\times0.25} = 7{,}209.01\). Suppose the futures trade at 7,260.</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>t = 0</th><th>t = T</th></tr>
+<tr><td>Borrow at 4% for 3 months</td><td>+7,137.27</td><td>−7,209.01</td></tr>
+<tr><td>Buy \(e^{-0.035\times0.25} = 0.9913\) units, reinvest dividends</td><td>−7,137.27</td><td>own 1 unit: +\(S_T\)</td></tr>
+<tr><td>Short futures at 7,260</td><td>0</td><td>\(7{,}260 - S_T\)</td></tr>
+<tr><td><strong>Net</strong></td><td>0</td><td class="pos"><strong>+50.99</strong></td></tr>
+</table>
+</div>
+<p>50.99 points \(\times\$25 = \$1{,}274.86\) per contract. Notice the loan repayment equals the fair price: that's the formula falling out of the table.</p>
+
+<h3>Why this is done by program trading and ETFs</h3>
+<ul>
+  <li>The arbitrage needs every stock in the index bought or sold <em>at the same instant</em> as the futures, in the right weights. Firms use <strong>program trading</strong>: computers fire off all the orders at once when the gap exceeds costs (notes; Hull Ch. 5).</li>
+  <li>Many use a single <strong>exchange-traded fund (ETF)</strong> that tracks the index, or a representative subset of stocks, instead of 200 separate orders.</li>
+  <li>The "futures too cheap" direction is harder: <strong>shorting</strong> all the stocks means borrowing each one, paying fees, and facing short-sale rules. The easiest player is a fund that <em>already owns</em> the index: it sells its stocks and buys futures, keeping the same market exposure while earning the gap.</li>
+  <li>The dividend yield is an estimate, and costs are real, so small gaps aren't arbitrage in practice; the price can drift inside a no-arbitrage band.</li>
+</ul>
+
+<h2>6 · Practice</h2>
+<p>Numeric answers: type a number. Prices to 2 decimals unless the question says otherwise. Rates are continuously compounded unless stated.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> A stock will pay a known dividend before a forward on it matures. Compared with an otherwise identical stock that pays nothing, the forward price is lower because:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">the dividend lowers the risk-free interest rate that the buyer earns</button>
+    <button class="opt" data-key="b">the buyer receives the dividend and so overpays for the stock</button>
+    <button class="opt" data-key="c">the seller holds the stock until delivery and keeps the dividend</button>
+    <button class="opt" data-key="d">the clearing house deducts the dividend from the buyer's margin account</button>
+  </div>
+  <div class="why">The holder until \(T\) is the seller, so the seller collects the income and the buyer misses it. Both are therefore happy with a lower \(F_0\). (b) has it backwards: the forward buyer gets no dividend.</div>
+</div>
+
+<div class="quiz num" data-answer="44.52" data-tol="0.01">
+  <p class="q"><strong>2.</strong> A share trades at $45 and will pay dividends of $0.80 in 1 month and in 4 months. \(r = 5\%\) for all maturities. What is the 6-month forward price?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(I = 0.80e^{-0.05/12} + 0.80e^{-0.05\times4/12} = 0.7967 + 0.7868 = 1.5835\). \(F_0 = (45 - 1.5835)e^{0.05\times0.5} = 43.4165\times1.0253 = \$44.52\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> Predict first. A company announces that a dividend expected in 2 months will instead be paid in 9 months. What happens to the price of a 6-month forward on its shares (spot unchanged)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It rises to \(S_0e^{rT}\), since the dividend is now paid after maturity</button>
+    <button class="opt" data-key="b">It falls, since the dividend is now discounted over a longer period</button>
+    <button class="opt" data-key="c">It is unchanged, since the dividend amount itself has stayed the same</button>
+    <button class="opt" data-key="d">It falls to \(S_0-I\), since the buyer now has to wait longer</button>
+  </div>
+  <div class="why">Only income paid before \(T\) enters \(I\). A dividend at 9 months goes to whoever owns the share then, which is the forward buyer, so the seller no longer gets it and \(I = 0\). (b) is the tempting one: more discounting would shrink \(I\), but here \(I\) drops out entirely.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>4.</strong> A $2 dividend expected at 5 months is brought forward to 1 month. The forward matures at 6 months and rates are positive. The forward price:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">rises a lot, because the seller keeps the dividend for longer</button>
+    <button class="opt" data-key="b">rises slightly, because the dividend is now discounted for less time</button>
+    <button class="opt" data-key="c">does not move, because the dividend still arrives before the maturity</button>
+    <button class="opt" data-key="d">falls slightly, because the present value of the dividend is larger</button>
+  </div>
+  <div class="why">Less discounting makes \(I\) a bit larger, and a larger \(I\) means a lower \((S_0 - I)e^{rT}\). Small effect, but not zero, so (c) is wrong. (b) gets the PV right but the direction of \(F_0\) wrong.</div>
+</div>
+
+<div class="quiz num" data-answer="2.9888" data-tol="0.001">
+  <p class="q"><strong>5.</strong> An asset yields 3% per annum with quarterly compounding. What is the equivalent continuously compounded yield \(q\), in % to 4 decimals?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(q = 4\ln(1 + 0.03/4) = 4\ln(1.0075) = 0.029888\), i.e. <strong>2.9888%</strong>. A continuous rate is always a little below the discretely compounded one.</div>
+</div>
+
+<div class="quiz num" data-answer="6902.77" data-tol="0.05">
+  <p class="q"><strong>6.</strong> An index stands at 6,800. \(r = 4.5\%\) and the dividend yield \(q = 2.5\%\), both per annum continuously compounded. What is the no-arbitrage price of a 9-month futures contract, in index points?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">points</span></div>
+  <div class="why">\(F_0 = 6{,}800e^{(0.045 - 0.025)\times0.75} = 6{,}800e^{0.015} = 6{,}902.77\).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>7.</strong> For a share index, the dividend yield is higher than the risk-free rate. Which statement is true?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Futures prices sit above spot and rise with longer maturities</button>
+    <button class="opt" data-key="b">Futures prices sit below spot and fall with longer maturities</button>
+    <button class="opt" data-key="c">Futures prices equal spot because all index income gets reinvested</button>
+    <button class="opt" data-key="d">Futures prices sit below spot but rise with longer maturities</button>
+  </div>
+  <div class="why">\(r - q &lt; 0\), so \(F_0 = S_0e^{(r-q)T} &lt; S_0\) and it falls further as \(T\) grows. Holding the index pays more than it costs to finance, so later delivery is worth less.</div>
+</div>
+
+<div class="quiz" data-answer="e">
+  <p class="q"><strong>8.</strong> An index stands at 5,120. \(r = 3\%\), \(q = 5\%\) (both continuously compounded). A 6-month futures contract trades at 5,105 points. Ignoring costs, which is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Long futures, short the stocks, profit about 15 points</button>
+    <button class="opt" data-key="b">Short futures, buy the stocks, profit about 15 points</button>
+    <button class="opt" data-key="c">No arbitrage, since the futures sits below the spot</button>
+    <button class="opt" data-key="d">Long futures, short the stocks, profit about 36 points</button>
+    <button class="opt" data-key="e">Short futures, buy the stocks, profit about 36 points</button>
+  </div>
+  <div class="why">Fair price \(= 5{,}120e^{(0.03-0.05)\times0.5} = 5{,}120e^{-0.01} = 5{,}069.06\). The quote 5,105 is <em>above</em> fair, so it's too dear: short futures, buy the stocks with borrowed money. Profit \(5{,}105 - 5{,}069.06 = 35.94\) points. Distractors (a)/(b) use \(S_0 - F\) = 15; (c) wrongly treats "below spot" as "fair" — with \(q &gt; r\) the futures <em>should</em> be below spot, just not by this little.</div>
+</div>
+
+<div class="quiz num" data-answer="898.62" data-tol="1">
+  <p class="q"><strong>9.</strong> In Q8, the contract is worth $25 per point. What is the arbitrage profit per contract?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(35.9449\times25 = \$898.62\). (Rounding the fair price to 5,069.06 first gives $898.50; either is fine.)</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>10.</strong> Why is index arbitrage usually carried out by program trading or with an ETF?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">All the index stocks must be traded at once alongside the futures</button>
+    <button class="opt" data-key="b">Index futures can only be bought by computers on the exchange floor</button>
+    <button class="opt" data-key="c">ETFs pay a much higher dividend yield than the stocks they hold</button>
+    <button class="opt" data-key="d">Program trades are exempt from all the margin rules on futures contracts</button>
+  </div>
+  <div class="why">The profit is only locked in if the whole basket and the futures trade at the same prices you used in the calculation. Firing hundreds of orders by hand would let prices move first. An ETF does the basket in one trade.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>11.</strong> Index futures are trading well below \(S_0e^{(r-q)T}\). Who can exploit this most easily?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A speculator with no shares who expects the index to fall soon</button>
+    <button class="opt" data-key="b">A trader who would have to borrow every index stock to short</button>
+    <button class="opt" data-key="c">A fund that already holds the index, selling stocks and buying futures</button>
+    <button class="opt" data-key="d">A miner who plans to hedge its future output by selling futures</button>
+  </div>
+  <div class="why">The cheap-futures arbitrage needs you to sell the stocks. A fund that owns them can just sell, buy futures and invest the cash: same exposure at \(T\), plus the gap. Someone without the shares (b) faces borrowing fees and short-sale rules. (a) and (d) aren't arbitrage trades.</div>
+</div>
+
+<div class="quiz num" data-answer="972.55" data-tol="0.02">
+  <p class="q"><strong>12.</strong> A bond is priced at $980 and pays $25 coupons in 3 months and in 9 months. A 6-month forward on the bond is being priced. The 3-month rate is 3.2% and the 6-month rate is 3.6%. What is the forward price?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Only the 3-month coupon is before \(T\): \(I = 25e^{-0.032\times0.25} = 24.8008\). \(F_0 = (980 - 24.8008)e^{0.036\times0.5} = 955.1992\times1.0182 = \$972.55\). Including the 9-month coupon is the trap.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>13.</strong> Which single change, all else equal, <em>raises</em> the no-arbitrage price of a 6-month index futures contract?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The expected dividend yield on the index stocks goes up</button>
+    <button class="opt" data-key="b">A large index stock brings its next dividend payment forward</button>
+    <button class="opt" data-key="c">Several of the large index stocks announce special one-off dividends</button>
+    <button class="opt" data-key="d">The central bank lifts the short-term risk-free rate of interest</button>
+  </div>
+  <div class="why">Higher \(r\) raises the financing cost, so carry and \(F_0\) rise. (a), (b) and (c) all increase the income the holder collects before \(T\), which lowers \(F_0\).</div>
+</div>
+
+<div class="quiz num" data-answer="0.16" data-tol="0.01">
+  <p class="q"><strong>14.</strong> A share trades at $38 and pays a $0.50 dividend in 2 months. \(r = 6\%\) for all maturities. A 4-month forward is quoted at $38.10. Set up the arbitrage (short the share, set aside enough to pay the dividend you'll owe the lender, invest the rest, go long the forward). What is the riskless profit per share at 4 months?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Fair \(F_0\): \(I = 0.50e^{-0.06\times2/12} = 0.4950\); \(F_0 = (38 - 0.4950)e^{0.06\times4/12} = 37.5050\times1.0202 = 38.26\). Quote 38.10 is too low. Short the share: +38.00. Put 0.4950 aside for 2 months (grows to the 0.50 you owe the lender), invest 37.5050 for 4 months → 38.2626. At 4 months buy the share at 38.10 via the forward and return it. Profit \(38.2626 - 38.10 = \$0.16\).</div>
+</div>
+
+<h2>7 · Exam-level challenge</h2>
+<p>Write it all out on paper, rounding to 4 decimals at each step, then open the steps one at a time.</p>
+<div class="box">
+<p>Today is 31 July. A super fund holds an Australian equity portfolio worth $12,600,000 with a beta of 1.15. Its board wants the beta cut to 0.40 until 30 November, using SPI 200 futures ($25 per point, cash-settled, contract months March, June, September and December, expiring on the last day of the month). The S&amp;P/ASX 200 is at 8,450. The risk-free rate is 3.60% p.a. and the index dividend yield is 4.20% p.a., both continuously compounded.</p>
+<p>(a) Which contract should the fund use, and what is \(T\)?<br>
+(b) What futures price should it expect to trade at if the market has no arbitrage? Is it above or below spot, and why?<br>
+(c) What position, and how many contracts, does the fund need? (Round to the nearest whole contract.)<br>
+(d) The December contract is actually quoted at 8,465. Show the arbitrage with cash flows at \(t = 0\) and \(T\), and the profit per contract.<br>
+(e) If instead the quote were 8,400, what would the arbitrage be, and why would it be harder to carry out in practice?</p>
+</div>
+
+<details><summary>Step 1: part (a), the contract and \(T\)</summary><div>
+<p>The hedge must last until 30 November. September expires too early (30 Sep); December (31 Dec) is the first that covers it. From 31 July to 31 December is 5 months: \(T = 5/12 = 0.4167\). (A contract that expires soon after the hedge ends keeps basis risk small: Lesson 3.)</p></div></details>
+<details><summary>Step 2: part (b), the fair futures price</summary><div>
+<p>\((r - q)T = (0.0360 - 0.0420)\times0.4167 = -0.0025\). \(e^{-0.0025} = 0.9975\). \(F_0 = 8{,}450\times0.9975 = \mathbf{8{,}428.8750}\).<br>
+Below spot, because \(q &gt; r\): holding the index pays more in dividends than it costs to finance, so carry is negative. (Unrounded: 8,428.90. The 4-decimal rounding of \(e^{-0.0025}\) explains the gap; follow the instruction you're given.)</p></div></details>
+<details><summary>Step 3: part (c), the contract count (Lesson 5)</summary><div>
+<p>Cutting beta → <strong>short</strong> futures. \(V_F = 8{,}428.8750\times25 = 210{,}721.8750\).<br>
+\(N^* = (\beta - \beta^*)\dfrac{V_A}{V_F} = (1.15 - 0.40)\times\dfrac{12{,}600{,}000}{210{,}721.8750} = 0.75\times59.7944 = 44.8458\) → <strong>short 45 December contracts</strong>.</p></div></details>
+<details><summary>Step 4: part (d), predict the direction, then the table</summary><div>
+<p>8,465 &gt; 8,428.8750: futures too dear → <strong>buy the stocks (or an ETF) with borrowed money, short futures</strong>. Per index unit:</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>t = 0</th><th>t = T</th></tr>
+<tr><td>Borrow \(8{,}450e^{-0.042\times0.4167}\) at 3.6%</td><td>+8,303.41</td><td>−8,428.88</td></tr>
+<tr><td>Buy \(e^{-qT} = 0.9827\) units, reinvest dividends</td><td>−8,303.41</td><td>+\(S_T\)</td></tr>
+<tr><td>Short futures at 8,465</td><td>0</td><td>\(8{,}465 - S_T\)</td></tr>
+<tr><td><strong>Net</strong></td><td>0</td><td class="pos"><strong>+36.12</strong></td></tr>
+</table>
+</div>
+<p>The loan repayment is \(S_0e^{-qT}e^{rT} = S_0e^{(r-q)T}\), the fair price. Profit \(8{,}465 - 8{,}428.8750 = 36.1250\) points \(\times\$25 = \mathbf{\$903.13}\) per contract. (Rounding \(e^{-qT}\) and \(e^{rT}\) separately at 4 decimals gives about 35.80 points; examiners accept consistent rounding, but combining exponents first is cleaner.)</p></div></details>
+<details><summary>Step 5: part (e), the other direction</summary><div>
+<p>8,400 &lt; 8,428.8750: futures too cheap → <strong>long futures, short the stocks, invest the proceeds</strong> at 3.6%. Profit \(28.8750\) points \(= \$721.88\) per contract. Harder in practice: shorting 200 stocks means borrowing each one, paying lending fees and the dividends to the lenders, and facing short-sale rules, all simultaneously. A holder of the index (like this super fund) can do it most cheaply by selling some stocks and buying futures instead.</p></div></details>
+
+<h2>8 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, write the three forward-price formulas, say what's stripped out in each, and give the direction for each arbitrage. Then check</summary><div>
+<p>No income \(S_0e^{rT}\); cash income \((S_0 - I)e^{rT}\) with \(I\) the PV of income paid before \(T\), each at its own rate; yield \(S_0e^{(r-q)T}\). Strip out the income the buyer misses, grow the rest at \(r\). \(F\) above fair → buy the asset with a loan, short futures. \(F\) below fair → short the asset, invest, long futures. \(F_0\) vs spot depends on the sign of \(r - q\).</p></div></details>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, Ch. 5 (sections on known income, known yield and stock index futures, including index arbitrage), the reading for <a href="../lectures/Lecture%203_Futures%20Pricing.pdf">Lecture 3, slides 15–23</a>.</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%203.pdf">Tutorial 3</a>, Q2(a) and Q3 (<a href="../tutes/Tutorial%203%20solutions.pdf">solutions</a>). For Q3, write the full cash-flow table at \(t = 0\) and \(T\), not just the direction. Q2(b) waits for Lesson 10 (valuing an existing forward).</p>
+<p><strong>Spacing:</strong> tomorrow, redo Q8, Q12 and challenge steps 2–3 without looking, plus Lesson 6's cash-and-carry table and Lesson 5's beta-hedge question.</p>
+
+<div class="ask">💬 Stuck on which rate discounts which payment, or which way an arbitrage goes? Paste your table into the terminal and ask me. I'm your teacher for this, and I'll point to the exact row that's off.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0006-cost-of-carry-and-arbitrage.html">Lesson 6, cost of carry and arbitrage</a></span>
+  <span>Reference: <a href="../reference/futures-cheatsheet.html">Futures cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0008-currency-forwards.html">Lesson 8, currency forwards</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

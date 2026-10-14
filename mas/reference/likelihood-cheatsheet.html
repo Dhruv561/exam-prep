@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Likelihood Cheat Sheet</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body class="ref">
+<main>
+<div class="kicker">MAST30027 · Reference</div>
+<h1>Likelihood, MLE and Fisher information</h1>
+<p class="lede">The short version of each lesson. New sections get added as you finish each lesson. Good raw material for your handwritten A4 sheet.</p>
+
+<h2>The four-step recipe <span class="kicker">· <a href="../lessons/0001-mle-fisher-information.html">Lesson 1</a></span></h2>
+<div class="box">
+$$\ell(\theta)=\sum_i\log f(x_i;\theta),\qquad \ell'(\hat\theta)=0,\qquad J(\theta)=-\ell''(\theta),\qquad \mathcal I(\theta)=\mathbb E\,J(\theta;X),\qquad \hat\theta\overset{d}{\approx}N\!\big(\theta,\mathcal I(\theta)^{-1}\big)$$
+</div>
+<ol class="steps">
+  <li>Log-likelihood: drop θ-free terms into \(c\) and collect data sums</li>
+  <li>MLE: solve the score equation, then check \(\ell''(\hat\theta)&lt;0\)</li>
+  <li>Information: if \(\ell''\) has data in it, replace sums by expectations (\(\sum X_i\to n\mathbb E X\)). If not, say "\(J=\mathcal I\)"</li>
+  <li>State \(\hat\theta\approx N(\theta, 1/\mathcal I(\theta))\). Wald CI: \(\hat\theta\pm z\sqrt{1/\mathcal I(\hat\theta)}\), with \(z_{0.975}=1.96\)</li>
+</ol>
+<div class="trap"><strong>Traps</strong><br>The course's \(\mathcal I\) is whole-sample (it contains \(n\)), so don't divide by \(n\) again · work in the parameter the question names (precision, 1/rate, …) · the MLE transforms by invariance but the information doesn't</div>
+
+<h2>Information for standard models <span class="kicker">· <a href="../lessons/0001-mle-fisher-information.html">Lesson 1</a></span></h2>
+<table>
+<tr><th>Model (n iid)</th><th>MLE</th><th>\(\mathcal I\)</th></tr>
+<tr><td>Bernoulli(\(p\))</td><td>\(\bar x\)</td><td>\(n/(p(1-p))\)</td></tr>
+<tr><td>\(Y_i\sim\)Bin(\(m_i,p\))</td><td>\(\sum y_i/\sum m_i\)</td><td>\(\sum m_i/(p(1-p))\)</td></tr>
+<tr><td>Same, logit \(\eta\)</td><td>\(\log\frac{\hat p}{1-\hat p}\)</td><td>\(\sum m_i\,p(1-p)\)</td></tr>
+<tr><td>Geometric \(p(1-p)^x\)</td><td>\(1/(1+\bar x)\)</td><td>\(n/(p^2(1-p))\)</td></tr>
+<tr><td>\(N(\mu,\sigma^2)\), \(\sigma^2\) known</td><td>\(\bar x\)</td><td>\(n/\sigma^2\)</td></tr>
+<tr><td>\(\theta x^{\theta-1}\) on (0,1)</td><td>\(-n/\sum\log x_i\)</td><td>\(n/\theta^2\)</td></tr>
+</table>
+
+<h2>CIs for a probability <span class="kicker">· <a href="../lessons/0001-mle-fisher-information.html">Lesson 1</a></span></h2>
+<p>Build the CI on the logit scale \(\eta\), then map both ends through \(p=e^\eta/(1+e^\eta)\). The result stays inside \([0,1]\) and isn't symmetric (<a href="../lectures/BinReg_1_LMS.pdf">BinReg I, slide 40</a>).</p>
+<h2>Binomial regression (logit) <span class="kicker">· <a href="../lessons/0002-binomial-regression.html">Lesson 2</a></span></h2>
+<p>\(Y_i\sim\text{Bin}(m_i,p_i)\), \(\text{logit}(p_i)=\eta_i=x_i^T\beta\).
+\(\ell(\beta)=c+\sum_i[y_i\eta_i-m_i\log(1+e^{\eta_i})]\). Score \(\sum_i(y_i-m_ip_i)x_i\).
+\(\mathcal I(\beta)=\mathcal J(\beta)=X^TWX\), \(W=\text{diag}(m_ip_i(1-p_i))\) (no \(y\) in the Hessian).</p>
+<p><strong>CI for p at \(x_0\):</strong> \(\hat\eta_0=x_0^T\hat\beta\); \(\text{se}=\sqrt{x_0^TVx_0}\) (one predictor: \(V_{00}+2x_0V_{01}+x_0^2V_{11}\)); CI \(=g^{-1}(\hat\eta_0\pm1.96\,\text{se})\). Never \(\hat p\pm1.96\,\text{se}(\hat p)\).</p>
+<p><strong>Odds ratio for \(\Delta x_j\):</strong> \(e^{\hat\beta_j\Delta}\), CI \(\exp(\Delta(\hat\beta_j\pm1.96\,\text{se}_j))\); % change \(=(OR-1)\times100\%\).</p>
+<p><strong>Inverse links:</strong> logit \(1/(1+e^{-\eta})\) · probit \(\Phi(\eta)\) · cloglog \(1-\exp(-e^\eta)\). Logit: \(p=\tfrac12\) at \(x=-\beta_0/\beta_1\), slope there \(\beta_1/4\).</p>
+<h2>Deviance, LRT, AIC <span class="kicker">· <a href="../lessons/0003-deviance-lrt-aic.html">Lesson 3</a></span></h2>
+<table>
+<tr><th>Quantity</th><th>Formula / rule</th></tr>
+<tr><td>Deviance</td><td>\(D=2(\ell_{\text{sat}}-\ell)\); binomial: \(2\sum[y_i\log\frac{y_i}{\hat\mu_i}+(m_i-y_i)\log\frac{m_i-y_i}{m_i-\hat\mu_i}]\), \(0\log0=0\)</td></tr>
+<tr><td>Counts from df</td><td>\(n=\text{null df}+1\), \(p=n-\text{residual df}\) (factor with \(k\) levels = \(k-1\) params)</td></tr>
+<tr><td>Goodness of fit</td><td>\(D\) vs \(\chi^2_{n-p}(0.95)\); needs \(m_ip_i,m_i(1-p_i)\ge5\); invalid for 0/1 data</td></tr>
+<tr><td>LRT (nested A ⊂ B)</td><td>\(D_A-D_B\sim\chi^2_{\text{df}_A-\text{df}_B}\); test a factor as one block</td></tr>
+<tr><td>AIC</td><td>\(2p-2\ell\); \(\text{AIC}_B-\text{AIC}_A=2s+D_B-D_A\)</td></tr>
+<tr><td>Recover log-likelihoods</td><td>\(\ell=p-\text{AIC}/2\); \(\ell_{\text{sat}}=\ell+D/2\) (same for every model on the data)</td></tr>
+<tr><td>5% χ² points</td><td>df 1: 3.84 · 2: 5.99 · 3: 7.81 · 4: 9.49</td></tr>
+<tr><td>Dispersion check</td><td>\(\hat\phi=X^2/(n-p)\); \(\gg1\) ⇒ overdispersion</td></tr>
+</table>
+</main>
+</body>
+</html>

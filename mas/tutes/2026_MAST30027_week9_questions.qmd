@@ -1,0 +1,74 @@
+---
+title: "MAST30027: Simulation and Rejection Sampling"
+subtitle: "Week 9 - Solutions"
+date: ""
+
+format:
+  html:
+    self-contained: true
+    css: CSSBackground.css
+    html-math-method: mathml
+resources:
+  - ../images/Banner.png
+---
+
+**Objectives of the Tutorial/Lab**
+By the end of this tutorial, you should be able to:
+
+- Simulate marginal distributions under a Bayesian framework.
+- Simulate random variables using rejection sampling algorithm.
+- Verify that the simulated samples are consistent with the theoretical distribution.
+
+## Question 1
+
+Suppose that $X \sim \text{Bin}(n, \theta)$ and $\theta \sim \text{Beta}(a,b)$.
+That is, $X|\theta$ has the pmf
+
+$$
+p_{X|\theta}(x) = {n \choose x} \theta^x (1-\theta)^{n-x}
+$$
+
+and $\theta$ has pdf
+
+$$
+f_\theta(x) = \beta(a,b)^{-1} x^{a-1}(1-x)^{b-1}.
+$$
+
+The marginal distribution of $X$ is given by
+
+$$
+p_X(x) = \int_0^1 p_{X|\theta}(x) f_\theta(\theta) d\theta.
+$$
+
+$X$ is said to have a beta-binomial distribution. It is possible, but not easy, to work out $p_X$ for a beta-binomial. However, it is easy to estimate it using simulation.
+
+Generate a sample of size 1000,000 from a beta-binomial with $n = 10$, $a = 2$ and $b = 3$. Use it to estimate the pmf of $X$.
+
+```{r}
+
+```
+
+## Question 2
+
+Suppose that Z follows a truncated exponential distribution, which has the pdf
+$p(z)=\frac{e^{-z}}{1-e^{-1}}$, $0<z<1$.
+Its theoretical mean and variance are known to be $E(Z) = 0.418$ and  $\text{Var}(Z) = 0.079$.
+
+:::: {.subquestions}
+::: {.subquestion}
+Construct an rejection sampling algorithm to generate a sample of observations from the truncated
+exponential distribution.
+
+```{r}
+
+```
+:::
+
+::: {.subquestion}
+Write an R program to implement the algorithm in (a) and use it to generate a sample of $10000$ observations. Plot a histogram  of the sample. Calculate the sample mean and variance, and compare them with the theoretical mean and variance.
+
+```{r}
+
+```
+:::
+::::

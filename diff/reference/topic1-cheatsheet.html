@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topic 1 Cheat Sheet</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body class="ref">
+<main>
+<div class="kicker">MAST20030 · Reference</div>
+<h1>Topic 1: Linear ODEs &amp; IVPs</h1>
+<p class="lede">The short version of each lesson. New sections get added as you finish each lesson. To decide <em>which</em> method to use, see the <a href="ode-method-map.html">ODE decision map</a>. For what the exams actually ask, see <a href="topic1-exam-frequency.html">Topic 1 exam frequency</a>.</p>
+
+<h2>Classifying an ODE <span class="kicker">· <a href="../lessons/0001-integrating-factors.html">Lesson 1</a></span></h2>
+<table>
+<tr><th>Property</th><th>Test</th></tr>
+<tr><td>Linear</td><td>Can be written as $\sum f_k(t)\,y^{(k)} = g(t)$: $y$ and its derivatives appear on their own, to the first power, with coefficients in $t$ only</td></tr>
+<tr><td>Order</td><td>Highest derivative present</td></tr>
+<tr><td>Homogeneous</td><td>$g(t) = 0$ after moving <em>all</em> $y$-terms to the left</td></tr>
+<tr><td>IVP</td><td>$n$ conditions $y(t_0),\dots,y^{(n-1)}(t_0)$, all at the <em>same</em> $t_0$. Different points means a BVP</td></tr>
+</table>
+
+<h2>Integrating factor <span class="kicker">· <a href="../lessons/0001-integrating-factors.html">Lesson 1</a></span></h2>
+<div class="box">
+$$y' + f(t)\,y = g(t) \quad\Longrightarrow\quad I = e^{\int f\,dt},\qquad (I y)' = I g,\qquad y = \frac{1}{I}\left(\int I g\,dt + C\right)$$
+</div>
+<ol class="steps">
+  <li>Divide so that the coefficient of $y'$ is 1</li>
+  <li>$I = e^{\int f}$ (no constant needed)</li>
+  <li>$(Iy)' = Ig$</li>
+  <li>Integrate, <strong>add $C$ before dividing by $I$</strong>, apply the IC, check by substituting</li>
+</ol>
+<table>
+<tr><th>Useful $\int f$</th><th>$I$</th></tr>
+<tr><td>$f = a/t$</td><td>$t^{a}$ (for $t&gt;0$)</td></tr>
+<tr><td>$f = \tan t$</td><td>$\sec t$</td></tr>
+<tr><td>$f = \dfrac{kt}{t^2+1}$</td><td>$(t^2+1)^{k/2}$</td></tr>
+<tr><td>$f = 2t$</td><td>$e^{t^2}$</td></tr>
+</table>
+<h2>Interval of validity <span class="kicker">· <a href="../lessons/0001-integrating-factors.html">Lesson 1</a></span></h2>
+<ol class="steps">
+  <li>Standard form: divide by the leading coefficient ($y'$ or $y''$)</li>
+  <li>Bad points: zeros of what you divided by, denominators in $g$, $\ln(\le 0)$, $\sqrt{&lt;0}$, $\tan$ asymptotes</li>
+  <li>Answer: the largest open interval between bad points that contains $t_0$. If $t_0$ is a bad point, there's no guarantee</li>
+</ol>
+<p><strong>By parts</strong> (needed all the time): $\int t e^{t}\,dt = (t-1)e^t$, &nbsp; $\int t^2 e^t\,dt = (t^2-2t+2)e^t$.</p>
+
+<h2>General solution structure <span class="kicker">· <a href="../lessons/0002-reduction-of-order.html">Lesson 2</a></span></h2>
+<p>$y = y_c + y_p$. Complementary solutions ($Ty_c=0$) form an $n$-dimensional space for an $n$th-order ODE: $y_c = C_1y_1 + C_2y_2$ with $y_1,y_2$ <strong>linearly independent</strong>. Any one particular solution ($Ty_p = g$) will do: two choices differ by a $y_c$.</p>
+
+<h2>Reduction of order <span class="kicker">· <a href="../lessons/0002-reduction-of-order.html">Lesson 2</a></span></h2>
+<div class="box">
+$$y = uv,\quad w = u':\qquad w' + \Big(\frac{2v'}{v} + f_1\Big)w = \frac{g}{v},\qquad I = v^2e^{\int f_1},\qquad (Iw)' = \frac{Ig}{v}$$
+</div>
+<ol class="steps">
+  <li>Standard form: divide by the $y''$ coefficient to get $f_1$, $g$</li>
+  <li>$I = v^2 e^{\int f_1}$, then $Iw = \int \frac{Ig}{v}\,dt + C_1$</li>
+  <li>$u = \int w\,dt + C_2$, then $y = uv$. <strong>Keep both constants; multiply by $v$</strong></li>
+  <li>Read off $y_c$ and $y_p$, apply ICs, check $y_c$ by substituting</li>
+</ol>
+<table>
+<tr><th>Finding $v$ for $Py''+Qy'+Ry=0$</th><th>Test</th></tr>
+<tr><td>$e^{t}$</td><td>$P+Q+R=0$</td></tr>
+<tr><td>$e^{-t}$</td><td>$P-Q+R=0$</td></tr>
+<tr><td>$e^{at}$</td><td>$a^2P+aQ+R=0$ for all $t$: each power of $t$ vanishes</td></tr>
+<tr><td>$t$</td><td>$Q+tR=0$</td></tr>
+<tr><td>$t^n$</td><td>Euler form: $t^2y'',\ ty',\ y$</td></tr>
+</table>
+<p><strong>Integration tricks:</strong> $\int t^2e^{-t}dt = -(t^2+2t+2)e^{-t}$, &nbsp; $\int (t+1)e^{-t}dt = -(t+2)e^{-t}$, &nbsp; $\dfrac{(t-1)e^t}{t^2} = \Big(\dfrac{e^t}{t}\Big)'$: try the quotient or product rule backwards first.</p>
+
+<h2>Wronskian &amp; Abel <span class="kicker">· <a href="../lessons/0003-wronskian-abel-euler.html">Lesson 3</a></span></h2>
+<div class="box">
+$$\operatorname{wr}[y_1,y_2] = y_1y_2' - y_1'y_2, \qquad \operatorname{wr}(t) = \operatorname{wr}(t_0)\,e^{-\int_{t_0}^t f_1} \;\;(\text{standard form; } n\text{th order: use } f_{n-1})$$
+</div>
+<ul>
+  <li>$\operatorname{wr}\ne0$ at some $t$ ⇒ independent. For two <em>solutions</em>, wr is either never 0 or always 0. (Not for arbitrary functions: $t^2$, $t|t|$.)</li>
+  <li>Second solution: $(y_2/y_1)' = \operatorname{wr}/y_1^2$. &nbsp; Property proofs: evaluate wr at a clever $t_0$ (shared zero or shared max ⇒ dependent).</li>
+</ul>
+
+<h2>Euler equations <span class="kicker">· <a href="../lessons/0003-wronskian-abel-euler.html">Lesson 3</a></span></h2>
+<p>$at^2y'' + bty' + cy = 0$: trial $t^n$, so $an(n-1) + bn + c = 0$.</p>
+<table>
+<tr><th>Roots</th><th>Solutions</th><th>Constant-coeff. analogue ($e^{\lambda t}$)</th></tr>
+<tr><td>$n_1\ne n_2$ real</td><td>$t^{n_1},\ t^{n_2}$</td><td>$e^{\lambda_1t},\ e^{\lambda_2t}$</td></tr>
+<tr><td>$n$ repeated</td><td>$t^n,\ t^n\ln t$</td><td>$e^{\lambda t},\ te^{\lambda t}$ ($k$-fold: up to $t^{k-1}e^{\lambda t}$)</td></tr>
+<tr><td>$\alpha\pm i\beta$</td><td>$t^\alpha\cos(\beta\ln t),\ t^\alpha\sin(\beta\ln t)$</td><td>$e^{\alpha t}\cos\beta t,\ e^{\alpha t}\sin\beta t$</td></tr>
+</table>
+
+<h2>Particular solutions <span class="kicker">· <a href="../lessons/0007-particular-solutions.html">Lesson 7</a></span></h2>
+<ul>
+  <li><strong>Decide:</strong> told "reduction of order", or variable coefficients → machine. Constant-coeff. or Euler with $e^{kt}$ / polynomial / trig / $t^k$ forcing → shortcut. System → diagonalise.</li>
+  <li><strong>Machine:</strong> $y = uv$ always. $g$ <em>after</em> dividing. Pick $v$ matching the forcing. The constant-free part of $uv$ is $y_p$.</li>
+  <li><strong>Shortcut:</strong> $e^{kt}\to Ae^{kt}$, degree-$m$ poly $\to$ full degree-$m$ poly, $\cos\omega t$ or $\sin\omega t \to A\cos\omega t + B\sin\omega t$. Euler: $t^k\to At^k$.</li>
+  <li><strong>Resonance:</strong> exponent is an $s$-fold root → multiply by $t^s$ (Euler: $(\ln t)^s$). If your guess substitutes to $0$, that's the sign.</li>
+</ul>
+
+<h2>Systems &amp; eigenvalues <span class="kicker">· <a href="../lessons/0004-systems-eigenvalues.html">Lesson 4</a></span></h2>
+<ul>
+  <li>$y'' + by' + cy = g \;\leftrightarrow\; \mathbf y' = \begin{pmatrix}0&amp;1\\-c&amp;-b\end{pmatrix}\mathbf y + \begin{pmatrix}0\\g\end{pmatrix}$, &nbsp; $\mathbf y = (y, y')$. Bottom row = negated coefficients.</li>
+  <li>Back to one ODE: $x'' - (\operatorname{tr}A)x' + (\det A)x = 0$. Eigenvalues: $\lambda^2 - (\operatorname{tr}A)\lambda + \det A = 0$.</li>
+  <li>$\mathbf y = C_1\mathbf v_1e^{\lambda_1t} + C_2\mathbf v_2e^{\lambda_2t}$. 2×2 eigenvector: row $(p, q)$ of $A-\lambda I$ ⇒ $\mathbf v = (q, -p)$.</li>
+  <li>Complex $\alpha\pm i\beta$: take one $\lambda$, expand $\mathbf v e^{\alpha t}(\cos\beta t + i\sin\beta t)$, keep Re and Im parts.</li>
+  <li>wr of vector solutions $= \det(\mathbf y_1\ \mathbf y_2)$. ICs: solve $C_1\mathbf v_1 + C_2\mathbf v_2 = \mathbf y_0$.</li>
+</ul>
+
+<h2>Phase portraits <span class="kicker">· <a href="../lessons/0005-phase-portraits.html">Lesson 5</a></span></h2>
+<table>
+<tr><th>Condition</th><th>Type</th><th>Stability</th></tr>
+<tr><td>$\det&lt;0$</td><td>Saddle</td><td>Unstable</td></tr>
+<tr><td>$\det&gt;0$, $\operatorname{tr}^2 &gt; 4\det$</td><td>Node</td><td>tr&lt;0 asympt. stable; tr&gt;0 unstable</td></tr>
+<tr><td>$\det&gt;0$, $\operatorname{tr}^2 &lt; 4\det$, tr≠0</td><td>Spiral</td><td>tr&lt;0 asympt. stable; tr&gt;0 unstable</td></tr>
+<tr><td>$\det&gt;0$, tr $=0$</td><td>Centre</td><td>Stable, not asymptotically</td></tr>
+<tr><td>$\operatorname{tr}^2 = 4\det$</td><td>Degenerate node</td><td>By sign of $\lambda$</td></tr>
+</table>
+<ol class="steps">
+  <li>Eigen-lines with arrows (in if $\lambda&lt;0$). These are the orbits with $y/x$ constant</li>
+  <li>Asymptotics: node enters tangent to the <strong>slow</strong> eigenvector and runs parallel to the fast one as $t\to-\infty$; saddle leaves along $\lambda&gt;0$</li>
+  <li>Vertical tangents ($x$ max/min): $ax + by = 0$. Horizontal ($y$ max/min): $cx + dy = 0$</li>
+  <li>Axis slopes: $x$-axis $c/a$, $y$-axis $d/b$. Spiral direction: $c&gt;0$ anticlockwise</li>
+  <li>≥4 orbits with arrows. Orbit → origin (saddle): IC on the $\lambda&lt;0$ line</li>
+</ol>
+
+<h2>Inhomogeneous systems &amp; $e^{At}$ <span class="kicker">· <a href="../lessons/0006-inhomogeneous-matrix-exp.html">Lesson 6</a></span></h2>
+<div class="box">
+$$A = SDS^{-1},\ \mathbf z = S^{-1}\mathbf y:\quad \mathbf z' = D\mathbf z + S^{-1}\mathbf b,\quad \mathbf z(0) = S^{-1}\mathbf y_0,\quad \mathbf y = S\mathbf z$$
+$$\mathbf y' = A\mathbf y,\ \mathbf y(0) = \mathbf y_0 \Rightarrow \mathbf y = e^{At}\mathbf y_0, \qquad e^{At} = Se^{Dt}S^{-1}$$
+</div>
+<ul>
+  <li>$S^{-1}$ (2×2) $= \frac{1}{\det S}\begin{pmatrix}s_{22}&amp;-s_{12}\\-s_{21}&amp;s_{11}\end{pmatrix}$. Columns of $S$ in the same order as $D$.</li>
+  <li>Resonance: $z' = \lambda z + e^{\lambda t}$ ⇒ $z = (t + C)e^{\lambda t}$.</li>
+  <li>$e^{(\lambda I + N)t} = e^{\lambda t}(I + Nt + \tfrac{t^2}{2}N^2 + \dots)$; $\;\begin{pmatrix}\lambda&amp;1\\0&amp;\lambda\end{pmatrix}\to e^{\lambda t}\begin{pmatrix}1&amp;t\\0&amp;1\end{pmatrix}$; $\;\begin{pmatrix}\alpha&amp;-\beta\\ \beta&amp;\alpha\end{pmatrix}\to e^{\alpha t}\begin{pmatrix}\cos\beta t&amp;-\sin\beta t\\ \sin\beta t&amp;\cos\beta t\end{pmatrix}$.</li>
+  <li>$e^{A+B} = e^Ae^B$ <strong>only if $AB = BA$</strong>. Check: $e^{A\cdot0} = I$, and $\frac{d}{dt}e^{At}|_0 = A$.</li>
+</ul>
+</main>
+</body>
+</html>

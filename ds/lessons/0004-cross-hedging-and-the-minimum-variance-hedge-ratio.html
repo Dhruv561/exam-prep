@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cross Hedging and h*</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.hr-widget { border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.2rem; margin: 1.4rem 0; font-family: Inter, system-ui, sans-serif; font-size: .85rem; }
+.hr-widget label { display: grid; grid-template-columns: 7.5rem 1fr 3.2rem; gap: .6rem; align-items: center; margin: .35rem 0; }
+.hr-widget input[type=range] { width: 100%; accent-color: var(--accent); }
+.hr-widget output { font-variant-numeric: tabular-nums; text-align: right; }
+.hr-out { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem 1rem; margin-top: .8rem; border-top: 1px solid var(--rule); padding-top: .8rem; }
+.hr-out div b { display: block; font-size: 1.15rem; font-weight: 600; color: var(--fg); font-variant-numeric: tabular-nums; }
+.hr-out div span { color: var(--muted); }
+.bar { height: .55rem; background: var(--rule); border-radius: 3px; margin-top: .25rem; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); }
+.hr-note { margin-top: .7rem; color: var(--muted); }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 4 · Topic 2: Hedging</div>
+<h1>Cross hedging and the minimum-variance hedge ratio</h1>
+<p class="lede">The goal: when no futures contract exists on your exact asset, pick the right contract, the right direction, the right maturity and the right number of contracts, using \(h^* = \rho\,\sigma_S/\sigma_F\), and know exactly how much risk is left over.</p>
+
+<div class="mission">Why this matters for 5 Nov: the past finals have a full 10-mark question built on exactly this. You get a summary-statistics table and a correlation matrix with deliberate distractors. You have to choose the direction, the maturity and \(N^*\), write out the strategy, and explain why the effective price still isn't known today. The MSTs add one-mark "which statement is NOT correct" items about \(h^*\).</div>
+
+<p>This lesson assumes <a href="0003-hedging-and-basis-risk.html">Lesson 3</a>: short and long hedges, basis \(= S - F\), and the hedger's effective price \(F_0 + b_1\) (initial futures price plus the basis at close-out). <em>Notation:</em> Lesson 3 follows Hull and the MST solutions and writes the same thing as \(F_1 + b_2\) (subscript 1 = open, 2 = close); this lesson uses the lecture slides' subscripts (0 = open, 1 = close). Same formula, different labels.</p>
+
+<h2>1 · Cross hedging: when your asset has no futures</h2>
+
+<p>An airline worries about the price of <strong>jet fuel</strong>, but no liquid jet-fuel futures contract exists. It hedges with <strong>heating oil</strong> futures instead, because the two fuels come out of the same refinery and their prices move together. Using a futures contract on a <em>different</em> asset from the one you're exposed to is a <strong>cross hedge</strong> (<a href="../lectures/Lecture%202_Futures%20Hedging.pdf">Lecture 2, slides 16–18</a>; Hull Ch. 3). The rule for choosing the contract: pick the one whose futures price is <strong>most highly correlated</strong> with the price of your asset (slide 15).</p>
+
+<h3>Splitting the basis in two</h3>
+<p>Lesson 3's long hedger pays \(S_1\) for the asset and gains \(F_1 - F_0\) on the futures, so the effective price is \(F_0 + (S_1 - F_1)\). Now let \(S_1^*\) be the spot price at close-out of the asset the futures is written on (heating oil). Add and subtract it:</p>
+$$\text{Effective price} = F_0 + \underbrace{(S_1^* - F_1)}_{\text{ordinary basis}} + \underbrace{(S_1 - S_1^*)}_{\text{asset-mismatch basis}}$$
+<p>The first bracket is the basis you'd have even with heating-oil exposure (it's zero only if you close out at the futures' delivery date). The second is new: the gap between jet fuel and heating oil on the day you close out. Nobody knows it today, so a cross hedge carries <strong>more basis risk</strong> than a normal hedge. The hedge works well only if that spread is stable.</p>
+
+<div class="box">
+<p><strong>Example.</strong> In January the airline goes long heating-oil futures at \(F_0 = \$2.40\)/gal to hedge a jet-fuel purchase in May (one gallon of futures per gallon of jet fuel for now). Three possible Mays:</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>May scenario</th><th>\(F_1\)</th><th>\(S_1^*\) (HO spot)</th><th>\(S_1\) (jet)</th><th>\(S_1^*-F_1\)</th><th>\(S_1-S_1^*\)</th><th>Effective</th></tr>
+<tr><td>Prices rise</td><td>2.65</td><td>2.62</td><td>2.75</td><td>−0.03</td><td>+0.13</td><td>2.50</td></tr>
+<tr><td>Prices fall</td><td>2.10</td><td>2.08</td><td>2.14</td><td>−0.02</td><td>+0.06</td><td>2.44</td></tr>
+<tr><td>Jet-fuel squeeze</td><td>2.65</td><td>2.62</td><td>2.95</td><td>−0.03</td><td>+0.33</td><td>2.70</td></tr>
+</table>
+</div>
+<p>Check row 1 directly: pay 2.75, gain \(2.65 - 2.40 = 0.25\) on the futures, net 2.50 ✓. Row 3: pay 2.95, gain 0.25, net 2.70 ✓.</p>
+<p>What to notice: the overall price level barely matters (rows 1 and 2 both land near 2.40–2.50). What hurts is the <em>jet-fuel-over-heating-oil spread</em> moving, as in row 3, and the futures can't protect against that.</p>
+</div>
+
+<h2>2 · The hedge ratio, and why "one for one" can be wrong</h2>
+
+<p>The <strong>hedge ratio</strong> is</p>
+$$h = \frac{\text{size of the futures position}}{\text{size of the exposure}}$$
+<p>measured in units for commodities and in dollar values for financial assets (<a href="../lectures/Lecture%202_Futures%20Hedging.pdf">slide 26</a>). So far every hedge has used \(h = 1\), the <strong>naive hedge</strong>. With no basis risk that's perfect. With basis risk (a cross hedge, or closing out before delivery) it usually isn't the best you can do.</p>
+
+<details><summary>Predict first: jet fuel always moves exactly twice as much as heating-oil futures, in the same direction. How many gallons of futures per gallon of jet fuel?</summary><div>
+<p><strong>Two.</strong> If futures rise 10¢, jet fuel rises 20¢. One gallon of futures only gives you 10¢ back, so you need two to cover the 20¢. The naive hedge would leave half the risk on the table, even though the two prices move in lockstep (correlation exactly 1).</p></div></details>
+
+<details><summary>Predict first: now the two prices are equally volatile, but only loosely related. Should you still hedge one for one?</summary><div>
+<p><strong>No: hedge less.</strong> When futures move, jet fuel only follows part of the way on average. A full one-for-one position partly bets on the futures' <em>own</em> noise, which adds risk rather than removing it. Section 3 makes "part of the way" exact.</p></div></details>
+
+<h2>3 · Deriving \(h^*\): one line of calculus</h2>
+
+<p>Notation (all over the life of the hedge): \(\Delta S\) is the change in the spot price of the asset you're exposed to, \(\Delta F\) the change in the futures price, \(\sigma_S, \sigma_F\) their standard deviations and \(\rho\) their correlation. Their covariance is \(\sigma_{SF} = \rho\,\sigma_S\sigma_F\).</p>
+
+<p>Take a hedger who is naturally long one unit of the asset and short \(h\) units of futures. The change in the value of the position is</p>
+$$\Delta V = \Delta S - h\,\Delta F$$
+<p>Using the two-asset variance rule \(\text{Var}(X - hY) = \text{Var}X - 2h\,\text{Cov}(X,Y) + h^2\,\text{Var}Y\):</p>
+$$\text{Var}(\Delta V) = \sigma_S^2 - 2h\,\sigma_{SF} + h^2\sigma_F^2$$
+<p>That's a U-shaped parabola in \(h\). Set its derivative to zero:</p>
+$$-2\sigma_{SF} + 2h\,\sigma_F^2 = 0 \quad\Longrightarrow\quad \boxed{\,h^* = \frac{\sigma_{SF}}{\sigma_F^2} = \rho\,\frac{\sigma_S}{\sigma_F}\,}$$
+<p>(The second derivative is \(2\sigma_F^2 &gt; 0\), so it's a minimum.) This is the <strong>minimum-variance hedge ratio (MVHR)</strong> (<a href="../lectures/Lecture%202_Futures%20Hedging.pdf">slide 27</a>).</p>
+
+<h3>Three ways to read it</h3>
+<ol class="steps">
+  <li><strong>It's a regression slope.</strong> \(\sigma_{SF}/\sigma_F^2\) is the OLS slope from regressing \(\Delta S\) (on the y-axis) on \(\Delta F\) (on the x-axis). In words: "when futures move by $1, the spot moves by \(h^*\) dollars on average." So you hold \(h^*\) futures per unit of spot.</li>
+  <li><strong>\(\sigma_S/\sigma_F\) scales for size.</strong> If spot is twice as volatile as futures, you need twice the futures. If it's half as volatile, half the futures.</li>
+  <li><strong>\(\rho\) shrinks for noise.</strong> With \(\rho &lt; 1\), only part of each futures move is "shared" with your asset, so you lean on the futures less. That's why \(h^* &lt; 1\) is so common in practice: \(\rho\) is below 1 and the two volatilities are similar.</li>
+</ol>
+
+<h3>How much risk is left: hedge effectiveness</h3>
+<p>Substitute \(h^*\) back in: \(\text{Var}(\Delta V) = \sigma_S^2 - 2\rho^2\sigma_S^2 + \rho^2\sigma_S^2 = \sigma_S^2(1-\rho^2)\). So the best hedge removes a fraction \(\rho^2\) of the variance. That fraction is the <strong>hedge effectiveness</strong> (it's the regression's \(R^2\)):</p>
+$$\text{Hedge effectiveness} = 1 - \frac{\text{Var(hedged)}}{\text{Var(unhedged)}} = \rho^2, \qquad \sigma_{\text{hedged}} = \sigma_S\sqrt{1-\rho^2}$$
+
+<div class="trap"><strong>Effectiveness drops fast</strong><br>
+\(\rho = 0.9\) sounds great, but it removes 81% of the <em>variance</em> and leaves \(\sqrt{0.19} \approx 44\%\) of the <em>standard deviation</em>. At \(\rho = 0.5\) you remove only 25% of the variance. Notice too that \(h^*\) depends on the volatilities, but effectiveness depends <strong>only on \(\rho\)</strong>.</div>
+
+<h3>Scenarios: what changes and what stays fixed</h3>
+<p>Volatilities are relative to \(\sigma_F = 1\). The last column is the variance left if you used the naive \(h = 1\) instead: \((\sigma_S^2 - 2\rho\sigma_S\sigma_F + \sigma_F^2)/\sigma_S^2\).</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Case</th><th>\(\rho\)</th><th>\(\sigma_S\)</th><th>\(h^*\)</th><th>Var removed by \(h^*\)</th><th>Var left with \(h=1\)</th></tr>
+<tr><td>Same asset, same vol</td><td>1</td><td>1</td><td>1</td><td>100%</td><td>0%</td></tr>
+<tr><td>Spot twice as volatile</td><td>1</td><td>2</td><td>2</td><td>100%</td><td>25%</td></tr>
+<tr><td>Spot half as volatile</td><td>1</td><td>0.5</td><td>0.5</td><td>100%</td><td>100%</td></tr>
+<tr><td>Good cross hedge</td><td>0.9</td><td>1</td><td>0.9</td><td>81%</td><td>20%</td></tr>
+<tr><td>Good, spot calmer</td><td>0.9</td><td>0.8</td><td>0.72</td><td>81%</td><td>31%</td></tr>
+<tr><td>Poor cross hedge</td><td>0.5</td><td>1</td><td>0.5</td><td>25%</td><td>100%</td></tr>
+<tr><td>Negative correlation</td><td>−0.6</td><td>1</td><td>−0.6</td><td>36%</td><td>320%</td></tr>
+</table>
+</div>
+<p>Three lessons hide in that table. (1) Perfect correlation does <em>not</em> mean \(h^* = 1\): you also need equal volatilities. (2) The naive hedge can do <em>nothing</em> (100% left) or even <em>add</em> risk (320%): a badly sized hedge is a speculative position in the futures. (3) A negative \(h^*\) means "take the opposite futures position to the usual one" (section 5).</p>
+
+<div class="hr-widget" id="hrw">
+<label>Correlation \(\rho\) <input type="range" id="w-rho" min="-1" max="1" step="0.01" value="0.9"><output id="o-rho"></output></label>
+<label>\(\sigma_S\) (spot) <input type="range" id="w-ss" min="0.1" max="3" step="0.05" value="1"><output id="o-ss"></output></label>
+<label>\(\sigma_F\) (futures) <input type="range" id="w-sf" min="0.1" max="3" step="0.05" value="1"><output id="o-sf"></output></label>
+<div class="hr-out">
+  <div><span>h*</span><b id="r-h"></b></div>
+  <div><span>Variance removed (ρ²)</span><b id="r-eff"></b><div class="bar"><i id="b-eff"></i></div></div>
+  <div><span>Std dev left with h*</span><b id="r-sd"></b><div class="bar"><i id="b-sd"></i></div></div>
+  <div><span>Variance left with naive h = 1</span><b id="r-nv"></b><div class="bar"><i id="b-nv"></i></div></div>
+</div>
+<div class="hr-note" id="r-dir"></div>
+</div>
+<p>Try: set \(\rho = 1\) and move \(\sigma_S\) away from \(\sigma_F\) (effectiveness stays at 100%, but \(h^*\) moves). Then fix the volatilities and slide \(\rho\) down (\(h^*\) and effectiveness both fall). Then find where the naive hedge passes 100%: with equal volatilities that happens below \(\rho = 0.5\).</p>
+
+<h2>4 · From \(h^*\) to a number of contracts</h2>
+
+<p>\(h^*\) is per unit of exposure. Multiply by the exposure and divide by what one contract covers:</p>
+$$N^* = \frac{h^*\,Q_A}{Q_F} \quad\text{(units)}\qquad\qquad N^* = \frac{h^*\,V_A}{V_F} \quad\text{(values)}$$
+<p>\(Q_A\) is the size of the position being hedged and \(Q_F\) the size of one contract (both in units, e.g. gallons). For financial positions, \(V_A\) is the dollar value of the exposure and \(V_F\) the value of one contract (futures price × contract size) (<a href="../lectures/Lecture%202_Futures%20Hedging.pdf">slides 28, 30</a>). The lecture's quick case: \(V_A = \$10\)M, \(V_F = \$1\)M, so the naive hedge is 10 contracts and \(h^* = 0.9\) gives 9.</p>
+
+<div class="box">
+<p><strong>Hull's airline (Ch. 3).</strong> An airline will buy 2 million gallons of jet fuel in a month and hedges with heating-oil futures (42,000 gal each). From monthly data: \(\sigma_F = 0.0313\), \(\sigma_S = 0.0263\), \(\rho = 0.928\).</p>
+<p>\(h^* = 0.928 \times 0.0263/0.0313 = 0.7798\), so \(N^* = 0.7798 \times 2{,}000{,}000/42{,}000 = 37.13\), which rounds to <strong>37 contracts, long</strong> (the airline will buy fuel). Effectiveness \(= 0.928^2 = 86\%\).</p>
+</div>
+
+<p><strong>Rounding.</strong> Contracts come in whole numbers. Exams say "round to the nearest integer", so do that. In practice a hedger might round up or down depending on risk tolerance and market view (slide 15).</p>
+
+<p><strong>Tailing the hedge</strong> (Hull Ch. 3, briefly). Futures are settled daily, so the gains arrive before the exposure does. Hull's "tailing" adjustment sizes the hedge on <em>values</em> rather than units: roughly \(N^* = h^*\,(S_0 Q_A)/(F_0 Q_F)\), with \(h^*\) estimated from daily returns. The lecture slides don't cover it, and the past finals only mention it as "<em>ignoring</em> tailing the hedge". So when you see that phrase, use \(N^* = h^* Q_A/Q_F\) and move on. Treat tailing as not examinable beyond that, but ask on the Ed forum if you want to be sure.</p>
+
+<h2>5 · Direction and maturity</h2>
+
+<h3>Which side of the futures?</h3>
+<p>Two inputs decide it: your <strong>natural exposure</strong> and the <strong>sign of \(\rho\)</strong>. You want a futures position that <em>gains</em> when your natural position loses.</p>
+<table>
+<tr><th>Natural position</th><th>\(\rho &gt; 0\)</th><th>\(\rho &lt; 0\)</th></tr>
+<tr><td>Long (own it / will sell it): hurt if the price falls</td><td>Short futures</td><td>Long futures</td></tr>
+<tr><td>Short (will buy it): hurt if the price rises</td><td>Long futures</td><td>Short futures</td></tr>
+</table>
+<p>Exams award a mark for the reason, so write both halves: "naturally short [asset] and positively correlated with the futures, so go long."</p>
+
+<h3>Which delivery month?</h3>
+<p>Choose the delivery month that is <strong>as close as possible to, but later than,</strong> the end of the hedge (slide 15). Avoid the month in which the hedge ends, even if a contract delivers that month: futures prices can be erratic in the delivery month, and a long risks being handed physical delivery. So for a purchase on 15 September with Sep, Dec and Mar contracts available, use <strong>December</strong>. (If the later contract is very illiquid, the hedger may have to accept more basis risk and roll instead, as in Lesson 3.)</p>
+
+<div class="trap"><strong>Can the effective price be known today?</strong><br>
+No. With a cross hedge and a close-out before delivery, the final \(F_1\) and \(S_1\) are not tied together: there's <strong>asset mismatch</strong> (\(S_1 \ne S_1^*\)) and <strong>maturity mismatch</strong> (\(S_1^* \ne F_1\)). Even with \(h^*\), the hedge reduces the variance of the outcome; it doesn't fix the price. A full-mark answer names both mismatches.</div>
+
+<h2>6 · Estimating \(h^*\) from data</h2>
+
+<p>In practice you estimate \(\sigma_S, \sigma_F, \rho\) from historical <em>changes</em> (not levels) over intervals as long as the hedge. Here are the 10 monthly changes from <a href="../tutes/Tutorial%203.pdf">Tutorial 3, Q7</a>:</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Month</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th></tr>
+<tr><td>\(\Delta S\)</td><td>0.50</td><td>0.61</td><td>−0.22</td><td>−0.35</td><td>0.79</td><td>0.04</td><td>0.15</td><td>0.70</td><td>−0.51</td><td>−0.41</td></tr>
+<tr><td>\(\Delta F\)</td><td>0.56</td><td>0.63</td><td>−0.12</td><td>−0.44</td><td>0.60</td><td>−0.06</td><td>0.01</td><td>0.80</td><td>−0.56</td><td>−0.46</td></tr>
+</table>
+</div>
+<ol class="steps">
+  <li><strong>Means.</strong> \(\overline{\Delta S} = 1.30/10 = 0.130\), \(\overline{\Delta F} = 0.96/10 = 0.096\).</li>
+  <li><strong>Sums of squared deviations and cross-products.</strong> \(\sum(\Delta S - \overline{\Delta S})^2 = 2.1904\), \(\sum(\Delta F - \overline{\Delta F})^2 = 2.35524\), \(\sum(\Delta S - \overline{\Delta S})(\Delta F - \overline{\Delta F}) = 2.2272\).</li>
+  <li><strong>Standard deviations</strong> (divide by \(n-1 = 9\), then square-root): \(\sigma_S = \sqrt{2.1904/9} = 0.4933\), \(\sigma_F = \sqrt{2.35524/9} = 0.5116\).</li>
+  <li><strong>Correlation:</strong> \(\rho = 2.2272/\sqrt{2.1904 \times 2.35524} = 0.9806\).</li>
+  <li><strong>\(h^*\)</strong> \(= 0.9806 \times 0.4933/0.5116 = 0.946\). Shortcut: the regression slope \(2.2272/2.35524 = 0.946\), the same number, because the \(n-1\)'s cancel. Effectiveness \(= 0.9806^2 = 0.962\).</li>
+</ol>
+<p>The official solution gets \(\sigma_S = 0.4933\), \(\sigma_F = 0.5116\), \(\rho = 0.981\), \(h^* = 0.946\) in Excel. On a calculator use the STAT mode (two-variable) and read off \(s_x, s_y, r\) or the slope \(b\). Make sure \(\Delta S\) is the <em>y</em> variable.</p>
+
+<h3>The lecture's S&amp;P 500 example: naive vs MVHR</h3>
+<p>For financial assets the lecture uses <strong>log (continuously compounded) returns</strong> instead of price changes, \(r_{s,t} = 100\,[\ln S_t - \ln S_{t-1}]\), and similarly \(r_{f,t}\) for futures. It estimates \(h^*\) from returns, then forms the daily <strong>hedged return</strong> (<a href="../lectures/Lecture%202_Futures%20Hedging.pdf">slides 28–29</a>):</p>
+$$r_{h,t} = r_{s,t} - h^*\,r_{f,t}$$
+<p>Results on a $200M index fund, July 2024 to June 2025 (daily std dev of returns, %):</p>
+<table class="ledger">
+<tr><th>Hedge</th><th>Std dev</th></tr>
+<tr><td>Unhedged</td><td>1.2615</td></tr>
+<tr><td>Naive, \(h = 1\)</td><td>0.2243</td></tr>
+<tr><td>MVHR, full data set</td><td>0.2222</td></tr>
+<tr><td>MVHR, other estimation windows (GFC, COVID, last 3 years)</td><td>0.2224–0.2231</td></tr>
+</table>
+<p>What to take from it. (1) Either hedge removes about 97% of the variance (\(1 - (0.2222/1.2615)^2 = 0.969\)). (2) MVHR beats naive only slightly here, because S&amp;P spot and S&amp;P futures are almost perfectly correlated with almost equal volatility, so \(h^*\) is close to 1. The gap would be much bigger in a real cross hedge. (3) The estimation window matters a little: \(h^*\) is an estimate from the past, applied to the future. (4) The hedged fund's return is tiny too: hedging cuts the upside along with the risk.</p>
+
+<h2>7 · Rules of thumb</h2>
+<ul>
+  <li>\(h^*\) = "how many dollars the spot moves per dollar of futures move, on average" = slope of \(\Delta S\) on \(\Delta F\).</li>
+  <li>Volatility ratio sizes the hedge; correlation shrinks it and sets the leftover risk (\(\rho^2\) removed, \(\sqrt{1-\rho^2}\) of the std dev left).</li>
+  <li>In a statistics table use: \(\rho\) between <em>your</em> spot and the <em>futures</em>; \(\sigma_S\) of <em>your</em> spot; \(\sigma_F\) of the <em>futures</em>. Ignore the proxy's spot, beta and alpha.</li>
+  <li>Direction = natural exposure flipped, flipped again if \(\rho &lt; 0\). Maturity = first contract after the hedge ends, not the same month.</li>
+  <li>Cross hedge + early close-out ⇒ basis risk ⇒ the effective price is not known today.</li>
+</ul>
+
+<h2>8 · Practice</h2>
+<p>Numeric answers: type a number. Hedge ratios to 3 decimals; contract numbers as whole numbers.</p>
+
+<p>Question 1 uses this table (annualised, price changes) for a cable maker exposed to the price of copper wire, hedging with copper futures:</p>
+<table class="ledger">
+<tr><th></th><th>Std dev</th><th>Corr. with wire spot</th><th>Corr. with copper spot</th></tr>
+<tr><td>Copper wire spot</td><td>18.0</td><td>1</td><td></td></tr>
+<tr><td>Copper spot</td><td>15.2</td><td>0.83</td><td>1</td></tr>
+<tr><td>Copper futures</td><td>16.0</td><td>0.80</td><td>0.99</td></tr>
+</table>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>1.</strong> Besides the wire's own standard deviation of 18.0, which inputs go into \(h^*\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">0.80 with the futures standard deviation of 16.0</button>
+    <button class="opt" data-key="b">0.83 with the copper spot standard deviation 15.2</button>
+    <button class="opt" data-key="c">0.99 with the futures standard deviation of 16.0</button>
+    <button class="opt" data-key="d">0.80 with the copper spot standard deviation 15.2</button>
+  </div>
+  <div class="why">You hedge wire with <em>futures</em>, so you need the wire–futures correlation (0.80) and the futures' volatility (16.0): \(h^* = 0.80 \times 18.0/16.0 = 0.90\). Copper <em>spot</em> is a distractor: you never trade it. 0.99 is the copper spot–futures correlation, which says nothing about the wire.</div>
+</div>
+
+<div class="quiz num" data-answer="0.9" data-tol="0.005">
+  <p class="q"><strong>2.</strong> From weekly data, the covariance of spot and futures price changes is 0.0036 and the variance of futures price changes is 0.0040. What is \(h^*\)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(h^* = \sigma_{SF}/\sigma_F^2 = 0.0036/0.0040 = 0.90\). This is the regression-slope form; you don't need \(\rho\) separately.</div>
+</div>
+
+<div class="quiz num" data-answer="20" data-tol="0">
+  <p class="q"><strong>3.</strong> A feed mill will buy 1.5 million bushels of sorghum and hedges with a proxy grain futures contract of 50,000 bu. \(\rho = 0.75\), \(\sigma_S = 0.045\), \(\sigma_F = 0.050\). How many contracts, to the nearest integer?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">contracts</span></div>
+  <div class="why">\(h^* = 0.75 \times 0.045/0.050 = 0.675\). \(N^* = 0.675 \times 1{,}500{,}000/50{,}000 = 20.25 \to 20\) contracts (long, since the mill will buy). A common slip is using \(h = 1\): that gives 30.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>4.</strong> Spot price changes are perfectly correlated with futures price changes, but twice as volatile. What is \(h^*\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">1: perfect correlation always means a simple one-for-one hedge</button>
+    <button class="opt" data-key="b">0.5: the futures are less volatile than the spot</button>
+    <button class="opt" data-key="c">4: the hedge ratio scales with the variance ratio</button>
+    <button class="opt" data-key="d">2: each futures move covers half the spot move</button>
+  </div>
+  <div class="why">\(h^* = 1 \times 2\sigma_F/\sigma_F = 2\). Every $1 futures move comes with a $2 spot move, so you need two futures per unit. (a) forgets the volatility ratio. (b) inverts it. (c) squares it: the formula uses standard deviations, not variances. Effectiveness is still 100%.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>5.</strong> A refiner's proxy hedge had \(\rho = 0.9\). After a pipeline change the correlation drops to 0.6, with both volatilities unchanged. What happens?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">h* rises and the share of variance removed rises</button>
+    <button class="opt" data-key="b">h* unchanged, but the share of variance removed falls</button>
+    <button class="opt" data-key="c">h* falls and the share of variance removed falls</button>
+    <button class="opt" data-key="d">h* falls but share of variance removed is unchanged</button>
+  </div>
+  <div class="why">\(h^* = \rho\,\sigma_S/\sigma_F\) falls by a third, and effectiveness \(\rho^2\) falls from 81% to 36%. (b) is tempting if you think only the volatilities set \(h^*\); (d) if you forget effectiveness is \(\rho^2\).</div>
+</div>
+
+<div class="quiz num" data-answer="72.25" data-tol="0.1">
+  <p class="q"><strong>6.</strong> The correlation between the hedged asset's price changes and the futures price changes is 0.85. What percentage of the variance does the minimum-variance hedge remove?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">Effectiveness \(= \rho^2 = 0.85^2 = 0.7225\), i.e. <strong>72.25%</strong>. Not 85%: correlation is not the variance reduction.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>7.</strong> A fund holds an asset and wants to hedge it with a futures contract whose price changes have correlation \(-0.6\) with the asset's. What position should it take?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Short futures, because a natural long is always hedged short</button>
+    <button class="opt" data-key="b">Long futures, because the futures gain when the portfolio falls</button>
+    <button class="opt" data-key="c">No futures, because a negative correlation cannot reduce any risk</button>
+    <button class="opt" data-key="d">Short futures, because negative correlation makes the ratio exactly one</button>
+  </div>
+  <div class="why">\(h^* &lt; 0\): the usual short hedge flips to long. With negative correlation the futures tend to rise when the asset falls, so a <em>long</em> futures gains exactly when the fund loses. Effectiveness is \(\rho^2 = 0.36\), so it does reduce risk, contradicting (c). (a) is the rule only for positive correlation.</div>
+</div>
+
+<div class="quiz" data-answer="e">
+  <p class="q"><strong>8.</strong> Which statement is NOT correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">h* is chosen to minimise the variance of the hedged position's value</button>
+    <button class="opt" data-key="b">h* can differ from one even when the correlation equals plus one</button>
+    <button class="opt" data-key="c">Asset mismatch and maturity mismatch can both move h* away from one</button>
+    <button class="opt" data-key="d">h* equals the slope from regressing spot price changes on futures changes</button>
+    <button class="opt" data-key="e">h* must be below one whenever the hedge is less than perfect</button>
+  </div>
+  <div class="why">(e) is false: with \(\rho = 0.95\) and \(\sigma_S = 1.5\,\sigma_F\), \(h^* = 1.425\). An imperfect hedge can need <em>more</em> futures than units of exposure. (b) is true when the volatilities differ. The others restate the definition and its regression form.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>9.</strong> A cereal maker will buy oats on 20 November. Oat futures deliver in October, November, January and March. Which contract should it use?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">October, the contract that expires closest to today</button>
+    <button class="opt" data-key="b">November, as it matches the purchase month exactly</button>
+    <button class="opt" data-key="c">January, the first contract after the purchase month</button>
+    <button class="opt" data-key="d">March, since longer contracts carry less basis risk</button>
+  </div>
+  <div class="why">Choose the first delivery month <em>after</em> the hedge ends. October expires before the purchase, leaving it unhedged (or forcing a roll). November is the delivery month itself, where prices are erratic and delivery is a risk. March is further away, which typically means <em>more</em> basis risk, not less.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>10.</strong> Spot and futures are equally volatile, with correlation 0.4. A trader uses the naive hedge \(h = 1\). Compared with not hedging, the variance of the position:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Variance falls to 84% of unhedged, since ρ² is 0.16</button>
+    <button class="opt" data-key="b">Variance falls to 60% of unhedged, one minus the correlation</button>
+    <button class="opt" data-key="c">Variance is unchanged because the futures and spot are independent</button>
+    <button class="opt" data-key="d">Variance rises to 120% of unhedged: the hedge adds risk</button>
+  </div>
+  <div class="why">\(\sigma^2 - 2(0.4)\sigma^2 + \sigma^2 = 1.2\,\sigma^2\): 120% of the unhedged variance. (a) is what the <em>MVHR</em> (\(h^* = 0.4\)) achieves. With equal volatilities, the naive hedge adds risk whenever \(\rho &lt; 0.5\).</div>
+</div>
+
+<div class="quiz num" data-answer="6" data-tol="0.05">
+  <p class="q"><strong>11.</strong> An exposure's price changes have standard deviation 10 (¢/unit). With the minimum-variance hedge, \(\rho = 0.8\). What is the standard deviation of the hedged position per unit?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">¢</span></div>
+  <div class="why">\(\sigma_S\sqrt{1-\rho^2} = 10\sqrt{1-0.64} = 10 \times 0.6 = 6\)¢. You removed 64% of the variance but only 40% of the standard deviation.</div>
+</div>
+
+<div class="quiz num" data-answer="18" data-tol="0">
+  <p class="q"><strong>12.</strong> A $24 million position is hedged with futures quoted at 1,200 with a multiplier of 1,000 (so one contract is worth 1,200 × 1,000). \(h^* = 0.92\). How many contracts, to the nearest integer?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">contracts</span></div>
+  <div class="why">\(V_F = 1{,}200 \times 1{,}000 = \$1.2\)M. \(N^* = 0.92 \times 24/1.2 = 18.4 \to 18\). The naive hedge would be 20.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>13.</strong> You have a spreadsheet of past monthly prices. How do you estimate \(h^*\) as a regression?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Regress spot price changes on futures price changes; take the slope</button>
+    <button class="opt" data-key="b">Regress futures price changes on spot price changes; take the slope</button>
+    <button class="opt" data-key="c">Regress spot price levels on futures price levels; take the slope</button>
+    <button class="opt" data-key="d">Regress spot price changes on futures price changes; take the R²</button>
+  </div>
+  <div class="why">The slope of \(\Delta S\) on \(\Delta F\) is \(\sigma_{SF}/\sigma_F^2 = h^*\). (b) gives \(\rho\,\sigma_F/\sigma_S\), the wrong way round. (c) uses levels, which trend together and give a misleading fit; the hedge cares about changes. (d) gives the hedge <em>effectiveness</em> \(\rho^2\), not \(h^*\).</div>
+</div>
+
+<div class="quiz num" data-answer="0.072" data-tol="0.002">
+  <p class="q"><strong>14.</strong> On one day an index fund's log return is \(-1.80\%\) and the futures' is \(-1.95\%\). The fund is hedged with \(h^* = 0.96\). What is the hedged return that day (in %)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(r_h = r_s - h^* r_f = -1.80 - 0.96 \times (-1.95) = -1.80 + 1.872 = +0.072\%\). The short futures gained slightly more than the fund lost.</div>
+</div>
+
+<h2>9 · Exam-level challenge</h2>
+<p>Write it all out on paper, then open the steps one at a time.</p>
+<div class="box">
+<p>It is 10 February 2027. Tasman Ferries will buy <strong>18,000 tonnes of marine diesel</strong> at the spot price on <strong>14 April 2027</strong>. There are no marine-diesel futures, so the CFO plans to hedge with gasoil futures (100 tonnes per contract, quoted in $/tonne), aiming to minimise the price risk. Assume trades happen at these prices:</p>
+<table class="ledger">
+<tr><th>Gasoil futures</th><th>Mar 27</th><th>Apr 27</th><th>May 27</th><th>Jul 27</th></tr>
+<tr><td>Last price ($/t)</td><td>735.00</td><td>739.25</td><td>742.50</td><td>748.00</td></tr>
+</table>
+<p>Summary statistics of price changes, annualised:</p>
+<table class="ledger">
+<tr><th></th><th>Mean</th><th>Std dev</th><th>Beta</th><th>Alpha</th></tr>
+<tr><td>Marine diesel spot</td><td>2.10</td><td>24.8</td><td>0.41</td><td>0.60</td></tr>
+<tr><td>Gasoil spot</td><td>1.60</td><td>21.5</td><td>0.38</td><td>0.25</td></tr>
+<tr><td>Gasoil futures</td><td>1.65</td><td>22.9</td><td>0.39</td><td>0.22</td></tr>
+</table>
+<table class="ledger">
+<tr><th>Correlations</th><th>Marine diesel spot</th><th>Gasoil spot</th><th>Gasoil futures</th></tr>
+<tr><td>Marine diesel spot</td><td>1</td><td></td><td></td></tr>
+<tr><td>Gasoil spot</td><td>0.874</td><td>1</td><td></td></tr>
+<tr><td>Gasoil futures</td><td>0.861</td><td>0.982</td><td>1</td></tr>
+</table>
+<p>(a) Long or short gasoil futures? Why?<br>
+(b) Which maturity? Why?<br>
+(c) Ignoring tailing the hedge, how many contracts? Round to the nearest integer.<br>
+(d) Summarise the full strategy: date, position, maturity, number, price, and how and when it is closed.<br>
+(e) What fraction of the price-change variance does this hedge remove?<br>
+(f) On 14 April the May futures closes at $801.25 and marine diesel spot is $836.40. What is the effective price per tonne?<br>
+(g) Could the CFO have known that effective price on 10 February? Explain.</p>
+</div>
+
+<details><summary>Step 1: part (a), direction</summary><div>
+<p>Tasman is <strong>naturally short</strong> marine diesel (it will buy, so it loses if the price rises), and marine diesel is <strong>positively correlated</strong> with gasoil futures (0.861). A futures position that gains when prices rise is a <strong>long</strong> position. Answer: <strong>long gasoil futures</strong>. Give both reasons.</p></div></details>
+<details><summary>Step 2: part (b), maturity</summary><div>
+<p>The hedge ends on 14 April. March expires too early. April is the delivery month itself (erratic prices, delivery risk). <strong>May</strong> is the first contract after the purchase date. July would add basis risk for no reason.</p></div></details>
+<details><summary>Step 3: part (c), picking the right numbers</summary><div>
+<p>Use the marine-diesel–gasoil-<em>futures</em> correlation 0.861, the marine-diesel std dev 24.8, and the gasoil <em>futures</em> std dev 22.9. Means, betas, alphas, gasoil spot and 0.982 are distractors.</p>
+<p>\(h^* = 0.861 \times 24.8/22.9 = 0.9324\)<br>
+\(N^* = 0.9324 \times 18{,}000/100 = 167.84 \to\) <strong>168 contracts</strong>.</p>
+<p>Distractor check: 0.874 gives 170; 21.5 gives 179; \(h = 1\) gives 180.</p></div></details>
+<details><summary>Step 4: part (d), the strategy in one breath</summary><div>
+<p>On <strong>10 February 2027</strong>, go <strong>long 168 May 2027 gasoil futures at $742.50/t</strong>. On <strong>14 April 2027</strong>, buy the 18,000 t of marine diesel at spot and <strong>close out by going short 168 May 2027 contracts</strong> at the prevailing price.</p></div></details>
+<details><summary>Step 5: part (e), effectiveness</summary><div>
+<p>\(\rho^2 = 0.861^2 = 0.741\): about <strong>74%</strong> of the variance is removed. About \(\sqrt{0.259} = 51\%\) of the standard deviation remains.</p></div></details>
+<details><summary>Step 6: part (f), the effective price</summary><div>
+<p>Futures gain: \((801.25 - 742.50) \times 100 \times 168 = 58.75 \times 16{,}800 = \$987{,}000\).<br>
+Diesel cost: \(836.40 \times 18{,}000 = \$15{,}055{,}200\).<br>
+Net: \(15{,}055{,}200 - 987{,}000 = \$14{,}068{,}200\), i.e. <strong>$781.57/t</strong>.</p>
+<p>Note it isn't \(F_0\) plus a simple basis: the hedge covers 16,800 t of futures for 18,000 t of diesel, and the diesel–gasoil spread moved.</p></div></details>
+<details><summary>Step 7: part (g), can it be known today?</summary><div>
+<p><strong>No.</strong> On 10 Feb the CFO knows \(F_0 = 742.50\) but not the May futures price on 14 April or the marine-diesel spot price on that day. Because of <strong>asset mismatch</strong> (marine diesel vs gasoil) and <strong>maturity mismatch</strong> (closing a May contract in April), those two prices don't converge, so the basis at close-out is uncertain. The hedge cuts the variance by about 74%; it doesn't fix the price.</p></div></details>
+
+<h2>10 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, derive \(h^*\), state the effectiveness, the two \(N^*\) formulas, and the direction and maturity rules. Then check</summary><div>
+<p>\(\text{Var}(\Delta S - h\Delta F) = \sigma_S^2 - 2h\sigma_{SF} + h^2\sigma_F^2\); derivative zero gives \(h^* = \sigma_{SF}/\sigma_F^2 = \rho\sigma_S/\sigma_F\). Effectiveness \(\rho^2\); leftover std dev \(\sigma_S\sqrt{1-\rho^2}\). \(N^* = h^*Q_A/Q_F\) or \(h^*V_A/V_F\). Direction: opposite to the natural exposure if \(\rho &gt; 0\), same side if \(\rho &lt; 0\). Maturity: first delivery month after the hedge ends, avoiding that month itself.</p></div></details>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, Ch. 3 (sections on basis risk, cross hedging, the minimum-variance hedge ratio, optimal number of contracts and tailing the hedge). <a href="../lectures/Lecture%202_Futures%20Hedging.pdf">Lecture 2</a>, slides 15–18 and 25–30.</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%203.pdf">Tutorial 3</a>, Q7 (<a href="../tutes/Tutorial%203%20solutions.pdf">solutions</a>): redo it yourself on your calculator's STAT mode without looking at section 6, and get \(h^* = 0.946\). Then from Hull Ch. 3's end-of-chapter problems, do the live-cattle hedge (std devs 1.2 and 1.4 cents, correlation 0.7) For it, and for section 4's airline redone with \(\rho = 0.85\) (answer: \(h^* = 0.714\), 34 contracts), write direction, maturity, \(h^*\) and \(N^*\).</p>
+<p><strong>Spacing:</strong> tomorrow, before Lesson 5, redo Q1, Q8 and challenge steps 3 and 7 without looking. Also redo Lesson 3's effective-price (\(F_0 + b_1\)) questions: section 1 here is that formula with the basis split in two.</p>
+
+<div class="ask">💬 If a statistics table in a practice question confuses you (which correlation? which std dev?), paste it in the terminal and ask me. I'm your teacher for this, and I'll go through which numbers matter and why.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0003-hedging-and-basis-risk.html">Lesson 3, hedging and basis risk</a></span>
+  <span>Reference: <a href="../reference/futures-cheatsheet.html">Futures cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0005-hedging-with-stock-index-futures.html">Lesson 5, hedging with stock index futures</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const pct = (x) => (100 * x).toFixed(0) + '%';
+  function update() {
+    const r = +$('w-rho').value, ss = +$('w-ss').value, sf = +$('w-sf').value;
+    $('o-rho').textContent = r.toFixed(2);
+    $('o-ss').textContent = ss.toFixed(2);
+    $('o-sf').textContent = sf.toFixed(2);
+    const h = r * ss / sf, eff = r * r, sd = Math.sqrt(Math.max(0, 1 - eff));
+    const naive = (ss * ss - 2 * r * ss * sf + sf * sf) / (ss * ss);
+    $('r-h').textContent = h.toFixed(3);
+    $('r-eff').textContent = pct(eff);
+    $('r-sd').textContent = pct(sd) + ' of unhedged';
+    $('r-nv').textContent = pct(naive) + ' of unhedged';
+    $('b-eff').style.width = pct(eff);
+    $('b-sd').style.width = pct(sd);
+    $('b-nv').style.width = Math.min(100, 100 * naive).toFixed(0) + '%';
+    let dir;
+    if (Math.abs(h) < 0.005) dir = 'h* ≈ 0: the futures tell you nothing about your asset, so hedging with them is pointless.';
+    else dir = 'For a natural LONG position: ' + (h > 0 ? 'SHORT' : 'LONG') + ' ' + Math.abs(h).toFixed(2) + ' units of futures per unit. For a natural SHORT (future purchase): ' + (h > 0 ? 'LONG' : 'SHORT') + '.';
+    if (naive > 1.0001) dir += ' Here the naive h = 1 hedge adds risk.';
+    $('r-dir').textContent = dir;
+  }
+  ['w-rho', 'w-ss', 'w-sf'].forEach((id) => $(id).addEventListener('input', update));
+  update();
+})();
+</script>
+</body>
+</html>

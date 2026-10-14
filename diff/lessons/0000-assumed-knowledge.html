@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assumed Knowledge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 0 · Before Topic 1: Calc 2 &amp; linear algebra refresher</div>
+<h1>The assumed knowledge the lecture slides skip over</h1>
+<p class="lede">The goal: refresh every Calc 2 and linear-algebra skill that Topic 1 uses without explaining, so that the only new thing in each later lesson is the new method itself.</p>
+
+<div class="mission">Why this matters for 5 Nov: most marks lost on Topic 1 come from an old skill, not the new one. Examples are an integration by parts that goes wrong inside an integrating factor, a product-rule slip in reduction of order, or an eigenvector off by a sign. Each section below says which later lesson relies on it.</div>
+
+<h2>1 · Integration toolkit</h2>
+<p><em>Used in: Lesson 1 (integrating factor), Lesson 2 (reduction of order), and all of Topics 3–4.</em></p>
+
+<h3>Integration by parts, done fast</h3>
+<p>$\int u\,dv = uv - \int v\,du$. Make $u$ the part that gets simpler when you differentiate it, usually the polynomial. When $u$ is a polynomial, use the <strong>tabular method</strong>. Put derivatives of $u$ in one column and integrals of $dv$ in the other, multiply along the diagonals, and alternate the signs $+,-,+,\dots$</p>
+<div class="box">
+<p>$\displaystyle\int t^2 e^{-t}\,dt$: &nbsp; the $u$ column is $t^2,\ 2t,\ 2,\ 0$, and the $dv$ column is $e^{-t},\ -e^{-t},\ e^{-t},\ -e^{-t}$.</p>
+<p>$= +t^2(-e^{-t}) - 2t(e^{-t}) + 2(-e^{-t}) = \boxed{-e^{-t}(t^2+2t+2) + C}$</p>
+<p><em>Check by differentiating:</em> $e^{-t}(t^2+2t+2) - e^{-t}(2t+2) = t^2e^{-t}$ ✓</p>
+</div>
+
+<h3>The loop: $\int e^{at}\cos bt$ and $\int e^{at}\sin bt$</h3>
+<p>Integrating by parts twice brings the original integral back, so you can then solve for it. That's slow in an exam. Memorise the result instead, or use the complex shortcut below:
+$$\int e^{at}\cos bt\,dt = \frac{e^{at}(a\cos bt + b\sin bt)}{a^2+b^2}, \qquad \int e^{at}\sin bt\,dt = \frac{e^{at}(a\sin bt - b\cos bt)}{a^2+b^2}.$$</p>
+<details><summary>The complex shortcut, if you'd rather not memorise</summary><div>
+<p>$e^{at}\sin bt = \operatorname{Im} e^{(a+ib)t}$, so the integral is $\operatorname{Im}\dfrac{e^{(a+ib)t}}{a+ib}$. For example, with $a=2,\ b=1$:
+$$\frac{e^{(2+i)t}}{2+i} = \frac{e^{2t}(\cos t + i\sin t)(2-i)}{5} \;\Rightarrow\; \operatorname{Im} = \frac{e^{2t}(2\sin t - \cos t)}{5}.$$
+This matches the formula above. Multiplying by the conjugate is covered in section 3.</p></div></details>
+
+<h3>Log and exponential algebra</h3>
+<p>Every integrating factor ends with $e^{(\text{something with }\ln)}$. Simplify it on sight:</p>
+<ul>
+  <li>$e^{\ln f} = f$, &nbsp; $e^{k\ln f} = f^k$, &nbsp; $e^{a\ln t + b} = e^b\,t^a$</li>
+  <li>$e^{-3\ln t} = t^{-3}$, &nbsp; $e^{\int \frac{1}{t+1}dt} = t+1$ (for $t>-1$), &nbsp; $e^{-\int\frac{2t}{1+t^2}dt} = \dfrac{1}{1+t^2}$</li>
+  <li>Strictly, $\int \frac{1}{t}\,dt = \ln|t|$. In practice the question gives you $t&gt;0$ or $t&lt;0$, so use that to drop the absolute value.</li>
+</ul>
+
+<h3>Substitution and trig identities</h3>
+<ul>
+  <li>If the integrand looks like $f'(t)\cdot(\text{function of } f(t))$, substitute $u = f(t)$. For example, $\int t\sqrt{t^2+1}\,dt = \tfrac13(t^2+1)^{3/2} + C$.</li>
+  <li>$\sin^2 t = \tfrac12(1-\cos 2t)$, &nbsp; $\cos^2 t = \tfrac12(1+\cos 2t)$, &nbsp; $\sin 2t = 2\sin t\cos t$, &nbsp; $\cos 2t = \cos^2 t - \sin^2 t$</li>
+  <li>Product to sum: $2\sin A\cos B = \sin(A+B) + \sin(A-B)$ and $2\cos A\cos B = \cos(A-B) + \cos(A+B)$. These come back in Fourier (Topic 4).</li>
+  <li>$\int \tan t\,dt = -\ln|\cos t| = \ln|\sec t|$, &nbsp; $\int \sec t\,dt = \ln|\sec t + \tan t|$</li>
+</ul>
+
+<div class="trap"><strong>Exam trap</strong><br>There's no calculator and no Topic 1 formula sheet, so you can't look up an integral. Always differentiate your antiderivative to check it. It takes 20 seconds and catches most sign errors.</div>
+
+<h2>2 · Product and chain rule under pressure</h2>
+<p><em>Used in: Lesson 2 (reduction of order), Lesson 3 (Euler equations).</em></p>
+<p>In reduction of order you substitute $y = v(t)\,y_1(t)$ and differentiate twice. The product rule is easy, but it's easy to drop a term when you're doing it inside a long substitution. Use the same layout every time:</p>
+<div class="box">
+<p>$y = v\,e^{2t}$</p>
+<p>$y' = (v' + 2v)\,e^{2t}$</p>
+<p>$y'' = (v'' + 2v')\,e^{2t} + 2(v' + 2v)\,e^{2t} = (v'' + 4v' + 4v)\,e^{2t}$</p>
+<p>Substitute into $y'' - 4y' + 4y$: &nbsp; $(v''+4v'+4v) - 4(v'+2v) + 4v = v''$, so the whole thing becomes $v''\,e^{2t}$. Every $v$ term cancels. That isn't luck: it's why reduction of order works (Lesson 2).</p>
+</div>
+<p>For Euler equations you trial $y = t^r$. Then $y' = r\,t^{r-1}$ and $y'' = r(r-1)\,t^{r-2}$, so $t^2y'' = r(r-1)\,t^r$ and $t\,y' = r\,t^r$. All the powers come out as $t^r$, which is why the trial works.</p>
+
+<h2>3 · Complex numbers and Euler's formula</h2>
+<p><em>Used in: Lesson 3 (complex roots, Euler equations), Lessons 4–5 (complex eigenvalues), Topics 3, 4 and 6.</em></p>
+<p>$$e^{i\theta} = \cos\theta + i\sin\theta \qquad\Longrightarrow\qquad e^{(\alpha+i\beta)t} = e^{\alpha t}(\cos\beta t + i\sin\beta t).$$</p>
+<ul>
+  <li><strong>Roots of a quadratic:</strong> $\lambda^2 + 2\lambda + 5 = 0 \Rightarrow \lambda = \dfrac{-2\pm\sqrt{4-20}}{2} = -1 \pm 2i$. Complex roots of a real quadratic always come in conjugate pairs.</li>
+  <li><strong>Dividing:</strong> multiply the top and bottom by the conjugate. $\dfrac{1}{2+i} = \dfrac{2-i}{(2+i)(2-i)} = \dfrac{2-i}{5}$.</li>
+  <li><strong>Real and imaginary parts of a product:</strong> expand fully, then collect. $(1+i)(\cos 2t + i\sin 2t) = (\cos 2t - \sin 2t) + i(\cos 2t + \sin 2t)$. With complex eigenvalues, the two real solutions are exactly these two parts.</li>
+  <li><strong>Complex powers of $t$:</strong> $t^{i\beta} = e^{i\beta\ln t} = \cos(\beta\ln t) + i\sin(\beta\ln t)$. This is where the $\cos(\ln t)$ solutions of Euler equations come from.</li>
+</ul>
+
+<h2>4 · Second-order constant-coefficient ODEs</h2>
+<p><em>Used in: Lessons 2–4 directly, and it's the model for everything after. The slides call it "Calc 2", but it's really the core of Topic 1.</em></p>
+<p>For $ay'' + by' + cy = 0$, trial $y = e^{rt}$ to get the <strong>characteristic equation</strong> $ar^2 + br + c = 0$. Then:</p>
+<ol class="steps">
+  <li><strong>Distinct real roots</strong> $r_1 \ne r_2$: &nbsp; $y = c_1e^{r_1t} + c_2e^{r_2t}$</li>
+  <li><strong>Repeated root</strong> $r$: &nbsp; $y = (c_1 + c_2\,t)\,e^{rt}$. You'll derive the extra $t$ with reduction of order in Lesson 2.</li>
+  <li><strong>Complex roots</strong> $\alpha \pm i\beta$: &nbsp; $y = e^{\alpha t}(c_1\cos\beta t + c_2\sin\beta t)$</li>
+</ol>
+<div class="box">
+<p><strong>Example.</strong> $y'' + 2y' + 5y = 0,\ \ y(0) = 1,\ \ y'(0) = 3$.</p>
+<p>The roots are $-1\pm 2i$, so $y = e^{-t}(c_1\cos 2t + c_2\sin 2t)$, and $y(0) = c_1 = 1$.</p>
+<p>$y' = -e^{-t}(c_1\cos 2t + c_2\sin 2t) + e^{-t}(-2c_1\sin 2t + 2c_2\cos 2t)$, so $y'(0) = -c_1 + 2c_2 = 3$, which gives $c_2 = 2$.</p>
+<p>$\boxed{y = e^{-t}(\cos 2t + 2\sin 2t)}$</p>
+</div>
+<div class="trap"><strong>Exam trap</strong><br>For $y'' - k^2y = 0$, the answer $c_1\cosh kt + c_2\sinh kt$ is equally valid and often makes applying conditions easier, because $\cosh 0 = 1$ and $\sinh 0 = 0$. You need it in Topic 5. And when you differentiate $e^{-t}\cos 2t$, don't forget the product rule (see section 2).</div>
+
+<h2>5 · Linear algebra for ODEs</h2>
+<p><em>Used in: Lesson 3 (independence, Wronskian), Lessons 4–6 (systems).</em></p>
+
+<h3>Linear independence of functions</h3>
+<p>Functions $f_1,\dots,f_n$ are <strong>linearly independent</strong> if
+$$c_1f_1(t) + \dots + c_nf_n(t) = 0 \ \text{ for all } t \quad\Longrightarrow\quad c_1 = \dots = c_n = 0.$$
+This is the same definition as for vectors. The "vectors" are now functions, and "$=0$" means equal to zero <em>for every $t$</em>.</p>
+<ul>
+  <li><strong>Two functions</strong> are dependent exactly when one is a constant multiple of the other. So $\{e^t, e^{2t}\}$ and $\{e^t, te^t\}$ are independent, because their ratios $e^t$ and $t$ aren't constant.</li>
+  <li><strong>Three or more:</strong> look for an identity. $\{1, \sin^2 t, \cos^2 t\}$ is dependent because $\sin^2 t + \cos^2 t - 1 = 0$. $\{1, t, t^2\}$ is independent.</li>
+  <li>To <em>prove</em> independence, either substitute a few values of $t$ to force every $c_i = 0$, or use the Wronskian (Lesson 3).</li>
+</ul>
+<p>The solutions of an $n$th-order linear homogeneous ODE form a vector space of dimension $n$. That's why a 2nd-order ODE needs exactly two independent solutions, and why "general solution" means "every linear combination of a basis".</p>
+
+<h3>Determinants</h3>
+<p>$\begin{vmatrix} a&amp;b\\ c&amp;d\end{vmatrix} = ad - bc$. For a $3\times3$, expand along the row or column with the most zeros, using the sign pattern $\begin{smallmatrix}+&amp;-&amp;+\\-&amp;+&amp;-\\+&amp;-&amp;+\end{smallmatrix}$. A triangular matrix has determinant equal to the product of its diagonal. For example, $\begin{vmatrix}1&amp;t&amp;t^2\\0&amp;1&amp;2t\\0&amp;0&amp;2\end{vmatrix} = 2$, which is the Wronskian of $1, t, t^2$.</p>
+
+<h3>Eigenvalues and eigenvectors (2×2)</h3>
+<ol class="steps">
+  <li><strong>Eigenvalues:</strong> $\lambda^2 - (\operatorname{tr}A)\,\lambda + \det A = 0$. This is faster than expanding $\det(A-\lambda I)$, and the same trace and determinant classify phase portraits in Lesson 5.</li>
+  <li><strong>Eigenvector:</strong> take the first row of $A - \lambda I$, say $(p,\ q)$. Then $v = (q,\ -p)$ is an eigenvector, because $p\cdot q + q\cdot(-p) = 0$. If that row is all zeros, use the second row instead.</li>
+  <li><strong>Check:</strong> $Av = \lambda v$. It's one line, so always do it.</li>
+</ol>
+<div class="box">
+<p>$A = \begin{pmatrix}1&amp;4\\2&amp;-1\end{pmatrix}$: &nbsp; $\operatorname{tr}A = 0$, $\det A = -9$, so $\lambda^2 - 9 = 0$ and $\lambda = \pm 3$.</p>
+<p>$\lambda = 3$: the first row of $A - 3I$ is $(-2,\ 4)$, giving $v = (4,\ 2) \propto (2,\ 1)$. Check: $A(2,1)^T = (6,3)^T = 3(2,1)^T$ ✓</p>
+<p>$\lambda = -3$: the first row of $A + 3I$ is $(4,\ 4)$, giving $v = (4,\ -4) \propto (1,\ -1)$. Check: $A(1,-1)^T = (-3,3)^T$ ✓</p>
+</div>
+<div class="box">
+<p><strong>Complex case.</strong> $B = \begin{pmatrix}1&amp;-2\\1&amp;3\end{pmatrix}$: &nbsp; $\lambda^2 - 4\lambda + 5 = 0$, so $\lambda = 2\pm i$.</p>
+<p>$\lambda = 2+i$: the first row of $B - \lambda I$ is $(-1-i,\ -2)$, giving $v = (-2,\ 1+i)$. The eigenvector for $2-i$ is simply the conjugate, $(-2,\ 1-i)$, so you never compute it twice.</p>
+<p>Check: $Bv = (-4-2i,\ 1+3i)$, and $(2+i)(-2) = -4-2i$ ✓, $(2+i)(1+i) = 1+3i$ ✓</p>
+</div>
+<div class="trap"><strong>Exam trap</strong><br>A repeated eigenvalue might have only one independent eigenvector. For example, $\begin{pmatrix}3&amp;1\\0&amp;3\end{pmatrix}$ has $\lambda = 3$ twice but only the eigenvector $(1,0)$. Then $A$ is <em>not</em> diagonalisable, and the systems method needs an extra step (Lesson 4).</div>
+
+<h3>Diagonalisation and the 2×2 inverse</h3>
+<p>If $A$ has two independent eigenvectors, then $A = PDP^{-1}$, where the columns of $P$ are the eigenvectors and $D$ has the eigenvalues <em>in the same order</em>. This is what lets you decouple systems and compute $e^{At} = Pe^{Dt}P^{-1}$ (Lesson 6).</p>
+<p>$$\begin{pmatrix}a&amp;b\\c&amp;d\end{pmatrix}^{-1} = \frac{1}{ad-bc}\begin{pmatrix}d&amp;-b\\-c&amp;a\end{pmatrix}\qquad\text{(swap the diagonal, negate the off-diagonal, divide by det).}$$</p>
+<div class="box">
+<p>For $A$ above: $P = \begin{pmatrix}2&amp;1\\1&amp;-1\end{pmatrix}$, $D = \begin{pmatrix}3&amp;0\\0&amp;-3\end{pmatrix}$, $\det P = -3$, so $P^{-1} = \tfrac13\begin{pmatrix}1&amp;1\\1&amp;-2\end{pmatrix}$.</p>
+<p><strong>Fitting constants</strong>, which is the last step of every systems IVP: solve $c_1\binom{2}{1} + c_2\binom{1}{-1} = \binom{1}{5}$. That's just $P\mathbf c = \mathbf x_0$, so $\mathbf c = P^{-1}\mathbf x_0 = \tfrac13\binom{6}{-9} = \binom{2}{-3}$. Check: $2\binom21 - 3\binom{1}{-1} = \binom15$ ✓</p>
+</div>
+
+<h2>6 · Limits and where functions break</h2>
+<p><em>Used in: Lesson 1 (interval of validity), Lesson 5 (phase-portrait asymptotics).</em></p>
+<ul>
+  <li><strong>Exponentials beat polynomials:</strong> $t^n e^{-at} \to 0$ as $t\to\infty$ for any $a &gt; 0$. And $e^{-t}\cos 3t \to 0$, because the bounded factor doesn't matter.</li>
+  <li><strong>Which term dominates?</strong> In $\mathbf x(t) = c_1e^{3t}\mathbf v_1 + c_2e^{-3t}\mathbf v_2$ with $c_1, c_2 \ne 0$, the $e^{3t}$ term takes over as $t\to\infty$, so the orbit heads off parallel to $\mathbf v_1$. As $t\to-\infty$, the $e^{-3t}$ term takes over and the orbit runs parallel to $\mathbf v_2$. Lesson 5 is built on this.</li>
+  <li><strong>Where things break:</strong> zeros of denominators; $\ln u$ needs $u &gt; 0$; $\sqrt u$ needs $u \ge 0$; $\tan t$ and $\sec t$ break at $t = \tfrac\pi2 + k\pi$.</li>
+</ul>
+
+<h2>7 · Practice</h2>
+<p>Do any working on paper before you click. If you miss one, reread its section before moving on.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> $\displaystyle\int t\,e^{3t}\,dt = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\left(\tfrac t3 + \tfrac19\right)e^{3t} + C$</button>
+    <button class="opt" data-key="b">$(3t - 1)\,e^{3t} + C$</button>
+    <button class="opt" data-key="c">$\left(\tfrac t3 - \tfrac19\right)e^{3t} + C$</button>
+    <button class="opt" data-key="d">$\tfrac16 t^2 e^{3t} + C$</button>
+  </div>
+  <div class="why">Take $u = t$ and $dv = e^{3t}dt$. Then you get $\tfrac t3e^{3t} - \int\tfrac13e^{3t}dt = \tfrac t3e^{3t} - \tfrac19e^{3t}$. Check: $\tfrac13e^{3t} + 3\left(\tfrac t3 - \tfrac19\right)e^{3t} = te^{3t}$ ✓. Option (d) integrates the two factors separately, which never works.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> Simplify $\;e^{\int \frac{2}{t+1}\,dt}\;$ for $t &gt; -1$.</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(t+1)^2$</button>
+    <button class="opt" data-key="b">$2(t+1)$</button>
+    <button class="opt" data-key="c">$e^{2/(t+1)}$</button>
+    <button class="opt" data-key="d">$e^{2}(t+1)$</button>
+  </div>
+  <div class="why">$\int\frac{2}{t+1}dt = 2\ln(t+1)$, and $e^{2\ln(t+1)} = (t+1)^2$. The coefficient moves into the exponent of the power, not in front of it.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>3.</strong> $\displaystyle\int e^{-t}\cos 2t\,dt = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac15e^{-t}(\cos 2t - 2\sin 2t) + C$</button>
+    <button class="opt" data-key="b">$-\tfrac12e^{-t}\sin 2t + C$</button>
+    <button class="opt" data-key="c">$\tfrac13e^{-t}(2\sin 2t - \cos 2t) + C$</button>
+    <button class="opt" data-key="d">$\tfrac15e^{-t}(2\sin 2t - \cos 2t) + C$</button>
+  </div>
+  <div class="why">Use the formula with $a = -1,\ b = 2$: $\dfrac{e^{-t}(-\cos 2t + 2\sin 2t)}{1+4}$. Check: the derivative of $e^{-t}(2\sin 2t - \cos 2t)$ is $e^{-t}(-2\sin 2t + \cos 2t + 4\cos 2t + 2\sin 2t) = 5e^{-t}\cos 2t$ ✓. Option (a) has the signs flipped, which is the most common slip. Option (c) uses $a + b$ instead of $a^2 + b^2$.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>4.</strong> If $y = t\,v(t)$, then $t^2y'' = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$t^3v''$</button>
+    <button class="opt" data-key="b">$t^3v'' + 2t^2v'$</button>
+    <button class="opt" data-key="c">$t^3v'' + t^2v'$</button>
+    <button class="opt" data-key="d">$t^3v'' + 2t^2v' + 2tv$</button>
+  </div>
+  <div class="why">$y' = tv' + v$, so $y'' = (tv'' + v') + v' = tv'' + 2v'$. Multiplying by $t^2$ gives $t^3v'' + 2t^2v'$. There's no $v$ term because the second derivative of $t$ is zero. Option (c) loses the second $v'$, which is the usual slip.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>5.</strong> The real part of $\;(1+i)\,e^{2it}\;$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\cos 2t - \sin 2t$</button>
+    <button class="opt" data-key="b">$\cos 2t + \sin 2t$</button>
+    <button class="opt" data-key="c">$\cos 2t$</button>
+    <button class="opt" data-key="d">$\cos 2t - i\sin 2t$</button>
+  </div>
+  <div class="why">$(1+i)(\cos 2t + i\sin 2t) = \cos 2t + i\sin 2t + i\cos 2t + i^2\sin 2t$. The real terms are $\cos 2t - \sin 2t$, because $i^2 = -1$. Option (d) isn't even real. You'll do exactly this to turn a complex eigenvector solution into two real ones.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>6.</strong> The general solution of $\;y'' - 6y' + 9y = 0\;$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$c_1e^{3t} + c_2e^{-3t}$</button>
+    <button class="opt" data-key="b">$c_1e^{3t} + c_2e^{3t}$</button>
+    <button class="opt" data-key="c">$(c_1 + c_2t)\,e^{3t}$</button>
+    <button class="opt" data-key="d">$c_1\cos 3t + c_2\sin 3t$</button>
+  </div>
+  <div class="why">$r^2 - 6r + 9 = (r-3)^2$ has the repeated root $3$. Option (b) is really just one solution, $(c_1 + c_2)e^{3t}$: the two functions aren't independent, so it can't be the general solution.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>7.</strong> The general solution of $\;y'' + 4y' + 13y = 0\;$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{3t}(c_1\cos 2t + c_2\sin 2t)$</button>
+    <button class="opt" data-key="b">$e^{-2t}(c_1\cos 3t + c_2\sin 3t)$</button>
+    <button class="opt" data-key="c">$e^{2t}(c_1\cos 3t + c_2\sin 3t)$</button>
+    <button class="opt" data-key="d">$c_1e^{-2t} + c_2e^{3t}$</button>
+  </div>
+  <div class="why">$r = \dfrac{-4\pm\sqrt{16-52}}{2} = -2\pm 3i$. The real part goes in the exponential and the imaginary part goes inside cos and sin. Option (a) swaps them.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>8.</strong> Which set of functions is linearly <em>dependent</em>?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\{e^t,\ te^t\}$</button>
+    <button class="opt" data-key="b">$\{\cos t,\ \sin t\}$</button>
+    <button class="opt" data-key="c">$\{t,\ t^2\}$</button>
+    <button class="opt" data-key="d">$\{1,\ \cos 2t,\ \sin^2 t\}$</button>
+  </div>
+  <div class="why">$\cos 2t = 1 - 2\sin^2 t$, so $1\cdot 1 - 1\cdot\cos 2t - 2\sin^2 t = 0$ for all $t$, with coefficients that aren't all zero. The other three are pairs whose ratio isn't constant.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>9.</strong> The eigenvalues of $\begin{pmatrix}2&amp;3\\-3&amp;2\end{pmatrix}$ are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$2\pm 3i$</button>
+    <button class="opt" data-key="b">$\pm 3i$</button>
+    <button class="opt" data-key="c">$3\pm 2i$</button>
+    <button class="opt" data-key="d">$-1$ and $5$</button>
+  </div>
+  <div class="why">$\operatorname{tr} = 4$ and $\det = 4 + 9 = 13$, so $\lambda^2 - 4\lambda + 13 = 0$ and $\lambda = 2\pm3i$. Matrices of the form $\begin{pmatrix}a&amp;b\\-b&amp;a\end{pmatrix}$ always have eigenvalues $a\pm bi$, which is worth recognising on sight. Option (d) comes from getting the sign of $bc$ wrong in the determinant.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>10.</strong> $A = \begin{pmatrix}3&amp;1\\2&amp;2\end{pmatrix}$ has eigenvalues $1$ and $4$. An eigenvector for $\lambda = 4$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(1,\ -2)$</button>
+    <button class="opt" data-key="b">$(2,\ 1)$</button>
+    <button class="opt" data-key="c">$(1,\ 1)$</button>
+    <button class="opt" data-key="d">$(1,\ -1)$</button>
+  </div>
+  <div class="why">The first row of $A - 4I$ is $(-1,\ 1)$, so $v = (1,\ 1)$. Check: $A(1,1)^T = (4,4)^T$ ✓. Option (a) is the eigenvector for $\lambda = 1$.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>11.</strong> $\begin{pmatrix}2&amp;1\\5&amp;3\end{pmatrix}^{-1} = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\begin{pmatrix}3&amp;-5\\-1&amp;2\end{pmatrix}$</button>
+    <button class="opt" data-key="b">$\begin{pmatrix}3&amp;-1\\-5&amp;2\end{pmatrix}$</button>
+    <button class="opt" data-key="c">$\begin{pmatrix}2&amp;-1\\-5&amp;3\end{pmatrix}$</button>
+    <button class="opt" data-key="d">$\begin{pmatrix}-3&amp;1\\5&amp;-2\end{pmatrix}$</button>
+  </div>
+  <div class="why">$\det = 6 - 5 = 1$. Swap the diagonal, negate the off-diagonal: $\begin{pmatrix}3&amp;-1\\-5&amp;2\end{pmatrix}$. Check by multiplying: the first row of the product is $(2\cdot3 + 1\cdot(-5),\ 2\cdot(-1) + 1\cdot2) = (1,\ 0)$ ✓. Option (a) is its transpose.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>12.</strong> $\mathbf x(t) = e^{2t}\binom{1}{1} + e^{-t}\binom{1}{-2}$. As $t\to-\infty$, $\mathbf x(t)$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">tends to $\mathbf 0$</button>
+    <button class="opt" data-key="b">grows parallel to $(1,\,1)$</button>
+    <button class="opt" data-key="c">tends to $(1,\,1)$</button>
+    <button class="opt" data-key="d">grows parallel to $(1,\,-2)$</button>
+  </div>
+  <div class="why">As $t\to-\infty$, $e^{2t}\to0$ but $e^{-t}\to\infty$, so the second term dominates. As $t\to+\infty$ it's the other way round. Reading off which exponential wins in each direction is most of a phase-portrait question.</div>
+</div>
+
+<h2>8 · Exam-level challenge</h2>
+<p>Do each part on paper first, then open the steps to check.</p>
+
+<div class="box">
+<p><strong>A.</strong> For which real $k$ does <em>every</em> solution of $\;y'' + 2y' + ky = 0\;$ tend to $0$ as $t\to\infty$? Then solve the case $k = 10$ with $y(0) = 0,\ y'(0) = 6$.</p>
+</div>
+<details><summary>A, step 1: roots as a function of $k$</summary><div>
+<p>$r^2 + 2r + k = 0 \Rightarrow r = -1 \pm\sqrt{1-k}$. There are three cases, depending on the sign of $1-k$.</p></div></details>
+<details><summary>A, step 2: go through the cases</summary><div>
+<p><strong>$k &gt; 1$:</strong> the roots are complex, $-1\pm i\sqrt{k-1}$. Every solution has the factor $e^{-t}$, so it decays.<br>
+<strong>$k = 1$:</strong> the root $-1$ is repeated, so $(c_1 + c_2t)e^{-t}\to 0$ (exponentials beat polynomials).<br>
+<strong>$k &lt; 1$:</strong> the roots are real, and the larger is $-1 + \sqrt{1-k}$. That's negative exactly when $\sqrt{1-k} &lt; 1$, i.e. $k &gt; 0$. When $k = 0$ there's the root $0$, giving constant solutions that don't decay, and when $k &lt; 0$ there's a positive root.</p>
+<p>So the answer is $\boxed{k &gt; 0}$. This is the same case-by-case reasoning you'll use for "type and stability for every value of $\alpha$" in Lesson 5.</p></div></details>
+<details><summary>A, step 3: the IVP at $k = 10$</summary><div>
+<p>$r = -1\pm 3i$, so $y = e^{-t}(c_1\cos 3t + c_2\sin 3t)$. From $y(0) = c_1 = 0$ and $y'(0) = -c_1 + 3c_2 = 6$, we get $c_2 = 2$, so $\boxed{y = 2e^{-t}\sin 3t}$.</p></div></details>
+
+<div class="box">
+<p><strong>B.</strong> Diagonalise $A = \begin{pmatrix}0&amp;1\\-2&amp;3\end{pmatrix}$, and check that $PDP^{-1} = A$. Then compare its eigenvalues with the characteristic roots of $y'' - 3y' + 2y = 0$. What do you notice?</p>
+</div>
+<details><summary>B, step 1: eigenvalues and eigenvectors</summary><div>
+<p>$\operatorname{tr} = 3$ and $\det = 2$, so $\lambda^2 - 3\lambda + 2 = 0$, giving $\lambda = 1, 2$.<br>
+$\lambda = 1$: the first row of $A - I$ is $(-1,\ 1)$, so $v = (1,\ 1)$. &nbsp; $\lambda = 2$: the first row is $(-2,\ 1)$, so $v = (1,\ 2)$.</p></div></details>
+<details><summary>B, step 2: $P$, $D$, $P^{-1}$ and the check</summary><div>
+<p>$P = \begin{pmatrix}1&amp;1\\1&amp;2\end{pmatrix}$, $D = \begin{pmatrix}1&amp;0\\0&amp;2\end{pmatrix}$, $\det P = 1$, so $P^{-1} = \begin{pmatrix}2&amp;-1\\-1&amp;1\end{pmatrix}$.<br>
+$PD = \begin{pmatrix}1&amp;2\\1&amp;4\end{pmatrix}$, and $PD\,P^{-1} = \begin{pmatrix}2-2&amp;-1+2\\2-4&amp;-1+4\end{pmatrix} = \begin{pmatrix}0&amp;1\\-2&amp;3\end{pmatrix}$ ✓</p></div></details>
+<details><summary>B, step 3: what you should notice</summary><div>
+<p>The characteristic equation of $y'' - 3y' + 2y = 0$ is $r^2 - 3r + 2 = 0$, which is <em>the same polynomial</em>. Each eigenvector has the form $(1,\ \lambda)$, i.e. $(y,\ y')$ for $y = e^{\lambda t}$. That's no coincidence: $A$ is the matrix you get by rewriting the ODE as a system in $x_1 = y,\ x_2 = y'$. That conversion is the first thing in Lesson 4.</p></div></details>
+
+<h2>9 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, write the three cases for $ar^2+br+c=0$, the eigenvalue shortcut, and the 2×2 inverse. Then check here.</summary><div>
+<p>Distinct real roots: $c_1e^{r_1t} + c_2e^{r_2t}$. Repeated root: $(c_1 + c_2t)e^{rt}$. Complex $\alpha\pm i\beta$: $e^{\alpha t}(c_1\cos\beta t + c_2\sin\beta t)$.<br>
+$\lambda^2 - (\operatorname{tr}A)\lambda + \det A = 0$, and an eigenvector from the row $(p,q)$ is $(q,-p)$.<br>
+$\begin{pmatrix}a&amp;b\\c&amp;d\end{pmatrix}^{-1} = \frac{1}{ad-bc}\begin{pmatrix}d&amp;-b\\-c&amp;a\end{pmatrix}$.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="https://tutorial.math.lamar.edu/Classes/DE/SecondOrderConcepts.aspx">Paul's Online Notes: second-order DEs</a>. Read the "Real Roots", "Complex Roots" and "Repeated Roots" pages. For linear algebra, use <a href="https://tutorial.math.lamar.edu/Classes/DE/LA_Eigen.aspx">Paul's Notes: Eigenvalues and Eigenvectors</a> (Examples 1–3).</p>
+<p><strong>Homework (official practice):</strong> <a href="../problem-booklet/MAST20030ProblemBooklet_Topic0.pdf">Problem Booklet 0</a>, Q3 (a), (e), (h); Q5 (a), (c); Q6 (a), (b); Q8 (b); Q9 (b), (c), (d). Answers are at the back. Also do the <a href="../tutes/tute_week_01.pdf">Week 1 tutorial</a> Q2 and Q3 (<a href="../tutes/tute_week_01_sol.pdf">solutions</a>).<br>
+<em>Optional:</em> Booklet 0, Q7 (partial fractions, which you'll need for Laplace in Topic 3) and Q10 (partial derivatives, Topic 5).</p>
+<p><strong>Rule of thumb:</strong> if Q3, Q5 and Q9 go smoothly, move straight on to Lesson 1. If one of them doesn't, redo the matching section here first.</p>
+
+<div class="ask">💬 Stuck on a step, or want more problems at this level? Ask me in the terminal. You can also paste in your working and I'll mark it.</div>
+
+<div class="nav">
+  <span>Reference: <a href="../reference/topic1-cheatsheet.html">Topic 1 cheat sheet</a></span>
+  <span>Next: <a href="0001-integrating-factors.html">Lesson 1, integrating factors</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

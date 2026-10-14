@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Booklet 1 Solutions</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Worked solutions · <a href="../lessons/0001-integrating-factors.html">Lesson 1</a> homework</div>
+<h1>Problem Booklet 1: Q1 (d)–(f), Q2 (b), (c), (f)</h1>
+<p class="lede">Each step is hidden. Try the part on paper first, then open one step at a time and stop as soon as you see where you went off track. Reading a full solution before attempting it builds fluency, not memory.</p>
+
+<p>Every answer was checked by substituting it back into the ODE. Source: <a href="../problem-booklet/MAST20030ProblemBooklet_Topic1.pdf">Problem Booklet 1</a>. Method: <a href="../reference/topic1-cheatsheet.html">cheat sheet</a>.</p>
+
+<!-- ============ Q1(d) ============ -->
+<h2>Q1 (d)</h2>
+<div class="box"><p>$$(t^2+1)\,y' - 2t\,y = t^2+1$$</p></div>
+
+<details><summary>Standard form and $I$</summary><div>
+<p>Divide by $t^2+1$ (never zero, so there are no bad points):
+$$y' - \frac{2t}{t^2+1}\,y = 1.$$
+$\int -\dfrac{2t}{t^2+1}\,dt = -\ln(t^2+1)$, so
+$$I = e^{-\ln(t^2+1)} = \frac{1}{t^2+1}.$$</p></div></details>
+
+<details><summary>Collapse and integrate</summary><div>
+<p>$$\Big(\frac{y}{t^2+1}\Big)' = \frac{1}{t^2+1} \quad\Longrightarrow\quad \frac{y}{t^2+1} = \arctan t + C.$$</p></div></details>
+
+<details><summary>Answer</summary><div>
+<p>$$\boxed{y = (t^2+1)\big(\arctan t + C\big)}, \qquad t\in\mathbb R.$$</p>
+<p><em>Note:</em> the right side became $\frac{1}{t^2+1}$ after multiplying by $I$. Spot $\int\frac{1}{1+t^2} = \arctan t$ instantly; it comes up again in Laplace.</p></div></details>
+
+<!-- ============ Q1(e) ============ -->
+<h2>Q1 (e)</h2>
+<div class="box"><p>$$t\,y' + (t+1)\,y = 3e^{-t}$$</p></div>
+
+<details><summary>Standard form and $I$</summary><div>
+<p>Divide by $t$:
+$$y' + \Big(1 + \frac1t\Big)y = \frac{3e^{-t}}{t}.$$
+$\int\big(1+\frac1t\big)dt = t + \ln t$, so
+$$I = e^{t+\ln t} = e^t\cdot e^{\ln t} = t\,e^{t}.$$
+Split the exponent: $e^{a+b} = e^a e^b$. (For $t&lt;0$ you'd get $|t|e^t$, but a constant sign doesn't matter in $I$.)</p></div></details>
+
+<details><summary>Collapse and integrate</summary><div>
+<p>$$(t e^t y)' = t e^t\cdot\frac{3e^{-t}}{t} = 3 \quad\Longrightarrow\quad t e^t y = 3t + C.$$
+Everything cancels. That's the sign you chose $I$ right.</p></div></details>
+
+<details><summary>Answer</summary><div>
+<p>$$\boxed{y = 3e^{-t} + \frac{C\,e^{-t}}{t}}, \qquad t&gt;0 \text{ or } t&lt;0.$$
+In Lesson 2's terms: $y_c = Ce^{-t}/t$, $\;y_p = 3e^{-t}$.</p></div></details>
+
+<!-- ============ Q1(f) ============ -->
+<h2>Q1 (f)</h2>
+<div class="box"><p>$$t\,y' + 2y = e^{t} + \log t$$</p></div>
+
+<details><summary>Standard form and $I$</summary><div>
+<p>$\log t$ forces $t&gt;0$. Divide by $t$:
+$$y' + \frac2t\,y = \frac{e^t + \ln t}{t}, \qquad I = e^{2\ln t} = t^2.$$</p></div></details>
+
+<details><summary>Collapse</summary><div>
+<p>$$(t^2 y)' = t^2\cdot\frac{e^t + \ln t}{t} = t\,e^t + t\ln t.$$</p></div></details>
+
+<details><summary>The two integrals (by parts)</summary><div>
+<p><strong>First:</strong> $u = t$, $dv = e^t\,dt$:
+$$\int t e^t\,dt = t e^t - \int e^t\,dt = (t-1)e^t.$$</p>
+<p><strong>Second:</strong> $u = \ln t$ (the log is always $u$), $dv = t\,dt$:
+$$\int t\ln t\,dt = \frac{t^2}{2}\ln t - \int \frac{t^2}{2}\cdot\frac1t\,dt = \frac{t^2}{2}\ln t - \frac{t^2}{4}.$$</p>
+<p>So $t^2 y = (t-1)e^t + \tfrac{t^2}{2}\ln t - \tfrac{t^2}{4} + C$.</p></div></details>
+
+<details><summary>Answer</summary><div>
+<p>Divide by $t^2$, <em>including</em> the $C$:
+$$\boxed{y = \frac{(t-1)e^t}{t^2} + \frac{\ln t}{2} - \frac14 + \frac{C}{t^2}}, \qquad t&gt;0.$$</p></div></details>
+
+<!-- ============ Q2(b) ============ -->
+<h2>Q2 (b)</h2>
+<div class="box"><p>$$y' + t\,y = t^3, \qquad y(0) = 3$$</p></div>
+
+<details><summary>Interval first</summary><div>
+<p>Already in standard form. $f = t$ and $g = t^3$ are continuous everywhere, so there are no bad points: valid on $\mathbb R$.</p></div></details>
+
+<details><summary>$I$ and collapse</summary><div>
+<p>$I = e^{\int t\,dt} = e^{t^2/2}$, so
+$$\big(e^{t^2/2}y\big)' = t^3 e^{t^2/2}.$$</p></div></details>
+
+<details><summary>The integral (substitute, then by parts)</summary><div>
+<p>Let $u = \tfrac{t^2}{2}$, so $du = t\,dt$ and $t^2 = 2u$. Then $t^3\,dt = t^2\cdot t\,dt = 2u\,du$:
+$$\int t^3 e^{t^2/2}\,dt = \int 2u\,e^u\,du = 2(u-1)e^u = (t^2-2)\,e^{t^2/2}.$$
+<em>Trick:</em> split $t^3 = t^2\cdot t$ so that one $t$ goes with $dt$ to make $du$.</p></div></details>
+
+<details><summary>General solution, IC, answer</summary><div>
+<p>$e^{t^2/2}y = (t^2-2)e^{t^2/2} + C \;\Rightarrow\; y = t^2 - 2 + Ce^{-t^2/2}$.<br>
+$y(0) = -2 + C = 3 \;\Rightarrow\; C = 5$:
+$$\boxed{y = t^2 - 2 + 5e^{-t^2/2}}, \qquad t\in\mathbb R.$$</p></div></details>
+
+<!-- ============ Q2(c) ============ -->
+<h2>Q2 (c)</h2>
+<div class="box"><p>$$y' + \frac{4y}{t+2} = 3, \qquad y(0) = -5$$</p></div>
+
+<details><summary>Interval first</summary><div>
+<p>The only bad point is $t = -2$. Since $t_0 = 0 &gt; -2$, the interval is $(-2,\infty)$.</p></div></details>
+
+<details><summary>$I$ and collapse</summary><div>
+<p>$I = e^{4\ln(t+2)} = (t+2)^4$, so
+$$\big((t+2)^4 y\big)' = 3(t+2)^4 \quad\Longrightarrow\quad (t+2)^4 y = \tfrac35(t+2)^5 + C.$$</p></div></details>
+
+<details><summary>General solution, IC, answer</summary><div>
+<p>$y = \tfrac35(t+2) + C(t+2)^{-4}$.<br>
+$y(0) = \tfrac65 + \tfrac{C}{16} = -5 \;\Rightarrow\; \tfrac{C}{16} = -\tfrac{31}{5} \;\Rightarrow\; C = -\tfrac{496}{5}$:
+$$\boxed{y = \frac{3(t+2)}{5} - \frac{496}{5(t+2)^4}}, \qquad t\in(-2,\infty).$$
+Ugly constants are normal. Don't panic if $C$ isn't a nice number. Check $y(0)$ again instead.</p></div></details>
+
+<!-- ============ Q2(f) ============ -->
+<h2>Q2 (f)</h2>
+<div class="box"><p>$$y' + \frac{2y}{t} = \frac{1}{t^2}, \qquad y(t_0) = y_0$$</p></div>
+
+<details><summary>Interval first (the point of this question)</summary><div>
+<p>The only bad point is $t = 0$, which splits the line into two pieces. Which one you get depends on $t_0$:</p>
+<ul>
+<li>If $t_0 &gt; 0$: valid on $(0,\infty)$.</li>
+<li>If $t_0 &lt; 0$: valid on $(-\infty,0)$.</li>
+<li>If $t_0 = 0$: the theorem guarantees nothing. In fact you can't even impose $y(0) = y_0$, because the solutions below aren't defined at $0$.</li>
+</ul></div></details>
+
+<details><summary>$I$ and collapse</summary><div>
+<p>$I = e^{2\ln|t|} = t^2$ (fine for both signs of $t$). Then
+$$(t^2 y)' = 1 \quad\Longrightarrow\quad t^2 y = t + C \quad\Longrightarrow\quad y = \frac1t + \frac{C}{t^2}.$$</p></div></details>
+
+<details><summary>Apply the symbolic IC, answer</summary><div>
+<p>$y_0 = \dfrac{1}{t_0} + \dfrac{C}{t_0^2} \;\Rightarrow\; C = y_0t_0^2 - t_0$:
+$$\boxed{y = \frac1t + \frac{y_0t_0^2 - t_0}{t^2}}$$
+on $(0,\infty)$ if $t_0&gt;0$, or on $(-\infty,0)$ if $t_0&lt;0$.</p>
+<p><em>Check:</em> put $t = t_0$: $\;\frac{1}{t_0} + y_0 - \frac{1}{t_0} = y_0$ ✓</p></div></details>
+
+<h2>Patterns to take away</h2>
+<ul>
+  <li><strong>Everything cancels after multiplying by $I$</strong> (Q1e, Q2c, Q2f). This happens a lot and is a good sign your $I$ is right.</li>
+  <li><strong>$e^{a+\ln t} = t\,e^{a}$</strong>: split the exponent before simplifying.</li>
+  <li><strong>By parts with a log:</strong> the log is always $u$.</li>
+  <li><strong>$t^3e^{t^2/2}$:</strong> split off one $t$ for the substitution.</li>
+  <li><strong>Symbolic $t_0$:</strong> the answer is a case split on the sign of $t_0$.</li>
+</ul>
+
+<div class="ask">💬 Got a different answer? It might still be right (e.g. a different but equivalent form of $C$). Paste your working in the terminal and I'll check it.</div>
+
+<div class="nav">
+  <span>Back to <a href="../lessons/0001-integrating-factors.html">Lesson 1</a></span>
+  <span>Reference: <a href="../reference/topic1-cheatsheet.html">Topic 1 cheat sheet</a></span>
+</div>
+</main>
+</body>
+</html>

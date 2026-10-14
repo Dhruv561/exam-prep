@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DS Glossary</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body class="ref" data-money>
+<main>
+<div class="kicker">FNCE30007 · Reference</div>
+<h1>Glossary</h1>
+<p class="lede">Every lesson uses these terms in exactly this sense. New terms get added with each lesson.</p>
+<table>
+<tr><th>Term</th><th>Meaning</th><th>Lesson</th></tr>
+<tr><td>Derivative</td><td>A contract whose value is derived from the price of an underlying asset</td><td><a href="../lessons/0001-futures-and-margin-accounts.html">1</a></td></tr>
+<tr><td>Underlying</td><td>The asset (commodity, index, currency, …) the derivative is written on</td><td>1</td></tr>
+<tr><td>Spot price \(S_t\)</td><td>The price for immediate delivery at time \(t\)</td><td>1</td></tr>
+<tr><td>Futures price \(F_t\)</td><td>The price agreed at \(t\) for delivery at \(T\). Today's is \(F_0\)</td><td>1</td></tr>
+<tr><td>Forward</td><td>An OTC agreement to trade at \(T\) at a fixed price, settled once</td><td>1</td></tr>
+<tr><td>Futures contract</td><td>An exchange-traded, standardised forward, settled daily</td><td>1</td></tr>
+<tr><td>Long / short</td><td>Agreed to buy (gains if the price rises) / agreed to sell (gains if the price falls)</td><td>1</td></tr>
+<tr><td>Contract size / multiplier</td><td>The amount of underlying per contract, or $ per index point (SPI 200: $25)</td><td>1</td></tr>
+<tr><td>Close out</td><td>Enter the opposite trade in the same contract to cancel the position</td><td>1</td></tr>
+<tr><td>Delivery / cash settlement</td><td>Settling by handing over the asset / by paying the difference against spot</td><td>1</td></tr>
+<tr><td>Clearing house</td><td>The exchange's intermediary that is counterparty to both sides and guarantees performance</td><td>1</td></tr>
+<tr><td>Marking to market (daily settlement)</td><td>Moving each day's gain or loss into or out of the margin account</td><td>1</td></tr>
+<tr><td>Initial margin</td><td>The deposit required to open a position. A call restores the balance to this level</td><td>1</td></tr>
+<tr><td>Maintenance margin</td><td>The floor. A balance strictly below it triggers a margin call</td><td>1</td></tr>
+<tr><td>Margin call</td><td>The demand to top the account back up to initial margin</td><td>1</td></tr>
+<tr><td>Settlement price</td><td>The exchange's end-of-day price used for marking to market</td><td>1</td></tr>
+<tr><td>Basis</td><td>Spot − futures (\(S_t - F_t\)). It goes to 0 at delivery (convergence)</td><td>1</td></tr>
+<tr><td>Arbitrage</td><td>A riskless profit with no net investment</td><td>1</td></tr>
+<tr><td>Hedger / speculator / arbitrageur</td><td>Reduces an existing risk / bets on a price view / exploits mispricing</td><td>1</td></tr>
+<tr><td>OTC</td><td>"Over the counter": traded privately between dealers, not on an exchange</td><td>1</td></tr>
+<tr><td>Novation</td><td>Replacing a trade between buyer and seller with two contracts, each with the clearing house</td><td><a href="../lessons/0002-forwards-vs-futures.html">2</a></td></tr>
+<tr><td>Counterparty (credit) risk</td><td>The risk that the other side of a contract fails to pay. Forwards carry it; futures largely don't</td><td>2</td></tr>
+<tr><td>Liquidity risk (futures)</td><td>The risk of having to find cash for margin calls before a position's gains arrive</td><td>2</td></tr>
+<tr><td>Delivery options</td><td>The short's choice of grade, place and timing of delivery. They lower the futures price</td><td>2</td></tr>
+<tr><td>Final settlement price</td><td>For a cash-settled contract, the last mark-to-market price, set equal to spot</td><td>2</td></tr>
+<tr><td>Open interest</td><td>Contracts outstanding = total long positions = total short positions</td><td>2</td></tr>
+<tr><td>Trading volume</td><td>Contracts traded in a period, each trade counted once</td><td>2</td></tr>
+<tr><td>Long hedger / short hedger</td><td>Will buy the asset later, so goes long / will sell it later, so goes short</td><td>2</td></tr>
+<tr><td>Natural position (naturally long / short)</td><td>The firm's existing exposure: long if it holds or will sell the asset, short if it must buy it later</td><td><a href="../lessons/0003-hedging-and-basis-risk.html">3</a></td></tr>
+<tr><td>Short hedge / long hedge</td><td>A hedge using a short / long futures position, taken by a naturally long / naturally short firm</td><td>3</td></tr>
+<tr><td>Perfect hedge</td><td>Removes all risk. Needs the same asset, close-out at the futures' maturity and an exact size</td><td>3</td></tr>
+<tr><td>Basis strengthening / weakening</td><td>The basis \(S - F\) rises / falls. Short hedgers gain when it strengthens, long hedgers when it weakens</td><td>3</td></tr>
+<tr><td>Closing basis \(b_2\)</td><td>\(S_2 - F_2\) when the hedge is closed out</td><td>3</td></tr>
+<tr><td>Basis risk</td><td>Uncertainty in the closing basis: the risk left after hedging</td><td>3</td></tr>
+<tr><td>Effective price</td><td>The hedger's net price after the futures gain or loss: \(F_1 + b_2\) (slides: \(F_0 + b_1\))</td><td>3</td></tr>
+<tr><td>Rolling the hedge / stack and roll</td><td>Closing a near contract and reopening in a later one, repeatedly, to hedge a long-dated exposure</td><td>3</td></tr>
+<tr><td>Rollover risk</td><td>The risk from the spread between contracts at each roll</td><td>3</td></tr>
+<tr><td>Cross hedge</td><td>Hedging with futures on a different but correlated asset</td><td><a href="../lessons/0004-cross-hedging-and-the-minimum-variance-hedge-ratio.html">4</a></td></tr>
+<tr><td>Asset-mismatch basis</td><td>\(S_1 - S_1^*\): the spread between your asset and the futures' underlying at close-out</td><td>4</td></tr>
+<tr><td>Hedge ratio \(h\)</td><td>Size of the futures position ÷ size of the exposure</td><td>4</td></tr>
+<tr><td>Naive hedge</td><td>\(h = 1\): one unit of futures per unit of exposure</td><td>4</td></tr>
+<tr><td>Minimum-variance hedge ratio \(h^*\)</td><td>\(\rho\sigma_S/\sigma_F = \sigma_{SF}/\sigma_F^2\), the slope of \(\Delta S\) regressed on \(\Delta F\)</td><td>4</td></tr>
+<tr><td>Hedge effectiveness</td><td>Fraction of variance removed by \(h^*\): \(\rho^2\)</td><td>4</td></tr>
+<tr><td>Tailing the hedge</td><td>Adjustment for daily settlement (\(N = h^*S_0Q_A/(F_0Q_F)\)). Finals say “ignore tailing”</td><td>4</td></tr>
+<tr><td>Stock index futures</td><td>Cash-settled futures on an index level, worth a fixed multiplier per point (SPI 200: A$25)</td><td><a href="../lessons/0005-hedging-with-stock-index-futures.html">5</a></td></tr>
+<tr><td>Beta \(\beta\)</td><td>Expected % move of a portfolio per 1% market move; regression slope \(\rho\sigma_P/\sigma_M\)</td><td>5</td></tr>
+<tr><td>CAPM</td><td>\(E[r] = r_f + \alpha + \beta(E[r_m] - r_f)\) over a period</td><td>5</td></tr>
+<tr><td>Market risk premium</td><td>\(E[r_m] - r_f\): extra expected return for holding the market</td><td>5</td></tr>
+<tr><td>Alpha \(\alpha\)</td><td>Return from stock picking beyond what beta explains</td><td>5</td></tr>
+<tr><td>Target beta \(\beta^*\)</td><td>The beta the portfolio plus futures is set to</td><td>5</td></tr>
+<tr><td>Market-neutral</td><td>\(\beta^* = 0\): market moves cancel out</td><td>5</td></tr>
+<tr><td>Locking in alpha</td><td>Fully beta-hedging so the expected return is \(r_f + \alpha\)</td><td>5</td></tr>
+<tr><td>Investment asset</td><td>Held by many purely as an investment (shares, bonds, indices, gold, silver). Arbitrage pins \(F_0\) exactly</td><td><a href="../lessons/0006-cost-of-carry-and-arbitrage.html">6</a></td></tr>
+<tr><td>Consumption asset</td><td>Held mainly to be used up (oil, copper, wheat). Arbitrage gives only an upper bound on \(F_0\)</td><td>6</td></tr>
+<tr><td>Continuous compounding</td><td>\(A\) grows to \(Ae^{rT}\); discount with \(e^{-rT}\)</td><td>6</td></tr>
+<tr><td>Effective annual rate</td><td>What $1 actually earns in a year: \(e^{r_c} - 1\)</td><td>6</td></tr>
+<tr><td>Cost of carry \(c\)</td><td>Financing + storage − income from holding the asset to \(T\): \(c = r - q + u\)</td><td>6</td></tr>
+<tr><td>Short selling</td><td>Borrow the asset, sell it now, buy it back later to return it; you owe any income it pays meanwhile</td><td>6</td></tr>
+<tr><td>Cash-and-carry arbitrage</td><td>When \(F_0\) is above fair: borrow, buy spot, short the forward</td><td>6</td></tr>
+<tr><td>Reverse cash-and-carry</td><td>When \(F_0\) is below fair: short (or sell) spot, invest, long the forward</td><td>6</td></tr>
+<tr><td>Known income \(I\)</td><td>PV of cash income paid before \(T\), each payment discounted at its own maturity's rate</td><td><a href="../lessons/0007-assets-with-income-and-yield.html">7</a></td></tr>
+<tr><td>Known yield \(q\)</td><td>Income paid continuously as a % of the asset's value, p.a. continuously compounded</td><td>7</td></tr>
+<tr><td>Dividend yield (index)</td><td>\(q\) for a stock index: its dividends treated as a continuous yield</td><td>7</td></tr>
+<tr><td>Index arbitrage</td><td>Trading the index stocks (or an ETF) against index futures when \(F_0 \ne S_0e^{(r-q)T}\)</td><td>7</td></tr>
+<tr><td>Program trading</td><td>Computer-executed simultaneous orders across a whole basket of stocks</td><td>7</td></tr>
+<tr><td>ETF</td><td>Exchange-traded fund tracking an index; trades the basket in one order</td><td>7</td></tr>
+<tr><td>Domestic / foreign currency (in a quote)</td><td>In “X per Y”, Y is foreign (the thing priced, yield \(r_f\)) and X is domestic (rate \(r\)). Set by the quote, not where you live</td><td><a href="../lessons/0008-currency-forwards.html">8</a></td></tr>
+<tr><td>Covered interest parity (CIP)</td><td>\(F_0 = S_0e^{(r-r_f)T}\), enforced by covered interest arbitrage</td><td>8</td></tr>
+<tr><td>Covered interest arbitrage</td><td>Borrow one currency, convert at spot, invest at the other's rate, lock the conversion back with a forward</td><td>8</td></tr>
+<tr><td>Forward premium / discount</td><td>The foreign currency's forward is above / below spot (\(F_0 > S_0\) when \(r > r_f\))</td><td>8</td></tr>
+<tr><td>Hedge ratio (FX)</td><td>The share of a foreign-currency exposure that is hedged</td><td>8</td></tr>
+<tr><td>Storage cost \(U\) / \(u\)</td><td>PV of dollar storage costs (net of income) / storage as a continuous % of the price p.a.</td><td><a href="../lessons/0009-commodities-storage-and-convenience-yield.html">9</a></td></tr>
+<tr><td>Full carry \(F^*\)</td><td>The cost-of-carry price \((S_0+U)e^{rT}\), or \(S_0e^{rT} +\) storage paid at \(T\)</td><td>9</td></tr>
+<tr><td>Convenience yield \(y\)</td><td>Benefit of holding the physical commodity, as a rate: \(F_0e^{yT} = (S_0+U)e^{rT}\). Zero for investment assets</td><td>9</td></tr>
+<tr><td>Industry contango / backwardation</td><td>\(F_0 > S_0\) (upward curve) / \(F_0 < S_0\)</td><td>9</td></tr>
+<tr><td>Normal contango / backwardation</td><td>\(F_0 > E[S_T]\) / \(F_0 < E[S_T]\)</td><td>9</td></tr>
+<tr><td>Futures curve; prompt / deferred</td><td>Futures prices plotted against maturity; nearest / later maturities</td><td>9</td></tr>
+<tr><td>Delivery price \(K\)</td><td>The price written into a forward at entry (that day's forward price). It never changes</td><td><a href="../lessons/0010-valuing-forward-and-futures-contracts.html">10</a></td></tr>
+<tr><td>Value of a forward \(f\)</td><td>0 at inception; long \((F_0-K)e^{-rT}\), short \((K-F_0)e^{-rT}\)</td><td>10</td></tr>
+<tr><td>Offsetting forward</td><td>A new opposite forward entered today at \(F_0\), locking in \(F_0 - K\) at \(T\)</td><td>10</td></tr>
+<tr><td>Value of a futures position</td><td>Cumulative \(F - K\), already paid via daily settlement; worth 0 after each settlement</td><td>10</td></tr>
+<tr><td>Calendar (spread) bound</td><td>\(F_2 \le F_1e^{r(t_2-t_1)}\) for two maturities on the same asset, no storage</td><td>10</td></tr>
+</table>
+</main>
+</body>
+</html>

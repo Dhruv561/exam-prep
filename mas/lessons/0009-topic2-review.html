@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topic 2 Mixed Review</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 9 · Topic 2: Exponential families &amp; GLMs</div>
+<h1>Topic 2 mixed review: exponential families, IWLS, rate and gamma models, diagnostics</h1>
+<p class="lede">The goal: without your notes, handle a new distribution, a Poisson rate model, a gamma model and a binomial printout at exam speed, in a shuffled order, and find out which lesson you need to go back to.</p>
+
+<div class="mission">Why this matters for 10 Nov: the exponential-family question (8–10 marks) and the GLM R-output question (7–22 marks) are on almost every recent paper. In the exam, Topic 1 and Topic 2 skills arrive mixed in one question: a Poisson printout can ask for a Wald CI, an LRT and a dispersion estimate in consecutive parts. This review mixes them the same way. About three questions in eleven come from Topic 1.</div>
+
+<div class="trap"><strong>Rules for this lesson</strong><br>Close Lessons 1–8, both cheat sheets and the slides. Use paper and a calculator only. Write down your best attempt before you open any answer. Each wrong first try is useful: the table at the end says where to go back to.</div>
+
+<h2>1 · Recall first (5 minutes)</h2>
+<p>On a blank page, write from memory:</p>
+<ol>
+  <li>The exponential-family form, the lemma for \(\mathbb EY\) and \(\operatorname{Var}Y\), the definition of \(v(\mu)\), and the canonical link.</li>
+  <li>The IWLS working response \(z_i\), the weight \(W_{ii}\), the update, and \(\operatorname{Var}\hat\beta\).</li>
+  <li>A Poisson rate model with exposure \(t_i\), and what R's <code>offset(log(t))</code> does.</li>
+  <li>How R estimates \(\phi\) for a gamma GLM, and the F statistic for nested models A ⊂ B.</li>
+  <li>The Pearson and deviance residuals, the leverage rule of thumb, and the one-step Cook's distance.</li>
+  <li>(Topic 1) The three steps for a 95% CI for \(p\) at a new \(x_0\), and when the deviance fit test is valid.</li>
+</ol>
+<details><summary>Check your page</summary><div>
+<p>1. \(f(y;\theta,\phi)=\exp\big[\frac{y\theta-b(\theta)}{a(\phi)}+c(y,\phi)\big]\), support free of \(\theta\), \(a(\phi)=\phi\) in the course; \(\mathbb EY=b'(\theta)\), \(\operatorname{Var}Y=a(\phi)b''(\theta)=a(\phi)v(\mu)\) with \(v=b''\circ(b')^{-1}\); canonical link \(g=(b')^{-1}\), i.e. \(g(\mu)=\theta\) (<a href="0005-exponential-families.html">Lesson 5</a>).<br>
+2. \(z_i=\eta_i+(y_i-\mu_i)g'(\mu_i)\), \(W_{ii}=1/\big(g'(\mu_i)^2v(\mu_i)\big)\), \(\hat\beta^{\text{new}}=(X^TWX)^{-1}X^TWz\); \(\operatorname{Var}\hat\beta=a(\phi)(X^T\hat WX)^{-1}\) (<a href="0006-glm-likelihood-iwls.html">Lesson 6</a>).<br>
+3. \(\log\lambda_i=\log t_i+x_i^T\beta\); the offset's coefficient is fixed at 1, so it's not estimated, not in \(p\), and \(e^{\beta_j}\) are rate ratios (<a href="0007-poisson-gamma-glms.html">Lesson 7</a>).<br>
+4. \(\hat\phi=X^2/(n-p)\) with \(X^2=\sum(y_i-\hat\mu_i)^2/\hat\mu_i^2\); \(F=\frac{(D_A-D_B)/s}{\hat\phi_B}\approx F_{s,\,n-p_B}\), with \(\hat\phi\) from the bigger model.<br>
+5. \(r_P=(y-\hat\mu)/\sqrt{v(\hat\mu)}\), \(r_D=\operatorname{sign}(y-\hat\mu)\sqrt{d_i}\); flag \(h_{ii}&gt;2p/n\); \(C_i\approx r_P^2h_{ii}/[p\hat\phi(1-h_{ii})^2]\) (<a href="0008-glm-diagnostics.html">Lesson 8</a>).<br>
+6. \(\hat\eta_0=x_0^T\hat\beta\), \(\text{se}=\sqrt{x_0^TVx_0}\), apply \(g^{-1}\) to both ends of \(\hat\eta_0\pm1.96\,\text{se}\); \(D\approx\chi^2_{n-p}\) only if every \(m_ip_i\), \(m_i(1-p_i)\) (or Poisson \(\lambda_i\)) is about 5 or more (<a href="0002-binomial-regression.html">Lesson 2</a>, <a href="0003-deviance-lrt-aic.html">Lesson 3</a>).</p>
+<p style="margin-bottom:0">Count the lines you got fully right, out of 6. Below 5? Reread that lesson's "Before you close this tab" box before going on.</p></div></details>
+
+<h2>2 · The exhibits</h2>
+<p>All the questions in section 3 use one of these four exhibits. Read them once now. Each question is tagged with its exhibit.</p>
+
+<h3><span class="exhibit-tag">Exhibit A</span>Averaged counts (a new exponential family)</h3>
+<div class="box">
+<p>A council inspects each road segment \(k\) times (with \(k\) known) and records \(Y\), the <em>average</em> number of potholes found per inspection. The \(k\) counts on a segment are independent Poisson\((\mu)\), so the total \(kY\) is Poisson\((k\mu)\), and</p>
+$$P(Y=y)=\frac{e^{-k\mu}(k\mu)^{ky}}{(ky)!},\qquad y\in\Big\{0,\ \tfrac1k,\ \tfrac2k,\ \dots\Big\}.$$
+<p style="margin-bottom:0">The support depends on \(k\), which is known, and not on \(\mu\).</p>
+</div>
+
+<h3><span class="exhibit-tag">Exhibit B</span>Malformations in South Wales (Poisson rate model)</h3>
+<p>The <code>cns</code> data (faraway) count births with central nervous system malformations in 8 areas of South Wales, split by whether the father's job was manual or non-manual: 16 rows. <code>Water</code> is the water hardness of the area (the same for both rows of an area). Faraway analyses these data as a multinomial in <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=152">§7.4, p. 136</a>. Here we model the malformation <em>rate per birth</em>, with <code>births</code> = all births in that row.</p>
+<pre class="rout"><span class="cmd">&gt; wales</span>
+            Area      Work Water births malf
+1        Cardiff NonManual   110   4110   19
+2        Newport NonManual   100   1523    8
+3        Swansea NonManual    95   2408   14
+4     GlamorganE NonManual    42   3189   26
+5     GlamorganW NonManual    39   1995   16
+6     GlamorganC NonManual   161   4863   25
+7      MonmouthV NonManual    83   2380   18
+8  MonmouthOther NonManual   122   1613    9
+9        Cardiff    Manual   110   9502   78
+10       Newport    Manual   100   4634   24
+11       Swansea    Manual    95   5579   53
+12    GlamorganE    Manual    42  13362  145
+13    GlamorganW    Manual    39   8279   84
+14    GlamorganC    Manual   161   7868   65
+15     MonmouthV    Manual    83  10048   86
+16 MonmouthOther    Manual   122   3196   24
+<span class="cmd">&gt; w1 &lt;- glm(malf ~ offset(log(births)) + Water + Work, family = poisson, data = wales)
+&gt; summary(w1)</span>
+
+Coefficients:
+                Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)   -4.4439057  0.0893739 -49.723  &lt; 2e-16 ***
+Water         -0.0032376  0.0009645  -3.357 0.000788 ***
+WorkNonManual -0.3365296  0.0967662  -3.478 0.000506 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 40.728  on 15  degrees of freedom
+Residual deviance: 12.271  on 13  degrees of freedom
+AIC: 102.52
+
+Number of Fisher Scoring iterations: 4
+
+<span class="cmd">&gt; range(fitted(w1))</span>
+[1]   9.11967 137.04193
+<span class="cmd">&gt; pchisq(deviance(w1), df.residual(w1), lower.tail = FALSE)</span>
+[1] 0.5055752</pre>
+
+<h3><span class="exhibit-tag">Exhibit C</span>Black cherry trees (gamma GLM)</h3>
+<p>R's <code>trees</code> data: volume (cubic feet), girth (inches) and height (feet) of 31 felled cherry trees. If a trunk were a cone or cylinder, volume would be proportional to girth² × height, so a log link with \(\log\) predictors is natural. Volumes are positive and more variable when larger, so the family is gamma.</p>
+<pre class="rout"><span class="cmd">&gt; gA &lt;- glm(Volume ~ log(Girth), family = Gamma(link = "log"), data = trees)
+&gt; summary(gA)</span>
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept) -2.34023    0.23194  -10.09 5.38e-11 ***
+log(Girth)   2.19727    0.09033   24.32  &lt; 2e-16 ***
+---
+(Dispersion parameter for Gamma family taken to be 0.01336164)
+
+    Null deviance: 8.31720  on 30  degrees of freedom
+Residual deviance: 0.38408  on 29  degrees of freedom
+AIC: 160.83
+
+<span class="cmd">&gt; gB &lt;- glm(Volume ~ log(Girth) + log(Height), family = Gamma(link = "log"), data = trees)
+&gt; summary(gB)</span>
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept) -6.69111    0.78784  -8.493 3.11e-09 ***
+log(Girth)   1.98041    0.07389  26.802  &lt; 2e-16 ***
+log(Height)  1.13288    0.20138   5.625 5.04e-06 ***
+---
+(Dispersion parameter line removed for this exercise)
+
+    Null deviance: 8.31720  on 30  degrees of freedom
+Residual deviance: 0.18352  on 28  degrees of freedom
+AIC: 139.9
+
+<span class="cmd">&gt; sum(residuals(gB, type = "pearson")^2)</span>
+[1] 0.179964
+<span class="cmd">&gt; i &lt;- c(18, 20, 31)
+&gt; cbind(trees[i, ], mu = round(fitted(gB)[i], 3), rp = round(residuals(gB, type = "pearson")[i], 5),
++       h = round(hatvalues(gB)[i], 4))</span>
+   Girth Height Volume     mu       rp      h
+18  13.3     86   27.4 32.459 -0.15585 0.1255
+20  13.8     64   24.9 24.986 -0.00345 0.2428
+31  20.6     87   77.0 78.221 -0.01562 0.1803
+<span class="cmd">&gt; qf(0.95, df1 = 1, df2 = 28)</span>
+[1] 4.195972</pre>
+
+<h3><span class="exhibit-tag">Exhibit D</span>Beetles and fumigant (binomial, two links)</h3>
+<p>The <code>beetle</code> data (faraway): 10 batches of beetles exposed to a fumigant at concentration <code>conc</code>, with <code>affected</code> out of <code>exposed</code>. The last column is \(m_i\hat p_i\) under the logit fit <code>b1</code>.</p>
+<pre class="rout"><span class="cmd">&gt; cbind(beetle, mp = round(beetle$exposed * fitted(b1), 2))</span>
+   conc affected exposed    mp
+1  24.8       23      30 27.62
+2  24.6       30      30 27.47
+3  23.0       29      31 26.75
+4  21.0       22      30 22.82
+5  20.6       23      26 19.11
+6  18.2        7      27 14.85
+7  16.8       12      31 13.37
+8  15.8       17      30 10.50
+9  14.7       10      31  8.37
+10 10.8        0      24  2.14
+<span class="cmd">&gt; b1 &lt;- glm(cbind(affected, exposed - affected) ~ conc, family = binomial, data = beetle)
+&gt; summary(b1)</span>
+
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) -6.01047    0.77937  -7.712 1.24e-14 ***
+conc         0.34127    0.04153   8.217  &lt; 2e-16 ***
+---
+    Null deviance: 138.001  on 9  degrees of freedom
+Residual deviance:  37.697  on 8  degrees of freedom
+AIC: 69.27
+
+<span class="cmd">&gt; vcov(b1)</span>
+            (Intercept)         conc
+(Intercept)  0.60741042 -0.031806657
+conc        -0.03180666  0.001724851
+<span class="cmd">&gt; b2 &lt;- glm(cbind(affected, exposed - affected) ~ conc + I(conc^2), family = binomial, data = beetle)
+&gt; summary(b2)</span>
+
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) -9.45855    3.90155  -2.424   0.0153 *
+conc         0.72015    0.41750   1.725   0.0845 .
+I(conc^2)   -0.01005    0.01092  -0.921   0.3571
+---
+    Null deviance: 138.001  on 9  degrees of freedom
+Residual deviance:  36.795  on 7  degrees of freedom
+AIC: 70.369
+
+<span class="cmd">&gt; b3 &lt;- glm(cbind(affected, exposed - affected) ~ conc, family = binomial(link = "cloglog"), data = beetle)
+&gt; summary(b3)</span>
+
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) -4.00985    0.48644  -8.243   &lt;2e-16 ***
+conc         0.20244    0.02355   8.598   &lt;2e-16 ***
+---
+    Null deviance: 138.001  on 9  degrees of freedom
+Residual deviance:  41.576  on 8  degrees of freedom
+AIC: 73.149
+
+<span class="cmd">&gt; c(predict(b3)[6], fitted(b3)[6])</span>
+         6          6
+-0.3253622  0.5143493
+<span class="cmd">&gt; qchisq(0.95, df = c(1, 8))</span>
+[1]  3.841459 15.507313</pre>
+
+<h2>3 · Mixed practice</h2>
+<p>The order is shuffled on purpose. Note the exhibit tag, find the setup, and work on paper.</p>
+
+<div class="quiz num" data-answer="0.774" data-tol="0.002">
+  <p class="q"><strong>1.</strong> <span class="exhibit-tag">B</span>Under <code>w1</code>, an increase of 50 in water hardness multiplies the malformation rate per birth by \(e^{50(-0.0032376)}=0.851\), for the same type of work. What is the <em>lower</em> end of its 95% CI (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Scale the coefficient <em>and</em> its SE by \(\Delta=50\): \(50(-0.0032376)=-0.16188\), \(\text{se}=50(0.0009645)=0.048225\). CI on the log scale: \(-0.16188\pm1.96(0.048225)=(-0.25640,\ -0.06736)\). Exponentiate: \((\)<strong>0.774</strong>\(,\ 0.935)\). Because of the offset, this is a ratio of <em>rates per birth</em>, not of counts (<a href="0007-poisson-gamma-glms.html">Lesson 7, §3</a>).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> <span class="exhibit-tag">A</span>Which is a correct exponential-family representation of \(Y\), with \(a(\phi)=\phi\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\theta=\log(k\mu)\), \(b(\theta)=e^\theta\), \(a(\phi)=1\)</button>
+    <button class="opt" data-key="b">\(\theta=\log\mu\), \(b(\theta)=e^\theta\), \(a(\phi)=k\)</button>
+    <button class="opt" data-key="c">\(\theta=\log\mu\), \(b(\theta)=e^\theta\), \(a(\phi)=1/k\)</button>
+    <button class="opt" data-key="d">\(\theta=k\log\mu\), \(b(\theta)=e^\theta\), \(a(\phi)=1\)</button>
+  </div>
+  <div class="why">Take logs and pull \(k\) out of every term that has \(\mu\) in it:
+  $$\log P=ky\log\mu-k\mu+ky\log k-\log\big((ky)!\big)=\frac{y\log\mu-\mu}{1/k}+ky\log k-\log\big((ky)!\big).$$
+  So \(\theta=\log\mu\), \(b(\theta)=e^\theta\), \(\phi=1/k\), \(a(\phi)=\phi\), and \(c(y,\phi)=\frac{y}{\phi}\log\frac1\phi-\log\big((y/\phi)!\big)\). Check the others: (b) gives \((y\log\mu-\mu)/k\), the wrong way up; (a) gives \(y\log(k\mu)-k\mu\), but the \(y\)-term in \(\log P\) is \(ky\log\mu\); (d) gives \(b=\mu^k\), not \(k\mu\). (Writing \(\theta=k\log\mu\) with \(b(\theta)=ke^{\theta/k}\) and \(a=1\) would also work, but the convention puts the known scale in \(a(\phi)\), so that \(\theta\), \(b\) and \(v\) match the single Poisson.)</div>
+</div>
+
+<div class="quiz num" data-answer="0.624" data-tol="0.002">
+  <p class="q"><strong>3.</strong> <span class="exhibit-tag">D</span>Under the logit model <code>b1</code>, what is the <em>lower</em> end of the 95% CI for the probability that a beetle is affected at <code>conc</code> = 20 (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\hat\eta_0=-6.01047+20(0.34127)=0.81493\).
+  $$x_0^TVx_0=0.60741+2(20)(-0.031807)+20^2(0.0017249)=0.60741-1.27227+0.68994=0.02508,$$
+  so \(\text{se}=0.15838\). CI for \(\eta\): \(0.81493\pm0.31043=(0.50450,\ 1.12536)\). Apply \(p=1/(1+e^{-\eta})\) to both ends: \((\)<strong>0.624</strong>\(,\ 0.755)\). Keep every digit of <code>vcov</code>: the three terms nearly cancel (<a href="0002-binomial-regression.html">Lesson 2, §3</a>).</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences each)</strong></p>
+<p>(i) Why build the CI in Q3 on the \(\eta\) scale and transform, rather than use \(\hat p\pm1.96\,\text{se}(\hat p)\)?<br>(ii) Q1's CI is for a 50-unit change in hardness. Does it say that hard water <em>prevents</em> malformations?</p>
+<details><summary>Model answers</summary><div>
+<p>(i) \(\hat\eta_0=x_0^T\hat\beta\) is a linear function of an approximately normal \(\hat\beta\), so it is approximately normal itself, with variance \(x_0^TVx_0\). \(\hat p_0\) is a non-linear function of it, so its distribution is skewed, and \(\hat p\pm1.96\,\text{se}\) can leave \([0,1]\). Transforming the endpoints keeps the 95% coverage, because \(g^{-1}\) is monotone.</p>
+<p>(ii) No. Water hardness is measured per <em>area</em> (8 values), so this is an ecological association: areas with harder water had lower malformation rates. Something else that differs between areas could be responsible. The rate ratio estimates the association, not a causal effect.</p></div></details>
+</div>
+
+<div class="quiz num" data-answer="31.20" data-tol="0.05">
+  <p class="q"><strong>4.</strong> <span class="exhibit-tag">C</span>The dispersion line of <code>summary(gB)</code> has been removed. Estimate \(\phi\) for <code>gB</code>, then compute the F statistic for \(H_0\): <code>log(Height)</code> isn't needed given <code>log(Girth)</code> (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(n=31\), \(p_B=3\), so \(\hat\phi_B=X^2/(n-p_B)=0.179964/28=0.0064273\). Then \(s=29-28=1\) and
+  $$F=\frac{(0.38408-0.18352)/1}{0.0064273}=\frac{0.20056}{0.0064273}=\textbf{31.20}$$
+  on \((1,\ 28)\) df, far above \(F_{1,28}(0.95)=4.20\): keep <code>log(Height)</code>. (R's <code>anova(gA, gB, test = "F")</code> prints 31.206.) Two common slips: dividing by \(D_B/(n-p)=0.00655\) instead of the Pearson estimate, or using gA's \(\hat\phi=0.01336\), which gives 15.0 (<a href="0007-poisson-gamma-glms.html">Lesson 7, §4</a>).</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences each)</strong></p>
+<p>(i) Why is Q4 an F test and not a \(\chi^2_1\) test, and why is \(\hat\phi\) taken from <code>gB</code>?<br>(ii) A cylinder or cone has volume \(\propto G^2H\). Is <code>gB</code> consistent with that? Use the printout.</p>
+<details><summary>Model answers</summary><div>
+<p>(i) With \(\phi\) known, \((D_A-D_B)/\phi\approx\chi^2_s\). Here \(\phi\) is estimated by \(\hat\phi\approx\phi\,\chi^2_{n-p}/(n-p)\), and the ratio of the two scaled quantities is approximately \(F_{s,n-p}\) (<a href="../lectures/GLM_2_correct_LMS.pdf#page=9">GLMs II, slide 9</a>); using \(\chi^2\) would ignore the uncertainty in \(\hat\phi\). The bigger model's \(\hat\phi\) is used because it stays valid whether or not \(H_0\) holds, while gA's would be inflated by exactly the lack of fit being tested.</p>
+<p>(ii) Yes. With a log link, \(\log\mu=\beta_0+\beta_G\log G+\beta_H\log H\), i.e. \(\mu=e^{\beta_0}G^{\beta_G}H^{\beta_H}\), so the theory says \(\beta_G=2\), \(\beta_H=1\). Wald: \((1.98041-2)/0.07389=-0.27\) and \((1.13288-1)/0.20138=0.66\), both well inside \(\pm2\). The data are consistent with volume \(\propto G^2H\). (Also: \(t^2=5.625^2=31.6\), close to the F of 31.2, as expected for one extra parameter.)</p></div></details>
+</div>
+
+<div class="quiz num" data-answer="13.30" data-tol="0.05">
+  <p class="q"><strong>5.</strong> <span class="exhibit-tag">D</span>The cloglog model <code>b3</code> has a non-canonical link. Work on the course's count scale: \(\mu=mp\), \(v(\mu)=mp(1-p)\), \(g(\mu)=\log\!\big(-\log(1-\mu/m)\big)\). For row 6 (\(m=27\), \(y=7\)), compute the IWLS weight \(W_{66}=1/\big(g'(\hat\mu)^2v(\hat\mu)\big)\) at convergence (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Chain rule, with \(p=\mu/m\) and \(L=-\log(1-p)\):
+  $$g'(\mu)=\frac1L\cdot\frac{1}{1-p}\cdot\frac1m=\frac{1}{m(1-p)L},\qquad W=\frac{m^2(1-p)^2L^2}{mp(1-p)}=\frac{m(1-p)L^2}{p}.$$
+  At convergence \(L=e^{\hat\eta}=e^{-0.32536}=0.72227\) (since \(\eta=\log L\)) and \(\hat p=0.51435\): \(W_{66}=27(0.48565)(0.52167)/0.51435=\)<strong>13.30</strong>. R's <code>b3$weights[6]</code> is 13.29916. Compare \(v(\hat\mu)=27(0.51435)(0.48565)=6.74\): with the canonical logit link, \(W_{ii}\) would equal \(v(\hat\mu_i)\) (<a href="0006-glm-likelihood-iwls.html">Lesson 6, §5</a>).</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Write down the working response \(z_6\) for the same row and evaluate it. Then say why, for this model, Newton–Raphson and Fisher scoring take different steps.</p>
+<details><summary>Model answer</summary><div>
+<p>\(z_6=\hat\eta_6+(y_6-\hat\mu_6)g'(\hat\mu_6)=-0.32536+\dfrac{7-13.8874}{27(0.48565)(0.72227)}=-0.32536-\dfrac{6.8874}{9.4708}=-1.0526\) (R: \(\hat\eta+\) working residual \(=-1.052594\)). The fit predicts about 13.9 affected and only 7 were, so \(z_6\) sits well below \(\hat\eta_6\). Because cloglog isn't the canonical link, \(\theta_i\) is a non-linear function of \(\eta_i\), the Hessian of \(\ell\) still contains \(y\), and so \(J(\beta)\neq\mathcal I(\beta)\). Newton–Raphson uses \(J\), Fisher scoring (what <code>glm</code> does) uses \(\mathcal I\). Both reach the same \(\hat\beta\).</p></div></details>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>6.</strong> <span class="exhibit-tag">B</span>What does the line <code>pchisq(deviance(w1), df.residual(w1), lower.tail = FALSE)</code> compute?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The p-value of the deviance goodness-of-fit test for model w1</button>
+    <button class="opt" data-key="b">The p-value of the LRT comparing w1 with the null</button>
+    <button class="opt" data-key="c">The p-value of the Wald test for the Water coefficient</button>
+    <button class="opt" data-key="d">The probability that model w1 is correct for these data</button>
+  </div>
+  <div class="why">It's \(P(\chi^2_{13}&gt;12.271)=0.51\): the residual deviance referred to \(\chi^2_{n-p}\). No evidence of lack of fit. (b) would use \(40.728-12.271\) on 2 df. (d) is the classic misreading of a p-value: it's computed assuming the model is adequate, so it can't be the probability that it is.</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Lesson 7 warned that the Poisson deviance fit test is often invalid. Is it valid for <code>w1</code>? Use the printout.</p>
+<details><summary>Model answer</summary><div>
+<p>Yes, reasonably. \(D\approx\chi^2_{n-p}\) needs every fitted count \(\hat\lambda_i\gtrsim5\) (<a href="../lectures/GLM_2_correct_LMS.pdf#page=7">GLMs II, slide 7</a>), and <code>range(fitted(w1))</code> shows the smallest is 9.1. So \(D=12.27\) on 13 df, p = 0.51, is genuine evidence of adequate fit (and \(D/\text{df}\approx0.94\), no sign of overdispersion). The offset doesn't change this. What matters is the size of the expected counts, not of the rates.</p></div></details>
+</div>
+
+<div class="quiz num" data-answer="0.75" data-tol="0.005">
+  <p class="q"><strong>7.</strong> <span class="exhibit-tag">A</span>With \(k=4\) inspections and a segment mean of \(\mu=3\) potholes per inspection, use \(b(\theta)\) and \(a(\phi)\) to find \(\operatorname{Var}Y\).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(b'(\theta)=e^\theta=\mu\) ✓ and \(b''(\theta)=e^\theta=\mu\), so \(v(\mu)=\mu\), the Poisson's. Then \(\operatorname{Var}Y=a(\phi)v(\mu)=\mu/k=3/4=\)<strong>0.75</strong>. If you typed 3, you gave \(v(\mu)\), not the variance (<a href="0005-exponential-families.html">Lesson 5, trap 3</a>). Check directly: \(\operatorname{Var}(\text{total}/k)=k\mu/k^2=\mu/k\) ✓. The canonical link is \(g(\mu)=\theta=\log\mu\), the same as for a single Poisson count.</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>In Exhibit A, \(\phi=1/k\) is not 1, yet nothing has to be estimated. Why? How does this differ from the gamma's \(\phi\) in Exhibit C?</p>
+<details><summary>Model answer</summary><div>
+<p>Here \(\phi=1/k\) is fixed by the design (the number of inspections), so it's known, like the Poisson's \(\phi=1\). Averaging \(k\) counts shrinks the variance by \(k\), and that's all \(a(\phi)\) records. For the gamma, \(\phi=1/\nu\) is an unknown shape parameter (the squared coefficient of variation), so it has to be estimated by \(X^2/(n-p)\), and tests become F tests. (A model with \(\operatorname{Var}Y=\phi\mu\) and \(\phi\) <em>unknown</em> is the quasi-Poisson model of Topic 3.)</p></div></details>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>8.</strong> <span class="exhibit-tag">D</span><code>b1</code> has \(D=37.70\) on 8 df, and \(\chi^2_8(0.95)=15.51\). Which conclusion is best?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Good fit, since its deviance is far below the null deviance.</button>
+    <button class="opt" data-key="b">Lack of fit, though four rows break the rule of thumb.</button>
+    <button class="opt" data-key="c">No conclusion, since a binomial deviance never follows a χ² law.</button>
+    <button class="opt" data-key="d">Lack of fit, so the quadratic model b2 is clearly needed.</button>
+  </div>
+  <div class="why">\(m_i\hat p_i\) or \(m_i(1-\hat p_i)\) is below 5 in rows 1, 2, 3 (\(m_i(1-\hat p_i)=2.4,\ 2.5,\ 4.3\)) and row 10 (\(m_i\hat p_i=2.1\)), so the \(\chi^2_8\) approximation is rough. But \(D\) is 2.4 times the 5% point, far more than a rough approximation can explain, so the misfit is real. (The worst points are row 1, 23 affected where 27.6 were expected, and row 6, 7 where 14.9 were expected: Pearson residuals −3.1 and −3.0.) (a) compares with the wrong yardstick. (c) is wrong: it's approximately χ² when the counts are large. (d): <code>b2</code> barely lowers the deviance (Q11).</div>
+</div>
+
+<div class="quiz num" data-answer="0.207" data-tol="0.003">
+  <p class="q"><strong>9.</strong> <span class="exhibit-tag">C</span>Using your \(\hat\phi\) from Q4, compute Cook's distance for tree 18 under <code>gB</code> (3 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(p=3\), \(r_P=-0.15585\), \(h=0.1255\):
+  $$C_{18}\approx\frac{r_P^2\,h}{p\,\hat\phi\,(1-h)^2}=\frac{0.024289\times0.1255}{3\times0.0064273\times0.76475}=\frac{0.0030483}{0.014746}=\textbf{0.207}.$$
+  R's <code>cooks.distance(gB)[18]</code> is 0.2067, the largest of the 31 (the next is 0.11). Forget \(\hat\phi\) and you get 0.0013. For a gamma, the Pearson residuals are relative errors \((y-\hat\mu)/\hat\mu\), so they're small numbers, and \(\hat\phi\) puts them back on a unit scale (<a href="0008-glm-diagnostics.html">Lesson 8, §3</a>).</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Tree 20 has the largest leverage in Exhibit C. Is it a high-leverage point by the usual rule, and is it influential? Why might a short, fat tree have high leverage here?</p>
+<details><summary>Model answer</summary><div>
+<p>\(2p/n=6/31=0.194\), and \(h_{20}=0.243\) exceeds it, so yes. But its residual is tiny (\(r_P=-0.003\): the fitted 24.99 vs observed 24.9), so its Cook's distance is about 0.0003: high leverage, no influence. Leverage measures how unusual \(x_i\) is: tree 20 combines a fairly large girth (13.8) with the second-smallest height (64), an unusual combination in \((\log G,\log H)\) space. (For the gamma with log link, \(W_{ii}=1\), so here leverage depends on \(x_i\) alone, as in a linear model.)</p></div></details>
+</div>
+
+<div class="quiz num" data-answer="0.09" data-tol="0.002">
+  <p class="q"><strong>10.</strong> <span class="exhibit-tag">A</span>An analyst fits <code>glm(ybar ~ traffic, family = poisson)</code> to the segment averages from Exhibit A (\(k=4\)). R takes the dispersion to be 1 and prints a slope SE of 0.18. What is the correct SE for this slope under Exhibit A's model?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">The IWLS update uses only \(g\) and \(v\): \(W_{ii}=1/(g'^2v)=\mu_i\) and \(z_i\) are the same whatever \(a(\phi)\) is, so the estimates are right. But \(\operatorname{Var}\hat\beta=a(\phi)(X^T\hat WX)^{-1}\) (<a href="../lectures/GLM_1_LMS-1.pdf#page=15">GLMs I, slide 15</a>), and R used \(a(\phi)=1\) instead of \(1/4\). Correct SE \(=0.18\sqrt{1/4}=\)<strong>0.09</strong>. (I checked this on simulated data: the naive fit gave 0.1771, and the equivalent fit of the <em>totals</em> with <code>offset(log(4))</code> gave 0.0885.)</div>
+</div>
+
+<div class="quiz num" data-answer="0.90" data-tol="0.01">
+  <p class="q"><strong>11.</strong> <span class="exhibit-tag">D</span>What is the likelihood ratio statistic for adding <code>I(conc^2)</code> to <code>b1</code> (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\text{LR}=D_{b1}-D_{b2}=37.697-36.795=\)<strong>0.90</strong> on \(8-7=1\) df, below 3.84 (p = 0.34): the quadratic term isn't needed. AIC agrees: \(69.27&lt;70.37\) (check: \(2(1)+36.795-37.697=1.10\) ✓). The LRT is valid even though the fit test in Q8 isn't clean: it compares two models, and what matters is that the bigger model is roughly right, not every count above 5 (<a href="0003-deviance-lrt-aic.html">Lesson 3, §3</a>).</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>The Wald statistic for <code>I(conc^2)</code> is \(z=-0.921\), so \(z^2=0.85\), not 0.90. Why the difference? And the cloglog fit <code>b3</code> has AIC 73.15. Can you use an LRT to compare it with <code>b1</code>?</p>
+<details><summary>Model answer</summary><div>
+<p>The Wald test uses the curvature of \(\ell\) at \(\hat\beta_{b2}\) only (a quadratic approximation), while the LRT uses the actual drop in \(\ell\) between the two fits. They agree asymptotically, not exactly, and the conclusion is the same here. No LRT between links: <code>b1</code> and <code>b3</code> have the same predictors and different links, so neither is a special case of the other. Use AIC: \(69.27&lt;73.15\) favours the logit, though both fit badly (Q8), so neither link fixes the problem.</p></div></details>
+</div>
+
+<h2>4 · Exam-level challenge (15 marks, about 25 minutes)</h2>
+<p>Write full answers on paper, with a sentence of explanation for every number, then open the steps one at a time.</p>
+<div class="box">
+<p>Continue with <span class="exhibit-tag">Exhibit B</span>. A second model replaces water hardness with a separate effect for each area.</p>
+<pre class="rout"><span class="cmd">&gt; w2 &lt;- glm(malf ~ offset(log(births)) + Area + Work, family = poisson, data = wales)
+&gt; summary(w2)</span>
+
+Coefficients:
+                  Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)       -4.85220    0.10406 -46.630  &lt; 2e-16 ***
+AreaGlamorganC     0.01783    0.14651   0.122 0.903151
+AreaGlamorganE     0.33726    0.12741   2.647 0.008121 **
+AreaGlamorganW     0.27806    0.14277   1.948 0.051466 .
+AreaMonmouthOther -0.02702    0.20154  -0.134 0.893332
+AreaMonmouthV      0.12612    0.14143   0.892 0.372535
+AreaNewport       -0.33284    0.20391  -1.632 0.102614
+AreaSwansea        0.16298    0.15885   1.026 0.304919
+WorkNonManual     -0.34319    0.09699  -3.538 0.000403 ***
+---
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 40.7279  on 15  degrees of freedom
+Residual deviance:  3.0604  on  7  degrees of freedom
+AIC: 105.31
+
+<span class="cmd">&gt; predict(w1, newdata = data.frame(Water = 40, Work = "Manual", births = 1000),
++         type = "link", se.fit = TRUE)</span>
+$fit
+       1
+2.334347 
+
+$se.fit
+[1] 0.05832038
+
+$residual.scale
+[1] 1
+
+<span class="cmd">&gt; i &lt;- c(10, 12, 14)
+&gt; cbind(wales[i, ], mu = round(fitted(w1)[i], 3), h = round(hatvalues(w1)[i], 4),
++       rj = round(rstudent(w1)[i], 4))</span>
+         Area   Work Water births malf      mu      h      rj
+10    Newport Manual   100   4634   24  39.390 0.0828 -2.7461
+12 GlamorganE Manual    42  13362  145 137.042 0.4454  0.9081
+14 GlamorganC Manual   161   7868   65  54.894 0.4198  1.7613
+<span class="cmd">&gt; round(residuals(w1, type = "pearson")[c(12, 14)], 4)</span>
+    12     14
+0.6798 1.3640
+<span class="cmd">&gt; rbind(all = coef(w1), drop10 = coef(update(w1, subset = -10)),
++       drop14 = coef(update(w1, subset = -14)))</span>
+       (Intercept)        Water WorkNonManual
+all      -4.443906 -0.003237559    -0.3365296
+drop10   -4.437201 -0.002958134    -0.3698600
+drop14   -4.369583 -0.004543881    -0.2881511
+<span class="cmd">&gt; tapply(fitted(w1), wales$Work, sum); tapply(wales$malf, wales$Work, sum)</span>
+   Manual NonManual
+      559       135
+   Manual NonManual
+      559       135
+<span class="cmd">&gt; qchisq(0.95, df = c(6, 7))</span>
+[1] 12.59159 14.06714</pre>
+<p>(a) Explain what the offset does in <code>w1</code>. Interpret the <code>WorkNonManual</code> coefficient as a rate ratio with a 95% CI, in one sentence. <em>[3]</em><br>
+(b) Explain why <code>w1</code> is nested in <code>w2</code>, even though <code>Water</code> does not appear in <code>w2</code>. Test <code>w1</code> against <code>w2</code>: state \(H_0\), the statistic, its df and your conclusion. Does AIC agree? <em>[3]</em><br>
+(c) Find the maximised log-likelihoods of <code>w1</code> and <code>w2</code>, and check that they give the same \(\ell_{\text{sat}}\). <em>[2]</em><br>
+(d) Estimate the malformation rate per 1000 births for families of manual workers in an area with water hardness 40, with a 95% CI. Check \(\hat\eta\) by hand. <em>[2]</em><br>
+(e) For row 10, compute \(r_P\), \(r_D\) and \(r_{SD}\). Compute Cook's distance for row 14. Classify rows 10, 12 and 14 as outlier, high leverage only, or influential, one sentence each. <em>[3]</em><br>
+(f) Explain why the two <code>tapply</code> lines print identical numbers. Name one other sum that must match in the same way. <em>[2]</em></p>
+</div>
+
+<details><summary>Step 1: part (a), the offset and a rate ratio</summary><div>
+<p>The expected count is proportional to the number of births: \(\lambda_i=\text{births}_i\times\text{rate}_i\), so \(\log\lambda_i=\log(\text{births}_i)+x_i^T\beta\). <code>offset(log(births))</code> puts \(\log(\text{births}_i)\) into \(\eta_i\) with its coefficient fixed at 1 (not estimated, not counted in \(p\)), so the model is for the malformation <em>rate per birth</em> and each \(e^{\beta_j}\) is a rate ratio.</p>
+<p>\(e^{-0.33653}=\boxed{0.714}\), CI \(\exp(-0.33653\pm1.96\times0.09677)=\boxed{(0.591,\ 0.863)}\). "For the same water hardness, the malformation rate among births to non-manual workers' families is estimated at about 71% of that for manual workers (95% CI 59% to 86%)."</p></div></details>
+<details><summary>Step 2: part (b), nesting and the LRT</summary><div>
+<p><strong>Nesting.</strong> <code>Water</code> takes one value per area, so \(\beta_W\times\text{Water}\) is just one particular set of area effects. <code>w2</code> lets the 8 areas have any effects (7 dummies); <code>w1</code> forces those effects to lie on a straight line in hardness. So <code>w1</code> is <code>w2</code> with linear constraints. Check the df: \(p_{w2}=16-7=9\), \(p_{w1}=16-13=3\), so \(s=6\) (7 area dummies replaced by 1 slope).</p>
+<p><strong>LRT.</strong> \(H_0\): area differences in the rate are explained by water hardness alone (<code>w1</code> is adequate). \(\text{LR}=12.271-3.060=9.21\) on 6 df, below \(\chi^2_6(0.95)=12.59\) (p = 0.16). Don't reject: the simpler <code>w1</code> is enough. AIC agrees: \(102.52&lt;105.31\).</p></div></details>
+<details><summary>Step 3: part (c), log-likelihoods</summary><div>
+<p>\(\ell_{w1}=3-102.52/2=\boxed{-48.26}\) and \(\ell_{w2}=9-105.31/2=\boxed{-43.66}\) (Poisson: \(\phi=1\), so use \(p\), not \(p+1\)).<br>
+\(\ell_{\text{sat}}=-48.26+12.271/2=-42.12\) and \(-43.655+3.0604/2=-42.12\) ✓. The saturated model fits each row exactly, whatever the predictors.</p></div></details>
+<details><summary>Step 4: part (d), a predicted rate with CI</summary><div>
+<p>By hand: \(\hat\eta=-4.44391+40(-0.0032376)+\log1000=-4.44391-0.12950+6.90776=2.33435\) ✓. Setting <code>births = 1000</code> makes \(e^{\hat\eta}\) the expected count per 1000 births: \(e^{2.334347}=\boxed{10.32}\).<br>
+CI: \(2.334347\pm1.96(0.05832)=(2.22004,\ 2.44866)\), so \(\boxed{(9.21,\ 11.57)}\) malformations per 1000 births. Build it on the \(\eta\) scale and exponentiate the ends. You need R's <code>se.fit</code> because \(\operatorname{Var}\hat\eta\) involves covariances that the summary doesn't show.</p></div></details>
+<details><summary>Step 5: part (e), diagnostics</summary><div>
+<p><strong>Row 10.</strong> \(r_P=\dfrac{24-39.390}{\sqrt{39.390}}=\dfrac{-15.390}{6.2761}=\boxed{-2.452}\).<br>
+\(d=2\big[24\log\tfrac{24}{39.390}-(24-39.390)\big]=2[-11.8915+15.3900]=6.997\), so \(r_D=-\sqrt{6.997}=\boxed{-2.645}\) (negative because \(y&lt;\hat\mu\)).<br>
+\(r_{SD}=-2.645/\sqrt{1-0.0828}=\boxed{-2.762}\) (\(\phi=1\)).<br>
+<strong>Row 14.</strong> \(C_{14}\approx\dfrac{1.3640^2\times0.4198}{3\times(1-0.4198)^2}=\dfrac{0.7810}{1.0099}=\boxed{0.773}\) (R: 0.7735).</p>
+<p>\(2p/n=6/16=0.375\), so rows 12 (0.445) and 14 (0.420) have high leverage.<br>
+<strong>Row 10: outlier.</strong> Its jack-knife residual (−2.75) is the largest in size, but its leverage (0.083) is ordinary, and dropping it moves the Water coefficient only from −0.00324 to −0.00296.<br>
+<strong>Row 12: high leverage only.</strong> It's the biggest cell (145 cases) in a soft-water area, but its residual is small (\(r_P=0.68\)), so it pulls little.<br>
+<strong>Row 14: influential.</strong> High leverage (it's the hardest-water area) <em>and</em> a sizeable residual, so Cook's 0.77 is by far the largest. Dropping it makes the Water effect 40% stronger (−0.00324 → −0.00454). Report it, check the data, and don't delete it just because it's influential.</p></div></details>
+<details><summary>Step 6: part (f), why the totals match</summary><div>
+<p>For the Poisson with its canonical log link, the score equations are \(X^T(y-\hat\mu)=0\) (<a href="0006-glm-likelihood-iwls.html">Lesson 6, §5</a>). The offset sits inside \(\hat\mu\), not in \(X\), so this still holds. The intercept column gives \(\sum_i\hat\mu_i=\sum_iy_i\), and the <code>WorkNonManual</code> dummy gives \(\sum_{\text{NonManual}}\hat\mu_i=\sum_{\text{NonManual}}y_i\) (135). Subtracting, the Manual totals match too (559). The <code>Water</code> column gives another: \(\sum_i\text{Water}_i\,\hat\mu_i=\sum_i\text{Water}_i\,y_i\) (R: both 58465). With a non-canonical link (e.g. <code>link = "sqrt"</code>) these sums would not match exactly.</p></div></details>
+
+<h2>5 · Score yourself</h2>
+<p>Use your first attempts. Each miss points to the place to revisit before Topic 3.</p>
+<div class="tablewrap"><table>
+<tr><th>If you missed…</th><th>Skill</th><th>Revisit</th></tr>
+<tr><td>Q2, Q7, the box after Q7</td><td>Exponential-family form, \(a(\phi)\), \(v(\mu)\) vs \(\operatorname{Var}Y\)</td><td><a href="0005-exponential-families.html">Lesson 5</a> §2–3, trap box</td></tr>
+<tr><td>Q5, the box after it</td><td>IWLS \(z_i\) and \(W_{ii}\) for a non-canonical link</td><td><a href="0006-glm-likelihood-iwls.html">Lesson 6</a> §3–4 and its challenge (c)</td></tr>
+<tr><td>Q10</td><td>\(\operatorname{Var}\hat\beta=a(\phi)(X^TWX)^{-1}\); \(a(\phi)\) cancels in the update only</td><td><a href="0006-glm-likelihood-iwls.html">Lesson 6</a> §5, E3</td></tr>
+<tr><td>Q1, challenge (a), (d)</td><td>Offsets, rate ratios, CIs via \(\eta\)</td><td><a href="0007-poisson-gamma-glms.html">Lesson 7</a> §1, §3</td></tr>
+<tr><td>Q6, challenge (b), (c), (f)</td><td>Poisson deviance tests, \(\ell\) from AIC, canonical-link score equations</td><td><a href="0007-poisson-gamma-glms.html">Lesson 7</a> §2; <a href="0006-glm-likelihood-iwls.html">Lesson 6</a> §5</td></tr>
+<tr><td>Q4, the box after it</td><td>Pearson \(\hat\phi\) and the F test</td><td><a href="0007-poisson-gamma-glms.html">Lesson 7</a> §4</td></tr>
+<tr><td>Q9, challenge (e), the box after Q9</td><td>Residuals, leverage, Cook's distance</td><td><a href="0008-glm-diagnostics.html">Lesson 8</a> §1–3 and its challenge</td></tr>
+<tr><td>Q3</td><td>CI for \(p\) via \(\eta\) and <code>vcov</code></td><td><a href="0002-binomial-regression.html">Lesson 2</a> §3</td></tr>
+<tr><td>Q8, Q11</td><td>Deviance fit test conditions, LRT, AIC</td><td><a href="0003-deviance-lrt-aic.html">Lesson 3</a> §2–4</td></tr>
+</table></div>
+<p>9 or more of 11 first-try, and the challenge mostly right: go on to Topic 3. Otherwise, do the revisits first, then redo only the questions you missed.</p>
+
+<p><strong>Primary source:</strong> <a href="../lectures/GLM_2_correct_LMS.pdf#page=3">GLMs II, slides 3–21</a> (deviance, the two kinds of test, AIC, all the diagnostics), with <a href="../lectures/GLM_1_LMS-1.pdf#page=11">GLMs I, slides 11–17</a> for IWLS and \(\operatorname{Var}\hat\beta\), and <a href="../lectures/Exponential_families.pdf#page=3">Exponential families, slides 3–9</a>. Then use the <a href="../reference/glm-cheatsheet.html">GLM cheat sheet</a> as the one-page summary of Topic 2. For a second explanation of everything here in one place, read Faraway, <em>Extending the Linear Model with R</em> (2nd ed.), <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=167">Ch. 8, pp. 151–167</a>.</p>
+
+<h2>6 · Homework (by hand, no R needed)</h2>
+<ol>
+  <li><strong>Faraway, <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=207">Ch. 9</a> Ex. 2(d)–(e), printout version</strong> (<code>rats</code>: survival time in tens of hours for 48 rats, 3 poisons × 4 treatments, 4 rats each). Box–Cox points to \(1/\text{time}\), so the inverse-Gaussian GLM uses the inverse link.
+<pre class="rout"><span class="cmd">&gt; r2 &lt;- glm(time ~ poison + treat, family = inverse.gaussian(link = "inverse"), data = rats)
+&gt; summary(r2)</span>
+            Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)   2.6465     0.1939  13.648  &lt; 2e-16 ***
+poisonII      0.2900     0.1566   1.853    0.071 .
+poisonIII     1.9660     0.1929  10.192 6.34e-13 ***
+treatB       -1.6095     0.2110  -7.627 1.87e-09 ***
+treatC       -0.5835     0.2347  -2.486    0.017 *
+treatD       -1.2940     0.2187  -5.917 5.24e-07 ***
+
+(Dispersion parameter for inverse.gaussian family taken to be 0.1139811)
+
+    Null deviance: 25.7437  on 47  degrees of freedom
+Residual deviance:  4.5888  on 42  degrees of freedom
+AIC: -85.701
+
+<span class="cmd">&gt; r1 &lt;- glm(time ~ poison * treat, family = inverse.gaussian(link = "inverse"), data = rats)
+&gt; c(deviance(r1), df.residual(r1), sum(residuals(r1, type = "pearson")^2))</span>
+[1]  3.641765 36.000000  3.385431
+<span class="cmd">&gt; qf(0.95, 6, 36)</span>
+[1] 2.363751</pre>
+  (a) The inverse Gaussian has \(v(\mu)=\mu^3\) and canonical link \(-1/(2\mu^2)\). Is \(1/\mu\) canonical? Derive \(W_{ii}\) for this link. (b) Compute \(\hat\phi\) for <code>r1</code> and the F statistic for the interaction. Is it needed? (c) Which poison and treatment give the shortest expected survival time, and what is it? (Hint: with the inverse link, a <em>larger</em> \(\hat\eta\) means a <em>shorter</em> time.) (d) Find \(\ell\) for <code>r2</code> from its AIC. Why can a continuous model have a positive log-likelihood?</li>
+  <li><strong>Faraway, <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=206">Ch. 9</a> Ex. 1(e)–(g), printout version</strong> (<code>cornnit</code>; this time a quadratic in nitrogen with an identity link, so there's an optimum dose):
+<pre class="rout"><span class="cmd">&gt; c1 &lt;- glm(yield ~ nitrogen + I(nitrogen^2), family = Gamma(link = "identity"), data = cornnit)
+&gt; summary(c1)</span>
+                Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)   91.6246141  3.8239491  23.961  &lt; 2e-16 ***
+nitrogen       0.6362160  0.0861644   7.384 4.76e-09 ***
+I(nitrogen^2) -0.0016489  0.0003163  -5.213 5.63e-06 ***
+
+(Dispersion parameter for Gamma family taken to be 0.02102967)
+
+    Null deviance: 2.40614  on 43  degrees of freedom
+Residual deviance: 0.99732  on 41  degrees of freedom
+AIC: 389.44
+
+<span class="cmd">&gt; c0 &lt;- glm(yield ~ nitrogen, family = Gamma(link = "identity"), data = cornnit)
+&gt; c(deviance(c0), df.residual(c0))</span>
+[1]  1.520751 42.000000
+<span class="cmd">&gt; predict(c1, data.frame(nitrogen = 200), type = "response", se.fit = TRUE)[1:2]</span>
+$fit
+       1
+152.9114 
+
+$se.fit
+[1] 4.828363
+
+<span class="cmd">&gt; qf(0.95, 1, 41)</span>
+[1] 4.078546</pre>
+  (a) Test whether the quadratic term is needed with an F test, and compare with \(t^2\). (b) At what nitrogen level is the fitted mean yield largest? (c) Give a 95% CI for the mean yield at 200 lb/acre. Why is it fine to build this one on the response scale? (d) For this link, what are \(z_i\) and \(W_{ii}\) in IWLS?</li>
+  <li><strong>By hand: binomial proportions.</strong> Let \(Y=X/m\) with \(X\sim\text{Bin}(m,p)\) and \(m\) known. Show that \(Y\) is an exponential family with \(a(\phi)=1/m\), find \(v(\mu)\), and explain in two sentences how this matches R's <code>binomial()$variance(mu)</code> \(=\mu(1-\mu)\) and the course's count-scale \(v(\mu)=\mu(1-\mu/m)\). (Compare Exhibit A.)</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1. (a) No: canonical would be \(g(\mu)=-1/(2\mu^2)\) (R: <code>1/mu^2</code>). With \(g=1/\mu\), \(g'=-1/\mu^2\), so \(W_{ii}=1/(\mu^{-4}\mu^3)=\mu_i\). (b) \(\hat\phi_{r1}=3.385431/36=0.09404\). \(F=\dfrac{(4.5888-3.6418)/6}{0.09404}=\dfrac{0.15784}{0.09404}=1.68\) on (6, 36) df, below 2.36 (R: p = 0.15). The interaction isn't needed. (c) The largest \(\hat\eta=1/\hat\mu\) is \(2.6465+1.9660=4.6125\) (poison III, treatment A, both coefficients at their largest), so \(\hat\mu=1/4.6125=0.217\), about 2.2 hours. (d) \(p+1=7\) parameters (6 coefficients plus \(\phi\)), so \(\ell=7-(-85.701)/2=49.85\). A density can exceed 1 (the times are small, around 0.2–1, and the inverse Gaussian is concentrated), so \(\log f\) can be positive and so can \(\ell\). AIC is still "smaller is better".</p>
+<p>2. (a) \(F=\dfrac{1.520751-0.99732}{0.02102967}=24.9\) on (1, 41), above 4.08: keep it. \(t^2=5.213^2=27.2\), close but not equal (Wald vs deviance). (b) \(d\mu/dN=0.636216-2(0.0016489)N=0\Rightarrow N=192.9\) lb/acre. (c) \(152.91\pm1.96(4.828)=(143.4,\ 162.4)\) bushels/acre. With the identity link, the response scale <em>is</em> the \(\eta\) scale, so the normal approximation applies to \(\hat\mu\) directly. (d) \(g'=1\), so \(z_i=\eta_i+(y_i-\mu_i)=y_i\) and \(W_{ii}=1/\mu_i^2\): each step is a weighted regression of \(y\) itself, with weights \(1/\hat\mu_i^2\).</p>
+<p>3. \(\log f=my\log\frac{p}{1-p}+m\log(1-p)+\log\binom{m}{my}=\dfrac{y\theta-\log(1+e^\theta)}{1/m}+c\), with \(\theta=\log\frac{p}{1-p}\), \(b(\theta)=\log(1+e^\theta)\), \(\phi=1/m\). \(b'=\frac{e^\theta}{1+e^\theta}=p=\mu\), \(b''=p(1-p)\), so \(v(\mu)=\mu(1-\mu)\) and \(\operatorname{Var}Y=\mu(1-\mu)/m\). R works on this proportion scale, so its variance function is \(\mu(1-\mu)\) and the \(m_i\) go in as prior weights (Faraway's \(a(\phi)=\phi/w\)). The course's count \(X=mY\) has mean \(m\mu\) and variance \(m^2\cdot\mu(1-\mu)/m=m\mu(1-\mu)\), which in terms of the count mean \(\mu_X=m\mu\) is \(\mu_X(1-\mu_X/m)\) ✓.</p></div></details>
+
+<p><strong>Spacing:</strong> in two days, without looking, redo Q4, Q5 and Q9, then challenge part (e). In a week, redo the whole challenge in 25 minutes. Topic 3 will reuse Exhibit A's idea: a dispersion \(\phi\) multiplying the Poisson variance, but unknown.</p>
+
+<div class="ask">💬 Ask me in the terminal about anything that felt shaky. The scaled family in Exhibit A, the cloglog weights and the nesting argument in challenge (b) are new here. I'm your teacher for this. Paste or photograph your challenge answers and I'll mark them out of 15 the way an exam marker would.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0008-glm-diagnostics.html">Lesson 8, GLM diagnostics</a> · Reference: <a href="../reference/glm-cheatsheet.html">GLM cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: Lesson 10, Topic 3: overdispersion and quasi-likelihood (coming)</span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

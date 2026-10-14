@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 1, Q10 Worked</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Worked solution · <a href="../lessons/0001-integrating-factors.html">Lesson 1</a>, Q10</div>
+<h1>You don't need the integrating factor here</h1>
+<p class="lede">Q10 asks <em>where</em> a unique solution is guaranteed. It doesn't ask you to solve the ODE, and that's on purpose: here the integrating factor can't be written down with ordinary functions.</p>
+
+<div class="box">
+<p><strong>Q10.</strong> Find the largest interval on which
+$$(t-4)\,y' + \ln(t)\,y = \frac{1}{t-2}, \qquad y(3) = 1$$
+is guaranteed to have a unique solution.</p>
+</div>
+
+<h2>1 · What happens if you try the integrating factor</h2>
+
+<p>Standard form, dividing by $t-4$:
+$$y' + \underbrace{\frac{\ln t}{t-4}}_{f(t)}\,y = \underbrace{\frac{1}{(t-2)(t-4)}}_{g(t)}.$$</p>
+<p>The integrating factor would be
+$$I(t) = \exp\!\left(\int \frac{\ln t}{t-4}\,dt\right).$$</p>
+<p>That integral has <strong>no elementary antiderivative</strong>. Its answer needs a special function called the dilogarithm, $\operatorname{Li}_2$:
+$$\int \frac{\ln t}{t-4}\,dt = \ln 4\,\ln\!\Big(\frac t4 - 1\Big) - \operatorname{Li}_2\!\Big(1 - \frac t4\Big) + C \quad (t&gt;4).$$
+That's well outside this course. So if you got stuck here, your algebra wasn't the problem. This integral just can't be done by hand.</p>
+
+<div class="trap"><strong>The lesson of Q10</strong><br>Read what the question asks. "Largest interval on which a unique solution is <em>guaranteed</em>" is answered by the existence–uniqueness theorem, <em>without solving</em>. Exam questions use ODEs like this one deliberately, so that solving it isn't an option.</div>
+
+<h2>2 · The method that does work</h2>
+
+<p><strong>Theorem</strong> (<a href="../lectures/03_MAST20030_Lecture_Notes_Topic1_ODEsIVPs-LMS.pdf">Lecture 3, slide 3</a>): in standard form $y' + f(t)\,y = g(t)$, if $f$ and $g$ are continuous on an open interval containing $t_0$, the IVP has exactly one solution on that whole interval.</p>
+
+<ol class="steps">
+  <li><strong>Standard form</strong> (done above):
+  $$f(t) = \frac{\ln t}{t-4}, \qquad g(t) = \frac{1}{(t-2)(t-4)}.$$</li>
+
+  <li><strong>List every bad point</strong>, i.e. every $t$ where $f$ or $g$ is undefined or discontinuous:
+  <table>
+    <tr><th>Source</th><th>Problem</th><th>Bad where</th></tr>
+    <tr><td>$\ln t$ in $f$</td><td>$\ln$ needs a positive input</td><td>$t \le 0$</td></tr>
+    <tr><td>$t-4$ in both</td><td>divided by zero (this is what we divided by)</td><td>$t = 4$</td></tr>
+    <tr><td>$t-2$ in $g$</td><td>divided by zero (from the forcing)</td><td>$t = 2$</td></tr>
+  </table>
+  So $f$ and $g$ are both continuous exactly on
+  $$(0,\,2)\;\cup\;(2,\,4)\;\cup\;(4,\,\infty).$$</li>
+
+  <li><strong>Pick the piece containing $t_0 = 3$.</strong> Since $2 &lt; 3 &lt; 4$,
+  $$\boxed{\;(2,\,4)\;}$$</li>
+</ol>
+
+<h2>3 · Why the wrong answers are wrong</h2>
+<table>
+<tr><th>Answer</th><th>Mistake</th></tr>
+<tr><td>$(0,\,4)$</td><td>Only checked $f$ and forgot $g$ has its own bad point at $t=2$.</td></tr>
+<tr><td>$(2,\,\infty)$</td><td>Forgot the $t-4$ you divided by.</td></tr>
+<tr><td>$(0,\,2)$</td><td>Correct bad points, but $t_0 = 3$ isn't in it.</td></tr>
+<tr><td>$(0,2)\cup(2,4)\cup(4,\infty)$</td><td>A union of intervals: the solution has to live on <em>one</em> unbroken interval, the one containing $t_0$.</td></tr>
+</table>
+
+<h2>4 · Try one yourself</h2>
+<p>Same method, no solving:</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q">$\;(t+1)\,y' + \sqrt{6-t}\;y = \dfrac{e^t}{t-3}, \quad y(4) = 2.\;$ Largest guaranteed interval:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(-1,\,3)$</button>
+    <button class="opt" data-key="b">$(3,\,\infty)$</button>
+    <button class="opt" data-key="c">$(3,\,6)$</button>
+    <button class="opt" data-key="d">$(-1,\,6)$</button>
+  </div>
+  <div class="why">Bad points: $t=-1$ (what you divide by), $t = 3$ (in $g$), and $t &gt; 6$ ($\sqrt{\ }$ of a negative). Strictly, at $t=6$ itself $f$ is continuous from the left but not defined to the right, so the open interval stops there. The piece containing $t_0 = 4$ is $(3,6)$.</div>
+</div>
+
+<div class="ask">💬 Want more of these, or still unsure why the interval stops at a bad point? Ask me in the terminal.</div>
+
+<div class="nav">
+  <span>Back to <a href="../lessons/0001-integrating-factors.html">Lesson 1</a></span>
+  <span>Reference: <a href="../reference/topic1-cheatsheet.html">Topic 1 cheat sheet</a></span>
+</div>
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

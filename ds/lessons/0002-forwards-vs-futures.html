@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forwards vs Futures</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 2 · Topic 1: Futures</div>
+<h1>Forwards vs futures, and how the market runs</h1>
+<p class="lede">The goal: answer any "which statement is true" question about forwards, futures, clearing houses, delivery and open interest, and show that a forward and a futures position lock in the same price but with very different cash flows.</p>
+
+<div class="mission">Why this matters for 5 Nov: every MST so far has opened with one or two one-mark conceptual MCQs on exactly this material (exchange vs OTC, counterparty risk, who chooses delivery, liquidity risk from margin calls). They're cheap marks if the distinctions are sharp, and the "same price, different cash flows" idea comes back in Lesson 3 (hedging) and in pricing.</div>
+
+<p>This lesson assumes <a href="0001-futures-and-margin-accounts.html">Lesson 1</a>: long/short payoffs, margin accounts and convergence.</p>
+
+<h2>1 · Seven differences between a forward and a futures contract</h2>
+
+<p>Both contracts fix today a price \(F_0\) for a trade at a later date \(T\). Everything else differs (<a href="../lectures/Lecture%201_Futures.pdf">Lecture 1, slides 23–29</a>; Hull Ch. 2):</p>
+
+<table>
+<tr><th></th><th>Forward</th><th>Futures</th></tr>
+<tr><td>Where it trades</td><td>OTC: a private deal between two parties, usually via a dealer network</td><td>On an exchange (e.g. ASX 24)</td></tr>
+<tr><td>Contract terms</td><td>Tailored: any amount, any date, any grade</td><td>Standardised size, delivery months, grade</td></tr>
+<tr><td>Settlement</td><td>Once, at \(T\)</td><td>Daily: marked to market through the margin account</td></tr>
+<tr><td>Who you're exposed to</td><td>Your counterparty: <strong>credit (counterparty) risk</strong></td><td>The clearing house, which guarantees both sides</td></tr>
+<tr><td>Cash needed before \(T\)</td><td>None (classically)</td><td>Initial margin plus any margin calls: <strong>liquidity risk</strong></td></tr>
+<tr><td>How it usually ends</td><td>Delivery or a cash payment at \(T\)</td><td>Closed out before delivery</td></tr>
+<tr><td>Getting out early</td><td>Negotiate with the counterparty, or enter an offsetting forward</td><td>One opposite trade on the exchange</td></tr>
+</table>
+
+<div class="trap"><strong>Advantage or disadvantage?</strong><br>
+MCQs love to list a feature and ask whether it's an advantage of futures. Sort them like this: <em>no counterparty risk</em> and <em>easy to close out</em> are futures advantages. <em>Tailored terms</em> is a forward advantage. <em>Cash needed for margin calls before delivery</em> is a futures <em>disadvantage</em>, even though it's the very thing that removes credit risk.</div>
+
+<p>One modern wrinkle. The table is the textbook picture, and it's what the classic MCQs test. Since the 2008 crisis, many standardised OTC derivatives must be cleared through a central counterparty, and the rest usually post collateral (Hull Ch. 2; <a href="https://www.asx.com.au/markets/clearing-and-settlement-services/asx-clear-futures">ASX Clear (Futures)</a> clears eligible OTC products too). So treat absolute statements such as "margin is <em>only</em> ever posted on exchange-traded contracts" with suspicion.</p>
+
+<h2>2 · The clearing house and novation</h2>
+
+<p>When you buy a futures contract, someone else sells it, but you never deal with them again. The <strong>clearing house</strong> steps into the middle: the original trade is replaced by two contracts, buyer ↔ clearing house and clearing house ↔ seller. That replacement is called <strong>novation</strong> (<a href="https://www.asx.com.au/content/dam/asx/documents/unlinked-docs/clearing/clear-participant-default-overview.pdf">ASX: clearing participant default overview</a>).</p>
+
+<ul>
+  <li>The clearing house is long to every seller and short to every buyer, so its <strong>net position is zero</strong>. It bears no price risk, only the risk that someone defaults.</li>
+  <li>It manages that risk with margins: clients post margin with brokers, brokers with clearing members, clearing members with the clearing house (<a href="../lectures/Lecture%201_Futures.pdf">slide 23</a>).</li>
+  <li>If your original counterparty goes bust, you still get paid: your contract is with the clearing house.</li>
+</ul>
+
+<h2>3 · Delivery: the short decides</h2>
+
+<p>When a contract allows alternatives in <em>what</em> is delivered (grade), <em>where</em> and <em>when</em> within the delivery month, <strong>the short chooses</strong> (<a href="../lectures/Lecture%201_Futures.pdf">slide 12</a>). Two consequences turn up in exams:</p>
+<ol class="steps">
+  <li><strong>Delivery options lower the futures price.</strong> They're valuable to the short and costly to the long, so the long will only agree to a lower \(F_0\) (Tutorial 1, Q1). The short will deliver whatever is cheapest for them.</li>
+  <li><strong>Quality must be tightly specified.</strong> If the grade were vague, shorts would deliver the worst acceptable grade and nobody would want to go long. The contract would fail (Tutorial 1, Q6).</li>
+</ol>
+<p>Where delivery is impractical (a share index), the contract is <strong>cash-settled</strong>: on the last day it is marked to a final settlement price equal to the spot price, and that's it (<a href="../lectures/Lecture%201_Futures.pdf">slide 13</a>). The SPI 200 works this way (<a href="https://www.asx.com.au/content/dam/asx/participants/derivatives-market/ird/asx24-contract-specifications.pdf">ASX contract specs</a>).</p>
+
+<h2>4 · Same locked-in price, different cash flows</h2>
+
+<p>Take a forward and a futures contract on the same asset, both entered at \(F_0\), held to \(T\). Ignoring interest on the margin account:</p>
+$$\underbrace{(S_T - F_0)}_{\text{forward: one payment at }T} \;=\; \underbrace{\textstyle\sum_{t=1}^{T}(F_t - F_{t-1})}_{\text{futures: daily flows}} \;=\; F_T - F_0,$$
+<p>because the daily changes telescope and \(F_T = S_T\) by convergence. Same total, different <em>timing</em>. That timing is why a futures hedger can be "right" in the end and still run out of cash on the way (the Metallgesellschaft story from lectures).</p>
+
+<div class="box">
+<p><strong>Example.</strong> Long 2 SPI 200 contracts at 8,000 ($25/point). Settles: 7,950, then 8,030, then a final cash settlement at 8,010.</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Day</th><th>Settle</th><th>Daily flow</th><th>Running total</th></tr>
+<tr><td>1</td><td>7,950</td><td>−2,500</td><td>−2,500</td></tr>
+<tr><td>2</td><td>8,030</td><td>+4,000</td><td>+1,500</td></tr>
+<tr><td>3 (final)</td><td>8,010</td><td>−1,000</td><td>+500</td></tr>
+</table>
+</div>
+<p>Total \(= (8{,}010 - 8{,}000)\times25\times2 = \$500\): exactly what a forward at 8,000 would have paid in one go at the end.</p>
+</div>
+
+<h3>What "locking in a price" means</h3>
+<p>If you'll buy the asset at spot on day \(T\) and you're long a forward or futures at \(F_0\), your net cost is \(S_T - (S_T - F_0) = F_0\), whatever \(S_T\) turns out to be. That's the whole point of hedging, and the subject of <a href="0003-hedging-and-basis-risk.html">Lesson 3</a>.</p>
+
+<h2>5 · Open interest vs volume</h2>
+
+<p><strong>Trading volume</strong> counts every contract traded in a period. <strong>Open interest</strong> is the number of contracts still outstanding: the total of all long positions, which always equals the total of all short positions (<a href="https://www.cmegroup.com/education/courses/introduction-to-futures/open-interest.html">CME Group: Open interest</a>; Hull Ch. 2). Every trade adds to volume, but its effect on open interest depends on what the two sides are doing:</p>
+
+<table>
+<tr><th>Buyer</th><th>Seller</th><th>Open interest</th></tr>
+<tr><td>Opening a new long</td><td>Opening a new short</td><td>+ (trade size)</td></tr>
+<tr><td>Opening a new long</td><td>Closing out an existing long</td><td>unchanged (the long passes to a new holder)</td></tr>
+<tr><td>Closing out an existing short</td><td>Opening a new short</td><td>unchanged (the short passes to a new holder)</td></tr>
+<tr><td>Closing out an existing short</td><td>Closing out an existing long</td><td>− (trade size)</td></tr>
+</table>
+
+<div class="trap"><strong>The safe method</strong><br>
+Don't try to classify each trade in your head. Keep a running position for every trader (long +, short −) and at the end add up the positive positions. That sum is open interest. Volume is just the sum of all trade sizes.</div>
+
+<h3>Who trades: hedgers, speculators, arbitrageurs</h3>
+<p>Lecture 1 (slide 5) lists three reasons to trade derivatives. A <strong>hedger</strong> already has a price exposure and uses derivatives to reduce it. A <strong>speculator</strong> has no underlying exposure and takes a position to bet on a price view. An <strong>arbitrageur</strong> combines trades to lock in a riskless profit from a mispricing. A producer who will <em>sell</em> the asset later is a <strong>short hedger</strong>; a user who will <em>buy</em> it later is a <strong>long hedger</strong>.</p>
+
+<h2>6 · Practice</h2>
+<p>Numeric answers: type a number (commas and $ are fine). A minus sign means a loss.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> Which of these is a potential <em>advantage</em> of a futures contract over a forward?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Terms can be tailored to suit both of the parties</button>
+    <button class="opt" data-key="b">You carry no exposure to the original counterparty</button>
+    <button class="opt" data-key="c">No cash changes hands until the delivery date comes</button>
+    <button class="opt" data-key="d">A wider range of delivery dates can be negotiated</button>
+  </div>
+  <div class="why">Novation puts the clearing house between you and the other trader, so their default doesn't hurt you. (a) and (d) are forward advantages. (c) describes a forward too; a futures position needs margin and daily cash flows, which is a disadvantage.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> Consider: (i) a forward is settled daily through a margin account; (ii) futures contracts specify a standard quantity and grade; (iii) the clearing house is the counterparty to both sides of every futures trade; (iv) most futures positions end in physical delivery. Which are true?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">(i) and (ii) only</button>
+    <button class="opt" data-key="b">(iii) and (iv) only</button>
+    <button class="opt" data-key="c">(ii) and (iii) only</button>
+    <button class="opt" data-key="d">(i) and (iv) only</button>
+  </div>
+  <div class="why">(i) is false: a forward settles once, at maturity. (iv) is false: most futures are closed out before delivery (Lecture 1, slide 14). (ii) and (iii) are true.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>3.</strong> You bought 5 cattle futures from a trader who goes bankrupt the next week, while cattle prices have risen sharply in your favour. What happens to your gains?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">You lose them, as the seller cannot pay you now</button>
+    <button class="opt" data-key="b">You must sue the seller's estate to recover them</button>
+    <button class="opt" data-key="c">Your broker splits the loss with all its clients</button>
+    <button class="opt" data-key="d">They are safe: the clearing house is your seller</button>
+  </div>
+  <div class="why">After novation your contract is with the clearing house, which already collected your gains daily from the short side's margin. This guarantee is why futures carry (almost) no counterparty risk.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>4.</strong> At the end of a trading day there are 42,000 contracts of open interest in one delivery month. What is the clearing house's net position in that contract?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Zero: long to every seller, short to every buyer</button>
+    <button class="opt" data-key="b">Long 42,000, matching all the buyers' positions</button>
+    <button class="opt" data-key="c">Short 42,000, matching all the buyers' positions</button>
+    <button class="opt" data-key="d">Long 84,000, counting both sides of every trade</button>
+  </div>
+  <div class="why">Every long the clearing house faces is offset by a short it faces. Its net position is zero, so price moves don't hurt it; only defaults would, which is what margins protect against.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>5.</strong> An exchange redesigns its coal futures so that delivery can now be made at any of four ports instead of one, at no price adjustment. All else equal, the futures price will tend to:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">rise, since extra ports make the contract more useful to all</button>
+    <button class="opt" data-key="b">fall, since the short can now deliver at the cheapest port</button>
+    <button class="opt" data-key="c">stay put, since the long gets to choose the delivery port</button>
+    <button class="opt" data-key="d">rise, since the long can insist on the most expensive port</button>
+  </div>
+  <div class="why">Delivery choices belong to the short. A new option for the short is worth something to them and costs the long, so the long accepts only a lower futures price. (c) and (d) wrongly give the choice to the long.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>6.</strong> An Australian gold miner sells gold futures to lock in the price of next year's output. A fund manager with no gold exposure buys gold futures because she thinks the price will rise. They are, respectively:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">a long hedger and a speculator</button>
+    <button class="opt" data-key="b">an arbitrageur and a long hedger</button>
+    <button class="opt" data-key="c">a short hedger and a speculator</button>
+    <button class="opt" data-key="d">a speculator and a short hedger</button>
+  </div>
+  <div class="why">The miner already owns the price risk (it will sell gold) and reduces it with a short position: a short hedger. The fund has no underlying exposure and is betting on a view: a speculator.</div>
+</div>
+
+<div class="quiz num" data-answer="-150000" data-tol="1">
+  <p class="q"><strong>7.</strong> A refiner enters a forward to <em>sell</em> 2,000 oz of gold in six months at $2,380/oz. At maturity spot gold is $2,455/oz. What is the forward's payoff to the refiner?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Short forward payoff \(= (F_0 - S_T)\times Q = (2{,}380 - 2{,}455)\times2{,}000 = -\$150{,}000\). It arrives as a single payment at maturity: no margin calls on the way.</div>
+</div>
+
+<div class="quiz num" data-answer="-3000" data-tol="1">
+  <p class="q"><strong>8.</strong> You go long 3 SPI 200 futures at 8,100 and hold them to expiry. Settles are 8,140, 8,075 and 8,090, and the final cash-settlement price is 8,060. What is the total of all your daily settlement flows?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">The daily flows telescope: total \(= (8{,}060 - 8{,}100)\times25\times3 = -\$3{,}000\). The middle settles don't matter for the total, only for the timing (they decide when you'd have faced a margin call).</div>
+</div>
+
+<div class="quiz num" data-answer="-4875" data-tol="1">
+  <p class="q"><strong>9.</strong> Same position as Q8. What was the cash flow on the <em>second</em> day alone?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\((8{,}075 - 8{,}140)\times25\times3 = -65\times75 = -\$4{,}875\). Marked from the <em>previous settle</em>, not from the entry price.</div>
+</div>
+
+<p>Questions 10–12 are one scenario. A new delivery month opens with zero open interest, and these trades happen in order:</p>
+<ol>
+  <li>Ana buys 10 contracts from Ben (both have no position yet).</li>
+  <li>Cal buys 4 contracts from Ana.</li>
+  <li>Ben buys 6 contracts from Dee (Dee has no position yet).</li>
+  <li>Cal sells 4 contracts to Ben.</li>
+</ol>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>10.</strong> What does trade 2 do to open interest?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Nothing: a long just passes from Ana to Cal</button>
+    <button class="opt" data-key="b">Rises by 4: Cal opens a brand new long position</button>
+    <button class="opt" data-key="c">Falls by 4: Ana closes out part of her long</button>
+    <button class="opt" data-key="d">Rises by 8: it counts both the buyer and seller</button>
+  </div>
+  <div class="why">Ana is closing (selling out of her long), Cal is opening. The total number of outstanding longs stays at 10, so open interest is unchanged.</div>
+</div>
+
+<div class="quiz num" data-answer="6" data-tol="0">
+  <p class="q"><strong>11.</strong> What is open interest after all four trades?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">contracts</span></div>
+  <div class="why">Track positions. After 1: Ana +10, Ben −10. After 2: Ana +6, Cal +4. After 3: Ben −4, Dee −6. After 4: Cal 0, Ben 0. Final: Ana +6, Dee −6, so open interest is <strong>6</strong>. Trade 4 has both sides closing, so it cut open interest by 4.</div>
+</div>
+
+<div class="quiz num" data-answer="24" data-tol="0">
+  <p class="q"><strong>12.</strong> What was the total trading volume?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">contracts</span></div>
+  <div class="why">\(10 + 4 + 6 + 4 = 24\). Volume counts every contract traded, regardless of whether it opened or closed a position. If you said 48, you counted both sides of each trade.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>13.</strong> A utility hedges ten years of future gas purchases by holding short-dated gas futures and rolling them forward. Gas prices then fall sharply for a year. Why might the hedge fail in practice even if it is sound in the long run?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Futures can't be closed out before their delivery date arrives</button>
+    <button class="opt" data-key="b">The clearing house cancels long positions when prices are falling</button>
+    <button class="opt" data-key="c">Daily margin calls drain cash long before the long-run gains arrive</button>
+    <button class="opt" data-key="d">Long futures positions always lose money when the spot price falls</button>
+  </div>
+  <div class="why">The long futures lose as prices fall, and daily settlement demands that cash now, while the offsetting gain (cheaper gas) only arrives over the next ten years. This liquidity risk is the Metallgesellschaft lesson. (d) sounds close but "always" ignores closing out at a profit after a rise; the issue is cash timing.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>14.</strong> A flour mill will buy 50,000 bushels of wheat at spot in March and goes long March wheat futures at $6.30/bu. In March, spot and futures have both converged to $5.85. Ignoring margin interest, what is the mill's net cost per bushel?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$5.85, the spot price it actually paid in March</button>
+    <button class="opt" data-key="b">$6.75, spot plus the loss on its futures positions</button>
+    <button class="opt" data-key="c">$5.40, spot minus the loss on its futures positions</button>
+    <button class="opt" data-key="d">$6.30, the futures price that it locked in earlier</button>
+  </div>
+  <div class="why">It pays $5.85 at spot and lost $0.45/bu on the futures: net \(5.85 + 0.45 = 6.30\). That's \(F_0\), whatever happened to spot. Hedging locks in a price; it doesn't promise the best one.</div>
+</div>
+
+<h2>7 · Exam-level challenge</h2>
+<p>Write it all out on paper, then open the steps one at a time.</p>
+<div class="box">
+<p>Two bakeries each need 20,000 bushels of wheat in four trading days and want to lock in $6.40/bu.</p>
+<ul>
+  <li><strong>Bakery A</strong> signs a forward with a grain merchant: buy 20,000 bu at $6.40 on day 4.</li>
+  <li><strong>Bakery B</strong> goes long 4 wheat futures (5,000 bu each) at $6.40. The initial margin is $2,000 and the maintenance margin is $1,500 per contract.</li>
+</ul>
+<p>Futures settle at $6.31, $6.22, $6.35 and finally $6.48 on day 4, when spot is also $6.48. Both bakeries then buy their wheat.</p>
+<p>(a) Bakery B's margin balance each day, and any margin calls.<br>
+(b) Each bakery's total gain on its derivative, and its net cost per bushel.<br>
+(c) Which bakery needed extra cash before day 4, and how much?<br>
+(d) On day 4 the merchant turns out to be insolvent and can't honour the forward. What does Bakery A now pay per bushel?</p>
+</div>
+
+<details><summary>Step 1: totals and days 1–2</summary><div>
+<p>Totals: $8,000 initial and $6,000 maintenance. Day 1: \(-0.09\times20{,}000 = -1{,}800\), leaving <strong>6,200</strong> (no call). Day 2: another \(-1{,}800\), leaving 4,400, which is below 6,000: call of <strong>$3,600</strong>, back to 8,000.</p></div></details>
+<details><summary>Step 2: days 3–4</summary><div>
+<p>Day 3: \(+0.13\times20{,}000 = +2{,}600\), leaving <strong>10,600</strong>. Day 4: \(+0.13\times20{,}000 = +2{,}600\), leaving <strong>13,200</strong>.<br>
+Check: deposits \(8{,}000 + 3{,}600 = 11{,}600\), plus cumulative gain \((6.48 - 6.40)\times20{,}000 = 1{,}600\), gives 13,200 ✓.</p></div></details>
+<details><summary>Step 3: part (b), the totals are equal</summary><div>
+<p>Both derivatives gain \(0.08\times20{,}000 = \$1{,}600\): A's in one payment on day 4, B's spread over four days. Each pays \(6.48\times20{,}000 = 129{,}600\) for the wheat, so the net cost is \(129{,}600 - 1{,}600 = 128{,}000\), i.e. <strong>$6.40/bu</strong> for both.</p></div></details>
+<details><summary>Step 4: part (c), the timing differs</summary><div>
+<p>Only Bakery B, which had to find <strong>$3,600</strong> on day 2, when prices were moving against it. Bakery A needed no cash before day 4. Same locked-in price, different liquidity risk.</p></div></details>
+<details><summary>Step 5: part (d), counterparty risk</summary><div>
+<p>The merchant owed A the $1,600 gain and doesn't pay. A buys at spot for <strong>$6.48/bu</strong>, losing the protection it thought it had. B is unaffected: its gains were paid daily by the clearing house. This is the counterparty risk that futures remove, and part (c) is the price B paid for that.</p></div></details>
+
+<h2>8 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, list five forward vs futures differences and the four open-interest cases. Then check</summary><div>
+<p>Forward: OTC, tailored, settled once at \(T\), counterparty risk, no cash before \(T\). Futures: exchange, standardised, settled daily, clearing house guarantee, margin and liquidity risk, usually closed out. Open interest: both opening +, both closing −, one of each unchanged. Volume counts every contract once.</p></div></details>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, Ch. 2 (the specification of a futures contract, delivery, clearing houses, open interest, OTC markets, and the forwards vs futures comparison) and Ch. 1 (types of traders). These are the readings for <a href="../lectures/Lecture%201_Futures.pdf">Lecture 1</a>. For open interest in a page, see <a href="https://www.cmegroup.com/education/courses/introduction-to-futures/open-interest.html">CME Group: Open interest</a>.</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%201.pdf">Tutorial 1</a>, Q1, Q6 and Q7 (<a href="../tutes/Tutorial%201%20solutions.pdf">solutions</a>). Write 2–3 sentence answers before checking; the final asks for short written explanations like these. If you haven't done Q5 yet, do it now: it's the "two offsetting forwards" idea from section 4.</p>
+<p><strong>Spacing:</strong> tomorrow, before Lesson 3, redo Q2, Q11 and the challenge's step 1 without looking, and redo Lesson 1's Q11.</p>
+
+<div class="ask">💬 Unsure whether a statement is "true" in the exam's sense? Paste the statement (or your own version of it) in the terminal and ask me. I'm your teacher for this, and I'll explain which word makes it true or false.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0001-futures-and-margin-accounts.html">Lesson 1, futures payoffs and margin accounts</a></span>
+  <span>Reference: <a href="../reference/futures-cheatsheet.html">Futures cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0003-hedging-and-basis-risk.html">Lesson 3, hedging and basis risk</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

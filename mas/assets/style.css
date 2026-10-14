@@ -1,0 +1,132 @@
+/* Shared stylesheet for all lessons and reference docs. Tufte-ish: one column, generous margins, sidenotes on wide screens. */
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --bg: #fffff8;
+  --fg: #1d1d1b;
+  --muted: #6b6b66;
+  --rule: #e4e2d6;
+  --accent: #8a2b0e;
+  --card: #f7f5ea;
+  --ok: #1f6f43;
+  --ok-bg: #e5f2ea;
+  --bad: #a3261b;
+  --bad-bg: #f8e5e2;
+  --trap: #8a5a00;
+  --trap-bg: #fbf1d9;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161614; --fg: #e9e7df; --muted: #9c9a91; --rule: #34332e; --accent: #e08a62;
+    --card: #1f1f1c; --ok: #7fd3a0; --ok-bg: #16301f; --bad: #f19a8f; --bad-bg: #3a1a16;
+    --trap: #e9c06a; --trap-bg: #332a14;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161614; --fg: #e9e7df; --muted: #9c9a91; --rule: #34332e; --accent: #e08a62;
+  --card: #1f1f1c; --ok: #7fd3a0; --ok-bg: #16301f; --bad: #f19a8f; --bad-bg: #3a1a16;
+  --trap: #e9c06a; --trap-bg: #332a14;
+}
+
+* { box-sizing: border-box; }
+html { font-size: 18px; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: 'Source Serif 4', Georgia, serif; line-height: 1.6;
+}
+main { max-width: 42rem; margin: 0 auto; padding: 3rem 16px 5rem; }
+.kicker { font-family: Inter, system-ui, sans-serif; font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-weight: 400; font-size: 2.1rem; line-height: 1.2; margin: .3rem 0 .6rem; }
+h2 { font-weight: 400; font-style: italic; font-size: 1.45rem; margin: 2.6rem 0 .6rem; border-top: 1px solid var(--rule); padding-top: 1.4rem; }
+h3 { font-weight: 600; font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p, li { hyphens: auto; }
+a { color: var(--accent); text-underline-offset: 2px; }
+.lede { font-size: 1.15rem; color: var(--muted); }
+code { font-size: .85em; }
+
+.mission { font-family: Inter, system-ui, sans-serif; font-size: .85rem; color: var(--muted); border-left: 3px solid var(--accent); padding: .2rem 0 .2rem .8rem; margin: 1.2rem 0; }
+
+.box { background: var(--card); border: 1px solid var(--rule); border-radius: 6px; padding: 1rem 1.2rem; margin: 1.2rem 0; }
+.box > :first-child { margin-top: 0; } .box > :last-child { margin-bottom: 0; }
+.trap { background: var(--trap-bg); border-left: 4px solid var(--trap); border-radius: 4px; padding: .8rem 1rem; margin: 1.2rem 0; }
+.trap strong:first-child { color: var(--trap); font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .05em; text-transform: uppercase; }
+
+ol.steps { counter-reset: s; list-style: none; padding-left: 0; }
+ol.steps > li { counter-increment: s; position: relative; padding-left: 2.2rem; margin: .7rem 0; }
+ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: .1rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--accent); color: var(--bg); font: 600 .8rem/1.5rem Inter, sans-serif; text-align: center; }
+
+table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+th, td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+
+/* Click-to-reveal (retrieval practice, worked steps) */
+details { border: 1px solid var(--rule); border-radius: 6px; margin: .6rem 0; background: var(--card); }
+details > summary { cursor: pointer; padding: .55rem .9rem; font-family: Inter, system-ui, sans-serif; font-size: .88rem; font-weight: 500; }
+details[open] > summary { border-bottom: 1px solid var(--rule); }
+details > div { padding: .6rem 1rem; }
+
+/* Quiz (see assets/quiz.js) */
+.quiz { border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.2rem; margin: 1.4rem 0; }
+.quiz .q { margin: 0 0 .7rem; }
+.quiz .opts { display: grid; gap: .45rem; }
+.quiz button.opt {
+  font: inherit; font-size: .95rem; text-align: left; color: var(--fg); background: var(--bg);
+  border: 1px solid var(--rule); border-radius: 6px; padding: .55rem .8rem; cursor: pointer; min-height: 44px;
+}
+.quiz button.opt:hover:not([disabled]) { border-color: var(--accent); }
+.quiz button.opt.right { background: var(--ok-bg); border-color: var(--ok); }
+.quiz button.opt.wrong { background: var(--bad-bg); border-color: var(--bad); }
+.quiz button.opt[disabled] { cursor: default; }
+.quiz .why { display: none; margin-top: .8rem; font-size: .93rem; }
+.quiz.done .why { display: block; }
+.quiz .verdict { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: .85rem; }
+.quiz .verdict.ok { color: var(--ok); } .quiz .verdict.no { color: var(--bad); }
+.score { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--rule); padding: .6rem 0; font-family: Inter, system-ui, sans-serif; font-size: .85rem; color: var(--muted); text-align: center; }
+
+.nav { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: 3rem; border-top: 1px solid var(--rule); padding-top: 1rem; }
+.ask { font-family: Inter, system-ui, sans-serif; font-size: .9rem; background: var(--card); border-radius: 6px; padding: .9rem 1.1rem; margin-top: 2rem; }
+
+/* Phase portrait widget (see assets/phase.js) */
+.phase { margin: 1.4rem 0; display: flex; flex-direction: column; align-items: center; }
+.phase canvas { border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); cursor: crosshair; max-width: 100%; }
+.phase-info { font-family: Inter, system-ui, sans-serif; font-size: .85rem; margin-top: .5rem; text-align: center; }
+.phase-key { color: var(--muted); font-size: .78rem; }
+.phase-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .3rem 1.2rem; margin-top: .6rem; width: 100%; max-width: 440px; font-family: Inter, system-ui, sans-serif; font-size: .82rem; }
+.phase-controls label { display: flex; flex-direction: column; }
+.phase-controls input { width: 100%; accent-color: var(--accent); }
+
+.katex-display { overflow-x: auto; overflow-y: hidden; padding: .2rem 0; }
+
+/* Reference sheets: denser, print-first */
+body.ref main { max-width: 52rem; }
+body.ref h2 { margin-top: 1.6rem; padding-top: .8rem; font-size: 1.2rem; }
+
+@media print {
+  html { font-size: 11pt; }
+  body { background: #fff; color: #000; }
+  main { max-width: none; padding: 0; }
+  .score, .nav, .ask, .noprint { display: none !important; }
+  details { border: none; } details > summary { display: none; }
+  details > div { display: block !important; padding: 0; }
+  h2 { break-after: avoid; } .box, .trap, table { break-inside: avoid; }
+}
+
+/* Numeric-answer questions (see assets/quiz.js) */
+.numrow { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+.numrow input { font: inherit; font-size: .95rem; width: 11rem; max-width: 100%; padding: .5rem .7rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); color: var(--fg); min-height: 44px; }
+.numrow input.right { background: var(--ok-bg); border-color: var(--ok); }
+.numrow input.wrong { background: var(--bad-bg); border-color: var(--bad); }
+.numrow button { font: 500 .85rem Inter, system-ui, sans-serif; padding: .5rem .9rem; border-radius: 6px; border: 1px solid var(--rule); background: var(--card); color: var(--fg); cursor: pointer; min-height: 44px; }
+.numrow button:hover:not([disabled]) { border-color: var(--accent); }
+.numrow .unit { font-family: Inter, system-ui, sans-serif; font-size: .85rem; color: var(--muted); }
+.numrow .hint { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--bad); }
+
+/* Worked ledgers (margin accounts, cash-flow tables) */
+table.ledger td, table.ledger th { text-align: right; font-variant-numeric: tabular-nums; }
+table.ledger td:first-child, table.ledger th:first-child { text-align: left; }
+.tablewrap { overflow-x: auto; }
+
+/* R console output (glm summaries, anova tables). <b> marks the numbers a lesson points at. */
+pre.rout { font: .74rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--card); color: var(--fg); border: 1px solid var(--rule); border-radius: 6px; padding: .8rem 1rem; margin: 1rem 0; overflow-x: auto; white-space: pre; }
+pre.rout b { font-weight: 600; color: var(--accent); }
+pre.rout .cmd { color: var(--muted); }

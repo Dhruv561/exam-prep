@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topic 2 Cheat Sheet</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body class="ref">
+<main>
+<div class="kicker">MAST20030 · Reference</div>
+<h1>Topic 2: Power series solutions</h1>
+<p class="lede">The short version of Lessons 8–12. The formula sheet gives you series tests and limits, but none of the method, so learn the recipes below. To decide <em>whether</em> to use series, see the <a href="ode-method-map.html">ODE decision map</a>.</p>
+
+<h2>Standard series <span class="kicker">· <a href="../lessons/0008-taylor-series-radius.html">Lesson 8</a></span></h2>
+<p>Taylor: $\displaystyle P(t) = \sum \frac{f^{(n)}(a)}{n!}(t-a)^n$ (Maclaurin: $a=0$). Read it backwards too: $f^{(n)}(a) = n!\,c_n$.</p>
+<table>
+<tr><th>Function</th><th>Series</th><th>$R$</th></tr>
+<tr><td>$e^t$</td><td>$\sum t^n/n!$</td><td>$\infty$</td></tr>
+<tr><td>$\dfrac1{1-t}$</td><td>$\sum t^n$</td><td>$1$</td></tr>
+<tr><td>$\log(1-t)$</td><td>$-\sum_{n\ge1} t^n/n$</td><td>$1$</td></tr>
+<tr><td>$\cos t,\ \sin t$</td><td>$\sum (-1)^k\dfrac{t^{2k}}{(2k)!},\ \ \sum (-1)^k\dfrac{t^{2k+1}}{(2k+1)!}$</td><td>$\infty$</td></tr>
+<tr><td>$\cosh t,\ \sinh t$</td><td>the same without $(-1)^k$</td><td>$\infty$</td></tr>
+<tr><td>$\arctan t$</td><td>$\sum (-1)^k t^{2k+1}/(2k+1)$</td><td>$1$</td></tr>
+<tr><td>$e^{at^2}$</td><td>$\sum a^k t^{2k}/k!$</td><td>$\infty$</td></tr>
+</table>
+<p>To build a new series: substitute (and carry the condition along: $|2t|&lt;1 \Rightarrow R = \tfrac12$), multiply by $t^k$, or differentiate/integrate term by term. These leave $R$ unchanged; after integrating, fix the constant.</p>
+<p><strong>Series = $f$?</strong> Find a first-order IVP $f$ satisfies, show the series solves it, then quote uniqueness. Warning: $e^{-1/t^2}$ has Maclaurin series $0$.</p>
+
+<h2>Radius of convergence <span class="kicker">· <a href="../lessons/0008-taylor-series-radius.html">Lesson 8</a></span></h2>
+<div class="box">$$R = \lim_{n\to\infty}\left|\frac{c_n}{c_{n+1}}\right| \qquad \text{converges for } |t-a|&lt;R,\ \text{diverges for } |t-a|&gt;R$$</div>
+<ul>
+<li>Note the order: if you flip it you get $1/R$. Endpoints need another test.</li>
+<li>Gap series ($t^{2k}$): either put $x = t^2$, find $R_x$, then $R = \sqrt{R_x}$, or take the ratio of successive <em>non-zero</em> terms with $t$ kept in.</li>
+<li>Useful: $(n+1)! = (n+1)\,n!$, $\ (2n+2)! = (2n+2)(2n+1)(2n)!$, $\ (1+\tfrac1n)^n \to e$.</li>
+</ul>
+
+<h2>The 5-step method <span class="kicker">· <a href="../lessons/0009-series-method-constant-coeff.html">Lesson 9</a></span></h2>
+<div class="box">$$y = \sum_{n\ge0}c_nt^n,\qquad y' = \sum_{n\ge1}nc_nt^{n-1},\qquad y''=\sum_{n\ge2}n(n-1)c_nt^{n-2}$$</div>
+<ol class="steps">
+<li>Substitute. Multiply each coefficient into its own sum</li>
+<li>Shift every sum to $t^m$. For $t^{n+k}$, put $n = m-k$ <strong>everywhere</strong> (index and factors); the start moves up by $k$</li>
+<li>Extract the low-index terms so all sums start at the same $m$. These give conditions ($c_1=0$, $c_2 = 0$, …)</li>
+<li>Recurrence: the coefficient of each $t^m$ is $0$</li>
+<li>Count free constants: 2 for second order ($c_0,c_1$), or only 1 if the equation is singular at 0</li>
+</ol>
+<table>
+<tr><th>Standard shifts</th><th></th></tr>
+<tr><td>$y''$</td><td>$\sum_{m\ge0}(m+2)(m+1)c_{m+2}t^m$</td></tr>
+<tr><td>$y'$</td><td>$\sum_{m\ge0}(m+1)c_{m+1}t^m$</td></tr>
+<tr><td>$t\,y'$, $\ t^2y''$</td><td>$\sum_{m\ge0} m\,c_mt^m$, $\ \sum_{m\ge0} m(m-1)c_mt^m$ (extra terms vanish)</td></tr>
+<tr><td>$t\,y$</td><td>$\sum_{m\ge1}c_{m-1}t^m$</td></tr>
+</table>
+<p><strong>Solving $c_{m+2} = r(m)\,c_m$:</strong> $c_{2k} = c_0\prod_{j=0}^{k-1}r(2j)$ and $c_{2k+1} = c_1\prod_{j=0}^{k-1}r(2j+1)$. Write out $c_2, c_4, c_6$ unmultiplied, spot the pattern, then check at $k=0$.</p>
+<table>
+<tr><th>Product</th><th>Equals</th></tr>
+<tr><td>$2\cdot4\cdots(2k)$</td><td>$2^kk!$</td></tr>
+<tr><td>$1\cdot3\cdots(2k-1)$</td><td>$\dfrac{(2k)!}{2^kk!}$</td></tr>
+<tr><td>$1\cdot3\cdots(2k+1)$</td><td>$\dfrac{(2k+1)!}{2^kk!}$</td></tr>
+</table>
+<p>Closed forms to spot: $t^{2k}/(2k)! \to \cos/\cosh$, $\ t^{2k}/k! \to e^{at^2}$, $\ a^kt^{2k+1}/k! \to t\,e^{at^2}$. If there's a product of odd numbers with no factorial pairing, leave it as a sum. <strong>IVP at 0:</strong> $c_0 = y(0)$, $c_1 = y'(0)$.</p>
+
+<h2>Polynomial coefficients <span class="kicker">· <a href="../lessons/0010-series-variable-coeff.html">Lesson 10</a></span></h2>
+<div class="box">$$(a+\alpha t^2)y'' + bty' + cy = 0:\qquad c_{m+2} = -\frac{\alpha m(m-1) + bm + c}{a(m+2)(m+1)}\,c_m$$</div>
+<ul>
+<li><strong>Terminating:</strong> if the numerator is $0$ at an integer $k\ge0$, the chain with $k$'s parity is a polynomial of degree $k$. For a parameter value giving a polynomial, set the numerator to $0$ at $m=k$.</li>
+<li><strong>Radius:</strong> at least the distance from $0$ to the nearest <em>complex</em> root of the $y''$ coefficient ($1+t^2 \Rightarrow 1$). For this family, $R = \sqrt{|a/\alpha|}$ for a non-terminating chain. Polynomials have $R=\infty$.</li>
+<li><strong>Step 3 (Airy):</strong> when the other terms give $t^{n+1}$, $c_2 = 0$ is forced and $c_{m+3}$ links to $c_m$.</li>
+<li><strong>Three-term</strong> (leading coefficient like $1-t$): tabulate the coefficients for $(c_0,c_1) = (1,0)$ and $(0,1)$; "first $k$ non-zero terms" means skip the zeros.</li>
+<li><strong>Existence interval</strong> (a separate question): divide by $P$, use only <em>real</em> roots, and take the open interval containing $t_0$. It can lie outside $(-R,R)$.</li>
+</ul>
+
+<h2>Singular at 0 <span class="kicker">· <a href="../lessons/0011-singular-points-bessel.html">Lesson 11</a></span></h2>
+<p>If the $y''$ coefficient vanishes at $0$ ($p\,t\,y'' + q\,y' + \dots$): only $c_0$ is free, so there is <strong>one</strong> power-series solution $y_1$. Always check the lowest power, e.g. $b\,c_1 = 0$.</p>
+<div class="box">$$\operatorname{wr} = Ce^{-\int f_1} = C\,t^{-q/p},\qquad y_2 = y_1\int\frac{\operatorname{wr}}{y_1^2}\,dt$$</div>
+<table>
+<tr><th>$q/p$</th><th>Second solution</th></tr>
+<tr><td>$1$</td><td>$y_2 \sim C\ln t$: log singularity</td></tr>
+<tr><td>not an integer</td><td>$y_2 = t^{a}\sum d_jt^j$, $\ a = 1 - q/p$</td></tr>
+<tr><td>$2, 3, \dots$</td><td>blows up like $t^{1-q/p}$, possibly with a $\ln t$ term</td></tr>
+</table>
+<p><strong>Finding $a, d_1, d_2$:</strong> substitute $y_2 = t^a(1+d_1t+d_2t^2)$ and the first terms of $y_1$ into $y_1y_2' - y_1'y_2 = C\,t^{-q/p}$. The lowest power gives $a$; set every higher power to $0$. Indicial equation for a $t^\lambda$ trial: $\lambda(p\lambda - p + q) = 0$.</p>
+<p><strong>Why $y_2$ isn't a power series:</strong> if it were, the Wronskian would be bounded at $0$, but $C\,t^{-q/p}$ is not.</p>
+
+<h2>Uniform convergence &amp; genuine solutions <span class="kicker">· <a href="../lessons/0012-uniform-convergence-genuine.html">Lesson 12</a></span></h2>
+<ul>
+<li><strong>Uniform on $D$:</strong> $\max_{t\in D}|W_N - W| \to 0$. Always state $D$. Example: $t^N$ is not uniform on $[0,1]$, but it is uniform on $[0,b]$, $b&lt;1$.</li>
+<li>A uniform limit of continuous functions is continuous. So a discontinuous limit means <strong>not</strong> uniform.</li>
+</ul>
+<div class="box"><strong>Weierstrass write-up:</strong> (1) name $w_n(t)$ and $D$; (2) $|w_n(t)|\le a_n$ for all $t\in D$, where $a_n$ has no $t$ in it; (3) $\sum a_n$ converges (geometric, $p$-series, or ratio test); (4) so $\sum w_n$ converges uniformly on $D$.</div>
+<p>Use $|\sin|,|\cos|\le1$, $|t|\le b$ on $[-b,b]$. If $\sum a_n$ diverges, the test is inconclusive (it doesn't show non-uniform convergence).</p>
+<div class="box"><strong>The short-answer trio</strong> (for a series with radius $R$):
+<ol class="steps">
+<li>Radius by the ratio test (successive non-zero terms)</li>
+<li>Converges uniformly on every closed $[-b,b]$ with $0&lt;b&lt;R$ (every $b&gt;0$ if $R=\infty$), and not necessarily on $(-R,R)$ or $\mathbb R$</li>
+<li>Genuine: $R&gt;0$, so the series and its derivatives up to the order of the ODE (same radius) converge uniformly on each $[-b,b]$. Term-by-term differentiation is valid there, so it is a genuine solution on $(-R,R)$. If $R=0$, it is formal only</li>
+</ol></div>
+
+<div class="nav">
+  <span>Lessons: <a href="../lessons/0008-taylor-series-radius.html">8</a> · <a href="../lessons/0009-series-method-constant-coeff.html">9</a> · <a href="../lessons/0010-series-variable-coeff.html">10</a> · <a href="../lessons/0011-singular-points-bessel.html">11</a> · <a href="../lessons/0012-uniform-convergence-genuine.html">12</a></span>
+  <span>Also: <a href="topic1-cheatsheet.html">Topic 1 cheat sheet</a> · <a href="ode-method-map.html">Decision map</a></span>
+</div>
+</main>
+</body>
+</html>

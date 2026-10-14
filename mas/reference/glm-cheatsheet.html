@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GLM Cheat Sheet</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  body.ref table { font-size: .84rem; margin: .6rem 0; }
+  body.ref th, body.ref td { padding: .28rem .45rem; }
+  body.ref p, body.ref li { margin: .35rem 0; }
+  body.ref .box { padding: .6rem .9rem; margin: .7rem 0; }
+  body.ref .trap { padding: .5rem .8rem; margin: .7rem 0; }
+  .src { font-family: Inter, system-ui, sans-serif; font-size: .72rem; color: var(--muted); }
+  @page { size: A4; margin: 9mm 10mm; }
+  @media print {
+    html { font-size: 7.6pt; }
+    body.ref main { max-width: none; }
+    body.ref ul { padding-left: 1.2rem; margin: .2rem 0; }
+    body.ref p, body.ref li { margin: .15rem 0; line-height: 1.4; }
+    body.ref .box { padding: .3rem .6rem; margin: .4rem 0; }
+    body.ref .trap { padding: .3rem .6rem; margin: .4rem 0; }
+    body.ref th, body.ref td { padding: .15rem .35rem; }
+    body.ref h1 { font-size: 1.5rem; margin: 0 0 .2rem; }
+    body.ref .lede { font-size: .95rem; margin: 0 0 .4rem; }
+    body.ref h2 { margin-top: .7rem; padding-top: .3rem; font-size: 1.05rem; }
+    body.ref table { font-size: .8rem; }
+    .katex-display { margin: .3rem 0; }
+  }
+</style>
+</head>
+<body class="ref">
+<main>
+<div class="kicker">MAST30027 · Reference</div>
+<h1>Exponential families and GLMs</h1>
+<p class="lede">Topic 2 on two printed pages, in the course's notation (\(a(\phi)=\phi\); \(\mathcal I\) is the whole-sample information). Every line links back to the lesson that teaches it. Good raw material for your handwritten A4 sheet.</p>
+
+<h2>Exponential family <span class="kicker">· <a href="../lessons/0005-exponential-families.html">Lesson 5</a></span></h2>
+<div class="box">
+$$f(y;\theta,\phi)=\exp\!\left[\frac{y\theta-b(\theta)}{a(\phi)}+c(y,\phi)\right],\qquad \mathbb EY=\mu=b'(\theta),\qquad \operatorname{Var}Y=a(\phi)\,b''(\theta)=a(\phi)\,v(\mu)$$
+$$v=b''\circ(b')^{-1}\ \text{(compute }b''(\theta)\text{, substitute }\theta(\mu)\text{)},\qquad \text{canonical link } g=(b')^{-1},\ \text{i.e. } g(\mu)=\theta .$$
+</div>
+<p><strong>Recipe:</strong> take logs · check the support doesn't involve the parameter · the term with \(y\) times the parameter gives \(\theta\) (the parameter must multiply \(y\), not \(y^2\), \(\log y\) or \(e^y\)) · factor any scale out of both the \(y\)-term and the parameter-only term to get \(a(\phi)\) · the parameter-only term is \(-b/a(\phi)\): rewrite \(b\) in \(\theta\) · the rest is \(c(y,\phi)\) · check \(b'(\theta)=\mu\). Proof of the lemma: \(\mathbb E\ell'=0\) and \(\mathbb E\ell''=-\mathbb E(\ell')^2\) for one observation. <span class="src"><a href="../lectures/Exponential_families.pdf#page=3">Exp. families slides 3, 8, 9</a>; <a href="../lectures/GLM_1_LMS-1.pdf#page=4">GLMs I slide 4</a></span></p>
+<div class="tablewrap"><table>
+<tr><th>Distribution</th><th>\(\theta\)</th><th>\(b(\theta)\)</th><th>\(\phi\)</th><th>Canonical \(g(\mu)\)</th><th>\(v(\mu)\)</th></tr>
+<tr><td>Normal \(N(\mu,\sigma^2)\)</td><td>\(\mu\)</td><td>\(\theta^2/2\)</td><td>\(\sigma^2\)</td><td>\(\mu\)</td><td>\(1\)</td></tr>
+<tr><td>Poisson\((\mu)\)</td><td>\(\log\mu\)</td><td>\(e^\theta\)</td><td>1</td><td>\(\log\mu\)</td><td>\(\mu\)</td></tr>
+<tr><td>Binomial count, \(m\) known, \(\mu=mp\)</td><td>\(\log\frac{\mu}{m-\mu}\)</td><td>\(m\log(1+e^\theta)\)</td><td>1</td><td>\(\log\frac{\mu}{m-\mu}\) (logit \(p\))</td><td>\(\mu(1-\mu/m)\)</td></tr>
+<tr><td>Gamma, mean \(\mu\), shape \(\nu\)</td><td>\(-1/\mu\)</td><td>\(-\log(-\theta)\)</td><td>\(1/\nu\)</td><td>\(-1/\mu\) (R: \(1/\mu\))</td><td>\(\mu^2\)</td></tr>
+<tr><td>Inverse Gaussian\((\mu,\lambda)\)</td><td>\(-\frac{1}{2\mu^2}\)</td><td>\(-\sqrt{-2\theta}\)</td><td>\(1/\lambda\)</td><td>\(-\frac{1}{2\mu^2}\) (R: \(1/\mu^2\))</td><td>\(\mu^3\)</td></tr>
+<tr><td>Neg. binomial, \(r\) known</td><td>\(\log\frac{\mu}{\mu+r}\)</td><td>\(-r\log(1-e^\theta)\)</td><td>1</td><td>\(\log\frac{\mu}{\mu+r}\)</td><td>\(\mu+\mu^2/r\)</td></tr>
+<tr><td>Average of \(k\) Poisson counts</td><td>\(\log\mu\)</td><td>\(e^\theta\)</td><td>\(1/k\)</td><td>\(\log\mu\)</td><td>\(\mu\)</td></tr>
+</table></div>
+<p class="src">Rows 1–5: <a href="../lessons/0005-exponential-families.html">Lesson 5</a> table (slides 4–9, GLMs I slide 5, Faraway Table 8.1); neg. binomial: Lesson 5 challenge; averages: <a href="../lessons/0009-topic2-review.html">Lesson 9</a> Exhibit A.</p>
+<div class="trap"><strong>Traps</strong><br>Leave \(b\) in \(\mu\) or \(p\) and its derivative is wrong · support depending on \(\theta\) (uniform, shifted exponential) ⇒ not an exponential family · \(v(\mu)\neq\operatorname{Var}Y\) unless \(\phi=1\) (gamma: \(v=\mu^2\), \(\operatorname{Var}Y=\phi\mu^2\)) · gamma \(\theta=-1/\mu&lt;0\) · R and Faraway use the binomial <em>proportion</em> \(Y/m\): \(V(\mu)=\mu(1-\mu)\), with \(m\) as prior weight (<code>binomial()$variance(0.2)</code> is 0.16) · <code>fam$variance(mu)</code> is \(v(\mu)\), <code>fam$linkfun(mu)</code> is \(g(\mu)\).</div>
+
+<h2>GLM, score, IWLS, \(\operatorname{Var}\hat\beta\) <span class="kicker">· <a href="../lessons/0006-glm-likelihood-iwls.html">Lesson 6</a></span></h2>
+<p><strong>GLM</strong> = independent \(Y_i\) from one exponential family (common \(\phi\)) + \(\eta_i=x_i^T\beta\) + monotone differentiable \(g(\mu_i)=\eta_i\). \(\phi\) is not modelled. <span class="src"><a href="../lectures/GLM_1_LMS-1.pdf#page=3">GLMs I slide 3</a></span></p>
+<div class="box">
+$$U_j=\frac{\partial\ell}{\partial\beta_j}=\sum_i\frac{(y_i-\mu_i)\,x_{ij}}{a(\phi)\,v(\mu_i)\,g'(\mu_i)}\qquad\text{(chain }\beta\to\eta\to\mu\to\theta\text{: }x_{ij},\ 1/g',\ 1/v)$$
+$$z_i=\eta_i+(y_i-\mu_i)\,g'(\mu_i),\qquad W_{ii}=\frac{1}{g'(\mu_i)^2\,v(\mu_i)},\qquad \hat\beta^{\text{new}}=(X^TWX)^{-1}X^TWz$$
+$$\operatorname{Var}\hat\beta=a(\phi)\,(X^T\hat WX)^{-1}=\mathcal I(\hat\beta)^{-1},\qquad \widehat{a(\phi)}=\hat\phi=\frac{X^2}{n-p},\quad X^2=\sum_i\frac{(y_i-\hat\mu_i)^2}{v(\hat\mu_i)}$$
+</div>
+<ul>
+  <li>IWLS: start \(\hat\mu^0=y\) (R: Poisson \(y+0.1\), binomial \((y+0.5)/(m+1)\)); iterate to convergence. IWLS = Fisher scoring for every GLM; R's "Number of Fisher Scoring iterations". <span class="src"><a href="../lectures/GLM_1_LMS-1.pdf#page=12">slides 12–14</a></span></li>
+  <li>\(a(\phi)\) cancels in the update (\(\hat\beta\) doesn't depend on it) but not in \(\operatorname{Var}\hat\beta\): SEs scale with \(\sqrt{\hat\phi}\). <span class="src"><a href="../lectures/GLM_1_LMS-1.pdf#page=15">slides 15–17</a></span></li>
+  <li><strong>Canonical link</strong> \(\Rightarrow g'=1/v\): \(U=X^T(y-\mu)/a(\phi)\), \(W_{ii}=v(\mu_i)\), Hessian has no \(y\) so \(J=\mathcal I\) and Newton–Raphson = Fisher scoring; \(X^Ty\) sufficient; with an intercept (or a factor) the fitted totals equal the observed totals (<a href="../lessons/0009-topic2-review.html">Lesson 9</a> challenge (f)). Non-canonical: \(J\) contains \(y\), \(J\neq\mathcal I\).</li>
+</ul>
+<div class="tablewrap"><table>
+<tr><th>Family, link</th><th>\(g'(\mu)\)</th><th>\(z_i\)</th><th>\(W_{ii}\)</th></tr>
+<tr><td>Poisson, log (canonical)</td><td>\(1/\mu\)</td><td>\(\eta+(y-\mu)/\mu\)</td><td>\(\mu\)</td></tr>
+<tr><td>Poisson, sqrt</td><td>\(1/(2\sqrt\mu)\)</td><td>\(\eta+(y-\mu)/(2\sqrt\mu)\)</td><td>\(4\)</td></tr>
+<tr><td>Binomial count, logit (canonical)</td><td>\(\frac{m}{\mu(m-\mu)}\)</td><td>\(\eta+\frac{(y-\mu)m}{\mu(m-\mu)}\)</td><td>\(mp(1-p)\)</td></tr>
+<tr><td>Binomial count, cloglog</td><td>\(\frac{1}{m(1-p)L}\), \(L=-\log(1-p)=e^\eta\)</td><td>\(\eta+\frac{y-\mu}{m(1-p)L}\)</td><td>\(m(1-p)L^2/p\)</td></tr>
+<tr><td>Gamma, log</td><td>\(1/\mu\)</td><td>\(\eta+(y-\mu)/\mu\)</td><td>\(1\)</td></tr>
+<tr><td>Gamma, inverse \(1/\mu\)</td><td>\(-1/\mu^2\)</td><td>\(\eta-(y-\mu)/\mu^2\)</td><td>\(\mu^2\)</td></tr>
+<tr><td>Gamma, identity</td><td>\(1\)</td><td>\(y\)</td><td>\(1/\mu^2\)</td></tr>
+<tr><td>Inverse Gaussian, inverse \(1/\mu\)</td><td>\(-1/\mu^2\)</td><td>\(\eta-(y-\mu)/\mu^2\)</td><td>\(\mu\)</td></tr>
+</table></div>
+<p class="src">Rows from Lesson 6 (quiz 9, challenge, Bliss homework) and Lesson 9 (Q5, homework); each checked against R's <code>glm</code> weights.</p>
+
+<h2>Poisson GLMs and rate models <span class="kicker">· <a href="../lessons/0007-poisson-gamma-glms.html">Lesson 7</a></span></h2>
+<ul>
+  <li>Log link: \(+\Delta\) in \(x_j\) multiplies the mean by \(e^{\beta_j\Delta}\); CI \(\exp\big(\Delta(\hat\beta_j\pm1.96\,\text{se}_j)\big)\). Predictions: CI on \(\hat\eta\) (R's <code>se.fit</code>), then exponentiate.</li>
+  <li>Deviance \(D=2\sum_i\big[y_i\log\frac{y_i}{\hat\mu_i}-(y_i-\hat\mu_i)\big]\) (\(0\log0=0\), so \(y_i=0\) gives \(d_i=2\hat\mu_i\)). <span class="src"><a href="../lectures/GLM_2_correct_LMS.pdf#page=5">GLMs II slide 5</a></span></li>
+  <li>\(\phi=1\): fit test \(D\approx\chi^2_{n-p}\) <strong>only if every \(\hat\lambda_i\gtrsim5\)</strong> (binomial: \(m_ip_i,\ m_i(1-p_i)\ge5\)); LRT \(D_A-D_B\approx\chi^2_s\) needs no such condition; \(\ell=p-\text{AIC}/2\). <span class="src"><a href="../lectures/GLM_2_correct_LMS.pdf#page=7">slides 7–8, 10</a></span></li>
+  <li><strong>Rate model:</strong> \(\log\lambda_i=\log t_i+x_i^T\beta\), R's <code>offset(log(t))</code>: coefficient fixed at 1, not estimated, not in \(p\); \(e^{\beta_j}\) are rate ratios. To predict a rate per 1000, set \(t=1000\) in <code>newdata</code>. Check proportionality by estimating the coefficient of \(\log t\) and testing \(=1\) (Wald \((\hat\gamma-1)/\text{se}\)).</li>
+  <li>Area-level predictor (e.g. water hardness) is nested in the area factor: \(s=(\#\text{areas}-1)-1\) (<a href="../lessons/0009-topic2-review.html">Lesson 9</a> challenge (b)).</li>
+</ul>
+
+<h2>Gamma (and any GLM with unknown \(\phi\)) <span class="kicker">· <a href="../lessons/0007-poisson-gamma-glms.html">Lesson 7</a></span></h2>
+<ul>
+  <li>\(v(\mu)=\mu^2\), \(\operatorname{Var}Y=\phi\mu^2\), CV \(=\sqrt\phi\). Deviance \(D=-2\sum_i\big[\log\frac{y_i}{\hat\mu_i}-\frac{y_i-\hat\mu_i}{\hat\mu_i}\big]\). Default link inverse \(1/\mu\); use log for multiplicative effects.</li>
+  <li>R's "Dispersion parameter … taken to be" is the <strong>Pearson</strong> \(\hat\phi=X^2/(n-p)\), not \(D/(n-p)\). Gamma Pearson residual \(=(y-\hat\mu)/\hat\mu\). Wald column is <code>t value</code>.</li>
+  <li><strong>No deviance fit test</strong> (\(\hat\phi\) comes from the same residuals). <span class="src"><a href="../lectures/GLM_2_correct_LMS.pdf#page=7">slide 7</a></span></li>
+  <li><strong>F test</strong>, A ⊂ B, \(s=p_B-p_A\): \(\displaystyle F=\frac{(D_A-D_B)/s}{\hat\phi_B}\approx F_{s,\,n-p_B}\), \(\hat\phi_B=X^2_B/(n-p_B)\) from the <strong>bigger</strong> model; R: <code>anova(A, B, test = "F")</code>. <span class="src"><a href="../lectures/GLM_2_correct_LMS.pdf#page=9">slide 9</a></span></li>
+  <li>AIC: R counts \(\phi\) as a parameter for gamma and inverse Gaussian, so \(\ell=(p+1)-\text{AIC}/2\). A continuous \(\ell\) (and so AIC) can be positive or negative.</li>
+</ul>
+
+<h2>Diagnostics <span class="kicker">· <a href="../lessons/0008-glm-diagnostics.html">Lesson 8</a></span></h2>
+<div class="tablewrap"><table>
+<tr><th>Quantity</th><th>Formula</th><th>R</th></tr>
+<tr><td>Response residual</td><td>\(y_i-\hat\mu_i\) (R's binomial: proportion scale)</td><td><code>residuals(m, "response")</code></td></tr>
+<tr><td>Pearson residual</td><td>\(r_P=(y_i-\hat\mu_i)/\sqrt{v(\hat\mu_i)}\); \(\sum r_P^2=X^2\)</td><td><code>residuals(m, "pearson")</code></td></tr>
+<tr><td>Deviance residual</td><td>\(r_D=\operatorname{sign}(y_i-\hat\mu_i)\sqrt{d_i}\); \(\sum r_D^2=D\)</td><td><code>residuals(m)</code> (default)</td></tr>
+<tr><td>Hat matrix</td><td>\(H=X(X^T\hat\Sigma^{-1}X)^{-1}X^T\hat\Sigma^{-1}\) (slides) \(=W^{1/2}X(X^TWX)^{-1}X^TW^{1/2}\) (Faraway), same diagonal; free of \(\phi\)</td><td></td></tr>
+<tr><td>Leverage</td><td>\(h_{ii}=w_i\,x_i^T\widehat{\operatorname{Var}}(\hat\beta)x_i\) (\(\phi=1\)); \(\sum h_{ii}=p\); flag \(h_{ii}&gt;2p/n\)</td><td><code>hatvalues(m)</code></td></tr>
+<tr><td>Studentised</td><td>\(r_{SP}=\dfrac{r_P}{\sqrt{(1-h_{ii})\hat\phi}}\), \(r_{SD}=\dfrac{r_D}{\sqrt{(1-h_{ii})\hat\phi}}\)</td><td><code>rstandard(m)</code> (\(r_{SD}\)), <code>rstandard(m, type="pearson")</code></td></tr>
+<tr><td>Jack-knife</td><td>\(\operatorname{sign}(y_i-\hat\mu_i)\sqrt{(1-h_{ii})r_{SD}^2+h_{ii}r_{SP}^2}\ \overset{\phi=1}{=}\ \operatorname{sign}\cdot\sqrt{r_D^2+\frac{h_{ii}r_P^2}{1-h_{ii}}}\)</td><td><code>rstudent(m)</code></td></tr>
+<tr><td>Cook's distance</td><td>\(\dfrac{(\hat\beta_{(i)}-\hat\beta)^TX^T\hat\Sigma^{-1}X(\hat\beta_{(i)}-\hat\beta)}{p}\approx\dfrac{r_P^2\,h_{ii}}{p\,\hat\phi\,(1-h_{ii})^2}\)</td><td><code>cooks.distance(m)</code></td></tr>
+</table></div>
+<p><strong>Reading them:</strong> outlier = large jack-knife residual · high leverage = potential to move the fit (large when \(x_i\) is unusual <em>and</em> its IWLS weight is large; a point with \(\hat p\approx0\) has tiny weight) · influential = large Cook's, needs leverage <em>and</em> a residual; confirm by refitting without it. Half-normal plots: look for a jump in the tail, not a straight line. Residuals vs \(\hat\eta\): trend ⇒ wrong systematic part; changing spread ⇒ wrong \(v(\mu)\); curved bands come from discrete \(y\) (\(y=0\) gives \(r_D=-\sqrt{2\hat\mu}\)). Link check: \(z_i\) against each \(x_j\) should be linear. Forgetting \(\hat\phi\) in Cook's or \(r_{SP}\) for a gamma gives numbers far too small. <span class="src"><a href="../lectures/GLM_2_correct_LMS.pdf#page=12">GLMs II slides 12–21</a></span></p>
+
+<h2>Reading a <code>glm</code> printout <span class="kicker">· <a href="../lessons/0007-poisson-gamma-glms.html">Lesson 7</a>, <a href="../lessons/0009-topic2-review.html">Lesson 9</a></span></h2>
+<table>
+<tr><th>Need</th><th>How</th></tr>
+<tr><td>\(n\), \(p\)</td><td>\(n=\text{null df}+1\), \(p=n-\text{residual df}\) (offset not counted)</td></tr>
+<tr><td>Which test</td><td>\(\phi=1\) (binomial, Poisson): <code>z value</code>, χ² LRT, fit test if counts large · \(\phi\) estimated (gamma, inverse Gaussian, normal, quasi): <code>t value</code>, F test, no fit test</td></tr>
+<tr><td>Useful R lines</td><td><code>pchisq(D, df, lower.tail = FALSE)</code> = upper-tail p-value · <code>sum(residuals(m, "pearson")^2)/df.residual(m)</code> = \(\hat\phi\) · <code>predict(m, nd, type = "link", se.fit = TRUE)</code> = \(\hat\eta\) and its se</td></tr>
+<tr><td>5% points</td><td>\(\chi^2\): df 1 3.84 · 2 5.99 · 3 7.81 · 4 9.49 · 5 11.07 · 6 12.59 · 7 14.07 · \(F_{1,28}\) 4.20 · \(F_{1,41}\) 4.08 · \(z_{0.975}=1.96\)</td></tr>
+</table>
+<p class="src">Fit and test rules from <a href="../lectures/GLM_2_correct_LMS.pdf#page=7">GLMs II slides 7–10</a>; quantiles from R's <code>qchisq</code> and <code>qf</code>.</p>
+</main>
+</body>
+</html>

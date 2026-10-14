@@ -1,0 +1,97 @@
+---
+title: "MAST30027: Generalised Linear Models III"
+subtitle: "Week 5 - Solutions"
+date: ""
+
+format:
+  html:
+    self-contained: true
+    css: CSSBackground.css
+    html-math-method: mathml
+resources:
+  - ../images/Banner.png
+---
+
+**Objectives of the Tutorial/Lab**
+By the end of this tutorial, you should be able to:
+
+- Fit Gamma regression models using appropriate link functions.
+- Estimate the dispersion parameter using Pearson residuals.
+- Perform model selection when the dispersion parameter is unknown.
+- Use Poisson regression for rate modelling.
+
+## Question 1
+
+The `cornnit` dataset in the `faraway` package contains data on the effect of nitrogen on the yield of corn.
+
+:::: {.subquestions}
+::: {.subquestion}
+Fit a gamma regression to this data, using the `glm` command.
+
+You will need to pay attention to the choice of link function (inverse, identity or log), and consider transforming the predictor variable (your first step should be to plot the data).
+
+```{r}
+
+```
+:::
+
+::: {.subquestion}
+Extract the Pearson residuals $\frac {y_i - \hat{\mu}_i}{\sqrt{v(\hat{\mu}_i)}}$ from the fitted model using the `residuals(glmfit, type="pearson")`, then use them to estimate the dispersion parameter $\phi$. Check that your answer agrees with the summary output from your model. You can find "Dispersion parameter for Gamma family taken to be $\ldots$" in the summary output.
+
+```{r}
+
+```
+
+:::
+
+::: {.subquestion}
+Suppose your fitted model is `gmod`, then the command `anova(gmod, test="F")` will compare your model against the null model, using an F test.
+Using the deviances and dispersion estimates reported by `summary(gmod)`, check that the F statistic reported by the `anova` function is correct.
+
+```{r}
+
+```
+
+:::
+::::
+
+## Question 2
+
+Suppose that $Y_i \sim \text{Poisson}(\lambda_i)$, where $\lambda_i \propto t_i$.
+For example, if we record the number of burglaries reported in different cities, the observed number will depend on the number of households in these cities.
+In other cases, the size variable $t$ may be time.
+For example, if we record the number of customers served by sales people, we must take account of the differing amounts of time worked.
+
+We can model the rate *per unit time* using a log link via
+
+$$
+\log( \lambda_i/t_i) = x_i^T \beta
+$$
+
+where $x_i$ are known predictors and $\beta$ unknown parameters.
+That is
+
+$$
+\log( \lambda_i) = \log t_i + x_i^T \beta.
+$$
+
+This is of the form of a Poisson glm with log link, but where the coefficient of $\log t_i$ has been constrained to be $1$.
+This is called a **rate model**.
+
+In an R model description we can fix the coefficient of a variable to 1 by enclosing it in the `offset` function, for example, `y ~ offset(log(t)) + x1 + x2 + ...`.
+
+In Purott and Reeder (1976), some data is presented from an experiment conducted to determine the effect of gamma radiation on the numbers of chromosomal abnormalities (ca) observed.
+The number (cells), in hundreds of cells exposed in each run, differs.
+The dose amount (doseamt) and the rate (doserate) at which the dose is applied are the predictors of interest.
+We can plot the data as follows
+```{r}
+library(faraway)
+data(dicentric)
+with(dicentric, interaction.plot(doseamt, doserate, ca/cells))
+```
+
+Fit a rate model to this data and perform diagnostics.
+
+```{r}
+
+```

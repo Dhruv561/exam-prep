@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Futures Cheat Sheet</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body class="ref" data-money>
+<main>
+<div class="kicker">FNCE30007 · Reference</div>
+<h1>Futures and forwards</h1>
+<p class="lede">The short version of each lesson. New sections get added as you finish each lesson.</p>
+
+<h2>Payoffs <span class="kicker">· <a href="../lessons/0001-futures-and-margin-accounts.html">Lesson 1</a></span></h2>
+<div class="box">
+$$\text{Long: } (F_t - F_0)\times\text{size}\times N \qquad \text{Short: } (F_0 - F_t)\times\text{size}\times N$$
+</div>
+<p>Closing out: take the opposite trade in the same delivery month. The profit is fixed at the close-out price. Two offsetting forwards: payoff \(= Q\,(F_{\text{sell}} - F_{\text{buy}})\), independent of the spot price.</p>
+
+<h2>Margin account algorithm <span class="kicker">· <a href="../lessons/0001-futures-and-margin-accounts.html">Lesson 1</a></span></h2>
+<ol class="steps">
+  <li>Totals: initial \(\times N\), maintenance \(\times N\)</li>
+  <li>Daily gain = (settle − previous price) × size × \(N\), with the sign flipped for a short. Day 1 and newly added contracts are measured from their <strong>entry price</strong></li>
+  <li>Balance <strong>strictly below</strong> total maintenance → call = total initial − balance (balance becomes initial)</li>
+  <li>Withdraw only the excess over <strong>total initial</strong></li>
+  <li>Check: deposits − withdrawals + cumulative gain = balance</li>
+</ol>
+<table>
+<tr><th>Question type</th><th>Shortcut</th></tr>
+<tr><td>Price that triggers a call (1 contract)</td><td>Move against you \(= (\text{initial} - \text{maint})/\text{size}\)</td></tr>
+<tr><td>Price that allows withdrawing \(W\)</td><td>Move in your favour \(= W/(\text{size}\times N)\)</td></tr>
+<tr><td>How many contracts can capital \(K\) buy?</td><td>\(\lfloor K/\text{initial per contract}\rfloor\)</td></tr>
+<tr><td>Adding contracts mid-way</td><td>Deposit their initial margin, mark them from the entry price, and update \(N\) for both thresholds</td></tr>
+<tr><td>Leverage</td><td>Return on capital \(=\) profit ÷ margin posted, which is much larger than the % move in the underlying</td></tr>
+</table>
+<div class="trap"><strong>Traps</strong><br>Restoring to maintenance instead of initial · forgetting size or \(N\) · the wrong sign for a short · marking new contracts from yesterday's settle</div>
+
+<h2>Convergence <span class="kicker">· <a href="../lessons/0001-futures-and-margin-accounts.html">Lesson 1</a></span></h2>
+<p>\(F_T = S_T\) at delivery. If \(F_T &gt; S_T\): short the futures, buy spot, deliver, and profit \(F_T - S_T\). If \(F_T &lt; S_T\) there's no clean arbitrage, because the short chooses delivery timing. Delivery options held by the short make the contract less attractive to longs, so they <em>lower</em> the futures price.</p>
+
+<h2>Futures vs forwards <span class="kicker">· <a href="../lessons/0002-forwards-vs-futures.html">Lesson 2</a></span></h2>
+<table>
+<tr><th></th><th>Forward</th><th>Futures</th></tr>
+<tr><td>Where</td><td>OTC, private</td><td>Exchange</td></tr>
+<tr><td>Terms</td><td>Tailored</td><td>Standardised size, months, grade</td></tr>
+<tr><td>Settlement</td><td>Once, at \(T\)</td><td>Daily (marked to market)</td></tr>
+<tr><td>Credit risk</td><td>Counterparty risk</td><td>Clearing house guarantees (novation, margins)</td></tr>
+<tr><td>Cash before \(T\)</td><td>None (classically)</td><td>Margin + calls: liquidity risk</td></tr>
+<tr><td>Usual ending</td><td>Delivery or cash at \(T\)</td><td>Closed out before delivery</td></tr>
+<tr><td>Exit early</td><td>Negotiate, or offsetting forward</td><td>One opposite trade</td></tr>
+</table>
+<p>Same total, different timing: \(\sum (F_t - F_{t-1}) = F_T - F_0 = S_T - F_0\) (ignoring margin interest). Hedged net price \(= F_0\). Clearing house net position \(= 0\). Since 2008 many standardised OTC trades are centrally cleared or collateralised, so distrust "only" statements.</p>
+<div class="trap"><strong>Advantage sorting</strong><br>Futures: no counterparty risk, easy exit · Forward: tailored terms, no cash before \(T\) · Margin calls = a futures <em>disadvantage</em> (liquidity risk, Metallgesellschaft)</div>
+
+<h2>Delivery <span class="kicker">· <a href="../lessons/0002-forwards-vs-futures.html">Lesson 2</a></span></h2>
+<p>The <strong>short</strong> chooses grade, place and timing → these options <strong>lower</strong> \(F_0\). Vague quality → shorts deliver the worst grade → the contract fails. Cash-settled (e.g. SPI 200): final settlement price = spot.</p>
+
+<h2>Open interest vs volume <span class="kicker">· <a href="../lessons/0002-forwards-vs-futures.html">Lesson 2</a></span></h2>
+<table>
+<tr><th>Buyer / seller</th><th>Open interest</th></tr>
+<tr><td>Both opening</td><td>+ size</td></tr>
+<tr><td>One opening, one closing</td><td>unchanged</td></tr>
+<tr><td>Both closing</td><td>− size</td></tr>
+</table>
+<p>Safe method: track each trader's net position; open interest = sum of the positive positions. Volume = sum of trade sizes (count each trade once).</p>
+
+<h2>Hedging and basis risk <span class="kicker">· <a href="../lessons/0003-hedging-and-basis-risk.html">Lesson 3</a></span></h2>
+<p>Natural long (will sell / holds) → <strong>short</strong> futures. Natural short (will buy) → <strong>long</strong> futures. Name the hedge after the futures leg.</p>
+<div class="box">
+$$\text{Effective price (either side)} = F_1 + b_2 = S_1 + (b_2 - b_1), \qquad b = S - F$$
+</div>
+<p>Only \(b_2\) is unknown: hedging swaps price risk for basis risk. Versus expectation, a <strong>short</strong> hedger gains if the basis strengthens and a <strong>long</strong> hedger gains if it weakens. A perfect hedge locks in \(F_1\), not today's spot. (Slides write the same thing as \(F_0 + b_1\).)</p>
+<p>Contract: the first delivery month <em>after</em> the hedge ends (avoid the delivery month). \(N = \) exposure ÷ contract size. Rolling: price \(= S_{\text{final}} + \sum (F_{\text{open}} - F_{\text{close}})\); risks are rollover and liquidity (Metallgesellschaft). FX payable → long forward; receivable → short forward.</p>
+<div class="trap"><strong>Traps</strong><br>“Futures eliminate basis risk” · “the hedger is now speculating” · “need the margin balance to tell” · for hedging = focus on core business; against = shareholders can diversify themselves</div>
+
+<h2>Cross hedging and the MVHR <span class="kicker">· <a href="../lessons/0004-cross-hedging-and-the-minimum-variance-hedge-ratio.html">Lesson 4</a></span></h2>
+<div class="box">
+$$h^* = \rho\,\frac{\sigma_S}{\sigma_F} = \frac{\sigma_{SF}}{\sigma_F^2} \qquad N^* = \frac{h^* Q_A}{Q_F} \qquad \text{effectiveness} = \rho^2$$
+</div>
+<p>Effective price \(= F_0 + (S_1^* - F_1) + (S_1 - S_1^*)\): ordinary basis + asset-mismatch basis. Std dev left \(= \sigma_S\sqrt{1-\rho^2}\). From a stats table use \(\rho(\text{your spot}, \text{futures})\), \(\sigma(\text{your spot})\), \(\sigma(\text{futures})\); the proxy spot, means, betas and alphas are distractors. Flip direction if \(\rho < 0\). “Ignoring tailing” → use \(N^*\) as above, rounded.</p>
+<div class="trap"><strong>Traps</strong><br>\(\rho = 1\) doesn't give \(h^* = 1\) (needs \(\sigma_S = \sigma_F\)) · \(h^*\) can exceed 1 · effectiveness is \(\rho^2\), not \(\rho\) · effective price can't be known today (basis risk)</div>
+
+<h2>Stock index futures <span class="kicker">· <a href="../lessons/0005-hedging-with-stock-index-futures.html">Lesson 5</a></span></h2>
+<div class="box">
+$$N^* = (\beta - \beta^*)\,\frac{V_A}{V_F}, \qquad V_F = F_0 \times \text{multiplier}$$
+</div>
+<p>\(N^* > 0\) → <strong>short</strong> (beta down); \(N^* < 0\) → <strong>long</strong> \(|N^*|\) (beta up). Works for any sign of \(\beta\). If only \(S, r, q\) are given, first compute \(F_0 = S_0e^{(r-q)T}\). P&amp;L \(\approx \beta^* \times\) market move \(\times V_A\).</p>
+<p>Expected return over the period: \(r_f + \alpha + \beta^*(E[r_m] - r_f)\), every rate scaled to the period (6 months: \(r_f/2\), \(\alpha/2\)). \(\beta^* = 0\) locks in \(r_f + \alpha\). Residual risks: market risk if \(\beta^* \ne 0\), basis risk (portfolio ≠ index, maturity mismatch), rounding, beta drift.</p>
+<div class="trap"><strong>Traps</strong><br>Wrong direction · using only \(\beta\) or only \(\beta^*\) · annual \(r_f\) or \(\alpha\) in a 6-month formula · forgetting the multiplier</div>
+
+<h2>Cost of carry and arbitrage <span class="kicker">· <a href="../lessons/0006-cost-of-carry-and-arbitrage.html">Lesson 6</a></span></h2>
+<p>Rates: \(r_c = m\ln(1 + r_m/m)\); \(r_m = m(e^{r_c/m} - 1)\). Convert to continuous before using \(e^{rT}\).</p>
+<div class="box">
+$$F_0 = S_0e^{rT} \quad\text{(investment asset, no income, no storage)}$$
+</div>
+<table>
+<tr><th>Quote</th><th>Trade at \(t=0\)</th><th>Profit at \(T\)</th></tr>
+<tr><td>\(F_0 &gt; S_0e^{rT}\)</td><td>Borrow \(S_0\), buy spot, short forward (cash-and-carry)</td><td>\(F_0 - S_0e^{rT}\)</td></tr>
+<tr><td>\(F_0 &lt; S_0e^{rT}\)</td><td>Short or sell spot, invest \(S_0\), long forward (reverse)</td><td>\(S_0e^{rT} - F_0\)</td></tr>
+</table>
+<p>Net cash flow at \(t=0\) is 0 and \(S_T\) cancels at \(T\). Contracts \(=\) ($ value ÷ index level) ÷ units per contract. Expected \(S_T\) never enters the price (replication, not a forecast).</p>
+<div class="trap"><strong>Traps</strong><br>Comparing \(F_0\) with \(S_0\) instead of \(S_0e^{rT}\) · \(S_T\) left in the answer means a missing leg · rounding to 4 dp at each step changes big-notional answers · the reverse trade fails for consumption assets</div>
+
+<h2>Income and yield <span class="kicker">· <a href="../lessons/0007-assets-with-income-and-yield.html">Lesson 7</a></span></h2>
+<div class="box">
+$$F_0 = (S_0 - I)e^{rT}, \quad I = \sum_{t_i \le T} D_ie^{-r_it_i} \qquad\qquad F_0 = S_0e^{(r-q)T}$$
+</div>
+<p>One idea: strip out the income the forward buyer misses, then grow at \(r\). \(r &gt; q\) → \(F &gt; S\); \(r &lt; q\) → \(F &lt; S\). A bigger or earlier dividend lowers \(F\). Index futures: F too high → borrow, buy stocks/ETF, short futures; too low → short stocks, invest, long futures. With a discrete dividend, split the loan so the dividend repays the short one.</p>
+<div class="trap"><strong>Traps</strong><br>Discounting a coupon at the \(T\)-rate · including income paid after \(T\) · reading “F below spot” as mispriced when \(q &gt; r\)</div>
+
+<h2>Currency forwards <span class="kicker">· <a href="../lessons/0008-currency-forwards.html">Lesson 8</a></span></h2>
+<div class="box">
+$$F_0 = S_0e^{(r - r_f)T} \qquad S_0, F_0 = \text{domestic per 1 foreign}$$
+</div>
+<p>First rewrite as “1 [foreign] = \(S_0\) [domestic]”. In “X per AUD”, AUD is <strong>foreign</strong>. Flipping the quote swaps \(r\) and \(r_f\). The high-rate currency trades at a forward discount; a premium is arithmetic, not a forecast.</p>
+<p>F too high: borrow domestic, buy foreign, deposit at \(r_f\), short forward. Too low: borrow foreign, sell spot, deposit at \(r\), long forward. Size from the end: foreign today \(= Ne^{-r_fT}\). Several maturities: fair value of each to 4 dp, trade only the one that's off. Importer → long forward; exporter → short forward. A wider forward premium makes the importer's hedge dearer.</p>
+
+<h2>Commodities and convenience yield <span class="kicker">· <a href="../lessons/0009-commodities-storage-and-convenience-yield.html">Lesson 9</a></span></h2>
+<div class="box">
+$$F_0 = (S_0+U)e^{rT} \;\text{ or }\; S_0e^{rT} + C_T \;\text{ or }\; S_0e^{(r+u)T} \qquad F_0e^{yT} = (S_0+U)e^{rT}$$
+</div>
+<p>Investment commodity (gold, silver): equality, \(y = 0\). Consumption commodity (oil, copper): \(F_0 \le\) full carry only, since holders won't sell inventory they need. F below full carry: gold → reverse arbitrage (and you save storage); oil → no arbitrage, \(y &gt; 0\). \(y = \frac1T\ln(F^*/F_0)\); \(c = r - q + u\).</p>
+<table>
+<tr><th></th><th>Contango</th><th>Backwardation</th></tr>
+<tr><td>Industry (vs spot)</td><td>\(F_0 &gt; S_0\)</td><td>\(F_0 &lt; S_0\)</td></tr>
+<tr><td>Normal (vs expected spot)</td><td>\(F_0 &gt; E[S_T]\)</td><td>\(F_0 &lt; E[S_T]\)</td></tr>
+</table>
+<p>Supply shock: prompt rises more than deferred → steeper backwardation, higher \(y\). Glut: deeper contango toward full carry, \(y \to 0\).</p>
+<div class="trap"><strong>Traps</strong><br>Compounding storage that's paid at \(T\) · “silver has a convenience yield” · “storage allows any premium” · not dividing the log by \(T\)</div>
+
+<h2>Valuing forwards and futures <span class="kicker">· <a href="../lessons/0010-valuing-forward-and-futures-contracts.html">Lesson 10</a></span></h2>
+<div class="box">
+$$f_{\text{long}} = (F_0 - K)e^{-rT} \qquad f_{\text{short}} = (K - F_0)e^{-rT}$$
+</div>
+<p>Equivalent long forms: \(S_0 - Ke^{-rT}\) · \(S_0 - I - Ke^{-rT}\) · \(S_0e^{-qT} - Ke^{-rT}\) · \(S_0e^{-r_fT} - Ke^{-rT}\). Re-date: \(T\) = time remaining; \(I\) = dividends still to come. Futures are worth 0 after each settlement.</p>
+<p>Forward = futures price if \(r\) is constant; corr(rates, price) \(&gt; 0\) → futures \(&gt;\) forward. Calendar bound \(F_2 \le F_1e^{r(t_2-t_1)}\).</p>
+<div class="trap"><strong>Traps</strong><br>Value is not \(S - K\) · value at inception is 0 (price ≠ value) · sign flip for the short · forgetting to discount</div>
+</main>
+</body>
+</html>

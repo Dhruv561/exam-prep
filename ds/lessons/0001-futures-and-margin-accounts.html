@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Futures and Margin Accounts</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 1 · Topic 1: Futures</div>
+<h1>Futures payoffs and margin accounts</h1>
+<p class="lede">The goal: given any futures position, long or short, one contract or many, opened on one day or topped up later, track the margin account day by day and get every margin call and withdrawal right.</p>
+
+<div class="mission">Why this matters for 5 Nov: margin-account questions turn up on the MST and the final every year. They're worth a few marks each and they're easy to lose with a single wrong reference level. Everything else in this subject (hedging, pricing, options on futures) assumes you know what a long or short futures position pays.</div>
+
+<h2>1 · What a futures contract is</h2>
+
+<p>A <strong>derivative</strong> is a contract whose value comes from the price of something else, called the <em>underlying</em> asset (<a href="../lectures/Lecture%201_Futures.pdf">Lecture 1, slide 3</a>). A <strong>futures contract</strong> is an agreement made today to buy or sell the underlying at a fixed date \(T\) for a price fixed today, the <strong>futures price</strong> \(F_0\). Compare a <em>spot</em> trade, which happens now at today's spot price \(S_0\) (slide 7).</p>
+
+<table>
+<tr><th>Term</th><th>Meaning</th></tr>
+<tr><td><strong>Long</strong> position</td><td>You agreed to <em>buy</em>. You gain when the futures price rises.</td></tr>
+<tr><td><strong>Short</strong> position</td><td>You agreed to <em>sell</em>. You gain when the futures price falls.</td></tr>
+<tr><td>Contract size</td><td>How much underlying one contract covers (e.g. 100 oz of gold, 1,000 barrels of oil). For an index it's a <em>multiplier</em>: the SPI 200 is $25 per index point (<a href="https://www.asx.com.au/content/dam/asx/participants/derivatives-market/ird/asx24-contract-specifications.pdf">ASX contract specs</a>).</td></tr>
+<tr><td>Closing out</td><td>Taking the opposite trade before expiry (long 5 → sell 5 of the same month). Most futures end this way, not by delivery (slide 14).</td></tr>
+<tr><td>Settlement</td><td>At expiry, by <em>delivery</em> (the short picks the details) or in <em>cash</em> against the spot price (slides 12–13).</td></tr>
+</table>
+
+<p>Ignoring margins for now, your profit is the price change times the amount you control:</p>
+$$\text{Long: } (F_t - F_0)\times\text{size}\times N \qquad\qquad \text{Short: } (F_0 - F_t)\times\text{size}\times N$$
+<p>Here \(F_t\) is the price at which you close out, or the spot price at expiry, and \(N\) is the number of contracts (slides 10–11).</p>
+
+<div class="box">
+<p><strong>Example.</strong> You go long 2 SPI 200 contracts at 8,150 and close out at 8,190. Profit \(= 40 \times \$25 \times 2 = \$2{,}000\). If you had gone short instead, you'd have lost $2,000. Futures are <em>zero-sum</em>: the long's gain is the short's loss.</p>
+</div>
+
+<h3>Futures vs forwards</h3>
+<p>A <strong>forward</strong> is the same promise made privately ("over the counter", OTC) between two parties, settled once at the end. A futures contract is standardised, trades on an exchange, and is <strong>settled daily</strong> through a <strong>clearing house</strong>, which stands between the two sides and guarantees both (slides 23, 27–28). That daily settlement is what the margin account does.</p>
+
+<h2>2 · The margin account algorithm</h2>
+
+<p>To open a futures position you deposit the <strong>initial margin</strong> with your broker. Every day the exchange <strong>marks to market</strong>: your gain or loss on the day goes into or out of the account. If the balance drops <strong>below</strong> the <strong>maintenance margin</strong>, you get a <strong>margin call</strong> and must top the account back up to the <strong>initial</strong> margin (<a href="../lectures/Lecture%201_Futures.pdf">slides 24–26</a>; <a href="https://www.cmegroup.com/education/courses/introduction-to-futures/margin-know-what-is-needed.html">CME Group: Margin</a>).</p>
+
+<ol class="steps">
+  <li><strong>Totals first.</strong> Initial and maintenance margins are usually quoted <em>per contract</em>. Multiply both by \(N\).</li>
+  <li><strong>Daily gain.</strong> \((\text{today's settle} - \text{previous price}) \times \text{size} \times N\), with the sign flipped for a short. On day 1 the "previous price" is the price you <em>entered</em> at, not the previous day's settle.</li>
+  <li><strong>Check for a call.</strong> If the balance is strictly below total maintenance, the call is \(\text{total initial} - \text{balance}\), and after you pay it the balance <em>is</em> the initial margin.</li>
+  <li><strong>Withdrawals.</strong> You may take out anything <em>above total initial</em> margin, never just the excess over maintenance.</li>
+  <li><strong>Check.</strong> At any point, balance \(=\) deposits (initial + calls) \(-\) withdrawals \(+\) cumulative gain since entry.</li>
+</ol>
+
+<div class="trap"><strong>The three marks people lose</strong><br>
+(1) Topping up only to maintenance. The call always restores to <em>initial</em>.<br>
+(2) Forgetting contract size or \(N\): a 7-cent move on 25,000 lb × 6 contracts is $10,500, not 7 cents.<br>
+(3) Getting the sign backwards for a short: the price going <em>up</em> is a <em>loss</em>.</div>
+
+<h3>Worked example</h3>
+<p>You go <strong>short 4 gold futures</strong> at $2,400/oz. Each contract is 100 oz. The initial margin is $12,000 and the maintenance margin is $9,000 per contract, so the totals are <strong>$48,000 initial and $36,000 maintenance</strong>.</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Day</th><th>Settle</th><th>Daily gain</th><th>Balance</th><th>Call</th><th>End balance</th></tr>
+<tr><td>Open</td><td>2,400</td><td></td><td></td><td></td><td>48,000</td></tr>
+<tr><td>1</td><td>2,415</td><td>−6,000</td><td>42,000</td><td>–</td><td>42,000</td></tr>
+<tr><td>2</td><td>2,438</td><td>−9,200</td><td>32,800</td><td>15,200</td><td>48,000</td></tr>
+<tr><td>3</td><td>2,425</td><td>+5,200</td><td>53,200</td><td>–</td><td>53,200</td></tr>
+<tr><td>4</td><td>2,401</td><td>+9,600</td><td>62,800</td><td>–</td><td>62,800</td></tr>
+</table>
+</div>
+<p>Day 1: the price rose $15, which hurts a short: \(-15\times100\times4 = -\$6{,}000\). The balance of $42,000 is still above $36,000. Day 2: a further loss of $9,200 takes it to $32,800, which is below $36,000, so the call is \(48{,}000 - 32{,}800 = \$15{,}200\). On day 4 you could withdraw \(62{,}800 - 48{,}000 = \$14{,}800\).</p>
+<p><em>Check:</em> deposits are $63,200. The cumulative gain is \((2{,}400-2{,}401)\times100\times4 = -\$400\), and \(63{,}200 - 400 = 62{,}800\) ✓. The price ended almost where it started, but you had to put up $15,200 extra along the way. That cash-flow risk is what sinks hedgers (the Metallgesellschaft case from lectures).</p>
+
+<h2>3 · The variations exams like</h2>
+
+<h3>"What price move triggers a call?"</h3>
+<p>Work per contract. A call comes once the loss exceeds initial − maintenance, so the price move needed is that amount divided by the contract size. For a long, the price has to <em>fall</em> by that much. For a short, it has to <em>rise</em> by that much.</p>
+<p>For a withdrawal of $W in total, you need a total gain of $W, which is a price move of \(W/(\text{size}\times N)\) in your favour.</p>
+
+<h3>Adding contracts to an existing position</h3>
+<p>Say you're long 4 and you buy 2 more of the <em>same</em> delivery month mid-way. On that day:</p>
+<ul>
+  <li>you deposit initial margin for the 2 new contracts;</li>
+  <li>the old 4 are marked from <em>yesterday's settle</em> to today's settle;</li>
+  <li>the new 2 are marked from <em>their entry price</em> to today's settle;</li>
+  <li>from now on both thresholds use \(N = 6\). It's one account, so test the call against the combined totals.</li>
+</ul>
+
+<h3>Leverage</h3>
+<p>Margin is only a fraction of what you control, so the percentage return on your cash is far larger than the percentage move in the underlying (<a href="../lectures/Lecture%201_Futures.pdf">slides 17–18</a>). The number of contracts you can open with capital \(K\) is \(K \div\) initial margin per contract.</p>
+
+<h3>Convergence and arbitrage</h3>
+<p>At delivery the futures price must equal the spot price. If \(F_T &gt; S_T\), you could short the futures, buy the asset at spot and deliver it, pocketing \(F_T - S_T\) with no risk. Traders doing exactly that push the two prices together (slide 19). If \(F_T &lt; S_T\) there's no clean reverse trade, because the <em>short</em> chooses when to deliver and a long can't force it (Tutorial 1, Q4).</p>
+
+<h2>4 · Practice</h2>
+<p>Do any working on paper first. For numeric answers, type a number (commas and $ are fine). A minus sign means a loss.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> Which feature belongs to futures but <em>not</em> to forwards?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A fixed price agreed today for later</button>
+    <button class="opt" data-key="b">Delivery of the asset at the end date</button>
+    <button class="opt" data-key="c">Gains and losses settled every trading day</button>
+    <button class="opt" data-key="d">Two parties with opposite price exposure</button>
+  </div>
+  <div class="why">Both contracts fix a price today, can end in delivery, and have a long and a short. Daily marking-to-market through a clearing house is specific to futures.</div>
+</div>
+
+<div class="quiz num" data-answer="4650" data-tol="1">
+  <p class="q"><strong>2.</strong> You go long 3 SPI 200 futures at 7,950 and close out at 8,012. What is your profit?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(62 \times \$25 \times 3 = \$4{,}650\).</div>
+</div>
+
+<div class="quiz num" data-answer="-3500" data-tol="1">
+  <p class="q"><strong>3.</strong> You short 2 crude-oil futures (1,000 barrels each) at $68.50 and close out at $70.25. What is your profit? (Negative for a loss.)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Short profit \(= (F_0 - F_t)\times\text{size}\times N = (68.50 - 70.25)\times1{,}000\times2 = -\$3{,}500\). The price rose, so the short loses.</div>
+</div>
+
+<div class="quiz num" data-answer="80" data-tol="0.1">
+  <p class="q"><strong>4.</strong> You have $60,000. SPI 200 futures are at 8,000, with an initial margin of $7,500 per contract. You go long as many contracts as your capital allows, and the futures price then rises 3%. What is your percentage return on the $60,000?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(60{,}000/7{,}500 = 8\) contracts. A 3% rise is 240 points, so the profit is \(240\times25\times8 = \$48{,}000\), which is <strong>80%</strong> of $60,000. That's the leverage effect: a 3% index move becomes an 80% return on your capital (and a 3% fall would be an 80% loss).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>5.</strong> You go long 6 copper futures (25,000 lb each) at $4.20/lb. The initial margin is $6,000 and the maintenance margin is $4,500 per contract. Day 1 settles at $4.13. Which is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">No call; the balance simply stays at $25,500</button>
+    <button class="opt" data-key="b">Call of $1,500, to restore maintenance margin</button>
+    <button class="opt" data-key="c">Call of $10,500, to restore initial margin</button>
+    <button class="opt" data-key="d">Call of $9,000, measured from maintenance level</button>
+  </div>
+  <div class="why">The loss is \(0.07\times25{,}000\times6 = \$10{,}500\), so the balance is \(36{,}000 - 10{,}500 = 25{,}500\). That's below total maintenance of $27,000, so you top up to $36,000 with a call of $10,500. (b) restores only to maintenance, and (d) measures the loss from the wrong level. Exam distractors look exactly like these.</div>
+</div>
+
+<div class="quiz num" data-answer="79" data-tol="0.01">
+  <p class="q"><strong>6.</strong> You're long 1 cotton future (50,000 lb) at 82 cents/lb, with an initial margin of $5,500 and a maintenance margin of $4,000. Below what futures price (in cents/lb) do you get a margin call?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">cents/lb</span></div>
+  <div class="why">You can lose $1,500 before a call, and \(1{,}500/50{,}000 = \$0.03 = 3\) cents. So the call comes below <strong>79 cents</strong>.</div>
+</div>
+
+<div class="quiz num" data-answer="84.5" data-tol="0.01">
+  <p class="q"><strong>7.</strong> Same contract terms, but now you're long <em>2</em> contracts. At what futures price (cents/lb) could you first withdraw $2,500 in total?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">cents/lb</span></div>
+  <div class="why">You can withdraw anything above initial margin, so you need a total gain of $2,500, which is $1,250 per contract. \(1{,}250/50{,}000 = \$0.025\), so the price must reach <strong>84.5 cents</strong>. If you divided by one contract's size only, you got 87.</div>
+</div>
+
+<p>Questions 8–10 are one scenario. You go <strong>short 5 wheat futures</strong> (5,000 bushels each) at $6.10/bushel. The initial margin is $2,000 and the maintenance margin is $1,500 per contract. Settlement prices are $6.18 on day 1, $6.22 on day 2 and $6.05 on day 3.</p>
+
+<div class="quiz num" data-answer="3000" data-tol="1">
+  <p class="q"><strong>8.</strong> How big is the margin call on day 2? (Enter 0 if there isn't one.)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">The totals are $10,000 initial and $7,500 maintenance. Day 1: \(-0.08\times5{,}000\times5 = -2{,}000\), leaving $8,000 (no call). Day 2: \(-0.04\times25{,}000 = -1{,}000\), leaving $7,000, which is below $7,500, so the call is <strong>$3,000</strong>, back to $10,000.</div>
+</div>
+
+<div class="quiz num" data-answer="14250" data-tol="1">
+  <p class="q"><strong>9.</strong> What is the end-of-day balance on day 3?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">The price fell 17 cents, which is good for a short: \(+0.17\times25{,}000 = +4{,}250\), so the balance is <strong>$14,250</strong>. Check: deposits of 13,000 plus a cumulative gain of \((6.10-6.05)\times25{,}000 = 1{,}250\) ✓.</div>
+</div>
+
+<div class="quiz num" data-answer="4250" data-tol="1">
+  <p class="q"><strong>10.</strong> What is the most you can withdraw at the end of day 3?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(14{,}250 - 10{,}000 = \$4{,}250\): the excess over <em>initial</em>. If you said 6,750, you measured from maintenance.</div>
+</div>
+
+<p>Questions 11–12 cover adding contracts. You go <strong>long 4 SPI 200 futures</strong> at 8,100 on Monday. The initial margin is $9,000 and the maintenance margin is $7,000 per contract, at $25/point. Monday settles at 8,060. On Tuesday you buy <strong>2 more</strong> of the same contract at 8,040, and Tuesday settles at 8,020. Wednesday settles at 7,990.</p>
+
+<div class="quiz num" data-answer="45000" data-tol="1">
+  <p class="q"><strong>11.</strong> What is the margin balance at the end of Tuesday?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Monday: \(-40\times25\times4 = -4{,}000\), leaving $32,000 against maintenance of $28,000 (no call). Tuesday: deposit \(2\times9{,}000 = 18{,}000\). The old 4 lose \((8{,}020-8{,}060)\times25\times4 = -4{,}000\), and the new 2 lose \((8{,}020-8{,}040)\times25\times2 = -1{,}000\). Balance \(= 32{,}000 + 18{,}000 - 5{,}000 = \)<strong>$45,000</strong>, which is above the new maintenance of \(6\times7{,}000 = 42{,}000\). Marking the new contracts from Monday's settle instead of their entry price is the classic slip.</div>
+</div>
+
+<div class="quiz num" data-answer="13500" data-tol="1">
+  <p class="q"><strong>12.</strong> What is the margin call on Wednesday? (0 if none.)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(-30\times25\times6 = -4{,}500\), leaving $40,500, which is below $42,000. Top up to \(6\times9{,}000 = 54{,}000\), so the call is <strong>$13,500</strong>. Check: deposits are \(36{,}000+18{,}000+13{,}500 = 67{,}500\). The cumulative gain is \((7{,}990-8{,}100)\times100 + (7{,}990-8{,}040)\times50 = -13{,}500\). \(67{,}500 - 13{,}500 = 54{,}000\) ✓.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>13.</strong> On the delivery day, gold futures trade at $2,412/oz and spot gold at $2,405/oz. Which trade locks in a riskless profit?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Short the futures, buy spot gold, deliver it</button>
+    <button class="opt" data-key="b">Long the futures, sell spot gold, take delivery</button>
+    <button class="opt" data-key="c">No trade, since the two prices always differ</button>
+    <button class="opt" data-key="d">Long the futures, buy spot gold, hold both</button>
+  </div>
+  <div class="why">The futures price is too high, so sell it and buy the cheap spot gold to deliver: a riskless $7/oz. This trade is why \(F_T \to S_T\). Option (b) needs the long to force delivery, which only the short can do.</div>
+</div>
+
+<div class="quiz num" data-answer="-150000" data-tol="1">
+  <p class="q"><strong>14.</strong> In March, a firm enters a forward to <em>buy</em> €5 million in September at 1.32 USD/€. In May it enters a forward to <em>sell</em> €5 million in September at 1.29 USD/€. What is its total USD payoff in September, whatever the spot rate turns out to be?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">USD</span></div>
+  <div class="why">\(5\text{m}(S - 1.32) + 5\text{m}(1.29 - S) = 5\text{m}(1.29 - 1.32) = -\$150{,}000\). The spot rate cancels, so the second forward closes out the first. (This is the same idea as Tutorial 1 Q5.)</div>
+</div>
+
+<h2>5 · Exam-level challenge</h2>
+<p>This one combines all the twists. Write the full ledger on paper, then open the steps one at a time.</p>
+<div class="box">
+<p>You're bearish on Australian shares and have $90,000 to put into SPI 200 futures ($25/point). The initial margin is $9,000 and the maintenance margin is $6,500 per contract. On day 0 you go short as many contracts as you can at 8,240. Settlement prices are 8,262 on day 1, 8,301 on day 2, 8,275 on day 3 and 8,180 on day 4. On day 3 you short <strong>5 more</strong> contracts at 8,280 (same month).</p>
+<p>(a) Find the end-of-day balance for days 1–4, including any margin calls.<br>
+(b) How much can you withdraw at the end of day 4?<br>
+(c) Above what day-2 settlement price would you have got a margin call on day 2?</p>
+</div>
+
+<details><summary>Step 1: number of contracts and totals</summary><div>
+<p>\(90{,}000/9{,}000 = 10\) contracts. That gives totals of $90,000 initial and $65,000 maintenance (later $135,000 and $97,500 once you hold 15).</p></div></details>
+<details><summary>Step 2: days 1–2</summary><div>
+<p>Day 1: +22 points is a loss for a short: \(-22\times25\times10 = -5{,}500\), leaving <strong>84,500</strong>. Day 2: \(-39\times250 = -9{,}750\), leaving <strong>74,750</strong>, which is at least 65,000, so no call.</p></div></details>
+<details><summary>Step 3: day 3 (adding 5 contracts)</summary><div>
+<p>The old 10 move from 8,301 to 8,275, a 26-point gain: \(+6{,}500\). The new 5 move from 8,280 to 8,275, a 5-point gain: \(+625\). Deposit \(5\times9{,}000 = 45{,}000\).<br>Balance \(= 74{,}750 + 45{,}000 + 6{,}500 + 625 =\)<strong> 126,875</strong>. That's above the 97,500 maintenance, so no call. It's also below the 135,000 initial, so no withdrawal.</p></div></details>
+<details><summary>Step 4: day 4 and the withdrawal</summary><div>
+<p>A 95-point fall on 15 shorts gives \(+95\times25\times15 = +35{,}625\), so the balance is <strong>162,500</strong>. You can withdraw \(162{,}500 - 135{,}000 = \)<strong>$27,500</strong>.<br>
+Check: the old 10 gained \((8{,}240-8{,}180)\times250 = 15{,}000\) and the new 5 gained \((8{,}280-8{,}180)\times125 = 12{,}500\). Total 27,500, and since there were no calls, the withdrawable amount equals the total gain ✓.</p></div></details>
+<details><summary>Step 5: part (c)</summary><div>
+<p>After day 1 the balance is 84,500. A call comes once the balance drops below 65,000, i.e. after a loss of more than 19,500, which is \(19{,}500/250 = 78\) points. A short loses when the price rises, so the threshold is \(8{,}262 + 78 = \)<strong>8,340</strong>.</p></div></details>
+
+<h2>6 · Before you close this tab</h2>
+<details><summary>Retrieval: write the five-step margin algorithm from memory, then check</summary><div>
+<p>(1) Multiply initial and maintenance by \(N\). (2) Daily gain = price change × size × \(N\), with the sign flipped for a short and day 1 measured from the entry price. (3) Strictly below maintenance → top up to <em>initial</em>. (4) Withdraw only the excess over <em>initial</em>. (5) Check: deposits − withdrawals + cumulative gain = balance.</p></div></details>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, Ch. 2 ("Futures markets and central counterparties"), the sections on the operation of margin accounts and on forwards vs futures. That's the reading the lecture sets (<a href="../lectures/Lecture%201_Futures.pdf">Lecture 1, slide 2</a>). For a short outside explanation, see <a href="https://www.cmegroup.com/education/courses/introduction-to-futures/margin-know-what-is-needed.html">CME Group: Margin, know what's needed</a>.</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%201.pdf">Tutorial 1</a>, Q3, Q4 and Q5 (<a href="../tutes/Tutorial%201%20solutions.pdf">solutions</a>). For Q3, also say what price allows a withdrawal from <em>one</em> contract's account, and compare. Optional: Q1, Q6 and Q7 (short conceptual answers. Practise writing 2–3 sentence explanations, since the exam asks for them).</p>
+<p><strong>Spacing:</strong> tomorrow, before Lesson 2, redo Q5, Q11 and the challenge's step 3 without looking.</p>
+
+<div class="ask">💬 Stuck on a step, or want more problems at this level? Ask me in the terminal. I'm your teacher for this. You can also paste in your ledger and I'll mark it line by line.</div>
+
+<div class="nav">
+  <span>Reference: <a href="../reference/futures-cheatsheet.html">Futures cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0002-forwards-vs-futures.html">Lesson 2, forwards vs futures and how the market runs</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

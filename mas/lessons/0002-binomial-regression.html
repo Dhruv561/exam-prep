@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Binomial Regression</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/linkcurve.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 2 · Topic 1: Binomial regression &amp; likelihood</div>
+<h1>Binomial regression: the model, the information matrix, and a CI for p</h1>
+<p class="lede">The goal: given a fitted logistic regression (coefficients plus their covariance matrix), predict \(p\) at a new \(x\), build a 95% CI for it the way the course does (on the \(\eta\) scale, then back), and turn a coefficient into an odds ratio with its CI.</p>
+
+<div class="mission">Why this matters for 10 Nov: the R-output questions hand you a <code>glm</code> summary and ask for a predicted probability, an odds-ratio change with a 95% CI, or a CI for \(p\). These are 2–5 mark parts you can bank in a few minutes once the recipe is automatic. It's Lesson 1's recipe with a vector \(\beta\) instead of a single \(\theta\).</div>
+
+<h2>1 · The model</h2>
+<p>You observe independent counts \(Y_i\sim\text{Bin}(m_i,p_i)\), \(i=1,\dots,n\), with the \(m_i\) known. Each \(p_i\) depends on predictors through a <strong>linear predictor</strong> and a <strong>link function</strong> \(g\) (<a href="../lectures/BinReg_1_LMS.pdf">Binomial Regression I, slide 18</a>):</p>
+$$g(p_i) = \eta_i = x_i^{T}\beta = \beta_0 + \beta_1 x_{i1} + \dots + \beta_q x_{iq}.$$
+<p>Why not just \(p_i = \beta_0+\beta_1x_i\)? A straight line eventually leaves \([0,1]\). The link maps \(p\in(0,1)\) onto the whole real line, so \(\eta\) can be anything and \(p = g^{-1}(\eta)\) stays a probability (slide 8).</p>
+
+<table>
+<tr><th>Link</th><th>\(\eta = g(p)\)</th><th>\(p = g^{-1}(\eta)\)</th></tr>
+<tr><td>logit (default)</td><td>\(\log\dfrac{p}{1-p}\)</td><td>\(\dfrac{e^\eta}{1+e^\eta} = \dfrac{1}{1+e^{-\eta}}\)</td></tr>
+<tr><td>probit</td><td>\(\Phi^{-1}(p)\)</td><td>\(\Phi(\eta)\)</td></tr>
+<tr><td>complementary log-log</td><td>\(\log(-\log(1-p))\)</td><td>\(1-\exp(-e^{\eta})\)</td></tr>
+</table>
+<p class="kicker" style="text-transform:none;letter-spacing:0">Slide 19. \(\Phi\) is the standard normal cdf.</p>
+
+<p>Play with the curve. The dots are the worked example's data below. For the logit, \(p=\tfrac12\) at \(x=-\beta_0/\beta_1\) and the slope there is \(\beta_1/4\) (slide 11): \(\beta_0/\beta_1\) sets the location, \(\beta_1\) the steepness, and its sign the direction. Switch to cloglog and notice it's not symmetric about \(p=\tfrac12\).</p>
+<div class="linkcurve" data-b0="-1.99" data-b1="0.0785" data-xmin="0" data-xmax="60" data-b0range="-6,6" data-b1range="-0.25,0.25" data-xlabel="hours of practice" data-points='[[10,9,40],[20,16,40],[30,24,40],[40,30,40],[50,35,40]]'></div>
+
+<h2>2 · Likelihood, score and information (logit link)</h2>
+<p>Same first step as Lesson 1: write the log of the pmf and sum. Then use the identities from Lesson 1's challenge, \(\log\frac{p}{1-p}=\eta\) and \(\log(1-p) = -\log(1+e^\eta)\) (slides 14, 33):</p>
+$$\ell(\beta) = c + \sum_i \Big[y_i\log\tfrac{p_i}{1-p_i} + m_i\log(1-p_i)\Big] = c + \sum_i \Big[y_i\,\eta_i - m_i\log\big(1+e^{\eta_i}\big)\Big].$$
+<p>Differentiate with the chain rule, using \(\partial\eta_i/\partial\beta_j = x_{ij}\) and \(\frac{d}{d\eta}\log(1+e^\eta) = p\). For one predictor (\(\eta_i=\beta_0+\beta_1x_i\)), from the <a href="../extra-notes/observed_information_binomial_regression-1.pdf">observed-information notes</a>:</p>
+<div class="box">
+<p><strong>Score:</strong> \(\dfrac{\partial\ell}{\partial\beta_0} = \sum_i (y_i - m_ip_i)\), \(\quad\dfrac{\partial\ell}{\partial\beta_1} = \sum_i (y_i - m_ip_i)\,x_i\). Observed minus fitted counts, weighted by the predictor.</p>
+<p><strong>Information:</strong> differentiating again, \(\dfrac{d p}{d\eta} = p(1-p)\), so</p>
+$$\mathcal J(\beta) = \mathcal I(\beta) = \begin{pmatrix}\sum m_ip_i(1-p_i) & \sum m_ix_ip_i(1-p_i)\\[2pt] \sum m_ix_ip_i(1-p_i) & \sum m_ix_i^2p_i(1-p_i)\end{pmatrix} = X^{T}WX,\quad W=\operatorname{diag}\big(m_ip_i(1-p_i)\big).$$
+<p>No \(y_i\) survives the second derivative, so observed and Fisher information coincide and there's no expectation to take (slide 34). That's the "\(\ell''\) has no data" case from Lesson 1.</p>
+</div>
+<p>Setting the score to zero has <strong>no closed-form solution</strong>, so R solves it numerically (<code>glm</code> uses iteratively weighted least squares; that's a later lecture). In the exam you never fit the model: you're given \(\hat\beta\) and either the standard errors or the full covariance matrix \(\mathcal I(\hat\beta)^{-1}\) (R's <code>vcov(model)</code>).</p>
+
+<div class="trap"><strong>Only for the logit</strong><br>\(\mathcal J=\mathcal I\) here because the logit is the <em>canonical</em> link for the binomial (Lesson 4 explains why). With a probit or cloglog link, \(y_i\) does survive in \(\ell''\), so you'd need the expectation. Exams mostly use the logit; if they don't, say which information you're using.</div>
+
+<h2>3 · From \(\hat\beta\) to answers</h2>
+<p>Asymptotic normality (slide 35), with \(\mathcal I(\hat\beta)\) plugged in (slide 37):</p>
+$$\hat\beta\;\overset{d}{\approx}\;N\big(\beta,\ \mathcal I(\hat\beta)^{-1}\big)\qquad\Longrightarrow\qquad t^T\hat\beta\;\overset{d}{\approx}\;N\big(t^T\beta,\ t^T\mathcal I(\hat\beta)^{-1}t\big).$$
+<p>The second form is the workhorse: any <em>linear combination</em> of the coefficients is approximately normal, with variance \(t^TVt\) where \(V = \mathcal I(\hat\beta)^{-1}\) (slide 38). Three uses:</p>
+<ol class="steps">
+  <li><strong>One coefficient.</strong> \(t\) = unit vector: \(\hat\beta_j \pm 1.96\,\text{se}(\hat\beta_j)\), where \(\text{se} = \sqrt{V_{jj}}\) is the <em>Std. Error</em> column of the R output.</li>
+  <li><strong>A prediction.</strong> At a new \(x_0\), \(\hat\eta_0 = x_0^T\hat\beta\) and \(\hat p_0 = g^{-1}(\hat\eta_0)\) (slide 24). For a CI, take \(t = x_0\):
+  $$\operatorname{Var}(\hat\eta_0) = x_0^TVx_0 = V_{00} + 2x_0V_{01} + x_0^2V_{11}\quad\text{(one predictor)}.$$
+  Build \(\hat\eta_0 \pm 1.96\sqrt{\operatorname{Var}(\hat\eta_0)} = (\eta_L,\eta_U)\), then the CI for \(p\) is \(\big(g^{-1}(\eta_L),\ g^{-1}(\eta_U)\big)\) (slide 40). This is exactly R's <code>predict(…, type="link", se.fit=TRUE)</code> in the week 2 tute.</li>
+  <li><strong>An odds ratio.</strong> For the logit, \(\eta = \log(\text{odds})\). Increasing \(x_j\) by \(\Delta\) with everything else fixed adds \(\beta_j\Delta\) to the log-odds, so it <em>multiplies</em> the odds by \(e^{\beta_j\Delta}\). CI: \(\exp\!\big(\Delta(\hat\beta_j \pm 1.96\,\text{se})\big)\). Report it as a percentage change: \((e^{\beta_j\Delta}-1)\times100\%\).</li>
+</ol>
+
+<div class="trap"><strong>Three ways to lose the marks</strong><br>
+(1) <em>Dropping the covariance.</em> \(\operatorname{Var}(\hat\beta_0+x_0\hat\beta_1) \neq V_{00}+x_0^2V_{11}\). The \(2x_0V_{01}\) term is usually negative and large. If the question gives you the covariance matrix, it's because you need it.<br>
+(2) <em>A CI straight on \(p\).</em> \(\hat p\pm1.96\,\text{se}(\hat p)\) can leave \([0,1]\), and the normal approximation is worse on the \(p\) scale. Build it on \(\eta\), then transform. The result is asymmetric about \(\hat p\), and that's correct.<br>
+(3) <em>Odds aren't probabilities.</em> \(e^{\beta_1}=2\) doubles the <em>odds</em>, not \(p\). And with a probit or cloglog link, \(e^{\beta}\) isn't an odds ratio at all.</div>
+
+<h3>Worked example</h3>
+<p>Learner drivers are grouped by hours of supervised practice \(x_i\). In each group \(m_i=40\) sit the test and \(y_i\) pass:</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>hours \(x_i\)</th><th>10</th><th>20</th><th>30</th><th>40</th><th>50</th></tr>
+<tr><td>passed \(y_i\) of 40</td><td>9</td><td>16</td><td>24</td><td>30</td><td>35</td></tr>
+</table></div>
+<p>A logistic regression \(\text{logit}(p_i) = \beta_0+\beta_1x_i\) gives this (R output trimmed):</p>
+<div class="box tablewrap"><pre style="margin:0;font-size:.8rem">Coefficients:
+            Estimate Std. Error z value Pr(>|z|)
+(Intercept) -1.99151    0.39244  -5.075 3.88e-07 ***
+hours        0.07853    0.01277   6.152 7.67e-10 ***
+
+&gt; vcov(model)
+            (Intercept)         hours
+(Intercept)   0.1540119 -0.0045625063
+hours        -0.0045625  0.0001629664</pre></div>
+<div class="box">
+<p><strong>Predict at 35 hours.</strong> \(\hat\eta_0 = -1.9915 + 0.07853(35) = 0.7571\), so \(\hat p_0 = \dfrac{1}{1+e^{-0.7571}} = 0.681\).</p>
+<p><strong>Its variance on the \(\eta\) scale.</strong>
+$$x_0^TVx_0 = 0.15401 + 2(35)(-0.0045625) + 35^2(0.00016297) = 0.15401 - 0.31938 + 0.19964 = 0.03427,$$
+so \(\text{se}(\hat\eta_0) = 0.1851\).</p>
+<p><strong>CI.</strong> \(0.7571 \pm 1.96(0.1851) = (0.394,\ 1.120)\) for \(\eta\). Applying \(g^{-1}\) to each end gives \(\boxed{(0.597,\ 0.754)}\) for \(p\). It isn't centred on 0.681.</p>
+<p><em>Without the covariance term</em> you'd get \(\text{se} = \sqrt{0.15401+0.19964} = 0.595\), more than three times too big, and a CI for \(p\) of roughly (0.40, 0.87).</p>
+<p><strong>Odds ratio for 10 more hours.</strong> \(e^{10(0.07853)} = 2.19\): the odds of passing roughly double (+119%). CI: \(\exp\!\big(10(0.07853\pm1.96\times0.01277)\big) = (1.71,\ 2.82)\).</p>
+<p><strong>Location.</strong> \(\hat p = \tfrac12\) at \(x = -\hat\beta_0/\hat\beta_1 = 25.4\) hours, where \(p\) rises by about \(\hat\beta_1/4 = 0.020\) per extra hour.</p>
+</div>
+
+<h2>4 · Practice</h2>
+<p>Use paper and a calculator. Questions 5–7 and 9 use the driving-test output above.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> Why does binomial regression model \(g(p_i)\), and not \(p_i\) itself, as linear in the predictors?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">So that the MLE has a closed-form solution</button>
+    <button class="opt" data-key="b">So that the counts \(y_i\) become normal</button>
+    <button class="opt" data-key="c">So that fitted \(p_i\) always stay inside \((0,1)\)</button>
+    <button class="opt" data-key="d">So that each \(m_i\) can be treated as known</button>
+  </div>
+  <div class="why">A line \(\beta_0+\beta_1x\) is unbounded. The link sends \((0,1)\) to \((-\infty,\infty)\), so any \(\eta\) maps back to a valid probability. (There's still no closed-form MLE.)</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>2.</strong> Under the complementary log-log link, \(\eta = 0.5\) corresponds to \(p\) = …</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(1/(1+e^{-0.5})\phantom{-}\)</button>
+    <button class="opt" data-key="b">\(1-\exp(-e^{0.5})\phantom{(}\)</button>
+    <button class="opt" data-key="c">\(\exp(-e^{-0.5})\phantom{1-(}\)</button>
+    <button class="opt" data-key="d">\(\Phi(0.5)\phantom{1-\exp(-e}\)</button>
+  </div>
+  <div class="why">Invert \(\eta=\log(-\log(1-p))\): \(e^\eta = -\log(1-p)\), so \(1-p = \exp(-e^\eta)\) and \(p = 1-\exp(-e^{\eta}) = 0.808\). Option (a) is the logit's inverse and (d) the probit's.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> For a logit model with \(\eta_i=\beta_0+\beta_1x_i\), the score equation for \(\beta_1\) is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\sum_i (y_i - m_ip_i)\,x_i = 0\)</button>
+    <button class="opt" data-key="b">\(\sum_i (y_i - p_i)\,x_i = 0\phantom{m_i}\)</button>
+    <button class="opt" data-key="c">\(\sum_i (y_i - m_ip_i) = 0\phantom{\,x_i}\)</button>
+    <button class="opt" data-key="d">\(\sum_i m_ip_i(1-p_i)\,x_i = 0\)</button>
+  </div>
+  <div class="why">\(\partial/\partial\beta_1\) of \(y_i\eta_i - m_i\log(1+e^{\eta_i})\) is \(y_ix_i - m_ip_ix_i\). (c) is the \(\beta_0\) equation, (b) forgets \(m_i\), and (d) is (minus) an entry of the information.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>4.</strong> Why is no expectation needed to get \(\mathcal I(\beta)\) for logistic regression?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Because the \(m_i\) are known in advance</button>
+    <button class="opt" data-key="b">Because the MLE is unbiased for each \(m_i\)</button>
+    <button class="opt" data-key="c">Because the matrix \(X\) has full column rank</button>
+    <button class="opt" data-key="d">Because no \(y_i\) appears in the Hessian</button>
+  </div>
+  <div class="why">The \(y_i\eta_i\) term is linear in \(\beta\), so it disappears on the second derivative. What's left, \(-\sum m_ip_i(1-p_i)x_ix_i^T\), contains no data, so \(\mathcal J = \mathcal I\).</div>
+</div>
+
+<div class="quiz num" data-answer="0.824" data-tol="0.002">
+  <p class="q"><strong>5.</strong> Estimate the pass probability after 45 hours of practice (3 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\hat\eta_0 = -1.9915 + 0.07853(45) = 1.5424\), so \(\hat p_0 = 1/(1+e^{-1.5424}) = \)<strong>0.824</strong>.</div>
+</div>
+
+<div class="quiz num" data-answer="0.271" data-tol="0.002">
+  <p class="q"><strong>6.</strong> What is \(\text{se}(\hat\eta_0)\) at 45 hours (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(0.15401 + 2(45)(-0.0045625) + 45^2(0.00016297) = 0.15401 - 0.41063 + 0.33001 = 0.07340\), so the se is \(\sqrt{0.07340} = \)<strong>0.271</strong>. If you got 0.696, you dropped the covariance term.</div>
+</div>
+
+<div class="quiz num" data-answer="0.888" data-tol="0.002">
+  <p class="q"><strong>7.</strong> What is the <em>upper</em> end of the 95% CI for the pass probability at 45 hours (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">On the \(\eta\) scale: \(1.5424 \pm 1.96(0.2709) = (1.011,\ 2.073)\). Transforming gives \((0.733,\ \)<strong>0.888</strong>\()\). The upper end is 0.064 above \(\hat p\) and the lower end is 0.091 below it: asymmetric, as it should be near 1.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>8.</strong> A classmate builds a CI for \(\hat p_0\) as \(\hat p_0 \pm 1.96\,\text{se}(\hat p_0)\). What's the main problem?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It always comes out narrower than the η-scale one</button>
+    <button class="opt" data-key="b">Its ends can fall outside the interval from 0 to 1</button>
+    <button class="opt" data-key="c">It can only be computed with the probit link here</button>
+    <button class="opt" data-key="d">It needs the observed and not Fisher information</button>
+  </div>
+  <div class="why">Near 0 or 1 a symmetric interval on \(p\) can spill past the boundary, and the normal approximation is poorer there. On the \(\eta\) scale nothing is bounded, and \(g^{-1}\) keeps both ends in \((0,1)\) (slide 40).</div>
+</div>
+
+<div class="quiz num" data-answer="0.675" data-tol="0.002">
+  <p class="q"><strong>9.</strong> By what factor do the odds of passing change for a learner with 5 <em>fewer</em> hours, all else equal (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(e^{-5(0.07853)} = e^{-0.3927} = \)<strong>0.675</strong>: the odds fall by about 32.5%. The 95% CI is \(\exp\!\big(-5(0.07853 \pm 1.96\times0.01277)\big) = (0.596,\ 0.765)\). Multiplying by a negative \(\Delta\) swaps which end is which.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>10.</strong> In a <em>probit</em> model, \(\hat\beta_1 = 0.4\) for a predictor \(x\). Which statement is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A unit rise in x multiplies the odds by \(e^{0.4}\)</button>
+    <button class="opt" data-key="b">A unit rise in x raises p by exactly 0.4 overall</button>
+    <button class="opt" data-key="c">A unit rise in x adds 0.4 to \(\Phi^{-1}(p)\) itself</button>
+    <button class="opt" data-key="d">A unit rise in x multiplies p by \(e^{0.4}\) itself</button>
+  </div>
+  <div class="why">Coefficients act additively on \(\eta = g(p)\). The odds-ratio reading \(e^{\beta}\) belongs to the logit only, because only there is \(\eta\) the log-odds.</div>
+</div>
+
+<h2>5 · Exam-level challenge</h2>
+<p>Solve it on paper, then open the steps one at a time. This is the shape and length of an R-output question.</p>
+<div class="box">
+<p>A hospital records 30-day readmissions. Patients are grouped by age (years) and whether they got a follow-up phone call after discharge (<code>call</code> = 1) or not (0). In each group \(m_i = 60\) and \(Y_i\) is the number readmitted.</p>
+<div class="tablewrap"><pre style="margin:0;font-size:.8rem">&gt; model &lt;- glm(cbind(readmit, 60 - readmit) ~ age + call, family = binomial, data = rd)
+Coefficients:
+             Estimate Std. Error z value Pr(>|z|)
+(Intercept) -3.60777    0.69089  -5.222 1.77e-07 ***
+age          0.04422    0.01012   4.367 1.26e-05 ***
+call        -0.92544    0.22463  -4.120 3.79e-05 ***
+
+&gt; vcov(model)
+            (Intercept)           age          call
+(Intercept)  0.47733   -0.0068487   -0.0079756
+age         -0.0068487  0.00010251  -0.00017631
+call        -0.0079756 -0.00017631   0.050459</pre></div>
+<p>(a) Write down the model and its log-likelihood \(\ell(\beta)\).<br>
+(b) Estimate the readmission probability for a 70-year-old who got a call.<br>
+(c) Give a 95% CI for that probability.<br>
+(d) By what percentage do the odds of readmission change for a patient 15 years older, all else equal? Give a 95% CI.<br>
+(e) Interpret the <code>call</code> coefficient as an odds ratio with a 95% CI, in one sentence.</p>
+</div>
+
+<details><summary>Step 1: part (a)</summary><div>
+<p>\(Y_i\sim\text{Bin}(60, p_i)\) independent, with \(\log\dfrac{p_i}{1-p_i} = \eta_i = \beta_0 + \beta_1\,\text{age}_i + \beta_2\,\text{call}_i\).
+$$\ell(\beta) = c + \sum_i\Big[y_i\eta_i - 60\log\big(1+e^{\eta_i}\big)\Big].$$
+Name the distribution, the independence, the link and the linear predictor: each is usually a mark.</p></div></details>
+<details><summary>Step 2: part (b)</summary><div>
+<p>\(x_0 = (1, 70, 1)\). \(\hat\eta_0 = -3.6078 + 0.044219(70) - 0.92544 = -1.4379\), so \(\hat p_0 = 1/(1+e^{1.4379}) = \boxed{0.192}\).</p>
+<p>Use the coefficients to 4–5 significant figures. Rounding \(\hat\beta_1\) to 0.04 moves \(\hat\eta_0\) by 0.3.</p></div></details>
+<details><summary>Step 3: part (c), the variance with three covariances</summary><div>
+<p>With \(x_0=(1,70,1)\), \(x_0^TVx_0 = \sum_j\sum_k x_{0j}x_{0k}V_{jk}\): three variances plus <em>twice</em> each covariance.</p>
+$$\begin{aligned}
+&V_{00} + 70^2V_{11} + V_{22} + 2(70)V_{01} + 2V_{02} + 2(70)V_{12}\\
+&= 0.47733 + 0.50230 + 0.05046 - 0.95882 - 0.01595 - 0.02468 = 0.03064.
+\end{aligned}$$
+<p>So \(\text{se}(\hat\eta_0) = 0.1750\) and the CI for \(\eta\) is \(-1.4379 \pm 0.3431 = (-1.781,\ -1.095)\). Transform each end: \(\boxed{(0.144,\ 0.251)}\).</p>
+<p>Dropping all three covariances gives se = 1.015 and a useless interval of about (0.03, 0.63).</p></div></details>
+<details><summary>Step 4: part (d)</summary><div>
+<p>\(\Delta = 15\): \(e^{15(0.044219)} = e^{0.6633} = 1.941\), so the odds rise by about <strong>94%</strong>. CI: \(\exp\!\big(15(0.044219 \pm 1.96\times0.010125)\big) = (1.441,\ 2.614)\), an increase of between 44% and 161%.</p>
+<p>Only \(\text{se}(\hat\beta_1)\) is needed here: \(t = (0, 15, 0)\) picks out one entry of \(V\).</p></div></details>
+<details><summary>Step 5: part (e)</summary><div>
+<p>\(e^{-0.92544} = 0.396\), CI \(\exp(-0.92544 \pm 1.96\times0.22463) = (0.255,\ 0.616)\). "Holding age fixed, patients who got a follow-up call had an estimated 60% lower odds of readmission (95% CI: 38% to 74% lower)."</p>
+<p>The CI excludes 1, which matches \(|z| = 4.12 > 1.96\). Wald tests and the likelihood-ratio test are next lesson.</p></div></details>
+
+<h2>6 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, write the logit log-likelihood, \(\mathcal I(\beta)\), and the three-step CI for \(p\)</summary><div>
+<p>\(\ell = c + \sum[y_i\eta_i - m_i\log(1+e^{\eta_i})]\). \(\mathcal I(\beta) = X^TWX\), \(W = \text{diag}(m_ip_i(1-p_i))\), the same as \(\mathcal J\) (no data in the Hessian). CI for \(p\): (1) \(\hat\eta_0 = x_0^T\hat\beta\); (2) \(\text{se} = \sqrt{x_0^TVx_0}\), covariances included; (3) \(g^{-1}\) of \(\hat\eta_0\pm1.96\,\text{se}\).</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/BinReg_1_LMS.pdf">Binomial Regression I</a>, slides 17–24 (the model and links) and 33–40 (information, Wald CIs, the CI for \(p\)), with the <a href="../extra-notes/observed_information_binomial_regression-1.pdf">observed-information derivation</a> and the worked R in <a href="../extra-notes/Challenger.pdf">Challenger.pdf</a>. For a second explanation, read Faraway, <em>Extending the Linear Model with R</em> (2nd ed.): <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=44">§2.2</a> (logistic regression and interpreting coefficients as odds), <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=48">§2.3</a> (Wald CIs for \(\beta\)), <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=67">§3.1</a> (the grouped binomial model, the form this lesson uses) and <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=84">§4.2</a> (probit and cloglog vs logit).</p>
+<p><strong>Homework:</strong> week 2 tutorial (<a href="../tutes/2026_MAST30027_week2.html">questions</a>, <a href="../tutes/2026_MAST30027_week2_sol.html">solutions</a>). No R needed: open the solutions, cover the written answers, and do Q1(b), Q1(d) and Q2(c) by hand from the printed R output only (estimate and se on the link scale, then transform back). That is exactly what the exam asks.</p>
+<ol>
+  <li>Derive \(\partial^2\ell/\partial\beta_0\partial\beta_1\) for the one-predictor logit model yourself, then check it against the observed-information notes.</li>
+  <li>For the driving data, find the 95% CI for \(p\) at 0 hours. Why is it so much wider on the \(\eta\) scale than at 35 hours?</li>
+</ol>
+<details><summary>Homework answers (2)</summary><div>
+<p>At \(x_0=0\), \(\hat\eta_0 = \hat\beta_0 = -1.9915\) and \(\text{se} = \sqrt{V_{00}} = 0.392\). The CI for \(\eta\) is \((-2.761,\ -1.222)\), so for \(p\) it's \((0.059,\ 0.228)\). \(\operatorname{Var}(\hat\eta_0)\) is a quadratic in \(x_0\), smallest near the centre of the data (about 28 hours) and growing as you move out. 0 hours is an extrapolation below the smallest group.</p></div></details>
+<p><strong>Spacing:</strong> tomorrow, before Lesson 3, redo Q6 and the challenge's step 3 without looking. Also redo Lesson 1's Q3 if you haven't yet.</p>
+
+<div class="ask">💬 Stuck on the matrix algebra, or want another R-output table to practise on? Ask me in the terminal. I'm your teacher for this. Paste or photograph your working and I'll mark it like an exam marker.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0001-mle-fisher-information.html">Lesson 1, MLE and Fisher information</a></span>
+  <span>Reference: <a href="../reference/likelihood-cheatsheet.html">Likelihood cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0003-deviance-lrt-aic.html">Lesson 3, deviance, LRT and AIC</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

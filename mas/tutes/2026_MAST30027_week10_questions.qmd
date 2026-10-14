@@ -1,0 +1,71 @@
+---
+title: "MAST30027: Metropolis-Hastings (MH) Algorithm"
+subtitle: "Week 10 - Solutions"
+date: ""
+
+format:
+  html:
+    self-contained: true
+    css: CSSBackground.css
+    html-math-method: mathml
+resources:
+  - ../images/Banner.png
+---
+
+**Objectives of the Tutorial/Lab**
+By the end of this tutorial, you should be able to:
+
+- Evaluate bivariate normal densities in R.
+- Implement a random-walk Metropolis-Hastings algorithm for bivariate normal distributions.
+- Assess acceptance rates and check convergence using Markov chain output.
+
+**Metropolis-Hastings Algorithm**
+
+Recall that $\mathbf{X} = \begin{pmatrix} X_1 \\ X_2 \end{pmatrix} \sim N(\boldsymbol{\mu}, \boldsymbol{\Sigma})$ with $\boldsymbol{\mu} = \begin{pmatrix} \mu_1 \\ \mu_2 \end{pmatrix}$ and $\boldsymbol{\Sigma} = \begin{pmatrix} \sigma_1^2 & \sigma_{12} \\ \sigma_{12} & \sigma_2^2 \end{pmatrix}$, if and only if $\mathbf{X}$ has joint density
+
+$$
+f_{\boldsymbol{\mu}, \boldsymbol{\Sigma}}(\mathbf{x})
+=
+\frac{1}{2\pi |\boldsymbol{\Sigma}|^{1/2}}
+\exp\left\{
+-\frac{1}{2}
+(\mathbf{x} - \boldsymbol{\mu})^T
+\boldsymbol{\Sigma}^{-1}
+(\mathbf{x} - \boldsymbol{\mu})
+\right\},
+$$
+
+where $\mathbf{x} = \begin{pmatrix} x_1 \\ x_2 \end{pmatrix}$.
+
+## Question 1
+
+Write an R function that evaluates the density of a bivariate normal distribution.
+The function should take as input the point $\mathbf{x}$, the mean $\boldsymbol\mu$ and the covariance matrix $\boldsymbol\Sigma$.
+
+You will find the functions `solve` and `det` useful.
+
+```{r}
+
+```
+
+
+## Question 2
+
+Write a program in R that uses the Metropolis-Hastings algorithm to generate a sample of size $n = 1000$ from the $N\left( \begin{pmatrix} 0 \\ 0 \end{pmatrix}, \begin{pmatrix} 4 & 1 \\ 1 & 4 \end{pmatrix} \right)$ distribution.
+Use the symmetric random walk proposal distribution  $N\left( \mathbf{x}, \sigma^2 I \right)$ with $\sigma = 2.5$.
+
+Use $\mathbf{X}(0) = \begin{pmatrix} 6 \\ -6 \end{pmatrix}$ as your initial state.
+Report the proportion of accepted values.
+
+```{r}
+
+```
+
+## Question 3
+
+Let $\mathbf{X}(n)$ be the $n$-th sample point.
+Plot $X_i(n)$ and the cumulative averages $\bar{X}_i(n) = n^{-1} \sum_{j=1}^n X_i(j)$, for $i = 1, 2$ (over iteration numbers). The cumulative averages should give a rough idea of how quickly the $\mathbf{X}(n)$ converge in distribution.
+
+```{r}
+
+```

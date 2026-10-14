@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Singular Series Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 11 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>Consider $\;3t\,y'' + y' - y = 0,\quad t &gt; 0$.</p>
+<p>(a) Substitute $y = \sum_{n\ge0} c_nt^n$. Show that this gives only one linearly independent power-series solution, and write it, with $c_0 = 1$, in sum form with an explicit formula for $c_n$. <em>[5]</em><br>
+(b) Find its radius of convergence. <em>[2]</em><br>
+(c) Let $y_2$ be a second, linearly independent solution. Use Abel's identity to find $\operatorname{wr}[y_1, y_2]$, and explain why $y_2$ can't be a power series about $t = 0$. <em>[3]</em><br>
+(d) Show that $y_2 = t^{a}\sum_{j\ge0}d_jt^j$ with $d_0 = 1$ is consistent with (c). Find $a$, $d_1$ and $d_2$ by substituting the first terms of $y_1$ into the Wronskian equation. <em>[5]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) 1 · Substitute</h2>
+
+<div class="script">
+<p>With $y = \sum_{n=0}^\infty c_nt^n$: $\;y' = \sum_{n=0}^\infty n\,c_nt^{n-1}$, $\;y'' = \sum_{n=0}^\infty n(n-1)\,c_nt^{n-2}$. Substituting:</p>
+$$\sum_{n=0}^\infty 3n(n-1)\,c_nt^{n-1} + \sum_{n=0}^\infty n\,c_nt^{n-1} - \sum_{n=0}^\infty c_nt^n = 0$$
+$$\sum_{n=0}^\infty n(3n-2)\,c_nt^{n-1} - \sum_{n=0}^\infty c_nt^n = 0.$$
+</div>
+<p class="note">Combine the $y''$ and $y'$ sums first: $3n(n-1) + n = n(3n-2)$. That one line makes the rest short.</p>
+
+<h2>(a) 2 · Match powers, recurrence</h2>
+
+<div class="script">
+<p>The $n = 0$ term of the first sum is $0$. Letting $m = n - 1$ in the first sum and $m = n$ in the second:</p>
+$$\sum_{m=0}^\infty\big[(m+1)(3m+1)\,c_{m+1} - c_m\big]\,t^m = 0.$$
+<p>Equating coefficients of $t^m$ to zero:</p>
+$$c_{m+1} = \frac{c_m}{(m+1)(3m+1)}, \qquad m \ge 0.$$
+<p>So every $c_n$ is determined by $c_0$. There is only one arbitrary constant, so the method gives only one linearly independent power-series solution.</p>
+</div>
+<p class="note">Say explicitly where the lowest power went (here: it's automatically zero). That sentence plus "only $c_0$ is arbitrary" is the "show" mark.</p>
+
+<h2>(a) 3 · Closed form</h2>
+
+<div class="script">
+<p>Iterating,</p>
+$$c_n = \frac{c_0}{(1\cdot1)(2\cdot4)(3\cdot7)\cdots\big(n(3n-2)\big)} = \frac{c_0}{n!\,\prod_{k=1}^n(3k-2)}.$$
+<p>Taking $c_0 = 1$:</p>
+$$\boxed{\,y_1(t) = \sum_{n=0}^\infty \frac{t^n}{n!\,\prod_{k=1}^n(3k-2)} = 1 + t + \frac{t^2}{8} + \frac{t^3}{168} + \cdots\,}$$
+</div>
+<p class="note">Listing the first terms lets the marker check your formula quickly: $c_1 = 1$, $c_2 = 1/(2\cdot4)$, $c_3 = 1/(6\cdot28)$.</p>
+
+<h2>(b) · Radius of convergence</h2>
+
+<div class="script">
+$$R = \lim_{n\to\infty}\left|\frac{c_n}{c_{n+1}}\right| = \lim_{n\to\infty}(n+1)(3n+1) = \infty.$$
+<p>The series converges for all $t\in\mathbb R$.</p>
+</div>
+<p class="note">The recurrence gives $c_n/c_{n+1}$ directly, so there's no factorial cancelling to do.</p>
+
+<h2>(c) · Abel's identity</h2>
+
+<div class="script">
+<p>In standard form, $\;y'' + \dfrac{1}{3t}\,y' - \dfrac{1}{3t}\,y = 0$, so $f_1(t) = \dfrac{1}{3t}$. By Abel's identity,</p>
+$$\operatorname{wr}[y_1,y_2](t) = C\,e^{-\int \frac{1}{3t}\,dt} = C\,t^{-1/3},$$
+<p>with $C \neq 0$ since $y_1, y_2$ are linearly independent.</p>
+<p>If $y_2$ were a power series about $0$ with positive radius, then $y_1y_2' - y_1'y_2$ would also be a power series, and hence bounded as $t \to 0^+$. But $|C\,t^{-1/3}| \to \infty$ as $t\to0^+$. So $y_2$ is not a power series about $t = 0$.</p>
+</div>
+<p class="note">Name Abel's identity and give the reason $C \ne 0$. The contradiction argument is short but it's the whole of the "explain" mark.</p>
+
+<h2>(d) 1 · Set up the Wronskian equation</h2>
+
+<div class="script">
+<p>Let $y_2 = t^a(1 + d_1t + d_2t^2 + \cdots)$. Then</p>
+$$y_2' = t^{a-1}\big(a + (a+1)d_1t + (a+2)d_2t^2 + \cdots\big),$$
+<p>and from (a), $y_1 = 1 + t + \tfrac18t^2 + \cdots$, $\;y_1' = 1 + \tfrac14t + \cdots$. So</p>
+$$y_1y_2' - y_1'y_2 = t^{a-1}\Big[\big(1 + t + \tfrac18t^2\big)\big(a + (a+1)d_1t + (a+2)d_2t^2\big) - \big(t + \tfrac14t^2\big)\big(1 + d_1t\big) + O(t^3)\Big],$$
+<p>and this must equal $C\,t^{-1/3}$.</p>
+</div>
+<p class="note">Write $y_1'y_2 = t^{a-1}\cdot t\,y_1'(1 + d_1t + \dots)$. That extra $t$ is where most people lose the $d$'s.</p>
+
+<h2>(d) 2 · Match powers</h2>
+
+<div class="script">
+<p>$t^{a-1}$: $\;a\,t^{a-1} = C\,t^{-1/3}$, so $a = \tfrac23$ and $C = \tfrac23$.</p>
+<p>Since the Wronskian is exactly $C\,t^{-1/3}$, the coefficients of all higher powers vanish:</p>
+<p>$t^{a}$: $\;(a+1)d_1 + a - 1 = 0 \;\Rightarrow\; \tfrac53d_1 = \tfrac13 \;\Rightarrow\; d_1 = \tfrac15.$</p>
+<p>$t^{a+1}$: $\;(a+2)d_2 + (a+1)d_1 + \tfrac a8 - d_1 - \tfrac14 = 0$</p>
+$$\tfrac83d_2 + \tfrac13 + \tfrac1{12} - \tfrac15 - \tfrac14 = 0 \;\Rightarrow\; \tfrac83d_2 = \tfrac1{30} \;\Rightarrow\; d_2 = \tfrac1{80}.$$
+<p>Hence</p>
+$$\boxed{\,a = \tfrac23,\quad d_1 = \tfrac15,\quad d_2 = \tfrac1{80},\qquad y_2 = t^{2/3}\Big(1 + \frac t5 + \frac{t^2}{80} + \cdots\Big).\,}$$
+<p>Since $a = \tfrac23$ is not a non-negative integer, $y_2$ is not a power series, which is consistent with (c).</p>
+</div>
+<p class="note">Margin check by the generalised series: indicial $\lambda(3\lambda - 2) = 0$ gives $\lambda = \tfrac23$, and $d_{j+1}(j+1)(3j+5) = d_j$ gives $d_1 = \tfrac15$, $d_2 = \tfrac1{80}$. Only write this if you have time to spare.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Combined sum $n(3n-2)c_nt^{n-1}$ · what happens to the lowest power · the recurrence · "only $c_0$ arbitrary, so one solution" · $c_n$ as a product, with $c_0 = 1$ in sum form · the ratio-test limit · $f_1$ from standard form and Abel with $C \ne 0$ · the boundedness argument · $y_2'$ and the $t^{a-1}$ factoring · $a$ from the lowest power · higher powers set to $0$ · the boxed $a, d_1, d_2$.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0011-singular-points-bessel.html">Lesson 11, challenge</a></span>
+  <span>Reference: <a href="topic2-cheatsheet.html">Topic 2 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

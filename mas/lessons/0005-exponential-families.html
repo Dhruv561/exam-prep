@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exponential Families</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  table.ef td, table.ef th { font-size: .86rem; padding: .35rem .45rem; }
+  .why-q { margin: 1.4rem 0; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 5 · Topic 2: Exponential families &amp; GLMs</div>
+<h1>Exponential families: canonical parameter, variance function and canonical link</h1>
+<p class="lede">The goal: handed any standard pmf or pdf, you can write it in exponential-family form, read off \(\theta\), \(\phi\), \(a(\phi)\), \(b(\theta)\) and \(c(y,\phi)\), get \(\mathbb E Y\) and \(\operatorname{Var} Y\) by differentiating \(b\), write the variance function \(v(\mu)\), and name the canonical link. All on paper, in about ten minutes.</p>
+
+<div class="mission">Why this matters for 10 Nov: nearly every past paper has an 8–10 mark question that says "show that this distribution is an exponential family, obtain the canonical link, obtain the variance function". Gamma, Poisson, exponential and inverse Gaussian have all been used. The algebra is the same every time, so once you've drilled the recipe these are close to free marks. It's also the definition every later GLM lesson rests on: a GLM <em>is</em> an exponential-family response plus a link.</div>
+
+<h2>1 · The form</h2>
+<p>\(Y\) comes from an <strong>exponential family</strong> if its density or mass function can be written (<a href="../lectures/Exponential_families.pdf#page=3">Exponential families, slide 3</a>)</p>
+$$f(y;\theta,\phi) = \exp\!\left[\frac{y\theta - b(\theta)}{a(\phi)} + c(y,\phi)\right].$$
+<ul>
+  <li>\(\theta\) is the <strong>canonical parameter</strong> (location). It multiplies \(y\) itself: not \(y^2\), not \(\log y\).</li>
+  <li>\(\phi\) is the <strong>dispersion parameter</strong> (scale). For the Poisson and binomial, \(\phi = 1\).</li>
+  <li>\(b(\theta)\) depends on \(\theta\) <em>only</em>; \(c(y,\phi)\) can be any function of \(y\) and \(\phi\), but no \(\theta\). (That's the lecturer's handwritten note on the <a href="../annotated-slides/Exponential_families%20annotated.pdf#page=4">annotated slide 3</a>.)</li>
+  <li>The course uses \(a(\phi) = \phi\) throughout (slides 4–5). Faraway allows known weights, \(a(\phi) = \phi/w\) (<a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=169">§8.1, p. 153</a>). You won't need them for these questions.</li>
+</ul>
+<p>The set of possible \(y\) values (the <em>support</em>) can't depend on \(\theta\). An indicator like \(I(0&lt;y&lt;\theta)\) can't be hidden inside \(c(y,\phi)\), because it involves \(\theta\).</p>
+
+<h2>2 · The recipe</h2>
+<ol class="steps">
+  <li><strong>Take logs.</strong> Write \(\log f(y)\) and expand with log rules. Check the support doesn't involve the parameter.</li>
+  <li><strong>Find the \(y\cdot(\text{something})\) term.</strong> Every term with both \(y\) and the parameter must be \(y\) times a function of the parameter. That function is \(\theta\) (possibly after pulling out a scale factor, step 3). If the parameter multiplies \(y^2\), \(\log y\) or \(e^{y}\) instead, stop: it isn't an exponential family in this form.</li>
+  <li><strong>Pull out \(1/a(\phi)\).</strong> If a scale parameter divides the \(y\)-term (like \(\sigma^2\) or \(1/\nu\)), factor it out of <em>both</em> the \(y\)-term and the parameter-only term. That's \(a(\phi)\).</li>
+  <li><strong>Read off \(b\), then rewrite it in \(\theta\).</strong> The parameter-only term is \(-b/a(\phi)\). Invert \(\theta\)'s formula (e.g. \(\mu\) in terms of \(\theta\)) and substitute, so \(b\) is a function of \(\theta\) alone.</li>
+  <li><strong>Everything left is \(c(y,\phi)\).</strong> Then state all five pieces: \(\theta\), \(\phi\), \(a(\phi)\), \(b(\theta)\), \(c(y,\phi)\).</li>
+</ol>
+
+<h3>Worked example 1: Poisson (slide 5)</h3>
+<p>\(f(y) = e^{-\lambda}\lambda^y/y!\) for \(y = 0,1,2,\dots\) The support doesn't involve \(\lambda\).</p>
+$$\log f(y) = y\log\lambda - \lambda - \log y!$$
+<p>The \(y\)-term is \(y\cdot\log\lambda\), so \(\theta = \log\lambda\), and nothing divides it, so \(\phi = 1\), \(a(\phi) = \phi\). The parameter-only term is \(-\lambda\), so \(b = \lambda\); in terms of \(\theta\), \(\lambda = e^\theta\), so \(b(\theta) = e^\theta\). Finally \(c(y,\phi) = -\log y!\).</p>
+
+<h3>Worked example 2: gamma in mean–shape form</h3>
+<p>GLMs use the gamma with mean \(\mu\) and shape \(\nu\) (<a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=191">Faraway §9.1, p. 175</a>):</p>
+$$f(y;\mu,\nu) = \frac{1}{\Gamma(\nu)}\left(\frac{\nu}{\mu}\right)^{\!\nu} y^{\nu-1} e^{-\nu y/\mu},\qquad y&gt;0.$$
+<p>Take logs and group the \(\mu\) terms:</p>
+$$\begin{aligned}
+\log f &amp;= \nu\log\nu - \nu\log\mu + (\nu-1)\log y - \frac{\nu y}{\mu} - \log\Gamma(\nu)\\
+&amp;= \frac{y\,(-1/\mu) - \log\mu}{1/\nu} + \nu\log\nu + (\nu-1)\log y - \log\Gamma(\nu).
+\end{aligned}$$
+<p>So \(\theta = -1/\mu\), \(\phi = 1/\nu\), \(a(\phi) = \phi\). The parameter-only term is \(-\log\mu\), so \(b = \log\mu\). Now rewrite it: \(\mu = -1/\theta\), so</p>
+$$b(\theta) = \log(-1/\theta) = -\log(-\theta),\qquad \theta&lt;0,$$
+$$c(y,\phi) = \frac1\phi\log\frac1\phi + \Big(\frac1\phi - 1\Big)\log y - \log\Gamma\!\Big(\frac1\phi\Big).$$
+<p>(I checked numerically that this reproduces the density.) The shape–rate parametrisation works the same way, with the rate in place of \(\nu/\mu\).</p>
+
+<div class="trap"><strong>Trap: the four classic slips</strong><br>
+(1) <strong>Leaving \(b\) in terms of \(\mu\), \(\lambda\) or \(p\).</strong> The lemma differentiates with respect to \(\theta\). For the Poisson, "\(b = \lambda\)" differentiated in \(\lambda\) gives 1, not the mean. Always substitute first: \(b(\theta) = e^\theta\), so \(b'(\theta) = e^\theta = \lambda\). ✓<br>
+(2) <strong>Ignoring the support.</strong> Uniform\((0,\theta)\) and a shifted exponential \(e^{-(y-\theta)}\), \(y\ge\theta\), are <em>not</em> exponential families: the range of \(y\) depends on \(\theta\). Write the support down in your answer; markers look for it.<br>
+(3) <strong>Mixing up \(v(\mu)\) and \(\operatorname{Var}Y\).</strong> \(\operatorname{Var} Y = a(\phi)\,v(\mu)\). For the gamma, \(v(\mu) = \mu^2\) but \(\operatorname{Var} Y = \mu^2/\nu\). They're equal only when \(\phi = 1\).<br>
+(4) <strong>Gamma's sign.</strong> \(\theta = -1/\mu\), not \(1/\mu\), and \(b(\theta) = -\log(-\theta)\) needs \(\theta&lt;0\). R's <code>Gamma()</code> "inverse" link is \(1/\mu\), i.e. the canonical link with the sign dropped (section 4).</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> \(Y\) counts failures before the first success: \(f(y) = p(1-p)^y\) for \(y = 0,1,2,\dots\) (geometric). What is the canonical parameter \(\theta\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\theta = \log p\)</button>
+    <button class="opt" data-key="b">\(\theta = \log(1-p)\)</button>
+    <button class="opt" data-key="c">\(\theta = \log\frac{p}{1-p}\)</button>
+    <button class="opt" data-key="d">\(\theta = 1-p\)</button>
+  </div>
+  <div class="why">\(\log f = y\log(1-p) + \log p\). The term with \(y\) is \(y\cdot\log(1-p)\), so \(\theta = \log(1-p)\), \(\phi = 1\), \(c = 0\). Option (c) is the Bernoulli's \(\theta\), from a different \(y\)-term.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> Same geometric. Which is \(b(\theta)\), written the way the recipe requires?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(b(\theta) = -\log p\)</button>
+    <button class="opt" data-key="b">\(b(\theta) = \log(1-e^{\theta})\)</button>
+    <button class="opt" data-key="c">\(b(\theta) = -\log(1-e^{\theta})\)</button>
+    <button class="opt" data-key="d">\(b(\theta) = -\log(1-\theta)\)</button>
+  </div>
+  <div class="why">The parameter-only term is \(+\log p = -b\), so \(b = -\log p\). That's the right <em>value</em>, but (a) is still in \(p\). Since \(e^\theta = 1-p\), \(p = 1-e^\theta\), so \(b(\theta) = -\log(1-e^\theta)\). Option (b) loses the sign; (d) forgets the exponential.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>3.</strong> Lesson 1's density was \(f(y;\theta) = \dfrac{y}{\theta}e^{-y^2/(2\theta)}\), \(y&gt;0\). Is it an exponential family in the course's form, with \(Y\) as the response?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Yes, with canonical parameter \(-1/(2\theta)\) and \(\phi=1\).</button>
+    <button class="opt" data-key="b">Yes, with canonical parameter \(1/\theta\) and \(b = \log\theta\).</button>
+    <button class="opt" data-key="c">No, because the parameter multiplies \(y^2\) and not \(y\).</button>
+    <button class="opt" data-key="d">No, because its support \(y&gt;0\) depends on \(\theta\).</button>
+  </div>
+  <div class="why">\(\log f = \log y - \log\theta - y^2/(2\theta)\). The only term linking \(y\) and \(\theta\) is \(y^2\cdot(-1/(2\theta))\), which isn't \(y\theta\). (It <em>would</em> be an exponential family for the response \(Y^2\), but that's a different variable.) The support \(y&gt;0\) is fine, so (d) is wrong for a different reason.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>4.</strong> Which one of these is <em>not</em> an exponential family in the course's sense?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Normal, mean \(\mu\) unknown, variance known to be 4</button>
+    <button class="opt" data-key="b">Geometric, failures before the first success, \(p\) unknown</button>
+    <button class="opt" data-key="c">Bernoulli, success probability \(p\) unknown, one trial</button>
+    <button class="opt" data-key="d">Uniform on the interval \((0,\theta)\), with \(\theta\) unknown</button>
+  </div>
+  <div class="why">\(f(y) = \theta^{-1} I(0&lt;y&lt;\theta)\): the support depends on \(\theta\), and there's no \(y\theta\) term at all. The normal with known \(\sigma^2 = 4\) is fine: \(\theta = \mu\), \(a(\phi) = 4\), \(b = \theta^2/2\).</div>
+</div>
+
+<div class="box why-q">
+<p><strong>Explain why (2–3 sentences).</strong> Why must \(b\) be written as a function of \(\theta\) alone before you use it?</p>
+<details><summary>Model answer</summary><div>
+<p>The mean and variance come from \(b'(\theta)\) and \(b''(\theta)\), derivatives with respect to the canonical parameter (section 3). If \(b\) is left in \(\mu\) or \(p\), differentiating it in that variable gives the wrong answer (Poisson: \(\frac{d}{d\lambda}\lambda = 1\neq\lambda\)). Also, the definition needs \(b\) to depend on the parameter only through \(\theta\), which you show by writing it that way.</p></div></details>
+</div>
+
+<h2>3 · Mean and variance from \(b\)</h2>
+<p><strong>Lemma</strong> (<a href="../lectures/Exponential_families.pdf#page=8">slide 8</a>). If \(Y\) is from an exponential family,</p>
+$$\mathbb E Y = b'(\theta),\qquad \operatorname{Var}Y = b''(\theta)\,a(\phi).$$
+<p>The slide leaves the proof as an exercise. Here it is, filling in Faraway's lines (<a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=168">§8.1, pp. 152–153</a>). It uses the two score identities from <a href="0001-mle-fisher-information.html">Lesson 1</a>: \(\mathbb E\,\ell'(\theta) = 0\) and \(\mathbb E\,\ell''(\theta) = -\mathbb E[\ell'(\theta)^2]\). For one observation,</p>
+$$\ell(\theta) = \frac{y\theta - b(\theta)}{a(\phi)} + c(y,\phi),\qquad \ell'(\theta) = \frac{y - b'(\theta)}{a(\phi)},\qquad \ell''(\theta) = -\frac{b''(\theta)}{a(\phi)}.$$
+$$\mathbb E\,\ell'(\theta) = \frac{\mathbb E Y - b'(\theta)}{a(\phi)} = 0 \;\Rightarrow\; \mathbb E Y = b'(\theta).$$
+$$-\frac{b''(\theta)}{a(\phi)} = -\mathbb E\!\left[\frac{(Y-b'(\theta))^2}{a(\phi)^2}\right] = -\frac{\operatorname{Var}Y}{a(\phi)^2}\;\Rightarrow\;\operatorname{Var}Y = b''(\theta)\,a(\phi).$$
+
+<p><strong>Variance function</strong> (<a href="../lectures/Exponential_families.pdf#page=9">slide 9</a>). Write \(\mu = \mathbb E Y\). Since \(\mu = b'(\theta)\), \(\theta = (b')^{-1}(\mu)\), and</p>
+$$\operatorname{Var}Y = b''\big((b')^{-1}(\mu)\big)\,a(\phi) = v(\mu)\,a(\phi),\qquad v = b''\circ(b')^{-1}.$$
+<p>In practice: compute \(b''(\theta)\), then replace \(\theta\) by its formula in \(\mu\). The lecturer's note on the <a href="../annotated-slides/Exponential_families%20annotated.pdf#page=16">annotated slide 9</a>: "the mean and variance are not always independent… \(v(\mu)\) is a function of \(\mu\)". It says how the spread changes with the mean.</p>
+
+<p><strong>Gamma, finished.</strong> \(b(\theta) = -\log(-\theta)\), so</p>
+$$b'(\theta) = -\frac1\theta = \mu\ \checkmark,\qquad b''(\theta) = \frac{1}{\theta^2} = \mu^2,$$
+<p>giving \(v(\mu) = \mu^2\) and \(\operatorname{Var}Y = \phi\mu^2 = \mu^2/\nu\). The check \(b'(\theta) = \mu\) is worth writing in an exam: it catches a wrong \(b\) immediately.</p>
+
+<div class="quiz num" data-answer="20" data-tol="0.01">
+  <p class="q"><strong>5.</strong> For the geometric of Q1–2 with \(p = 0.2\), use \(b(\theta)\) to find \(\operatorname{Var}Y\).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(b'(\theta) = \dfrac{e^\theta}{1-e^\theta}\) and \(b''(\theta) = \dfrac{e^\theta}{(1-e^\theta)^2}\). With \(e^\theta = 1-p = 0.8\): \(\mathbb E Y = 0.8/0.2 = 4\) and \(\operatorname{Var}Y = 0.8/0.04 = \)<strong>20</strong> (times \(a(\phi) = 1\)). These match the textbook \((1-p)/p\) and \((1-p)/p^2\).</div>
+</div>
+
+<div class="quiz num" data-answer="8.75" data-tol="0.01">
+  <p class="q"><strong>6.</strong> Still the geometric. Write \(v(\mu)\) as a function of \(\mu\), then evaluate it at \(\mu = 2.5\).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">From \(\mu = \dfrac{e^\theta}{1-e^\theta}\): \(\dfrac{1}{1-e^\theta} = 1+\mu\) and \(e^\theta = \dfrac{\mu}{1+\mu}\). So \(b'' = \dfrac{e^\theta}{1-e^\theta}\cdot\dfrac{1}{1-e^\theta} = \mu(1+\mu) = \mu+\mu^2\). At 2.5: \(2.5 + 6.25 = \)<strong>8.75</strong>. More variance than a Poisson with the same mean (which would give 2.5).</div>
+</div>
+
+<div class="quiz num" data-answer="1.8" data-tol="0.01">
+  <p class="q"><strong>7.</strong> A gamma response has dispersion \(\phi = 0.2\) (shape \(\nu = 5\)) and mean \(\mu = 3\). What is \(\operatorname{Var}Y\)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\operatorname{Var} Y = a(\phi)\,v(\mu) = 0.2\times 3^2 = \)<strong>1.8</strong>. If you typed 9, you gave \(v(\mu)\), not the variance: trap (3).</div>
+</div>
+
+<div class="box why-q">
+<p><strong>Explain why (2–3 sentences).</strong> What does \(v(\mu) = \mu^2\) say about gamma data, compared with normal (\(v = 1\)) and Poisson (\(v = \mu\)) data?</p>
+<details><summary>Model answer</summary><div>
+<p>For the gamma, \(\operatorname{Var}Y = \phi\mu^2\), so the standard deviation is \(\sqrt\phi\,\mu\): it grows in proportion to the mean, and the coefficient of variation \(\sqrt\phi\) is constant. The normal has the same spread at every mean, and the Poisson's SD grows only like \(\sqrt\mu\). So a gamma GLM suits positive, skewed data where bigger values are proportionally noisier (Faraway calls \(\phi\) the squared coefficient of variation, §9.3).</p></div></details>
+</div>
+
+<h2>4 · The canonical link</h2>
+<p>A GLM says \(Y\) is from an exponential family and \(g(\mu) = x^T\beta\) for a monotone, differentiable link \(g\) (<a href="../lectures/GLM_1_LMS-1.pdf#page=3">GLMs I, slide 3</a>). The <strong>canonical link</strong> is the \(g\) that makes the linear predictor equal the canonical parameter, \(g(\mu) = x^T\beta = \theta\) (slide 4). Since \(\mu = b'(\theta)\),</p>
+$$g = (b')^{-1}.$$
+<p>The annotated slides show two ways to find it (<a href="../annotated-slides/GLM_1_LMS-%20annotated.pdf#page=7">annotated GLMs I, pp. 7–9</a>): (1) solve \(\mu = b'(\theta)\) for \(\theta\); or (2) take your formula for \(\theta\) in terms of the mean and rename it \(g(\mu)\). Route (2) is faster when you already wrote \(\theta\) as a function of \(\mu\). Use (1) as a check. Gamma: \(\theta = -1/\mu\), so the canonical link is \(g(\mu) = -1/\mu\).</p>
+
+<div class="tablewrap"><table class="ef">
+<tr><th>Distribution</th><th>\(\theta\)</th><th>\(b(\theta)\)</th><th>\(\phi\), \(a(\phi)\)</th><th>Canonical link \(g(\mu)\)</th><th>\(v(\mu)\)</th></tr>
+<tr><td>Normal \(N(\mu,\sigma^2)\)</td><td>\(\mu\)</td><td>\(\theta^2/2\)</td><td>\(\sigma^2\), \(\phi\)</td><td>\(\mu\) (identity)</td><td>\(1\)</td></tr>
+<tr><td>Poisson\((\mu)\)</td><td>\(\log\mu\)</td><td>\(e^\theta\)</td><td>\(1\), \(\phi\)</td><td>\(\log\mu\)</td><td>\(\mu\)</td></tr>
+<tr><td>Binomial\((m,p)\), \(m\) known, \(\mu = mp\)</td><td>\(\log\frac{p}{1-p} = \log\frac{\mu}{m-\mu}\)</td><td>\(m\log(1+e^\theta)\)</td><td>\(1\), \(\phi\)</td><td>\(\log\frac{\mu}{m-\mu}\) (logit of \(p\))</td><td>\(\mu(1-\mu/m)\)</td></tr>
+<tr><td>Gamma, mean \(\mu\), shape \(\nu\)</td><td>\(-1/\mu\)</td><td>\(-\log(-\theta)\)</td><td>\(1/\nu\), \(\phi\)</td><td>\(-1/\mu\) (R: \(1/\mu\))</td><td>\(\mu^2\)</td></tr>
+<tr><td>Inverse Gaussian\((\mu,\lambda)\)</td><td>\(-\frac{1}{2\mu^2}\)</td><td>\(-\sqrt{-2\theta}\)</td><td>\(1/\lambda\), \(\phi\)</td><td>\(-\frac{1}{2\mu^2}\) (R: \(1/\mu^2\))</td><td>\(\mu^3\)</td></tr>
+</table></div>
+<p>Sources: normal, Poisson and binomial rows from <a href="../lectures/Exponential_families.pdf#page=4">slides 4–9</a> and <a href="../lectures/GLM_1_LMS-1.pdf#page=5">GLMs I slide 5</a> (binomial: <a href="../tutes/2026_MAST30027_week4_sol.html">week 4 tute Q1</a>); gamma and inverse Gaussian from Faraway <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=170">Table 8.1</a> and §9.1–9.2 (<a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=197">p. 181</a>). I checked every \(b\), \(b'\) and \(b''\) numerically. Note the binomial: the lecture's \(Y\) is the <em>count</em>, so \(v(\mu) = \mu(1-\mu/m)\). Faraway and R use the <em>proportion</em> \(Y/m\), with \(V(\mu) = \mu(1-\mu)\). Use the course's version unless the question says otherwise.</p>
+
+<div class="trap"><strong>Signs and constants in links</strong><br>R and Faraway drop signs and constant factors from canonical links: <code>Gamma()</code> uses "inverse" \(1/\mu\), <code>inverse.gaussian()</code> uses \(1/\mu^2\). Multiplying \(\eta\) by a constant just rescales \(\beta\) (here, flips its sign), so it's the same model. In an exam, state the exact \(g = (b')^{-1}\) you derived (e.g. \(-1/\mu\)), then you may note that it's equivalent to \(1/\mu\). And "inverse" names the function \(1/\mu\). It doesn't mean \(g^{-1}\).</div>
+
+<div class="quiz num" data-answer="-1.386" data-tol="0.002">
+  <p class="q"><strong>8.</strong> For a Bernoulli response (\(m = 1\)), the canonical link is the logit. If \(\mu = 0.2\), what is \(\theta = g(\mu)\) (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\theta = \log\dfrac{0.2}{0.8} = \log 0.25 = \)<strong>−1.386</strong>. Check route (1): \(b(\theta) = \log(1+e^\theta)\), so \(b'(\theta) = e^\theta/(1+e^\theta) = 0.25/1.25 = 0.2\) ✓.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>9.</strong> For the gamma, \(\theta = -1/\mu\), but R's <code>Gamma()</code> family has <code>link = "inverse"</code>, i.e. \(\eta = 1/\mu\). Which statement is right?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">R's default gamma link is non-canonical, unlike other families.</button>
+    <button class="opt" data-key="b">The canonical link is \(1/\mu\), so actually \(\theta = +1/\mu\).</button>
+    <button class="opt" data-key="c">"Inverse" means R uses \(g^{-1}\), the inverse of the link.</button>
+    <button class="opt" data-key="d">Same link up to sign, so the fitted \(\beta\) just flips sign.</button>
+  </div>
+  <div class="why">\(-1/\mu = x^T\beta\) and \(1/\mu = x^T(-\beta)\) give identical fitted values, so it's the canonical link up to a sign (Faraway §9.1: "we typically remove the minus"). The \(\theta\) itself is \(-1/\mu\): \(b(\theta) = -\log(-\theta)\) needs \(\theta&lt;0\).</div>
+</div>
+
+<h3>Why the canonical link matters</h3>
+<p>With independent \(y_i\) and the canonical link, \(\theta_i = x_i^T\beta\) (<a href="../lectures/GLM_1_LMS-1.pdf#page=7">GLMs I, slide 7</a>), so the log-likelihood is</p>
+$$\ell(\beta,\phi;y) = \sum_{i=1}^n\left[\frac{y_i x_i^T\beta - b(x_i^T\beta)}{a(\phi)} + c(y_i,\phi)\right] = \frac{\beta^TX^Ty - \sum_i b(x_i^T\beta)}{a(\phi)} + \sum_i c(y_i,\phi).$$
+<p>The data touch \(\beta\) only through \(X^Ty\), so \(X^Ty\) is sufficient for \(\beta\) (Faraway, <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=170">p. 154</a>). Differentiating, using \(b'(\theta_i) = \mu_i\): the score is \(X^T(y-\mu)/a(\phi)\), and the Hessian \(-\sum_i b''(\theta_i)x_ix_i^T/a(\phi)\) has no \(y\) in it. So observed and Fisher information coincide, and Newton–Raphson <em>is</em> Fisher scoring (slides 9 and 14). That's the convenience. Nothing forces you to use it, though: probit and cloglog are perfectly good binomial links (<a href="0002-binomial-regression.html">Lesson 2</a>).</p>
+
+<h3>Reading R's family objects</h3>
+<pre class="rout"><span class="cmd">&gt; fam &lt;- Gamma()
+&gt; fam$link</span>
+[1] "inverse"
+<span class="cmd">&gt; fam$linkfun(4)</span>
+[1] 0.25
+<span class="cmd">&gt; fam$variance(3)</span>
+[1] <b>9</b>
+<span class="cmd">&gt; binomial()$variance(0.2)</span>
+[1] <b>0.16</b>
+<span class="cmd">&gt; inverse.gaussian()$link</span>
+[1] "1/mu^2"</pre>
+<p>Each family stores its link \(g\) (<code>linkfun</code>) and its variance function (<code>variance</code>). <code>fam$variance(3)</code> is \(v(3) = 3^2 = 9\), not \(\operatorname{Var}Y\).</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>10.</strong> What does <code>binomial()$variance(0.2)</code>, which prints 0.16, compute?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The count variance \(mp(1-p)\) at \(p = 0.2\), in the lecture's form.</button>
+    <button class="opt" data-key="b">The proportion-scale \(V(\mu) = \mu(1-\mu)\) at \(\mu = 0.2\), as in Faraway.</button>
+    <button class="opt" data-key="c">The variance of the fitted linear predictor \(\hat\eta\) at \(p = 0.2\).</button>
+    <button class="opt" data-key="d">The derivative of the logit link function evaluated at \(p = 0.2\).</button>
+  </div>
+  <div class="why">\(0.2\times0.8 = 0.16\). R works with the proportion \(Y/m\), so its variance function is \(\mu(1-\mu)\) as in Faraway's Table 8.1, and the \(m\) goes into the weights. The lecture's count version would be \(v(\mu) = \mu(1-\mu/m) = m\cdot0.16\) at \(p = 0.2\). The logit's derivative is \(1/0.16 = 6.25\).</div>
+</div>
+
+<div class="box why-q">
+<p><strong>Explain why (2–3 sentences).</strong> Why does the canonical link make \(X^Ty\) a sufficient statistic for \(\beta\)?</p>
+<details><summary>Model answer</summary><div>
+<p>Under the canonical link \(\theta_i = x_i^T\beta\), so the only term in the log-likelihood that involves both data and \(\beta\) is \(\sum_i y_ix_i^T\beta = \beta^TX^Ty\); the \(b(x_i^T\beta)\) terms have no data and \(c(y_i,\phi)\) has no \(\beta\). By the factorisation theorem, the likelihood depends on the data (as far as \(\beta\) is concerned) only through \(X^Ty\). With any other link, \(\theta_i\) is a non-linear function of \(x_i^T\beta\) and no such reduction happens.</p></div></details>
+</div>
+
+<h2>5 · Exam-level challenge</h2>
+<p>About 15 minutes on paper, written answers. Then open the steps one at a time.</p>
+<div class="box">
+<p>Let \(Y\) have the negative binomial distribution with mean \(\mu&gt;0\) and <em>known</em> size \(r&gt;0\):</p>
+$$P(Y=y) = \frac{\Gamma(y+r)}{\Gamma(r)\,y!}\left(\frac{r}{r+\mu}\right)^{\!r}\left(\frac{\mu}{r+\mu}\right)^{\!y},\qquad y = 0,1,2,\dots$$
+<p>(a) Show that \(Y\) is from an exponential family, identifying \(\theta\), \(\phi\), \(a(\phi)\), \(b(\theta)\) and \(c(y,\phi)\). [4]<br>
+(b) Use the exponential-family lemma to find \(\mathbb EY\) and \(\operatorname{Var}Y\). [2]<br>
+(c) Find the variance function. With \(r = 3\) and \(\mu = 6\), compute \(\operatorname{Var}Y\) and compare it with a Poisson of the same mean. [2]<br>
+(d) Obtain the canonical link. Why might a log link be preferred in practice? [2]<br>
+(e) For independent \(Y_1,\dots,Y_n\) with the canonical link \(\theta_i = x_i^T\beta\), show that the score for \(\beta\) is \(X^T(y-\mu)\). [2]<br>
+(f) Faraway (§8.1) says the negative binomial is <em>not</em> a member of the exponential family. Reconcile this with (a) in 2–3 sentences. [1]</p>
+</div>
+
+<details><summary>Step 1: part (a)</summary><div>
+<p>The support \(\{0,1,2,\dots\}\) doesn't depend on \(\mu\). Take logs:</p>
+$$\log f(y) = y\log\frac{\mu}{\mu+r} + r\log\frac{r}{\mu+r} + \log\Gamma(y+r) - \log\Gamma(r) - \log y!$$
+<p>The \(y\)-term is \(y\log\frac{\mu}{\mu+r}\), so \(\theta = \log\dfrac{\mu}{\mu+r}\) (note \(\theta&lt;0\)), \(\phi = 1\), \(a(\phi) = \phi\). Then \(e^\theta = \dfrac{\mu}{\mu+r}\), so \(1 - e^\theta = \dfrac{r}{\mu+r}\), and the parameter-only term is \(r\log(1-e^\theta) = -b(\theta)\):</p>
+$$b(\theta) = -r\log(1-e^\theta),\qquad c(y,\phi) = \log\Gamma(y+r) - \log\Gamma(r) - \log y!$$
+<p>(\(c\) contains \(r\), which is fine because \(r\) is a known constant.)</p></div></details>
+<details><summary>Step 2: part (b)</summary><div>
+$$b'(\theta) = \frac{re^\theta}{1-e^\theta} = r\cdot\frac{\mu/(\mu+r)}{r/(\mu+r)} = \mu\ \checkmark$$
+$$b''(\theta) = \frac{re^\theta}{(1-e^\theta)^2} = \frac{re^\theta}{1-e^\theta}\cdot\frac{1}{1-e^\theta} = \mu\cdot\frac{\mu+r}{r} = \mu + \frac{\mu^2}{r}.$$
+<p>So \(\mathbb EY = \mu\) and \(\operatorname{Var}Y = a(\phi)\,b''(\theta) = \mu + \mu^2/r\).</p></div></details>
+<details><summary>Step 3: part (c)</summary><div>
+<p>\(v(\mu) = \mu + \mu^2/r\). With \(r = 3\), \(\mu = 6\): \(\operatorname{Var}Y = 6 + 36/3 = \boxed{18}\), three times the Poisson's 6. The extra \(\mu^2/r\) is overdispersion relative to the Poisson. As \(r\to\infty\) it vanishes and you get the Poisson back.</p></div></details>
+<details><summary>Step 4: part (d)</summary><div>
+<p>\(g(\mu) = \theta = \log\dfrac{\mu}{\mu+r}\). Check with route (1): solving \(\mu = re^\theta/(1-e^\theta)\) gives \(e^\theta = \mu/(\mu+r)\) ✓. In practice: this \(g\) only takes negative values, so \(x^T\beta\) must stay below 0 for every \(x\), which the fitting can't guarantee. The log link maps \((0,\infty)\) onto all of \(\mathbb R\), so any \(\beta\) is valid and \(e^{\beta_j}\) is a multiplicative effect on the mean, as in a Poisson GLM. (This is the same kind of difficulty as the gamma's \(-1/\mu\), which also needs \(\eta\) of one sign.)</p></div></details>
+<details><summary>Step 5: part (e)</summary><div>
+<p>With \(\phi = 1\), \(\ell(\beta) = \sum_i\big[y_ix_i^T\beta - b(x_i^T\beta) + c(y_i)\big]\). Then</p>
+$$\frac{\partial\ell}{\partial\beta} = \sum_i\big[y_i - b'(x_i^T\beta)\big]x_i = \sum_i (y_i - \mu_i)\,x_i = X^T(y-\mu).$$</div></details>
+<details><summary>Step 6: part (f)</summary><div>
+<p>Faraway means the negative binomial with \(r\) <em>unknown</em>. Then \(r\) appears inside \(b\) (through \(-r\log(1-e^\theta)\)) and inside \(c\), and it can't be split off as a dispersion \(a(\phi)\) dividing \(y\theta - b(\theta)\), so the form fails. With \(r\) known, as here, it's a one-parameter exponential family with \(\phi = 1\).</p></div></details>
+
+<h2>6 · Before you close this tab</h2>
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) \(f = \exp\big[\frac{y\theta-b(\theta)}{a(\phi)} + c(y,\phi)\big]\), support free of \(\theta\). (2) \(\mathbb EY = b'(\theta)\), \(\operatorname{Var}Y = a(\phi)b''(\theta)\), via \(\mathbb E\ell' = 0\) and \(\mathbb E\ell'' = -\mathbb E(\ell')^2\). (3) \(v(\mu) = b''\big((b')^{-1}(\mu)\big)\), and \(\operatorname{Var}Y = a(\phi)v(\mu)\). (4) Canonical link \(g = (b')^{-1}\), i.e. \(g(\mu) = \theta\). (5) The table: \(v = 1,\ \mu,\ \mu(1-\mu/m),\ \mu^2,\ \mu^3\); links identity, log, logit, \(-1/\mu\), \(-1/(2\mu^2)\). (6) Canonical link ⇒ \(X^Ty\) sufficient, score \(X^T(y-\mu)/a(\phi)\).</p></div></details>
+
+<div class="box">
+<p><strong>What a full-marks answer to "show that … is an exponential family" contains:</strong> the log-density expanded with the \(y\)-term isolated; one sentence saying the support doesn't depend on the parameter; \(\theta\), \(\phi\), \(a(\phi)\), \(b(\theta)\) (in \(\theta\)!) and \(c(y,\phi)\) each stated; for the link, \(g = (b')^{-1}\) with the inversion shown; for \(v(\mu)\), \(b''(\theta)\) and then the substitution \(\theta = \theta(\mu)\).</p>
+</div>
+
+<p><strong>Primary source:</strong> <a href="../lectures/Exponential_families.pdf">Exponential families</a>, slides 3–9 (all ten slides, short), with the handwritten Normal/Poisson mean–variance checks in the <a href="../annotated-slides/Exponential_families%20annotated.pdf#page=14">annotated version, pp. 14–17</a>. Then <a href="../lectures/GLM_1_LMS-1.pdf#page=3">GLMs I, slides 3–7</a> for the GLM definition and canonical link, with the two-route derivations in the <a href="../annotated-slides/GLM_1_LMS-%20annotated.pdf#page=6">annotated GLMs I, pp. 6–9</a>. For a second explanation, read Faraway, <em>Extending the Linear Model with R</em> (2nd ed.), <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=167">§8.1, pp. 151–154</a> (the form, three examples, the mean–variance proof, Table 8.1), and <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=191">§9.1</a> for the gamma.</p>
+
+<p><strong>Homework</strong> (by hand, no R):</p>
+<ol>
+  <li><strong>Week 4 tutorial, Q1</strong> (<a href="../tutes/2026_MAST30027_week4_questions.qmd">questions</a>, <a href="../tutes/2026_MAST30027_week4_sol.html">solutions</a>): show \(\text{bin}(m,p)\) with \(m\) known is an exponential family. Then go one step past the tute: derive \(\mathbb EY\), \(\operatorname{Var}Y\), \(v(\mu)\) and the canonical link, and check them against slide 9 and GLMs I slide 5.</li>
+  <li><strong>Faraway, <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=187">Ch. 8</a> Ex. 2</strong>: put the Conway–Maxwell–Poisson, \(P(Y=y) = \dfrac{\lambda^y}{(y!)^\nu Z(\lambda,\nu)}\), in exponential-family form, taking \(\nu\) as known. What happens when \(\nu = 1\)?</li>
+  <li><strong>Faraway, Ch. 8 Ex. 3</strong>, the uniform and Gumbel bullets only (leave the Weibull bullet: a past paper uses that idea, so save it for your timed sitting). For each, decide whether it can be put in exponential-family form, and if not, whether a special case can.</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1. \(\log f = y\log\frac{p}{1-p} + m\log(1-p) + \log\binom my\), so \(\theta = \log\frac{p}{1-p}\), \(\phi = 1\), \(b(\theta) = m\log(1+e^\theta)\), \(c = \log\binom my\). \(b'(\theta) = \frac{me^\theta}{1+e^\theta} = mp = \mu\); \(b''(\theta) = \frac{me^\theta}{(1+e^\theta)^2} = mp(1-p) = \mu(1-\mu/m)\). Canonical link \(g(\mu) = \log\frac{\mu}{m-\mu}\) (the logit of \(p = \mu/m\)).</p>
+<p>2. \(\log P = y\log\lambda - \nu\log y! - \log Z(\lambda,\nu)\). So \(\theta = \log\lambda\), \(\phi = 1\), \(b(\theta) = \log Z(e^\theta,\nu) = \log\sum_{i\ge0} e^{i\theta}/(i!)^\nu\), \(c(y) = -\nu\log y!\). Then \(\mathbb EY = b'(\theta) = \sum_i i\lambda^i/(i!)^\nu \big/ Z\), which is the mean, as it should be. With \(\nu = 1\), \(Z = e^\lambda\) and \(b(\theta) = e^\theta\): the Poisson.</p>
+<p>3. Uniform\((\alpha,\beta)\): no, because the support \([\alpha,\beta]\) depends on the parameters, and no special case with an unknown parameter fixes that. Gumbel with \(\beta\) known: \(\log f = -\log\beta + \frac{y-\alpha}{\beta} - e^{-\alpha/\beta}e^{y/\beta}\). The term \(y/\beta\) has no \(\alpha\) (it goes in \(c\)), but \(\alpha\) multiplies \(e^{y/\beta}\), not \(y\), so it isn't in the form for \(Y\). (It would be for the transformed response \(e^{Y/\beta}\).)</p></div></details>
+<p><strong>Spacing:</strong> tomorrow, without looking, fill in the table in section 4 from scratch (all five rows, deriving each \(v(\mu)\) from \(b\)), then redo challenge parts (a)–(d).</p>
+
+<div class="ask">💬 Ask me in the terminal if a step in any derivation doesn't click, or if you want a fresh distribution to practise on. I'm your teacher for this. Paste your written challenge answers and I'll mark them the way an exam marker would.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0004-topic1-review.html">Lesson 4, Topic 1 mixed review</a> · Reference: <a href="../reference/glm-cheatsheet.html">GLM cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0006-glm-likelihood-iwls.html">Lesson 6, GLM likelihood and IWLS</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

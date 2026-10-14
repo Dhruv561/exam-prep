@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Valuing Forwards and Futures</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.widget { border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.2rem; margin: 1.4rem 0; font-family: Inter, system-ui, sans-serif; font-size: .85rem; }
+.widget .controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem 1.2rem; }
+.widget label { display: flex; flex-direction: column; }
+.widget input[type=range] { width: 100%; accent-color: var(--accent); }
+.widget .out { margin-top: .8rem; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .3rem 1.2rem; font-variant-numeric: tabular-nums; }
+.widget .out b { font-size: 1rem; }
+.widget .note { color: var(--muted); margin-top: .5rem; }
+@media (max-width: 480px) { .widget .controls, .widget .out { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 10 · Topic 3: Forward &amp; futures pricing</div>
+<h1>What is an existing forward worth? And why futures prices can differ from forward prices</h1>
+<p class="lede">The goal: value any forward partway through its life (long or short, with or without income), say in which direction its value moves when the spot, rates, time or dividends change, and decide whether a futures or a forward hedge comes out ahead on a given price path.</p>
+
+<div class="mission">Why this matters for 5 Nov: "a forward was entered some time ago, the spot has moved, what is it worth to the long or the short?" turns up in MSTs and finals, sometimes with a dividend before maturity. The distractors are the wrong sign, a missing discount factor, and \(S - K\). The forward vs futures questions (rates correlated with prices, Tutorial 3 Q6) are one-mark conceptual MCQs that come up again and again.</div>
+
+<p>This lesson assumes Lessons 6–9: \(F_0 = S_0e^{rT}\), \((S_0 - I)e^{rT}\), \(S_0e^{(r-q)T}\), \(S_0e^{(r-r_f)T}\), storage costs and convenience yield. It's the last futures and forwards lesson, so it ends with a mixed review of the whole topic.</p>
+
+<h2>1 · Two prices: the one you locked in and the one you could lock in today</h2>
+
+<p>When you enter a forward, the price written into the contract is the <strong>delivery price \(K\)</strong>. It's chosen so that the contract costs nothing to enter: \(K\) equals the forward price on that day. After that \(K\) never changes. It's a number printed on the contract.</p>
+<p>The <strong>forward price \(F_0\)</strong> is the delivery price that a <em>new</em> forward, entered today and maturing on the same date, would carry. It moves every day with the spot, rates and expected income, through the pricing formulas from Lessons 6–9.</p>
+<p>So on the day you sign, \(K = F_0\) and the contract's <strong>value \(f\)</strong> is zero. Nobody pays anything to enter a fairly priced forward. A day later \(F_0\) has moved but \(K\) hasn't, and the gap between them is what gives the contract a value (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">Lecture 3, slide 34</a>; Hull Ch. 5, "Valuing forward contracts").</p>
+
+<div class="trap"><strong>Price ≠ value</strong><br>
+The forward <em>price</em> \(F_0\) is a delivery price, quoted in dollars per unit at \(T\). The forward's <em>value</em> \(f\) is what the contract is worth today: what you'd pay or receive to hand it to someone else. At inception the price is positive (say $44.21) and the value is zero. Exams test this with "the value of a forward at initiation is zero": <strong>true</strong>.</div>
+
+<h2>2 · The value of a forward, derived in one move</h2>
+
+<p>You're long a forward with delivery price \(K\) and \(T\) years left. You want to know what it's worth. <strong>Predict first:</strong> if you could enter a brand-new <em>short</em> forward today at \(F_0\), for the same maturity, what would the two contracts together pay you at \(T\)?</p>
+
+<details><summary>Reveal: the offsetting-forward argument</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Position</th><th>Cash flow today</th><th>Cash flow at \(T\)</th></tr>
+<tr><td>Old long forward (delivery price \(K\))</td><td>—</td><td>\(S_T - K\)</td></tr>
+<tr><td>New short forward entered today at \(F_0\)</td><td>0</td><td>\(F_0 - S_T\)</td></tr>
+<tr><td><strong>Total</strong></td><td>0</td><td>\(F_0 - K\)</td></tr>
+</table>
+</div>
+<p>\(S_T\) cancels. Today you can lock in a <em>certain</em> amount \(F_0 - K\) at \(T\), at no cost. A certain amount at \(T\) is worth its present value today, so</p>
+$$f_{\text{long}} = (F_0 - K)\,e^{-rT}, \qquad f_{\text{short}} = (K - F_0)\,e^{-rT}.$$
+<p>The short is the mirror image: it locked in the right to <em>sell</em> at \(K\), and today's market would only let it sell at \(F_0\).</p>
+</div></details>
+
+<div class="box"><p><strong>Mental model.</strong> A forward is worth the present value of the difference between the price you locked in and the price you could lock in today. Long: you'd like \(K\) to be <em>low</em> relative to today's \(F_0\). Short: you'd like \(K\) to be <em>high</em>. Discount at \(r\) for the time left, because the difference is only paid at \(T\).</p></div>
+
+<p>This works for investment and consumption assets alike (slide 34): all you need is today's \(F_0\). If the question <em>gives</em> you \(F_0\), use it directly. If it gives you \(S_0\), work out \(F_0\) first with the right Lesson 6–9 formula, or substitute it once and for all:</p>
+
+<table>
+<tr><th>Asset</th><th>Today's forward price \(F_0\)</th><th>Value of a long, \(f = (F_0-K)e^{-rT}\)</th></tr>
+<tr><td>No income</td><td>\(S_0e^{rT}\)</td><td>\(S_0 - Ke^{-rT}\)</td></tr>
+<tr><td>Known income, PV \(I\)</td><td>\((S_0 - I)e^{rT}\)</td><td>\(S_0 - I - Ke^{-rT}\)</td></tr>
+<tr><td>Known yield \(q\)</td><td>\(S_0e^{(r-q)T}\)</td><td>\(S_0e^{-qT} - Ke^{-rT}\)</td></tr>
+<tr><td>Currency (foreign rate \(r_f\))</td><td>\(S_0e^{(r-r_f)T}\)</td><td>\(S_0e^{-r_fT} - Ke^{-rT}\)</td></tr>
+</table>
+<p>Each row is the same story told with the asset: the long will get the asset at \(T\) (worth \(S_0\) today, minus any income it will miss before \(T\)) and must pay \(K\) at \(T\) (worth \(Ke^{-rT}\) today). Value = PV of what you get − PV of what you pay. The short's value is the negative of each entry.</p>
+
+<h3>Why the value isn't simply \(S_0 - K\)</h3>
+<ol class="steps">
+  <li><strong>You pay \(K\) later, not now.</strong> Paying \(K\) at \(T\) costs only \(Ke^{-rT}\) today, so a long is worth <em>more</em> than \(S_0 - K\) on a non-income asset. At maturity (\(T = 0\)) the two coincide.</li>
+  <li><strong>You don't get the income.</strong> Dividends paid before \(T\) go to whoever holds the share, not to the forward's long. So subtract \(I\) (or use \(S_0e^{-qT}\)).</li>
+</ol>
+
+<div class="box">
+<p><strong>Lecture example</strong> (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">slide 35</a>). A long forward on a non-dividend stock has 6 months left, \(r = 10\%\), \(S_0 = \$25\), \(K = \$24\).</p>
+<p>\(F_0 = 25e^{0.1\times0.5} = 26.28\), so \(f = (26.28 - 24)e^{-0.05} = \mathbf{\$2.17}\).<br>
+Check with the shortcut: \(25 - 24e^{-0.05} = 25 - 22.83 = 2.17\) ✓. Note it's more than \(S_0 - K = 1\).</p>
+</div>
+
+<div class="box">
+<p><strong>Tutorial 3, Q1.</strong> A 1-year long forward on a non-dividend stock, \(S_0 = 40\), \(r = 10\%\).</p>
+<p>(a) \(K = F_0 = 40e^{0.1} = 44.21\); value at inception = 0.<br>
+(b) Six months later \(S = 45\). New forward price \(45e^{0.05} = 47.31\). Value \(= 45 - 44.21e^{-0.05} = \mathbf{2.95}\) (equivalently \((47.31 - 44.21)e^{-0.05}\)).</p>
+<p><strong>Tutorial 3, Q2</strong> (a short, with dividends). Dividends of 1 at 2 and 5 months, \(S_0 = 50\), \(r = 8\%\), 6-month short forward.</p>
+<p>(a) \(I = e^{-0.08\times2/12} + e^{-0.08\times5/12} = 1.9540\); \(K = (50 - 1.9540)e^{0.04} = 50.01\); value 0.<br>
+(b) Three months later \(S = 48\). Only the 5-month dividend is left, now 2 months away: \(I = e^{-0.08\times2/12} = 0.9868\). New forward price \((48 - 0.9868)e^{0.02} = 47.96\). Value of the short \(= Ke^{-rT} - (S - I) = 50.01e^{-0.02} - 47.0132 = \mathbf{2.00}\) (the official solution's 2.01 comes from rounding along the way). The stock fell, so the short gained.</p>
+</div>
+
+<div class="trap"><strong>Re-date everything to today</strong><br>
+In the "later" part, \(T\) is the time <em>remaining</em>, and \(I\) counts only dividends still to come, discounted from <em>today</em>. Dividends already paid are gone. The classic slip in Q2(b) is keeping both dividends or discounting the remaining one over 5 months instead of 2.</div>
+
+<h2>3 · Scenarios: what moves a forward's value?</h2>
+
+<p>Base case: you're long a forward on a non-dividend stock with \(K = \$52\), 6 months left, \(r = 6\%\), \(S_0 = \$50\). Then \(F_0 = 50e^{0.03} = 51.52\) and \(f_{\text{long}} = 50 - 52e^{-0.03} = -0.46\). (Not \(S_0 - K = -2\).)</p>
+<p><strong>Predict first</strong>, for each row: does the long's value go up or down? Then open the table.</p>
+<ol>
+  <li>The stock jumps to $55.</li>
+  <li>The stock falls to $45.</li>
+  <li>The 6-month rate rises to 10% (stock unchanged).</li>
+  <li>Three months pass with the stock still at $50.</li>
+  <li>The company unexpectedly announces a $1 dividend in 2 months.</li>
+</ol>
+
+<details><summary>Reveal the scenario table</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Scenario</th><th>Long \(f\)</th><th>Short \(f\)</th><th>Why</th></tr>
+<tr><td>Base</td><td>−0.46</td><td>+0.46</td><td style="text-align:left">\(50 - 52e^{-0.03}\)</td></tr>
+<tr><td>1. \(S\) → 55</td><td>+4.54</td><td>−4.54</td><td style="text-align:left">Value moves one-for-one with \(S\): +5</td></tr>
+<tr><td>2. \(S\) → 45</td><td>−5.46</td><td>+5.46</td><td style="text-align:left">−5, one-for-one</td></tr>
+<tr><td>3. \(r\) → 10%</td><td>+0.54</td><td>−0.54</td><td style="text-align:left">PV of the \(K\) you owe falls (and \(F_0\) rises)</td></tr>
+<tr><td>4. 3 months pass</td><td>−1.23</td><td>+1.23</td><td style="text-align:left">PV of \(K\) rises towards 52 as \(T\) shrinks</td></tr>
+<tr><td>5. $1 dividend</td><td>−1.45</td><td>+1.45</td><td style="text-align:left">Long misses the dividend: value falls by \(I = 0.99\)</td></tr>
+<tr><td>At maturity, \(S\) = 50</td><td>−2.00</td><td>+2.00</td><td style="text-align:left">\(T = 0\): value = \(S_T - K\)</td></tr>
+</table>
+</div>
+<p>Patterns to keep: the long and short always sum to zero (a forward is zero-sum). On an asset with no income the long gains from a higher \(S\) and a higher \(r\), and loses from time passing and from new income. The short is the exact reverse. Rows 3 and 4 surprise people: nothing happened to the stock, yet the value changed, because the contract is about paying \(K\) <em>later</em>.</p>
+</div></details>
+
+<h3>Try it</h3>
+<div class="widget" id="fw">
+  <div class="controls">
+    <label>Spot \(S_0\): <span id="vS"></span><input type="range" id="S" min="30" max="70" step="0.5" value="50"></label>
+    <label>Delivery price \(K\): <span id="vK"></span><input type="range" id="K" min="30" max="70" step="0.5" value="52"></label>
+    <label>Rate \(r\): <span id="vr"></span><input type="range" id="r" min="0" max="0.15" step="0.005" value="0.06"></label>
+    <label>Time left \(T\) (years): <span id="vT"></span><input type="range" id="T" min="0" max="2" step="0.05" value="0.5"></label>
+    <label>Dividend yield \(q\): <span id="vq"></span><input type="range" id="q" min="0" max="0.10" step="0.005" value="0"></label>
+  </div>
+  <div class="out">
+    <div>Today's forward price \(F_0\): <b id="oF"></b></div>
+    <div>Naive \(S_0 - K\): <b id="oN"></b></div>
+    <div>Long value \(f\): <b id="oL"></b></div>
+    <div>Short value: <b id="oSh"></b></div>
+  </div>
+  <div class="note">Set \(S_0\) so that \(F_0 = K\): the value is zero, which is the inception day. Drag \(T\) to 0: the value becomes \(S_0 - K\).</div>
+</div>
+<script>
+(function () {
+  const ids = ['S', 'K', 'r', 'T', 'q'];
+  const el = id => document.getElementById(id);
+  function upd() {
+    const S = +el('S').value, K = +el('K').value, r = +el('r').value, T = +el('T').value, q = +el('q').value;
+    const F = S * Math.exp((r - q) * T);
+    const f = (F - K) * Math.exp(-r * T);
+    el('vS').textContent = S.toFixed(2); el('vK').textContent = K.toFixed(2);
+    el('vr').textContent = (r * 100).toFixed(1) + '%'; el('vT').textContent = T.toFixed(2);
+    el('vq').textContent = (q * 100).toFixed(1) + '%';
+    el('oF').textContent = F.toFixed(2); el('oN').textContent = (S - K).toFixed(2);
+    el('oL').textContent = f.toFixed(2); el('oSh').textContent = (-f).toFixed(2);
+  }
+  ids.forEach(id => el(id).addEventListener('input', upd));
+  upd();
+})();
+</script>
+
+<h2>4 · Futures: the value is paid out every day</h2>
+
+<p>A futures contract also has zero value when it's entered. The difference is daily settlement: each day the change in the futures price is paid into or out of your margin account. So the long's gain \(F - K\) (here \(K\) is the price you entered at) arrives as cash <em>during</em> the life of the contract, not at \(T\), and there's nothing to discount (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">slide 36</a>):</p>
+$$\text{long futures: } F - K, \qquad \text{short futures: } K - F \quad \text{(cumulative, already received)}.$$
+<p>Once today's settlement is paid, your contract is effectively rewritten at today's settlement price: \(K\) resets to today's \(F\), so the position's remaining value is <strong>zero again</strong>. A forward builds up value until \(T\). A futures position hands its value over every evening and starts the next day from zero.</p>
+
+<details><summary>Predict: a long forward and a long futures, both entered at 60, today \(F = 64\) with 1 year left and \(r = 5\%\). Which position is "worth" more right now?</summary><div>
+<p>The forward is worth \((64 - 60)e^{-0.05} = 3.80\), still to be paid at \(T\). The futures position has <em>already</em> been paid 4 in cash through the margin account, and the contract itself is now worth 0. The futures holder is ahead by the interest on the gain. The extra \(e^{-rT}\) discount is also why a futures position's value responds slightly more to the spot than a forward's (\(e^{rT}\) per $1 of spot, against exactly 1): a point the 2025 final asked about.</p>
+</div></details>
+
+<h2>5 · Are forward prices and futures prices equal?</h2>
+
+<p>The pricing formulas in Lessons 6–9 were derived for forwards and then used for futures as well. That's fine when interest rates are <strong>constant</strong> (or move predictably): then forward and futures prices for the same delivery date are equal (<a href="../lectures/Lecture%203_Futures%20Pricing.pdf">slide 10</a>; Hull Ch. 5, "Are forward prices and futures prices equal?"). Same total gain or loss, only the timing differs. When rates move at random, the timing starts to matter. The cleanest way to see this is Tutorial 3 Q6.</p>
+
+<h3>Tutorial 3, Q6: four price paths for one hedger</h3>
+<p>An Australian company must pay EUR 1 million in two periods. It hedges by going <strong>long</strong> EUR, either with a forward or with futures, both at 1.60 AUD/EUR (assume forward price = futures price). Daily settlement is simplified to one settlement per period. Futures gains earn 1% per period until \(T\); losses must be financed at 1%.</p>
+<p><strong>Predict first:</strong> in each path, which hedge leaves the company better off at \(T\)?</p>
+<ol>
+  <li>(a) EUR falls steadily: 1.60 → 1.50 → 1.40.</li>
+  <li>(b) EUR rises steadily: 1.60 → 1.70 → 1.80.</li>
+  <li>(c) EUR rises, then falls back: 1.60 → 1.70 → 1.60.</li>
+  <li>(d) EUR falls, then rises back: 1.60 → 1.50 → 1.60.</li>
+</ol>
+
+<details><summary>Reveal: hedge result at \(T\), in AUD</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Path</th><th>Futures period 1 (grown to \(T\))</th><th>Futures period 2</th><th>Futures total</th><th>Forward total</th><th>Better</th></tr>
+<tr><td>(a) falls</td><td>−100,000 → −101,000</td><td>−100,000</td><td>−201,000</td><td>−200,000</td><td>Forward</td></tr>
+<tr><td>(b) rises</td><td>+100,000 → +101,000</td><td>+100,000</td><td>+201,000</td><td>+200,000</td><td>Futures</td></tr>
+<tr><td>(c) up, then back</td><td>+100,000 → +101,000</td><td>−100,000</td><td>+1,000</td><td>0</td><td>Futures</td></tr>
+<tr><td>(d) down, then back</td><td>−100,000 → −101,000</td><td>+100,000</td><td>−1,000</td><td>0</td><td>Forward</td></tr>
+</table>
+</div>
+<p>The forward fixes the company's cost at exactly \(1.60 \times 1\text{m} = \) AUD 1.6m in every path: a perfect hedge. The futures has the same total before interest, but the <em>early</em> cash flow earns or costs interest. Rule: <strong>futures beat forwards when the early settlements are gains; forwards win when the early settlements are losses</strong>. Paths (c) and (d) show that it's the order of the moves that decides it, not where the price ends up. That interest effect is the "risk" the question says futures leave: the hedge result depends a little on the path and on rates (Tutorial 3 solutions).</p>
+</div></details>
+
+<h3>From paths to prices: correlation with interest rates</h3>
+<p>Now suppose high asset prices tend to come with high interest rates (<strong>positive correlation</strong>). A long futures holder's gains then arrive when rates are high, so they're reinvested at high rates; the losses arrive when rates are low, so they're cheap to finance. That's path (b)/(c) luck, built in on average. Long futures is then worth a little more than long forward, so buyers will pay a slightly higher price for it: <strong>futures price &gt; forward price</strong>. With <strong>negative correlation</strong> it reverses: gains are reinvested at low rates and losses financed at high rates, so <strong>futures price &lt; forward price</strong> (Hull Ch. 5; the 2019 notes, "Relation between forwards &amp; futures prices").</p>
+
+<table>
+<tr><th>Rates vs the asset price</th><th>Who prefers futures?</th><th>Result</th></tr>
+<tr><td>Constant / uncorrelated</td><td>Neither</td><td>\(F_{\text{fut}} = F_{\text{fwd}}\)</td></tr>
+<tr><td>Positively correlated</td><td>Longs</td><td>\(F_{\text{fut}} > F_{\text{fwd}}\)</td></tr>
+<tr><td>Negatively correlated</td><td>Shorts</td><td>\(F_{\text{fut}} < F_{\text{fwd}}\)</td></tr>
+</table>
+<p>For contracts lasting a few months the gap is tiny, so in calculations treat them as equal unless told otherwise. Taxes, transaction costs and default risk can also open a small gap.</p>
+
+<div class="trap"><strong>Reason it out from the long's side</strong><br>
+MCQs pair the right direction with the wrong reason ("futures are higher because longs invest gains at a <em>lower</em> rate"). Always check both halves: who gains when the price rises (the long), and what rates are doing at that moment. The side that gets to invest its gains at high rates prefers futures, and the price moves in their disfavour until they're indifferent.</div>
+
+<h2>6 · Two delivery dates on the same asset: \(F_2 \le F_1e^{r(t_2 - t_1)}\)</h2>
+
+<p>Tutorial 3 Q5. Two futures (treated as forwards) on the same commodity mature at \(t_1 &lt; t_2\), prices \(F_1\) and \(F_2\), no storage costs. <strong>Story:</strong> the near contract lets you buy the commodity at \(t_1\) for \(F_1\). Borrow that money and hold the commodity until \(t_2\): it has cost you \(F_1e^{r(t_2-t_1)}\) by then. If the far contract lets you sell at more than that, you've found free money.</p>
+
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>If \(F_2 > F_1e^{r(t_2-t_1)}\)</th><th>Today</th><th>At \(t_1\)</th><th>At \(t_2\)</th></tr>
+<tr><td>Long the \(t_1\) contract</td><td>0</td><td>\(-F_1\), receive the commodity</td><td>—</td></tr>
+<tr><td>Borrow \(F_1\) from \(t_1\) to \(t_2\)</td><td>—</td><td>\(+F_1\)</td><td>\(-F_1e^{r(t_2-t_1)}\)</td></tr>
+<tr><td>Short the \(t_2\) contract</td><td>0</td><td>—</td><td>\(+F_2\), deliver the commodity</td></tr>
+<tr><td><strong>Net</strong></td><td>0</td><td>0</td><td>\(F_2 - F_1e^{r(t_2-t_1)} > 0\)</td></tr>
+</table>
+</div>
+<p>Arbitrageurs doing this push \(F_1\) up and \(F_2\) down until the profit disappears, so \(F_2 \le F_1e^{r(t_2-t_1)}\). Example: \(F_1 = 80\), \(r = 5\%\), \(t_2 - t_1 = 0.5\): the bound is \(80e^{0.025} = 82.03\). If \(F_2 = 84\), the strategy earns \(84 - 82.03 = 1.97\) per unit at \(t_2\).</p>
+<p><strong>Why only "≤", not "="?</strong> Reversing the trade (short the near contract, long the far one) would require you to <em>deliver</em> the commodity at \(t_1\), which you could only do by holding or borrowing it. For a consumption commodity nobody lends it cheaply (the convenience yield from Lesson 9), so the reverse arbitrage fails and \(F_2\) can sit well below the bound: that's a backwardated curve. With storage costs, the bound would loosen to include them.</p>
+
+<h2>7 · Practice</h2>
+<p>Numeric answers: type a number (commas and $ are fine). A minus sign means a negative value. Continuous compounding throughout.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> A fairly priced 9-month forward on gold is agreed today with a delivery price of $2,410/oz. What is its value to the long today?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$2,410, the delivery price written into the contract</button>
+    <button class="opt" data-key="b">Spot price minus the delivery price agreed today</button>
+    <button class="opt" data-key="c">Zero, since the delivery price equals \(F_0\) today</button>
+    <button class="opt" data-key="d">The delivery price discounted at the rate \(r\)</button>
+  </div>
+  <div class="why">\(K\) is set equal to today's forward price, so \(f = (F_0 - K)e^{-rT} = 0\). (a) confuses the contract's <em>price</em> with its <em>value</em>. (b) ignores discounting and storage, and isn't zero in general.</div>
+</div>
+
+<div class="quiz num" data-answer="6.38" data-tol="0.01">
+  <p class="q"><strong>2.</strong> You're long a forward with delivery price $118 and 5 months to go. A new 5-month forward on the same asset would be agreed at $124.50 today. The 5-month rate is 4.5%. What is your contract worth?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(f = (124.50 - 118)e^{-0.045\times5/12} = 6.5\times0.98143 = \$6.38\). You don't need the spot or the asset type: \(F_0\) is given. 6.50 forgets that the difference is only paid at \(T\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> You're <em>short</em> a forward on a non-dividend stock. The stock price immediately rises by $3 (nothing else changes). What happens to the value of your position?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It falls by exactly the $3</button>
+    <button class="opt" data-key="b">It falls by $3 times \(e^{-rT}\)</button>
+    <button class="opt" data-key="c">It rises by exactly the $3</button>
+    <button class="opt" data-key="d">It falls by $3 times \(e^{rT}\)</button>
+  </div>
+  <div class="why">Short value \(= Ke^{-rT} - S_0\): one-for-one in \(S_0\), so −3. Via \(F_0\): \(F_0\) rises by \(3e^{rT}\), and discounting by \(e^{-rT}\) brings it back to 3. (b) discounts once too often; (d) is the move in \(F_0\), not in the value.</div>
+</div>
+
+<div class="quiz num" data-answer="4.12" data-tol="0.01">
+  <p class="q"><strong>4.</strong> A fund is short a forward on a stock with delivery price $72 and 3 months left. The stock is at $68 and will pay a $1.20 dividend in 1 month. \(r = 6\%\). What is the short position worth per share?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(I = 1.20e^{-0.06/12} = 1.1940\). \(F_0 = (68 - 1.1940)e^{0.015} = 67.82\). Short: \((72 - 67.82)e^{-0.015} = \$4.12\), or directly \(72e^{-0.015} - (68 - 1.1940) = 70.928 - 66.806 = 4.12\). Forgetting the dividend gives 2.93: the dividend lowers \(F_0\), which helps the short.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>5.</strong> You're long a forward on a non-dividend stock. A month passes, the stock price is exactly where it was, and rates are unchanged. Your contract's value has:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">risen, since the delivery date is now closer</button>
+    <button class="opt" data-key="b">unchanged, since the spot price did not move</button>
+    <button class="opt" data-key="c">risen, since the forward price now has grown</button>
+    <button class="opt" data-key="d">fallen, since the PV of \(K\) is higher</button>
+  </div>
+  <div class="why">\(f = S_0 - Ke^{-rT}\). With \(S_0\) fixed, a shorter \(T\) makes \(Ke^{-rT}\) bigger, so the long's value falls (the short's rises). (c) is backwards: with \(S_0\) fixed, \(F_0 = S_0e^{rT}\) <em>shrinks</em> as \(T\) falls.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>6.</strong> A bank is long a 6-month forward on a share. Today the company surprises the market by announcing a special dividend payable in 2 months, and the share price doesn't move. For the bank:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">its value rises by the dividend's present value</button>
+    <button class="opt" data-key="b">its value falls by the dividend's present value</button>
+    <button class="opt" data-key="c">its value stays unchanged, as spot is fixed</button>
+    <button class="opt" data-key="d">its value falls by the full undiscounted dividend</button>
+  </div>
+  <div class="why">Long value \(= S_0 - I - Ke^{-rT}\). A new dividend raises \(I\), which goes to the shareholder, not the forward's long. So \(f\) falls by \(I\), its present value. (The short's value rises by the same amount.)</div>
+</div>
+
+<div class="quiz num" data-answer="-117.24" data-tol="0.1">
+  <p class="q"><strong>7.</strong> A pension fund is long an index forward with delivery price 8,200 points and 6 months left. The index is at 8,050, its dividend yield is 3.5% and \(r = 4.25\%\). What is the forward worth, in index points?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">points</span></div>
+  <div class="why">\(f = S_0e^{-qT} - Ke^{-rT} = 8{,}050e^{-0.0175} - 8{,}200e^{-0.02125} = 7{,}910.35 - 8{,}027.59 = -117.24\). Equivalently \(F_0 = 8{,}050e^{0.00375} = 8{,}080.24\) and \((8{,}080.24 - 8{,}200)e^{-0.02125}\). \(S_0 - K = -150\) ignores both discounting and the yield.</div>
+</div>
+
+<div class="quiz num" data-answer="-63088.62" data-tol="50">
+  <p class="q"><strong>8.</strong> An importer is long a forward to buy USD 2 million at 1.5200 AUD/USD in 3 months. Spot is now 1.4900 AUD/USD, the AUD rate is 4.0% and the USD rate is 4.5%. What is the forward worth to the importer, in AUD?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">AUD</span></div>
+  <div class="why">Per USD: \(S_0e^{-r_fT} - Ke^{-rT} = 1.49e^{-0.01125} - 1.52e^{-0.01} = 1.47333 - 1.50488 = -0.031544\). Times 2m = AUD −63,089. The AUD rate is \(r\) (the price is in AUD); the USD rate is \(r_f\). The USD fell, so the importer's locked-in rate now looks expensive.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>9.</strong> Your long futures position was entered at 412 and today's settlement price is 425. Right after today's settlement, what is the open contract itself worth?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">13, the gain since you entered at 412</button>
+    <button class="opt" data-key="b">13 discounted to today at the rate \(r\)</button>
+    <button class="opt" data-key="c">Zero, since the gains have already been paid</button>
+    <button class="opt" data-key="d">425, the same as today's settlement futures price</button>
+  </div>
+  <div class="why">The 13 has already been paid into your margin account over the past settlements. After each settlement the contract is effectively re-struck at the current price, so it's worth zero. (b) is what a <em>forward</em> with the same prices would be worth, because its gain is still to be paid.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>10.</strong> An exporter will <em>receive</em> JPY in 6 months and hedges with a short JPY position (forward price = futures price). The yen rises steadily for the whole 6 months. With hindsight, which hedge did better?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The futures, because its gains came in early</button>
+    <button class="opt" data-key="b">The forward, because the futures losses came early</button>
+    <button class="opt" data-key="c">Both were equal, as the totals are identical</button>
+    <button class="opt" data-key="d">The futures, because losses are paid off early</button>
+  </div>
+  <div class="why">A rising yen hurts the <em>short</em>. With futures those losses are paid out daily and must be financed until \(T\); with the forward the same total loss is paid once, at \(T\). Same total, worse timing for futures. (c) ignores interest on the margin flows; (a) reads it from a long's point of view.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>11.</strong> Same exporter (short JPY), but now the yen first <em>falls</em> sharply and then climbs back to exactly where it started. Which hedge did better?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The forward, since the yen finished back unchanged</button>
+    <button class="opt" data-key="b">Both did equally, since the yen ended unchanged</button>
+    <button class="opt" data-key="c">The forward, since its losses arrived only later</button>
+    <button class="opt" data-key="d">The futures, since its gains arrived up front</button>
+  </div>
+  <div class="why">A falling yen means early gains for the short, which earn interest; the later losses only claw back the principal. Futures end slightly ahead, the forward ends at exactly zero. This is Tutorial 3 Q6(c) seen from the short side.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>12.</strong> For a certain commodity, interest rates tend to <em>fall</em> when its price rises. Compared with the forward price for the same date, its futures price should be:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">lower: long futures gains get reinvested at low rates</button>
+    <button class="opt" data-key="b">higher: long futures gains get reinvested at low rates</button>
+    <button class="opt" data-key="c">lower: short futures losses get financed at low rates</button>
+    <button class="opt" data-key="d">equal: gains and losses always net out to zero</button>
+  </div>
+  <div class="why">Negative correlation: the long's gains (price up) arrive when rates are low, and its losses (price down) when rates are high and financing is dear. Long futures is worse than long forward, so longs only accept a lower futures price. (b) has the right reason but the wrong direction. (c) is a true fact (short losses come when the price rises, i.e. when rates are low) but it makes shorts <em>prefer</em> futures, which pushes the futures price up, not down, so the reason doesn't support the claim.</div>
+</div>
+
+<div class="quiz num" data-answer="82.03" data-tol="0.01">
+  <p class="q"><strong>13.</strong> A 6-month futures on a non-storable commodity trades at 80 and a 1-year futures on it also trades. \(r = 5\%\). Ignoring storage, what is the highest 1-year futures price that allows no arbitrage?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(F_2 \le F_1e^{r(t_2-t_1)} = 80e^{0.05\times0.5} = 82.03\). Use the <em>gap</em> between the dates (0.5 years), not the 1-year maturity: buying at \(t_1\) and carrying to \(t_2\) only costs interest over the gap.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>14.</strong> In Q13 the 1-year futures actually trades at 85. Which strategy locks in a riskless profit?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Short the 6-month, long the 1-year, lend at \(t_1\)</button>
+    <button class="opt" data-key="b">Long both contracts, then borrow \(F_1\) at time \(t_1\)</button>
+    <button class="opt" data-key="c">Long the 6-month, short the 1-year, borrow at \(t_1\)</button>
+    <button class="opt" data-key="d">Short both contracts, then lend \(F_1\) at time \(t_1\)</button>
+  </div>
+  <div class="why">The far contract is too expensive, so sell it; buy the near one. At 6 months borrow 80 to take delivery, carry the commodity, deliver it at 1 year for 85 and repay \(82.03\). Profit 2.97 per unit at \(t_2\). (a) is the reverse trade, which loses money here (and needs the commodity at \(t_1\)).</div>
+</div>
+
+<h2>8 · Exam-level challenge</h2>
+<p>Write it all out, then open the steps one at a time.</p>
+<div class="box">
+<p>Eight months ago a fund manager hedged a holding of 20,000 shares of a listed miner by going <strong>short</strong> a 12-month forward on 20,000 shares at a delivery price of <strong>$36.40</strong>. Today (4 months to maturity) the share price is <strong>$33.80</strong>, a dividend of <strong>$0.75</strong> per share will be paid in 2 months, and the risk-free rate is <strong>5%</strong> p.a. for all maturities.</p>
+<p>(a) What is today's forward price for delivery on the contract's maturity date?<br>
+(b) What is the fund's forward position worth today, per share and in total?<br>
+(c) Show how the fund could lock in this value today by entering one more forward, with the cash flows at maturity.<br>
+(d) Immediately after your calculation the share price jumps to $35.00 (nothing else changes). Predict the change in the position's total value, then check it.<br>
+(e) The fund's risk report values the position at \((K - S_0)\times20{,}000 = \$52{,}000\). Explain the two errors in that figure.</p>
+</div>
+
+<details><summary>Step 1: part (a), re-date the dividend and find \(F_0\)</summary><div>
+<p>\(T = 4/12\). The dividend is 2 months away: \(I = 0.75e^{-0.05\times2/12} = 0.7438\).<br>
+\(F_0 = (33.80 - 0.7438)e^{0.05\times4/12} = 33.0562\times1.01681 = \mathbf{\$33.61}\).</p></div></details>
+<details><summary>Step 2: part (b), the value of the short</summary><div>
+<p>\(f_{\text{short}} = (K - F_0)e^{-rT} = (36.40 - 33.6118)e^{-0.016667} = \mathbf{\$2.742}\) per share.<br>
+Check: \(Ke^{-rT} - (S_0 - I) = 35.7984 - 33.0562 = 2.742\) ✓. Total \(= 2.7421\times20{,}000 = \mathbf{\$54{,}843}\). Positive, as expected: the share fell, so the short gained.</p></div></details>
+<details><summary>Step 3: part (c), the offsetting long</summary><div>
+<p>Enter a new <strong>long</strong> 4-month forward on 20,000 shares at \(F_0 = 33.6118\), at zero cost. At maturity:</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Position</th><th>Cash flow at \(T\) (per share)</th></tr>
+<tr><td>Old short at 36.40</td><td>\(36.40 - S_T\)</td></tr>
+<tr><td>New long at 33.61</td><td>\(S_T - 33.6118\)</td></tr>
+<tr><td><strong>Net</strong></td><td>\(2.7882\)</td></tr>
+</table></div>
+<p>A certain \(2.7882\times20{,}000 = \$55{,}764\) at \(T\), whose present value is \(55{,}764e^{-0.016667} = \$54{,}843\): exactly part (b).</p></div></details>
+<details><summary>Step 4: part (d), a spot jump</summary><div>
+<p>Prediction: a short forward loses one-for-one with the spot, so the change is \(-1.20\times20{,}000 = -\$24{,}000\).<br>
+Check: \(35.7984 - (35.00 - 0.7438) = 1.5421\) per share, total \(\$30{,}843\), down from \(\$54{,}843\): a change of \(-\$24{,}000\) ✓. (The fund's shares gained \(+\$24{,}000\) at the same moment: that's the hedge working.)</p></div></details>
+<details><summary>Step 5: part (e), what's wrong with \(K - S_0\)</summary><div>
+<p>(1) <strong>No discounting:</strong> the fund receives \(K\) at maturity, not today, so it's worth \(Ke^{-rT} = 35.80\), not 36.40. (2) <strong>Ignores the dividend:</strong> the share the fund will deliver pays $0.75 first, and that dividend stays with the fund, which lowers the forward price and raises the short's value: compare against \(S_0 - I\), not \(S_0\). Correct value $54,843, against the report's $52,000. Only at maturity (and with no income left) is the value \(K - S_T\).</p></div></details>
+
+<h2>9 · Topic 3 review: which formula fits?</h2>
+<p>Interleaved questions from Lessons 6–9. Say which formula applies <em>before</em> looking at the options.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>R1.</strong> A 1-year forward on gold bullion, which investors hold and which costs a known dollar amount to store in a vault. The no-arbitrage forward price is:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(S_0e^{(r-q)T}\), with storage treated as a yield</button>
+    <button class="opt" data-key="b">\((S_0+U)e^{rT}\), which holds as an exact equality</button>
+    <button class="opt" data-key="c">\((S_0+U)e^{rT}\), which is only an upper bound</button>
+    <button class="opt" data-key="d">\((S_0-I)e^{rT}\), with the storage treated as income</button>
+  </div>
+  <div class="why">Gold is held for investment, so both arbitrages work and the formula is an equality. Storage is a cost, so it is <em>added</em> (as PV \(U\)). (c) is the consumption-asset case; (d) gets the sign of storage wrong.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>R2.</strong> A 6-month futures on the S&amp;P/ASX 200 index, whose shares pay dividends spread across the year. Which formula should you use?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(S_0e^{(r-q)T}\), with \(q\) the index dividend yield</button>
+    <button class="opt" data-key="b">\(S_0e^{rT}\), as indices pay no dividends themselves</button>
+    <button class="opt" data-key="c">\(S_0e^{(r+q)T}\), with \(q\) the index dividend yield</button>
+    <button class="opt" data-key="d">\((S_0+U)e^{rT}\), with \(U\) the share holding cost</button>
+  </div>
+  <div class="why">Many dividends spread over the period are modelled as a continuous yield \(q\). Income you'd miss by holding the futures lowers the forward price, so it's \(r - q\).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>R3.</strong> The NZD/AUD spot rate is 0.9100 AUD per NZD, the AUD rate is 4% and the NZD rate is 5%. Without calculating: the 1-year forward rate (AUD per NZD) is</p>
+  <div class="opts">
+    <button class="opt" data-key="a">above spot, as the NZD earns the higher rate</button>
+    <button class="opt" data-key="b">equal to spot, as rates only affect the bonds</button>
+    <button class="opt" data-key="c">above spot, as AUD carry costs are now lower</button>
+    <button class="opt" data-key="d">below spot, as the NZD earns the higher rate</button>
+  </div>
+  <div class="why">\(F_0 = S_0e^{(r-r_f)T}\) with \(r\) = AUD (the pricing currency) and \(r_f\) = NZD. \(r - r_f = -1\%\), so \(F_0 = 0.9100e^{-0.01} = 0.9009\): a forward discount. Holding NZD earns 5%, which acts like a yield and lowers the forward price.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>R4.</strong> Crude oil futures are observed <em>below</em> \((S_0 + U)e^{rT}\), yet refiners don't sell their oil and buy futures. The best explanation is:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">arbitrageurs cannot borrow at the risk-free rate</button>
+    <button class="opt" data-key="b">futures must equal the expected spot price</button>
+    <button class="opt" data-key="c">a convenience yield from holding physical oil</button>
+    <button class="opt" data-key="d">storage costs are negative for consumption assets</button>
+  </div>
+  <div class="why">Oil is a consumption asset: holders value having it physically (keeping a refinery running). That benefit, the convenience yield \(y\), is why \(F_0e^{yT} = (S_0 + U)e^{rT}\) and the reverse arbitrage isn't done.</div>
+</div>
+
+<div class="quiz num" data-answer="30.13" data-tol="0.01">
+  <p class="q"><strong>R5.</strong> A stock trades at $30 and will pay dividends of $0.50 in 3 months and in 6 months. \(r = 5\%\). What is the 9-month forward price?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Discrete, known dividends → known income. \(I = 0.5e^{-0.0125} + 0.5e^{-0.025} = 0.9814\). \(F_0 = (30 - 0.9814)e^{0.0375} = \$30.13\).</div>
+</div>
+
+<h2>10 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, write the value of a long and a short forward, derive it in two lines, and give the forward-vs-futures rule for positive correlation. Then check</summary><div>
+<p>Long \(f = (F_0 - K)e^{-rT}\), short \((K - F_0)e^{-rT}\). Derivation: offset with a new forward at \(F_0\); the pair pays a certain \(F_0 - K\) at \(T\); discount it. Equivalent forms \(S_0 - I - Ke^{-rT}\), \(S_0e^{-qT} - Ke^{-rT}\). Value at inception = 0. Futures: \(F - K\) already paid, open position worth 0 after settlement. Positive correlation between rates and the price → long futures gains reinvested at high rates → futures price above forward price. Hedging (Tut 3 Q6): futures better when early settlements are gains. Calendar: \(F_2 \le F_1e^{r(t_2-t_1)}\).</p></div></details>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, Ch. 5, sections "Valuing forward contracts" and "Are forward prices and futures prices equal?" (the reading for <a href="../lectures/Lecture%203_Futures%20Pricing.pdf">Lecture 3</a>, slides 10 and 34–36).</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%203.pdf">Tutorial 3</a>, Q1, Q2 and Q5 (<a href="../tutes/Tutorial%203%20solutions.pdf">solutions</a>). Q1 and Q2 are worked above, so cover them and redo them cold. For Q6, write a 4-sentence answer of your own before checking it against section 5.</p>
+<p><strong>Spacing:</strong> tomorrow, redo practice Q4, Q12 and the challenge's step 1–2 without looking, plus one cash-and-carry arbitrage table from Lesson 6 and the convenience-yield questions from Lesson 9. This lesson closes the futures and forwards half of the MST material, so it's a good time to sit an MST under timed conditions.</p>
+
+<div class="ask">💬 Got a value with the wrong sign, or not sure whether to use \(F_0\) or \(S_0\)? Paste your working in the terminal and ask me. I'm your teacher for this. Ask me for more "what happens if…" scenarios on any input too.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0009-commodities-storage-and-convenience-yield.html">Lesson 9, commodities, storage and convenience yield</a></span>
+  <span>Reference: <a href="../reference/futures-cheatsheet.html">Futures cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: Lesson 11, options (coming)</span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

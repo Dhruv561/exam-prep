@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reduction of Order Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 2 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>Solve $\;t\,y'' - (t+2)\,y' + 2y = t(t-1)\,e^{t},\quad y(1) = 5,\;\; y'(1) = 4 + e,\quad t&gt;0.$</p>
+<p>Also state the general complementary solution, and the interval on which your answer is valid.</p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>1 · A complementary solution</h2>
+
+<div class="script">
+<p>Try $v = e^{t}$, so $v' = v'' = e^{t}$. Substituting into the homogeneous equation:</p>
+$$t\,e^{t} - (t+2)\,e^{t} + 2e^{t} = (t - t - 2 + 2)\,e^{t} = 0.$$
+<p>So $v = e^{t}$ is a complementary solution.</p>
+</div>
+<p class="note">You found $e^t$ with the test $P+Q+R=0$. That test is scratch work. On the paper, substitute and show you get 0.</p>
+
+<h2>2 · Standard form and interval</h2>
+
+<div class="script">
+<p>Dividing by $t$ (valid since $t &gt; 0$):</p>
+$$y'' - \frac{t+2}{t}\,y' + \frac{2}{t}\,y = (t-1)\,e^{t}.$$
+<p>The coefficients $-\dfrac{t+2}{t}$, $\dfrac{2}{t}$ and $(t-1)e^{t}$ are continuous except at $t = 0$. The initial point $t_0 = 1$ lies in $(0, \infty)$, so by the existence and uniqueness theorem the IVP has a unique solution on $(0,\infty)$.</p>
+</div>
+<p class="note">Name the theorem and say why each function is continuous. That sentence is usually worth its own mark.</p>
+
+<h2>3 · Reduce the order</h2>
+
+<div class="script">
+<p>Let $y = u(t)\,e^{t}$. Then</p>
+$$\begin{aligned}
+y' &= (u' + u)\,e^{t}, \\
+y'' &= (u'' + 2u' + u)\,e^{t}.
+\end{aligned}$$
+<p>Substituting into the ODE and dividing through by $e^{t} \neq 0$:</p>
+$$t\,(u'' + 2u' + u) - (t+2)(u' + u) + 2u = t(t-1)$$
+$$t\,u'' + (2t - t - 2)\,u' + (t - t - 2 + 2)\,u = t(t-1)$$
+$$t\,u'' + (t-2)\,u' = t(t-1).$$
+<p>Let $w = u'$ and divide by $t$:</p>
+$$w' + \Big(1 - \frac{2}{t}\Big)\,w = t - 1.$$
+</div>
+<p class="note">Show the line where the $u$ coefficient collapses to $0$. It's the evidence that $v$ really solves the homogeneous equation, and markers look for it. You could plug into the memorised formula $w' + (2v'/v + f_1)w = g/v$ instead, and it gives the same line: $2 + (-1 - 2/t) = 1 - 2/t$. But if the question says "derive" or "use reduction of order", the substitution above is the safe version.</p>
+
+<h2>4 · Integrating factor</h2>
+
+<div class="script">
+$$I(t) = \exp\!\Big(\int \Big(1 - \frac{2}{t}\Big)\,dt\Big) = \exp\big(t - 2\ln t\big) = \frac{e^{t}}{t^{2}} \qquad (t &gt; 0).$$
+<p>Multiplying the $w$-equation by $I$:</p>
+$$\Big(\frac{e^{t}}{t^{2}}\,w\Big)' = \frac{(t-1)\,e^{t}}{t^{2}}.$$
+</div>
+<p class="note">$\ln t$ rather than $\ln|t|$ because $t &gt; 0$. Write the $(t&gt;0)$ so the marker sees you noticed. You can drop the constant of integration inside the exponential.</p>
+
+<h2>5 · First integration</h2>
+
+<div class="script">
+<p>Since $\dfrac{d}{dt}\Big(\dfrac{e^{t}}{t}\Big) = \dfrac{t\,e^{t} - e^{t}}{t^{2}} = \dfrac{(t-1)\,e^{t}}{t^{2}}$, integrating gives</p>
+$$\frac{e^{t}}{t^{2}}\,w = \frac{e^{t}}{t} + C_1,$$
+$$w = u' = t + C_1\,t^{2}e^{-t}.$$
+</div>
+<p class="note">Write the quotient-rule line. Without it, "$= e^t/t$" looks like a guess. Keep $C_1$ here. It becomes your second complementary solution.</p>
+
+<h2>6 · Second integration</h2>
+
+<div class="script">
+<p>By parts twice:</p>
+$$\begin{aligned}
+\int t^{2}e^{-t}\,dt &= -t^{2}e^{-t} + \int 2t\,e^{-t}\,dt \\
+&= -t^{2}e^{-t} - 2t\,e^{-t} + \int 2e^{-t}\,dt \\
+&= -(t^{2} + 2t + 2)\,e^{-t}.
+\end{aligned}$$
+<p>So</p>
+$$u = \frac{t^{2}}{2} - C_1\,(t^{2} + 2t + 2)\,e^{-t} + C_2.$$
+</div>
+
+<h2>7 · General solution</h2>
+
+<div class="script">
+$$y = u\,e^{t} = \frac12\,t^{2}e^{t} - C_1\,(t^{2} + 2t + 2) + C_2\,e^{t}.$$
+<p>Writing $A = -C_1$ and $B = C_2$:</p>
+$$y = \underbrace{A\,(t^{2} + 2t + 2) + B\,e^{t}}_{y_c} \;+\; \underbrace{\tfrac12\,t^{2}e^{t}}_{y_p}.$$
+<p>The general complementary solution is $y_c = A\,(t^{2}+2t+2) + B\,e^{t}$, with $A, B$ arbitrary constants. These two solutions are linearly independent on $(0,\infty)$ because their Wronskian is non-zero there:</p>
+$$W = \begin{vmatrix} t^{2}+2t+2 & e^{t} \\ 2t+2 & e^{t} \end{vmatrix} = (t^{2}+2t+2)\,e^{t} - (2t+2)\,e^{t} = t^{2}e^{t} \neq 0 \;\text{ for } t &gt; 0.$$
+</div>
+<p class="note">The question asks you to "state the general complementary solution", so label $y_c$ explicitly. Without the Wronskian line you haven't shown that $y_c$ is the <em>general</em> solution, only that it's a sum of two solutions. It takes one line, so include it.</p>
+
+<h2>8 · Initial conditions</h2>
+
+<div class="script">
+<p>Differentiating:</p>
+$$y' = \Big(t + \tfrac12\,t^{2}\Big)\,e^{t} + A\,(2t + 2) + B\,e^{t}.$$
+<p>Then</p>
+$$\begin{aligned}
+y(1) &= \tfrac{e}{2} + 5A + Be = 5, &\quad&(1)\\
+y'(1) &= \tfrac{3e}{2} + 4A + Be = 4 + e. &&(2)
+\end{aligned}$$
+<p>$(1) - (2)$: $\;-e + A = 1 - e$, so $A = 1$.</p>
+<p>Substituting into $(1)$: $\;\tfrac e2 + 5 + Be = 5$, so $B = -\tfrac12$.</p>
+</div>
+<p class="note">Number the equations so you can say "(1) − (2)" instead of rewriting both.</p>
+
+<h2>9 · Answer</h2>
+
+<div class="script">
+$$\boxed{\,y = \tfrac12\,(t^{2} - 1)\,e^{t} + t^{2} + 2t + 2, \qquad t \in (0, \infty).\,}$$
+</div>
+
+<h2>10 · Check (on paper if time allows)</h2>
+
+<div class="script">
+<p><em>ICs:</em> $\;y(1) = 0 + 5 = 5$ ✓. With $y' = t\,e^{t} + \tfrac12(t^{2}-1)\,e^{t} + 2t + 2$, $\;y'(1) = e + 0 + 4 = 4 + e$ ✓.</p>
+<p><em>Particular solution:</em> $y_p = \tfrac12 t^{2}e^{t}$, $\;y_p' = \big(t + \tfrac12t^{2}\big)e^{t}$, $\;y_p'' = \big(1 + 2t + \tfrac12t^{2}\big)e^{t}$.</p>
+$$\begin{aligned}
+t\,y_p'' - (t+2)\,y_p' + 2y_p &= \Big[\,t + 2t^{2} + \tfrac12 t^{3} - \big(t^{2} + \tfrac12 t^{3} + 2t + t^{2}\big) + t^{2}\Big]\,e^{t} \\
+&= (t^{2} - t)\,e^{t} = t(t-1)\,e^{t} \;✓
+\end{aligned}$$
+</div>
+<p class="note">The IC check takes about 20 seconds and catches most arithmetic slips. Do the $y_p$ check only if you have time to spare.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Showing $v$ works · standard form, with the interval and its reason · the substitution with the $u$ terms cancelling · $I$ · both integrations with constants · labelled $y_c$ and independence · solving the ICs · the boxed answer with its interval. Any line that isn't on your paper can't earn marks.</div>
+
+<div class="nav">
+  <span>Back to: <a href="0002-reduction-of-order.html#challenge">Lesson 2, challenge</a></span>
+  <span>Reference: <a href="../reference/topic1-cheatsheet.html">Topic 1 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

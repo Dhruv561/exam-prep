@@ -1,0 +1,141 @@
+---
+title: "MAST30027: Metropolis-Hastings (MH) algorithm and Gibbs Sampler"
+subtitle: "Week 11 - Solutions"
+date: ""
+
+format:
+  html:
+    self-contained: true
+    css: CSSBackground.css
+    html-math-method: mathml
+resources:
+  - ../images/Banner.png
+---
+
+**Objectives of the Tutorial/Lab**
+By the end of this tutorial, you should be able to:
+
+- Derive conditional distributions for bivariate normal models.
+- Implement the Gibbs sampler.
+- Assess the effect of the proposal step size on the performance of the MH algorithm.
+- Evaluate the performance of MH using Markov chain outputs: checking autocorrelation, effective sample size, convergence, acceptance rates.
+
+
+## Question 1
+
+Suppose that $\mathbf{X} = \begin{pmatrix} X_1 \\  X_2 \end{pmatrix} \sim N(\boldsymbol\mu, \boldsymbol\Sigma)$, with $\boldsymbol\mu = \begin{pmatrix} \mu_1 \\ \mu_2 \end{pmatrix}$ and $\boldsymbol\Sigma = \begin{pmatrix} \sigma^2_1 & \sigma_{12} \\ \sigma_{12} & \sigma^2_2 \end{pmatrix}$.
+
+:::: {.subquestions}
+::: {.subquestion}
+Show that the conditional distribution of $X_1|X_2=x_2$ is normal with mean $\mu_1 + (x_2-\mu_2)\sigma_{12}/\sigma^2_2$ and variance $\sigma^2_1 - \sigma_{12}^2/\sigma^2_2$.
+
+```{r}
+
+```
+
+:::
+
+::: {.subquestion}
+Write an R function that uses the Gibbs sampler to generate a sample of size $n = 1000$ from the $N\left( \begin{pmatrix} 0 \\ 0 \end{pmatrix}, \begin{pmatrix} 4 & 1 \\ 1 & 4 \end{pmatrix} \right)$ distribution. Run at least two Gibbs sampling chains with different initial values. Make trace plots for $X_1$ and $X_2$ and see if samples from different chains are mixed well and behave similarly.
+
+```{r}
+
+```
+
+:::
+
+::: {.subquestion}
+Use your simulator to estimate $\Pr(X_1 \geq 0, X_2 \geq 0)$. To get a feel for the convergence rate, calculate the estimate using samples $\{1, \ldots, k\}$, for $k = 1, \ldots, n$, and then plot the estimates against $k$.
+
+```{r}
+
+```
+
+:::
+
+::: {.subquestion}
+Now change $\boldsymbol\Sigma$ to $\begin{pmatrix} 4 & 2.8 \\ 2.8 & 4 \end{pmatrix}$ and generate another sample of size 1000.
+What do the traces/estimates look like now?
+
+```{r}
+
+```
+
+:::
+::::
+
+## Question 2
+
+**Metropolis-Hastings** [**We already solved problems (a), (b), and (c) in the week 10. This week, solve the problem (d), (e), and (f).**]
+
+Recall that $\mathbf{X} = \begin{pmatrix} X_1 \\  X_2 \end{pmatrix} \sim N(\boldsymbol\mu, \boldsymbol\Sigma)$, with $\boldsymbol\mu = \begin{pmatrix} \mu_1 \\ \mu_2 \end{pmatrix}$ and $\boldsymbol\Sigma = \begin{pmatrix} \sigma^2_1 & \sigma_{12} \\ \sigma_{12} & \sigma^2_2 \end{pmatrix}$, if and only if $\mathbf{X}$ has joint density
+$$
+f_{\boldsymbol\mu, \boldsymbol\Sigma}(\mathbf{x}) = \frac 1{2\pi|\boldsymbol\Sigma|^{1/2}} \exp\left( -\frac{1}{2} (\mathbf{x} - \boldsymbol\mu)^T \boldsymbol\Sigma^{-1} (\mathbf{x} - \boldsymbol\mu) \right),
+$$
+where $\mathbf{x} = \begin{pmatrix} x_1 \\ x_2 \end{pmatrix}$.
+
+:::: {.subquestions}
+::: {.subquestion}
+Write an R function that evaluates the density of a bivariate normal distribution.
+The function should take as input the point $\mathbf{x}$, the mean $\boldsymbol\mu$ and the covariance matrix $\boldsymbol\Sigma$.
+
+You will find the functions `solve` and `det` useful.
+
+```{r}
+
+```
+
+:::
+
+::: {.subquestion}
+Write a program in R that uses the Metropolis-Hastings algorithm to generate a sample of size $n = 1000$ from the $N\left( \begin{pmatrix} 0 \\ 0 \end{pmatrix}, \begin{pmatrix} 4 & 1 \\ 1 & 4 \end{pmatrix} \right)$ distribution.
+Use the symmetric random walk proposal distribution  $N\left( \mathbf{x}, \sigma^2 I \right)$ with $\sigma = 2.5$.
+
+Use $\mathbf{X}(0) = \begin{pmatrix} 6 \\ -6 \end{pmatrix}$ as your initial state.
+Report the proportion of accepted values.
+
+```{r}
+
+```
+
+:::
+
+::: {.subquestion}
+Let $\mathbf{X}(n)$ be the $n$-th sample point.
+Plot $X_i(n)$ and the cumulative averages $\bar{X}_i(n) = n^{-1} \sum_{j=1}^n X_i(j)$, for $i = 1, 2$ (over iteration numbers). The cumulative averages should give a rough idea of how quickly the $\mathbf{X}(n)$ converge in distribution.
+
+```{r}
+
+```
+
+:::
+
+::: {.subquestion}
+You can use the R functions `cor` or `acf` to estimate the lag 1 autocorrelation $\rho$.
+Calculate the so called *effective sample size*: $n(1-\rho)/(1+\rho)$ for each variable.
+
+```{r}
+
+```
+
+:::
+
+::: {.subquestion}
+Change the standard deviation of the proposal chain to $\sigma = 0.1$ and then $\sigma = 10$.
+How do the proportion of accepted values, the cumulative averages, and the effective sample size change?
+
+```{r}
+
+```
+
+:::
+
+::: {.subquestion}
+Now change $\boldsymbol\Sigma$ to $\begin{pmatrix} 4 & 2.8 \\ 2.8 & 4 \end{pmatrix}$ and repeat the above analysis.
+How do things change?
+
+```{r}
+
+```
+:::
+::::

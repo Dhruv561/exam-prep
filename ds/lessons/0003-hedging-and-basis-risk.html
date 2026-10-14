@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hedging and Basis Risk</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .widget { font-family: Inter, system-ui, sans-serif; font-size: .88rem; }
+  .widget label { display: block; margin: .5rem 0; }
+  .widget input[type=range] { width: 100%; accent-color: var(--accent); }
+  .widget .out { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem 1.2rem; margin-top: .8rem; }
+  .widget .out div { background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: .6rem .8rem; }
+  .widget .big { font-size: 1.15rem; font-weight: 600; }
+  .widget .note { color: var(--muted); margin-top: .6rem; }
+  @media (max-width: 520px) { .widget .out { grid-template-columns: 1fr; } }
+  td.up { color: var(--ok); } td.down { color: var(--bad); }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 3 · Topic 2: Hedging</div>
+<h1>Hedging and basis risk</h1>
+<p class="lede">The goal: for any hedger, say which way they should trade, which contract month to use and how many contracts, and predict whether a change in the basis helps or hurts them, using one idea: <em>a hedger locks in the opening futures price plus the closing basis</em>.</p>
+
+<div class="mission">Why this matters for 5 Nov: both 2026 MST streams opened with a one-mark "the basis unexpectedly strengthened/weakened, what happens to the effective price?" question, then had stack-and-roll, FX hedge direction and "arguments for and against hedging" MCQs. Past finals ask you to pick the contract month, write out the full hedging strategy, and explain why the firm can't know its effective price today. This lesson covers all of those.</div>
+
+<p>This lesson assumes <a href="0002-forwards-vs-futures.html">Lesson 2</a>: long/short, closing out, and "a long futures plus buying at spot gives a net cost of \(F_0\)". Sources: <a href="../lectures/Lecture%202_Futures%20Hedging.pdf">Lecture 2, slides 3–15</a> and Hull Ch. 3.</p>
+
+<h2>1 · Natural positions: which way do you hedge?</h2>
+
+<p>Start with what the firm already has, before any derivatives. Its <strong>natural position</strong> (or exposure) is the way it gains or loses when the price moves:</p>
+<ul>
+  <li><strong>Naturally long</strong> the asset: you own it, or will sell it later. A higher price helps you. Example: a farmer with corn in the ground.</li>
+  <li><strong>Naturally short</strong> the asset: you will have to buy it later. A higher price hurts you. Example: a food company that needs corn in June.</li>
+</ul>
+<p>A hedge is the <em>opposite</em> futures position, so that the futures gain or loss cancels the spot loss or gain (<a href="../lectures/Lecture%202_Futures%20Hedging.pdf">slide 4</a>):</p>
+
+<table>
+<tr><th>Natural position</th><th>Who</th><th>Hedge</th><th>Name</th></tr>
+<tr><td>Long (will sell)</td><td>Farmer, miner, exporter receiving foreign currency</td><td>Short futures</td><td><strong>Short hedge</strong></td></tr>
+<tr><td>Short (will buy)</td><td>Food company, airline, importer paying foreign currency</td><td>Long futures</td><td><strong>Long hedge</strong></td></tr>
+</table>
+
+<div class="trap"><strong>Name the hedge after the futures leg</strong><br>
+"Short hedge" describes the <em>futures</em> position, not the firm. A short hedger is naturally <em>long</em> the asset. Exam wording often says "naturally long/short", so translate: natural position → take the opposite in futures.</div>
+
+<h2>2 · The perfect hedge: the corn example</h2>
+
+<p>Lecture 2 (slides 5–8). On 20 April a farmer will sell 50,000 bu of corn at spot on 20 June, and a food company will buy 50,000 bu at spot on 20 June. Spot is $3.50/bu and June futures (5,000 bu per contract) are $3.35/bu. June futures mature on 20 June, so on that day \(F = S\) (convergence). The farmer shorts 10 June contracts; the company goes long 10.</p>
+
+<details><summary>Predict first: if spot on 20 June is $3.10, what does the farmer receive per bushel, all in? And if it's $3.70?</summary><div>
+<table class="ledger">
+<tr><th>June spot</th><th>Farmer: spot sale + short futures</th><th>Company: spot purchase − long futures gain</th></tr>
+<tr><td>$3.10</td><td>\(3.10 + (3.35 - 3.10) = 3.35\)</td><td>\(3.10 - (3.10 - 3.35) = 3.35\)</td></tr>
+<tr><td>$3.70</td><td>\(3.70 + (3.35 - 3.70) = 3.35\)</td><td>\(3.70 - (3.70 - 3.35) = 3.35\)</td></tr>
+</table>
+<p>Both lock in <strong>$3.35</strong>, whatever happens. Not $3.50: a perfect hedge locks in the <em>futures</em> price, not today's spot price (Tutorial 2, Q1).</p>
+</div></details>
+
+<h2>3 · Why perfect hedges are rare</h2>
+<p>The corn hedge was perfect because three things lined up. In practice at least one usually fails (<a href="../lectures/Lecture%202_Futures%20Hedging.pdf">slide 10</a>):</p>
+<ol class="steps">
+  <li><strong>Asset mismatch.</strong> There may be no futures on your exact asset (an airline hedging jet fuel with heating oil futures). That's a <em>cross hedge</em>, Lesson 4.</li>
+  <li><strong>Maturity (date) mismatch.</strong> Your sale or purchase date isn't the futures delivery date, or isn't known for sure, so you close out early, when \(F \ne S\).</li>
+  <li><strong>Contract size.</strong> Your exposure isn't a whole number of contracts (e.g. 52,300 bu with 5,000-bu contracts), so you're slightly over- or under-hedged.</li>
+</ol>
+
+<h2>4 · Basis, and the one formula of this lesson</h2>
+
+<p>The <strong>basis</strong> is</p>
+$$b = \text{spot price of the asset being hedged} - \text{futures price of the contract used} = S - F.$$
+<p>At the futures' delivery date, for the same asset, \(b = 0\) by convergence. Before that it can be positive or negative (<a href="../lectures/Lecture%202_Futures%20Hedging.pdf">slides 11–12</a>). When the basis rises (spot goes up more than futures, or falls less), the basis <strong>strengthens</strong>. When it falls, it <strong>weakens</strong>.</p>
+
+<p>Notation (Hull's, also used in the 2026 MST solutions): the hedge opens at \(t_1\) and closes at \(t_2\). \(F_1, F_2\) are the futures prices then; \(S_2\) is the spot price at \(t_2\); \(b_2 = S_2 - F_2\) is the <em>closing basis</em>. The lecture slides write the same thing as \(F_0 + \text{Basis}_1\).</p>
+
+<h3>Derive it, don't memorise it</h3>
+<p><strong>Short hedger</strong> (will sell at \(t_2\)). Sells the asset at spot for \(S_2\), and the short futures earns \(F_1 - F_2\):</p>
+$$\text{price received} = S_2 + (F_1 - F_2) = F_1 + (S_2 - F_2) = F_1 + b_2.$$
+<p><strong>Long hedger</strong> (will buy at \(t_2\)). Pays \(S_2\), and the long futures earns \(F_2 - F_1\), which reduces the cost:</p>
+$$\text{price paid} = S_2 - (F_2 - F_1) = F_1 + (S_2 - F_2) = F_1 + b_2.$$
+<p>Same expression for both (<a href="../lectures/Lecture%202_Futures%20Hedging.pdf">slides 13–14</a>). \(S_2\) on its own has dropped out.</p>
+
+<div class="box">
+<p><strong>The mental model.</strong> A hedger ends up with <em>opening futures price + closing basis</em>, \(F_1 + b_2\). \(F_1\) is known today. \(b_2\) is the only thing still uncertain. Hedging swaps <em>price risk</em> (spot could be anywhere) for <strong>basis risk</strong> (the uncertainty in \(b_2\)), which is usually much smaller. If you close at delivery on the same asset, \(b_2 = 0\) and the hedge is perfect.</p>
+<p>Who wants what: \(F_1 + b_2\) is money <em>received</em> by the short hedger, so they gain when the basis <strong>strengthens</strong>; it's money <em>paid</em> by the long hedger, so they gain when the basis <strong>weakens</strong> (Tutorial 2, Q2).</p>
+</div>
+
+<p>An equivalent form is handy: since \(S_1 = F_1 + b_1\), the effective price is \(S_1 + (b_2 - b_1)\), today's spot plus the <em>change</em> in basis. So "relative to today's spot", the short hedger gains exactly the strengthening of the basis.</p>
+
+<div class="trap"><strong>"Relative to expectation"</strong><br>
+MCQs say "the basis <em>unexpectedly</em> strengthens before close-out". Compare with what the hedger expected: expected price \(= F_1 + \mathbb{E}[b_2]\); actual \(= F_1 + b_2\). If \(b_2\) came in higher than expected, the short receives more and the long pays more than planned. The hedger isn't "now speculating", the futures didn't fail to work, and you don't need the margin account to answer.</div>
+
+<h2>5 · One hedge, six scenarios</h2>
+
+<p>A barley exporter (short hedge) and a brewer (long hedge) both trade September barley futures at \(F_1 = \$300\)/t on 1 April, when spot is \(S_1 = \$312\) (so \(b_1 = +12\)). Both trade barley at spot in late August and close out then, a few weeks before September delivery. They expect the basis to shrink to about \(+5\) by then, so both plan on \(300 + 5 = \$305\)/t.</p>
+
+<details><summary>Predict first: spot rises $40 and the basis ends at +5. Who is better off than planned, the exporter or the brewer?</summary><div><p>Neither. Both get exactly $305. The spot move is cancelled by the futures; only \(b_2\) matters, and it came in as expected. Now check the table.</p></div></details>
+
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Case</th><th>\(S_2\)</th><th>\(F_2\)</th><th>\(b_2\)</th><th>Basis vs forecast</th><th>Exporter receives \(S_2 + (F_1-F_2)\)</th><th>Brewer pays \(S_2 - (F_2-F_1)\)</th></tr>
+<tr><td>A. Spot falls</td><td>262</td><td>257</td><td>+5</td><td>as expected</td><td>305</td><td>305</td></tr>
+<tr><td>B. Spot rises</td><td>352</td><td>347</td><td>+5</td><td>as expected</td><td>305</td><td>305</td></tr>
+<tr><td>C. Spot falls</td><td>265</td><td>250</td><td>+15</td><td>strengthens</td><td class="up">315 (better)</td><td class="down">315 (worse)</td></tr>
+<tr><td>D. Spot rises</td><td>345</td><td>350</td><td>−5</td><td>weakens</td><td class="down">295 (worse)</td><td class="up">295 (better)</td></tr>
+<tr><td>E. Spot rises</td><td>360</td><td>345</td><td>+15</td><td>strengthens</td><td class="up">315 (better)</td><td class="down">315 (worse)</td></tr>
+<tr><td>F. Spot falls</td><td>255</td><td>260</td><td>−5</td><td>weakens</td><td class="down">295 (worse)</td><td class="up">295 (better)</td></tr>
+</table>
+</div>
+
+<p>Read it down the columns. The direction of spot (A vs B, C vs F, D vs E) makes no difference; the basis decides everything. Both sides always land on the <em>same</em> number \(F_1 + b_2\), but for one side that number is income and for the other it's a cost, so one side's "better" is the other's "worse". Unhedged, the exporter would have received anything from $255 to $360.</p>
+
+<div class="box widget noprint">
+<p><strong>Try it.</strong> \(F_1 = 300\) is fixed. Move spot and the closing basis.</p>
+<label>Spot at close-out \(S_2\): <strong id="wS">300</strong>
+  <input type="range" id="sS" min="200" max="400" step="1" value="300"></label>
+<label>Closing basis \(b_2\): <strong id="wB">5</strong> (so \(F_2 = S_2 - b_2\) = <strong id="wF">295</strong>)
+  <input type="range" id="sB" min="-20" max="30" step="1" value="5"></label>
+<div class="out">
+  <div>Exporter (short hedge)<br>spot sale <span id="oS1"></span> + futures <span id="oS2"></span><br>= <span class="big" id="oS3"></span> received</div>
+  <div>Brewer (long hedge)<br>spot cost <span id="oL1"></span> − futures <span id="oL2"></span><br>= <span class="big" id="oL3"></span> paid</div>
+</div>
+<p class="note" id="wNote"></p>
+</div>
+<script>
+(function () {
+  var F1 = 300, plan = 305;
+  var sS = document.getElementById('sS'), sB = document.getElementById('sB');
+  function sgn(x) { return (x >= 0 ? '+' : '−') + Math.abs(x); }
+  function upd() {
+    var S2 = +sS.value, b2 = +sB.value, F2 = S2 - b2;
+    document.getElementById('wS').textContent = S2;
+    document.getElementById('wB').textContent = sgn(b2);
+    document.getElementById('wF').textContent = F2;
+    var gS = F1 - F2, gL = F2 - F1;
+    document.getElementById('oS1').textContent = S2;
+    document.getElementById('oS2').textContent = '(' + sgn(gS) + ')';
+    document.getElementById('oS3').textContent = S2 + gS;
+    document.getElementById('oL1').textContent = S2;
+    document.getElementById('oL2').textContent = '(' + sgn(gL) + ')';
+    document.getElementById('oL3').textContent = S2 - gL;
+    var d = F1 + b2 - plan;
+    document.getElementById('wNote').textContent = d === 0
+      ? 'Basis came in as forecast (+5): both get the planned $305.'
+      : (d > 0 ? 'Basis strengthened vs the forecast by ' + d + ': the exporter gains, the brewer pays more.'
+               : 'Basis weakened vs the forecast by ' + (-d) + ': the brewer gains, the exporter receives less.');
+  }
+  sS.addEventListener('input', upd); sB.addEventListener('input', upd); upd();
+})();
+</script>
+
+<details><summary>Think it through (Tutorial 2, Q4): "for an asset whose futures price is usually below spot, long hedges are particularly attractive." Why?</summary><div>
+<p>A long hedger pays about \(F_1 + b_2\), and \(F_1\) is close to what they lock in. If futures usually sit <em>below</em> spot, the buyer locks in a price below today's spot, which looks cheap. (Equivalently, the basis \(S - F\) is positive and tends to shrink towards zero by delivery, so it weakens, which helps the long.) The caveat in the solutions: a big gap may reflect income you give up by not holding the asset, or poor liquidity, so it's not free money.</p></div></details>
+
+<h2>6 · Choosing the contract</h2>
+<p>Basis risk depends on which contract you use (<a href="../lectures/Lecture%202_Futures%20Hedging.pdf">slide 15</a>):</p>
+<ol class="steps">
+  <li><strong>Asset:</strong> the same asset if a futures exists; otherwise the one whose futures price is most highly correlated with yours (Lesson 4).</li>
+  <li><strong>Delivery month: as close as possible to, but after, the end of the hedge.</strong> Closer means \(F_2\) is nearer to \(S_2\), so less basis risk. "After" because a contract that has already expired can't hedge the last stretch.</li>
+  <li><strong>Avoid the delivery month itself.</strong> If the hedge ends in June, use September, not June. Futures prices can be erratic in the delivery month, and a long hedger holding into it risks having to take physical delivery (Hull Ch. 3). Exception: the contract expires on exactly your date and you hold to delivery.</li>
+  <li><strong>Size:</strong> number of contracts \(=\) exposure ÷ contract size (for now, with the same asset; Lesson 4 adds a hedge ratio). If it's not a whole number, round, depending on the hedger's view and risk tolerance.</li>
+</ol>
+<p>Liquidity can override step 2: far-dated contracts often trade thinly, which leads to rolling.</p>
+
+<h2>7 · Rolling the hedge forward (stack and roll)</h2>
+<p>Suppose the exposure is three years away but only contracts up to a few months out are liquid. You <strong>roll the hedge forward</strong>: open a short-dated contract, close it shortly before it expires, and open the same position in a later contract, again and again (Hull Ch. 3). A <strong>stack and roll</strong> is the same thing with a large "stack" of near contracts that is rolled each period.</p>
+<p>For a short hedge rolled through several contracts,</p>
+$$\text{price received} = S_{\text{final}} + \sum_i \big(F_i^{\text{open}} - F_i^{\text{close}}\big),$$
+<p>so each roll adds its own little piece of basis-type uncertainty (the gap between the price you close one contract at and the price you open the next at). Two risks to name in an answer:</p>
+<ul>
+  <li><strong>Rollover risk:</strong> each switch happens at whatever spread between near and next contracts exists then, and it can go against you.</li>
+  <li><strong>Liquidity risk:</strong> futures are settled daily, while the exposure being hedged (a long-term sale contract) pays off only at the end. A big price move against the futures demands cash <em>now</em>.</li>
+</ul>
+<div class="box">
+<p><strong>Metallgesellschaft (1993).</strong> Its US subsidiary agreed to supply oil products to customers at fixed prices for up to 10 years (naturally short oil), and hedged with long short-dated oil futures, rolled forward. When oil prices fell in late 1993, the futures lost money and margin calls had to be paid immediately, while the matching gains on the customer contracts would only arrive over the following decade. The parent closed out the positions and lost more than US$1 billion (Hull Ch. 3). The hedge was arguably sound in the long run; it was the <em>cash timing</em> that broke it.</p>
+</div>
+
+<h2>8 · Currency hedges: same rule, trickier wording</h2>
+<p>Treat the foreign currency as the asset. A firm that will <em>pay</em> USD later needs to buy USD later: it is <strong>naturally short USD</strong>, so it goes <strong>long</strong> USD forwards/futures. A firm that will <em>receive</em> EUR later is <strong>naturally long EUR</strong>, so it goes <strong>short</strong> EUR forwards/futures.</p>
+<table>
+<tr><th>Firm</th><th>Natural position</th><th>Hedge</th></tr>
+<tr><td>Importer with a USD payable</td><td>Short USD</td><td>Long (buy) USD forward</td></tr>
+<tr><td>Exporter with a EUR receivable</td><td>Long EUR</td><td>Short (sell) EUR forward</td></tr>
+</table>
+<div class="trap"><strong>Two currencies, one trade</strong><br>
+Buying USD forward with AUD <em>is</em> selling AUD forward. Check which currency the question names before matching "long/short". And a forward hedge locks in the forward rate, not today's spot rate (Tutorial 2, Q1).</div>
+
+<h2>9 · Should a firm hedge at all?</h2>
+<p>Hull Ch. 3 ("Arguments for and against hedging"), discussed in lectures:</p>
+<table>
+<tr><th>For</th><th>Against</th></tr>
+<tr><td>Lets the firm focus on its core business (a farmer is good at farming, not forecasting corn prices)</td><td>Shareholders can diversify or hedge these risks themselves, often more cheaply</td></tr>
+<tr><td>Removes risks the firm has no special skill in managing (non-core risks), making earnings more predictable</td><td>If competitors don't hedge and output prices move with input costs, hedging can <em>increase</em> the firm's risk relative to its industry</td></tr>
+<tr><td></td><td>A hedge can lose money and look bad to managers and shareholders, even though it did its job</td></tr>
+</table>
+<p>The last point is the Hershey lesson (Tutorial 2, Q7): big derivative gains while cocoa soared didn't mean the programme was "designed to profit", and later losses on positions when cocoa fell don't mean it failed. A hedge is judged on whether it made the <em>combined</em> outcome more certain, not on the futures leg alone. Also Tutorial 2, Q5: if quantity is uncertain (the farmer's crop could fail), hedging all expected output can leave you over-hedged exactly when prices are high.</p>
+
+<h2>10 · Practice</h2>
+<p>Numeric answers: type a number (commas and $ are fine).</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> A chocolate maker will need to buy 2,000 tonnes of cocoa in five months. Which description and hedge fit?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Naturally long cocoa, so it should sell cocoa futures</button>
+    <button class="opt" data-key="b">Naturally short cocoa, so it should buy cocoa futures</button>
+    <button class="opt" data-key="c">Naturally short cocoa, so it should sell cocoa futures</button>
+    <button class="opt" data-key="d">Naturally long cocoa, so it should buy cocoa futures</button>
+  </div>
+  <div class="why">It must buy cocoa later, so a price rise hurts it: naturally short. The hedge is the opposite, a long futures (a long hedge), whose gains offset a higher purchase price. (c) gets the natural position right but then doubles the exposure instead of offsetting it.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> Over a month, the spot price of sugar rises by 0.40 and the nearby futures price rises by 0.25. What happened to the basis?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It strengthened by 0.15, since spot rose more than futures</button>
+    <button class="opt" data-key="b">It weakened by 0.15, since futures rose less than spot</button>
+    <button class="opt" data-key="c">It strengthened by 0.65, since both the prices went up</button>
+    <button class="opt" data-key="d">It weakened by 0.15, since the futures price lagged behind</button>
+  </div>
+  <div class="why">Basis \(= S - F\), so its change is \(\Delta S - \Delta F = 0.40 - 0.25 = +0.15\): it strengthened. (b) and (d) flip the sign by thinking in terms of futures minus spot.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>3.</strong> A wool producer has a short futures hedge on next season's clip. Shortly before it closes out, the basis unexpectedly strengthens. Relative to what it expected, the effective price it receives is:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">unchanged, because futures contracts remove all of the basis risk</button>
+    <button class="opt" data-key="b">lower, because the producer is now speculating on the basis</button>
+    <button class="opt" data-key="c">unknown, because you need the margin balance to tell this</button>
+    <button class="opt" data-key="d">higher, because it equals the opening futures plus closing basis</button>
+    <button class="opt" data-key="e">lower, because the spot leg gained less than the futures</button>
+  </div>
+  <div class="why">Price received \(= F_1 + b_2\). \(F_1\) is fixed, so a higher-than-expected \(b_2\) means a higher price. (a) is the classic trap: futures leave basis risk; only a same-asset hold-to-delivery hedge removes it. (c): the margin account only changes the timing of the futures cash flows, not the total. (e) has it backwards: the spot leg rose more than the futures.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>4.</strong> An airline-catering firm is long orange juice futures to hedge a purchase. Before it closes out, the basis unexpectedly strengthens. Relative to expectation, the effective price it pays is:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">lower, since a stronger basis always helps every hedger</button>
+    <button class="opt" data-key="b">unchanged, since the long futures leg offsets all moves</button>
+    <button class="opt" data-key="c">higher, since it pays opening futures plus closing basis</button>
+    <button class="opt" data-key="d">lower, since the futures gain more than offsets spot</button>
+  </div>
+  <div class="why">Price paid \(= F_1 + b_2\) too, but for a buyer a higher number is bad. A long hedger is hurt when the basis strengthens and helped when it weakens: the mirror image of the short hedger. (a) is true only for short hedgers. (d) is backwards: a stronger basis means spot rose by more than futures.</div>
+</div>
+
+<div class="quiz num" data-answer="623" data-tol="0.01">
+  <p class="q"><strong>5.</strong> On 1 May a canola grower shorts November canola futures at $640/t to hedge a sale. It sells its canola at spot on 10 October, when spot is $598/t and November futures are $615/t, and closes out the same day. What effective price per tonne does it receive?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$/t</span></div>
+  <div class="why">\(b_2 = 598 - 615 = -17\), so the price received is \(F_1 + b_2 = 640 - 17 = \$623\). Check the long way: spot 598 plus short futures gain \(640 - 615 = 25\) gives 623.</div>
+</div>
+
+<div class="quiz num" data-answer="4.69" data-tol="0.005">
+  <p class="q"><strong>6.</strong> A cattle feedlot will buy 400,000 bu of corn on 15 November. In June it goes long 80 December corn futures (5,000 bu each) at $4.62/bu. On 15 November spot is $4.95 and December futures are $4.88; it buys the corn and closes out. What is its effective cost per bushel?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$/bu</span></div>
+  <div class="why">\(b_2 = 4.95 - 4.88 = 0.07\); price paid \(= 4.62 + 0.07 = \$4.69\). Long way: pays 4.95 at spot, gains \(4.88 - 4.62 = 0.26\) on futures (that's \(0.26\times400{,}000 = \$104{,}000\) in total), net \(4.95 - 0.26 = 4.69\).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>7.</strong> A hedge must end on 18 June. Futures are available for March, June, September and December delivery. Which should the hedger use?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">June, because it matches the month of the sale</button>
+    <button class="opt" data-key="b">March, because nearby contracts are always the most liquid</button>
+    <button class="opt" data-key="c">December, because longer contracts carry much less basis risk</button>
+    <button class="opt" data-key="d">September, the first delivery month after the June sale</button>
+  </div>
+  <div class="why">Rule: the delivery month as close as possible to, but after, the hedge's end, and not the delivery month itself. June is the delivery month (erratic prices, delivery risk). March expires too early. December is further away, so <em>more</em> basis risk, not less.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>8.</strong> Why do hedgers usually avoid a contract whose delivery month is the month in which their hedge ends?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The exchange forbids hedgers from trading in that month</button>
+    <button class="opt" data-key="b">Prices can be erratic, and they may face delivery</button>
+    <button class="opt" data-key="c">Basis is always largest during the contract's delivery month</button>
+    <button class="opt" data-key="d">Futures prices stop moving once the delivery month starts</button>
+  </div>
+  <div class="why">Delivery-month futures prices can be volatile and a long holder may be forced to take delivery (Hull Ch. 3; past finals award the mark for "avoid delivery-month volatility"). (c) is false: by convergence the basis heads to zero in the delivery month.</div>
+</div>
+
+<div class="quiz" data-answer="e">
+  <p class="q"><strong>9.</strong> A fuel distributor has signed 5-year contracts to sell diesel to customers at fixed prices, and hedges with long one-month futures that it rolls every month. What is the main danger if diesel prices fall sharply in the first year?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Futures cannot be closed out before their delivery date</button>
+    <button class="opt" data-key="b">Forwards are legally required for hedges beyond a year</button>
+    <button class="opt" data-key="c">The clearing house adds counterparty risk to each roll</button>
+    <button class="opt" data-key="d">Long futures always lose money when spot prices fall</button>
+    <button class="opt" data-key="e">Margin calls drain cash before the customer gains arrive</button>
+  </div>
+  <div class="why">The customer contracts gain when diesel falls, but slowly, over five years; the long futures lose immediately and must be paid daily. That cash squeeze is the Metallgesellschaft problem. (d) describes the loss but not the danger: the loss is offset economically; the issue is timing. (a)–(c) are false.</div>
+</div>
+
+<div class="quiz num" data-answer="2440" data-tol="0.5">
+  <p class="q"><strong>10.</strong> A gold refiner will sell gold in 14 months but only nearby contracts are liquid, so it rolls a short hedge: short June at 2,400, closed at 2,460; then short December at 2,480, closed at 2,430; then short next June at 2,445, closed at 2,500 on the sale date, when spot is 2,505 ($/oz). What effective price per ounce does it receive?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$/oz</span></div>
+  <div class="why">Futures gains: \((2{,}400-2{,}460) + (2{,}480-2{,}430) + (2{,}445-2{,}500) = -60 + 50 - 55 = -65\). Price \(= 2{,}505 - 65 = \$2{,}440\). Each roll adds a gap you couldn't know in advance, which is why rolled hedges carry extra basis risk.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>11.</strong> A Brisbane retailer must pay US$3 million to a Californian supplier in four months. It is naturally:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">short USD, so it should buy USD forward</button>
+    <button class="opt" data-key="b">long USD, so it should sell USD forward</button>
+    <button class="opt" data-key="c">short USD, so it should sell USD forward</button>
+    <button class="opt" data-key="d">long AUD, so it should sell AUD forward</button>
+  </div>
+  <div class="why">It needs USD later, so a rise in USD hurts: naturally short USD. Hedge: long USD forward, locking in the AUD cost. (d) is tempting because buying USD forward <em>is</em> selling AUD forward, but "naturally long AUD" isn't how its exposure is described: its risk is the USD payable.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>12.</strong> A New Zealand winery will receive €500,000 from a German distributor in six months. It is naturally:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">long EUR, so it should buy EUR forward</button>
+    <button class="opt" data-key="b">short EUR, so it should buy EUR forward</button>
+    <button class="opt" data-key="c">short EUR, so it should sell EUR forward</button>
+    <button class="opt" data-key="d">long EUR, so it should sell EUR forward</button>
+  </div>
+  <div class="why">It will receive euros, so a fall in EUR hurts: naturally long EUR. Hedge: short (sell) EUR forward, fixing the NZD it will get. (a) doubles the exposure.</div>
+</div>
+
+<div class="quiz" data-answer="e">
+  <p class="q"><strong>13.</strong> Which pair gives a standard argument <em>for</em> corporate hedging, followed by a standard argument <em>against</em> it?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Shareholders can diversify themselves; focus on the core business</button>
+    <button class="opt" data-key="b">Hedging guarantees higher profits; competitors always hedge as well</button>
+    <button class="opt" data-key="c">Reduce non-core risks; hedging always lowers the firm's taxes</button>
+    <button class="opt" data-key="d">A losing hedge is a failure; managers love certainty</button>
+    <button class="opt" data-key="e">Focus on the core business; shareholders can diversify themselves</button>
+  </div>
+  <div class="why">For: concentrate on the core business and shed non-core risks. Against: diversified shareholders can manage these risks themselves. (a) is the right pair in the wrong order. (b): hedging reduces variability, it doesn't guarantee profits. (d): a hedge that loses money on the futures leg hasn't failed if the combined position is more certain.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>14.</strong> A silver refiner will sell silver on the exact last trading day of a futures contract and shorts that contract. Today spot is $31.20/oz and the futures price is $31.80/oz. It holds the hedge to that day. What price has it locked in?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$31.20: today's spot price, since the hedge is perfect</button>
+    <button class="opt" data-key="b">$31.50: the average of today's spot and futures prices</button>
+    <button class="opt" data-key="c">$31.80: the futures price, since final basis is zero</button>
+    <button class="opt" data-key="d">Unknown: basis risk remains until the final sale date</button>
+  </div>
+  <div class="why">Same asset, closed at maturity, so \(b_2 = 0\) and the price is \(F_1 + 0 = 31.80\). A perfect hedge locks in the futures price, not today's spot (Tutorial 2, Q1). (d) would be right if it closed out before maturity.</div>
+</div>
+
+<h2>11 · Exam-level challenge</h2>
+<p>Write it all out on paper, then open the steps one at a time.</p>
+<div class="box">
+<p>It is 3 August. Tasman Copper, a miner, will sell 1,200 tonnes of copper cathode on 20 November at the spot price. Copper futures (assume 25 tonnes per contract, same grade as Tasman's cathode) are quoted for September (9,350), November (9,400), December (9,420) and March (9,480), in $/t. Spot today is 9,300.</p>
+<p>(a) Should Tasman go long or short futures? Why?<br>
+(b) Which contract month should it use? Explain.<br>
+(c) How many contracts?<br>
+(d) Summarise the full strategy: date, position, maturity, number of contracts, opening price, and how and when it's closed out.<br>
+(e) Can Tasman know its effective selling price today? Explain.<br>
+(f) On 20 November spot is 9,610 and December futures are 9,700. Find the futures gain or loss, the total received and the effective price per tonne.<br>
+(g) The board had forecast a closing basis of −60. Did the basis strengthen or weaken relative to that, and by how much did it change Tasman's revenue?<br>
+(h) The CEO says: "the futures lost us hundreds of thousands, so hedging was a mistake." Respond.</p>
+</div>
+
+<details><summary>Step 1: parts (a)–(c)</summary><div>
+<p>(a) Tasman will sell copper, so it is <strong>naturally long</strong>; a fall in price hurts it. It takes the opposite position: <strong>short</strong> copper futures (a short hedge).</p>
+<p>(b) <strong>December.</strong> September expires before 20 November (it would need rolling). November is the month of the sale: its delivery-month prices can be erratic and the position risks delivery, so avoid it. December is the closest month <em>after</em> the hedge ends. March is further away, so more basis risk.</p>
+<p>(c) \(1{,}200 / 25 = \mathbf{48}\) contracts (same asset, so the whole exposure is hedged).</p></div></details>
+<details><summary>Step 2: part (d), the strategy</summary><div>
+<p>On 3 August, short 48 December copper futures at $9,420/t. On 20 November, sell the 1,200 t of copper at spot and close out by buying 48 December copper futures at the prevailing December price.</p>
+<p>Marks in past finals go to: the opening trade (date, maturity, number, price) and the closing trade (date, maturity, number). Leave one out and you drop a mark.</p></div></details>
+<details><summary>Step 3: part (e), can it know the price today?</summary><div>
+<p><strong>No.</strong> It will receive \(F_1 + b_2 = 9{,}420 + (S_2 - F_2)\), where \(S_2\) is spot on 20 November and \(F_2\) is the December futures price then. Neither is known on 3 August, and because the hedge is closed before December delivery (a maturity mismatch) they needn't be equal, so \(b_2 \ne 0\) in general. That uncertainty is basis risk. (With a different grade of copper there'd be asset mismatch too.)</p></div></details>
+<details><summary>Step 4: part (f), the numbers</summary><div>
+<p>Futures: \((9{,}420 - 9{,}700)\times1{,}200 = -\$336{,}000\) (a loss).<br>
+Spot sale: \(9{,}610\times1{,}200 = \$11{,}532{,}000\).<br>
+Total: \(11{,}532{,}000 - 336{,}000 = \$11{,}196{,}000\), i.e. \(\$9{,}330\)/t.<br>
+Check with the model: \(b_2 = 9{,}610 - 9{,}700 = -90\), so \(9{,}420 - 90 = 9{,}330\) ✓.</p></div></details>
+<details><summary>Step 5: part (g), relative to the forecast</summary><div>
+<p>Expected price \(= 9{,}420 - 60 = 9{,}360\). Actual \(b_2 = -90 < -60\): the basis <strong>weakened</strong> relative to the forecast, by 30. A short hedger is hurt by weakening: revenue is \(30\times1{,}200 = \$36{,}000\) lower than planned.</p>
+<p>Twist to notice: compared with the <em>opening</em> basis \(b_1 = 9{,}300 - 9{,}420 = -120\), the basis strengthened (to −90), which is why Tasman got 9,330, more than today's spot of 9,300 (\(S_1 + (b_2 - b_1) = 9{,}300 + 30\)). Always check what "expected" is measured against.</p></div></details>
+<details><summary>Step 6: part (h), was hedging a mistake?</summary><div>
+<p>No. The futures lost $336,000 because copper rose, but the same rise meant Tasman sold its copper for \((9{,}610 - 9{,}300)\times1{,}200 = \$372{,}000\) more than at August's spot price. The combined position delivered $9,330/t, close to the planned $9,360. The purpose was to make revenue predictable, not to beat the market. Had copper fallen, the futures would have gained and the spot sale lost. Judge the hedge on the combined outcome (Hull Ch. 3; Tutorial 2, Q7). The genuine cost was the $36,000 of basis risk in part (g).</p></div></details>
+
+<h2>12 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, write the effective-price formula, derive it for a short and a long hedger, and say who gains when the basis strengthens. Then check</summary><div>
+<p>Short: \(S_2 + (F_1 - F_2) = F_1 + b_2\). Long: \(S_2 - (F_2 - F_1) = F_1 + b_2\). Basis \(= S - F\). Strengthening helps the short hedger (receives more) and hurts the long hedger (pays more). Contract: closest delivery month after the hedge ends, not the delivery month itself. Rolling adds rollover and liquidity risk (Metallgesellschaft). Payable in foreign currency → naturally short → long forward.</p></div></details>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, Ch. 3: basic principles (short and long hedges), arguments for and against hedging, basis risk and choice of contract, and stack and roll with the Metallgesellschaft snapshot. With <a href="../lectures/Lecture%202_Futures%20Hedging.pdf">Lecture 2</a>, slides 3–15.</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%202.pdf">Tutorial 2</a>, Q1, Q2 and Q7 (<a href="../tutes/Tutorial%202%20Solutions.pdf">solutions</a>). Optional: Q4 and Q5. Write 3–4 sentence answers before checking: the final's "explain" parts look like these.</p>
+<p><strong>Spacing:</strong> tomorrow, before Lesson 4, redo Q3, Q4 and Q7 here and the challenge's step 3 without looking, and redo Lesson 2's Q13 and Q14.</p>
+
+<div class="ask">💬 Got a hedging scenario you're not sure about (a different firm, currency, or a basis move)? Describe it in the terminal and ask me. I'm your teacher for this, and I'll walk through which way they hedge and who gains.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0002-forwards-vs-futures.html">Lesson 2, forwards vs futures</a></span>
+  <span>Reference: <a href="../reference/futures-cheatsheet.html">Futures cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0004-cross-hedging-and-the-minimum-variance-hedge-ratio.html">Lesson 4, cross hedging and the minimum variance hedge ratio</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

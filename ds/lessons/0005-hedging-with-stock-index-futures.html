@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stock Index Futures Hedging</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .beta-widget { font-family: Inter, system-ui, sans-serif; font-size: .85rem; }
+  .beta-widget .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .5rem .9rem; margin-bottom: .8rem; }
+  .beta-widget label { display: flex; flex-direction: column; gap: .15rem; color: var(--muted); }
+  .beta-widget input { font: inherit; padding: .25rem .4rem; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg); color: var(--fg); width: 100%; }
+  .beta-widget .out { font-size: 1rem; color: var(--fg); margin: .3rem 0 .6rem; }
+  .beta-widget .out strong { color: var(--accent); }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 5 · Topic 2: Hedging</div>
+<h1>Hedging with stock index futures: dialling beta up and down</h1>
+<p class="lede">The goal: given a share portfolio, its beta and a target beta, say straight away whether to go long or short index futures, how many contracts, what risk is left, and what return the whole position should expect.</p>
+
+<div class="mission">Why this matters for 5 Nov: the 2026 MST had a 2-mark "Long/Short N contracts" beta question, and the past finals open with a 10–14 mark multi-part question on exactly this: direction with an explanation, number of contracts, which maturity, residual risks and expected return over six months. It's one of the most predictable questions on the paper.</div>
+
+<p>This lesson assumes <a href="0003-hedging-and-basis-risk.html">Lesson 3</a> (short/long hedges, basis, choice of contract) and <a href="0004-cross-hedging-and-the-minimum-variance-hedge-ratio.html">Lesson 4</a> (\(h^*\) and \(N^* = h^* Q_A/Q_F\)).</p>
+
+<h2>1 · Beta and CAPM in five minutes</h2>
+
+<p>A <strong>stock index</strong> (S&amp;P/ASX 200, S&amp;P 500, Nikkei 225) is a weighted average of many share prices: "the market". A <strong>stock index futures</strong> contract is a futures contract on that index level, cash-settled, worth a fixed number of dollars per index point (the <strong>multiplier</strong>).</p>
+
+<table>
+<tr><th>Contract</th><th>Multiplier</th><th>One contract at index 8,000 is worth</th></tr>
+<tr><td>SPI 200 (ASX)</td><td>A$25 per point</td><td>A$200,000</td></tr>
+<tr><td>E-mini S&amp;P 500 (CME)</td><td>US$50 per point</td><td>US$400,000</td></tr>
+<tr><td>Older full-size S&amp;P 500 (Hull's examples)</td><td>US$250 per point</td><td>US$2,000,000</td></tr>
+<tr><td>Nikkei 225 (exam questions set their own ¥ multiplier)</td><td>e.g. ¥100 or ¥1,000</td><td>(Nikkei levels are ~40,000)</td></tr>
+</table>
+
+<p>Your portfolio isn't the index, so its value doesn't move one-for-one with it. <strong>Beta</strong> (\(\beta\)) measures how sensitive it is:</p>
+<p style="text-align:center"><em>beta = the % move you expect in the portfolio for each 1% move in the market.</em></p>
+<p>\(\beta = 1.5\): market −10% → portfolio about −15%. \(\beta = 0.5\): about −5%. \(\beta = 0\): the market doesn't matter to you. \(\beta = -0.8\): market −10% → portfolio about <em>+8%</em>. A fund that <em>short-sells</em> stocks has a negative beta: it gains when prices fall.</p>
+
+<p>Technically, beta is the slope of a regression of the portfolio's returns on the market's returns: \(\beta = \rho\,\sigma_P/\sigma_M\). Hold that thought; it comes back in section 4.</p>
+
+<p>The <strong>CAPM</strong> (capital asset pricing model) turns beta into an expected return. The course uses this version, over any period:</p>
+$$E[r_P] = r_f + \alpha + \beta\,\big(E[r_m] - r_f\big)$$
+<ul>
+  <li>\(r_f\): the risk-free rate (what a riskless deposit earns over the period).</li>
+  <li>\(E[r_m] - r_f\): the <strong>market risk premium</strong>, the extra return expected for holding the market. Here \(r_m\) includes dividends.</li>
+  <li>\(\beta(E[r_m] - r_f)\): you get the market's premium scaled by how much market risk you carry.</li>
+  <li>\(\alpha\) (<strong>alpha</strong>): the extra return from the manager's stock picking, on top of what the beta alone explains. CAPM says a typical \(\alpha\) is 0; a skilled stock picker hopes it's positive.</li>
+</ul>
+
+<div class="trap"><strong>Per-period, not per-annum</strong><br>
+Exams give \(r_f\) and \(\alpha\) per year, but ask for the return over 6 months. Scale both: \(r_f/2\), \(\alpha/2\). The expected market return is usually given for the period already. Plugging annual \(r_f\) into a 6-month formula is the classic lost mark.</div>
+
+<h2>2 · The one idea: futures add or remove market exposure</h2>
+
+<p>Measure market exposure in "beta-dollars": a portfolio worth \(V_A\) with beta \(\beta\) behaves like \(\beta V_A\) dollars of the index. One futures contract behaves like \(V_F = F_0 \times \text{multiplier}\) dollars of the index (beta 1), and costs nothing to enter except margin.</p>
+
+<ul>
+  <li>Each <strong>short</strong> contract removes \(V_F\) of market exposure (it gains when the market falls).</li>
+  <li>Each <strong>long</strong> contract adds \(V_F\) of market exposure.</li>
+</ul>
+<p>So you can change your market exposure <em>without selling or buying a single share</em>. You have \(\beta V_A\) beta-dollars and want \(\beta^* V_A\). The gap is \((\beta - \beta^*)V_A\), and each contract fills \(V_F\) of it:</p>
+
+<div class="box">
+$$N^* = (\beta - \beta^*)\,\frac{V_A}{V_F}\qquad \begin{cases} N^* > 0: & \text{SHORT } N^* \text{ contracts (cut beta)}\\ N^* < 0: & \text{LONG } |N^*| \text{ contracts (raise beta)}\end{cases}$$
+<p>Full hedge (\(\beta^* = 0\)): \(N^* = \beta V_A/V_F\), short (<a href="../lectures/Lecture%202_Futures%20Hedging.pdf">Lecture 2, slides 20–24</a>; Hull Ch. 3, "Stock index futures").</p>
+</div>
+
+<p><strong>Mental model:</strong> "Want beta lower? Short. Want beta higher? Long." This works whatever the sign of \(\beta\), including short-selling funds. Never ask "am I long or short the stocks?" first; ask "is my target beta below or above my current beta?"</p>
+
+<h3>Lecture example (slides 21–24)</h3>
+<p>Portfolio $5m, \(\beta = 1.5\), SPI 200 at 3,500, so \(V_F = 3{,}500 \times 25 = 87{,}500\) and \(V_A/V_F = 57.14\).</p>
+<ul>
+  <li>Full hedge: \(1.5 \times 57.14 = 85.7\), short <strong>86</strong>.</li>
+  <li>Down to \(\beta^* = 0.75\): \(0.75 \times 57.14 = 42.9\), short <strong>43</strong> (half the full hedge, because you remove half the beta).</li>
+  <li>Up to \(\beta^* = 2.0\): \(-0.5 \times 57.14 = -28.6\), negative, so <strong>long 29</strong>.</li>
+</ul>
+
+<div class="trap"><strong>Which price goes in \(V_F\)?</strong><br>
+\(V_F\) is the value of the index underlying one contract, and in practice you use the <strong>futures price of the contract you trade</strong> × multiplier (Hull does; the past-final solutions use the chosen contract's quote). The lecture slide uses the index level only because no futures price is given there. Exam rule: futures price quoted → use it. Only spot given with \(r\) and \(q\) → compute \(F_0 = S_0 e^{(r-q)T}\) for that maturity first (Lesson 7). Only an index level given → use it. Never use the share price or the portfolio value per share.</div>
+
+<h2>3 · One portfolio, five targets</h2>
+
+<p>A fund holds A$12m of Australian shares with \(\beta = 1.4\). SPI 200 futures are at 8,000, so \(V_F = 8{,}000 \times 25 = \$200{,}000\) and \(V_A/V_F = 60\). <em>Predict first:</em> for each target, long or short, and roughly how many?</p>
+
+<details><summary>Reveal the scenario table</summary><div>
+<p>Market-driven P&amp;L only (ignore \(r_f\), \(\alpha\) and basis; assume the futures move by the same % as the index). Portfolio alone: \(1.4 \times 10\% \times 12\text{m} = \$1.68\text{m}\).</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Target \(\beta^*\)</th><th>\(N^* = (1.4-\beta^*)\times60\)</th><th>Trade</th><th>Futures P&amp;L, market −10%</th><th>Total, market −10%</th><th>Total, market +10%</th></tr>
+<tr><td>0 (neutral)</td><td>84</td><td>Short 84</td><td>+1.68m</td><td>0</td><td>0</td></tr>
+<tr><td>0.7 (half)</td><td>42</td><td>Short 42</td><td>+0.84m</td><td>−0.84m</td><td>+0.84m</td></tr>
+<tr><td>1.4 (keep)</td><td>0</td><td>None</td><td>0</td><td>−1.68m</td><td>+1.68m</td></tr>
+<tr><td>2.8 (double)</td><td>−84</td><td>Long 84</td><td>−1.68m</td><td>−3.36m</td><td>+3.36m</td></tr>
+<tr><td>−0.5 (net short)</td><td>114</td><td>Short 114</td><td>+2.28m</td><td>+0.60m</td><td>−0.60m</td></tr>
+</table>
+</div>
+<p>What stays fixed: the shares and their own −1.68m / +1.68m. What changes: only the futures. In every row the total is \(\beta^* \times (\text{market move}) \times V_A\). The futures literally swap your beta for the one you chose. Note the last row: shorting <em>more</em> than the full hedge flips you into a net bet on a falling market.</p>
+</div></details>
+
+<h3>Negative-beta portfolios: work the direction carefully</h3>
+<p>A fund has A$5m of short-sold positions with \(\beta = -0.8\), using the same futures (\(V_A/V_F = 25\)). It already behaves like being <em>short</em> \(0.8 \times 5\text{m} = \$4\text{m}\) of the market. <em>Predict:</em> to make it market-neutral, long or short?</p>
+<details><summary>Reveal</summary><div>
+<ul>
+  <li>Neutral, \(\beta^* = 0\): \(N^* = (-0.8 - 0)\times25 = -20\) → <strong>long 20</strong>. You're too short the market, so you add market exposure. Check: market −10%: the fund gains $0.4m, the 20 longs lose \(20 \times 200{,}000 \times 10\% = \$0.4\text{m}\). Net 0.</li>
+  <li>Less negative, \(\beta^* = -0.2\): \(N^* = (-0.8+0.2)\times25 = -15\) → <strong>long 15</strong>. Target above current, so long.</li>
+  <li>More negative, \(\beta^* = -1.5\): \(N^* = (-0.8+1.5)\times25 = 17.5\) → <strong>short 17–18</strong>. Target below current, so short.</li>
+</ul>
+<p>The tempting mistake: "it's a hedge, hedges are short". For a short-selling fund, reducing risk means going <em>long</em> futures, just as a short hedger in Lesson 3 is the one who's naturally long the asset.</p>
+</div></details>
+
+<h3>Try it</h3>
+<div class="box beta-widget" id="bw">
+  <div class="grid">
+    <label>Portfolio value \(V_A\)<input id="bwVA" type="number" value="12000000" step="100000"></label>
+    <label>Current beta \(\beta\)<input id="bwB" type="number" value="1.4" step="0.05"></label>
+    <label>Target beta \(\beta^*\)<input id="bwT" type="number" value="0" step="0.05"></label>
+    <label>Futures price<input id="bwF" type="number" value="8000" step="10"></label>
+    <label>Multiplier<input id="bwM" type="number" value="25" step="5"></label>
+    <label>Market move (%)<input id="bwR" type="number" value="-10" step="1"></label>
+  </div>
+  <div class="out" id="bwOut"></div>
+  <div class="tablewrap"><table class="ledger" id="bwTab"></table></div>
+</div>
+
+<h2>4 · Why this is a minimum-variance hedge</h2>
+
+<p>In Lesson 4, \(h^* = \rho\,\sigma_S/\sigma_F\) was the slope of a regression of spot changes on futures changes, and \(N^* = h^* Q_A/Q_F\). Do the same in <em>returns</em> and <em>dollar values</em>: regress the portfolio's return on the index's return. The slope is \(\rho\,\sigma_P/\sigma_M\), which is beta. So \(h^* = \beta\), and \(N^* = \beta\,V_A/V_F\) is the same formula with values instead of quantities. That's why Tutorial 2 Q6 asks for the "minimum variance hedge ratio" and the answer is a beta hedge. (If an exam instead gives \(\rho\), \(\sigma\)'s for the portfolio and the futures, compute \(h^* = \rho\sigma_P/\sigma_F\) and use it in place of \(\beta\).)</p>
+
+<h2>5 · Expected return of the overall position, and locking in alpha</h2>
+
+<p>Why does the whole position (shares + futures) earn \(r_f + \alpha + \beta^*(E[r_m]-r_f)\)? The shares earn \(r_f + \alpha + \beta(E[r_m]-r_f)\). A futures contract costs nothing to enter, so per dollar of exposure it can't also pay you the risk-free rate: it delivers only the market's return <em>in excess of</em> \(r_f\), i.e. \(r_m - r_f\) (the cost-of-carry pricing in Lesson 7 makes this exact). Adding \((\beta^*-\beta)\) of exposure therefore adds \((\beta^*-\beta)(E[r_m]-r_f)\):</p>
+$$E[r_{\text{overall}}] = r_f + \alpha + \beta^*\big(E[r_m]-r_f\big)\qquad\text{(all over the hedge period)}$$
+
+<p><strong>Locking in alpha.</strong> Set \(\beta^* = 0\) and the expected return is \(r_f + \alpha\). A manager who's confident her stocks will beat the market (positive \(\alpha\)) but unsure of the market's direction can short \(\beta V_A/V_F\) contracts: the market's ups and downs cancel, and what's left is the risk-free rate plus her stock-picking edge. Without skill (\(\alpha = 0\)) a perfect hedge just earns \(r_f\), which is why you'd only hedge rather than sell when you want to keep the stocks: you believe in the picks, or selling and rebuying costs too much (Hull Ch. 3; notes "Locking the benefits of stock picking").</p>
+
+<div class="box">
+<p><strong>Example.</strong> \(r_f = 4\%\) p.a., \(\alpha = 1\%\) p.a., expected market return over the next 6 months 5%, \(\beta^* = 0.5\).</p>
+<p>\(E[r] = 2\% + 0.5\% + 0.5\times(5\% - 2\%) = 4.0\%\) over 6 months. With \(\beta^* = 0\): \(2.5\%\). With \(\beta^* = 1.5\): \(2.5\% + 4.5\% = 7.0\%\).</p>
+</div>
+
+<details><summary><em>Predict:</em> if the manager expects the market to <em>fall</em> (\(E[r_m] &lt; r_f\)), does raising \(\beta^*\) raise or lower the expected return?</summary><div><p>Lower it: the premium term \(\beta^*(E[r_m]-r_f)\) is negative, so more beta means more of a negative premium. That's why a fund expecting a fall cuts beta (or goes negative).</p></div></details>
+
+<h2>6 · What risk is left after the trade?</h2>
+<ol class="steps">
+  <li><strong>Market risk</strong>, whenever \(\beta^* \neq 0\). If you <em>raised</em> beta, the overall position is <em>more</em> exposed to market risk than before the futures, not less. Exams award a mark for saying this explicitly.</li>
+  <li><strong>Basis risk from asset mismatch.</strong> Your portfolio isn't the index. Beta is an estimate, and stock-specific moves (the noise around the CAPM line, including your alpha turning out worse) aren't hedged.</li>
+  <li><strong>Basis risk from maturity mismatch.</strong> If you close the futures before expiry, the futures price at close-out isn't pinned to the index (Lesson 3), so the basis then is uncertain.</li>
+  <li>Smaller ones: rounding to whole contracts, and beta drifting during the hedge (it may need rebalancing).</li>
+</ol>
+<p><strong>Choosing the maturity</strong> (Lesson 3 rule): use the first contract that expires <em>after</em> the hedge ends, so you never have to roll, and avoid sitting in the delivery month itself.</p>
+
+<h2>7 · Practice</h2>
+<p>Round contract numbers to the nearest whole contract. Numeric contract answers: type the number only (the direction is asked separately or given).</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> A long-only super fund holds Australian shares with beta 1.2. Ahead of an election it wants beta 0.4 for two months without selling shares. What should it do?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Go long SPI 200 futures to add exposure</button>
+    <button class="opt" data-key="b">Do nothing because the beta is above one</button>
+    <button class="opt" data-key="c">Go short SPI 200 futures to cut exposure</button>
+    <button class="opt" data-key="d">Go long futures to reach beta 0.4 only</button>
+  </div>
+  <div class="why">Target (0.4) below current (1.2), so \(N^* = (1.2-0.4)V_A/V_F &gt; 0\): short. Shorts gain when the market falls, offsetting part of the shares' loss. (d) uses only one beta and the wrong direction.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> A cautious fund with beta 0.6 now expects a strong rally and wants beta 1.1. What futures position?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Long index futures, since it wants more market exposure</button>
+    <button class="opt" data-key="b">Short index futures, since it is hedging its shares</button>
+    <button class="opt" data-key="c">Short index futures, since its beta is below one</button>
+    <button class="opt" data-key="d">No futures, as beta changes only by trading shares</button>
+  </div>
+  <div class="why">\(N^* = (0.6-1.1)V_A/V_F &lt; 0\), so long. Long futures add market exposure at almost no upfront cost. (b) reflexively assumes "futures in a hedge = short".</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>3.</strong> A short-selling fund has beta −0.9 and wants to be market-neutral for three months. What should it do?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Short index futures worth 0.9 of fund value</button>
+    <button class="opt" data-key="b">Short index futures worth 1.9 of fund value</button>
+    <button class="opt" data-key="c">Long index futures worth 1.9 of fund value</button>
+    <button class="opt" data-key="d">Long index futures worth 0.9 of fund value</button>
+  </div>
+  <div class="why">\(N^* = (-0.9-0)V_A/V_F = -0.9\,V_A/V_F\): long, with futures exposure \(0.9V_A\). The fund behaves like being short the market, so it adds long exposure to cancel. (a) has the right size and the wrong direction, the most common error.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>4.</strong> The same short fund (beta −0.9) instead becomes more bearish and wants beta −1.4. What should it do?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Long futures, since target is far from zero</button>
+    <button class="opt" data-key="b">Short futures, since target is below current</button>
+    <button class="opt" data-key="c">Long futures, since its beta is negative now</button>
+    <button class="opt" data-key="d">Nothing, since short funds cannot use futures</button>
+  </div>
+  <div class="why">\(N^* = (-0.9-(-1.4))V_A/V_F = 0.5\,V_A/V_F &gt; 0\): short. Lower beta always means short, whatever the sign of beta.</div>
+</div>
+
+<div class="quiz num" data-answer="115" data-tol="0.5">
+  <p class="q"><strong>5.</strong> A A$30m portfolio has beta 1.15. The manager wants beta 0.4 using SPI 200 futures quoted at 7,850 (A$25 per point). How many contracts does she short?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">contracts</span></div>
+  <div class="why">\(V_F = 7{,}850\times25 = 196{,}250\). \(N^* = (1.15-0.4)\times30{,}000{,}000/196{,}250 = 0.75\times152.87 = 114.6\), so short <strong>115</strong>.</div>
+</div>
+
+<div class="quiz" data-answer="e">
+  <p class="q"><strong>6.</strong> A US equity portfolio worth $45m has beta 0.85. The manager wants beta 1.35 for four months. The E-mini S&amp;P 500 contract to be used trades at 5,600, with a $50 multiplier. Ignoring any small maturity mismatch, the most appropriate trade is:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Long 217 contracts</button>
+    <button class="opt" data-key="b">Short 80 contracts</button>
+    <button class="opt" data-key="c">Long 137 contracts</button>
+    <button class="opt" data-key="d">Short 137 contracts</button>
+    <button class="opt" data-key="e">Long 80 contracts</button>
+  </div>
+  <div class="why">\(V_F = 5{,}600\times50 = 280{,}000\), \(V_A/V_F = 160.71\). \(N^* = (0.85-1.35)\times160.71 = -80.4\): <strong>long 80</strong>. (a) used only the target beta (\(1.35\times160.71 = 217\)); (c)/(d) used only the current beta (137); (b) is the wrong direction.</div>
+</div>
+
+<div class="quiz num" data-answer="701" data-tol="0.5">
+  <p class="q"><strong>7.</strong> A Tokyo fund worth ¥3 billion with beta 0.9 wants to remove all market exposure using Nikkei 225 mini futures quoted at 38,500 with a ¥100 multiplier. How many contracts should it short?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">contracts</span></div>
+  <div class="why">\(V_F = 38{,}500\times100 =\) ¥3,850,000. \(N^* = 0.9\times3{,}000{,}000{,}000/3{,}850{,}000 = 701.3\), short <strong>701</strong>. Currency doesn't matter as long as \(V_A\) and \(V_F\) are in the same one.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>8.</strong> Spot S&amp;P/ASX 200 is 8,000; the December SPI 200 future you'll trade is quoted at 8,060. Which \(V_F\) do you use?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">8,000 × 25, the spot index level today</button>
+    <button class="opt" data-key="b">8,060 × 25, the quoted futures price today</button>
+    <button class="opt" data-key="c">8,060 × 1, the futures price per point</button>
+    <button class="opt" data-key="d">8,030 × 25, the midpoint of the prices</button>
+  </div>
+  <div class="why">\(V_F\) is the value of one contract you actually trade: its futures price × multiplier. The lecture slide uses the index level only because no futures quote is given there. (c) forgets the multiplier.</div>
+</div>
+
+<div class="quiz num" data-answer="-320000" data-tol="1">
+  <p class="q"><strong>9.</strong> A $8m portfolio with beta 1.25 cuts its beta to 0.5 using futures at 5,000 with a $50 multiplier (24 contracts short). The index and the futures then both fall 8%. Ignoring \(r_f\), \(\alpha\) and basis, what is the total P&amp;L of shares plus futures?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Shares: \(1.25\times(-8\%)\times8\text{m} = -800{,}000\). Futures fall from 5,000 to 4,600: short gains \(400\times50\times24 = 480{,}000\). Total \(= -320{,}000 = 0.5\times(-8\%)\times8\text{m}\), exactly the new beta at work.</div>
+</div>
+
+<div class="quiz num" data-answer="4" data-tol="0.01">
+  <p class="q"><strong>10.</strong> \(r_f = 4\%\) p.a., the portfolio's \(\alpha = 1\%\) p.a., the market is expected to return 5% over the next six months, and the futures set \(\beta^* = 0.5\). What is the expected return (%) of the overall position over the six months?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(2\% + 0.5\% + 0.5\times(5\% - 2\%) = 4.0\%\). Halve both \(r_f\) and \(\alpha\); subtract the <em>six-month</em> \(r_f\) inside the premium.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>11.</strong> A stock picker fully hedges her portfolio (\(\beta^* = 0\)) with index futures. What should she expect to earn over the hedge period?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Nothing at all, since every risk has been removed</button>
+    <button class="opt" data-key="b">The market return plus her alpha for the period</button>
+    <button class="opt" data-key="c">The risk-free rate plus her alpha for the period</button>
+    <button class="opt" data-key="d">Only her alpha, since the market part is removed</button>
+  </div>
+  <div class="why">\(r_f + \alpha + 0\times(\ldots) = r_f + \alpha\): "locking in alpha". (d) forgets that the shares still earn \(r_f\) and the futures, costing nothing, don't take it away. (a): a riskless position earns \(r_f\), not zero.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>12.</strong> A fund with beta 0.3 goes long index futures to reach beta 1.5. Which statement about its risks afterwards is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">More market risk than before, plus basis risk from both mismatches</button>
+    <button class="opt" data-key="b">No market risk, as the futures have hedged the whole portfolio</button>
+    <button class="opt" data-key="c">Less market risk than before, but some basis risk still remains</button>
+    <button class="opt" data-key="d">Only basis risk, since index futures remove all the market risk</button>
+  </div>
+  <div class="why">Raising beta means taking <em>on</em> market risk: a 10% fall now costs about 15% instead of 3%. Basis risk remains from asset mismatch (portfolio ≠ index) and maturity mismatch. (c) assumes every futures trade reduces risk.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>13.</strong> A short fund with beta −1.1 adjusts to beta −0.3 with futures. The market then rises 10%. Ignoring \(\alpha\), \(r_f\) and basis, the overall position:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">gains about 3% of fund value</button>
+    <button class="opt" data-key="b">loses about 11% of fund value</button>
+    <button class="opt" data-key="c">gains about 8% of fund value</button>
+    <button class="opt" data-key="d">loses about 3% of fund value</button>
+  </div>
+  <div class="why">The total behaves like \(\beta^* = -0.3\): \(-0.3\times10\% = -3\%\). The long futures (it went long \(0.8V_A/V_F\)) gained 8%, cushioning the fund's 11% loss. (b) is the unhedged result.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>14.</strong> Why is \(N^* = \beta V_A/V_F\) a minimum-variance hedge?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Because beta always equals the correlation with the index itself</button>
+    <button class="opt" data-key="b">Because beta is the regression slope of portfolio on index</button>
+    <button class="opt" data-key="c">Because index futures always have exactly zero basis risk here</button>
+    <button class="opt" data-key="d">Because CAPM says alpha is zero for every single portfolio</button>
+  </div>
+  <div class="why">\(h^*\) is the slope from regressing the exposure on the hedging instrument; in returns that slope is \(\rho\sigma_P/\sigma_M = \beta\). (a) drops the \(\sigma_P/\sigma_M\) factor.</div>
+</div>
+
+<h2>8 · Exam-level challenge</h2>
+<p>Write it out on paper first, then open the steps one at a time.</p>
+<div class="box">
+<p>It is 15 July. Mia manages the Wattle Equity Fund, A$60m of Australian shares with beta 1.35 and an estimated alpha of 1.2% p.a. (both measured against the S&amp;P/ASX 200). She expects the market to return −3% (including dividends) over the next four months and the fund to keep its alpha. The investment committee agrees to keep the shares but set the overall beta to 0.3 until 15 November, using SPI 200 futures (A$25 per point, cash-settled, expiring in March, June, September and December).</p>
+<p>The index is at 8,200. The risk-free rate is 4% p.a. and the index dividend yield 3.6% p.a., both continuously compounded. Assume the December contract expires in exactly 5 months and the futures market is free of arbitrage.</p>
+<p>(a) Long or short futures? Explain. (b) Which contract month, and why? (c) The no-arbitrage price of that contract (preview of Lesson 7: \(F_0 = S_0e^{(r-q)T}\)), to 2 d.p. (d) Number of contracts. (e) Residual risks. (f) Expected % return of the overall position over the four months (use \(r_f\) and \(\alpha\) × 4/12). (g) Twist: the committee instead wants beta 1.8. Direction, contracts, and how does the risk compare with the unhedged fund?</p>
+</div>
+
+<details><summary>Step 1: (a) direction</summary><div>
+<p>The fund is naturally long shares with a positive beta. The target (0.3) is <em>below</em> the current beta (1.35), so it must remove market exposure: <strong>short</strong> SPI 200 futures, which gain when the market falls and offset most of the shares' loss.</p></div></details>
+<details><summary>Step 2: (b) contract month</summary><div>
+<p><strong>December.</strong> September expires mid-September, before the hedge ends on 15 November, so it would have to be rolled. December is the first contract expiring after the hedge horizon, and it's not in its delivery month on 15 November.</p></div></details>
+<details><summary>Step 3: (c) futures price</summary><div>
+<p>\(F_0 = 8{,}200\,e^{(0.04-0.036)\times5/12} = 8{,}200\,e^{0.0016667} = \mathbf{8{,}213.68}\). One contract: \(V_F = 8{,}213.68\times25 = \$205{,}341.95\).</p></div></details>
+<details><summary>Step 4: (d) number of contracts</summary><div>
+<p>\(N^* = (1.35-0.3)\times60{,}000{,}000/205{,}341.95 = 1.05\times292.20 = 306.8\) → short <strong>307</strong> December contracts.</p></div></details>
+<details><summary>Step 5: (e) residual risks</summary><div>
+<ul>
+<li>Market risk remains because \(\beta^* = 0.3 \neq 0\) (smaller than before).</li>
+<li>Basis risk from asset mismatch: the fund isn't the ASX 200; beta is an estimate and stock-specific returns (including alpha) aren't hedged.</li>
+<li>Basis risk from maturity mismatch: the futures are closed on 15 November, a month before expiry, when \(F\) need not equal the index.</li>
+</ul></div></details>
+<details><summary>Step 6: (f) expected return</summary><div>
+<p>Four-month \(r_f = 4\%/3 = 1.3333\%\), \(\alpha = 1.2\%/3 = 0.4\%\).<br>
+\(E[r] = 1.3333\% + 0.4\% + 0.3\times(-3\% - 1.3333\%) = 1.7333\% - 1.3\% = \mathbf{0.43\%}\).<br>
+Compare unhedged (\(\beta = 1.35\)): \(1.7333\% + 1.35\times(-4.3333\%) = -4.12\%\). Cutting beta is worth it precisely because she expects a fall.</p></div></details>
+<details><summary>Step 7: (g) the twist</summary><div>
+<p>Target 1.8 is above 1.35: \(N^* = (1.35-1.8)\times292.20 = -131.5\) → <strong>long 131</strong> December contracts. The overall position is now <em>more</em> exposed to market risk than the unhedged fund (a 10% fall costs about 18% instead of 13.5%), plus the same basis risks. With Mia's −3% forecast, its expected return would be \(1.7333\% + 1.8\times(-4.3333\%) = -6.07\%\): raising beta only makes sense if she expected the market to beat \(r_f\).</p></div></details>
+
+<h2>9 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, write \(N^*\), the direction rule, the expected-return formula and three residual risks. Then check</summary><div>
+<p>\(N^* = (\beta-\beta^*)V_A/V_F\), \(V_F\) = futures price × multiplier. Positive → short (beta down); negative → long (beta up), for any sign of \(\beta\). \(E[r] = r_f + \alpha + \beta^*(E[r_m]-r_f)\), all per period; \(\beta^* = 0\) locks in \(r_f + \alpha\). Residual: market risk if \(\beta^*\neq0\) (more if beta was raised), basis risk from asset mismatch and from maturity mismatch.</p></div></details>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, Ch. 3, "Stock index futures" (hedging an equity portfolio, changing beta, locking in the benefits of stock picking), with <a href="../lectures/Lecture%202_Futures%20Hedging.pdf">Lecture 2, slides 19–24</a>. For contract details see the <a href="https://www.asx.com.au/content/dam/asx/participants/derivatives-market/ird/asx24-contract-specifications.pdf">ASX 24 contract specifications</a> (SPI 200, A$25/point).</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%202.pdf">Tutorial 2</a>, Q6 (<a href="../tutes/Tutorial%202%20Solutions.pdf">solutions</a>): state the direction and why before computing. Then redo it for a target beta of 0.5 and of 2.0, and say what's left unhedged in each case.</p>
+<p><strong>Spacing:</strong> tomorrow, redo Q3, Q6 and the challenge's steps 4 and 6 without looking, plus Lesson 4's \(h^*\) calculation questions and Lesson 3's contract-choice question.</p>
+
+<div class="ask">💬 Stuck on a direction? Describe the fund (long or short shares, current beta, target beta) in the terminal and ask me. I'm your teacher for this, and I'll walk the beta-dollar bookkeeping with you.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0004-cross-hedging-and-the-minimum-variance-hedge-ratio.html">Lesson 4, cross hedging and the minimum-variance hedge ratio</a></span>
+  <span>Reference: <a href="../reference/futures-cheatsheet.html">Futures cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0006-cost-of-carry-and-arbitrage.html">Lesson 6, cost of carry and arbitrage</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+<script>
+(function () {
+  const ids = ['bwVA', 'bwB', 'bwT', 'bwF', 'bwM', 'bwR'];
+  const el = id => document.getElementById(id);
+  const fmt = x => (x < 0 ? '−' : '') + Math.abs(Math.round(x)).toLocaleString('en-AU');
+  function update() {
+    const [VA, b, t, F, M, R] = ids.map(id => parseFloat(el(id).value));
+    const out = el('bwOut'), tab = el('bwTab');
+    if ([VA, b, t, F, M, R].some(isNaN) || F <= 0 || M <= 0) { out.textContent = 'Fill in every box.'; tab.innerHTML = ''; return; }
+    const VF = F * M, N = (b - t) * VA / VF, m = R / 100;
+    const dir = Math.abs(N) < 0.5 ? 'No trade needed' : (N > 0 ? 'SHORT ' : 'LONG ') + Math.round(Math.abs(N)).toLocaleString('en-AU') + ' contracts';
+    out.innerHTML = 'V<sub>F</sub> = ' + fmt(VF) + ' · N* = ' + N.toFixed(2) + ' → <strong>' + dir + '</strong>';
+    const port = b * m * VA, fut = -N * VF * m;
+    tab.innerHTML = '<tr><th>Market move ' + R + '%</th><th>P&amp;L</th></tr>' +
+      '<tr><td>Shares (β × move × V<sub>A</sub>)</td><td>' + fmt(port) + '</td></tr>' +
+      '<tr><td>Futures (exact N*, no basis)</td><td>' + fmt(fut) + '</td></tr>' +
+      '<tr><td>Total = β* × move × V<sub>A</sub></td><td>' + fmt(port + fut) + '</td></tr>';
+  }
+  ids.forEach(id => el(id).addEventListener('input', update));
+  update();
+})();
+</script>
+</body>
+</html>

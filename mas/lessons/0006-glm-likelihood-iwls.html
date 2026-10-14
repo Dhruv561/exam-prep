@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GLM Likelihood and IWLS</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 6 · Topic 2: Exponential families &amp; GLMs</div>
+<h1>GLMs: the model, its likelihood, and how <code>glm()</code> fits it (IWLS)</h1>
+<p class="lede">The goal: state the three parts of a GLM, write its score equations, do one IWLS step by hand on four data points, and see where the <code>Std. Error</code> column of every <code>glm</code> printout comes from.</p>
+
+<div class="mission">Why this matters for 10 Nov: no past paper asks for a full IWLS derivation, but the lecturer says anything not excluded is assessable, and IWLS is a stated learning goal of <a href="../lectures/GLM_1_LMS-1.pdf#page=2">GLMs I, slide 2</a> ("explain ideas for IWLS", "compute the variance of parameter estimates"). More importantly, \(\operatorname{Var}\hat\beta = a(\phi)(X^TWX)^{-1}\) is the reason quasi-Poisson SEs are Poisson SEs \(\times\sqrt{\hat\phi}\), which is on every R-output question.</div>
+
+<h2>1 · A GLM has three parts</h2>
+<p>From <a href="0005-exponential-families.html">Lesson 5</a> you can put a density in the form \(f(y;\theta,\phi)=\exp\!\big[\frac{y\theta-b(\theta)}{a(\phi)}+c(y,\phi)\big]\), with \(\mathbb E Y=\mu=b'(\theta)\) and \(\operatorname{Var}Y=b''(\theta)a(\phi)=v(\mu)a(\phi)\) (<a href="../lectures/Exponential_families.pdf#page=9">Exponential families, slide 9</a>). A <strong>GLM</strong> adds a regression on the mean (<a href="../lectures/GLM_1_LMS-1.pdf#page=3">GLMs I, slide 3</a>):</p>
+<div class="box">
+<ol style="margin:0">
+  <li><strong>Random component:</strong> \(Y_i\) independent, each from the same exponential family, with its own \(\theta_i\) and a common \(\phi\).</li>
+  <li><strong>Linear predictor:</strong> \(\eta_i = x_i^T\beta\).</li>
+  <li><strong>Link:</strong> a monotone differentiable \(g\) with \(g(\mu_i)=\eta_i\), i.e. \(\mu_i = g^{-1}(x_i^T\beta)\).</li>
+</ol>
+</div>
+<p>The link is <strong>canonical</strong> when \(g(\mu)=\theta\), i.e. \(g=(b')^{-1}\) (slide 4): log for Poisson, logit for binomial, identity for normal. Any other monotone \(g\) still gives a GLM; you just lose some nice algebra (section 5). "Model the location with \(\eta\) and let the scale sort itself out" (slide 3): \(\phi\) is not modelled.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> \(Y_i\sim\text{Poisson}(\mu_i)\) independently, with \(\sqrt{\mu_i}=\beta_0+\beta_1x_i\). Which statement is right?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Not a GLM, because the link isn't canonical.</button>
+    <button class="opt" data-key="b">Not a GLM, because √μ isn't linear in β.</button>
+    <button class="opt" data-key="c">A GLM, with a valid but non-canonical link.</button>
+    <button class="opt" data-key="d">A GLM, and √μ is Poisson's canonical link.</button>
+  </div>
+  <div class="why">Poisson is an exponential family, \(\eta_i=\beta_0+\beta_1x_i\) is linear in \(\beta\), and \(g(\mu)=\sqrt\mu\) is monotone and differentiable on \(\mu&gt;0\). So it is a GLM. The canonical link is \(\theta=\log\mu\), not \(\sqrt\mu\). Option (b) confuses "\(g(\mu)\) linear in \(\beta\)" (what's required) with "\(\mu\) linear in \(\beta\)". You'll meet this model again in the challenge.</div>
+</div>
+
+<h2>2 · Log-likelihood and score equations</h2>
+<p>With independent \(y_i\) (slide 7):</p>
+$$\ell(\beta,\phi;y)=\sum_{i=1}^n\left[\frac{y_i\theta_i-b(\theta_i)}{a(\phi)}+c(y_i,\phi)\right],\qquad \theta_i \text{ depends on }\beta\text{ through } \mu_i=b'(\theta_i)=g^{-1}(x_i^T\beta).$$
+<p>Differentiate with the chain rule \(\beta_j\to\eta_i\to\mu_i\to\theta_i\). The three links of the chain are \(\partial\eta_i/\partial\beta_j=x_{ij}\), \(\partial\mu_i/\partial\eta_i=1/g'(\mu_i)\), and \(\partial\theta_i/\partial\mu_i = 1/b''(\theta_i)=1/v(\mu_i)\) (Faraway <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=170">§8.2, p. 154</a>):</p>
+$$\frac{\partial\ell}{\partial\beta_j}=\sum_i\frac{y_i-b'(\theta_i)}{a(\phi)}\cdot\frac{\partial\theta_i}{\partial\beta_j}
+=\sum_i\frac{(y_i-\mu_i)\,x_{ij}}{a(\phi)\,v(\mu_i)\,g'(\mu_i)}.$$
+<p>The MLE solves the <strong>score equations</strong> \(U_j(\hat\beta)=0\) for every \(j\), and \(a(\phi)\) drops out of them:</p>
+$$\boxed{\;\sum_{i=1}^n\frac{(y_i-\hat\mu_i)\,x_{ij}}{v(\hat\mu_i)\,g'(\hat\mu_i)}=0,\qquad j=1,\dots,p\;}$$
+<p>Only \(g\) and \(v\) appear, not the full density. That is why quasi-likelihood (later lesson) can fit a model given just a mean and a variance function.</p>
+
+<div class="quiz num" data-answer="9" data-tol="0.01">
+  <p class="q"><strong>2.</strong> Poisson, log link (canonical, so \(v(\mu)g'(\mu)=\mu\cdot\frac1\mu=1\) and \(a(\phi)=1\)). Data: \(x=(0,1,2,3)\), \(y=(2,3,6,7)\). At the null fit \(\beta=(\log4.5,\ 0)\), every \(\mu_i=4.5\). What is the slope component of the score, \(U_1=\sum_i x_i(y_i-\mu_i)\)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(y-\mu = (-2.5,-1.5,1.5,2.5)\), so \(U_1 = 0+(-1.5)+3+7.5=\)<strong>9</strong>. The intercept component is \(U_0=\sum(y_i-\mu_i)=0\): \(\log\bar y\) is the MLE of the intercept-only model. \(U_1&gt;0\) says the log-likelihood rises as \(\beta_1\) increases from 0, so the slope MLE is positive.</div>
+</div>
+
+<h2>3 · From Fisher scoring to IWLS</h2>
+<p>The score equations are nonlinear in \(\beta\), so we iterate. Newton–Raphson updates \(\beta^{n+1}=\beta^n+J(\beta^n)^{-1}U(\beta^n)\); <strong>Fisher scoring</strong> replaces the observed information \(J\) by the Fisher information \(\mathcal I\), which is always positive definite (<a href="../lectures/GLM_1_LMS-1.pdf#page=9">slide 9</a>). The lecture motivates IWLS by a first-order Taylor expansion of \(g(y_i)\) around \(\mu_i\) (<a href="../lectures/GLM_1_LMS-1.pdf#page=12">slides 12–13</a>):</p>
+$$g(y_i)\approx z_i := \underbrace{g(\mu_i)}_{\eta_i}+(y_i-\mu_i)g'(\mu_i) = x_i^T\beta+\varepsilon_i,\qquad \operatorname{Var}\varepsilon_i=g'(\mu_i)^2v(\mu_i)\,a(\phi).$$
+<p>That's a linear model for the <strong>working response</strong> \(z_i\) with unequal variances, so fit it by weighted least squares with <strong>weights</strong> \(W_{ii}=1/\big(g'(\mu_i)^2v(\mu_i)\big)\) (<a href="../lectures/GLM_1_LMS-1.pdf#page=11">slide 11</a>: \(\hat\beta=(X^TWX)^{-1}X^TWz\)). The \(a(\phi)\) is common to every \(\Sigma_{ii}\), so it cancels. Both \(z\) and \(W\) depend on \(\beta\), hence "iterate" (<a href="../lectures/GLM_1_LMS-1.pdf#page=14">slide 14</a>):</p>
+<div class="box">
+<p><strong>IWLS</strong> (course version)</p>
+<ol style="margin-bottom:0">
+  <li>Start with \(\hat\mu^0=y\).</li>
+  <li>Given \(\hat\mu^n\), for each \(i\): \(z_i^n=g(\hat\mu_i^n)+(y_i-\hat\mu_i^n)g'(\hat\mu_i^n)\) and \(W_{ii}^n=\dfrac{1}{g'(\hat\mu_i^n)^2\,v(\hat\mu_i^n)}\).</li>
+  <li>\(\hat\beta^{n+1}=(X^TW^nX)^{-1}X^TW^nz^n\), then \(\hat\mu_i^{n+1}=g^{-1}(x_i^T\hat\beta^{n+1})\).</li>
+  <li>Stop when \(\hat\beta^{n+1}\approx\hat\beta^n\); otherwise go to 2.</li>
+</ol>
+</div>
+<p><strong>Why it's Fisher scoring</strong> (three lines, the "ideas" the learning goal wants). Write \(W=\operatorname{diag}(W_{ii})\). Since \(z_i-\eta_i=(y_i-\mu_i)g'(\mu_i)\), the score from section 2 is</p>
+$$U=\frac{1}{a(\phi)}X^TW(z-\eta),\qquad \mathcal I=\operatorname{Var}U=\frac{1}{a(\phi)^2}X^TW\,\underbrace{\operatorname{Var}(z)}_{a(\phi)W^{-1}}\,WX=\frac{X^TWX}{a(\phi)}.$$
+$$\beta+\mathcal I^{-1}U=\beta+(X^TWX)^{-1}X^TW(z-\eta)=(X^TWX)^{-1}X^TW(\underbrace{X\beta}_{\eta}+z-\eta)=(X^TWX)^{-1}X^TWz.$$
+<p>So one Fisher scoring step <em>is</em> one weighted least squares fit of \(z\) on \(X\). (The lecturer's handwritten summary, <a href="../annotated-slides/GLM_1_LMS-%20annotated.pdf#page=24">annotated GLMs I, p. 24</a>: \(\hat\mu\to(\hat\Sigma,\hat z)\to\hat\beta\), iterate.)</p>
+
+<div class="trap"><strong>Trap: starting values</strong><br>"Start with \(\hat\mu^0=y\)" breaks if a Poisson \(y_i=0\) (then \(\log 0\)) or a binomial \(y_i\in\{0,m_i\}\). R's <code>glm</code> starts the Poisson at \(\hat\mu^0=y+0.1\) and the binomial at the shrunken proportions \((y_i+0.5)/(m_i+1)\), which is why its trace below differs slightly from the hand loop's first step. The converged \(\hat\beta\) is the same.</div>
+
+<h2>4 · One IWLS step by hand</h2>
+<p>Poisson, log link, \(\log\mu_i=\beta_0+\beta_1x_i\), with the data from quiz 2: \(x=(0,1,2,3)\), \(y=(2,3,6,7)\). Here \(g(\mu)=\log\mu\), \(g'(\mu)=1/\mu\), \(v(\mu)=\mu\), so</p>
+$$z_i=\eta_i+\frac{y_i-\mu_i}{\mu_i},\qquad W_{ii}=\frac{1}{(1/\mu_i)^2\,\mu_i}=\mu_i.$$
+<p><strong>Iteration 0.</strong> \(\hat\mu^0=y\), so \(z_i=\log y_i\) (the correction term is 0) and \(W_{ii}=y_i\):</p>
+<div class="tablewrap"><table>
+<tr><th>\(i\)</th><td>1</td><td>2</td><td>3</td><td>4</td></tr>
+<tr><th>\(x_i\)</th><td>0</td><td>1</td><td>2</td><td>3</td></tr>
+<tr><th>\(z_i=\log y_i\)</th><td>0.6931</td><td>1.0986</td><td>1.7918</td><td>1.9459</td></tr>
+<tr><th>\(W_{ii}=y_i\)</th><td>2</td><td>3</td><td>6</td><td>7</td></tr>
+</table></div>
+<p>With \(X\) having rows \((1,x_i)\):</p>
+$$X^TWX=\begin{pmatrix}\sum W_{ii}&\sum W_{ii}x_i\\ \sum W_{ii}x_i&\sum W_{ii}x_i^2\end{pmatrix}=\begin{pmatrix}18&36\\36&90\end{pmatrix},\qquad X^TWz=\begin{pmatrix}\sum W_{ii}z_i\\ \sum W_{ii}x_iz_i\end{pmatrix}=\begin{pmatrix}29.0541\\65.6611\end{pmatrix}.$$
+<p>The determinant is \(18\cdot90-36^2=324\). For a \(2\times2\) system, \(\begin{pmatrix}a&b\\b&d\end{pmatrix}^{-1}=\frac{1}{ad-b^2}\begin{pmatrix}d&-b\\-b&a\end{pmatrix}\).</p>
+
+<div class="quiz num" data-answer="0.4196" data-tol="0.002">
+  <p class="q"><strong>3.</strong> Compute the slope after one step, \(\hat\beta_1^{1}\) (4 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\hat\beta_1^1=\dfrac{-36(29.0541)+18(65.6611)}{324}=\dfrac{-1045.95+1181.90}{324}=\)<strong>0.4196</strong>. Likewise \(\hat\beta_0^1=\dfrac{90(29.0541)-36(65.6611)}{324}=0.7749\). This is just a weighted regression of \(\log y\) on \(x\) with weights \(y\): sensible, since big counts have small relative error.</div>
+</div>
+
+<p><strong>Iteration 1.</strong> Now \(\hat\eta_i^1=0.7749+0.4196x_i\), \(\hat\mu_i^1=e^{\hat\eta_i^1}\), and the correction term in \(z\) is no longer zero.</p>
+
+<div class="quiz num" data-answer="3.302" data-tol="0.003">
+  <p class="q"><strong>4.</strong> What is the weight \(W_{22}^1\) for the second point (\(x=1\)) at this iteration (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\hat\eta_2^1=0.7749+0.4196=1.1945\), and \(W_{22}=\hat\mu_2^1=e^{1.1945}=\)<strong>3.302</strong>. For Poisson-log the weight is the fitted mean: points with larger means are more precise on the log scale.</div>
+</div>
+
+<div class="quiz num" data-answer="1.9497" data-tol="0.002">
+  <p class="q"><strong>5.</strong> What is the working response \(z_4^1\) for the fourth point (\(x=3\), \(y=7\)) (4 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\hat\eta_4^1=0.7749+3(0.4196)=2.0337\), \(\hat\mu_4^1=e^{2.0337}=7.642\). Then \(z_4=2.0337+\dfrac{7-7.642}{7.642}=2.0337-0.0840=\)<strong>1.9497</strong>. The fit overshoots \(y_4\), so the working response is pulled below \(\hat\eta_4\).</div>
+</div>
+
+<p>Doing the next weighted fit gives \(\hat\beta^2=(0.76726,\ 0.41962)\), and the iterations have converged. Here is the same loop in R, in the style of the <a href="../extra-notes/Bliss-1.pdf#page=1">Bliss note's IWLS section</a> (and <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=171">Faraway pp. 155–156</a>):</p>
+<pre class="rout"><span class="cmd">&gt; x &lt;- c(0, 1, 2, 3); y &lt;- c(2, 3, 6, 7)
+&gt; mu &lt;- y
+&gt; eta &lt;- log(mu)
+&gt; z &lt;- eta + (y - mu)/mu
+&gt; w &lt;- mu
+&gt; lmod &lt;- lm(z ~ x, weights = w)
+&gt; coef(lmod)</span>
+(Intercept)           x
+  0.7748982   0.4196081
+<span class="cmd">&gt; for (i in 1:4) {
++   eta &lt;- lmod$fit
++   mu &lt;- exp(eta)
++   z &lt;- eta + (y - mu)/mu
++   w &lt;- mu
++   lmod &lt;- lm(z ~ x, weights = w)
++   cat(i, coef(lmod), "\n")
++ }</span>
+1 0.767259 0.4196176
+2 0.7672297 0.4196176
+3 0.7672297 0.4196176
+4 0.7672297 0.4196176
+<span class="cmd">&gt; X &lt;- model.matrix(lmod)
+&gt; sqrt(diag(solve(t(X) %*% diag(w) %*% X)))</span>
+(Intercept)           x
+  0.5108172   0.2265936
+<span class="cmd">&gt; fit &lt;- glm(y ~ x, family = poisson)
+&gt; summary(fit)$coef</span>
+             Estimate Std. Error  z value   Pr(&gt;|z|)
+(Intercept) 0.7672297  0.5108172 1.501965 0.13310611
+x           0.4196176  0.2265936 1.851851 0.06404723
+<span class="cmd">&gt; fit &lt;- glm(y ~ x, family = poisson, control = glm.control(trace = TRUE))</span>
+Deviance = 0.2763984 Iterations - 1
+Deviance = 0.2753802 Iterations - 2
+Deviance = 0.2753802 Iterations - 3
+Deviance = 0.2753802 Iterations - 4</pre>
+<p>The "<code>Number of Fisher Scoring iterations: 4</code>" line at the bottom of every <code>summary(glm(...))</code> counts exactly these steps.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>6.</strong> In the loop above, what does the line <code>z &lt;- eta + (y - mu)/mu</code> compute?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The Pearson residuals of the current fitted model.</button>
+    <button class="opt" data-key="b">The working response for the next weighted fit.</button>
+    <button class="opt" data-key="c">The deviance contribution made by each observation.</button>
+    <button class="opt" data-key="d">The score vector evaluated at the current estimates.</button>
+  </div>
+  <div class="why">It's \(z_i=\eta_i+(y_i-\mu_i)g'(\mu_i)\) with \(g'(\mu)=1/\mu\) for the log link. The next line, <code>w &lt;- mu</code>, is \(W_{ii}=1/(g'^2v)=\mu_i\). The Pearson residual would be \((y-\mu)/\sqrt{\mu}\), with no \(\eta\) in it. For the binomial (Bliss note) the same line is <code>z &lt;- eta + (y - mu)*m/mu/(m - mu)</code>, since \(g'(\mu)=m/(\mu(m-\mu))\) for \(g(\mu)=\log\frac{\mu}{m-\mu}\).</div>
+</div>
+
+<h2>5 · Standard errors, and what the canonical link buys you</h2>
+<p>At convergence \(\hat\beta=(X^T\hat\Sigma^{-1}X)^{-1}X^T\hat\Sigma^{-1}z\), and treating the weights as fixed, \(\operatorname{Var}z=\hat\Sigma\) gives (<a href="../lectures/GLM_1_LMS-1.pdf#page=15">slide 15</a>)</p>
+$$\boxed{\;\operatorname{Var}\hat\beta=(X^T\hat\Sigma^{-1}X)^{-1}=a(\phi)\,(X^T\hat WX)^{-1}=\mathcal I(\hat\beta)^{-1},\qquad \hat\Sigma_{ii}=g'(\hat\mu_i)^2v(\hat\mu_i)\,a(\phi).\;}$$
+<p>This time \(a(\phi)\) does <em>not</em> cancel. Poisson and binomial have \(a(\phi)=1\). Otherwise estimate it with Pearson's statistic, \(\widehat{a(\phi)}=X^2/(n-p)\), \(X^2=\sum_i(y_i-\hat\mu_i)^2/v(\hat\mu_i)\) (<a href="../lectures/GLM_1_LMS-1.pdf#page=16">slides 16–17</a>). Since \(\hat\beta\) doesn't depend on \(a(\phi)\) but the SEs scale with \(\sqrt{a(\phi)}\), a quasi-Poisson fit has the <em>same estimates</em> as the Poisson fit and SEs \(\times\sqrt{\hat\phi}\).</p>
+
+<div class="quiz num" data-answer="0.2266" data-tol="0.002">
+  <p class="q"><strong>7.</strong> The converged fitted means are \(\hat\mu=(2.154,\ 3.277,\ 4.985,\ 7.584)\). Compute \(\text{SE}(\hat\beta_1)\) from \(a(\phi)(X^T\hat WX)^{-1}\) (4 d.p.). Hint: \(\hat W_{ii}=\hat\mu_i\).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\sum\hat\mu_i=18.00\), \(\sum x_i\hat\mu_i=36.00\), \(\sum x_i^2\hat\mu_i=3.277+4(4.985)+9(7.584)=91.47\). Determinant \(18(91.47)-36^2=350.5\), so \(\operatorname{Var}\hat\beta_1=18/350.5=0.05135\) and \(\text{SE}=\)<strong>0.2266</strong>, matching R's <code>Std. Error</code>. Notice \(\sum\hat\mu_i=\sum y_i=18\) and \(\sum x_i\hat\mu_i=\sum x_iy_i=36\): those are the canonical-link score equations below.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>8.</strong> After the loop, R runs <code>sqrt(diag(solve(t(X) %*% diag(w) %*% X)))</code>. What does this compute?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The fitted values of the linear predictor at convergence.</button>
+    <button class="opt" data-key="b">The Pearson residuals divided by their own standard deviations.</button>
+    <button class="opt" data-key="c">The square roots of the converged IWLS working weights.</button>
+    <button class="opt" data-key="d">The coefficient standard errors, correct since φ = 1.</button>
+  </div>
+  <div class="why"><code>t(X) %*% diag(w) %*% X</code> is \(X^TWX\), <code>solve</code> inverts it, <code>diag</code> takes the variances, <code>sqrt</code> gives SEs. That equals \(\operatorname{Var}\hat\beta\) only because \(a(\phi)=1\) for the Poisson. For a quasi-Poisson or Gamma fit you'd multiply by \(\sqrt{\hat\phi}\). (Faraway p. 156 makes the same point: the SEs printed by the final <code>lm</code> are wrong because <code>lm</code> scales by its own \(\hat\sigma\).)</div>
+</div>
+
+<h3>The canonical link</h3>
+<p>If \(g=(b')^{-1}\), then \(g'(\mu)=1/b''(\theta)=1/v(\mu)\). Two things follow:</p>
+$$v(\mu_i)g'(\mu_i)=1\ \Rightarrow\ \boxed{U=\frac{1}{a(\phi)}X^T(y-\mu)},\qquad W_{ii}=\frac{1}{g'(\mu_i)^2v(\mu_i)}=v(\mu_i).$$
+<p>Differentiate \(U\) once more: \(\partial\mu_i/\partial\eta_i=1/g'(\mu_i)=v(\mu_i)=W_{ii}\), so</p>
+$$-\frac{\partial^2\ell}{\partial\beta\,\partial\beta^T}=\frac{1}{a(\phi)}X^TWX\quad\Longrightarrow\quad J(\beta)=\mathcal I(\beta).$$
+<p>No \(y\) left, so observed and expected information coincide, and <strong>Newton–Raphson = Fisher scoring = IWLS</strong>. The score equations \(X^T(y-\hat\mu)=0\) say that \(\sum_i x_{ij}\hat\mu_i=\sum_i x_{ij}y_i\) for every column: with an intercept, the fitted values add up to the observed total (quiz 7). With a non-canonical link, \(J\) still contains \(y\), so Newton–Raphson and Fisher scoring take different steps (though both reach the same \(\hat\beta\)), and <code>glm</code> uses Fisher scoring.</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>9.</strong> A Gamma GLM (\(v(\mu)=\mu^2\)) uses the log link. What is the IWLS weight \(W_{ii}\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(W_{ii}=1\) for every \(i\)</button>
+    <button class="opt" data-key="b">\(W_{ii}=\mu_i\) for every \(i\)</button>
+    <button class="opt" data-key="c">\(W_{ii}=\mu_i^2\) for every \(i\)</button>
+    <button class="opt" data-key="d">\(W_{ii}=1/\mu_i^2\) for every \(i\)</button>
+  </div>
+  <div class="why">\(g'(\mu)=1/\mu\), so \(W_{ii}=1/\big(\mu_i^{-2}\cdot\mu_i^2\big)=1\). Every IWLS step is then an <em>unweighted</em> regression of \(z\) on \(X\), and \(\operatorname{Var}\hat\beta=\phi(X^TX)^{-1}\). Option (b) is the Poisson-log weight, and (d) is \(1/v(\mu)\), which forgets the \(g'(\mu)^2\) factor. The log link isn't canonical for the Gamma, which is why \(W_{ii}\ne v(\mu_i)\) here.</div>
+</div>
+
+<h3>Explain why (write 2–3 sentences, then check)</h3>
+<div class="box">
+<p><strong>E1.</strong> Why do the IWLS weights depend on the variance function \(v(\mu)\) and on the link?</p>
+<details><summary>Model answer</summary><div><p>Each step is a weighted least-squares fit of the working response \(z_i\approx g(y_i)\), and weighted LS should weight each point by the inverse of its variance. By the delta method, \(\operatorname{Var}z_i\approx g'(\mu_i)^2\operatorname{Var}Y_i=g'(\mu_i)^2v(\mu_i)a(\phi)\): \(v\) says how noisy \(Y_i\) is, and \(g'\) says how much the link stretches that noise. So \(W_{ii}=1/(g'^2v)\) down-weights the observations that are noisiest on the \(\eta\) scale.</p></div></details>
+<p><strong>E2.</strong> Why does the canonical link make the observed information equal the Fisher information?</p>
+<details><summary>Model answer</summary><div><p>With \(\theta_i=\eta_i=x_i^T\beta\), the log-likelihood is \(\sum_i[y_i x_i^T\beta-b(x_i^T\beta)]/a(\phi)+\text{const}\): the data enter only through the term linear in \(\beta\). Differentiating twice kills that term, leaving \(-X^T\operatorname{diag}(b''(\theta_i))X/a(\phi)\), which contains no \(y\). A quantity with no \(y\) in it equals its own expectation, so \(J(\beta)=\mathcal I(\beta)\), and Newton–Raphson coincides with Fisher scoring.</p></div></details>
+<p><strong>E3.</strong> Why does \(a(\phi)\) cancel in the IWLS update but not in \(\operatorname{Var}\hat\beta\)?</p>
+<details><summary>Model answer</summary><div><p>In \(\hat\beta=(X^T\Sigma^{-1}X)^{-1}X^T\Sigma^{-1}z\), \(\Sigma\) appears once inverted and once not, so a common scalar factor \(a(\phi)\) cancels (just as \(\sigma^2\) doesn't affect OLS estimates). In \(\operatorname{Var}\hat\beta=(X^T\Sigma^{-1}X)^{-1}\) it appears only once, so it scales the variance. That's why overdispersion leaves estimates unchanged but inflates SEs by \(\sqrt{\hat\phi}\).</p></div></details>
+</div>
+
+<h2>6 · Exam-level challenge</h2>
+<p>About 20 minutes on paper. No past paper asks this, but every piece is a stated learning goal of GLMs I.</p>
+<div class="box">
+<p>A café counts customers \(y_i\) arriving in 12 half-hour windows, two windows at each of six staffing levels \(x_i\in\{1,\dots,6\}\). (Simulated data.) Model: \(Y_i\sim\text{Poisson}(\mu_i)\) independently, \(\sqrt{\mu_i}=\beta_0+\beta_1x_i\).</p>
+<pre class="rout"><span class="cmd">&gt; rbind(x, y)</span>
+  [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12]
+x    1    1    2    2    3    3    4    4    5     5     6     6
+y    4    3    6    5    6    5    5    9   12    11    22    20
+<span class="cmd">&gt; fit1 &lt;- glm(y ~ x, family = poisson(link = "sqrt"))
+&gt; summary(fit1)</span>
+
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  1.17320    0.32914   3.564 0.000365 ***
+x            0.48818    0.08452   5.776 7.64e-09 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 42.1435  on 11  degrees of freedom
+Residual deviance:  7.0132  on 10  degrees of freedom
+AIC: 57.447
+
+Number of Fisher Scoring iterations: 4
+
+<span class="cmd">&gt; fit0 &lt;- glm(y ~ 1, family = poisson(link = "sqrt"))
+&gt; summary(fit0)$coef</span>
+            Estimate Std. Error z value     Pr(&gt;|z|)
+(Intercept)        3  0.1443376 20.78461 6.065113e-96</pre>
+<p>(a) State the three components of this GLM. Is the link canonical? Justify.<br>
+(b) Write the log-likelihood as a function of \(\beta\) and derive the score equations.<br>
+(c) Give the IWLS working response \(z_i\) and weight \(W_{ii}\). Simplify \(W_{ii}\) as far as possible.<br>
+(d) Find the Fisher information \(\mathcal I(\beta)\). Use it, with \(\sum x_i=42\) and \(\sum x_i^2=182\), to reproduce both standard errors of <code>fit1</code>. Why don't you need \(\hat\beta\)?<br>
+(e) For the intercept-only model <code>fit0</code>, show that \(\hat\beta_0=\sqrt{\bar y}\) and \(\text{SE}(\hat\beta_0)=1/(2\sqrt n)\), and check against the printout. Starting from \(\beta_0^{0}=2\), carry out one IWLS step.<br>
+(f) Find the observed information \(J(\beta)\). Is Newton–Raphson the same algorithm as Fisher scoring here? Explain in 2–3 sentences.</p>
+</div>
+
+<details><summary>Step 1: part (a)</summary><div>
+<p>Random component: \(Y_i\) independent Poisson\((\mu_i)\), an exponential family with \(\theta=\log\mu\), \(b(\theta)=e^\theta\), \(a(\phi)=1\). Linear predictor: \(\eta_i=\beta_0+\beta_1x_i\). Link: \(g(\mu)=\sqrt\mu\), monotone and differentiable for \(\mu&gt;0\).</p>
+<p>Not canonical: the canonical link is \(g=(b')^{-1}\); \(b'(\theta)=e^\theta\), so \((b')^{-1}(\mu)=\log\mu\ne\sqrt\mu\).</p></div></details>
+<details><summary>Step 2: part (b)</summary><div>
+<p>\(\mu_i=\eta_i^2\), so \(\ell(\beta)=\sum_i\big[y_i\log\mu_i-\mu_i-\log y_i!\big]=\sum_i\big[2y_i\log\eta_i-\eta_i^2-\log y_i!\big]\) (needs \(\eta_i&gt;0\)).</p>
+<p>\(\dfrac{\partial\ell}{\partial\beta_j}=\sum_i\Big(\dfrac{2y_i}{\eta_i}-2\eta_i\Big)x_{ij}=\sum_i\dfrac{2(y_i-\mu_i)}{\sqrt{\mu_i}}\,x_{ij}\). Check with the general formula: \(\dfrac{(y-\mu)x}{a\,v\,g'}=\dfrac{(y-\mu)x}{\mu\cdot\frac{1}{2\sqrt\mu}}=\dfrac{2(y-\mu)x}{\sqrt\mu}\) ✓.</p>
+<p>Score equations: \(\displaystyle\sum_i\frac{y_i-\hat\mu_i}{\sqrt{\hat\mu_i}}=0\) and \(\displaystyle\sum_i\frac{(y_i-\hat\mu_i)x_i}{\sqrt{\hat\mu_i}}=0\).</p></div></details>
+<details><summary>Step 3: part (c)</summary><div>
+<p>\(g'(\mu)=\dfrac{1}{2\sqrt\mu}\), so \(z_i=\eta_i+\dfrac{y_i-\mu_i}{2\sqrt{\mu_i}}=\dfrac{\eta_i}{2}+\dfrac{y_i}{2\eta_i}\).</p>
+<p>\(W_{ii}=\dfrac{1}{g'(\mu_i)^2v(\mu_i)}=\dfrac{1}{\frac{1}{4\mu_i}\cdot\mu_i}=\boxed{4}\), the same for every observation and every iteration. (The square root is the variance-stabilising transform for Poisson: \(\operatorname{Var}\sqrt Y\approx\frac14\).)</p></div></details>
+<details><summary>Step 4: part (d)</summary><div>
+<p>\(\mathcal I(\beta)=X^TWX/a(\phi)=4X^TX\), with \(X^TX=\begin{pmatrix}12&amp;42\\42&amp;182\end{pmatrix}\), determinant \(12(182)-42^2=420\).</p>
+<p>\(\mathcal I^{-1}=\dfrac{1}{4\cdot420}\begin{pmatrix}182&amp;-42\\-42&amp;12\end{pmatrix}\): \(\text{SE}(\hat\beta_0)=\sqrt{182/1680}=\sqrt{0.10833}=0.3291\) ✓ and \(\text{SE}(\hat\beta_1)=\sqrt{12/1680}=\sqrt{0.007143}=0.08452\) ✓.</p>
+<p>You don't need \(\hat\beta\) because \(W\) doesn't depend on \(\mu\): the information is the same at every \(\beta\).</p></div></details>
+<details><summary>Step 5: part (e)</summary><div>
+<p>With \(\eta_i=\beta_0\) for all \(i\), the score is \(\sum_i 2(y_i-\beta_0^2)/\beta_0=0\Rightarrow\beta_0^2=\bar y\Rightarrow\hat\beta_0=\sqrt{\bar y}=\sqrt{108/12}=\sqrt9=3\) ✓. \(\mathcal I=4n\), so \(\text{SE}=1/\sqrt{4n}=1/(2\sqrt{12})=0.1443\) ✓.</p>
+<p>IWLS with constant weights and only an intercept: \(\beta_0^{1}=\bar z=\dfrac{\beta_0^0}{2}+\dfrac{\bar y}{2\beta_0^0}=1+\dfrac{9}{4}=\boxed{3.25}\). The next step gives \(1.625+9/6.5=3.0096\), then \(3.00002\): this is Newton's method for \(\sqrt9\).</p></div></details>
+<details><summary>Step 6: part (f)</summary><div>
+<p>\(\dfrac{\partial^2\ell}{\partial\beta_j\partial\beta_k}=\sum_i\Big(-\dfrac{2y_i}{\eta_i^2}-2\Big)x_{ij}x_{ik}\), so \(J(\beta)=X^T\operatorname{diag}\!\Big(2+\dfrac{2y_i}{\eta_i^2}\Big)X\). Taking expectations, \(\mathbb E[2y_i/\eta_i^2]=2\mu_i/\mu_i=2\), so \(\mathcal I=X^T\operatorname{diag}(4)X=4X^TX\) ✓.</p>
+<p><strong>Explanation:</strong> \(J\) depends on the data through \(y_i\), so \(J\ne\mathcal I\) in general and Newton–Raphson (which uses \(J\)) takes different steps from Fisher scoring (which uses \(\mathcal I\)). This happens because the link isn't canonical: the \(y\)-term of \(\ell\) is \(2y_i\log\eta_i\), not linear in \(\beta\). Both converge to the same \(\hat\beta\); <code>glm</code> uses Fisher scoring, so its SEs come from \(\mathcal I\). (At \(\hat\beta\), SEs from \(J\) would be 0.3142 and 0.0809: close, not equal. For <code>fit0</code> they coincide, because \(\sum y_i=n\hat\eta^2\) at the MLE.)</p></div></details>
+
+<h2>7 · Before you close this tab</h2>
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) GLM = exponential-family \(Y_i\) + \(\eta_i=x_i^T\beta\) + monotone link \(g(\mu_i)=\eta_i\); canonical if \(g=(b')^{-1}\). (2) Score: \(U_j=\sum_i\frac{(y_i-\mu_i)x_{ij}}{a(\phi)v(\mu_i)g'(\mu_i)}\). (3) IWLS: \(z_i=\eta_i+(y_i-\mu_i)g'(\mu_i)\), \(W_{ii}=1/(g'(\mu_i)^2v(\mu_i))\), \(\beta^{\text{new}}=(X^TWX)^{-1}X^TWz\), start at \(\hat\mu^0=y\). (4) \(\operatorname{Var}\hat\beta=a(\phi)(X^T\hat WX)^{-1}\); \(a(\phi)\) cancels in the update, not in the variance; estimate it by \(X^2/(n-p)\). (5) Canonical link: \(W=v(\mu)\), \(U=X^T(y-\mu)/a(\phi)\), \(J=\mathcal I\), so NR = Fisher scoring = IWLS.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../annotated-slides/GLM_1_LMS-%20annotated.pdf">GLMs I (annotated)</a>, pp. 10–30 (lecture slides 6–17 with the lecturer's handwritten working), then the IWLS section of <a href="../extra-notes/Bliss-1.pdf">Bliss.pdf</a>, which slide 14 points to. For the score-equation derivation the slides skip, read Faraway, <em>Extending the Linear Model with R</em>, <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=167">§8.1</a> (pp. 151–154: GLM definition, Table 8.1 of canonical links and variance functions) and <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=170">§8.2</a> (pp. 154–156: fitting, IRWLS, \(\widehat{\operatorname{var}}\hat\beta=(X^TWX)^{-1}\hat\phi\)). Faraway writes \(a_i(\phi)=\phi/w_i\) and \(V(\mu)\) for the course's \(v(\mu)\).</p>
+
+<p><strong>Homework</strong> (by hand):</p>
+<ol>
+  <li><strong>Bliss, first IWLS step.</strong> In <a href="../extra-notes/Bliss-1.pdf#page=1">Bliss.pdf</a> (binomial, logit link, \(m_i=30\), \(y=(2,8,15,23,27)\) dead at <code>conc</code> \(=0,\dots,4\)), the R code uses <code>z &lt;- eta + (y - mu)*m/mu/(m - mu)</code> and <code>w &lt;- mu*(m - mu)/m</code>. (a) Derive both lines from \(z_i=g(\mu_i)+(y_i-\mu_i)g'(\mu_i)\) and \(W_{ii}=1/(g'^2v)\), with \(g(\mu)=\log\frac{\mu}{m-\mu}\) and \(v(\mu)=\mu(1-\mu/m)\). (b) Starting from \(\hat\mu^0=y\), compute \(z_1, W_{11}\) and \(z_3, W_{33}\). (c) Faraway p. 156 says the SEs printed by the final <code>lm</code> fit are wrong. Explain why in two sentences.</li>
+  <li><strong>Gamma with log link, by hand.</strong> \(Y_i\sim\) Gamma with mean \(\mu_i\), \(\operatorname{Var}Y_i=\phi\mu_i^2\), \(\log\mu_i=x_i^T\beta\). Derive (a) the score equations, (b) \(z_i\) and \(W_{ii}\), (c) \(\operatorname{Var}\hat\beta\). (d) Is this link canonical? Do \(J\) and \(\mathcal I\) agree? (This is the model behind the Gamma GLMs in <a href="0007-poisson-gamma-glms.html">Lesson 7</a> and week 5 tutorial Q1.)</li>
+  <li><em>Optional:</em> Faraway <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=187">Ch. 8</a> Ex. 1(b)–(c): exponential response, canonical link and variance function, and the practical difficulty with the canonical link.</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1(a). \(g'(\mu)=\frac1\mu+\frac{1}{m-\mu}=\frac{m}{\mu(m-\mu)}\), giving <code>z</code>. \(W=\dfrac{1}{\frac{m^2}{\mu^2(m-\mu)^2}\cdot\frac{\mu(m-\mu)}{m}}=\dfrac{\mu(m-\mu)}{m}\), giving <code>w</code> (= \(v(\mu)\), as it must for the canonical link). (b) At \(\hat\mu^0=y\) the correction is 0, so \(z_i=\log\frac{y_i}{m-y_i}\): \(z_1=\log(2/28)=-2.639\), \(W_{11}=2(28)/30=1.867\); \(z_3=\log(15/15)=0\), \(W_{33}=15(15)/30=7.5\). (c) <code>lm</code> estimates its own residual variance \(\hat\sigma^2\) and multiplies \((X^TWX)^{-1}\) by it, but for the binomial \(a(\phi)=1\) is known. Dividing the <code>lm</code> SEs by \(\hat\sigma\) (or computing \(\sqrt{\operatorname{diag}(X^TWX)^{-1}}\)) gives the glm SEs 0.4179 and 0.1814.</p>
+<p>2(a). \(g'(\mu)=1/\mu\), \(v(\mu)=\mu^2\), \(a(\phi)=\phi\): \(U_j=\frac1\phi\sum_i\frac{(y_i-\mu_i)x_{ij}}{\mu_i^2\cdot\frac{1}{\mu_i}}=\frac1\phi\sum_i\Big(\frac{y_i}{\mu_i}-1\Big)x_{ij}\), so solve \(\sum_i(y_i/\hat\mu_i-1)x_{ij}=0\). (b) \(z_i=\eta_i+(y_i-\mu_i)/\mu_i\) and \(W_{ii}=1\). (c) \(\operatorname{Var}\hat\beta=\phi(X^TX)^{-1}\), with \(\phi\) estimated by \(X^2/(n-p)\). (d) No: the Gamma's canonical link is \(\theta=-1/\mu\) (R uses <code>inverse</code>, \(1/\mu\)). Here \(-\partial^2\ell/\partial\beta\partial\beta^T=\frac1\phi X^T\operatorname{diag}(y_i/\mu_i)X\), which contains \(y\); its expectation is \(\frac1\phi X^TX=\mathcal I\). So \(J\ne\mathcal I\) in general.</p>
+<p>3. In the form \(f=\exp[y\theta-b(\theta)]\) with \(\theta=-\lambda\), \(b(\theta)=-\log(-\theta)\), \(a(\phi)=1\): \(\mu=-1/\theta\), so the canonical link is \(g(\mu)=-1/\mu\) and \(v(\mu)=b''(\theta)=1/\theta^2=\mu^2\). Difficulty: \(\eta=-1/\mu\) must be negative (\(1/\mu\) positive if you use R's inverse link), but \(x^T\beta\) can be any real number, so fitted means can go out of range during fitting or prediction.</p></div></details>
+<p><strong>Spacing:</strong> tomorrow, without looking, write the IWLS algorithm (four steps) and redo challenge parts (c) and (d). In a week, redo E2.</p>
+
+<div class="ask">💬 Ask me in the terminal if any step of the Fisher-scoring-to-IWLS argument doesn't click, or if you want another link to practise on (binomial with probit is a good next one). I'm your teacher for this. Paste your challenge answers and I'll mark them like an exam marker.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0005-exponential-families.html">Lesson 5, exponential families</a> · Reference: <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0007-poisson-gamma-glms.html">Lesson 7, Poisson and Gamma GLMs</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

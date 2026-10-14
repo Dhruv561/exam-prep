@@ -1,0 +1,84 @@
+---
+title: "MAST30027: Expectation-Maximization (EM) Algorithm for Mixture Models"
+subtitle: "Week 7 - Solutions"
+date: ""
+
+format:
+  html:
+    self-contained: true
+    css: CSSBackground.css
+    html-math-method: mathml
+resources:
+  - ../images/Banner.png
+---
+
+**Objectives of the Tutorial/Lab**
+By the end of this tutorial, you should be able to:
+
+- Simulate data from finite Poisson mixture models.
+- Derive the E-step and M-step of the EM algorithm for a Poisson mixture.
+- Implement and interpret the EM algorithm for a Poisson mixture model.
+
+## Question 1
+
+Simulate 100 samples from the following mixture model. For $i=1, \ldots, 100$,
+$$
+Z_i \sim \text{categorical }(0.8, 0.2),
+$$
+
+$$
+X_i | Z_i = 1 \sim \text{Pois}(\lambda_1=2) \text{ and } X_i | Z_i = 2 \sim \text{Pois}(\lambda_2=8).
+$$
+
+The Poisson distribution has probability mass function
+
+$$
+f(x; \lambda) = \frac{\lambda^x e^{-\lambda}}{x!}.
+$$
+
+Please set a seed using `set.seed(30027)`. Make a histogram of the simulated samples.
+
+```{r}
+
+```
+
+## Question 2
+
+We pretend that we just observe the simulated samples. We will assume that the observed data follow a mixture of two Poisson distributions. Specifically, for $i=1, \ldots, 100$,
+$$
+Z_i \sim \text{categorical }(\pi_1, 1-\pi_1),
+$$
+
+$$
+X_i | Z_i = 1 \sim \text{Poisson}(\lambda_1) \text{ and } X_i | Z_i = 2 \sim \text{Poisson}(\lambda_2).
+$$
+
+We aim to obtain MLE of parameters $\theta = (\pi_1, \lambda_1, \lambda_2)$ using the EM algorithm.
+
+:::: {.subquestions}
+::: {.subquestion}
+Let $X = (X_1, \ldots, X_{100})$ and $Z=(Z_1, \ldots, Z_{100})$. Derive the expectation of the complete log-likelihood, $Q(\theta, \theta^0) = E_{Z|X, \theta^0}[\log (P(X,Z|\theta))]$.
+
+```{r}
+
+```
+
+:::
+
+::: {.subquestion}
+Derive E-step and M-step of the EM algorithm.
+
+```{r}
+
+```
+
+:::
+
+::: {.subquestion}
+Implement the EM algorithm and obtain MLE of the parameters by applying the implemented algorithm to the simulated data. Run the EM algorithm multiple times with different initial values and pick estimators with the highest incomplete log-likelihood. For each run, check that the incomplete log-likelihoods increases at each step by plotting them.
+
+```{r}
+
+```
+:::
+::::

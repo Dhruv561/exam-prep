@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GLM Diagnostics</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  figure.plot { margin: 1.2rem 0; }
+  figure.plot img { display: block; width: 100%; max-width: 640px; height: auto; margin: 0 auto; background: #fff; border: 1px solid var(--rule); border-radius: 6px; }
+  figure.plot figcaption { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); margin-top: .4rem; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 8 · Topic 2: Exponential families &amp; GLMs</div>
+<h1>GLM diagnostics: residuals, leverage and influence</h1>
+<p class="lede">The goal: given a GLM printout and a few fitted values, you can compute the Pearson and deviance residual for one observation by hand (binomial and Poisson), standardise it with \(h_{ii}\), compute a Cook's distance, and look at a four-panel diagnostic plot and say which point is an outlier, which has high leverage, and which actually changes the fit.</p>
+
+<div class="mission">Why this matters for 10 Nov: the lecturer taught diagnostics this year (<a href="../lectures/GLM_2_correct_LMS.pdf#page=11">GLMs II, slides 11–21</a>) and says everything not excluded is assessable. The one past paper with a diagnostics part (2016) gave a 2×2 panel of <code>residuals</code>, <code>rstudent</code> and <code>cooks.distance</code> plots and asked which point to investigate, and why. Expect that, plus "compute this residual" and "what does this R line compute?".</div>
+
+<h2>1 · Three residuals</h2>
+<p>From <a href="../lectures/GLM_2_correct_LMS.pdf#page=12">GLMs II, slides 12–13</a>, with \(v(\mu)\) the variance function (\(\operatorname{Var}Y_i = v(\mu_i)\,a(\phi)\)):</p>
+<div class="tablewrap"><table>
+<tr><th>Residual</th><th>Formula</th><th>R</th></tr>
+<tr><td>Response</td><td>\(y_i-\hat\mu_i\)</td><td><code>residuals(m, type="response")</code></td></tr>
+<tr><td>Pearson</td><td>\(r_P(i)=\dfrac{y_i-\hat\mu_i}{\sqrt{v(\hat\mu_i)}}\), and \(\sum_i r_P(i)^2 = X^2\)</td><td><code>residuals(m, type="pearson")</code></td></tr>
+<tr><td>Deviance</td><td>\(r_D(i)=\operatorname{sign}(y_i-\hat\mu_i)\sqrt{d_i}\), and \(\sum_i r_D(i)^2 = D\)</td><td><code>residuals(m)</code> (the default)</td></tr>
+</table></div>
+<p>The \(d_i\) are the per-observation deviance terms from <a href="0003-deviance-lrt-aic.html">Lesson 3</a> (slides 5–6). The two you need:</p>
+$$\text{Poisson: } d_i = 2\Big[y_i\log\frac{y_i}{\hat\mu_i}-(y_i-\hat\mu_i)\Big],\qquad
+\text{Binomial: } d_i = 2\Big[y_i\log\frac{y_i}{\hat\mu_i}+(m_i-y_i)\log\frac{m_i-y_i}{m_i-\hat\mu_i}\Big],$$
+<p>with \(v(\mu)=\mu\) (Poisson) and \(v(\mu_i)=m_ip_i(1-p_i)\) (binomial counts, \(\mu_i=m_ip_i\)). Use \(0\log 0=0\): a Poisson \(y_i=0\) gives \(d_i=2\hat\mu_i\).</p>
+<p><strong>Why not just \(y_i-\hat\mu_i\)?</strong> Unless \(v(\mu)\) is constant (the normal case), the response residuals have different variances, so a big one might just be a big \(\mu_i\). Dividing by \(\sqrt{v(\hat\mu_i)}\) puts them on one scale (slide 12; the lecturer's note: "comparable to the standardized residuals in linear models").</p>
+
+<h3>Worked example: the Challenger O-rings</h3>
+<p>Faraway's <code>orings</code> data (the same data as <a href="../extra-notes/Challenger.pdf">Challenger.pdf</a>): 23 launches, each with \(m_i=6\) O-rings, \(y_i\) = number damaged, predictor <code>temp</code> (°F).</p>
+<pre class="rout"><span class="cmd">&gt; m &lt;- glm(cbind(damage, 6 - damage) ~ temp, family = binomial, data = orings)
+&gt; summary(m)</span>
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) 11.66299    3.29626   3.538 0.000403 ***
+temp        -0.21623    0.05318  -4.066 4.78e-05 ***
+
+    Null deviance: 38.898  on 22  degrees of freedom
+Residual deviance: 16.912  on 21  degrees of freedom
+AIC: 33.675
+
+<span class="cmd">&gt; i &lt;- c(1, 2, 11, 18, 23)
+&gt; cbind(orings[i, ], phat = fitted(m)[i], h = hatvalues(m)[i])</span>
+   temp damage    phat       h
+1    53      5 <b>0.55048 0.50345</b>
+2    57      1 0.34022 0.25507
+11   70      1 0.03008 0.05738
+18   75      1 <b>0.01041</b> 0.03928
+23   81      0 0.00287 0.02043</pre>
+<p>Launch 1 (53 °F, 5 of 6 damaged): \(\hat\mu_1 = 6(0.55048) = 3.3029\) and \(v(\hat\mu_1) = 6(0.55048)(0.44952) = 1.4847\).</p>
+$$r_P(1)=\frac{5-3.3029}{\sqrt{1.4847}}=\frac{1.6971}{1.2185}=1.393,$$
+$$d_1 = 2\Big[5\log\frac{5}{3.3029}+1\cdot\log\frac{1}{2.6971}\Big]=2\,[2.0733-0.9922]=2.162,\qquad r_D(1)=+\sqrt{2.162}=1.470.$$
+
+<div class="quiz num" data-answer="3.771" data-tol="0.01">
+  <p class="q"><strong>1.</strong> Launch 18 (75 °F) had 1 damaged O-ring out of 6, with \(\hat p_{18}=0.01041\). What is its Pearson residual \(r_P(18)\) (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\hat\mu = 6(0.01041)=0.06246\), \(v(\hat\mu)=6(0.01041)(0.98959)=0.06181\). So \(r_P = 0.93754/0.24862 = \)<strong>3.771</strong>. R agrees: <code>residuals(m, "pearson")[18]</code> is <code>3.77106</code>.</div>
+</div>
+
+<div class="quiz num" data-answer="1.957" data-tol="0.01">
+  <p class="q"><strong>2.</strong> Same launch: what is its deviance residual \(r_D(18)\) (3 d.p.)? Then explain why it is so much smaller than \(r_P(18)\).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(d = 2\big[1\cdot\log\tfrac{1}{0.06246} + 5\log\tfrac{5}{5.93754}\big] = 2\,[2.7732 - 0.8593] = 3.828\), so \(r_D = +\sqrt{3.828} = \)<strong>1.957</strong> (R: <code>1.95650</code>).<br><em>Why the gap:</em> with \(\hat\mu\) tiny, \(\sqrt{v(\hat\mu)}\) in the denominator is tiny, so one damaged O-ring gives a huge Pearson residual. For a discrete response with a small mean, Pearson residuals are skewed (Faraway §8.4). The deviance residual grows only like a log, so it is closer to normal and less dramatic. Both say launch 18 is surprising.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> What does <code>residuals(m, type="response")[1]</code> return for this <code>cbind(damage, 6 - damage)</code> model?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">0.283: the proportion 5/6 minus p̂ = 0.550</button>
+    <button class="opt" data-key="b">1.697: the count 5 minus μ̂ = 3.303</button>
+    <button class="opt" data-key="c">1.393: the count residual divided by its √v(μ̂)</button>
+    <button class="opt" data-key="d">1.470: the signed square root of deviance d₁</button>
+  </div>
+  <div class="why">R: <code>0.28285</code>. For a binomial fitted with <code>cbind</code>, R works with proportions \(y_i/m_i\), so its "response" residual is \(5/6-0.55048\). That's the lecture's \(y_i-\hat\mu_i = 1.697\) divided by \(m_i=6\). The Pearson and deviance residuals come out the same on either scale. (c) is the Pearson residual and (d) the deviance residual.</div>
+</div>
+
+<div class="quiz num" data-answer="-2.236" data-tol="0.005">
+  <p class="q"><strong>4.</strong> Poisson model: a site recorded \(y_i=0\) with fitted mean \(\hat\mu_i=2.5\). What is its deviance residual (3 d.p.)? (Its Pearson residual is \(-2.5/\sqrt{2.5}=-1.581\).)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">With \(0\log 0 = 0\), \(d_i = 2[0 - (0-2.5)] = 2\hat\mu_i = 5\), and the sign is negative: \(r_D = -\sqrt5 = \)<strong>−2.236</strong>. Every \(y=0\) point has \(r_D = -\sqrt{2\hat\mu_i}\), a smooth function of \(\hat\mu_i\). That's where the curved "bands" in count-data residual plots come from (section 4).</div>
+</div>
+
+<h2>2 · Leverage: the hat matrix from IWLS</h2>
+<p>In <a href="0006-glm-likelihood-iwls.html">Lesson 6</a>, the last IWLS step is a weighted least-squares fit of the working response \(z\) on \(X\). Slide 14 borrows the linear-model hat matrix from that step:</p>
+$$\hat Z = X\hat\beta = \underbrace{X(X^T\hat\Sigma^{-1}X)^{-1}X^T\hat\Sigma^{-1}}_{H}\,Z,\qquad \hat\Sigma_{ii} = \big(g'(\hat\mu_i)\big)^2 v(\hat\mu_i)\,\phi .$$
+<p>The <strong>leverage</strong> of observation \(i\) is \(h_{ii}=H_{ii}\). \(\phi\) cancels, so \(H\) doesn't depend on it. R: <code>hatvalues(m)</code> or <code>influence(m)$hat</code>. Reading off the \(i\)th diagonal, with \(w_i = 1/\hat\Sigma_{ii}\) the IWLS weight and \((X^T\hat\Sigma^{-1}X)^{-1}=\widehat{\operatorname{Var}}\,\hat\beta\) when \(\phi=1\):</p>
+$$h_{ii} = w_i\; x_i^T\,\widehat{\operatorname{Var}}(\hat\beta)\,x_i,\qquad \sum_i h_{ii} = \operatorname{tr}H = \operatorname{tr}\big[(X^T\hat\Sigma^{-1}X)^{-1}X^T\hat\Sigma^{-1}X\big] = p .$$
+<p>So the average leverage is \(p/n\). (Faraway writes the symmetric version \(H=W^{1/2}X(X^TWX)^{-1}X^TW^{1/2}\), <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=177">§8.4, p. 161</a>. Its diagonal is the same.)</p>
+<p><strong>What it means:</strong> leverage is the <em>potential</em> of a point to affect the fit, which is large when its \(x_i\) is far from the bulk of the data (the lecturer's note). Slide 14: "A large leverage does not necessarily mean a point has influenced the fit." Unlike in linear models, \(h_{ii}\) also depends on the fit through \(w_i\).</p>
+
+<div class="trap"><strong>Thresholds</strong><br>The slides give no numeric cut-off. Their method is a half-normal plot, looking for points that stand clear of the rest (section 4). If you're asked for a number, the standard linear-model rule of thumb is \(h_{ii} &gt; 2p/n\) (twice the average). Say where it comes from: \(\sum h_{ii}=p\). For orings, \(2p/n = 4/23 = 0.174\): launches 1 (0.503) and 2 (0.255) are flagged.</div>
+
+<pre class="rout"><span class="cmd">&gt; vcov(m)</span>
+            (Intercept)         temp
+(Intercept)   10.865351 -0.174240974
+temp          -0.174241  0.002827797</pre>
+
+<div class="quiz num" data-answer="0.503" data-tol="0.004">
+  <p class="q"><strong>5.</strong> Using <code>vcov(m)</code>, \(x_1 = (1, 53)^T\) and the logit-link IWLS weight \(w_1 = m_1\hat p_1(1-\hat p_1)\), compute \(h_{11}\) for launch 1 (3 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(w_1 = 6(0.55048)(0.44952) = 1.4847\) (for the logit, \(g'(\mu)=1/[m p(1-p)]\), so \(1/\Sigma_{ii} = m p(1-p)\)).<br>\(x_1^TVx_1 = 10.865351 + 2(53)(-0.174241) + 53^2(0.0028278) = 10.8654 - 18.4695 + 7.9433 = 0.33909\).<br>\(h_{11} = 1.4847 \times 0.33909 = \)<strong>0.503</strong>, matching <code>hatvalues(m)[1]</code>. Keep all the vcov digits: the three terms nearly cancel.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>6.</strong> Launch 23 (81 °F) is 11 °F above the mean temperature (69.6 °F), yet it has the <em>smallest</em> leverage (0.020). Why?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Its residual is tiny, so the hat matrix ignores it entirely.</button>
+    <button class="opt" data-key="b">Leverage only counts distances below the mean temperature, never above it.</button>
+    <button class="opt" data-key="c">Its fitted p̂ is tiny, so its IWLS weight is tiny.</button>
+    <button class="opt" data-key="d">Zero damage means its contribution to the deviance is exactly zero.</button>
+  </div>
+  <div class="why">\(h_{ii} = w_i\,x_i^TVx_i\), and \(w_{23} = 6(0.00287)(0.99713) = 0.017\). A launch where damage is almost impossible carries almost no information about \(\beta\), so it can't pull the fit. This is the GLM difference from linear models: leverage depends on \(\hat\mu_i\) through the weights, not only on \(x_i\). (a) is wrong because \(H\) doesn't involve \(y\) directly. (d) is false anyway (\(d_{23} = 2(6)\log(1/0.99713)\ne0\)).</div>
+</div>
+
+<h2>3 · Studentised residuals, jack-knife residuals, Cook's distance</h2>
+<p><strong>Studentising</strong> (slides 15–17). From IWLS, \(\operatorname{Var}(Z-\hat Z) = (I-H)\Sigma\), and \(Z_i-\hat Z_i = (Y_i-\hat\mu_i)g'(\mu_i)\), so \(\operatorname{Var}(Y_i-\hat\mu_i)\approx(1-H_{ii})v(\mu_i)\phi\). Dividing by its square root:</p>
+$$r_{SP}(i)=\frac{r_P(i)}{\sqrt{(1-H_{ii})\hat\phi}},\qquad r_{SD}(i)=\frac{r_D(i)}{\sqrt{(1-H_{ii})\hat\phi}} .$$
+<p>For binomial and Poisson, \(\hat\phi=1\). For quasi-Poisson or gamma, use \(\hat\phi = X^2/(n-p)\). R: <code>rstandard(m)</code> gives \(r_{SD}\), and <code>rstandard(m, type="pearson")</code> gives \(r_{SP}\).</p>
+<p><strong>Jack-knife residual</strong> (slide 18): the change in \(\hat\mu_i\) when \(y_i\) is left out, standardised. It's too expensive to refit \(n\) times, so R uses the approximation</p>
+$$\operatorname{sign}(y_i-\hat\mu_i)\sqrt{(1-H_{ii})r_{SD}^2(i)+H_{ii}r_{SP}^2(i)} \;\overset{\phi=1}{=}\; \operatorname{sign}(y_i-\hat\mu_i)\sqrt{r_D^2(i)+\frac{H_{ii}\,r_P^2(i)}{1-H_{ii}}} ,$$
+<p>which is <code>rstudent(m)</code>. Large jack-knife residuals flag <strong>outliers</strong> (Faraway p. 161).</p>
+<p><strong>Cook's distance</strong> (slide 19) measures <strong>influence</strong>, i.e. how much the whole fit moves when \(y_i\) is dropped:</p>
+$$C_i = \frac{(\hat\beta_{(i)}-\hat\beta)^TX^T\hat\Sigma^{-1}X(\hat\beta_{(i)}-\hat\beta)}{p}.$$
+<p>R's <code>cooks.distance(m)</code> uses the one-step approximation, which you <em>can</em> do by hand (it's in R's source and matches Faraway's numbers):</p>
+$$C_i \approx \frac{r_{SP}^2(i)}{p}\cdot\frac{H_{ii}}{1-H_{ii}} = \frac{r_P^2(i)\,H_{ii}}{p\,\hat\phi\,(1-H_{ii})^2}.$$
+<p>This is "residual size × leverage". You need <em>both</em> to be influential. A common flag is \(C_i\) near or above 1, or a value that jumps clear of the rest in a half-normal plot.</p>
+
+<div class="quiz num" data-answer="2.087" data-tol="0.006">
+  <p class="q"><strong>7.</strong> Launch 1 has \(r_D(1)=1.4704\) and \(h_{11}=0.50345\). What is its studentised deviance residual \(r_{SD}(1)\) (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(1.4704/\sqrt{1-0.50345} = 1.4704/0.70466 = \)<strong>2.087</strong> (\(\phi=1\)). R: <code>rstandard(m)[1]</code> is <code>2.08667</code>. Studentising raised it from 1.47 to 2.09. Launch 1 pulls the fitted curve toward itself, so its raw residual understates how unusual it is.</div>
+</div>
+
+<div class="quiz num" data-answer="1.981" data-tol="0.01">
+  <p class="q"><strong>8.</strong> Launch 1 has \(r_P(1) = 1.39281\), \(h_{11}=0.50345\) and \(p=2\). What is its Cook's distance (3 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\dfrac{1.39281^2\times0.50345}{2\times(0.49655)^2} = \dfrac{0.97666}{0.49313} = \)<strong>1.981</strong>. R: <code>cooks.distance(m)[1]</code> is <code>1.98053</code>, about 10 times the next largest (0.30, launch 18). Check by refitting without launch 1: the <code>temp</code> slope goes from −0.216 to −0.128, so it nearly halves. Without launch 18, it goes to −0.262.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>9.</strong> Here are the R lines <code>r &lt;- residuals(m); rp &lt;- residuals(m, "pearson"); h &lt;- hatvalues(m)</code>. What does <code>sign(r) * sqrt(r^2 + h * rp^2 / (1 - h))</code> compute?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The studentised deviance residuals, the same as rstandard(m) here.</button>
+    <button class="opt" data-key="b">The approximate jack-knife residuals, the same as rstudent(m) here.</button>
+    <button class="opt" data-key="c">Each observation's Cook's distance, the same as cooks.distance(m) here.</button>
+    <button class="opt" data-key="d">The studentised Pearson residuals, the same as rstandard(m,"pearson") here.</button>
+  </div>
+  <div class="why">It's the right-hand form of the slide 18 approximation with \(\phi=1\). For launch 1: \(\sqrt{2.1621 + 0.50345(1.93992)/0.49655} = \sqrt{4.1290} = 2.032\), and R's <code>rstudent(m)[1]</code> is <code>2.03198</code>. (For quasi families R also divides by a leave-one-out \(\hat\phi\).)</div>
+</div>
+
+<h2>4 · Reading diagnostic plots</h2>
+<p>The course's standard panel (week 5 tute; the 2016 exam used the same layout) is residuals against \(\hat\eta_i\), then half-normal plots of the jack-knife residuals, leverages and Cook's distances. Faraway's <code>halfnorm</code> plots the \(i\)th smallest absolute value against \(\Phi^{-1}\big(\tfrac{n+i}{2n+1}\big)\) (slide 20) and labels the two largest by row number.</p>
+<ul>
+  <li><strong>Residuals vs \(\hat\eta\)</strong> (slide 13; Faraway pp. 162–163): look for a trend (the systematic part is wrong: transform a predictor) or a spread that changes (the variance function is wrong: think quasi-likelihood). Use deviance residuals and \(\hat\eta\), not \(\hat\mu\). Discrete responses make <strong>bands</strong>: curved lines, one for each value of \(y\).</li>
+  <li><strong>Half-normal plots</strong>: the values aren't normal, so <em>don't expect a straight line</em>. Look for "a jump or kink in the tail" (slide 20): a point that sits well above the trend of the others.</li>
+  <li><strong>Linearity of the link</strong> (slide 21): plot \(z_i = \hat\eta_i + (y_i-\hat\mu_i)g'(\hat\mu_i)\) against each \(x_j\). It should look linear.</li>
+</ul>
+
+<figure class="plot">
+<pre class="rout"><span class="cmd">&gt; par(mfrow = c(2, 2))
+&gt; plot(predict(m), residuals(m), xlab = "eta_hat", ylab = "dev res")
+&gt; halfnorm(rstudent(m), ylab = "jackknife res")
+&gt; halfnorm(hatvalues(m), ylab = "leverage")
+&gt; halfnorm(cooks.distance(m), ylab = "Cooks dist")</span></pre>
+<img src="../assets/img/0008-orings-panel.png" alt="Four diagnostic panels for the O-ring model. Top left: deviance residuals against eta-hat. Most points lie on a smooth descending curve below zero, with a few positive points up to 2. Top right: half-normal plot of jack-knife residuals rising smoothly, with launches 1 and 18 labelled at about 2.0 and 2.1. Bottom left: half-normal plot of leverages, flat near 0.05 except launch 2 at 0.26 and launch 1 at 0.50. Bottom right: half-normal plot of Cook's distances, flat near zero except launch 18 at 0.30 and launch 1 at about 2.0.">
+<figcaption>Diagnostics for the O-ring model, generated in R with <code>faraway::halfnorm</code>. Labelled points are row numbers.</figcaption>
+</figure>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>10.</strong> Which reading of the panel is right?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Both launches are influential, since both have jack-knife residuals near two.</button>
+    <button class="opt" data-key="b">Launch 18 is influential with high leverage; launch 1 just has a large residual.</button>
+    <button class="opt" data-key="c">Neither launch really matters, since no jack-knife residual exceeds three here.</button>
+    <button class="opt" data-key="d">Launch 1 is influential with high leverage; launch 18 just has a large residual.</button>
+  </div>
+  <div class="why">Launch 1 is the only point clear of the trend in <em>both</em> the leverage plot (0.50 &gt; 0.174) and the Cook's plot (≈2.0). Launch 18 ties it on jack-knife residual (2.10 vs 2.03) but its leverage is low (0.039), so Cook's is only 0.30 and dropping it barely moves the slope. Report launch 1: it is the coldest launch, the reason it has leverage, and the conclusion "cold raises the risk" leans heavily on it. That's worth saying, but not a reason to delete it.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>11.</strong> In the top-left panel, most points lie on one smooth descending curve below zero. Why?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">They all have zero damage, so r_D depends only on μ̂.</button>
+    <button class="opt" data-key="b">They all have high leverage, so r_D is pulled toward zero.</button>
+    <button class="opt" data-key="c">They all come from the same launch temperature as each other.</button>
+    <button class="opt" data-key="d">They are all outliers, so R draws them on one curve.</button>
+  </div>
+  <div class="why">For \(y_i=0\) with \(m_i=6\), \(r_D(i) = -\sqrt{12\log\frac{1}{1-\hat p_i}}\), a fixed function of \(\hat\eta_i\). So all 16 zero-damage launches fall on one curve, and the \(y=1\) launches form a second band. This banding is what slide 13 warns about. With 0/1 data it's at its most extreme: each \(\hat\eta\) has only two possible residuals, so the plot shows two curves and little else (Faraway p. 163).</div>
+</div>
+
+<h3>Say it in 2–3 sentences (exam "explain" parts)</h3>
+<details><summary>Why divide by \(\sqrt{1-h_{ii}}\)?</summary><div>
+<p>\(\operatorname{Var}(Y_i-\hat\mu_i)\approx(1-h_{ii})v(\mu_i)\phi\), so residuals of high-leverage points have <em>smaller</em> variance: the fit is pulled toward them. Without the correction, a high-leverage point that doesn't fit could look ordinary. Dividing by \(\sqrt{1-h_{ii}}\) gives every residual variance ≈ 1, so they can be compared (slide 16; the lecturer's note on annotated p. 35).</p></div></details>
+<details><summary>High leverage vs high influence</summary><div>
+<p>Leverage depends only on the predictors and the IWLS weights. It measures the <em>potential</em> to move the fit. Influence (Cook's distance) measures whether the point <em>actually</em> moves \(\hat\beta\), and needs high leverage <em>and</em> a sizeable residual (\(C_i\propto r_{SP}^2\,h/(1-h)\)). A high-leverage point that lies on the trend of the others has a small residual and little influence (site 30 in the challenge).</p></div></details>
+<details><summary>Why are residuals from 0/1 binary data hard to interpret?</summary><div>
+<p>With \(m_i = 1\), \(y_i\) is 0 or 1, so at each \(\hat\eta\) the residual can take only two values. The residual plot shows two curved bands that come from the discreteness, not from the model, and they hide any real pattern. The residuals are also far from normal, so "\(|r| &gt; 2\)" doesn't mean what it does in a linear model. You can bin the data or add a smoothed line (slide 13).</p></div></details>
+<details><summary>Why is a half-normal plot used, and why isn't it straight?</summary><div>
+<p>We only care about large values in either direction, so we plot sorted \(|r|\), which puts every point in one tail and doubles the resolution there (Faraway p. 166). Leverages and Cook's distances aren't normal, and GLM residuals are only roughly normal, so the plot curves. The signal is a jump or kink at the top end (slide 20).</p></div></details>
+
+<h2>5 · Exam-level challenge</h2>
+<p>Do this on paper in about 20 minutes, then open the steps one at a time.</p>
+<div class="box">
+<p>Native bees were trapped at 30 urban sites. \(y\) is the number of bees caught, <code>flowers</code> is floral cover (%), and <code>dist</code> is the distance to bushland (km). (Simulated data.)</p>
+<pre class="rout"><span class="cmd">&gt; mb &lt;- glm(y ~ flowers + dist, family = poisson, data = bees)
+&gt; summary(mb)</span>
+Coefficients:
+             Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  0.975761   0.204367   4.775 1.80e-06 ***
+flowers      0.028392   0.003491   8.133 4.18e-16 ***
+dist        -0.115097   0.038472  -2.992  0.00277 **
+
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 96.487  on 29  degrees of freedom
+Residual deviance: 41.149  on 27  degrees of freedom
+AIC: 146.06
+
+<span class="cmd">&gt; i &lt;- c(7, 19, 30)
+&gt; cbind(bees[i, c("flowers", "dist", "y")], mu = fitted(mb)[i], h = hatvalues(mb)[i])</span>
+   flowers dist  y      mu      h
+7       68  9.5 10  6.1286 0.4128
+19      26  2.2 13  4.3091 0.0487
+30      88  2.0 25 25.6367 0.8297
+<span class="cmd">&gt; round(rstudent(mb)[i], 3)</span>
+     7     19     30
+ 1.941  3.496 -0.305
+<span class="cmd">&gt; sum(residuals(mb, type = "pearson")^2) / mb$df.residual</span>
+[1] 1.622108
+<span class="cmd">&gt; qchisq(0.95, 27)</span>
+[1] 40.11327
+<span class="cmd">&gt; rbind(all = coef(mb), drop7 = coef(update(mb, subset = -7)),
++       drop19 = coef(update(mb, subset = -19)), drop30 = coef(update(mb, subset = -30)))</span>
+       (Intercept) flowers    dist
+all         0.9758  0.0284 -0.1151
+drop7       1.1807  0.0272 -0.1762
+drop19      0.7870  0.0305 -0.1032
+drop30      0.9354  0.0304 -0.1238</pre>
+<figure class="plot">
+<img src="../assets/img/0008-bees-panel.png" alt="Four diagnostic panels for the bee model. Top left: deviance residuals against eta-hat, scattered evenly around zero between about -2 and 2 with no trend; one point near 3.4 at eta-hat 1.5, and one point far to the right at eta-hat 3.2 with residual near zero. Top right: half-normal plot of jack-knife residuals, smooth up to about 2.1 (site 1), then site 19 at 3.5. Bottom left: half-normal plot of leverages, flat below 0.12 except site 7 at 0.41 and site 30 at 0.83. Bottom right: half-normal plot of Cook's distances, flat below 0.15 except site 19 at 0.31 and site 7 at about 1.0.">
+<figcaption>Same four panels for <code>mb</code>: <code>plot(predict(mb), residuals(mb))</code>, then <code>halfnorm</code> of <code>rstudent</code>, <code>hatvalues</code> and <code>cooks.distance</code>.</figcaption>
+</figure>
+<p>(a) State \(n\) and \(p\). Which sites have high leverage by the \(2p/n\) rule?<br>
+(b) For site 19, compute \(r_P\), \(r_D\) and \(r_{SD}\). Use the slide 18 approximation to check the printed <code>rstudent</code> value.<br>
+(c) Compute Cook's distance for site 30. Site 30 has the highest leverage, so why is its Cook's distance smaller than site 7's?<br>
+(d) Using the plots and the drop-one table, classify sites 7, 19 and 30 as outlier, high leverage only, or influential. Justify each in one sentence.<br>
+(e) What does the line giving <code>1.622108</code> compute? Together with the residual deviance, what does it suggest? If you refit with <code>quasipoisson</code>, what is site 19's studentised Pearson residual?<br>
+(f) What does the residuals-vs-\(\hat\eta\) panel tell you about the model's assumptions?</p>
+</div>
+
+<details><summary>Step 1: part (a)</summary><div>
+<p>\(n = 29+1 = 30\) and \(p = 30-27 = 3\). Average leverage \(=3/30 = 0.1\), so the threshold is \(2p/n = 0.2\). <strong>Sites 7 (0.413) and 30 (0.830)</strong> exceed it, and they are also the only points clear of the trend in the leverage half-normal plot. Site 30 has extreme floral cover (88%). Site 7 is far from bushland (9.5 km) and also has high cover (68%).</p></div></details>
+<details><summary>Step 2: part (b), site 19</summary><div>
+<p>\(r_P = \dfrac{13-4.3091}{\sqrt{4.3091}} = \dfrac{8.6909}{2.0758} = \boxed{4.187}\).<br>
+\(d = 2\big[13\log\tfrac{13}{4.3091} - 8.6909\big] = 2\,[14.3544 - 8.6909] = 11.327\), so \(r_D = +\sqrt{11.327} = \boxed{3.366}\).<br>
+\(r_{SD} = 3.366/\sqrt{1-0.0487} = 3.366/0.9754 = \boxed{3.451}\) (\(\phi=1\)).<br>
+Jack-knife: \(\sqrt{11.327 + 0.0487(4.187^2)/0.9513} = \sqrt{11.327+0.897} = \sqrt{12.224} = 3.496\) ✓ matches <code>rstudent</code>.<br>
+(R: <code>4.18670</code>, <code>3.36570</code>, <code>rstandard</code> <code>3.45070</code>.)</p></div></details>
+<details><summary>Step 3: part (c), Cook's distance</summary><div>
+<p>Site 30: \(r_P = (25-25.6367)/\sqrt{25.6367} = -0.6367/5.0633 = -0.1257\).<br>
+\(C_{30} = \dfrac{0.1257^2\times0.8297}{3\times(0.1703)^2} = \dfrac{0.01312}{0.08700} = \boxed{0.151}\) (R: <code>0.15080</code>).<br>
+Site 7 for comparison: \(r_P = 3.8714/2.4756 = 1.564\), so \(C_7 = \dfrac{1.564^2(0.4128)}{3(0.5872)^2} = \boxed{0.976}\).<br>
+<em>Why:</em> Cook's distance needs leverage <em>and</em> a residual. Site 30 lies almost exactly on the surface fitted to the other sites (\(y=25\), \(\hat\mu=25.6\)), so its tiny residual offsets its huge leverage. Site 7 has less leverage but doesn't fit, so it drags the fit.</p></div></details>
+<details><summary>Step 4: part (d), classify the three sites</summary><div>
+<p><strong>Site 19: outlier.</strong> Its jack-knife residual (3.50) jumps clear in the half-normal plot, but its leverage (0.049) is ordinary, so dropping it changes the coefficients only modestly (flowers 0.0284 → 0.0305).<br>
+<strong>Site 30: high leverage, not influential.</strong> \(h = 0.83\) is the largest, but its residual is near zero and dropping it moves little (dist −0.115 → −0.124).<br>
+<strong>Site 7: influential.</strong> Its Cook's distance (≈1.0) is clear of the rest. Dropping it changes the <code>dist</code> coefficient by about 50% (−0.115 → −0.176), so the estimated distance effect depends on this one site.<br>
+<em>What to do:</em> check site 7's data for recording errors and report the fit with and without it. Don't just delete it.</p></div></details>
+<details><summary>Step 5: part (e), dispersion</summary><div>
+<p>It computes \(X^2/(n-p) = \hat\phi\), the Pearson estimate of the dispersion: 1.62. Also \(D = 41.15 &gt; \chi^2_{27}(0.95) = 40.11\) (and most \(\hat\mu_i \ge 3\), so the χ² check is rough). Both point to mild overdispersion, partly driven by site 19.<br>
+Quasi-Poisson: \(r_{SP}(19) = \dfrac{r_P}{\sqrt{(1-h)\hat\phi}} = \dfrac{4.187}{\sqrt{0.9513\times1.6221}} = \dfrac{4.187}{1.2422} = \boxed{3.370}\) (R: <code>3.370267</code>). It's still large, so site 19 remains an outlier after allowing for overdispersion.</p></div></details>
+<details><summary>Step 6: part (f), the residual plot</summary><div>
+<p>The deviance residuals scatter evenly around 0 with no trend or curve against \(\hat\eta\), so the log-linear form looks adequate. The spread is roughly constant, which is consistent with the Poisson variance function. Two things stand out: site 19 at the top (≈3.4), and one point far to the right (\(\hat\eta = 3.24\), site 30) that sits on zero, which matches its high leverage and small residual.</p></div></details>
+
+<h2>6 · Before you close this tab</h2>
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) \(r_P = (y-\hat\mu)/\sqrt{v(\hat\mu)}\), \(\sum r_P^2 = X^2\). (2) \(r_D = \operatorname{sign}(y-\hat\mu)\sqrt{d_i}\), \(\sum r_D^2 = D\), the default <code>residuals(m)</code>. (3) \(H = X(X^T\hat\Sigma^{-1}X)^{-1}X^T\hat\Sigma^{-1}\), \(h_{ii} = w_i x_i^T\widehat{\operatorname{Var}}(\hat\beta)x_i\), \(\sum h_{ii} = p\), flag \(&gt;2p/n\). (4) \(r_{SP}, r_{SD}\): divide by \(\sqrt{(1-h_{ii})\hat\phi}\). (5) <code>rstudent</code> \(=\operatorname{sign}\cdot\sqrt{r_D^2 + h\,r_P^2/(1-h)}\) when \(\phi=1\). (6) Cook's \(\approx r_P^2h/[p\hat\phi(1-h)^2]\). (7) Outlier = big jack-knife residual; leverage = potential; influence = Cook's. (8) Half-normal plot: look for a jump, not a straight line.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/GLM_2_correct_LMS.pdf#page=11">GLMs II, slides 11–21</a>, read alongside the lecturer's handwritten intuition in the <a href="../annotated-slides/GLM%202%20Deviance%20and%20diagnostics%20annotated.pdf#page=30">annotated version, pp. 30–43</a> (leverage picture p. 31, "dividing by \(\sqrt{1-H_{ii}}\)" p. 35, interpretation p. 36, one-line summaries pp. 41–42). For a second explanation, read Faraway <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=175">§8.4, pp. 159–167</a>. Its numeric example is the Bliss data (as in <a href="../extra-notes/Bliss-1.pdf">Bliss-1.pdf</a>). The plotting examples use <code>gala</code>, a past-exam dataset, so read them for method only. The same goes for the slide 22 example <code>Gala.pdf</code> and the week 5 tute diagnostics (<code>dicentric</code>). (<code>extra-notes/Diagnostics_additional-1.pdf</code> is about MCMC output, not GLMs.)</p>
+
+<p><strong>Homework</strong> (by hand, no R needed):</p>
+<ol>
+  <li><strong>Faraway §8.4, Bliss numbers.</strong> Five concentrations, 30 insects each. Observation 1: 2 dead, \(\hat p_1 = 0.08917\), \(h_{11} = 0.42550\). Compute \(r_P(1)\), \(r_D(1)\) and the jack-knife approximation. Check them against Faraway's printed <code>-0.432523</code>, <code>-0.451015</code> and <code>-0.584786</code> (<a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=176">pp. 160–161</a>). Here \(2p/n = 0.8\), and every \(h_{ii}\) is between 0.32 and 0.43. Why can't any point have high leverage in this design?</li>
+  <li><strong>Faraway <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=189">Ch. 8 Ex. 6</a> (<code>worldcup</code>), printout version.</strong> Goalkeepers are removed (\(n = 559\)). The model is a Poisson rate model for shots with offset \(\log(\text{Time})\), predictors Team (32 levels), Position, tackles per 90 min (<code>tpg</code>) and passes per 90 min (<code>ppg</code>).
+<pre class="rout"><span class="cmd">&gt; mw &lt;- glm(Shots ~ Team + Position + tpg + ppg + offset(log(Time)), family = poisson, data = wc)</span>
+                   Estimate Std. Error  z value Pr(&gt;|z|)     (Team rows omitted)
+(Intercept)        -5.09683    0.20630 -24.70532  0.00000
+PositionForward     1.60651    0.08696  18.47469  0.00000
+PositionMidfielder  0.98142    0.08264  11.87552  0.00000
+tpg                -0.08739    0.02582  -3.38383  0.00071
+ppg                 0.00079    0.00239   0.33062  0.74093
+Residual deviance: 865.761 on 523 degrees of freedom
+
+<span class="cmd">&gt; # three largest leverages</span>
+                      Team Position Time Shots Tackles Passes  tpg  ppg      h
+Villa                Spain  Forward  529    22       2    169 0.34 28.8 0.2705
+Park Chu-Young South Korea  Forward  347    14       0     96 0.00 24.9 0.2699
+Gyan                 Ghana  Forward  501    27       1    151 0.18 27.1 0.2660
+<span class="cmd">&gt; # three largest |change in tpg coefficient| when the player is dropped</span>
+                  Team   Position Time Shots Tackles  tpg     dtpg
+Mascherano   Argentina Midfielder  360     0      19 4.75 -0.00784
+van Bommel Netherlands Midfielder  540     2      31 5.17 -0.00744
+PerezU         Uruguay Midfielder  567     2      34 5.40 -0.00702
+<span class="cmd">&gt; # three largest Cook's distances</span>
+           Team   Position Time Shots Tackles Passes     mu      h   cook
+Dempsey     USA Midfielder  390    15       6    137  5.587 0.1158 0.0653
+Gyan      Ghana    Forward  501    27       1    151 17.970 0.2660 0.0622
+GonzalezC Chile Midfielder  138    10       6     41  1.687 0.0448 0.0559
+<span class="cmd">&gt; # three largest |jack-knife residuals|</span>
+                    Team   Position Time Shots     mu   pear    dev      h     rj
+GonzalezC          Chile Midfielder  138    10 1.6866 6.4014 4.3556 0.0448 4.5709
+Daniel Alves      Brazil   Defender  310    11 2.1318 6.0738 4.2853 0.0418 4.4693
+Afellay      Netherlands Midfielder   21     5 0.3230 8.2297 4.2476 0.0106 4.3323</pre>
+(a) How many parameters does the model have, and what is \(2p/n\)? Do any leverages exceed it, and is that worrying? Why might forwards with a lot of playing time have the highest leverage? (Think about \(w_i = \hat\mu_i\).) (b) What is unusual about Mascherano, and why does dropping him make the <code>tpg</code> coefficient smaller (more negative)? (c) Recompute GonzalezC's \(r_P\), \(r_D\), jack-knife residual and Cook's distance by hand. (d) Is anyone influential? (e) A plot of deviance residuals against \(\hat\eta\) shows a smooth lower curve of points. What are they? (171 players had 0 shots.) (f) The residual deviance is 865.8 on 523 df. What does that suggest about the jack-knife residuals of 4.3–4.6?</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1. \(\hat\mu_1 = 2.6751\), \(v = 30(0.08917)(0.91083) = 2.4366\), so \(r_P = -0.6751/1.5610 = -0.4325\) ✓. \(d_1 = 2[2\log(2/2.6751) + 28\log(28/27.3249)] = 2[-0.5817+0.6834] = 0.2034\), so \(r_D = -0.4510\) ✓. Jack-knife: \(-\sqrt{0.2034 + 0.4255(0.1871)/0.5745} = -\sqrt{0.3420} = -0.5848\) ✓. Only 5 points share \(\sum h_{ii} = 2\) (average 0.4), and the doses are equally spaced and symmetric about the 50% point, so no point can stand out.</p>
+<p>2. (a) \(p = 1 + 31 + 2 + 2 = 36\), so \(2p/n = 72/559 = 0.129\). The top three are about 0.27, about twice the threshold. They are a small group, not a lone point, though. For a log link \(w_i = \hat\mu_i\), and these forwards played 350–530 minutes, so their expected shot counts are large: they carry the most information and so have the most potential pull. (b) Mascherano had 19 tackles (4.75 per game, very high) and 0 shots, which fits "more tackles, fewer shots". Dropping him makes the coefficient smaller in size: \(\Delta = -0.0078\) is the change as computed by <code>influence()</code>, about 9% of \(|-0.087|\). Read the sign from the output definition, and don't overclaim. (c) \(r_P = 8.3134/1.2987 = 6.401\). \(d = 2[10\log(10/1.6866) - 8.3134] = 18.971\), so \(r_D = 4.356\). Jack-knife \(=\sqrt{18.971 + 0.0448(40.978)/0.9552} = \sqrt{20.893} = 4.571\) ✓. Cook's \(= 40.978(0.0448)/[36(0.9552)^2] = 0.0559\) ✓. (d) No. All Cook's distances are below 0.07, far from 1. With \(p = 36\), a single player moves the 36-parameter fit very little. (e) The players with 0 shots: \(r_D = -\sqrt{2\hat\mu_i}\), a smooth function of \(\hat\eta_i\), so they form a curve. Players with 1 shot form the next band. (f) \(865.8/523 \approx 1.66\), so there's overdispersion. With \(\hat\phi \approx 1.7\), standardised residuals shrink by \(\sqrt{1.7}\approx1.3\) (to about 3.4–3.5), so these players are less extreme than \(\phi = 1\) suggests.</p></div></details>
+<p><strong>Spacing:</strong> tomorrow, without looking, redo quizzes 2, 5 and 8, then part (c) of the challenge.</p>
+
+<div class="ask">💬 Ask me in the terminal if any of the four panels still looks like noise to you, or if you want another diagnostics printout to practise on. I'm your teacher for this. Paste your written answers to the challenge and I'll mark them the way an exam marker would.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0007-poisson-gamma-glms.html">Lesson 7, Poisson and gamma GLMs</a> · Reference: <a href="../reference/glm-cheatsheet.html">GLM cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0009-topic2-review.html">Lesson 9, Topic 2 mixed review</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>
