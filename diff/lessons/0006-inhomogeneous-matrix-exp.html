@@ -213,7 +213,7 @@ $$e^{At} = \begin{pmatrix}1&amp;1\\1&amp;-1\end{pmatrix}\begin{pmatrix}e^{3t}&am
     <button class="opt" data-key="c">$\begin{pmatrix}e^{2t} &amp; 2te^{2t}\\ 0 &amp; e^{2t}\end{pmatrix}$</button>
     <button class="opt" data-key="d">$\begin{pmatrix}e^{2t} &amp; te^{2t}\\ 0 &amp; e^{2t}\end{pmatrix}$</button>
   </div>
-  <div class="why">$A = 2I + N$ with $N^2 = 0$, so $e^{At} = e^{2t}(I + Nt)$. Entry-wise exponentials (option a) are only right for <em>diagonal</em> matrices.</div>
+  <div class="why">$A = 2I + N$ with $N^2 = 0$, so $e^{At} = e^{2t}(I + Nt)$. Entry-wise exponentials (option a) are only right for <em>diagonal</em> matrices. <a href="../worked/0006-q4-q5-matrix-exp.html">Full working for Q4 and Q5</a>.</div>
 </div>
 
 <div class="quiz" data-answer="a">
@@ -249,7 +249,7 @@ $$e^{At} = \begin{pmatrix}1&amp;1\\1&amp;-1\end{pmatrix}\begin{pmatrix}e^{3t}&am
   <div class="why">The product rule for exponentials needs $AB = BA$. The others always hold. (d) is Tute 3, Q4(a): $(SDS^{-1})^n = SD^nS^{-1}$ term by term.</div>
 </div>
 
-<h2>4 · Exam-level challenge</h2>
+<h2 id="challenge">4 · Exam-level challenge</h2>
 <div class="box">
 <p>$\;x' = -x + 2y + 2e^{t},\;\; y' = 2x - y,\;\; x(0) = 1,\; y(0) = 0.$</p>
 <p>(a) Solve the IVP by diagonalisation.<br>
@@ -272,6 +272,7 @@ $\mathbf z(0)$: $C_1 = \tfrac12$, and $\tfrac14 + C_2 = \tfrac12$ gives $C_2 = \
 Notice the pattern from the worked example: a symmetric $\begin{pmatrix}a&amp;b\\b&amp;a\end{pmatrix}$ always has eigenvectors $(1,\pm1)$, so this shape repeats. <em>Check:</em> differentiate column 1 at $t = 0$: $\tfrac12(1 - 3,\; 1 + 3) = (-1, 2)$, which is column 1 of $A$ ✓. (Without the forcing, the IVP's answer would be just this first column, $e^{At}(1,0)^T$.)</p></div></details>
 <details><summary>(c) Long term</summary><div>
 <p>The $te^{t}$ terms dominate, and $x/y \to 1$. So $\mathbf y \sim t\,e^{t}(1,1)$: it grows like $te^t$ along the unstable eigenvector. The extra $t$ is the signature of resonance.</p></div></details>
+<p>Once you've attempted all three parts, compare your script with the <a href="../worked/0006-challenge-full-solution.html">full written solution</a>.</p>
 
 <h2>5 · Before you close this tab</h2>
 <details><summary>Retrieval: write the 5 diagonalisation steps and the three $e^{At}$ routes from memory</summary><div>

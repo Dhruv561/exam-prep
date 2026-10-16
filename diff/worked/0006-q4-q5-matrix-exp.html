@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matrix Exponential Q4 Q5</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Worked solution · <a href="../lessons/0006-inhomogeneous-matrix-exp.html">Lesson 6</a>, quiz Q4 and Q5</div>
+<h1>Two matrix exponentials, worked out</h1>
+<p class="lede">Q4 is a repeated eigenvalue that is <em>not</em> diagonalisable. Q5 is a rotation with complex eigenvalues. Neither one is done well by $Se^{Dt}S^{-1}$, so both use the series directly.</p>
+
+<h2>Q4 · $A = \begin{pmatrix}2&amp;1\\0&amp;2\end{pmatrix}$</h2>
+
+<h3>1 · Is $A$ diagonalisable?</h3>
+<p>The characteristic polynomial is $(2-\lambda)^2$, so $\lambda = 2$ has algebraic multiplicity 2. Then
+$$A - 2I = \begin{pmatrix}0&amp;1\\0&amp;0\end{pmatrix}$$
+has rank 1, so the eigenspace has dimension $2 - 1 = 1 < 2$. There is only one independent eigenvector, so $A$ is <strong>not</strong> diagonalisable and $Se^{Dt}S^{-1}$ is unavailable.</p>
+
+<h3>2 · Split $A = 2I + N$</h3>
+<p>Let $N = A - 2I = \begin{pmatrix}0&amp;1\\0&amp;0\end{pmatrix}$. Then
+$$N^2 = \begin{pmatrix}0&amp;1\\0&amp;0\end{pmatrix}\begin{pmatrix}0&amp;1\\0&amp;0\end{pmatrix} = \begin{pmatrix}0&amp;0\\0&amp;0\end{pmatrix}.$$
+$2I$ commutes with every matrix, in particular with $N$, so $e^{(2I+N)t} = e^{2It}\,e^{Nt}$.</p>
+
+<h3>3 · Each factor</h3>
+<p>$e^{2It} = e^{2t}I$, since $(2It)^n/n! = (2t)^n/n!\cdot I$ and the scalar series sums to $e^{2t}$.</p>
+<p>The series for $e^{Nt}$ stops because $N^2 = 0$:
+$$e^{Nt} = I + Nt + \tfrac{1}{2!}N^2t^2 + \cdots = I + Nt = \begin{pmatrix}1&amp;t\\0&amp;1\end{pmatrix}.$$</p>
+
+<h3>4 · Multiply</h3>
+$$e^{At} = e^{2t}\begin{pmatrix}1&amp;t\\0&amp;1\end{pmatrix} = \boxed{\begin{pmatrix}e^{2t} &amp; te^{2t}\\ 0 &amp; e^{2t}\end{pmatrix}}\qquad\text{option (d).}$$
+
+<div class="box">
+<p><strong>Cross-check with the lesson's general formula.</strong> For $\begin{pmatrix}\lambda&amp;1\\0&amp;\lambda\end{pmatrix}$ the lesson found $e^{At} = \begin{pmatrix}e^{\lambda t}&amp;te^{\lambda t}\\0&amp;e^{\lambda t}\end{pmatrix}$. Put $\lambda = 2$ and you get the same matrix.</p>
+<p><strong>Check by differentiating.</strong> Column 1 of $e^{At}$ at $t=0$ should have derivative equal to column 1 of $A$. Column 1 is $(e^{2t}, 0)$, whose derivative at $0$ is $(2, 0)$ ✓. Column 2 is $(te^{2t}, e^{2t})$, with derivative $(e^{2t} + 2te^{2t},\; 2e^{2t})$, which is $(1, 2)$ at $t=0$ ✓ (column 2 of $A$).</p>
+</div>
+
+<div class="trap"><strong>Why the other options fail</strong><br>
+(a) exponentiates each entry, which is only valid for diagonal matrices. At $t=0$ it gives $\begin{pmatrix}1&amp;1\\0&amp;1\end{pmatrix} \neq I$, but $e^{0} = I$ always.<br>
+(b) has $1$ in the corner, so its derivative at $0$ has top-right entry $0$, not $1$.<br>
+(c) has $2te^{2t}$, so its derivative at $0$ has top-right entry $2$, not $1$. The coefficient of $t$ is $N_{12} = 1$.</div>
+
+<h2>Q5 · $A = \begin{pmatrix}0&amp;-3\\3&amp;0\end{pmatrix}$</h2>
+
+<h3>1 · Powers of $A$</h3>
+$$A^2 = \begin{pmatrix}0&amp;-3\\3&amp;0\end{pmatrix}\begin{pmatrix}0&amp;-3\\3&amp;0\end{pmatrix} = \begin{pmatrix}-9&amp;0\\0&amp;-9\end{pmatrix} = -9I.$$
+That gives the pattern
+$$A^{2k} = (-9)^kI = (-1)^k 3^{2k}I,\qquad A^{2k+1} = (-9)^kA.$$
+
+<h3>2 · Split the series into even and odd terms</h3>
+$$e^{At} = \sum_{k=0}^{\infty}\frac{A^{2k}t^{2k}}{(2k)!} + \sum_{k=0}^{\infty}\frac{A^{2k+1}t^{2k+1}}{(2k+1)!}.$$
+<p>Even part:
+$$\sum_{k=0}^{\infty}\frac{(-1)^k(3t)^{2k}}{(2k)!}\,I = \cos(3t)\,I.$$
+Odd part: $A^{2k+1}t^{2k+1} = (-1)^k3^{2k}t^{2k+1}A = \tfrac{A}{3}(-1)^k(3t)^{2k+1}$, so
+$$\sum_{k=0}^{\infty}\frac{A}{3}\,\frac{(-1)^k(3t)^{2k+1}}{(2k+1)!} = \frac{A}{3}\sin(3t).$$</p>
+
+<h3>3 · Combine</h3>
+$$e^{At} = \cos(3t)\,I + \sin(3t)\,\frac{A}{3} = \cos 3t\begin{pmatrix}1&amp;0\\0&amp;1\end{pmatrix} + \sin 3t\begin{pmatrix}0&amp;-1\\1&amp;0\end{pmatrix}$$
+$$= \boxed{\begin{pmatrix}\cos3t &amp; -\sin3t\\ \sin3t &amp; \cos3t\end{pmatrix}}\qquad\text{option (a).}$$
+
+<div class="box">
+<p><strong>Cross-check with eigenvalues.</strong> $\det(A-\lambda I) = \lambda^2 + 9$, so $\lambda = \pm3i$. This is the $\begin{pmatrix}0&amp;-\beta\\ \beta&amp;0\end{pmatrix}$ row of the lesson's shortcut table with $\beta = 3$, and the table gives the same matrix.</p>
+<p><strong>Sign check.</strong> Column 1 of $e^{At}$ is $(\cos3t, \sin3t)$, whose derivative at $0$ is $(0, 3)$. That is column 1 of $A$ ✓. Option (b) gives $(0,-3)$ ✗.</p>
+</div>
+
+<div class="trap"><strong>Why (c) and (d) fail</strong><br>
+(c) exponentiates entries and has $1$ on the diagonal and $e^{\pm 3t}$ off it. $A$ is not diagonal, so this is the same entry-wise mistake as Q4(a).<br>
+(d) uses $\cosh$ and $\sinh$, which come from real eigenvalues $\pm3$. Here $\lambda = \pm3i$, so you get $\cos$ and $\sin$.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0006-inhomogeneous-matrix-exp.html">Lesson 6</a></span>
+  <span>Reference: <a href="../reference/topic1-cheatsheet.html">Topic 1 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

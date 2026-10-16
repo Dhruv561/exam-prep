@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagonalisation Challenge Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 6 · Challenge · Full written solution</div>
+<h1>Diagonalisation with resonant forcing</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes are commentary and you don't write them.</p>
+
+<div class="box">
+<p>$\;x' = -x + 2y + 2e^{t},\;\; y' = 2x - y,\;\; x(0) = 1,\; y(0) = 0.$</p>
+<p>(a) Solve the IVP by diagonalisation. (b) Compute $e^{At}$. (c) Describe $\mathbf y(t)$ as $t\to\infty$.</p>
+</div>
+
+<h2>(a) · Solve the IVP</h2>
+
+<h3>1 · Vector form</h3>
+<div class="script">
+<p>$\mathbf y = (x, y)^T$, so $\mathbf y' = A\mathbf y + \mathbf b$ with
+$$A = \begin{pmatrix}-1&amp;2\\2&amp;-1\end{pmatrix},\qquad \mathbf b = \begin{pmatrix}2e^{t}\\0\end{pmatrix},\qquad \mathbf y(0) = \begin{pmatrix}1\\0\end{pmatrix}.$$</p>
+</div>
+<p class="note">The forcing $2e^t$ sits in the $x'$ equation, so it is the <em>first</em> entry of $\mathbf b$. Writing $(0, 2e^t)$ is the easiest slip to make here, and it changes the answer.</p>
+
+<h3>2 · Eigenvalues and eigenvectors</h3>
+<div class="script">
+<p>$\det(A - \lambda I) = (-1-\lambda)^2 - 4 = \lambda^2 + 2\lambda - 3 = (\lambda - 1)(\lambda + 3)$, so $\lambda = 1,\,-3$.</p>
+<p>$\lambda = 1$: $(A - I)\mathbf v = \begin{pmatrix}-2&amp;2\\2&amp;-2\end{pmatrix}\mathbf v = \mathbf 0$ gives $\mathbf v_1 = (1,1)^T$.</p>
+<p>$\lambda = -3$: $(A + 3I)\mathbf v = \begin{pmatrix}2&amp;2\\2&amp;2\end{pmatrix}\mathbf v = \mathbf 0$ gives $\mathbf v_2 = (1,-1)^T$.</p>
+<p>$$S = \begin{pmatrix}1&amp;1\\1&amp;-1\end{pmatrix},\quad D = \begin{pmatrix}1&amp;0\\0&amp;-3\end{pmatrix},\quad \det S = -2,\quad S^{-1} = \frac12\begin{pmatrix}1&amp;1\\1&amp;-1\end{pmatrix}.$$</p>
+</div>
+<p class="note">Shortcut: $\operatorname{tr}A = -2$ and $\det A = 1 - 4 = -3$, so $\lambda^2 + 2\lambda - 3 = 0$. A symmetric $\begin{pmatrix}a&amp;b\\b&amp;a\end{pmatrix}$ always has eigenvectors $(1,\pm1)$.</p>
+
+<h3>3 · Decouple</h3>
+<div class="script">
+<p>Put $\mathbf z = S^{-1}\mathbf y$. Since $A = SDS^{-1}$, multiplying $\mathbf y' = A\mathbf y + \mathbf b$ by $S^{-1}$ gives
+$$\mathbf z' = D\mathbf z + S^{-1}\mathbf b.$$
+$$S^{-1}\mathbf b = \frac12\begin{pmatrix}1&amp;1\\1&amp;-1\end{pmatrix}\begin{pmatrix}2e^t\\0\end{pmatrix} = \begin{pmatrix}e^t\\e^t\end{pmatrix},\qquad \mathbf z(0) = S^{-1}\begin{pmatrix}1\\0\end{pmatrix} = \begin{pmatrix}\tfrac12\\\tfrac12\end{pmatrix}.$$
+So
+$$z_1' = z_1 + e^t,\qquad z_2' = -3z_2 + e^t.$$</p>
+</div>
+<p class="note">This is the step your page was missing. You don't expand $S^{-1}\mathbf y'$ or $DS^{-1}\mathbf y$ in terms of $x, y$. Name $\mathbf z = S^{-1}\mathbf y$ and the system splits into two scalar ODEs.</p>
+
+<h3>4 · Solve $z_1$ (resonant)</h3>
+<div class="script">
+<p>$z_1' - z_1 = e^t$. Integrating factor $e^{-t}$: $(e^{-t}z_1)' = e^{-t}(z_1' - z_1) = 1$, so $e^{-t}z_1 = t + C_1$ and
+$$z_1 = (t + C_1)e^t.$$
+$z_1(0) = \tfrac12$ gives $C_1 = \tfrac12$.</p>
+</div>
+<p class="note">The forcing $e^t$ has the same exponent as the homogeneous solution $e^{t}$ ($\lambda_1 = 1$). That is resonance, and it is why a $t$ appears. A guess of $ae^t$ would give $0 = 1$.</p>
+
+<h3>5 · Solve $z_2$</h3>
+<div class="script">
+<p>$z_2' + 3z_2 = e^t$. Integrating factor $e^{3t}$: $(e^{3t}z_2)' = e^{4t}$, so $e^{3t}z_2 = \tfrac14e^{4t} + C_2$ and
+$$z_2 = \tfrac14e^t + C_2e^{-3t}.$$
+$z_2(0) = \tfrac12$ gives $\tfrac14 + C_2 = \tfrac12$, so $C_2 = \tfrac14$.</p>
+</div>
+
+<h3>6 · Recouple</h3>
+<div class="script">
+<p>$\mathbf y = S\mathbf z$, that is, $x = z_1 + z_2$ and $y = z_1 - z_2$, with $z_1 = (t + \tfrac12)e^t$ and $z_2 = \tfrac14e^t + \tfrac14e^{-3t}$:
+$$\boxed{x = \big(t + \tfrac34\big)e^{t} + \tfrac14e^{-3t},\qquad y = \big(t + \tfrac14\big)e^{t} - \tfrac14e^{-3t}}$$</p>
+</div>
+
+<h3>7 · Check</h3>
+<div class="script">
+<p>$x(0) = \tfrac34 + \tfrac14 = 1$ ✓ and $y(0) = \tfrac14 - \tfrac14 = 0$ ✓.</p>
+<p>$x' = \big(t + \tfrac74\big)e^t - \tfrac34e^{-3t}$, and $-x + 2y + 2e^t = \big(-t - \tfrac34 + 2t + \tfrac12 + 2\big)e^t + \big(-\tfrac14 - \tfrac12\big)e^{-3t} = \big(t + \tfrac74\big)e^t - \tfrac34e^{-3t}$ ✓.</p>
+<p>$y' = \big(t + \tfrac54\big)e^t + \tfrac34e^{-3t}$, and $2x - y = \big(2t + \tfrac32 - t - \tfrac14\big)e^t + \big(\tfrac12 + \tfrac14\big)e^{-3t} = \big(t + \tfrac54\big)e^t + \tfrac34e^{-3t}$ ✓.</p>
+</div>
+
+<h2>(b) · The matrix exponential</h2>
+
+<div class="script">
+<p>$A$ is diagonalisable, so $e^{At} = Se^{Dt}S^{-1}$ with $e^{Dt} = \operatorname{diag}(e^{t}, e^{-3t})$:
+$$Se^{Dt} = \begin{pmatrix}e^{t}&amp;e^{-3t}\\e^{t}&amp;-e^{-3t}\end{pmatrix},$$
+$$e^{At} = \frac12\begin{pmatrix}e^{t}&amp;e^{-3t}\\e^{t}&amp;-e^{-3t}\end{pmatrix}\begin{pmatrix}1&amp;1\\1&amp;-1\end{pmatrix} = \boxed{\frac12\begin{pmatrix}e^{t}+e^{-3t}&amp;e^{t}-e^{-3t}\\e^{t}-e^{-3t}&amp;e^{t}+e^{-3t}\end{pmatrix}}$$</p>
+<p><em>Check:</em> at $t=0$ this is $I$ ✓. Column 1 differentiated at $0$ is $\tfrac12(1-3,\;1+3) = (-1, 2)$, which is column 1 of $A$ ✓.</p>
+</div>
+<p class="note">The homogeneous part of the answer to (a) is $e^{At}\mathbf y(0)$, which is just column 1 here: $\tfrac12\big(e^t + e^{-3t},\; e^t - e^{-3t}\big)$.</p>
+
+<h2>(c) · Long-term behaviour</h2>
+
+<div class="script">
+<p>As $t\to\infty$, $e^{-3t}\to0$ and $te^{t}$ dominates $e^{t}$, so
+$$\mathbf y(t) \sim t\,e^{t}\begin{pmatrix}1\\1\end{pmatrix}.$$
+Growth rate: $te^{t}$ (faster than any pure exponential $e^{\lambda t}$ with $\lambda \le 1$). Direction: along the $\lambda = 1$ eigenvector $(1,1)$, since $x/y = \dfrac{(t+\frac34)e^t + \dots}{(t+\frac14)e^t - \dots} \to 1$.</p>
+</div>
+<p class="note">The extra factor of $t$ is the signature of resonance. Without it, the growth would be plain $e^{t}$.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+$\mathbf y' = A\mathbf y + \mathbf b$ with $\mathbf b$ in the correct entry · eigenvalues with eigenvectors · $S$, $D$, $S^{-1}$ · $\mathbf z = S^{-1}\mathbf y$ and $\mathbf z' = D\mathbf z + S^{-1}\mathbf b$ · $\mathbf z(0) = S^{-1}\mathbf y(0)$ · integrating factor on each $z_i$, with the $t$ from resonance · $\mathbf y = S\mathbf z$ · the boxed $x$ and $y$ · $e^{At} = Se^{Dt}S^{-1}$ multiplied out · the $te^t(1,1)$ asymptote.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0006-inhomogeneous-matrix-exp.html#challenge">Lesson 6, challenge</a></span>
+  <span>Reference: <a href="../reference/topic1-cheatsheet.html">Topic 1 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>
