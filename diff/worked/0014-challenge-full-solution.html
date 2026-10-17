@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laplace IVP Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 14 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>A damped oscillator satisfies $\;2y''+4y'+10y=20e^{-t}\;$ with $y(0)=1,\ y'(0)=0$.</p>
+<p>(a) Show that $\;Y(s)=\dfrac{s+2}{s^2+2s+5}+\dfrac{10}{(s+1)(s^2+2s+5)}.$ <em>[3]</em><br>
+(b) Express $\dfrac{10}{(s+1)(s^2+2s+5)}$ in partial fractions with real constants. <em>[4]</em><br>
+(c) Hence find $y(t)$. <em>[3]</em><br>
+(d) Check against both ICs; describe the motion for large $t$ and why. <em>[2]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) Transform</h2>
+<div class="script">
+<p>Let $Y=\mathcal L\{y\}$. Then $\mathcal L\{y'\}=sY-y(0)=sY-1$ and $\mathcal L\{y''\}=s^2Y-sy(0)-y'(0)=s^2Y-s$. Also $\mathcal L\{e^{-t}\}=\dfrac1{s+1}$. Transforming the ODE:</p>
+$$2(s^2Y-s)+4(sY-1)+10Y=\frac{20}{s+1}\;\Rightarrow\;(2s^2+4s+10)\,Y=2s+4+\frac{20}{s+1}.$$
+<p>Dividing by $2$:</p>
+$$Y=\frac{s+2}{s^2+2s+5}+\frac{10}{(s+1)(s^2+2s+5)}.\qquad\blacksquare$$
+</div>
+<p class="note">Carry the 2 through both IC terms of $y''$ (and only the $y$ IC for $4y'$). Dividing by 2 at the end is safe; dividing the ODE first is also fine if the forcing becomes $10e^{-t}$.</p>
+
+<h2>(b) Partial fractions</h2>
+<div class="script">
+<p>$s^2+2s+5$ has discriminant $4-20&lt;0$, so it is irreducible. Write</p>
+$$\frac{10}{(s+1)(s^2+2s+5)}=\frac{A}{s+1}+\frac{Bs+C}{s^2+2s+5}\;\Rightarrow\;10=A(s^2+2s+5)+(Bs+C)(s+1).$$
+<p>$s=-1$: $10=4A$, so $A=\tfrac52$. Coefficient of $s^2$: $0=A+B$, so $B=-\tfrac52$. Constant term: $10=5A+C$, so $C=10-\tfrac{25}2=-\tfrac52$. Hence</p>
+$$\frac{10}{(s+1)(s^2+2s+5)}=\frac{5/2}{s+1}-\frac52\cdot\frac{s+1}{s^2+2s+5}.$$
+</div>
+<p class="note">Check at $s=0$: LHS $=10/5=2$; RHS $=\tfrac52-\tfrac52\cdot\tfrac15=\tfrac52-\tfrac12=2$ ✓.</p>
+
+<h2>(c) Invert</h2>
+<div class="script">
+<p>Complete the square: $s^2+2s+5=(s+1)^2+4$. Split $s+2=(s+1)+1=(s+1)+\tfrac12\cdot2$:</p>
+$$Y=\frac{5/2}{s+1}+\Big(1-\frac52\Big)\frac{s+1}{(s+1)^2+4}+\frac12\cdot\frac{2}{(s+1)^2+4}=\frac{5/2}{s+1}-\frac32\cdot\frac{s+1}{(s+1)^2+4}+\frac12\cdot\frac{2}{(s+1)^2+4}.$$
+<p>From the sheet, $\mathcal L\{e^{at}\}=\frac1{s-a}$, $\cos2t\leftrightarrow\frac{s}{s^2+4}$, $\sin2t\leftrightarrow\frac2{s^2+4}$, and the s-shift $s\to s+1$ gives a factor $e^{-t}$:</p>
+$$y(t)=\tfrac52e^{-t}-\tfrac32e^{-t}\cos2t+\tfrac12e^{-t}\sin2t=\tfrac12e^{-t}\big(5-3\cos2t+\sin2t\big).$$
+</div>
+<p class="note">State the s-shift theorem by name. The marks are in the split and the table lookup.</p>
+
+<h2>(d) Checks and interpretation</h2>
+<div class="script">
+<p>$y(0)=\tfrac12(5-3)=1$ ✓. Let $g=5-3\cos2t+\sin2t$, so $y=\tfrac12e^{-t}g$ and $y'=\tfrac12e^{-t}(g'-g)$. $g'=6\sin2t+2\cos2t$, so $g'(0)=2=g(0)$ and $y'(0)=0$ ✓.</p>
+<p>As $t\to\infty$, $y\to0$: $g$ is bounded and $e^{-t}\to0$. The motion is a damped oscillation of angular frequency $2$ (from the roots $-1\pm2i$ of $2s^2+4s+10$) inside the envelope $e^{-t}$, on top of a decaying forced response $\tfrac52e^{-t}$ from the forcing $20e^{-t}$. Every exponent has negative real part, so nothing survives.</p>
+</div>
+<p class="note">The forced part checks independently: $y_p=ke^{-t}$ gives $(2-4+10)k=20$, so $k=\tfrac52$, matching $A$ in (b).</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Correct $\mathcal L\{y''\}$ and $\mathcal L\{y'\}$ with both ICs · $2$ applied to both IC terms · $\mathcal L\{e^{-t}\}=\frac1{s+1}$ · irreducibility of the quadratic · $A$, $B$, $C$ with working · complete the square · numerator split into $(s+1)$ and a multiple of $2$ · s-shift named · final $y$ · $y(0)$ and $y'(0)$ checks · decay explained via negative real parts.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0014-laplace-solving-ivps.html">Lesson 14, challenge</a></span>
+  <span>Reference: <a href="../reference/topic3-cheatsheet.html">Topic 3 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

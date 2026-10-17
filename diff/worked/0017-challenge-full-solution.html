@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Convolution Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 17 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule goes on your paper. Grey notes are commentary. Printing hides them.</p>
+
+<div class="box">
+<p>Let $y$ solve $\;y''+6y'+13y=g(t),\;y(0)=0,\;y'(0)=2$, where $g$ is a given function with Laplace transform $G$.</p>
+<p>(a) Show that $Y(s)=\dfrac{2+G(s)}{(s+3)^2+4}$. <em>[2]</em><br>
+(b) Express $y(t)$ as the sum of a function of $t$ and an integral involving $g$. <em>[3]</em><br>
+(c) Now let $g(t)=e^{-3t}$. Evaluate your integral to find $y(t)$, and verify $y'(0)=2$. <em>[3]</em><br>
+(d) Find the continuous $\varphi$ with $\;\varphi(t)=\sin t+2\displaystyle\int_0^t\cos(t-\tau)\,\varphi(\tau)\,d\tau$. <em>[4]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a)</h2>
+<div class="script">
+<p>Take $\mathcal L$ of both sides, using $\mathcal L\{y''\}=s^2Y-sy(0)-y'(0)=s^2Y-2$ and $\mathcal L\{y'\}=sY-y(0)=sY$:</p>
+$$s^2Y-2+6sY+13Y=G\;\Rightarrow\;(s^2+6s+13)Y=2+G.$$
+<p>Since $s^2+6s+13=(s+3)^2+4$,</p>
+$$Y(s)=\frac{2+G(s)}{(s+3)^2+4}.\;\blacksquare$$
+</div>
+<p class="note">Marks: derivative rule with ICs [1], completing the square [1].</p>
+
+<h2>(b)</h2>
+<div class="script">
+$$Y=\frac{2}{(s+3)^2+4}+\frac{1}{(s+3)^2+4}\,G(s).$$
+<p>From the table with the $s$-shift, $\mathcal L^{-1}\left\{\frac{2}{(s+3)^2+4}\right\}=e^{-3t}\sin2t$ and $h(t):=\mathcal L^{-1}\left\{\frac{1}{(s+3)^2+4}\right\}=\tfrac12e^{-3t}\sin2t$. By the convolution theorem, $\mathcal L^{-1}\{HG\}=h*g$, so</p>
+$$y(t)=e^{-3t}\sin2t+\frac12\int_0^t e^{-3(t-\tau)}\sin\big(2(t-\tau)\big)\,g(\tau)\,d\tau.$$
+</div>
+<p class="note">Marks: first term [1], $h$ [1], convolution [1]. Since $*$ is commutative you may also write $h(\tau)g(t-\tau)$; part (c) uses that order.</p>
+
+<h2>(c)</h2>
+<div class="script">
+<p>By commutativity the integral is $\tfrac12\displaystyle\int_0^te^{-3\tau}\sin2\tau\;g(t-\tau)\,d\tau$. With $g(t-\tau)=e^{-3(t-\tau)}$:</p>
+$$\tfrac12\int_0^te^{-3\tau}\sin2\tau\;e^{-3(t-\tau)}d\tau=\tfrac12e^{-3t}\int_0^t\sin2\tau\,d\tau=\tfrac12e^{-3t}\cdot\frac{1-\cos2t}{2}=\tfrac14e^{-3t}(1-\cos2t).$$
+$$\boxed{y(t)=e^{-3t}\Big(\sin2t+\tfrac14-\tfrac14\cos2t\Big)}$$
+<p>$y(0)=0$. Differentiating, $y'=-3y+e^{-3t}\big(2\cos2t+\tfrac12\sin2t\big)$, so $y'(0)=-3(0)+2=2$ ✓.</p>
+</div>
+<p class="note">Choosing the order that makes the exponentials cancel saves the integration by parts. Marks: reorder/simplify [1], integral [1], answer + check [1].</p>
+
+<h2>(d)</h2>
+<div class="script">
+<p>The integral is $\cos*\varphi$, with transform $\dfrac{s}{s^2+1}\Phi(s)$. Transforming:</p>
+$$\Phi=\frac1{s^2+1}+\frac{2s}{s^2+1}\Phi\;\Rightarrow\;(s^2+1-2s)\Phi=1\;\Rightarrow\;\Phi=\frac1{(s-1)^2}.$$
+<p>Since $\mathcal L\{t\}=1/s^2$, the $s$-shift gives</p>
+$$\boxed{\varphi(t)=te^{t}}.$$
+<p>Check: $\varphi(0)=0=\sin0+0$ ✓.</p>
+</div>
+<p class="note">Marks: recognise convolution [1], transform equation [1], solve for $\Phi$ [1], invert [1]. Extra check: $\cos*\varphi=\tfrac12(te^t-\sin t)$, which satisfies the equation.</p>
+
+<div class="nav">
+  <span><a href="../lessons/0017-laplace-convolution-integral-eqns.html">Back to Lesson 17</a></span>
+</div>
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

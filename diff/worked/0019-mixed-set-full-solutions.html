@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laplace Mixed Set Solutions</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 19 · Mixed set · Full written solutions</div>
+<h1>Q1–Q6 written out as exam answers</h1>
+<p class="lede">Inside the red rule is what goes on your paper. Grey notes are reasoning you don't write. Questions are in <a href="../lessons/0019-laplace-mixed-exam-set.html">Lesson 19</a>; only read these after attempting them.</p>
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>Q1 [7]</h2>
+<div class="script">
+<p>(a) $\sin t\cos t = \tfrac12\sin2t$, and $\mathcal L\{\tfrac12\sin 2t\} = \dfrac{1}{s^2+4}$. By the s-shift ($s\to s-1$),
+$$\mathcal L\{e^t\sin t\cos t\} = \frac{1}{(s-1)^2+4}.$$</p>
+<p>(b) $\dfrac{3}{s^2(s-1)} = \dfrac{A}{s}+\dfrac{B}{s^2}+\dfrac{C}{s-1}$. Cover-up: $C = 3/1 = 3$, $B = 3/(0-1) = -3$. At $s=1$ compare, or put $s=2$: $\tfrac34 = \tfrac A2 - \tfrac34 + 3$, so $A=-3$. Hence $\;3e^t - 3 - 3t$.</p>
+<p>(c) $s^2+4s+13 = (s+2)^2+9$, so
+$$\frac{s}{(s+2)^2+9} = \frac{s+2}{(s+2)^2+9} - \frac23\cdot\frac{3}{(s+2)^2+9}\;\Rightarrow\; h(t) = e^{-2t}\big(\cos3t - \tfrac23\sin3t\big).$$
+The factor $e^{-s}$ shifts by 1: $f(t) = h(t-1)H(t-1)$, i.e.
+$$f(t)=\begin{cases}0,&0\le t<1,\\ e^{-2(t-1)}\big(\cos3(t-1)-\tfrac23\sin3(t-1)\big),&t\ge1.\end{cases}$$</p>
+</div>
+<p class="note">Check (b) at $s=2$: left $3/4$. Right $\tfrac A2+\tfrac B4+C = -\tfrac32 - \tfrac34 + 3 = \tfrac34$ ✓.</p>
+
+<h2>Q2 [8]</h2>
+<div class="script">
+<p>(a) Transform, with $y(0)=0$, $y'(0)=1$ and $\mathcal L\{H(t-a)\} = e^{-as}/s$:
+$$s^2Y - 1 + 4sY + 4Y = \frac{4(e^{-s}-e^{-2s})}{s}\;\Rightarrow\; Y = \frac{1}{(s+2)^2} + \frac{4\,(e^{-s}-e^{-2s})}{s(s+2)^2}.$$</p>
+<p>(b) Partial fractions: $\dfrac{4}{s(s+2)^2} = \dfrac1s - \dfrac1{s+2} - \dfrac{2}{(s+2)^2}$, with inverse $G(t) = 1 - e^{-2t} - 2te^{-2t}$. Using $\mathcal L^{-1}\{1/(s+2)^2\} = te^{-2t}$ and the t-shift,
+$$y = te^{-2t} + G(t-1)H(t-1) - G(t-2)H(t-2).$$
+Piecewise:
+$$y=\begin{cases}te^{-2t},&0\le t<1,\\[2pt] te^{-2t}+G(t-1) = 1 + e^{-2t}\big[t+e^{2}(1-2t)\big],&1\le t<2,\\[2pt] te^{-2t}+G(t-1)-G(t-2) = e^{-2t}\big[t-e^{2}(2t-1)+e^{4}(2t-3)\big],&t\ge2.\end{cases}$$</p>
+<p>(c) A critically damped oscillator ($4$ in $y''+4y'+4y$ gives a double root $-2$) starts at equilibrium moving with speed 1, and is pushed by a constant force 4 only during $1\le t<2$. For $t\ge2$ it is unforced and the solution is $e^{-2t}\times$(polynomial), so $y\to0$.</p>
+</div>
+<p class="note">Last piece: $G(t-1) = 1 - e^{-2(t-1)} - 2(t-1)e^{-2(t-1)} = 1 - e^{2}e^{-2t}(2t-1)$. And $G(t-2) = 1 - e^{4}e^{-2t}(2t-3)$. The constants 1 cancel on $t\ge2$. Continuity check at $t=1$: $e^{-2}$ from both sides.</p>
+
+<h2>Q3 [9]</h2>
+<div class="script">
+<p>(a) $\;y'' + 4y = 4\,\delta(t-\tfrac\pi2),\quad y(0)=0,\; y'(0)=b.$</p>
+<p>(b) Transform: $s^2Y - b + 4Y = 4e^{-\pi s/2}$, so $Y = \dfrac{b}{s^2+4} + \dfrac{4e^{-\pi s/2}}{s^2+4}$. Invert with the t-shift:
+$$y = \tfrac b2\sin2t + 2\sin\!\big(2t-\pi\big)H(t-\tfrac\pi2) = \tfrac b2\sin2t - 2\sin2t\,H(t-\tfrac\pi2).$$</p>
+<p>(c) Since $\tfrac{3\pi}4>\tfrac\pi2$ the Heaviside term is active:
+$$y(\tfrac{3\pi}4) = \big(\tfrac b2 - 2\big)\sin\tfrac{3\pi}{2} = 2-\tfrac b2 = 3\;\Rightarrow\; b=-2.$$
+$$y=\begin{cases}-\sin2t,&0\le t<\tfrac\pi2,\\ -3\sin2t,&t\ge\tfrac\pi2.\end{cases}$$</p>
+<p>(d) At $t=\tfrac\pi2$: both pieces equal $0$, so $y$ is continuous. $y'$ is $-2\cos2t$ before and $-6\cos2t$ after, so $y'(\tfrac\pi{2}^-)=2$, $y'(\tfrac\pi2^+)=6$. The jump is $4$, the impulse strength.</p>
+<p>Sketch: zeros at $t=0,\tfrac\pi2,\pi$. Minimum $-1$ at $\tfrac\pi4$. Maximum $+3$ at $\tfrac{3\pi}4$. Corner at $\tfrac\pi2$ where the slope jumps from 2 to 6.</p>
+</div>
+<p class="note">The measurement at $t=3\pi/4$ comes <em>after</em> the strike, so the unknown $b$ is tangled with the impulse term. Using the pre-impulse piece only gives $-b/2=3$, so $b=-6$: a plausible wrong answer.</p>
+
+<h2>Q4 [9]</h2>
+<div class="script">
+<p>(a) $F(s)=\displaystyle\int_0^\infty e^{-st}f(t)\,dt$. Differentiating under the integral sign,
+$$F'(s) = \int_0^\infty (-t)\,e^{-st}f(t)\,dt = -\mathcal L\{t f(t)\},$$
+so $\mathcal L\{tf\} = -F'(s)$. $\blacksquare$</p>
+<p>(b) $\mathcal L\{y''\} = s^2Y - sy(0)-y'(0) = s^2Y-1$. With $f=y'$, $F = sY - y(0) = sY$, so
+$$\mathcal L\{ty'\} = -\frac{d}{ds}(sY) = -Y - sY'.$$
+The ODE becomes $s^2Y - 1 - Y - sY' - Y = 0$, i.e. $sY' = (s^2-2)Y - 1$, so
+$$Y' - \Big(s-\frac2s\Big)Y = -\frac1s.$$</p>
+<p>(c) Integrating factor: $\mu = \exp\!\int\!\big(-s+\tfrac2s\big)ds = s^2e^{-s^2/2}$. Then
+$$(\mu Y)' = -\frac1s\cdot s^2e^{-s^2/2} = -s\,e^{-s^2/2}\;\Rightarrow\;\mu Y = e^{-s^2/2}+C\;\Rightarrow\; Y = \frac1{s^2} + C\,\frac{e^{s^2/2}}{s^2}.$$
+Since $Y(s)\to0$ as $s\to\infty$ but $e^{s^2/2}/s^2\to\infty$, we need $C=0$. So $Y = 1/s^2$.</p>
+<p>(d) $y(t)=t$. Check: $y''=0$, $ty'=t$, so $0+t-t=0$ ✓, $y(0)=0$ ✓, $y'(0)=1$ ✓.</p>
+</div>
+<p class="note">(c) is the 2018 pattern in a new disguise: the homogeneous solution of the $Y$-ODE is not a Laplace transform, so the limit kills it.</p>
+
+<h2>Q5 [9]</h2>
+<div class="script">
+<p>(a) Transform with zero ICs: $(s^2+1)Y = G(s)$, so $Y = \dfrac{1}{s^2+1}\,G(s)$. Since $\mathcal L^{-1}\{1/(s^2+1)\} = \sin t$, the convolution theorem gives
+$$y(t) = (\sin * g)(t) = \int_0^t\sin(t-\tau)\,g(\tau)\,d\tau.\;\blacksquare$$</p>
+<p>(b) For $g=e^{-t}$: $\sin(t-\tau) = \sin t\cos\tau - \cos t\sin\tau$, so
+$$y = \sin t\int_0^te^{-\tau}\cos\tau\,d\tau - \cos t\int_0^te^{-\tau}\sin\tau\,d\tau,$$
+with $\displaystyle\int_0^te^{-\tau}\cos\tau\,d\tau=\tfrac12\big[1+e^{-t}(\sin t-\cos t)\big]$ and $\displaystyle\int_0^te^{-\tau}\sin\tau\,d\tau=\tfrac12\big[1-e^{-t}(\sin t+\cos t)\big]$. Then
+$$y = \tfrac12\big[\sin t - \cos t + e^{-t}(\sin^2t+\cos^2t)\big] = \tfrac12\big(e^{-t}+\sin t-\cos t\big).$$</p>
+<p>(c) The integral is $\sin * f$. Transform: $F = \dfrac1{s^2} + \dfrac{F}{s^2+1}$, so $F\cdot\dfrac{s^2}{s^2+1}=\dfrac1{s^2}$ and
+$$F = \frac{s^2+1}{s^4} = \frac1{s^2}+\frac1{s^4}\;\Rightarrow\; f(t) = t+\frac{t^3}{6}.$$</p>
+</div>
+<p class="note">Quick check of (b) with partial fractions: $\frac{1}{(s+1)(s^2+1)} = \frac12\Big[\frac1{s+1} + \frac{1-s}{s^2+1}\Big]$, giving the same $y$. Check (c): $\int_0^t\sin(t-\tau)(\tau+\tau^3/6)d\tau = t^3/6$ ✓ (which is $f - t$).</p>
+
+<h2>Q6 [8]</h2>
+<div class="script">
+<p>(a) Transform both equations ($x(0)=2$, $y(0)=0$):
+$$sX - 2 = -3X + Y,\qquad sY = X - 3Y\;\Rightarrow\;(s+3)X - Y = 2,\quad -X+(s+3)Y=0.$$
+From the second, $Y = \dfrac{X}{s+3}$. Substituting, $X\Big[(s+3)-\dfrac1{s+3}\Big]=2$, so
+$$X = \frac{2(s+3)}{(s+3)^2-1} = \frac{2(s+3)}{(s+2)(s+4)},\qquad Y=\frac{2}{(s+2)(s+4)}.$$</p>
+<p>(b) $X=\dfrac1{s+2}+\dfrac1{s+4}$ and $Y=\dfrac1{s+2}-\dfrac1{s+4}$, so
+$$x = e^{-2t}+e^{-4t},\qquad y=e^{-2t}-e^{-4t}.$$</p>
+<p>(c) $y' = -2e^{-2t}+4e^{-4t}=0\iff e^{-2t}=\tfrac12\iff t=\tfrac12\ln2$. There $e^{-4t}=\tfrac14$, so $y=\tfrac12-\tfrac14=\tfrac14$. Since $y(0)=0$, $y\to0$ and $y>0$ in between, this is the maximum: $\tfrac14$ at $t=\tfrac12\ln2$.</p>
+</div>
+<p class="note">Check: $x' = -2e^{-2t}-4e^{-4t}$ and $-3x+y=-3e^{-2t}-3e^{-4t}+e^{-2t}-e^{-4t}$ ✓. Also $x\pm y$ decouple (sum decays at rate 2, difference at rate 4).</p>
+
+<p><a href="../lessons/0019-laplace-mixed-exam-set.html">Back to Lesson 19</a></p>
+</main>
+</body>
+</html>

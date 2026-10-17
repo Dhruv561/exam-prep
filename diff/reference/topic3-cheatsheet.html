@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topic 3 Cheat Sheet</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+@page { size: A4; margin: 8mm; }
+body.ref main { max-width: 64rem; }
+.cols { column-count: 2; column-gap: 1.4rem; }
+.cols h2 { margin: .7rem 0 .25rem; padding-top: .3rem; font-size: 1rem; break-after: avoid; }
+.cols p, .cols li { margin: .2rem 0; }
+.cols table { margin: .25rem 0; font-size: .92em; }
+.cols td, .cols th { padding: .1rem .4rem; }
+.cols .box { margin: .3rem 0; padding: .3rem .6rem; }
+.cols ul, .cols ol { margin: .2rem 0; padding-left: 1.1rem; }
+.cols .katex-display { margin: .2em 0; }
+@media print {
+  html { font-size: 7.6pt; }
+  h1 { font-size: 13pt; margin: 0; } .lede { margin: .1rem 0; }
+  .cols { column-gap: 1rem; }
+  .cols table, .cols .box { break-inside: avoid; }
+}
+</style>
+</head>
+<body class="ref">
+<main>
+<div class="kicker">MAST20030 · Reference</div>
+<h1>Topic 3: Laplace transforms</h1>
+<p class="lede">Lessons 13–19. Formula sheet has only the items marked <strong>[S]</strong>. Everything else you derive or memorise.</p>
+
+<div class="cols">
+
+<h2>Sheet vs memorise</h2>
+<table>
+<tr><th>[S] on sheet</th><th>Memorise / derive</th></tr>
+<tr><td>def, linearity, $\mathcal L\{f^{(n)}\}$, s-shift, t-shift, convolution thm</td><td>$\mathcal L\{tf\}=-F'$, $\mathcal L\{\int_0^tf\}=F/s$, $\mathcal L\{f'\}$ for $n=1,2$ written out</td></tr>
+<tr><td>$1,\ \tfrac{t^{n-1}}{(n-1)!},\ e^{at},\ \sin\omega t,\ \cos\omega t,\ \sinh at,\ \cosh at,\ \delta(t-a)$</td><td>$H_a$, $t^n$, $te^{at}$, $e^{at}\sin/\cos$, $t\sin$, $t\cos$</td></tr>
+</table>
+<div class="box">$$F(s)=\int_0^\infty e^{-st}f(t)\,dt,\qquad \mathcal L\{f'\}=sF-f(0),\quad \mathcal L\{f''\}=s^2F-sf(0)-f'(0)$$</div>
+<p>Exists if $f$ piecewise continuous and $|f|\le Me^{ct}$ (exponential order). Then $F(s)\to0$ as $s\to\infty$. Inverse at a jump gives the midpoint.</p>
+
+<h2>Table and derived pairs</h2>
+<table>
+<tr><th>$f(t)$</th><th>$F(s)$</th><th></th></tr>
+<tr><td>$1,\ \ t^n$</td><td>$\frac1s,\ \ \frac{n!}{s^{n+1}}$</td><td>[S]</td></tr>
+<tr><td>$e^{at}$</td><td>$\frac1{s-a}$</td><td>[S]</td></tr>
+<tr><td>$\sin\omega t,\ \cos\omega t$</td><td>$\frac{\omega}{s^2+\omega^2},\ \frac{s}{s^2+\omega^2}$</td><td>[S]</td></tr>
+<tr><td>$\sinh at,\ \cosh at$</td><td>$\frac{a}{s^2-a^2},\ \frac{s}{s^2-a^2}$</td><td>[S]</td></tr>
+<tr><td>$\delta(t-a)$</td><td>$e^{-as}$</td><td>[S]</td></tr>
+<tr><td>$H(t-a)$</td><td>$\frac{e^{-as}}{s}$</td><td>t-shift of 1</td></tr>
+<tr><td>$te^{at}$</td><td>$\frac1{(s-a)^2}$</td><td>s-shift</td></tr>
+<tr><td>$e^{at}\sin\omega t$</td><td>$\frac{\omega}{(s-a)^2+\omega^2}$</td><td>s-shift</td></tr>
+<tr><td>$e^{at}\cos\omega t$</td><td>$\frac{s-a}{(s-a)^2+\omega^2}$</td><td>s-shift</td></tr>
+<tr><td>$t\sin\omega t$</td><td>$\frac{2\omega s}{(s^2+\omega^2)^2}$</td><td>$-F'$</td></tr>
+<tr><td>$t\cos\omega t$</td><td>$\frac{s^2-\omega^2}{(s^2+\omega^2)^2}$</td><td>$-F'$</td></tr>
+</table>
+<p>Resonance: $\mathcal L^{-1}\!\left\{\frac1{(s^2+\omega^2)^2}\right\}=\frac{\sin\omega t-\omega t\cos\omega t}{2\omega^3}$. Also $\mathcal L\{t^nf\}=(-1)^nF^{(n)}$.</p>
+<p>Trig first: $\cos^2t-\sin^2t=\cos2t$, $\sin^2t=\tfrac12(1-\cos2t)$, $\sin t\cos t=\tfrac12\sin2t$. Then s-shift for any $e^{at}$ factor.</p>
+
+<h2>Inverse transforms</h2>
+<ul>
+<li>Distinct roots: cover-up. Repeated $(s-a)^2$: need both $\frac A{s-a}+\frac B{(s-a)^2}$. Irreducible quadratic: $\frac{As+B}{s^2+bs+c}$.</li>
+<li><strong>Complete the square</strong>, then split numerator to match $s-a$ and $\omega$:
+$\dfrac{s+2}{s^2+2s+10}=\dfrac{(s+1)+1}{(s+1)^2+9}\to e^{-t}\!\left(\cos3t+\tfrac13\sin3t\right)$.</li>
+<li>Factor $e^{-as}$ out first. Invert the rest to $f(t)$, then answer $f(t-a)H(t-a)$.</li>
+</ul>
+
+<h2>The 4-step IVP method</h2>
+<ol class="steps">
+<li>Transform every term, using the ICs in $\mathcal L\{y'\},\mathcal L\{y''\}$</li>
+<li>Solve algebraically for $Y(s)$</li>
+<li>Decompose (partial fractions / complete the square)</li>
+<li>Invert. Check $y(0)$, $y'(0)$</li>
+</ol>
+<div class="trap"><strong>Non-unit leading coefficient:</strong> $4y''$ gives $4(s^2Y-sy_0-y_0')$. The ICs terms are multiplied too. E.g. $4s^2+12s+9=(2s+3)^2$: repeated root, gives $e^{-3t/2}$ and $te^{-3t/2}$.</div>
+<p><strong>Two-point conditions</strong> ($y(0)=0$, $y(t_1)=0$): keep $y'(0)=c$ as a symbol, invert, then solve for $c$ from the later condition. Pick the branch of the piecewise answer that applies at $t_1$.</p>
+
+<h2>Heaviside and t-shift</h2>
+<div class="box">$$\mathcal L\{f(t-a)H(t-a)\}=e^{-as}F(s)\qquad H_a-H_b=\begin{cases}1&a<t<b\\0&\text{else}\end{cases}$$</div>
+<p><strong>Key trap:</strong> $g(t)H(t-a)$ is not shifted until you rewrite $g(t)=g((t-a)+a)$:
+$$\mathcal L\{g(t)H(t-a)\}=e^{-as}\,\mathcal L\{g(t+a)\}.$$
+E.g. $t\,H(t-2)$: $g(t+2)=t+2\to e^{-2s}\!\left(\frac1{s^2}+\frac2s\right)$.</p>
+<p>Piecewise $\to$ Heaviside: add one term at each break: $f=f_1+(f_2-f_1)H_{a}+(f_3-f_2)H_b$. Heaviside $\to$ piecewise: evaluate each interval. The final answer to an IVP: <strong>piecewise</strong>, with $y$ and $y'$ continuous at the switch-on.</p>
+
+<h2>Dirac delta</h2>
+<ul>
+<li>$\int_{-\infty}^\infty f(t)\delta(t-a)\,dt=f(a)$ (sifting). $\mathcal L\{\delta(t-a)\}=e^{-as}$ ($a\ge0$).</li>
+<li>Limit of narrow tall spike with area 1. $\delta$ is the derivative of $H$.</li>
+<li><strong>Impulse rule:</strong> $my''+\dots=k\,\delta(t-a)$: $y$ continuous, $y'$ jumps by $k/m$ at $t=a$. Always check both sides of the jump.</li>
+<li>Impulse train $\sum\delta(t-n a)$: $\frac1{1-e^{-as}}$-type geometric series in $e^{-as}$.</li>
+<li>Sketch: mark intercepts, the kink at the impulse, and the long-term behaviour.</li>
+</ul>
+
+<h2>Convolution</h2>
+<div class="box">$$(f*g)(t)=\int_0^tf(\tau)g(t-\tau)\,d\tau,\qquad \mathcal L\{f*g\}=F\,G$$</div>
+<ul>
+<li>$f*g=g*f$; $\ f*\delta_a=f(t-a)H(t-a)$; $\ 1*g=\int_0^tg$.</li>
+<li><strong>General forcing:</strong> $y''+py'+qy=g$, ICs zero: $Y=\frac{G}{s^2+ps+q}$, so $y=h*g$ with $h=\mathcal L^{-1}\!\left\{\frac1{s^2+ps+q}\right\}$ (impulse response). Non-zero ICs add the homogeneous part.</li>
+<li>First order: $y'+ay=g$, $y(0)=y_0$: $y=y_0e^{-at}+e^{-at}*g$.</li>
+<li>Integral eqn $y(t)=f(t)+\int_0^tk(t-\tau)y(\tau)d\tau$: $Y=F+KY\Rightarrow Y=\dfrac F{1-K}$. Integro-differential: transform, $\int_0^ty\to Y/s$.</li>
+<li>Use convolution to invert a product $F\,G$ you cannot split.</li>
+</ul>
+
+<h2>Variable coefficients</h2>
+<div class="box">$$\mathcal L\{ty'\}=-sY'-Y,\qquad \mathcal L\{ty''\}=-s^2Y'-2sY+y(0)$$</div>
+<p>A first-degree-in-$t$ ODE becomes a first-order ODE in $Y(s)$: solve with an integrating factor. Fix the constant using $Y\to0$ as $s\to\infty$. $\ y''+2ty'+2y=0$ gives $-2sY'+s^2Y=sy_0+y_0'$.</p>
+
+<h2>Derivations to know</h2>
+<ul>
+<li>$\mathcal L\{f'\}$: integrate by parts, $e^{-st}f\big|_0^\infty=-f(0)$.</li>
+<li>s-shift: $e^{at}$ merges into $e^{-(s-a)t}$.</li>
+<li>t-shift: substitute $u=t-a$. $\ \ \mathcal L\{tf\}$: differentiate $\int e^{-st}f$ in $s$.</li>
+<li>$F\to0$: $|F|\le\int_0^\infty e^{-st}Me^{ct}dt=\frac{M}{s-c}$.</li>
+<li>Convolution: swap the order of integration over $0<\tau<t$.</li>
+</ul>
+
+<h2>Which tool?</h2>
+<ol class="steps">
+<li>Constant coefficients, forcing $e^{at}$, trig, polynomial: standard IVP method</li>
+<li>Forcing switches on/off: Heaviside, t-shift</li>
+<li>Forcing is a hit at $t=a$: delta, jump in $y'$</li>
+<li>Forcing is a general $g$ (or an integral appears): convolution</li>
+<li>Coefficient has $t$: use $-F'$, solve first-order ODE in $Y$</li>
+<li>Coupled system: transform each equation, solve the $2\times2$ for $X(s),Y(s)$</li>
+</ol>
+
+</div>
+
+<div class="nav">
+  <span>Lessons: <a href="../lessons/0013-laplace-definition-table-inverse.html">13</a> · <a href="../lessons/0014-laplace-solving-ivps.html">14</a> · <a href="../lessons/0015-laplace-heaviside-t-shift.html">15</a> · <a href="../lessons/0016-laplace-dirac-delta.html">16</a> · <a href="../lessons/0017-laplace-convolution-integral-eqns.html">17</a> · <a href="../lessons/0018-laplace-derivations-variable-coeff-systems.html">18</a> · <a href="../lessons/0019-laplace-mixed-exam-set.html">19</a></span>
+  <span>Also: <a href="topic1-cheatsheet.html">Topic 1</a> · <a href="topic2-cheatsheet.html">Topic 2</a> · <a href="ode-method-map.html">Decision map</a></span>
+</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Integro-Differential Equations</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 20 · Topic 3: Laplace</div>
+<h1>Integral and integro-differential equations (RLC circuits)</h1>
+<p class="lede">The goal: any equation with $\int_0^t y(\tau)\,d\tau$ or $\int_0^t k(t-\tau)\,y(\tau)\,d\tau$ in it becomes an <em>algebraic</em> equation for $Y(s)$. You'll solve Volterra equations, integro-differential equations and RLC circuits (including impulse and window voltages), and cross-check by turning them into ODEs.</p>
+
+<div class="mission">Why this matters for 5 Nov: the problem booklet has four of these (Q19–22) and the lecture has one (Exercise 3.22). They're the cheapest Laplace marks: no ODE theory, just one algebra line, then partial fractions or completing the square. The window/impulse circuit versions stack the Heaviside and delta skills from Lessons 15–16. This lesson goes deeper on problem types than <a href="0017-laplace-convolution-integral-eqns.html">Lesson 17</a>, which has the convolution theory. Don't re-learn that here.</div>
+
+<h2>0 · Warm-up from Lessons 15 and 17</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W1.</strong> $\;\mathcal L\Big\{\displaystyle\int_0^t \sin 2\tau\,d\tau\Big\} = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{2s}{s^2+4}$</button>
+    <button class="opt" data-key="b">$\dfrac{2}{s(s^2+4)}$</button>
+    <button class="opt" data-key="c">$\dfrac{2}{s^2(s^2+4)}$</button>
+    <button class="opt" data-key="d">$\dfrac{s}{s^2+4}$</button>
+  </div>
+  <div class="why">$\int_0^t f = 1 * f$, so the transform is $\frac1s F(s)$ with $F = \frac{2}{s^2+4}$ from the sheet. Option (a) is $\mathcal L\{2\cos 2t\}$, which is the derivative.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W2.</strong> $\;\mathcal L^{-1}\Big\{\dfrac{e^{-3s}}{s+2}\Big\} = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{-2(t-3)}\,H(t-3)$</button>
+    <button class="opt" data-key="b">$e^{-2t}\;\,\;\;H(t-3)$</button>
+    <button class="opt" data-key="c">$e^{-2(t+3)}\,H(t-3)$</button>
+    <button class="opt" data-key="d">$e^{-2(t-3)}\,H(t+3)$</button>
+  </div>
+  <div class="why">$\frac1{s+2}\leftrightarrow e^{-2t}$, then the t-shift (sheet) replaces $t$ by $t-3$ <em>everywhere</em> and multiplies by $H(t-3)$ (<a href="0015-laplace-heaviside-t-shift.html">Lesson 15</a>).</div>
+</div>
+
+<h2>1 · The one new fact, derived from the sheet</h2>
+
+<p>The sheet has no rule for integrals. Derive it in two lines: let $g(t)=\int_0^t y(\tau)\,d\tau$. Then $g' = y$ and $g(0)=0$, so the derivative rule gives $Y = sG - g(0) = sG$.</p>
+<div class="box">
+$$\mathcal L\Big\{\int_0^t y(\tau)\,d\tau\Big\}=\frac{Y(s)}{s}\qquad\text{(no initial-condition term)}$$
+<p>More generally $\int_0^t k(t-\tau)\,y(\tau)\,d\tau = k*y \;\to\; K(s)\,Y(s)$. The integral above is the case $k=1$, $K = 1/s$.</p>
+</div>
+
+<h2>2 · Three problem types, one recipe</h2>
+
+<table>
+<tr><th>Type</th><th>Looks like</th><th>After transforming</th></tr>
+<tr><td>Volterra, 2nd kind</td><td>$y = f + \int_0^t k(t-\tau)\,y\,d\tau$</td><td>$Y = F + KY \Rightarrow Y = \dfrac{F}{1-K}$. No ICs.</td></tr>
+<tr><td>Integro-differential</td><td>$y' + ay + b\int_0^t y = f$, $y(0)$ given</td><td>$(s + a + \tfrac bs)Y = F + y(0)$</td></tr>
+<tr><td>RLC circuit</td><td>$L i' + Ri + \tfrac1C\int_0^t i = v(t)$, $i(0)=0$</td><td>same as above; $v$ may be $H$, window, $\delta$</td></tr>
+</table>
+
+<ol class="steps">
+  <li><strong>Spot the convolution.</strong> Is the integrand $k(t-\tau)\,y(\tau)$? Kernel $1$ means $\int_0^t y$.</li>
+  <li><strong>Transform every term.</strong> Only $y'$ (or $y''$) brings initial conditions.</li>
+  <li><strong>Collect $Y$</strong>, multiply through by $s$ to clear $\frac1s$, factorise.</li>
+  <li><strong>Partial fractions or complete the square, then invert</strong> (t-shift if there's an $e^{-as}$).</li>
+  <li><strong>Check</strong> $y(0)$ and the equation at $t=0$.</li>
+</ol>
+
+<h2>3 · Worked example: Volterra equation</h2>
+<p>Solve $\;y(t) = \sin t + 2\displaystyle\int_0^t \cos(t-\tau)\,y(\tau)\,d\tau$.</p>
+<details><summary>Solution</summary><div>
+<p>The integral is $\cos * y$, so with $\mathcal L\{\cos t\} = \frac{s}{s^2+1}$:</p>
+$$Y = \frac{1}{s^2+1} + \frac{2s}{s^2+1}\,Y \;\Rightarrow\; \frac{s^2 - 2s + 1}{s^2+1}\,Y = \frac1{s^2+1} \;\Rightarrow\; Y = \frac{1}{(s-1)^2}.$$
+<p>From the sheet, $t \leftrightarrow \frac1{s^2}$ ($n=2$). The s-shift gives $\frac1{(s-1)^2}\leftrightarrow t\,e^{t}$. So $y = t\,e^{t}$.</p>
+<p>Check: $y(0) = 0 = \sin 0$ ✓ (in a Volterra equation, $t=0$ kills the integral, so $y(0)=f(0)$).</p>
+</div></details>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q1.</strong> Solve $\;y(t) = 3 - 2\displaystyle\int_0^t y(\tau)\,d\tau$.</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$3e^{\,2t}$</button>
+    <button class="opt" data-key="b">$3e^{-2t}$</button>
+    <button class="opt" data-key="c">$2e^{-3t}$</button>
+    <button class="opt" data-key="d">$3e^{-t}$</button>
+  </div>
+  <div class="why">$Y = \frac3s - \frac{2Y}{s}\Rightarrow Y\frac{s+2}{s} = \frac3s\Rightarrow Y=\frac3{s+2}$. Check: $y(0)=3=f(0)$ ✓. Option (a) has the sign wrong.</div>
+</div>
+
+<h2>4 · Worked example: integro-differential</h2>
+<p>Solve $\;y'(t) + 3y(t) + 2\displaystyle\int_0^t y(\tau)\,d\tau = 6,\quad y(0)=0.$</p>
+<details><summary>Solution</summary><div>
+$$sY - 0 + 3Y + \frac{2Y}{s} = \frac6s \;\Rightarrow\; (s^2+3s+2)\,Y = 6 \;\Rightarrow\; Y = \frac{6}{(s+1)(s+2)} = \frac{6}{s+1} - \frac{6}{s+2}.$$
+<p>So $y = 6\big(e^{-t} - e^{-2t}\big)$.</p>
+<p>Check: $y(0)=0$ ✓. At $t=0$ the equation reads $y'(0) + 0 + 0 = 6$, and $y' = -6e^{-t} + 12e^{-2t}\to 6$ ✓.</p>
+</div></details>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q2.</strong> Solve $\;y'(t) + 5y(t) + 6\displaystyle\int_0^t y(\tau)\,d\tau = 0,\;\; y(0)=2$.</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$6e^{-3t}-4e^{-2t}$</button>
+    <button class="opt" data-key="b">$4e^{-3t}-6e^{-2t}$</button>
+    <button class="opt" data-key="c">$6e^{-2t}-4e^{-3t}$</button>
+    <button class="opt" data-key="d">$4e^{-2t}-2e^{-3t}$</button>
+  </div>
+  <div class="why">$sY - 2 + 5Y + \frac{6Y}{s}=0\Rightarrow Y=\frac{2s}{(s+2)(s+3)} = \frac{-4}{s+2}+\frac{6}{s+3}$. Options (a) and (c) both have $y(0)=2$. The equation at $t=0$ separates them: $y'(0) = -5y(0) = -10$. Only (a) gives that (it's $-18+8$; (c) gives $0$).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q3.</strong> $\;\mathcal L\Big\{\displaystyle\int_0^t e^{\tau}\,y(\tau)\,d\tau\Big\} = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{Y(s)}{s-1}\;\;\;$</button>
+    <button class="opt" data-key="b">$\dfrac{Y(s-1)}{s-1}$</button>
+    <button class="opt" data-key="c">$\dfrac{Y(s-1)}{s}\;\;\;$</button>
+    <button class="opt" data-key="d">$\dfrac{Y(s)}{s(s-1)}$</button>
+  </div>
+  <div class="why">This is <em>not</em> a convolution: the integrand has $e^{\tau}$, not $e^{t-\tau}$. Treat it as $\int_0^t g$ with $g = e^{t}y$. Then $G(s)=Y(s-1)$ (s-shift) and the integral divides by $s$. (Option (a) would be $\int_0^t e^{t-\tau}y\,d\tau$.)</div>
+</div>
+
+<h2>5 · Cross-check: differentiate to get an ODE</h2>
+<p>If the integral is $\int_0^t y$, differentiating removes it (since $\frac{d}{dt}\int_0^t y = y$). You get an ODE, but it needs <strong>one extra initial condition from the original equation at $t=0$</strong>.</p>
+<p>Example from §4: differentiate $\;y' + 3y + 2\int_0^t y = 6$:</p>
+$$y'' + 3y' + 2y = 0.$$
+<p>ICs: $y(0)=0$, and at $t=0$ the original gives $y'(0) = 6 - 3y(0) - 0 = 6$. Then $y = Ae^{-t} + Be^{-2t}$ with $A+B=0$, $-A-2B=6$ gives $A=6$, $B=-6$ ✓ matches.</p>
+
+<div class="trap"><strong>Use it as a check, not the method</strong><br>Differentiating is a fine 2-minute cross-check on a spare line. As the method it costs more: you need the extra IC, and it fails for kernels like $\cos(t-\tau)$ (the Leibniz rule adds a term). Laplace handles every kernel the same way. For $y = t + \int_0^t (t-\tau)y$, differentiate twice: $y''=y$, $y(0)=0$, $y'(0)=1$ gives $\sinh t$, and Laplace ($Y = \frac1{s^2-1}$) agrees.</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q4.</strong> $\;y' + 2y + 5\displaystyle\int_0^t y = 7,\;\; y(0)=1$. Differentiating gives $y''+2y'+5y=0$. The extra IC is</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$y'(0)=5$</button>
+    <button class="opt" data-key="b">$y'(0)=7$</button>
+    <button class="opt" data-key="c">$y'(0)=9$</button>
+    <button class="opt" data-key="d">$y'(0)=3$</button>
+  </div>
+  <div class="why">Put $t=0$ in the original: $y'(0) + 2(1) + 0 = 7$, so $y'(0)=5$. Option (b) forgets the $2y(0)$ term; (c) has its sign wrong.</div>
+</div>
+
+<h2>6 · RLC circuits</h2>
+<p>Kirchhoff: $L\,\dfrac{di}{dt} + R\,i + \dfrac{q}{C} = v(t)$, with $q=\int_0^t i\,d\tau$ (charge, $q(0)=0$). So the equation is $\;L i' + Ri + \tfrac1C\int_0^t i = v$. Transform with $i(0)=0$:</p>
+$$\Big(Ls + R + \frac{1}{Cs}\Big)I = V(s) \;\Rightarrow\; I(s) = \frac{s\,V(s)}{Ls^2 + Rs + \frac1C}.$$
+<p>Forcing transforms (derive, they aren't on the sheet except $\delta$): switch-on $H(t-a)\to\frac{e^{-as}}{s}$, window $H_a-H_b\to\frac{e^{-as}-e^{-bs}}{s}$, impulse $\delta(t-a)\to e^{-as}$.</p>
+<p>Notice the $s$ from $V=\frac1s e^{-as}$ cancels the $s$ above, so a <strong>step/window</strong> voltage gives a clean quadratic in the denominator, with no partial fractions in $s$. An <strong>impulse</strong> keeps the $s$ in the numerator.</p>
+
+<h3>Worked example: impulse into a series RLC</h3>
+<p>$L=1,\ R=2,\ 1/C=5$, impulse at $t=1$, no initial current: $\;i' + 2i + 5\displaystyle\int_0^t i\,d\tau = 10\,\delta(t-1)$.</p>
+<details><summary>Solution</summary><div>
+$$\Big(s+2+\frac5s\Big)I = 10e^{-s}\;\Rightarrow\; I = \frac{10\,s\,e^{-s}}{s^2+2s+5}=10\,e^{-s}\,\frac{s}{(s+1)^2+4}.$$
+<p>Split the numerator over the completed square: $\dfrac{s}{(s+1)^2+4} = \dfrac{(s+1)}{(s+1)^2+4} - \dfrac12\cdot\dfrac{2}{(s+1)^2+4}$. Invert with the s-shift, then the t-shift:</p>
+$$i(t) = 10\,e^{-(t-1)}\Big[\cos 2(t-1) - \tfrac12\sin 2(t-1)\Big]H(t-1),$$
+<p>that is $i = 0$ for $t<1$ and the formula for $t\ge1$.</p>
+<p>Check: the impulse acts on $L i'$ only, so $i$ jumps by $10/L = 10$ at $t=1$. The formula gives $i(1^+) = 10\cdot1 = 10$ ✓.</p>
+</div></details>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q5.</strong> $\;\mathcal L^{-1}\Big\{\dfrac{s}{s^2+4s+13}\Big\} = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{-2t}\big(\cos 3t + \tfrac23\sin 3t\big)$</button>
+    <button class="opt" data-key="b">$e^{-2t}\big(\cos 3t - 2\sin 3t\big)\;\;$</button>
+    <button class="opt" data-key="c">$e^{\,2t}\big(\cos 3t - \tfrac23\sin 3t\big)$</button>
+    <button class="opt" data-key="d">$e^{-2t}\big(\cos 3t - \tfrac23\sin 3t\big)$</button>
+  </div>
+  <div class="why">$s^2+4s+13=(s+2)^2+9$ and $s = (s+2) - 2$, so $\frac{s+2}{(s+2)^2+9} - \frac23\cdot\frac{3}{(s+2)^2+9}$. The "$-2$" must be divided by the $3$ from the denominator.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q6.</strong> A $1\,\Omega$ resistor and a $\tfrac12\,$F capacitor (uncharged) are in series with a $4\,$V battery switched on at $t=1$, so $\;i + 2\int_0^t i = 4H(t-1)$. Just after the switch-on, $i(1^+)=$</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$0$</button>
+    <button class="opt" data-key="b">$2$</button>
+    <button class="opt" data-key="c">$4$</button>
+    <button class="opt" data-key="d">$8$</button>
+  </div>
+  <div class="why">$I=\frac{4e^{-s}}{s+2}$, so $i = 4e^{-2(t-1)}H(t-1)$ and $i(1^+)=4$. Physically the capacitor has no charge yet, so all of the $4$ V is across $R$: $i = v/R = 4$.</div>
+</div>
+
+<div class="trap"><strong>Traps</strong><br>
+1. <strong>No IC term for $\int_0^t y$</strong>: it's $Y/s$, not $Y/s - \text{something}$.<br>
+2. <strong>$i(0)$ and $q(0)$</strong>: "no current initially" gives $i(0)=0$ in $sI - i(0)$. The charge integral starts at $0$ automatically.<br>
+3. <strong>Missing $e^{-as}$</strong>: the whole $I(s)$ is shifted, so shift <em>after</em> completing the square, and replace $t$ by $t-a$ in every place.<br>
+4. <strong>Give piecewise for the window</strong>: before $a$, between $a$ and $b$, after $b$.</div>
+
+<h2>7 · Practice (a notch above the notes)</h2>
+<p>Do each fully on paper, then open the solution.</p>
+<div class="box">
+<p><strong>P1.</strong> Solve $\;y(t) = e^{-t} - 2\displaystyle\int_0^t (t-\tau)\,y(\tau)\,d\tau$.</p>
+<p><strong>P2.</strong> Solve $\;y'(t) + 4y(t) + 4\displaystyle\int_0^t y(\tau)\,d\tau = 8t,\;\; y(0)=0$. Then convert to an ODE and check the answer satisfies it.</p>
+<p><strong>P3.</strong> A series circuit with $L=1,\ R=0,\ 1/C=4$ has no initial current and an impulse at $t=\pi/2$: $\;i' + 4\displaystyle\int_0^t i = 8\,\delta\big(t-\tfrac\pi2\big)$. Find $i$ for all $t\ge0$, and explain the sign you get after the impulse.</p>
+</div>
+
+<details><summary>P1 solution</summary><div>
+<p>$Y = \frac1{s+1} - \frac{2}{s^2}Y\Rightarrow \frac{s^2+2}{s^2}Y = \frac1{s+1}\Rightarrow Y=\dfrac{s^2}{(s+1)(s^2+2)}$.</p>
+<p>Partial fractions: $\dfrac{1/3}{s+1} + \dfrac{\frac23 s - \frac23}{s^2+2}$ (check: numerator $\frac13(s^2+2)+(\frac23s-\frac23)(s+1)=s^2$ ✓).</p>
+$$y = \tfrac13e^{-t} + \tfrac23\cos\sqrt2\,t - \tfrac{2}{3\sqrt2}\sin\sqrt2\,t = \tfrac13e^{-t} + \tfrac23\cos\sqrt2\,t - \tfrac{\sqrt2}{3}\sin\sqrt2\,t.$$
+<p>Check: $y(0) = \frac13+\frac23 = 1 = f(0)$ ✓.</p>
+</div></details>
+
+<details><summary>P2 solution</summary><div>
+<p>$(s+4+\frac4s)Y = \frac8{s^2}\Rightarrow \frac{(s+2)^2}{s}Y=\frac8{s^2}\Rightarrow Y=\dfrac{8}{s(s+2)^2}=\dfrac2s-\dfrac2{s+2}-\dfrac4{(s+2)^2}$.</p>
+$$y = 2 - 2e^{-2t} - 4t\,e^{-2t}.$$
+<p>ODE: differentiate to get $y''+4y'+4y = 8$, and at $t=0$ the original gives $y'(0)=0-0-0=0$. Check: $y' = 8te^{-2t}$, so $y'(0)=0$ ✓, and $y'' = (8-16t)e^{-2t}$. Then $y''+4y'+4y = (8-16t+32t)e^{-2t} + 8 - 8e^{-2t} - 16te^{-2t} = 8$ ✓.</p>
+</div></details>
+
+<details><summary>P3 solution</summary><div>
+<p>$(s + \frac4s)I = 8e^{-\pi s/2}\Rightarrow I = \dfrac{8s}{s^2+4}\,e^{-\pi s/2}$. The sheet gives $\cos 2t$, then the t-shift:</p>
+$$i(t) = 8\cos\big(2(t-\tfrac\pi2)\big)\,H(t-\tfrac\pi2) = -8\cos 2t\;\text{ for }t\ge\tfrac\pi2,\quad 0\text{ before}.$$
+<p>The identity is $\cos(2t-\pi)=-\cos 2t$. The impulse makes $i$ jump by $8/L = 8$, and with no resistor the current oscillates forever.</p>
+<p>The "sign": it is only a rewriting. At $t=\pi/2$, $-8\cos\pi = +8$, so the current starts positive as the impulse demands.</p>
+</div></details>
+
+<h2>8 · Exam-level challenge (12 marks)</h2>
+<p>Exam conditions: about 18 minutes, on paper, then open one part at a time.</p>
+<div class="box">
+<p>A series RLC circuit has $L=1$, $R=4$ and $1/C=13$ (SI units). There is no initial current or charge. The voltage is $v(t)=13\,[H(t-1)-H(t-3)]$, so the current $i(t)$ satisfies
+$$i'(t) + 4i(t) + 13\int_0^t i(\tau)\,d\tau = 13\,[H(t-1)-H(t-3)].$$
+(a) Take Laplace transforms and show that $\;I(s) = \dfrac{13\,(e^{-s}-e^{-3s})}{s^2+4s+13}$. <em>[3]</em><br>
+(b) Find $i(t)$, and write your answer as a piecewise function on $[0,1)$, $[1,3)$ and $[3,\infty)$. <em>[4]</em><br>
+(c) Differentiate the equation to get a second-order ODE for $i$ with its initial conditions. Justify $i'(0)$ from the original equation. <em>[3]</em><br>
+(d) State the jump in $i'$ at $t=1$ predicted by your ODE in (c). Confirm that your answer to (b) has it. <em>[2]</em></p>
+</div>
+
+<details><summary>(a) Transform</summary><div>
+<p>With $i(0)=0$ and $\mathcal L\{H(t-a)\}=\frac{e^{-as}}{s}$ (t-shift of $1\leftrightarrow\frac1s$):</p>
+$$sI + 4I + \frac{13}{s}I = \frac{13\,(e^{-s}-e^{-3s})}{s}\;\Rightarrow\;\frac{s^2+4s+13}{s}\,I = \frac{13\,(e^{-s}-e^{-3s})}{s},$$
+<p>which gives the stated $I(s)$. Full solution: <a href="../worked/0020-challenge-full-solution.html">worked/0020-challenge-full-solution.html</a>.</p>
+</div></details>
+
+<details><summary>(b) Invert</summary><div>
+<p>$s^2+4s+13=(s+2)^2+9$, and $\frac{13}{(s+2)^2+9} = \frac{13}{3}\cdot\frac{3}{(s+2)^2+9}\leftrightarrow\frac{13}{3}e^{-2t}\sin3t$. With the two t-shifts, writing $h(u)=\frac{13}{3}e^{-2u}\sin 3u$:</p>
+$$i(t) = h(t-1)H(t-1) - h(t-3)H(t-3)=\begin{cases}0 & 0\le t<1\\[2pt] \tfrac{13}{3}e^{-2(t-1)}\sin 3(t-1) & 1\le t<3\\[2pt] \tfrac{13}{3}e^{-2(t-1)}\sin 3(t-1)-\tfrac{13}{3}e^{-2(t-3)}\sin 3(t-3) & t\ge3\end{cases}$$
+</div></details>
+
+<details><summary>(c) ODE and ICs</summary><div>
+<p>Differentiate (using $H' = \delta$): $\;i'' + 4i' + 13i = 13\,[\delta(t-1)-\delta(t-3)]$. $\;i(0)=0$. At $t=0$ the original reads $i'(0) + 4i(0) + 0 = 13[H(-1) - H(-3)] = 0$, so $i'(0)=0$.</p>
+</div></details>
+
+<details><summary>(d) Jump check</summary><div>
+<p>Integrating the ODE across $t=1$, $i'$ jumps by $13$ ($i$ is continuous). From (b), $i'(1^+) = \frac{13}{3}\cdot 3 = 13$ (derivative of $h$ at $0$ is $\frac{13}3\cdot3$) and $i'(1^-)=0$ ✓. Similarly the jump at $t=3$ is $-13$.</p>
+</div></details>
+
+<h2>9 · Before you close this tab</h2>
+<details><summary>Retrieval: write the recipe, the three forcing transforms and the cross-check from memory, then check</summary><div>
+<p><strong>Rule:</strong> $\mathcal L\{\int_0^t y\}=Y/s$ (derive from $g'=y$, $g(0)=0$). $\int_0^t k(t-\tau)y\to KY$.</p>
+<p><strong>Volterra:</strong> $Y = F/(1-K)$, no ICs, $y(0)=f(0)$. <strong>Integro-differential:</strong> $y'$ brings $y(0)$.</p>
+<p><strong>Circuit:</strong> $I = sV/(Ls^2+Rs+1/C)$. Step/window: $V = \frac{e^{-as}-e^{-bs}}{s}$ cancels the $s$. Impulse: $V = e^{-as}$.</p>
+<p><strong>Cross-check:</strong> differentiate; $y'(0)$ comes from the original at $t=0$.</p>
+<p><strong>Finish:</strong> complete the square, s-shift, then t-shift, piecewise answer, jump check.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/14_MAST20030_Lecture_Notes_Topic3_Laplace.pdf">Lecture 14</a>, Exercise 3.22 (the integro-differential example and the $Y/s$ rule). Then <a href="https://tutorial.math.lamar.edu/Classes/DE/ConvolutionIntegrals.aspx">Paul's Notes: Convolution Integrals</a>, the integral-equation example at the end. Optional: <a href="https://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/">MIT OCW 18.03SC</a>, Unit III.</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic3-2.pdf">Problem Booklet 3</a>, Q20: integro-differential with $y(0)=4$. Then cross-check by differentiating.</li>
+  <li>Booklet Q21: RLC with constant voltage. Complete the square.</li>
+  <li>Booklet Q22: RC circuit with a window voltage. Give the answer as a piecewise function.</li>
+  <li>Booklet Q19 (b) and (d): transforms of convolutions.</li>
+  <li>Optional: Q19 (a) and (c).</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo quizzes Q2, Q3 and Q5 cold, and the challenge's (a) and (c) without looking.</p>
+
+<div class="ask">💬 Unsure whether your $y'(0)$ justification or your piecewise answer would get full marks? Ask me in the terminal. Paste or photograph your working and I'll mark it line by line.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0017-laplace-convolution-integral-eqns.html">Lesson 17, convolution</a></span>
+  <span>Next: <a href="0019-laplace-mixed-exam-set.html">Lesson 19, mixed exam set</a></span>
+  <span>Reference: <a href="../reference/topic3-cheatsheet.html">Topic 3 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

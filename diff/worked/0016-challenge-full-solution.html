@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delta Challenge Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 16 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>A mass of 4 kg moves on a spring of stiffness 1 N/m with no damping; $y(t)$ is its displacement. At $t=0$ it is at $y=1$ moving with unknown velocity $v$. At $t=2\pi$ it is struck with an impulse of 8 N·s in the positive direction. It is observed that $y(3\pi)=6$.</p>
+<p>(a) Write down the initial value problem for $y(t)$, with $y'(0)=v$. <em>[2]</em><br>
+(b) Use Laplace transforms to solve it, in terms of $v$. Give $y$ piecewise. <em>[4]</em><br>
+(c) Find $v$. <em>[2]</em><br>
+(d) Show $y$ is continuous at $t=2\pi$, find the jump in $y'$ there, and confirm it equals $K/a$. <em>[2]</em><br>
+(e) Give the amplitude of the oscillation before and after the impulse. <em>[2]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) The IVP [2]</h2>
+<div class="script">
+<p>Newton's second law with a spring force $-y$ and an impulsive force $8\,\delta(t-2\pi)$:</p>
+$$4y'' + y = 8\,\delta(t-2\pi),\qquad y(0)=1,\quad y'(0)=v.$$
+</div>
+<p class="note">An impulse of $p$ N·s is a force $p\,\delta(t-t_0)$ (area $p$). Mass goes in front of $y''$, stiffness in front of $y$. The velocity $v$ is an initial condition, not a delta.</p>
+
+<h2>(b) Solve [4]</h2>
+<div class="script">
+<p>Take Laplace transforms, using $\mathcal L\{y''\}=s^2Y-s\,y(0)-y'(0)$ and $\mathcal L\{\delta(t-2\pi)\}=e^{-2\pi s}$:</p>
+$$4\big(s^2Y - s - v\big) + Y = 8e^{-2\pi s}\;\Rightarrow\;(4s^2+1)\,Y = 4s + 4v + 8e^{-2\pi s}.$$
+$$Y = \frac{s+v}{s^2+\tfrac14} + \frac{2\,e^{-2\pi s}}{s^2+\tfrac14}.$$
+<p>Using $\mathcal L^{-1}\{\tfrac{s}{s^2+\omega^2}\}=\cos\omega t$, $\mathcal L^{-1}\{\tfrac{\omega}{s^2+\omega^2}\}=\sin\omega t$ with $\omega=\tfrac12$, and the t-shifting theorem:</p>
+$$y = \cos\tfrac t2 + 2v\sin\tfrac t2 + 4\sin\!\Big(\tfrac{t-2\pi}2\Big)H(t-2\pi).$$
+<p>Since $\sin\big(\tfrac t2-\pi\big) = -\sin\tfrac t2$,</p>
+$$y(t)=\begin{cases}\cos\tfrac t2 + 2v\sin\tfrac t2, & 0\le t<2\pi,\\[3pt] \cos\tfrac t2 + (2v-4)\sin\tfrac t2, & t\ge2\pi.\end{cases}$$
+</div>
+<p class="note">$\dfrac{v}{s^2+1/4} = 2v\cdot\dfrac{1/2}{s^2+1/4}$ and $\dfrac{2}{s^2+1/4} = 4\cdot\dfrac{1/2}{s^2+1/4}$: that's where $2v$ and $4$ come from. Dividing by the leading coefficient 4 first is what makes $\omega=\tfrac12$ visible.</p>
+
+<h2>(c) Find $v$ [2]</h2>
+<div class="script">
+<p>Since $3\pi>2\pi$, use the second branch:</p>
+$$y(3\pi) = \cos\tfrac{3\pi}2 + (2v-4)\sin\tfrac{3\pi}2 = -(2v-4) = 4-2v.$$
+<p>Setting $4-2v=6$ gives $\boxed{v=-1}$.</p>
+</div>
+<p class="note">Using the first branch would give $-2v=6$, $v=-3$, which is wrong. The condition is after the impulse, so the impulse term must be included.</p>
+
+<h2>(d) Continuity and the jump [2]</h2>
+<div class="script">
+<p>With $v=-1$: $y=\cos\tfrac t2-2\sin\tfrac t2$ for $t<2\pi$ and $y=\cos\tfrac t2-6\sin\tfrac t2$ for $t\ge2\pi$.</p>
+<p>$y(2\pi^-) = \cos\pi - 2\sin\pi = -1$ and $y(2\pi^+) = \cos\pi - 6\sin\pi=-1$. So $y$ is continuous at $2\pi$.</p>
+<p>$y'(t) = -\tfrac12\sin\tfrac t2 - \cos\tfrac t2$ before, and $-\tfrac12\sin\tfrac t2 - 3\cos\tfrac t2$ after. So $y'(2\pi^-) = 1$, $y'(2\pi^+) = 3$: a jump of $2$.</p>
+<p>Here $K=8$, $a=4$, so $K/a=2$ ✓. As $y'$ is discontinuous, $y$ is not differentiable at $t=2\pi$.</p>
+</div>
+<p class="note">The check is also a safety net for (b): a wrong sign or wrong factor in the shifted term would show up as a jump different from $K/a$.</p>
+
+<h2>(e) Amplitudes [2]</h2>
+<div class="script">
+<p>$A\cos\tfrac t2 + B\sin\tfrac t2$ has amplitude $\sqrt{A^2+B^2}$.</p>
+<p>Before: $\sqrt{1^2+(-2)^2} = \sqrt5$. After: $\sqrt{1^2+(-6)^2} = \sqrt{37}$. The impulse increased the amplitude.</p>
+</div>
+<p class="note">Increase happens because the mass was moving in the same direction as the kick at $t=2\pi$ ($y'=1>0$). It would have decreased with a negative impulse.</p>
+
+<p><a href="../lessons/0016-laplace-dirac-delta.html">Back to Lesson 16</a></p>
+
+</main>
+</body>
+</html>

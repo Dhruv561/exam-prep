@@ -32,3 +32,9 @@
 
 ## Gaps
 - Worked solutions for the past exams (only the sample test has a key, and it contains an error).
+
+## Topic 3 additions
+- Lecture notes Topic 3: `lectures/10–14_MAST20030_Lecture_Notes_Topic3_Laplace*.pdf`. Top authority for scope.
+- [Paul's Notes: Laplace Transforms](https://tutorial.math.lamar.edu/Classes/DE/LaplaceIntro.aspx), [Convolution Integrals](https://tutorial.math.lamar.edu/Classes/DE/ConvolutionIntegrals.aspx), [Dirac Delta](https://tutorial.math.lamar.edu/Classes/DE/DiracDeltaFunction.aspx). Extra worked examples. (IVPWithStepFcns and Convolutions URLs 404; don't cite.)
+- Formula sheet: `exams/MAST20030_S2_2026_Formula_Sheet.pdf` (Laplace table = 8 pairs only).
+- Booklet Topic 3 (`problem-booklet/MAST20030ProblemBooklet_Topic3-2.pdf`), tutes weeks 5–6.

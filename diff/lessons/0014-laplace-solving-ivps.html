@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laplace: Solving IVPs</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 14 · Topic 3: Laplace transforms</div>
+<h1>Solving IVPs with the Laplace transform</h1>
+<p class="lede">One win: turn any constant-coefficient IVP into algebra in four steps, with the initial conditions built in. No $y_h + y_p$, no undetermined coefficients, no solving for constants at the end.</p>
+
+<div class="mission">Why this matters for 5 Nov: Laplace is about 12 marks (roughly one question), and almost every part of it is an IVP solved this way. Later lessons add Heaviside and delta forcing, but the skeleton is this lesson: transform, solve for $Y$, decompose, invert. Marks are lost on the decomposition and inversion, not on the transform.</div>
+
+<h2>0 · Warm-up from Lesson 13</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W1.</strong> $\mathcal L^{-1}\left\{\dfrac{s+1}{(s+1)^2+4}\right\}$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{t}\cos 2t$</button>
+    <button class="opt" data-key="b">$e^{-t}\cos 2t$</button>
+    <button class="opt" data-key="c">$e^{-t}\sin 2t$</button>
+    <button class="opt" data-key="d">$e^{-2t}\cos t$</button>
+  </div>
+  <div class="why">Table: $\frac{s}{s^2+4}\leftrightarrow\cos 2t$. Replace $s$ by $s+1$ (s-shift with $a=-1$) and multiply by $e^{-t}$.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W2.</strong> The right partial-fraction form for $\dfrac{5}{s(s+1)^2}$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac As+\dfrac B{s+1}+\dfrac C{(s+1)^2}$</button>
+    <button class="opt" data-key="b">$\dfrac As+\dfrac B{(s+1)^2}+\dfrac C{(s+1)^3}$</button>
+    <button class="opt" data-key="c">$\dfrac As+\dfrac{Bs+C}{(s+1)^2}+\dfrac D{s+1}$</button>
+    <button class="opt" data-key="d">$\dfrac As+\dfrac B{s+1}+\dfrac{C}{(s+1)^3}$</button>
+  </div>
+  <div class="why">A repeated linear factor $(s+1)^2$ needs one term for each power up to 2, each with a constant numerator.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W3.</strong> The sheet has $t^{n-1}/(n-1)!\leftrightarrow 1/s^n$. So $\mathcal L\{t e^{-3t}\}=$</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{1}{(s-3)^2}$</button>
+    <button class="opt" data-key="b">$\dfrac{-1}{(s+3)^2}$</button>
+    <button class="opt" data-key="c">$\dfrac{1}{s^2+9}$</button>
+    <button class="opt" data-key="d">$\dfrac{1}{(s+3)^2}$</button>
+  </div>
+  <div class="why">$n=2$: $t\leftrightarrow 1/s^2$. The factor $e^{-3t}$ replaces $s$ by $s+3$. This pair is not on the sheet, so derive it this way each time.</div>
+</div>
+
+<h2>1 · The derivative rule is the whole trick</h2>
+
+<p>Integrate by parts once (<a href="../lectures/12_MAST20030_Lecture_Notes_Topic3_Laplace.pdf">Lecture 12, slide 3</a>):</p>
+$$\mathcal L\{y'\}=sY-y(0),\qquad \mathcal L\{y''\}=s^2Y-s\,y(0)-y'(0),\qquad \mathcal L\{y'''\}=s^3Y-s^2y(0)-s\,y'(0)-y''(0).$$
+<p>The sheet gives the general $n$ formula, but know $n=1,2$ cold. Pattern: powers of $s$ fall as the derivative order falls, and the signs are all $-$. A derivative becomes multiplication by $s$, and the initial values appear automatically.</p>
+
+<div class="box">
+<p><strong>The four steps</strong> for $a\,y''+b\,y'+c\,y=g(t)$, $y(0)=y_0,\ y'(0)=y_1$:</p>
+<ol class="steps">
+  <li><strong>Transform</strong> every term. Do not divide by $a$ first: just carry it.</li>
+  <li><strong>Solve for $Y$.</strong> $\;(as^2+bs+c)\,Y=a(sy_0+y_1)+b\,y_0+G(s)$. Left: the characteristic polynomial. Right: ICs plus forcing.</li>
+  <li><strong>Decompose</strong> $Y$ into pieces that are on the sheet after an s-shift: partial fractions, complete the square.</li>
+  <li><strong>Invert</strong> term by term. Then check $y(0)$ and $y'(0)$ against the given ICs.</li>
+</ol>
+</div>
+
+<p>What is in $Y$'s denominator: the characteristic polynomial, times the denominator of $G(s)$. That tells you the decomposition before you start.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> With $y(0)=2,\ y'(0)=-1$, $\;\mathcal L\{y''\}=$</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$s^2Y-2s-1$</button>
+    <button class="opt" data-key="b">$s^2Y+2s+1$</button>
+    <button class="opt" data-key="c">$s^2Y-2s+1$</button>
+    <button class="opt" data-key="d">$s^2Y-s+2$</button>
+  </div>
+  <div class="why">$s^2Y-s\cdot2-(-1)=s^2Y-2s+1$. The minus sign multiplies the whole value, including its own negative. Option (d) swaps which IC goes with $s$.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> For $2y''-3y'+y=0,\ y(0)=1,\ y'(0)=3$, step 2 gives $Y=$</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{2s+3}{2s^2-3s+1}$</button>
+    <button class="opt" data-key="b">$\dfrac{2s+6}{2s^2-3s+1}$</button>
+    <button class="opt" data-key="c">$\dfrac{2s-3}{2s^2-3s+1}$</button>
+    <button class="opt" data-key="d">$\dfrac{2s+9}{2s^2-3s+1}$</button>
+  </div>
+  <div class="why">$2(s^2Y-s-3)-3(sY-1)+Y=0$, so $(2s^2-3s+1)Y=2s+6-3=2s+3$. The $2$ multiplies <em>both</em> IC terms from $y''$, and $-3\,\mathcal L\{y'\}$ contributes $+3\,y(0)$ on the right-hand side with the sign flipped. Option (b) forgets that term, (d) gets its sign wrong.</div>
+</div>
+
+<h2>2 · Worked example: forcing that repeats a root</h2>
+
+<p>Solve $\;y''+4y'+3y=6e^{-3t},\quad y(0)=1,\ y'(0)=0.$ Try each step on paper first.</p>
+
+<details><summary>Step 1–2: transform and solve for $Y$</summary><div>
+$$(s^2Y-s)+4(sY-1)+3Y=\frac{6}{s+3}\;\Rightarrow\;(s+1)(s+3)\,Y=s+4+\frac{6}{s+3}.$$
+$$Y=\frac{s+4}{(s+1)(s+3)}+\frac{6}{(s+1)(s+3)^2}=\frac{s^2+7s+18}{(s+1)(s+3)^2}.$$
+<p>The forcing's pole $s=-3$ coincides with a root of the characteristic polynomial, so $(s+3)^2$ appears.</p>
+</div></details>
+
+<details><summary>Step 3: partial fractions (repeated factor)</summary><div>
+$$\frac{s^2+7s+18}{(s+1)(s+3)^2}=\frac{A}{s+1}+\frac{B}{s+3}+\frac{C}{(s+3)^2}.$$
+<p>Cover-up: $A=\dfrac{1-7+18}{(2)^2}=3$ at $s=-1$, and $C=\dfrac{9-21+18}{-2}=-3$ at $s=-3$. For $B$, match $s^2$: $A+B=1\Rightarrow B=-2$.</p>
+</div></details>
+
+<details><summary>Step 4: invert and check</summary><div>
+$$y=3e^{-t}-2e^{-3t}-3t\,e^{-3t}.$$
+<p>Check: $y(0)=3-2=1$ ✓. $y'=-3e^{-t}+6e^{-3t}-3e^{-3t}+9te^{-3t}$, so $y'(0)=-3+6-3=0$ ✓.</p>
+<p>The $t e^{-3t}$ term is the resonance-type response to forcing at a natural rate.</p>
+</div></details>
+
+<h2>3 · Resonance: $(s^2+\omega^2)^2$</h2>
+
+<p>Forcing at the natural frequency, e.g. $y''+4y=8\cos 2t,\ y(0)=0,\ y'(0)=1$:</p>
+$$(s^2+4)Y=1+\frac{8s}{s^2+4}\;\Rightarrow\;Y=\frac{1}{s^2+4}+\frac{8s}{(s^2+4)^2}.$$
+<p>The sheet has no $(s^2+4)^2$ pair. Derive it from the $t$-rule you proved in <a href="0013-laplace-definition-table-inverse.html">Lesson 13</a>, $\mathcal L\{tf\}=-F'(s)$. Take $f=\sin\omega t/\omega$, $F=1/(s^2+\omega^2)$, so $-F'=2s/(s^2+\omega^2)^2$:</p>
+<div class="box">
+$$\mathcal L^{-1}\left\{\frac{s}{(s^2+\omega^2)^2}\right\}=\frac{t\sin\omega t}{2\omega},\qquad \mathcal L^{-1}\left\{\frac{1}{(s^2+\omega^2)^2}\right\}=\frac{\sin\omega t-\omega t\cos\omega t}{2\omega^3}.$$
+<p>The second one is hard to derive quickly (convolution, <a href="0017-laplace-convolution-integral-eqns.html">Lesson 17</a>). In an exam it would be given or you'd get it from convolution. The first you can always derive in two lines.</p>
+</div>
+<p>Here, $\omega=2$: $\;y=\tfrac12\sin2t+8\cdot\dfrac{t\sin2t}{4}=\big(\tfrac12+2t\big)\sin 2t.$ The $t\sin 2t$ is the growing amplitude: resonance. Check $y(0)=0$ ✓, $y'(0)=\tfrac12\cdot2=1$ ✓.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>3.</strong> For $y''+16y=5\cos4t$, the denominator of $Y$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(s^2+16)(s^2+4)$</button>
+    <button class="opt" data-key="b">$(s^2+16)^2$</button>
+    <button class="opt" data-key="c">$(s^2+8)^2$</button>
+    <button class="opt" data-key="d">$s\,(s^2+16)$</button>
+  </div>
+  <div class="why">Characteristic polynomial $s^2+16$, forcing $\frac{5s}{s^2+16}$. Same quadratic twice means resonance, so the answer contains $t\sin4t$.</div>
+</div>
+
+<h2>4 · Non-unit leading coefficient, complex roots</h2>
+
+<p>Complex roots show up as an irreducible quadratic. Complete the square, then split the numerator into a multiple of $(s+\alpha)$ plus a multiple of $\beta$:</p>
+<div class="box">
+$$\frac{ps+q}{(s+\alpha)^2+\beta^2}=p\,\frac{s+\alpha}{(s+\alpha)^2+\beta^2}+\frac{q-p\alpha}{\beta}\cdot\frac{\beta}{(s+\alpha)^2+\beta^2}\;\longrightarrow\;e^{-\alpha t}\Big(p\cos\beta t+\tfrac{q-p\alpha}{\beta}\sin\beta t\Big).$$
+</div>
+<p>Do not memorise this; do the split each time. With a leading coefficient $a\ne1$, the characteristic polynomial is $as^2+bs+c$: factor out $a$ <em>before</em> completing the square.</p>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>4.</strong> $\mathcal L^{-1}\left\{\dfrac{1}{(s-2)^3}\right\}=$</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$t^2e^{2t}$</button>
+    <button class="opt" data-key="b">$\tfrac12t^2e^{-2t}$</button>
+    <button class="opt" data-key="c">$\tfrac13t^3e^{2t}$</button>
+    <button class="opt" data-key="d">$\tfrac12t^2e^{2t}$</button>
+  </div>
+  <div class="why">Sheet: $t^{n-1}/(n-1)!\leftrightarrow1/s^n$ with $n=3$ gives $t^2/2$. The shift $s\to s-2$ multiplies by $e^{+2t}$.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>5.</strong> $\mathcal L^{-1}\left\{\dfrac{3s+5}{s^2+2s+5}\right\}=$</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$3e^{-t}\cos2t+e^{-t}\sin2t$</button>
+    <button class="opt" data-key="b">$3e^{-t}\cos2t+2e^{-t}\sin2t$</button>
+    <button class="opt" data-key="c">$3e^{-t}\cos2t+5e^{-t}\sin2t$</button>
+    <button class="opt" data-key="d">$3e^{-t}\cos2t+4e^{-t}\sin2t$</button>
+  </div>
+  <div class="why">$s^2+2s+5=(s+1)^2+4$ and $3s+5=3(s+1)+2$. So $3\frac{s+1}{(s+1)^2+4}+\frac{2}{(s+1)^2+4}$, and the table has $\sin2t\leftrightarrow\frac{2}{s^2+4}$ with the $2$ already there. Coefficient of $\sin$ is $1$.</div>
+</div>
+
+<h2>5 · Sanity checks (30 seconds, they catch most errors)</h2>
+<ul>
+  <li><strong>ICs:</strong> evaluate your $y(0)$ and $y'(0)$. Wrong sign on an IC term in step 1 shows up here.</li>
+  <li><strong>$Y\to0$ as $s\to\infty$</strong> (Lesson 13): the numerator degree must be below the denominator's. If it isn't, you've mis-transformed.</li>
+  <li><strong>Behaviour:</strong> roots with negative real part mean decay. Doesn't match your answer? Recheck.</li>
+  <li><strong>Forced part:</strong> for $g=Ke^{at}$ with $a$ not a characteristic root, the $e^{at}$ term of $y$ is $\dfrac{K}{p(a)}e^{at}$, where $p(s)=as^2+bs+c$. A fast cross-check of the decomposition.</li>
+</ul>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>6.</strong> $y''+2y'+2y=0,\ y(0)=1,\ y'(0)=0$. Which candidate is the solution?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{-t}(\cos t-\sin t)$</button>
+    <button class="opt" data-key="b">$e^{-t}\cos t$</button>
+    <button class="opt" data-key="c">$e^{-t}(\cos t+\sin t)$</button>
+    <button class="opt" data-key="d">$e^{-t}(\cos t+2\sin t)$</button>
+  </div>
+  <div class="why">All four have $y(0)=1$, so the IC $y'(0)=0$ decides. $y'(0)=-1+b$ for $e^{-t}(\cos t+b\sin t)$, so $b=1$. (a): $y'(0)=-2$. (b): $-1$. (d): $+1$. Check by the Laplace route: $Y=\frac{s+2}{(s+1)^2+1}=\frac{s+1}{(s+1)^2+1}+\frac{1}{(s+1)^2+1}$.</div>
+</div>
+
+<div class="trap"><strong>Traps</strong><br>
+(1) Dividing the LHS by $a$ but not the forcing (or the ICs). (2) Dropping a sign when an IC is negative. (3) Numerator $ps+q$ over a completed square: the $\cos$ coefficient is $p$, not $q$. (4) Forgetting that a constant forcing transforms to $K/s$, not $K$.</div>
+
+<h2>6 · Practice (a notch above the notes)</h2>
+<p>Paper first, then open the solution.</p>
+<div class="box">
+<p><strong>P1.</strong> $\;9y''-6y'+y=18,\ y(0)=0,\ y'(0)=0$. (Non-unit leading coefficient, repeated root, and the forcing adds another pole at $0$.)</p>
+<p><strong>P2.</strong> $\;y''+2y'+10y=10t,\ y(0)=1,\ y'(0)=0$. (Complete the square, with a $1/s^2$ forcing.)</p>
+<p><strong>P3.</strong> $\;y'''-3y''+3y'-y=0,\ y(0)=1,\ y'(0)=0,\ y''(0)=2$. (Triple root: write the numerator in powers of $(s-1)$.)</p>
+</div>
+
+<details><summary>P1 solution</summary><div>
+$$(9s^2-6s+1)Y=\frac{18}{s}\;\Rightarrow\;Y=\frac{18}{s(3s-1)^2}=\frac{2}{s\,(s-\tfrac13)^2}.$$
+$$\frac{2}{s(s-\frac13)^2}=\frac As+\frac{B}{s-\frac13}+\frac{C}{(s-\frac13)^2}:\quad A=\frac{2}{1/9}=18,\ \ C=\frac{2}{1/3}=6,\ \ A+B=0\Rightarrow B=-18.$$
+$$y=18-18e^{t/3}+6t\,e^{t/3}.$$
+<p>Check: $y(0)=0$ ✓; $y'=-6e^{t/3}+6e^{t/3}+2te^{t/3}$, $y'(0)=0$ ✓. Also constant forcing gives equilibrium $y=18/1=18$, matching $A$.</p>
+</div></details>
+
+<details><summary>P2 solution</summary><div>
+$$(s^2+2s+10)Y=s+2+\frac{10}{s^2}\;\Rightarrow\;Y=\frac{s^3+2s^2+10}{s^2(s^2+2s+10)}.$$
+$$\frac{s^3+2s^2+10}{s^2(s^2+2s+10)}=\frac As+\frac B{s^2}+\frac{Cs+D}{s^2+2s+10}.$$
+<p>Match coefficients in $s^3+2s^2+10=As(s^2+2s+10)+B(s^2+2s+10)+(Cs+D)s^2$. $s^0$: $B=1$. $s^1$: $10A+2B=0\Rightarrow A=-\tfrac15$. $s^3$: $A+C=1\Rightarrow C=\tfrac65$. $s^2$: $2A+B+D=2\Rightarrow D=\tfrac75$.</p>
+<p>Then $\dfrac{\frac65s+\frac75}{(s+1)^2+9}=\tfrac65\cdot\dfrac{s+1}{(s+1)^2+9}+\tfrac1{15}\cdot\dfrac{3}{(s+1)^2+9}$, so</p>
+$$y=-\tfrac15+t+e^{-t}\Big(\tfrac65\cos3t+\tfrac1{15}\sin3t\Big).$$
+<p>Check: $y(0)=-\tfrac15+\tfrac65=1$ ✓. $y'(0)=1+\big(-\tfrac65+3\cdot\tfrac1{15}\big)=1-1=0$ ✓. The non-decaying part $t-\tfrac15$ is the steady response: it solves $y''+2y'+10y=10t$ directly ($0+2+10t-2=10t$ ✓).</p>
+</div></details>
+
+<details><summary>P3 solution</summary><div>
+$$(s^3-3s^2+3s-1)Y=s^2-3s+5\;\Rightarrow\;Y=\frac{s^2-3s+5}{(s-1)^3}.$$
+<p>(Terms: $s^2y_0+sy_1+y_2-3(sy_0+y_1)+3y_0=s^2+2-3s+3$.) Write the numerator in powers of $u=s-1$: $s^2-3s+5=(u+1)^2-3(u+1)+5=u^2-u+3$.</p>
+$$Y=\frac1{u}-\frac1{u^2}+\frac3{u^3}\;\Rightarrow\;y=e^{t}\Big(1-t+\tfrac32t^2\Big).$$
+<p>Check: $y(0)=1$ ✓; $y'(0)=1-1=0$ ✓; $y''=e^t(1-t+\tfrac32t^2)+2e^t(-1+3t)+3e^t$, $y''(0)=1-2+3=2$ ✓.</p>
+</div></details>
+
+<h2>7 · Exam-level challenge (12 marks)</h2>
+<p>About 18 minutes, on paper, then open one part at a time.</p>
+<div class="box">
+<p>A damped oscillator satisfies $\;2y''+4y'+10y=20e^{-t}\;$ and is released from displacement $1$ with zero velocity, so $y(0)=1,\ y'(0)=0$.</p>
+<p>(a) Take Laplace transforms and show that $\;Y(s)=\dfrac{s+2}{s^2+2s+5}+\dfrac{10}{(s+1)(s^2+2s+5)}.$ <em>[3]</em><br>
+(b) Express $\dfrac{10}{(s+1)(s^2+2s+5)}$ as partial fractions with real constants. <em>[4]</em><br>
+(c) Hence find $y(t)$. <em>[3]</em><br>
+(d) Check your answer against both initial conditions, then describe in words how the motion behaves for large $t$ and why. <em>[2]</em></p>
+</div>
+
+<details><summary>(a) Transform</summary><div>
+$$2(s^2Y-s)+4(sY-1)+10Y=\frac{20}{s+1}\;\Rightarrow\;(2s^2+4s+10)Y=2s+4+\frac{20}{s+1}.$$
+<p>Divide by $2$: $\;(s^2+2s+5)Y=(s+2)+\dfrac{10}{s+1}$ ✓.</p>
+</div></details>
+
+<details><summary>(b) Partial fractions</summary><div>
+<p>$\dfrac{10}{(s+1)(s^2+2s+5)}=\dfrac A{s+1}+\dfrac{Bs+C}{s^2+2s+5}$. Cover up at $s=-1$: $A=\dfrac{10}{1-2+5}=\dfrac52$. Then $10=\tfrac52(s^2+2s+5)+(Bs+C)(s+1)$: $s^2$: $B=-\tfrac52$. $s^0$: $\tfrac{25}2+C=10\Rightarrow C=-\tfrac52$. So</p>
+$$\frac{10}{(s+1)(s^2+2s+5)}=\frac{5/2}{s+1}-\frac52\cdot\frac{s+1}{(s+1)^2+4}.$$
+</div></details>
+
+<details><summary>(c) Invert</summary><div>
+<p>$\dfrac{s+2}{(s+1)^2+4}=\dfrac{s+1}{(s+1)^2+4}+\tfrac12\dfrac{2}{(s+1)^2+4}$. Adding (b):</p>
+$$Y=\frac{5/2}{s+1}-\frac32\cdot\frac{s+1}{(s+1)^2+4}+\frac12\cdot\frac2{(s+1)^2+4}$$
+$$\boxed{y=\tfrac12e^{-t}\big(5-3\cos2t+\sin2t\big).}$$
+</div></details>
+
+<details><summary>(d) Checks and interpretation</summary><div>
+<p>$y(0)=\tfrac12(5-3)=1$ ✓. With $g=5-3\cos2t+\sin2t$: $g'=6\sin2t+2\cos2t$, $y'=\tfrac12e^{-t}(g'-g)$, and $g'(0)=2=g(0)$, so $y'(0)=0$ ✓.</p>
+<p>Large $t$: everything has a factor $e^{-t}$, so $y\to0$. The $\tfrac52e^{-t}$ is the forced response (it also solves the ODE: $8k=20$ for $ke^{-t}$ gives $k=\tfrac52$), the cos/sin part is the damped oscillation (frequency 2, decay rate 1). Both decay because the characteristic roots $-1\pm2i$ and the forcing exponent $-1$ all have negative real part.</p>
+</div></details>
+
+<p>Compare your script with the <a href="../worked/0014-challenge-full-solution.html">full written solution</a>, which shows every line to write in the exam.</p>
+
+<h2>8 · Before you close this tab</h2>
+<details><summary>Retrieval: write the two derivative rules, the four steps, and the complete-the-square split from memory, then check</summary><div>
+<p>$\mathcal L\{y'\}=sY-y(0)$; $\;\mathcal L\{y''\}=s^2Y-sy(0)-y'(0)$.</p>
+<p><strong>Steps:</strong> transform (carry $a$), solve for $Y$, decompose (partial fractions; complete the square; $(s^2+\omega^2)^2$ means $\mathcal L\{tf\}$), invert, check ICs.</p>
+<p><strong>Split:</strong> $ps+q$ over $(s+\alpha)^2+\beta^2$ = $p(s+\alpha)$ + remainder over $\beta$.</p>
+</div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/12_MAST20030_Lecture_Notes_Topic3_Laplace.pdf">Lecture 12</a> (derivative theorem, Ex 3.11 and 3.12), then <a href="https://tutorial.math.lamar.edu/Classes/DE/IVPWithLaplace.aspx">Paul's Notes: IVPs with Laplace</a>, Examples 1 to 4. For the same topic from a different angle, see <a href="https://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/">MIT OCW 18.03SC</a>, Unit III (Laplace transform).</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic3-2.pdf">Problem Booklet 3</a>, Q14 (b): resonance. Q14 (d): complex roots with $25t$ forcing. Q14 (f): fourth order, repeated roots.</li>
+  <li><a href="../tutes/tute_week_06.pdf">Tutorial 6</a>, Q1 (a) and (b).</li>
+  <li>Optional: Booklet Q14 (a), (c), (e). Answers are at the back of the booklet, check each one with the IC test.</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo quizzes 1, 2, 5 and 6 cold, and the challenge's (a) and (b) without looking.</p>
+
+<div class="ask">💬 Stuck on a partial fraction, or not sure your IC check is enough for full marks? Ask me in the terminal. Paste or photograph your working and I'll mark it line by line.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0013-laplace-definition-table-inverse.html">Lesson 13</a></span>
+  <span>Next: <a href="0015-laplace-heaviside-t-shift.html">Lesson 15, Heaviside and t-shift</a></span>
+  <span>Reference: <a href="../reference/topic3-cheatsheet.html">Topic 3 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

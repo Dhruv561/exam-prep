@@ -51,3 +51,11 @@ All 6 drafted on 12 Oct at the user's request ("draft up all 6"). The user works
 12. Uniform convergence, Weierstrass test, formal vs genuine ← 0012
 Reference: reference/topic2-cheatsheet.html; method map `series` entry unlocked.
 New assets (14 Oct): `assets/series-drill.js` (random index-shift drill, `<div class="series-drill" data-rounds="10">`), `assets/series-plot.js` (`SeriesPlot.mount`: partial sums vs limit with max-error marker; reuse for Fourier partial sums). Full written solutions: worked/0010-, 0011-challenge-full-solution.html. Lesson 10 cites Trench (LibreTexts) for the radius ≥ distance-to-singularity theorem (not in lecture notes). Paul's Series Solutions Ex. 4 = a past-exam ODE; lesson tells user to skip it.
+
+## Topic 3 (Laplace): lessons 0013–0020, drafted 17 Oct by subagents at user's request
+13 definition/table/inverse; 14 solving IVPs; 15 Heaviside + t-shift; 16 Dirac delta; 17 convolution + general g; 18 derivations/proofs, variable-coeff, systems; 19 timed mixed set (6 Qs, 50 marks; redo Q3, Q4 cold after 3 days); 20 integral & integro-differential (added at user request). Full-solution pages in worked/00NN-*. Reference: reference/topic3-cheatsheet.html (not yet checked to fit one A4 page). Method map `laplace` unlocked.
+- Formula sheet table has only 8 pairs. NOT on sheet (derive): L{H_a}, L{tf}=-F', L{∫f}=F/s, te^{at}, e^{at}sin/cos, 1/(s²+ω²)².
+- Laplace tutes: week 5 (LT/ILT), week 6 (IVPs, H, δ, convolution). Booklet Q1–22.
+- Patterns (only): delta/window forcing answered piecewise; continuity/jump check + sketch; two-point conditions with unknown y'(0); completing the square; trig identity first; prove L{tf}=-F' then variable-coeff ODE; convolution with general g; text → ICs interpretation.
+- Rules: impulse → y continuous, y' jumps K/a. n-th order with switching forcing → y..y^(n-1) continuous. Always check y(0), y'(0) on the answer.
+- sympy not installed system-wide; agents used venvs in scratchpad.

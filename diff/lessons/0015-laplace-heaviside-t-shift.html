@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laplace: Heaviside and t-shift</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 15 · Topic 3: Laplace transforms</div>
+<h1>Switches and windows: Heaviside functions and the t-shift</h1>
+<p class="lede">The one win: given any forcing that switches on or off (piecewise, ramp, window), write it with Heavisides, transform it without falling into the shift trap, solve the IVP, and hand back a clean piecewise answer.</p>
+
+<div class="mission">Why this matters for 5 Nov: Laplace is about 12 marks, and a switched or windowed forcing shows up in most papers (a damped spring forced on a window, $\delta$ plus Heaviside mixed). The formula sheet gives the t-shift $\mathcal L\{f(t-a)H(t-a)\}=e^{-as}F(s)$ but <em>not</em> $\mathcal L\{H_a\}$, and not what to do when the function isn't already written in terms of $t-a$. That gap is where marks are lost.</div>
+
+<h2>0 · Warm-up from Lessons 13 and 14</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W1.</strong> $\mathcal L\{e^{-3t}\sin 2t\}$ (s-shift of the sheet's $\sin\omega t$) is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{2}{(s-3)^2+4}$</button>
+    <button class="opt" data-key="b">$\dfrac{2}{(s+3)^2+4}$</button>
+    <button class="opt" data-key="c">$\dfrac{3}{(s+2)^2+9}$</button>
+    <button class="opt" data-key="d">$\dfrac{2}{(s+3)^2-4}$</button>
+  </div>
+  <div class="why">$\mathcal L\{e^{at}f\}=F(s-a)$ with $a=-3$ gives $s\to s+3$ in $\dfrac{2}{s^2+4}$.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W2.</strong> $\mathcal L^{-1}\!\left\{\dfrac{s+1}{s^2+2s+5}\right\}$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{-t}\cos 2t$</button>
+    <button class="opt" data-key="b">$e^{-t}\sin 2t$</button>
+    <button class="opt" data-key="c">$e^{-t}\cos 4t$</button>
+    <button class="opt" data-key="d">$e^{-2t}\cos t$</button>
+  </div>
+  <div class="why">Complete the square: $s^2+2s+5=(s+1)^2+4$. The numerator is exactly $s+1$, so it is $\dfrac{s-a}{(s-a)^2+\omega^2}$ with $a=-1$, $\omega=2$.</div>
+</div>
+
+<h2>1 · Heaviside functions: switches and windows</h2>
+<p>$H_a(t)=H(t-a)$ is $0$ for $t&lt;a$ and $1$ for $t>a$. Think "a switch flipped at $t=a$". A window is two switches: $H_a-H_b$ is $1$ on $[a,b)$ and $0$ elsewhere (for $a&lt;b$).</p>
+
+<div class="box">
+<p><strong>Piecewise to Heaviside: add the <em>change</em> at each switch.</strong><br>
+If $f=f_1$ on $[0,a)$, $f_2$ on $[a,b)$, $f_3$ on $[b,\infty)$, then
+$$f=f_1+(f_2-f_1)\,H_a+(f_3-f_2)\,H_b.$$
+Every function is multiplied by its own $H$, <em>not</em> shifted yet.</p>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q1.</strong> $f=1$ for $0\le t&lt;2$, $f=4$ for $2\le t&lt;5$, $f=0$ for $t\ge5$. Then $f=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$1+4H_2-5H_5$</button>
+    <button class="opt" data-key="b">$1+3H_2+4H_5$</button>
+    <button class="opt" data-key="c">$1+3H_2-4H_5$</button>
+    <button class="opt" data-key="d">$4+3H_2-4H_5$</button>
+  </div>
+  <div class="why">At $t=2$ the value changes by $4-1=+3$. At $t=5$ it changes by $0-4=-4$. Check $t\ge5$: $1+3-4=0$ ✓. Option (d) fails at $t&lt;2$ (gives 4).</div>
+</div>
+
+<p><strong>Worked.</strong> $g=2$ on $[0,1)$, $g=t$ on $[1,3)$, $g=0$ on $[3,\infty)$. Changes: at $1$: $t-2$; at $3$: $0-t=-t$. So $g=2+(t-2)H_1-t\,H_3$.</p>
+
+<h2>2 · Transforming: the t-shift and the trap</h2>
+<p>From the sheet: $\mathcal L\{f(t-a)H(t-a)\}=e^{-as}F(s)$. With $f=1$:</p>
+$$\mathcal L\{H_a\}=\frac{e^{-as}}{s}\quad(\text{derive it; it is not on the sheet}).$$
+
+<div class="trap"><strong>The trap</strong><br>
+The theorem needs the function of $(t-a)$, not of $t$. So $\mathcal L\{t\,H_3\}\ne e^{-3s}/s^2$.<br>
+<strong>Fix:</strong> write $g(t)H_a(t)$ as $h(t-a)H_a(t)$ where $h(u)=g(u+a)$ (substitute $t=u+a$). Then $\mathcal L=e^{-as}\mathcal L\{h\}$.</div>
+
+<div class="box">
+<p>$\mathcal L\{t^2H_2\}$: $h(u)=(u+2)^2=u^2+4u+4$, so $\;e^{-2s}\!\left(\dfrac2{s^3}+\dfrac4{s^2}+\dfrac4s\right)$.<br>
+$\mathcal L\{\cos t\;H_\pi\}$: $h(u)=\cos(u+\pi)=-\cos u$, so $\;-e^{-\pi s}\dfrac{s}{s^2+1}$.<br>
+$\mathcal L\{e^{t}H_1\}$: $h(u)=e^{u+1}=e\cdot e^{u}$, so $\;e\,e^{-s}\dfrac1{s-1}=\dfrac{e^{1-s}}{s-1}$.</p>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q2.</strong> $\mathcal L\{t\,H_3(t)\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{-3s}\!\left(\tfrac{1}{s^2}+\tfrac{1}{s}\right)$</button>
+    <button class="opt" data-key="b">$e^{-3s}\!\left(\tfrac{1}{s^2}+\tfrac{3}{s}\right)$</button>
+    <button class="opt" data-key="c">$e^{-3s}\!\left(\tfrac{1}{s^2}-\tfrac{3}{s}\right)$</button>
+    <button class="opt" data-key="d">$e^{-3s}\!\left(\tfrac{3}{s^2}+\tfrac{1}{s}\right)$</button>
+  </div>
+  <div class="why">$t=u+3$, so $h(u)=u+3$ and $\mathcal L\{h\}=\frac1{s^2}+\frac3s$.</div>
+</div>
+
+<p><strong>Worked: transform of $g$ from §1.</strong> $g=2+(t-2)H_1-tH_3$. For $(t-2)H_1$: $h(u)=u+1-2=u-1$. For $tH_3$: $h(u)=u+3$.
+$$G(s)=\frac2s+e^{-s}\!\left(\frac1{s^2}-\frac1s\right)-e^{-3s}\!\left(\frac1{s^2}+\frac3s\right).$$</p>
+
+<h2>3 · Inverting: strip, invert, shift, attach</h2>
+<ol class="steps">
+<li>Split into terms $e^{-as}F(s)$ (a term with no exponential is just $a=0$).</li>
+<li>Invert each $F$ with partial fractions: get $f(t)$.</li>
+<li>Replace every $t$ in $f$ by $t-a$, and multiply by $H_a(t)$.</li>
+</ol>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q3.</strong> $\mathcal L^{-1}\!\left\{\dfrac{e^{-2s}}{s^2+9}\right\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac13\sin(3t-2)\,H_2(t)$</button>
+    <button class="opt" data-key="b">$\tfrac13\sin(3t+6)\,H_2(t)$</button>
+    <button class="opt" data-key="c">$\tfrac13\sin(3t-6)\,H_2(t)$</button>
+    <button class="opt" data-key="d">$\tfrac13\sin(3t-6)\,H_6(t)$</button>
+  </div>
+  <div class="why">$f(t)=\frac13\sin3t$. Replace $t\to t-2$: $\frac13\sin3(t-2)=\frac13\sin(3t-6)$, attached to $H_2$. The shift must hit <em>every</em> $t$ inside, and the 3 multiplies the 2.</div>
+</div>
+
+<p><strong>Worked.</strong> $F=\dfrac{e^{-s}-e^{-4s}}{s(s+2)}$. Here $\dfrac1{s(s+2)}=\dfrac12\!\left(\dfrac1s-\dfrac1{s+2}\right)$, so $f(t)=\dfrac{1-e^{-2t}}2$ and
+$$\mathcal L^{-1}\{F\}=f(t-1)H_1-f(t-4)H_4.$$</p>
+<p>As a piecewise answer: $0$ for $t&lt;1$; $\tfrac12\big(1-e^{-2(t-1)}\big)$ for $1\le t&lt;4$; and for $t\ge4$ the two combine to $\tfrac12\big(e^{-2(t-4)}-e^{-2(t-1)}\big)$.</p>
+
+<h2>4 · Solving an IVP with a window, and reading the answer</h2>
+<p><strong>Example.</strong> $y''+3y'+2y=2\,(H_1-H_3)$, $\;y(0)=1,\;y'(0)=0$. In words: a push of size 2 from $t=1$ to $t=3$, then released, starting displaced by 1 at rest.</p>
+
+<details><summary>Transform and solve for $Y$</summary><div>
+$$(s^2+3s+2)Y-s-3=\frac{2(e^{-s}-e^{-3s})}{s}\;\Rightarrow\; Y=\frac{s+3}{(s+1)(s+2)}+\frac{2\,(e^{-s}-e^{-3s})}{s(s+1)(s+2)}.$$
+</div></details>
+<details><summary>Partial fractions</summary><div>
+$$\frac{s+3}{(s+1)(s+2)}=\frac2{s+1}-\frac1{s+2},\qquad \frac{2}{s(s+1)(s+2)}=\frac1s-\frac2{s+1}+\frac1{s+2}.$$
+So the second inverts to $G(t)=1-2e^{-t}+e^{-2t}$.
+</div></details>
+<details><summary>Invert, then write piecewise</summary><div>
+$$y=2e^{-t}-e^{-2t}+G(t-1)H_1(t)-G(t-3)H_3(t).$$
+<p>$0\le t&lt;1$: $y=2e^{-t}-e^{-2t}$.<br>
+$1\le t&lt;3$: add $G(t-1)$, so $y=1-2e^{-(t-1)}+e^{-2(t-1)}+2e^{-t}-e^{-2t}$.<br>
+$t\ge3$: subtract $G(t-3)$; the constants cancel, leaving $y=2e^{-t}-e^{-2t}-2e^{-(t-1)}+e^{-2(t-1)}+2e^{-(t-3)}-e^{-2(t-3)}$.</p>
+</div></details>
+
+<div class="box">
+<p><strong>Sanity checks (always, they take 20 seconds).</strong></p>
+<ul>
+<li>$y(0),y'(0)$ from the first piece match the data.</li>
+<li>For an $n$th-order ODE with a switching forcing, $y,\dots,y^{(n-1)}$ are <em>continuous</em> at each switch. Only $y^{(n)}$ jumps. (Lecture 13, slide 5.) Here the new piece starts as $G(t-1)$, which has value $0$ and slope $0$ at its start.</li>
+<li>Long-run: with forcing $2$ on, $2y\approx2$, so $y\to1$ in the window. After release $y\to0$ ✓.</li>
+</ul>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q4.</strong> $y''+4y'+3y=H_3(t)$, $y(0)=y'(0)=0$. At $t=3$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">only $y''$ jumps; $y,y'$ continuous</button>
+    <button class="opt" data-key="b">only $y'$ jumps; $y,y''$ continuous</button>
+    <button class="opt" data-key="c">$y'$ and $y''$ jump; $y$ continuous</button>
+    <button class="opt" data-key="d">no jumps; $y,y',y''$ all continuous</button>
+  </div>
+  <div class="why">$y''=H_3-4y'-3y$. The forcing jumps by $1$, and $y,y'$ are continuous, so $y''$ jumps by exactly $1$ and nothing else does.</div>
+</div>
+
+<p><em>Small remark:</em> at a jump of the original function, $\mathcal L^{-1}$ returns the midpoint (Lecture 11). That is why the value of $H$ at the switch never matters for the transform.</p>
+
+<h2>5 · Practice (a notch above the notes)</h2>
+<p>Do each fully on paper, then open the solution.</p>
+<div class="box">
+<p><strong>P1.</strong> Find $\mathcal L\{f\}$ for $\;f(t)=e^{2t}$ on $[0,1)$ and $f(t)=3$ for $t\ge1$.</p>
+<p><strong>P2.</strong> Find $\mathcal L^{-1}\!\left\{\dfrac{(s+3)\,e^{-2s}}{s^2+2s+5}\right\}$ and write it with no Heavisides.</p>
+<p><strong>P3.</strong> Solve $\;y''+9y=9\,(1-H_\pi(t))$, $\;y(0)=0,\;y'(0)=3$, as a piecewise function, and check $y,y'$ are continuous at $t=\pi$.</p>
+</div>
+<details><summary>P1 solution</summary><div>
+<p>$f=e^{2t}+(3-e^{2t})H_1$. For $e^{2t}H_1$: $h(u)=e^{2(u+1)}=e^2e^{2u}$.</p>
+$$F=\frac1{s-2}+e^{-s}\!\left(\frac3s-\frac{e^2}{s-2}\right).$$
+</div></details>
+<details><summary>P2 solution</summary><div>
+<p>$\dfrac{s+3}{(s+1)^2+4}=\dfrac{s+1}{(s+1)^2+4}+\dfrac{2}{(s+1)^2+4}\to f(t)=e^{-t}(\cos2t+\sin2t)$. Then</p>
+$$\mathcal L^{-1}=e^{-(t-2)}\big[\cos2(t-2)+\sin2(t-2)\big]H_2(t)=\begin{cases}0,&t&lt;2\\ e^{-(t-2)}\big[\cos(2t-4)+\sin(2t-4)\big],&t\ge2.\end{cases}$$
+</div></details>
+<details><summary>P3 solution</summary><div>
+<p>$(s^2+9)Y-3=\dfrac9s(1-e^{-\pi s})$, so $Y=\dfrac3{s^2+9}+\Big(\dfrac1s-\dfrac{s}{s^2+9}\Big)(1-e^{-\pi s})$, since $\dfrac9{s(s^2+9)}=\dfrac1s-\dfrac s{s^2+9}$. With $G=1-\cos3t$,</p>
+$$y=\sin3t+G(t)-G(t-\pi)H_\pi(t).$$
+<p>Trap: $\cos3(t-\pi)=\cos(3t-3\pi)=-\cos3t$. So</p>
+$$y=\begin{cases}\sin3t+1-\cos3t,&0\le t<\pi\\ \sin3t-2\cos3t,&t\ge\pi.\end{cases}$$
+<p>At $\pi$: $y=2$ from both sides; $y'=3\cos3t+3\sin3t\to-3$ and $3\cos3t+6\sin3t\to-3$ ✓.</p>
+</div></details>
+
+<h2>6 · Exam-level challenge (12 marks, about 18 minutes)</h2>
+<div class="box">
+<p>A mass-spring-damper obeys $\;y''+3y'+2y=f(t),\;\; y(0)=0,\; y'(0)=1,$ where the load ramps up at unit rate until $t=2$ and is then held constant:
+$f(t)=t$ for $0\le t&lt;2$, $\;f(t)=2$ for $t\ge2$.</p>
+<p>(a) Write $f$ using one Heaviside function and find $F(s)$. <em>[2]</em><br>
+(b) Find $Y(s)$, and decompose every part into partial fractions. <em>[4]</em><br>
+(c) Find $y(t)$ with a Heaviside, then as an explicit piecewise function for $0\le t&lt;2$ and $t\ge2$. <em>[3]</em><br>
+(d) Show $y,y',y''$ are all continuous at $t=2$, and say which derivative of $y$ first jumps there, and by how much. Find $\lim_{t\to\infty}y$ and interpret it. <em>[3]</em></p>
+</div>
+<p>Full line-by-line marking-style solution: <a href="../worked/0015-challenge-full-solution.html">worked/0015-challenge-full-solution.html</a>. Open it only after attempting all four parts.</p>
+<details><summary>Answer key (for a quick check)</summary><div>
+<p>(a) $f=t-(t-2)H_2$, $F=\dfrac{1-e^{-2s}}{s^2}$.<br>
+(b) $Y=\dfrac1{(s+1)(s+2)}+\dfrac{1-e^{-2s}}{s^2(s+1)(s+2)}$, with $\dfrac1{s^2(s+1)(s+2)}=-\dfrac3{4s}+\dfrac1{2s^2}+\dfrac1{s+1}-\dfrac1{4(s+2)}$.<br>
+(c) $y=e^{-t}-e^{-2t}+h(t)-h(t-2)H_2$, $h(t)=-\tfrac34+\tfrac t2+e^{-t}-\tfrac14e^{-2t}$. Piecewise: $-\tfrac34+\tfrac t2+2e^{-t}-\tfrac54e^{-2t}$ on $[0,2)$; $1+(2-e^2)e^{-t}+\tfrac{e^4-5}4e^{-2t}$ for $t\ge2$.<br>
+(d) $y'''$ jumps by $-1$; $y\to1$.</p>
+</div></details>
+
+<h2>7 · Before you close this tab</h2>
+<details><summary>Retrieval: write from memory, then check</summary><div>
+<ol>
+<li>$\mathcal L\{H_a\}=$ ? (derive from the sheet's t-shift) and what $H_a-H_b$ means.</li>
+<li>The recipe to turn $g(t)H_a(t)$ into something the t-shift can transform.</li>
+<li>The 3 steps for $\mathcal L^{-1}\{e^{-as}F\}$.</li>
+<li>Which derivatives of $y$ are continuous at a switch in an $n$th-order ODE.</li>
+</ol>
+<p><strong>Answers:</strong> (1) $e^{-as}/s$; window: 1 on $[a,b)$. (2) $h(u)=g(u+a)$, then $e^{-as}\mathcal L\{h\}$. (3) Strip, invert, replace $t\to t-a$ and attach $H_a$. (4) $y,\dots,y^{(n-1)}$; only $y^{(n)}$ jumps.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/12_MAST20030_Lecture_Notes_Topic3_Laplace.pdf">Lecture 12</a> (slides 9–11: Heaviside, t-shift) and <a href="../lectures/13_MAST20030_Lecture_Notes_Topic3_Laplace.pdf">Lecture 13</a> (slides 3–8: switching forcing, Ex. 3.17 and 3.18). Then Paul's Online Notes: <a href="https://tutorial.math.lamar.edu/Classes/DE/StepFunctions.aspx">Step Functions</a>, then <a href="https://tutorial.math.lamar.edu/Classes/DE/IVPWithStepFunction.aspx">IVPs with Step Functions</a>. Optional: <a href="https://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/pages/unit-iii-fourier-series-and-laplace-transform/">MIT OCW 18.03SC, Unit III</a> (Laplace sessions).</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic3-2.pdf">Booklet 3</a>, Q10(b) and Q11(b): the shift trap in both directions.</li>
+  <li>Booklet Q12 (b), (c), (d): Heaviside to piecewise.</li>
+  <li>Booklet Q13 (a), (c), (d): transforms of piecewise functions.</li>
+  <li>Booklet Q15 (a), (b), (c): IVPs with Heaviside forcing ((d), (e) have $\delta$: next lesson).</li>
+  <li><a href="../tutes/tute_week_06.pdf">Tute week 6</a>, Q2 (a), (b).</li>
+  <li>Optional: Q10(a), Q11(a), Q12 (a), (e), (f), Q13(b).</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo Q2, Q3, P3 cold, and the challenge's (b) without looking.</p>
+
+<div class="ask">💬 Unsure whether your shifted function is right, or want a worked answer marked line by line? Ask me in the terminal and paste your working.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0014-laplace-solving-ivps.html">Lesson 14</a> and <a href="0013-laplace-definition-table-inverse.html">Lesson 13</a></span>
+  <span>Next: <a href="0016-laplace-dirac-delta.html">Lesson 16, Dirac delta</a></span>
+  <span>Reference: <a href="../reference/topic3-cheatsheet.html">Topic 3 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

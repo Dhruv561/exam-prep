@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Integro-Differential Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 20 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>A series RLC circuit has $L=1$, $R=4$ and $1/C=13$ (SI units). There is no initial current or charge. The voltage is $v(t)=13\,[H(t-1)-H(t-3)]$, so
+$$i'(t) + 4i(t) + 13\int_0^t i(\tau)\,d\tau = 13\,[H(t-1)-H(t-3)].$$
+(a) Show that $\;I(s) = \dfrac{13\,(e^{-s}-e^{-3s})}{s^2+4s+13}$. <em>[3]</em><br>
+(b) Find $i(t)$ as a piecewise function on $[0,1)$, $[1,3)$, $[3,\infty)$. <em>[4]</em><br>
+(c) Differentiate to get a second-order ODE for $i$ with its initial conditions. Justify $i'(0)$. <em>[3]</em><br>
+(d) State the jump in $i'$ at $t=1$ predicted by (c), and confirm it in your answer to (b). <em>[2]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · Transform</h2>
+<div class="script">
+<p>Let $I=\mathcal L\{i\}$. Since $i(0)=0$: $\mathcal L\{i'\}=sI$, and $\mathcal L\{\int_0^t i\}=I/s$. By the t-shift applied to $1\leftrightarrow\frac1s$, $\mathcal L\{H(t-a)\}=\dfrac{e^{-as}}{s}$. So</p>
+$$sI + 4I + \frac{13}{s}I = \frac{13}{s}\big(e^{-s}-e^{-3s}\big).$$
+<p>Multiply by $s$: $\;(s^2+4s+13)\,I = 13\,(e^{-s}-e^{-3s})$, hence $I(s)=\dfrac{13\,(e^{-s}-e^{-3s})}{s^2+4s+13}.$ $\blacksquare$</p>
+</div>
+<p class="note">$\mathcal L\{\int_0^t i\} = I/s$ is not on the sheet. Say where it comes from: $g=\int_0^t i$, $g'=i$, $g(0)=0$, so $I=sG$. One line is enough. The $\frac13$ marks: derivative term, integral term, forcing.</p>
+
+<h2>(b) · Invert</h2>
+<div class="script">
+<p>Complete the square: $s^2+4s+13=(s+2)^2+9$. Then</p>
+$$\mathcal L^{-1}\Big\{\frac{13}{(s+2)^2+9}\Big\}=\frac{13}{3}\,\mathcal L^{-1}\Big\{\frac{3}{(s+2)^2+9}\Big\}=\frac{13}{3}\,e^{-2t}\sin 3t=:h(t),$$
+<p>using $\sin 3t\leftrightarrow\frac{3}{s^2+9}$ and the s-shift. The factors $e^{-s}$ and $e^{-3s}$ are t-shifts by $1$ and $3$:</p>
+$$i(t)=h(t-1)\,H(t-1)-h(t-3)\,H(t-3).$$
+<p>As a piecewise function:</p>
+$$i(t)=\begin{cases}0, & 0\le t<1,\\[2pt] \tfrac{13}{3}\,e^{-2(t-1)}\sin 3(t-1), & 1\le t<3,\\[2pt] \tfrac{13}{3}\,e^{-2(t-1)}\sin 3(t-1)-\tfrac{13}{3}\,e^{-2(t-3)}\sin 3(t-3), & t\ge3.\end{cases}$$
+</div>
+<p class="note">Both shifts replace $t$ by $t-a$ everywhere in $h$, including inside $e^{-2t}$. The coefficient is $\frac{13}{3}$ because the $3$ in the numerator is needed for the sheet's $\sin$ entry. Continuity is automatic: $h(0)=0$, so there's no jump in $i$ at $t=1$ or $3$.</p>
+
+<h2>(c) · The ODE</h2>
+<div class="script">
+<p>Differentiate the equation, using $H'(t-a)=\delta(t-a)$ and $\frac{d}{dt}\int_0^t i=i$:</p>
+$$i''+4i'+13i=13\big[\delta(t-1)-\delta(t-3)\big].$$
+<p>Initial conditions: $i(0)=0$. Put $t=0$ in the <em>original</em> equation: $i'(0)+4i(0)+13\cdot0=13\,[H(-1)-H(-3)]=0$, so $i'(0)=0$.</p>
+</div>
+<p class="note">The differentiated equation has lost information (it holds for any constant added to the equation). The original at $t=0$ puts it back. Without that line you lose the mark for the IC.</p>
+
+<h2>(d) · The jump in $i'$</h2>
+<div class="script">
+<p>Integrate the ODE over $(1-\varepsilon,1+\varepsilon)$: $i'$ jumps by the coefficient of $\delta(t-1)$, namely $13$, while $i$ is continuous. So $i'(1^+)-i'(1^-)=13$.</p>
+<p>From (b): $i'(1^-)=0$. For $1\le t<3$, $i'(t)=\tfrac{13}{3}e^{-2(t-1)}\big[3\cos3(t-1)-2\sin3(t-1)\big]$, so $i'(1^+)=\tfrac{13}{3}\cdot3=13$. The jump is $13$ ✓. (Likewise it is $-13$ at $t=3$.)</p>
+</div>
+<p class="note">The physical meaning: the voltage steps up by $13$ at $t=1$, which acts on $L i'$ through $L i' = v - Ri - q/C$, and $Ri$ and $q$ are still $0$. So $i'(1^+) = v/L = 13$.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Each of the 3 terms transformed, with $i(0)=0$ · $e^{-as}/s$ for $H$ · completing the square · correct $\frac{13}{3}$ · both t-shifts · piecewise with three ranges · differentiated ODE with $\delta$ forcing · $i'(0)=0$ from the original · the jump $13$ confirmed from the formula.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0020-laplace-integro-differential.html">Lesson 20, challenge</a></span>
+  <span>Reference: <a href="../reference/topic3-cheatsheet.html">Topic 3 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

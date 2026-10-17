@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laplace Proofs Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 18 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>(a) Let $f$ be piecewise continuous with $|f(t)|\le Me^{\alpha t}$, and $F=\mathcal L\{f\}$. Show that $F(s)\to0$ as $s\to\infty$, and prove that $\mathcal L\{tf(t)\} = -F'(s)$. <em>[4]</em><br>
+(b) Use Laplace transforms to find the solution of $\;t\,y'' + (t+2)\,y' + 2y = 0$, with $y(0)=1$. Justify how you fix any constant, and find $y'(0)$ from the ODE as a check. <em>[4]</em><br>
+(c) Two masses satisfy $\;x'' = y - 2x,\;\; y'' = x - 2y + 3$ with $x(0)=y(0)=x'(0)=y'(0)=0$. Find $x(t)$ and $y(t)$. <em>[4]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · Two proofs</h2>
+<div class="script">
+<p>For real $s>\alpha$, since $f$ is piecewise continuous, $F(s)$ exists and</p>
+$$|F(s)| \le \int_0^\infty e^{-st}|f(t)|\,dt \le M\int_0^\infty e^{-(s-\alpha)t}\,dt = \frac{M}{s-\alpha}.$$
+<p>The right side tends to $0$ as $s\to\infty$, so $F(s)\to0$.</p>
+<p>Next, $F(s)=\displaystyle\int_0^\infty e^{-st}f(t)\,dt$. Because $|t\,e^{-st}f(t)|\le Mte^{-(s-\alpha)t}$ is integrable for $s>\alpha$, we may differentiate under the integral sign:</p>
+$$F'(s) = \int_0^\infty \frac{\partial}{\partial s}\big(e^{-st}\big)f(t)\,dt = -\int_0^\infty e^{-st}\,t f(t)\,dt = -\mathcal L\{tf\}.$$
+<p>Hence $\mathcal L\{tf(t)\} = -F'(s)$.</p>
+</div>
+<p class="note">Marks: the bound with $M/(s-\alpha)$ [1], the limit [1], the integrability remark that justifies differentiating [1], the derivative of $e^{-st}$ with the sign [1]. "Differentiate under the integral" with no reason loses the justification mark.</p>
+
+<h2>(b) 1 · Transform</h2>
+<div class="script">
+<p>Let $Y=\mathcal L\{y\}$. Using $\mathcal L\{tg\} = -G'$ from (a) with $y(0)=1$ (the term $y'(0)$ will vanish under differentiation):</p>
+$$\mathcal L\{ty''\} = -\frac{d}{ds}\big(s^2Y - s - y'(0)\big) = -s^2Y' - 2sY + 1,\qquad \mathcal L\{ty'\} = -\frac{d}{ds}(sY-1) = -sY' - Y,$$
+$$\mathcal L\{2y'\} = 2sY - 2,\qquad \mathcal L\{2y\} = 2Y.$$
+<p>Adding: $\;-(s^2+s)Y' + Y - 1 = 0$, that is $\;s(s+1)\,\dfrac{d}{ds}(Y-1) = Y-1.$</p>
+</div>
+<p class="note">The $-2sY$ from $ty''$ cancels the $+2sY$ from $2y'$, and $-Y+2Y = +Y$. Check these two by hand: they're where marks go astray.</p>
+
+<h2>(b) 2 · Solve and fix the constant</h2>
+<div class="script">
+<p>Separating variables ($Y\neq1$):</p>
+$$\int\frac{d(Y-1)}{Y-1} = \int\Big(\frac1s - \frac1{s+1}\Big)ds \;\Rightarrow\; Y - 1 = K\,\frac{s}{s+1}.$$
+<p>By (a), $Y(s)\to0$ as $s\to\infty$. But $Y\to1+K$, so $K=-1$ and</p>
+$$Y = 1 - \frac{s}{s+1} = \frac1{s+1}\;\Longrightarrow\; y(t) = e^{-t}.$$
+<p>Check: $y(0)=1$ ✓. In the ODE, $te^{-t} - (t+2)e^{-t} + 2e^{-t} = 0$ ✓. At $t=0$ the ODE reads $2y'(0)+2y(0)=0$, so $y'(0)=-1 = \frac{d}{dt}e^{-t}\big|_0$ ✓.</p>
+</div>
+<p class="note">The singular case $Y=1$ ($K=0$) is excluded for the same reason: it is the transform of $\delta$, not a function, and doesn't tend to $0$. The unknown $y'(0)$ never entered the transform: the ODE itself fixes it.</p>
+
+<h2>(c) · System</h2>
+<div class="script">
+<p>With $X=\mathcal L\{x\}$, $Y=\mathcal L\{y\}$ and zero initial conditions:</p>
+$$s^2X = Y - 2X \Rightarrow (s^2+2)X - Y = 0,\qquad s^2Y = X - 2Y + \frac3s \Rightarrow -X + (s^2+2)Y = \frac3s.$$
+<p>Substituting $Y = (s^2+2)X$ into the second: $\big[(s^2+2)^2 - 1\big]X = \dfrac3s$, and $(s^2+2)^2-1 = (s^2+1)(s^2+3)$. So</p>
+$$X = \frac{3}{s(s^2+1)(s^2+3)},\qquad Y = \frac{3(s^2+2)}{s(s^2+1)(s^2+3)}.$$
+<p>Partial fractions in $u=s^2$:
+$$\frac{3}{u(u+1)(u+3)} = \frac1u - \frac{3/2}{u+1} + \frac{1/2}{u+3},\qquad \frac{3(u+2)}{u(u+1)(u+3)} = \frac2u - \frac{3/2}{u+1} - \frac{1/2}{u+3}.$$
+Multiplying by $s$ (since $X = s\cdot\frac{3}{u(u+1)(u+3)}$):</p>
+$$X = \frac1s - \frac32\frac{s}{s^2+1} + \frac12\frac{s}{s^2+3},\qquad Y = \frac2s - \frac32\frac{s}{s^2+1} - \frac12\frac{s}{s^2+3}.$$
+$$\boxed{x(t) = 1 - \tfrac32\cos t + \tfrac12\cos\sqrt3\,t,\qquad y(t) = 2 - \tfrac32\cos t - \tfrac12\cos\sqrt3\,t.}$$
+<p>Check: $x(0)=1-\tfrac32+\tfrac12=0$, $y(0)=2-\tfrac32-\tfrac12=0$; $x'(0)=y'(0)=0$ since sines vanish at $0$. Also $x''=\tfrac32\cos t-\tfrac32\cos\sqrt3 t$ and $y-2x = \tfrac32\cos t - \tfrac32\cos\sqrt3 t$ ✓.</p>
+</div>
+<p class="note">Partial-fraction values: at $u=0$ cover-up gives $3/(1\cdot3)=1$; at $u=-1$: $3/((-1)(2)) = -\tfrac32$; at $u=-3$: $3/((-3)(-2)) = \tfrac12$. For $Y$, numerator $3(u+2)$ gives $6/3=2$, $\;3(1)/((-1)(2))=-\tfrac32$, $\;3(-1)/((-3)(-2)) = -\tfrac12$. Sanity: $x+y = 3-3\cos t$ satisfies $(x+y)''=-(x+y)+3$ ✓.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>Exponential bound and limit · justification for differentiating under the integral · three correct $t$-transforms with signs · the first-order ODE in $Y$ · separation with the constant $K$ · "$Y\to0$" used to fix $K$ · $y=e^{-t}$ and the $y'(0)$ check · both transformed equations · the determinant factorised · partial fractions in $s^2$ · the $\sqrt3$ in $\cos\sqrt3\,t$ · final answers satisfying the ICs.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0018-laplace-derivations-variable-coeff-systems.html">Lesson 18, challenge</a></span>
+  <span>Reference: <a href="../reference/topic3-cheatsheet.html">Topic 3 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laplace: Proofs, t f(t), Systems</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 18 · Topic 3: Laplace transforms</div>
+<h1>Proofs, $t\,f(t)$, and coupled systems</h1>
+<p class="lede">Three things the exam asks that plain "transform, solve, invert" doesn't cover: prove a formula-sheet item, use $\mathcal L\{t f\} = -F'$ to turn a variable-coefficient ODE into a first-order ODE in $Y(s)$, and solve a system by transforming both equations.</p>
+
+<div class="mission">Why this matters for 5 Nov: the lecturer says the exam tests theory (definitions, theorems, proofs, derivations of formula-sheet items) as well as computation. A past paper had a Laplace question with three parts: show $F(s)\to0$, prove $\mathcal L\{tf\} = -F'$, then solve $y'' + 2ty' + 2y = 0$ by Laplace. And $\mathcal L\{tf\} = -F'$ is <strong>not</strong> on the formula sheet, so you must be able to derive it. Booklet Q17 (coupled springs) is the system version.</div>
+
+<h2>0 · Warm-up</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> $\mathcal L^{-1}\Big\{\dfrac{e^{-2s}}{s+1}\Big\} = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{-t}\,H(t-2)$</button>
+    <button class="opt" data-key="b">$e^{-t-2}\,H(t-2)$</button>
+    <button class="opt" data-key="c">$e^{-(t-2)}\,H(t-2)$</button>
+    <button class="opt" data-key="d">$e^{-(t+2)}\,H(t-2)$</button>
+  </div>
+  <div class="why">t-shift from the sheet: $e^{-as}F(s) \leftrightarrow f(t-a)H(t-a)$ with $f = e^{-t}$, $a=2$. Every $t$ in $f$ becomes $t-2$ (<a href="0015-laplace-heaviside-t-shift.html">Lesson 15</a>).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W2.</strong> $\mathcal L\{e^{-t}\cos 2t\} = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{s-1}{(s-1)^2+4}$</button>
+    <button class="opt" data-key="b">$\dfrac{s+1}{(s+1)^2+4}$</button>
+    <button class="opt" data-key="c">$\dfrac{2}{(s+1)^2+4}$</button>
+    <button class="opt" data-key="d">$\dfrac{s+1}{(s+1)^2-4}$</button>
+  </div>
+  <div class="why">s-shift of $\cos 2t \leftrightarrow s/(s^2+4)$: replace $s$ by $s-(-1) = s+1$ (<a href="0013-laplace-definition-table-inverse.html">Lesson 13</a>).</div>
+</div>
+
+<h2>1 · Prove it: the formula-sheet items</h2>
+<p>For each, <strong>try to write the proof first</strong>, then open it. Each is 2–4 lines. Assume $f$ is piecewise continuous and of exponential order: $|f(t)|\le Me^{\alpha t}$, and take $s>\alpha$ real. Slides: <a href="../lectures/12_MAST20030_Lecture_Notes_Topic3_Laplace.pdf">Lecture 12</a> (derivative, shifts), <a href="../lectures/14_MAST20030_Lecture_Notes_Topic3_Laplace.pdf">Lecture 14</a> (convolution).</p>
+
+<details><summary>P-a · $F(s)\to 0$ as $s\to\infty$</summary><div>
+$$|F(s)| \le \int_0^\infty e^{-st}\,|f(t)|\,dt \le M\int_0^\infty e^{-(s-\alpha)t}\,dt = \frac{M}{s-\alpha}\;\longrightarrow\;0.$$
+<p>The bound is the whole proof. <strong>Use:</strong> any candidate $Y(s)$ that doesn't tend to $0$ (a constant, a polynomial, $e^{s^2/2}$) is <em>not</em> a Laplace transform. This kills spare constants in §2.</p>
+</div></details>
+
+<details><summary>P-b · derivative rule $\mathcal L\{f'\} = sF - f(0)$, then $f''$</summary><div>
+<p>By parts with $u = e^{-st}$, $dv = f'\,dt$:</p>
+$$\int_0^\infty e^{-st}f'\,dt = \Big[e^{-st}f(t)\Big]_0^\infty + s\int_0^\infty e^{-st}f\,dt = -f(0) + sF(s).$$
+<p>The upper limit vanishes because $|e^{-sb}f(b)|\le Me^{-(s-\alpha)b}\to0$: this is exactly where "exponential order" is used. For $f''$, apply the result to $g = f'$: $\mathcal L\{f''\} = s\mathcal L\{f'\} - f'(0) = s^2F - sf(0) - f'(0)$.</p>
+</div></details>
+
+<details><summary>P-c · s-shift and t-shift</summary><div>
+<p><strong>s-shift:</strong> $\mathcal L\{e^{at}f\} = \int_0^\infty e^{-st}e^{at}f\,dt = \int_0^\infty e^{-(s-a)t}f\,dt = F(s-a)$.</p>
+<p><strong>t-shift:</strong> $H(t-a)$ kills $t&lt;a$, so $\mathcal L\{f(t-a)H(t-a)\} = \int_a^\infty e^{-st}f(t-a)\,dt$. Put $u = t-a$: $\;= e^{-as}\int_0^\infty e^{-su}f(u)\,du = e^{-as}F(s)$.</p>
+</div></details>
+
+<details><summary>P-d · $\mathcal L\{t f\} = -F'(s)$ (not on the sheet)</summary><div>
+<p>Differentiate $F(s) = \int_0^\infty e^{-st}f(t)\,dt$ under the integral sign (allowed for $s>\alpha$ by exponential order):</p>
+$$F'(s) = \int_0^\infty \frac{\partial}{\partial s}\big(e^{-st}\big)f(t)\,dt = -\int_0^\infty e^{-st}\,t f(t)\,dt = -\mathcal L\{tf\}.$$
+<p>Repeat: $\mathcal L\{t^n f\} = (-1)^nF^{(n)}(s)$. Consequences, all derivable in one line: $\mathcal L\{t^n\} = n!/s^{n+1}$ (take $f=1$), $\;\mathcal L\{te^{at}\} = 1/(s-a)^2$, $\;\mathcal L\{t\sin\omega t\} = \dfrac{2\omega s}{(s^2+\omega^2)^2}$, $\;\mathcal L\{t\cos\omega t\} = \dfrac{s^2-\omega^2}{(s^2+\omega^2)^2}$.</p>
+</div></details>
+
+<details><summary>P-e · $\mathcal L\{\delta(t-a)\} = e^{-as}$ as a limit</summary><div>
+<p>Let $\delta_\varepsilon(t-a) = \frac1\varepsilon\big[H(t-a) - H(t-a-\varepsilon)\big]$: a box of height $1/\varepsilon$ and width $\varepsilon$, so area $1$. Then</p>
+$$\mathcal L\{\delta_\varepsilon\} = \frac1\varepsilon\cdot\frac{e^{-as} - e^{-(a+\varepsilon)s}}{s} = e^{-as}\,\frac{1 - e^{-\varepsilon s}}{\varepsilon s}\;\xrightarrow{\;\varepsilon\to0\;}\;e^{-as},$$
+<p>since $1 - e^{-\varepsilon s}\approx\varepsilon s$. The same box gives the sifting property: $\int f\,\delta_\varepsilon \to \lim\frac1\varepsilon\int_a^{a+\varepsilon}f = f(a)$ for continuous $f$.</p>
+</div></details>
+
+<details><summary>P-f · convolution theorem $\mathcal L\{f*g\} = F\,G$ (sketch)</summary><div>
+$$\mathcal L\{f*g\} = \int_0^\infty e^{-st}\int_0^t f(t-\tau)g(\tau)\,d\tau\,dt.$$
+<p>The region is $0\le\tau\le t&lt;\infty$. Swap the order: $\tau$ from $0$ to $\infty$, then $t$ from $\tau$ to $\infty$:</p>
+$$=\int_0^\infty g(\tau)\Big[\int_\tau^\infty e^{-st}f(t-\tau)\,dt\Big]d\tau = \int_0^\infty g(\tau)\,e^{-s\tau}F(s)\,d\tau = F(s)G(s),$$
+<p>using the t-shift substitution $u = t-\tau$ in the bracket.</p>
+</div></details>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>1.</strong> In the proof of $\mathcal L\{f'\} = sF - f(0)$, the boundary term $e^{-sb}f(b)\to0$ because…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$f$ has exponential order and $s$ is large enough</button>
+    <button class="opt" data-key="b">$f$ is continuous at every point of $[0,\infty)$</button>
+    <button class="opt" data-key="c">$f'$ is piecewise continuous on $[0,\infty)$ too</button>
+    <button class="opt" data-key="d">$s$ is chosen so that $F(s)$ is exactly zero</button>
+  </div>
+  <div class="why">Continuity and piecewise continuity of $f'$ only make the integrals exist. The decay of $e^{-sb}f(b)$ needs $|f|\le Me^{\alpha b}$ with $s>\alpha$.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>2.</strong> In the convolution proof, after swapping the order of integration, the limits become…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$t$ from $0$ to $\tau$, then $\tau$ from $0$ to $\infty$</button>
+    <button class="opt" data-key="b">$\tau$ from $0$ to $t$, then $t$ from $0$ to $\infty$</button>
+    <button class="opt" data-key="c">$t$ from $0$ to $\infty$, then $\tau$ from $0$ to $\infty$</button>
+    <button class="opt" data-key="d">$t$ from $\tau$ to $\infty$, then $\tau$ from $0$ to $\infty$</button>
+  </div>
+  <div class="why">Region $0\le\tau\le t$: for fixed $\tau$, $t$ runs from $\tau$ upward. Option (b) is the original order, and (c) would be the full quadrant (wrong region).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>3.</strong> With $f=\sin t$, $F = \dfrac1{s^2+1}$. Then $\mathcal L\{t^2\sin t\} = F''(s) = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{2-6s^2}{(s^2+1)^3}$</button>
+    <button class="opt" data-key="b">$\dfrac{6s^2-2}{(s^2+1)^3}$</button>
+    <button class="opt" data-key="c">$\dfrac{2s}{(s^2+1)^2}$</button>
+    <button class="opt" data-key="d">$\dfrac{-2s}{(s^2+1)^2}$</button>
+  </div>
+  <div class="why">$F' = -2s(s^2+1)^{-2}$, $F'' = -2(s^2+1)^{-2} + 8s^2(s^2+1)^{-3} = \dfrac{6s^2-2}{(s^2+1)^3}$. The sign is $(-1)^2 = +$. Option (c) is $\mathcal L\{t\sin t\} = -F'$; (d) is $F'$.</div>
+</div>
+
+<h2>2 · Variable-coefficient ODEs: $t^n y^{(k)}$</h2>
+<p>Multiplying by $t$ becomes differentiating by $-\tfrac{d}{ds}$. Write $y_0 = y(0)$, $y_0' = y'(0)$:</p>
+<div class="box">
+$$\mathcal L\{ty\} = -Y',\qquad \mathcal L\{ty'\} = -\frac{d}{ds}\big(sY - y_0\big) = -Y - sY',$$
+$$\mathcal L\{ty''\} = -\frac{d}{ds}\big(s^2Y - sy_0 - y_0'\big) = -s^2Y' - 2sY + y_0,\qquad \mathcal L\{t^2y\} = Y''.$$
+<p><strong>Rule:</strong> the highest power of $t$ in the ODE is the order of the ODE in $Y$. Coefficients at most linear in $t$ give a <strong>first-order linear</strong> ODE in $Y(s)$, which you solve with Topic 1 methods. Notice that $y_0'$ vanishes when you differentiate: it never appears.</p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>4.</strong> With $y(0)=1$, $y'(0)=0$, $\;\mathcal L\{t\,y''\} = $</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$-s^2Y' - 2sY + 1$</button>
+    <button class="opt" data-key="b">$+s^2Y' + 2sY - 1$</button>
+    <button class="opt" data-key="c">$-s^2Y' - 2sY - 1$</button>
+    <button class="opt" data-key="d">$-s^2Y' - 2sY + s$</button>
+  </div>
+  <div class="why">$-\frac{d}{ds}(s^2Y - s) = -(2sY + s^2Y' - 1)$. Option (d) forgets to differentiate the $s\,y(0)$ term; (b) forgets the minus sign.</div>
+</div>
+
+<h3>Worked example: $\;t\,y'' + 2y' + t\,y = 0$</h3>
+<p>Transform (all three pieces from the box, plus $\mathcal L\{2y'\} = 2sY - 2y_0$):</p>
+$$\big(-s^2Y' - 2sY + y_0\big) + \big(2sY - 2y_0\big) + \big(-Y'\big) = 0 \;\Longrightarrow\; -(s^2+1)Y' - y_0 = 0.$$
+<p>So $Y' = -\dfrac{y_0}{s^2+1}$ and $Y = -y_0\arctan s + C$. <strong>Fix $C$ with $F\to0$:</strong> $\arctan s\to\pi/2$, so $C = y_0\pi/2$ and $Y = y_0\big(\tfrac\pi2 - \arctan s\big)$.</p>
+<p><strong>Invert without tables:</strong> $\mathcal L\{ty\} = -Y' = \dfrac{y_0}{s^2+1} = \mathcal L\{y_0\sin t\}$, so $ty = y_0\sin t$ and</p>
+$$y = y_0\,\frac{\sin t}{t}.$$
+<p>Only one solution appears, with $y(0)=y_0$ free. The other solution ($\cos t/t$) blows up at $t=0$, so it has no Laplace transform. That is why the constant of integration isn't a second free parameter.</p>
+
+<div class="trap"><strong>Two exam moves to remember</strong><br>(1) "Use the limit to fix the constant" means $\lim_{s\to\infty}Y=0$ (P-a). (2) To invert something like $\arctan$, don't look for a table entry: use $\mathcal L\{ty\} = -Y'$ to get $ty$ first, then divide by $t$.</div>
+
+<h3>Your turn (attempt, then reveal)</h3>
+<div class="box">
+<p><strong>P1.</strong> Solve $\;y'' + t\,y' - y = 0$, $\;y(0)=0$, $y'(0)=1$ by Laplace. Get the ODE in $Y$, solve it, fix the constant, and name $y$. (Hint: the integrating factor is $s^2e^{-s^2/2}$.)</p>
+<p><strong>P2.</strong> Use $\mathcal L\{tf\}=-F'$ to find $\mathcal L\{t\cos3t\}$, and then $\mathcal L^{-1}\Big\{\dfrac{s}{(s^2+1)^2}\Big\}$.</p>
+</div>
+<details><summary>P1 solution</summary><div>
+<p>$\big(s^2Y - 1\big) + \big(-Y - sY'\big) - Y = 0 \Rightarrow sY' - (s^2-2)Y = -1$, i.e. $\;Y' - \big(s - \tfrac2s\big)Y = -\tfrac1s$.</p>
+<p>Integrating factor $\mu = e^{-s^2/2}s^2$: $\;(\mu Y)' = -s\,e^{-s^2/2}$, so $\mu Y = e^{-s^2/2} + C$ and</p>
+$$Y = \frac1{s^2} + C\,\frac{e^{s^2/2}}{s^2}.$$
+<p>The second term grows without bound as $s\to\infty$, which contradicts $F\to0$, so $C=0$. Then $Y = 1/s^2$ and $\boxed{y = t}$ (check: $0 + t\cdot1 - t = 0$ ✓).</p>
+</div></details>
+<details><summary>P2 solution</summary><div>
+<p>$F = \dfrac{s}{s^2+9}$, $F' = \dfrac{9-s^2}{(s^2+9)^2}$, so $\mathcal L\{t\cos3t\} = -F' = \dfrac{s^2-9}{(s^2+9)^2}$.</p>
+<p>For the inverse: $\dfrac{1}{s^2+1} = \mathcal L\{\sin t\}$ and $-\dfrac{d}{ds}\dfrac1{s^2+1} = \dfrac{2s}{(s^2+1)^2}$, so $\mathcal L\{t\sin t\} = \dfrac{2s}{(s^2+1)^2}$ and $\;\mathcal L^{-1}\Big\{\dfrac{s}{(s^2+1)^2}\Big\} = \tfrac12\,t\sin t$.</p>
+</div></details>
+
+<h2>3 · Coupled systems</h2>
+<ol class="steps">
+  <li><strong>Transform every equation.</strong> The initial conditions of every unknown go in.</li>
+  <li><strong>Solve the algebraic system</strong> in $X(s), Y(s)$ (elimination or Cramer's rule). The determinant is your characteristic polynomial.</li>
+  <li><strong>Partial fractions, then invert.</strong> In second-order systems the denominators are polynomials in $u=s^2$: decompose in $u$ first.</li>
+</ol>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>5.</strong> For $\;x'' = y - 2x$ with $x(0)=0$, $x'(0)=3$, the transform gives…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(s^2+2)X - Y = 3$</button>
+    <button class="opt" data-key="b">$(s^2-2)X - Y = 3$</button>
+    <button class="opt" data-key="c">$(s^2+2)X - Y = 3s$</button>
+    <button class="opt" data-key="d">$(s^2+2)X + Y = 3$</button>
+  </div>
+  <div class="why">$s^2X - 0 - 3 = Y - 2X$. Option (c) puts $x'(0)$ where $s\,x(0)$ goes.</div>
+</div>
+
+<h3>Worked example: $\;x' = x+2y,\;\; y' = 2x+y+6,\;\; x(0)=y(0)=0$</h3>
+<p>Transform: $(s-1)X - 2Y = 0$ and $-2X + (s-1)Y = \dfrac6s$. Determinant $(s-1)^2 - 4 = (s-3)(s+1)$. By Cramer's rule,</p>
+$$X = \frac{12}{s(s-3)(s+1)} = -\frac4s + \frac1{s-3} + \frac3{s+1},\qquad Y = \frac{6(s-1)}{s(s-3)(s+1)} = \frac2s + \frac1{s-3} - \frac3{s+1}.$$
+$$\boxed{x = -4 + e^{3t} + 3e^{-t},\qquad y = 2 + e^{3t} - 3e^{-t}.}$$
+<p>Check: $x(0)=y(0)=0$ ✓, $y'(0) = 3+3 = 6 = 2x(0)+y(0)+6$ ✓. The constants $(-4, 2)$ are the equilibrium; $e^{3t}$ and $e^{-t}$ come from the eigenvalues $3, -1$ of the matrix, as in <a href="0006-inhomogeneous-matrix-exp.html">Lesson 6</a>.</p>
+
+<div class="trap"><strong>Second-order systems: decompose in $u = s^2$</strong><br>A denominator like $(s^2+1)(s^2+3)$ splits as $\tfrac12\big(\tfrac1{s^2+1} - \tfrac1{s^2+3}\big)$. Do not try to factor $s^2+1$ into linear factors. Then $\tfrac{1}{s^2+3}\leftrightarrow\tfrac1{\sqrt3}\sin\sqrt3\,t$, so watch the $\sqrt3$.</div>
+
+<h2>4 · Exam-level challenge (12 marks)</h2>
+<p>About 18 minutes, on paper. Then open one part at a time.</p>
+<div class="box">
+<p>(a) Let $f$ be piecewise continuous with $|f(t)|\le Me^{\alpha t}$, and $F=\mathcal L\{f\}$. Show that $F(s)\to0$ as $s\to\infty$, and prove that $\mathcal L\{tf(t)\} = -F'(s)$. <em>[4]</em></p>
+<p>(b) Use Laplace transforms to find the solution of $\;t\,y'' + (t+2)\,y' + 2y = 0$, with $y(0)=1$. Justify how you fix any constant, and find $y'(0)$ from the ODE as a check. <em>[4]</em></p>
+<p>(c) Two masses satisfy $\;x'' = y - 2x,\;\; y'' = x - 2y + 3$ with $x(0)=y(0)=x'(0)=y'(0)=0$. Find $x(t)$ and $y(t)$. <em>[4]</em></p>
+</div>
+
+<details><summary>(a) Two proofs</summary><div>
+<p>$|F(s)|\le\int_0^\infty e^{-st}Me^{\alpha t}dt = \dfrac M{s-\alpha}\to0$ for $s>\alpha$. For the second, differentiate $F(s)=\int_0^\infty e^{-st}f\,dt$ under the integral sign (valid for $s>\alpha$ because of the exponential bound): $F'(s) = -\int_0^\infty te^{-st}f\,dt = -\mathcal L\{tf\}$.</p>
+</div></details>
+<details><summary>(b) ODE in $Y$</summary><div>
+<p>$\mathcal L\{ty''\} = -s^2Y' - 2sY + 1$, $\;\mathcal L\{ty'\} = -sY' - Y$, $\;\mathcal L\{2y'\} = 2sY - 2$, $\;\mathcal L\{2y\} = 2Y$. Sum:</p>
+$$-(s^2+s)Y' + Y - 1 = 0 \;\Rightarrow\; s(s+1)\,\frac{d}{ds}(Y-1) = Y-1.$$
+<p>Separate: $\dfrac{d(Y-1)}{Y-1} = \Big(\dfrac1s - \dfrac1{s+1}\Big)ds$, so $Y - 1 = K\dfrac{s}{s+1}$. Since $Y\to0$ as $s\to\infty$ (part a), $1+K=0$, $K=-1$:</p>
+$$Y = 1 - \frac s{s+1} = \frac1{s+1}\;\Rightarrow\;\boxed{y=e^{-t}}.$$
+<p>Check: $y'(0)=-1$. At $t=0$ the ODE reads $2y'(0)+2y(0)=0$, so $y'(0)=-1$ ✓. (The case $K=0$ gives $Y=1$, the transform of $\delta$, not a function.)</p>
+</div></details>
+<details><summary>(c) System</summary><div>
+<p>$(s^2+2)X - Y = 0$ and $-X + (s^2+2)Y = 3/s$. Determinant $(s^2+2)^2-1 = (s^2+1)(s^2+3)$. So</p>
+$$X = \frac{3}{s(s^2+1)(s^2+3)} = \frac1s - \frac32\frac{s}{s^2+1} + \frac12\frac{s}{s^2+3},\qquad Y = \frac{3(s^2+2)}{s(s^2+1)(s^2+3)} = \frac2s - \frac32\frac{s}{s^2+1} - \frac12\frac{s}{s^2+3}.$$
+$$\boxed{x = 1 - \tfrac32\cos t + \tfrac12\cos\sqrt3\,t,\qquad y = 2 - \tfrac32\cos t - \tfrac12\cos\sqrt3\,t.}$$
+<p>Check: $x(0)=1-\tfrac32+\tfrac12=0$ ✓, $y(0)=0$ ✓, and $x'(0)=y'(0)=0$ ✓. Equilibrium $(1,2)$ ✓.</p>
+</div></details>
+<p>Compare your script with the <a href="../worked/0018-challenge-full-solution.html">full written solution</a>.</p>
+
+<h2>5 · Before you close this tab</h2>
+<details><summary>Retrieval: write from memory, then check</summary><div>
+<p>The proof lines for $F\to0$, $\mathcal L\{f'\}$, t-shift, and $\mathcal L\{tf\}=-F'$. The three $t$-transform rules ($ty$, $ty'$, $ty''$). Why the highest power of $t$ sets the order in $Y$. The three system steps and "decompose in $u=s^2$".</p>
+<p><strong>Sheet vs memory:</strong> the sheet gives the derivative rule, shifts and convolution. $\mathcal L\{tf\}=-F'$ and $\mathcal L\{\int f\}=F/s$ are <em>not</em> on it, so know the proof.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/12_MAST20030_Lecture_Notes_Topic3_Laplace.pdf">Lecture 12</a> (slides 3–5, derivative proof), <a href="../lectures/14_MAST20030_Lecture_Notes_Topic3_Laplace.pdf">Lecture 14</a> (convolution). Then <a href="https://tutorial.math.lamar.edu/Classes/DE/IVPWithNonConstantCoefficient.aspx">Paul's Notes: IVPs with non-constant coefficients</a> (the exact $\mathcal L\{ty\}$ method), and <a href="https://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/">MIT OCW 18.03SC</a> for the systems view.</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic3-2.pdf">Problem Booklet 3</a>, Q17: coupled springs. Answer: $y_1 = \cos t + \sin\sqrt3\,t$, $y_2 = \cos t - \sin\sqrt3\,t$. Try adding and subtracting the equations first.</li>
+  <li>Write out the proofs of the derivative rule and $\mathcal L\{tf\}=-F'$ cold, from a blank page.</li>
+  <li>Optional: Booklet Q20 (integro-differential; see <a href="0017-laplace-convolution-integral-eqns.html">Lesson 17</a>).</li>
+</ul>
+<p><strong>Spacing:</strong> in two days, redo quizzes 3, 4 and 5 cold, and challenge (b) without looking.</p>
+
+<div class="ask">💬 Not sure a proof step is rigorous enough for the marks, or your ODE in $Y$ doesn't match? Ask me in the terminal. Paste or photograph your working and I'll mark it line by line.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0017-laplace-convolution-integral-eqns.html">Lesson 17</a> and <a href="0014-laplace-solving-ivps.html">Lesson 14</a></span>
+  <span>Next: <a href="0019-laplace-mixed-exam-set.html">Lesson 19, mixed exam set</a></span>
+  <span>Reference: <a href="../reference/topic3-cheatsheet.html">Topic 3 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

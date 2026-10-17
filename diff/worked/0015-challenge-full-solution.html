@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heaviside Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 15 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>$y''+3y'+2y=f(t),\;\; y(0)=0,\; y'(0)=1$, with $f(t)=t$ for $0\le t&lt;2$ and $f(t)=2$ for $t\ge2$.</p>
+<p>(a) Write $f$ using one Heaviside function and find $F(s)$. <em>[2]</em><br>
+(b) Find $Y(s)$, and decompose every part into partial fractions. <em>[4]</em><br>
+(c) Find $y(t)$ with a Heaviside, then as an explicit piecewise function. <em>[3]</em><br>
+(d) Show $y,y',y''$ are continuous at $t=2$, say which derivative first jumps and by how much, and find $\lim_{t\to\infty}y$. <em>[3]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · Heaviside form and $F(s)$</h2>
+<div class="script">
+<p>At $t=2$ the function changes from $t$ to $2$, a change of $2-t=-(t-2)$. So
+$$f(t)=t-(t-2)\,H_2(t).$$
+The second term is already a function of $t-2$, so the t-shift applies directly:
+$$F(s)=\frac1{s^2}-\frac{e^{-2s}}{s^2}=\frac{1-e^{-2s}}{s^2}.$$</p>
+</div>
+<p class="note">Lucky case: the change $-(t-2)$ is already shifted. Had it been "2" to "$t^2$", you would use $h(u)=(u+2)^2$. Check: for $t\ge2$, $t-(t-2)=2$ ✓.</p>
+
+<h2>(b) · Transform the ODE</h2>
+<div class="script">
+<p>Using $\mathcal L\{y''\}=s^2Y-sy(0)-y'(0)=s^2Y-1$ and $\mathcal L\{y'\}=sY$:
+$$(s^2+3s+2)Y-1=\frac{1-e^{-2s}}{s^2}\;\Rightarrow\; Y=\frac1{(s+1)(s+2)}+\frac{1-e^{-2s}}{s^2(s+1)(s+2)}.$$
+Partial fractions:
+$$\frac1{(s+1)(s+2)}=\frac1{s+1}-\frac1{s+2}.$$
+$$\frac1{s^2(s+1)(s+2)}=\frac As+\frac B{s^2}+\frac C{s+1}+\frac D{s+2}.$$
+Cover-up: $B=\dfrac1{1\cdot2}=\dfrac12$, $\;C=\dfrac1{(-1)^2(1)}=1$, $\;D=\dfrac1{(-2)^2(-1)}=-\dfrac14$.
+The left side is $O(1/s^4)$, so the $1/s$ coefficients sum to zero: $A+C+D=0$, hence $A=-\dfrac34$.
+$$\frac1{s^2(s+1)(s+2)}=-\frac3{4s}+\frac1{2s^2}+\frac1{s+1}-\frac1{4(s+2)}.$$</p>
+</div>
+<p class="note">Alternative for $A$: differentiate $\frac1{(s+1)(s+2)}$ at $s=0$: $-\frac{2s+3}{(s+1)^2(s+2)^2}\big|_0=-\frac34$. Quick check at $s=1$: LHS $\frac1{1\cdot2\cdot3}=\frac16$; RHS $-\frac34+\frac12+\frac12-\frac1{12}=\frac16$ ✓.</p>
+
+<h2>(c) · Invert</h2>
+<div class="script">
+<p>Let $h(t)=\mathcal L^{-1}\!\left\{\dfrac1{s^2(s+1)(s+2)}\right\}=-\dfrac34+\dfrac t2+e^{-t}-\dfrac14e^{-2t}$. Then
+$$y(t)=\underbrace{e^{-t}-e^{-2t}}_{\text{from }\frac1{(s+1)(s+2)}}+h(t)-h(t-2)\,H_2(t).$$
+For $0\le t&lt;2$:
+$$y=e^{-t}-e^{-2t}+h(t)=-\frac34+\frac t2+2e^{-t}-\frac54e^{-2t}.$$
+For $t\ge2$, using $h(t)-h(t-2)=1+e^{-t}-\tfrac14e^{-2t}-e^{2-t}+\tfrac14e^{4-2t}$:
+$$y=1+(2-e^2)\,e^{-t}+\frac{e^4-5}{4}\,e^{-2t}.$$</p>
+</div>
+<p class="note">Check first piece: $y(0)=-\frac34+2-\frac54=0$ ✓; $y'=\frac12-2e^{-t}+\frac52e^{-2t}$, $y'(0)=1$ ✓. For $t\ge2$ the $t/2$ and $-\frac34$ cancel because $h(t)$ and $h(t-2)$ share the same constant; the leftover $+1$ comes from $\frac t2-\frac{t-2}2$.</p>
+
+<h2>(d) · Continuity, first jump, long run</h2>
+<div class="script">
+<p>Only the term $-h(t-2)H_2(t)$ changes at $t=2$, so look at the start-up values of $h$: $h(0)=-\tfrac34+1-\tfrac14=0$; $\;h^{(1)}(t)=\tfrac12-e^{-t}+\tfrac12e^{-2t}$ gives $h^{(1)}(0)=0$; $\;h^{(2)}(t)=e^{-t}-e^{-2t}$ gives $h^{(2)}(0)=0$; $\;h^{(3)}(t)=-e^{-t}+2e^{-2t}$ gives $h^{(3)}(0)=1$.</p>
+<p>So $y,y',y''$ have no jump at $t=2$, while $y^{(3)}$ jumps by $\boxed{-1}$.</p>
+<p>Consistent with the ODE: $y^{(3)}=f'-3y''-2y'$, and $f'$ drops from $1$ to $0$ at $t=2$.</p>
+<p>For $t\ge2$, $e^{-t},e^{-2t}\to0$, so $\displaystyle\lim_{t\to\infty}y=\boxed1$. Interpretation: the load is held at $2$, and the mass settles where the spring balances it: $2y=2$.</p>
+</div>
+<p class="note">$f$ is continuous at $2$ (the ramp reaches $2$) but $f'$ is not, so the first jump is one derivative higher than for a jump in $f$ itself. Lecture 13 slide 5: $y^{(n)}$ is continuous wherever $g$ is. No need to evaluate both pieces at $t=2$: the zero start-up values guarantee they match.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+$f=t-(t-2)H_2$ · $F=(1-e^{-2s})/s^2$ · the $-1$ from $y'(0)$ in the transform · all four partial-fraction coefficients · the shifted $h(t-2)H_2$ with <em>every</em> $t$ replaced · two explicit pieces · the zero start-up values giving continuity · the $y^{(3)}$ jump of $-1$ · limit $1$ with the physical reason.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0015-laplace-heaviside-t-shift.html">Lesson 15, challenge</a></span>
+  <span>Reference: <a href="../reference/topic3-cheatsheet.html">Topic 3 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

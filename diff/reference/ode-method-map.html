@@ -117,16 +117,17 @@
 const R = String.raw;
 
 const META = {
-  covered: 'Topic 1, Lessons 0–7; Topic 2, Lessons 8–12 (power series)',
-  updated: '14 Oct 2026',
+  covered: 'Topic 1, Lessons 0–7; Topic 2, Lessons 8–12 (power series); Topic 3, Lessons 13–20 (Laplace)',
+  updated: '17 Oct 2026',
 };
 
 const LOG = [
+  ['17 Oct 2026', 'Unlocked Laplace (Topic 3): IVP steps; repeated/resonant, Heaviside, delta, convolution, integro-differential, variable-coeff cases.'],
   ['14 Oct 2026', 'Unlocked Power series (Topic 2): steps, terminating, radius, step-3, three-term, singular-at-0, uniform/genuine cases.'],
   ['13 Oct 2026', 'Created. Topic 1 fully mapped; Topics 2–6 stubbed as later-topic boxes.'],
 ];
 
-const L = n => ({ n, href: `../lessons/${{0:'0000-assumed-knowledge',1:'0001-integrating-factors',2:'0002-reduction-of-order',3:'0003-wronskian-abel-euler',4:'0004-systems-eigenvalues',5:'0005-phase-portraits',6:'0006-inhomogeneous-matrix-exp',7:'0007-particular-solutions',8:'0008-taylor-series-radius',9:'0009-series-method-constant-coeff',10:'0010-series-variable-coeff',11:'0011-singular-points-bessel',12:'0012-uniform-convergence-genuine'}[n]}.html` });
+const L = n => ({ n, href: `../lessons/${{0:'0000-assumed-knowledge',1:'0001-integrating-factors',2:'0002-reduction-of-order',3:'0003-wronskian-abel-euler',4:'0004-systems-eigenvalues',5:'0005-phase-portraits',6:'0006-inhomogeneous-matrix-exp',7:'0007-particular-solutions',8:'0008-taylor-series-radius',9:'0009-series-method-constant-coeff',10:'0010-series-variable-coeff',11:'0011-singular-points-bessel',12:'0012-uniform-convergence-genuine',14:'0014-laplace-solving-ivps'}[n]}.html` });
 
 const METHODS = {
   intfactor: {
@@ -392,7 +393,26 @@ const METHODS = {
     ],
     traps: R`Shifting the index but not the $n$-factors. Dropping the extracted $m=0,1$ terms. Ignoring complex roots when finding $R$. Answering $R_x$ instead of $\sqrt{R_x}$ for a $t^{2k}$ series.`,
   },
-  laplace: { future: true, title: 'Laplace transform', topic: 'Topic 3', lectures: '10–14', use: R`Constant-coefficient IVPs, especially with step, impulse or piecewise forcing. Formula sheet provided.` },
+  laplace: {
+    title: 'Laplace transform', lesson: L(14),
+    use: R`Constant-coefficient IVPs (any order), especially with step, impulse or piecewise forcing; integral and integro-differential equations; $t\,y$-type variable coefficients. Formula sheet provided (small table).`,
+    form: R`$$\mathcal L\{y'\} = sY - y(0),\quad \mathcal L\{y''\} = s^2Y - sy(0) - y'(0)$$`,
+    steps: [
+      R`Transform every term; insert the initial conditions.`,
+      R`Solve algebraically for $Y(s)$.`,
+      R`Decompose: partial fractions, completing the square for irreducible quadratics.`,
+      R`Invert with the table, s-shift, t-shift. Check $y(0)$, $y'(0)$.`,
+    ],
+    cases: [
+      { name: 'Repeated / resonant', body: R`Forcing pole equals a characteristic root gives a repeated factor ($te^{at}$). $(s^2+\omega^2)^2$ gives $t\sin\omega t$ via $\mathcal L\{tf\}=-F'$. <a href="../lessons/0014-laplace-solving-ivps.html">Lesson 14</a>` },
+      { name: 'Switch on/off (Heaviside)', body: R`$f_1+(f_2-f_1)H_a$. $g(t)H_a$ means $h(u)=g(u+a)$, then $e^{-as}\mathcal L\{h\}$. Give the answer piecewise. <a href="../lessons/0015-laplace-heaviside-t-shift.html">Lesson 15</a>` },
+      { name: 'Impulse (delta)', body: R`$\mathcal L\{\delta(t-a)\}=e^{-as}$. $y$ continuous, $y'$ jumps by $K/a_2$. Later condition (e.g. $y(\pi/4)=0$): keep $y'(0)=A$, use the post-impulse branch. <a href="../lessons/0016-laplace-dirac-delta.html">Lesson 16</a>` },
+      { name: 'General $g(t)$', body: R`$y=y_{hom}+h*g$ with $h=\mathcal L^{-1}\{1/(as^2+bs+c)\}$. <a href="../lessons/0017-laplace-convolution-integral-eqns.html">Lesson 17</a>` },
+      { name: 'Integral / integro-diff', body: R`$\mathcal L\{\int_0^t y\}=Y/s$ (derive it). RLC: transform, solve for $I$. Differentiating needs an extra $y'(0)$ from the original at $t=0$. <a href="../lessons/0020-laplace-integro-differential.html">Lesson 20</a>` },
+      { name: 'Variable coeff / systems', body: R`$t^n$ coefficients give an $n$th-order ODE in $Y$; fix the constant with $Y\to0$. Systems: decompose in $u=s^2$. <a href="../lessons/0018-laplace-derivations-variable-coeff-systems.html">Lesson 18</a>` },
+    ],
+    traps: R`Forgetting the leading coefficient in $a(s^2Y-\dots)$. Using the wrong branch after an impulse. Treating $g(t)H_a$ as $g(t-a)H_a$. Assuming $\mathcal L\{H_a\}$, $\mathcal L\{tf\}$, $\mathcal L\{\int f\}$ are on the sheet (they are not).`,
+  },
   fourier: { future: true, title: 'Fourier series', topic: 'Topic 4', lectures: '15–19', use: R`Periodic functions or forcing; expanding a function on an interval. Formula sheet provided.` },
   sepvars: { future: true, title: 'Separation of variables (BVPs & PDEs)', topic: 'Topic 5', lectures: '20–27', use: R`Heat/wave/Laplace equations on a finite domain; boundary conditions at two points.` },
   ftrans:  { future: true, title: 'Fourier transform', topic: 'Topic 6', lectures: '28', use: R`PDEs on an infinite domain. Formula sheet provided.` },

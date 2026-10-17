@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laplace: Dirac Delta</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* Lesson 16 only */
+  table.rule td, table.rule th { text-align: left; vertical-align: top; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 16 · Topic 3: Laplace transforms</div>
+<h1>The Dirac delta: impulses and jumps in $y'$</h1>
+<p class="lede">The goal: solve $a\,y'' + b\,y' + c\,y = K\,\delta(t-t_0)$ with the Laplace transform, write the answer as a piecewise function, and know without solving that $y$ stays continuous while $y'$ jumps by $K/a$. Then use that to hit two-point conditions where $y'(0)$ is unknown.</p>
+
+<div class="mission">Why this matters for 5 Nov: a Laplace question (about 12 marks) in 2017, 2021 and 2024 had a delta forcing. Typical asks: solve, give the answer piecewise, check continuity and differentiability at the impulse, sketch with intercepts, or find $y'(0)$ from a later condition. The delta needs only one new idea, and $\delta(t-a)$ is on your formula sheet.</div>
+
+<h2>0 · Warm-up from Lessons 13 and 15</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W1.</strong> $\mathcal L^{-1}\!\left\{\dfrac{e^{-3s}}{s-2}\right\}$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{2t}\,H(t-3)$</button>
+    <button class="opt" data-key="b">$e^{2(t-3)}H(t-3)$</button>
+    <button class="opt" data-key="c">$e^{2(t-3)}H(t)$</button>
+    <button class="opt" data-key="d">$e^{-3t}H(t-2)$</button>
+  </div>
+  <div class="why">$\mathcal L^{-1}\{1/(s-2)\} = e^{2t}$, then t-shift: replace $t$ by $t-3$ <em>everywhere</em> and multiply by $H(t-3)$ (<a href="0015-laplace-heaviside-t-shift.html">Lesson 15</a>).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W2.</strong> $\mathcal L\{t\,H(t-1)\}$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{-s}/s^2$</button>
+    <button class="opt" data-key="b">$e^{-s}/s^3$</button>
+    <button class="opt" data-key="c">$e^{-s}(1/s^2 + 1/s)$</button>
+    <button class="opt" data-key="d">$e^{-s}(1/s^2 - 1/s)$</button>
+  </div>
+  <div class="why">Rewrite first: $t\,H(t-1) = (t-1)H(t-1) + H(t-1)$. Shift each piece. Not on the sheet, derive it (<a href="0015-laplace-heaviside-t-shift.html">Lesson 15</a>).</div>
+</div>
+
+<h2>1 · The delta in four lines</h2>
+
+<p>A unit-area pulse of width $\epsilon$ is $\delta_\epsilon(t) = 1/\epsilon$ on $(0,\epsilon]$ and $0$ elsewhere. As $\epsilon\to0$ it gets taller and thinner but keeps area $1$, and $\mathcal L\{\delta_\epsilon\} = \dfrac{1-e^{-\epsilon s}}{\epsilon s}\to 1$ (L'Hôpital). So we <em>define</em> $\delta(t)$ by:</p>
+<ol class="steps">
+  <li>$\delta(t) = 0$ for $t\neq0$.</li>
+  <li>$\displaystyle\int_0^a \delta(t)\,dt = 1$ for every $a>0$.</li>
+  <li>$\mathcal L\{\delta(t)\} = 1$.</li>
+</ol>
+<p><strong>Sifting:</strong> for $c\ge0$, $\displaystyle\int_0^\infty f(t)\,\delta(t-c)\,dt = f(c)$. Taking $f=e^{-st}$ gives
+$$\mathcal L\{\delta(t-c)\} = e^{-cs}\qquad(\text{on the formula sheet}).$$
+<br><em>Booklet notation: $\delta_a(t) = \delta(t-a)$ and $H_a(t) = H(t-a)$.</em></p>
+
+<div class="trap"><strong>Two look-alikes</strong><br>$\mathcal L\{\delta(t-a)\} = e^{-as}$ but $\mathcal L\{H(t-a)\} = e^{-as}/s$. The delta has <em>no</em> $1/s$. And $\mathcal L^{-1}\{e^{-as}\} = \delta(t-a)$, not $H(t-a)$.</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>1.</strong> $\displaystyle\int_0^\infty (t^2+1)\,\delta(t-3)\,dt =$</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$10$</button>
+    <button class="opt" data-key="b">$9$</button>
+    <button class="opt" data-key="c">$3$</button>
+    <button class="opt" data-key="d">$1$</button>
+  </div>
+  <div class="why">Sifting: evaluate $t^2+1$ at $t=3$, giving $10$. Option (d) is $f(0)$, which is what you'd get from $\delta(t)$.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>2.</strong> $\mathcal L^{-1}\{3e^{-4s}\}$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$3H(t-4)$</button>
+    <button class="opt" data-key="b">$3e^{-4t}$</button>
+    <button class="opt" data-key="c">$3\delta(t+4)$</button>
+    <button class="opt" data-key="d">$3\delta(t-4)$</button>
+  </div>
+  <div class="why">No $1/s$ factor means no Heaviside. Read straight off the sheet entry $\delta(t-a)\leftrightarrow e^{-as}$ with $a=4$.</div>
+</div>
+
+<h2>2 · What an impulse does: $y$ continuous, $y'$ jumps</h2>
+
+<p>Take $a\,y'' + b\,y' + c\,y = K\,\delta(t-t_0)$. Integrate over $[t_0-\eta,\,t_0+\eta]$ and let $\eta\to0$. The terms $b\,y'$ and $c\,y$ integrate to $0$ (they stay bounded), leaving $a\,[y']^{t_0^+}_{t_0^-} = K$.</p>
+<table class="rule">
+<tr><th>Order of ODE</th><th>At $t=t_0$</th></tr>
+<tr><td>$a\,y'' + \dots = K\delta(t-t_0)$</td><td>$y$ continuous. $y'$ jumps by $\;K/a\;$ (so $y'(t_0^+) = y'(t_0^-) + K/a$).</td></tr>
+<tr><td>$a\,y' + c\,y = K\delta(t-t_0)$</td><td>$y$ itself jumps by $\;K/a$.</td></tr>
+</table>
+<p>So an impulse is the same as <strong>restarting the solution at $t_0$ with the same $y$ and a kicked $y'$</strong>. Compare a Heaviside forcing $H(t-t_0)$, which jumps only $y''$: both $y$ and $y'$ stay continuous (<a href="../lectures/13_MAST20030_Lecture_Notes_Topic3_Laplace.pdf">Lecture 13, slide 5</a>).</p>
+<p>Use this as a <strong>check on every answer</strong>: compute $y(t_0^\pm)$ and $y'(t_0^\pm)$ from your piecewise formula and confirm the jump is $K/a$. It also answers the exam's "is $y$ differentiable at $t_0$?": no, $y'$ jumps, so $y$ has a corner.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>3.</strong> For $\,2y'' + y' + 5y = 6\,\delta(t-1)$, $y(0)=y'(0)=0$, the jump in $y'$ at $t=1$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$6$</button>
+    <button class="opt" data-key="b">$2$</button>
+    <button class="opt" data-key="c">$3$</button>
+    <button class="opt" data-key="d">$1$</button>
+  </div>
+  <div class="why">$K/a = 6/2 = 3$. The $y'$ and $y$ terms contribute nothing to the jump.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>4.</strong> A second-order ODE has forcing $K\delta(t-t_0)$. At $t_0$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$y$ jumps, $y'$ continuous</button>
+    <button class="opt" data-key="b">$y$ continuous, $y'$ jumps</button>
+    <button class="opt" data-key="c">$y$, $y'$ both continuous</button>
+    <button class="opt" data-key="d">$y$, $y'$ both have jumps</button>
+  </div>
+  <div class="why">Integrating $y''$ once gives $y'$, which absorbs the jump; integrating again smooths it into a corner in $y$.</div>
+</div>
+
+<h2>3 · Method and Example 1</h2>
+<ol class="steps">
+  <li>Transform with the derivative rules. Delta terms become $K e^{-t_0 s}$.</li>
+  <li>Solve for $Y$: a part with no exponential (from ICs) plus a part $\times\,e^{-t_0 s}$.</li>
+  <li>Partial fractions / complete the square on each part. Invert, t-shifting the $e^{-t_0s}$ part.</li>
+  <li>Write <strong>piecewise</strong> (drop the $H$) and check the jump.</li>
+</ol>
+
+<div class="box">
+<p><strong>Example 1.</strong> Solve $\;9y'' + 6y' + y = 18\,\delta(t-3),\;\; y(0)=1,\; y'(0)=0.$ Give $y$ piecewise.</p>
+</div>
+<p>Transform: $\;9(s^2Y - s) + 6(sY - 1) + Y = 18e^{-3s}$, so $(3s+1)^2\,Y = 9s + 6 + 18e^{-3s}$ and, since $(3s+1)^2 = 9(s+\tfrac13)^2$,
+$$Y = \frac{s+\tfrac23}{(s+\tfrac13)^2} + \frac{2e^{-3s}}{(s+\tfrac13)^2}= \frac{1}{s+\tfrac13} + \frac{\tfrac13}{(s+\tfrac13)^2} + \frac{2e^{-3s}}{(s+\tfrac13)^2}.$$
+Invert (s-shift of $1$ and $t$, then t-shift):
+$$y = e^{-t/3}\Big(1+\frac t3\Big) + 2(t-3)\,e^{-(t-3)/3}H(t-3).$$
+$$\boxed{\,y=\begin{cases} e^{-t/3}\big(1+\tfrac t3\big), & 0\le t<3,\\[2pt] e^{-t/3}\big(1+\tfrac t3\big) + 2(t-3)\,e^{-(t-3)/3}, & t\ge3.\end{cases}}$$</p>
+<p><strong>Check.</strong> The extra term is $0$ at $t=3$, so $y$ is continuous. Its derivative at $t=3$ is $2$ (the $(t-3)$ factor differentiates to $1$, the rest is multiplied by $0$). Predicted jump: $K/a = 18/9 = 2$ ✓.</p>
+
+<div class="trap"><strong>Non-unit leading coefficient</strong><br>The jump is $K/a$, not $K$. In the transform, divide through by $a$ <em>before</em> reading off $\omega$: $9s^2+6s+1$ must become $(s+\tfrac13)^2$ before you invert, or you'll get the wrong exponent and the wrong factor.</div>
+
+<h2>4 · Example 2: sketching with intercepts</h2>
+<div class="box">
+<p><strong>Example 2.</strong> Solve $\;y'' + 4y = 4\,\delta(t-\tfrac\pi2),\;\; y(0)=0,\; y'(0)=2,$ and sketch for $0\le t\le 2\pi$.</p>
+</div>
+<p>$(s^2+4)Y = 2 + 4e^{-\pi s/2}$, so $Y = \dfrac{2}{s^2+4} + 4e^{-\pi s/2}\dfrac{1}{s^2+4}$ and
+$$y = \sin 2t + 2\sin\!\big(2t-\pi\big)H(t-\tfrac\pi2) = \sin 2t - 2\sin 2t\,H(t-\tfrac\pi2).$$</p>
+<p>$$y=\begin{cases}\sin 2t, & 0\le t<\pi/2,\\ -\sin 2t, & t\ge\pi/2.\end{cases}$$</p>
+<p>Features to read off: zeros at $t=0,\tfrac\pi2,\pi,\tfrac{3\pi}2,2\pi$; $y(\tfrac\pi2)=0$ from both sides (continuous); $y'(\tfrac\pi2^-) = 2\cos\pi=-2$ and $y'(\tfrac\pi2^+) = -2\cos\pi = 2$, a jump of $4 = K/1$ ✓ (a V-shaped corner). The impulse flipped the sign of the oscillation.</p>
+<figure class="fig"><svg viewBox="0 0 320 170" role="img" aria-label="Plot of y: sin 2t on 0 to pi/2, then minus sin 2t, with a V-shaped corner at pi/2">
+<line class="s-ax" x1="20" y1="85" x2="305" y2="85"/><line class="s-ax" x1="20" y1="20" x2="20" y2="150"/>
+<line class="s-guide-m" x1="90.0" y1="20" x2="90.0" y2="150"/>
+<line class="s-tick" x1="20.0" y1="82" x2="20.0" y2="88"/><text class="lbl" x="20.0" y="102" text-anchor="middle">0</text>
+<line class="s-tick" x1="90.0" y1="82" x2="90.0" y2="88"/><text class="lbl" x="90.0" y="102" text-anchor="middle">π/2</text>
+<line class="s-tick" x1="160.0" y1="82" x2="160.0" y2="88"/><text class="lbl" x="160.0" y="102" text-anchor="middle">π</text>
+<line class="s-tick" x1="230.0" y1="82" x2="230.0" y2="88"/><text class="lbl" x="230.0" y="102" text-anchor="middle">3π/2</text>
+<line class="s-tick" x1="300.0" y1="82" x2="300.0" y2="88"/><text class="lbl" x="300.0" y="102" text-anchor="middle">2π</text>
+<text class="lbl" x="26" y="28">1</text><text class="lbl" x="26" y="148">-1</text><text class="lbl lbl-m" x="296" y="78" text-anchor="end">t</text>
+<polyline class="s-hl" points="20.0,85.0 22.8,78.1 25.6,71.3 28.4,64.8 31.2,58.5 34.0,52.7 36.8,47.3 39.6,42.6 42.4,38.6 45.2,35.2 48.0,32.7 50.8,31.0 53.6,30.1 56.4,30.1 59.2,31.0 62.0,32.7 64.8,35.2 67.6,38.6 70.4,42.6 73.2,47.3 76.0,52.7 78.8,58.5 81.6,64.8 84.4,71.3 87.2,78.1 90.0,85.0 92.8,78.1 95.6,71.3 98.4,64.8 101.2,58.5 104.0,52.7 106.8,47.3 109.6,42.6 112.4,38.6 115.2,35.2 118.0,32.7 120.8,31.0 123.6,30.1 126.4,30.1 129.2,31.0 132.0,32.7 134.8,35.2 137.6,38.6 140.4,42.6 143.2,47.3 146.0,52.7 148.8,58.5 151.6,64.8 154.4,71.3 157.2,78.1 160.0,85.0 162.8,91.9 165.6,98.7 168.4,105.2 171.2,111.5 174.0,117.3 176.8,122.7 179.6,127.4 182.4,131.4 185.2,134.8 188.0,137.3 190.8,139.0 193.6,139.9 196.4,139.9 199.2,139.0 202.0,137.3 204.8,134.8 207.6,131.4 210.4,127.4 213.2,122.7 216.0,117.3 218.8,111.5 221.6,105.2 224.4,98.7 227.2,91.9 230.0,85.0 232.8,78.1 235.6,71.3 238.4,64.8 241.2,58.5 244.0,52.7 246.8,47.3 249.6,42.6 252.4,38.6 255.2,35.2 258.0,32.7 260.8,31.0 263.6,30.1 266.4,30.1 269.2,31.0 272.0,32.7 274.8,35.2 277.6,38.6 280.4,42.6 283.2,47.3 286.0,52.7 288.8,58.5 291.6,64.8 294.4,71.3 297.2,78.1 300.0,85.0"/>
+</svg>
+<figcaption>Example 2: peaks at $\pi/4$ and $3\pi/4$ (value $1$), corner at $\pi/2$ (dashed), zeros at multiples of $\pi/2$.</figcaption></figure>
+
+<h2>5 · Example 3: two-point conditions (unknown $y'(0)$)</h2>
+<p>Pattern from 2024: one condition at $t=0$, the other at a <em>later</em> time. Keep $y'(0)=A$ symbolic, solve, then impose the later condition <strong>on the correct branch</strong>.</p>
+<div class="box">
+<p><strong>Example 3.</strong> $\;y'' + 16y = 8\,\delta(t-\tfrac\pi4),\;\; y(0)=0,\; y\big(\tfrac{3\pi}8\big)=3.$ Find $y$.</p>
+</div>
+<p>Let $y'(0)=A$. $(s^2+16)Y = A + 8e^{-\pi s/4}$, so
+$$y = \tfrac A4\sin4t + 2\sin(4t-\pi)H(t-\tfrac\pi4) = \Big(\tfrac A4 - 2H(t-\tfrac\pi4)\Big)\sin 4t.$$
+Since $\tfrac{3\pi}8 > \tfrac\pi4$, use the <strong>second</strong> branch $(\tfrac A4-2)\sin4t$: $\;y(\tfrac{3\pi}8) = (\tfrac A4-2)\sin\tfrac{3\pi}2 = 2-\tfrac A4 = 3$, so $A=-4$.
+$$y=\begin{cases}-\sin 4t, & 0\le t<\pi/4,\\ -3\sin 4t, & t\ge\pi/4.\end{cases}$$
+Check: $y'$ at $\pi/4$ goes from $-4\cos\pi=4$ to $-12\cos\pi=12$, a jump of $8=K/1$ ✓.</p>
+<div class="trap"><strong>Wrong branch</strong><br>Using the pre-impulse formula $\tfrac A4\sin4t$ at $t=\tfrac{3\pi}8$ gives $-\tfrac A4=3$, so $A=-12$. Always ask: is the condition time before or after $t_0$?</div>
+
+<h2>6 · Text to ODE, and impulse trains</h2>
+<table class="rule">
+<tr><th>Words</th><th>Maths</th></tr>
+<tr><td>"released from rest at displacement $d$"</td><td>$y(0)=d,\; y'(0)=0$</td></tr>
+<tr><td>"given initial velocity $v$"</td><td>$y'(0)=v$ (an IC, not a delta)</td></tr>
+<tr><td>"struck at time $t_0$ with impulse $p$" (N·s, i.e. momentum)</td><td>add $p\,\delta(t-t_0)$ to the right of $m y'' + c y' + k y = \dots$</td></tr>
+<tr><td>"in the negative direction"</td><td>$-p$</td></tr>
+<tr><td>"starts from equilibrium at rest"</td><td>$y(0)=y'(0)=0$</td></tr>
+</table>
+<p>A velocity equation $m\,v' = p\sum_{k=0}^{n}\delta(t-k)$ transforms to $V = \dfrac pm\sum e^{-ks}/s$, so $v=\dfrac pm\sum_k H(t-k)$: every impulse adds a jump of $p/m$ to $v$. (Booklet 18.)</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>5.</strong> A 2 kg mass on a spring of stiffness 8 N/m is released from rest at displacement 1, then struck at $t=3$ with a 5 N·s impulse (positive direction). The model is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$2y''+8y=5\delta(t-3),\; y(0)=1,\; y'(0)=0$</button>
+    <button class="opt" data-key="b">$2y''+8y=5\delta(t-3),\; y(0)=0,\; y'(0)=1$</button>
+    <button class="opt" data-key="c">$2y''+8y=5H(t-3),\; y(0)=1,\; y'(0)=0$</button>
+    <button class="opt" data-key="d">$2y''+8y=5\delta(t-3),\; y(0)=1,\; y'(0)=5$</button>
+  </div>
+  <div class="why">(b) swaps the ICs. (c) is a switched-on force, not an impulse. (d) wrongly puts the later impulse into $y'(0)$.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>6.</strong> For $\,y''+\omega^2y = K\delta(t-a)$, $y(0)=y'(0)=0$, the solution for $t>a$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$K\sin\omega(t-a)$</button>
+    <button class="opt" data-key="b">$(K/\omega)\sin\omega t$</button>
+    <button class="opt" data-key="c">$(K/\omega^2)\sin\omega(t-a)$</button>
+    <button class="opt" data-key="d">$(K/\omega)\sin\omega(t-a)$</button>
+  </div>
+  <div class="why">$\mathcal L^{-1}\{K/(s^2+\omega^2)\} = (K/\omega)\sin\omega t$, then t-shift. Check by the jump rule: $y'(a^+) = (K/\omega)\,\omega = K$ ✓.</div>
+</div>
+
+<h2>7 · Practice (a notch above the notes)</h2>
+<p>Paper first, then open the solution.</p>
+<div class="box">
+<p><strong>P1.</strong> $\;y' + 2y = 6\,\delta(t-1) - 4\,\delta(t-2),\;\; y(0)=1.$ Give $y$ piecewise on three intervals, and state the jump in $y$ at $t=1$ and $t=2$.</p>
+<p><strong>P2.</strong> $\;y'' + 4y = 2H(t-\pi) + 4\,\delta(t-2\pi),\;\; y(0)=y'(0)=0.$ Give $y$ piecewise. Which of $y,y'$ is continuous at $\pi$, and at $2\pi$?</p>
+</div>
+<details><summary>P1 solution</summary><div>
+<p>$sY - 1 + 2Y = 6e^{-s} - 4e^{-2s}$, so $Y = \dfrac{1 + 6e^{-s} - 4e^{-2s}}{s+2}$ and
+$y = e^{-2t} + 6e^{-2(t-1)}H(t-1) - 4e^{-2(t-2)}H(t-2).$</p>
+$$y=\begin{cases} e^{-2t}, & 0\le t<1,\\ e^{-2t}+6e^{-2(t-1)}, & 1\le t<2,\\ e^{-2t}+6e^{-2(t-1)}-4e^{-2(t-2)}, & t\ge2.\end{cases}$$
+<p>$y$ jumps by $+6$ at $t=1$ and $-4$ at $t=2$ ($K/a$ with $a=1$) ✓. First-order, so $y$ itself jumps.</p>
+</div></details>
+<details><summary>P2 solution</summary><div>
+<p>$Y = \dfrac{1}{s^2+4}\Big(\dfrac{2e^{-\pi s}}{s} + 4e^{-2\pi s}\Big)$. Use $\dfrac{2}{s(s^2+4)} = \dfrac12\Big(\dfrac1s - \dfrac{s}{s^2+4}\Big)$. Then
+$y = \tfrac12\big(1-\cos2(t-\pi)\big)H(t-\pi) + 2\sin2(t-2\pi)\,H(t-2\pi)$, and $2\pi$-periodicity of $\sin2t$, $\cos2t$ removes the shifts inside:</p>
+$$y=\begin{cases}0, & 0\le t<\pi,\\ \tfrac12(1-\cos2t), & \pi\le t<2\pi,\\ \tfrac12(1-\cos2t)+2\sin2t, & t\ge2\pi.\end{cases}$$
+<p>At $t=\pi$ (Heaviside): $y$ and $y'$ both continuous ($y'=\sin2t\to0$ both sides). At $t=2\pi$ (delta): $y$ continuous but $y'$ goes from $0$ to $4\cos 4\pi = 4$, a jump of $4=K/a$ ✓.</p>
+</div></details>
+
+<h2>8 · Exam-level challenge (12 marks)</h2>
+<p>About 18 minutes on paper, then open one part at a time.</p>
+<div class="box">
+<p>A mass of 4 kg moves on a spring of stiffness 1 N/m with no damping; $y(t)$ is its displacement. At $t=0$ it is at $y=1$ moving with unknown velocity $v$. At $t=2\pi$ it is struck with an impulse of 8 N·s in the positive direction. It is observed that $y(3\pi)=6$.</p>
+<p>(a) Write down the initial value problem for $y(t)$, with $y'(0)=v$. <em>[2]</em><br>
+(b) Use Laplace transforms to solve it, in terms of $v$. Give $y$ piecewise. <em>[4]</em><br>
+(c) Find $v$. <em>[2]</em><br>
+(d) Show $y$ is continuous at $t=2\pi$, find the jump in $y'$ there, and confirm it equals $K/a$. <em>[2]</em><br>
+(e) Give the amplitude of the oscillation before and after the impulse. <em>[2]</em></p>
+</div>
+
+<details><summary>(a) The IVP</summary><div>
+<p>$4y'' + y = 8\,\delta(t-2\pi),\quad y(0)=1,\; y'(0)=v.$ (Impulse $p$ goes on the right as $p\,\delta(t-t_0)$.)</p>
+</div></details>
+<details><summary>(b) Solve</summary><div>
+<p>$4(s^2Y - s - v) + Y = 8e^{-2\pi s}$, so $Y = \dfrac{s+v}{s^2+\frac14} + \dfrac{2e^{-2\pi s}}{s^2+\frac14}$.</p>
+<p>$y = \cos\tfrac t2 + 2v\sin\tfrac t2 + 4\sin\!\big(\tfrac t2-\pi\big)H(t-2\pi)$, and $\sin(\tfrac t2-\pi) = -\sin\tfrac t2$:</p>
+$$y=\begin{cases}\cos\tfrac t2 + 2v\sin\tfrac t2, & 0\le t<2\pi,\\ \cos\tfrac t2 + (2v-4)\sin\tfrac t2, & t\ge2\pi.\end{cases}$$
+</div></details>
+<details><summary>(c) Find $v$</summary><div>
+<p>$3\pi>2\pi$, so use the second branch: $y(3\pi) = \cos\tfrac{3\pi}2 + (2v-4)\sin\tfrac{3\pi}2 = -(2v-4) = 4-2v = 6$, so $v=-1$.</p>
+</div></details>
+<details><summary>(d) Continuity and the jump</summary><div>
+<p>$y(2\pi^-) = \cos\pi + 2v\sin\pi = -1 = y(2\pi^+)$: continuous. $y' = -\tfrac12\sin\tfrac t2 + v\cos\tfrac t2$ before and $-\tfrac12\sin\tfrac t2 + (v-2)\cos\tfrac t2$ after. At $2\pi$: $y'^- = -v = 1$, $y'^+ = 2-v = 3$. Jump $=2 = K/a = 8/4$ ✓. So $y$ has a corner there (not differentiable).</p>
+</div></details>
+<details><summary>(e) Amplitudes</summary><div>
+<p>$A\cos\tfrac t2 + B\sin\tfrac t2$ has amplitude $\sqrt{A^2+B^2}$. Before: $\sqrt{1+(2v)^2}=\sqrt5$. After: $\sqrt{1+(2v-4)^2}=\sqrt{1+36}=\sqrt{37}$. The impulse increased the amplitude.</p>
+</div></details>
+<p>Compare with the <a href="../worked/0016-challenge-full-solution.html">full written solution</a>.</p>
+
+<h2>9 · Before you close this tab</h2>
+<details><summary>Retrieval: write the delta transform, sifting, jump rule, method and traps from memory, then check</summary><div>
+<p><strong>Transform:</strong> $\mathcal L\{\delta(t-a)\}=e^{-as}$ (sheet). No $1/s$. $\mathcal L^{-1}\{e^{-as}\}=\delta(t-a)$.</p>
+<p><strong>Sifting:</strong> $\int_0^\infty f\,\delta(t-c)\,dt=f(c)$.</p>
+<p><strong>Jump:</strong> $a y''+\dots=K\delta(t-t_0)$: $y$ continuous, $y'$ jumps by $K/a$. First order: $y$ jumps by $K/a$.</p>
+<p><strong>Method:</strong> transform, solve $Y$, decompose, invert with t-shift, write piecewise, check jump.</p>
+<p><strong>Traps:</strong> wrong branch for a later condition; $K$ vs $K/a$; impulse placed in $y'(0)$ instead of the forcing.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/14_MAST20030_Lecture_Notes_Topic3_Laplace.pdf">Lecture 14</a>, slides 3–8 (pulse, definition, sifting, Exercise 3.19). Then <a href="https://tutorial.math.lamar.edu/Classes/DE/DiracDeltaFunction.aspx">Paul's Notes: Dirac Delta Function</a> (Examples 1–3 on IVPs). Optional: <a href="https://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/pages/unit-iii-fourier-series-and-laplace-transform/unit-step-and-unit-impulse-response/">MIT 18.03SC: unit step and unit impulse response</a>.</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic3-2.pdf">Problem Booklet 3</a>, Q15 (d): non-unit leading coefficient, nonzero IC. Check the jump in $y'$.</li>
+  <li>Booklet Q15 (e): three impulses plus an exponential forcing with a repeated root. Write the answer piecewise.</li>
+  <li>Booklet Q18: impulse train, $v=\frac pm\sum H_k(t)$. Describe $v$ on $[2,3)$.</li>
+  <li><a href="../tutes/tute_week_06.pdf">Tutorial 6</a>, Q3 (a): delta plus constant forcing, nonzero ICs (solutions: <a href="../tutes/tute_week_06_sol.pdf">tute_week_06_sol</a>).</li>
+  <li>Optional: lecture Exercise 3.19 by hand, and redo Example 3 with the condition at $t=\pi/8$ (before the impulse) to see how the branch choice changes.</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo quizzes 3, 4, 5, 6 cold and Example 3 without looking.</p>
+
+<div class="ask">💬 Unsure whether your piecewise answer is in the form the marker wants, or how to word the continuity check? Ask me in the terminal. Paste or photograph your working and I'll mark it line by line.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0015-laplace-heaviside-t-shift.html">Lesson 15</a> and <a href="0014-laplace-solving-ivps.html">Lesson 14</a></span>
+  <span>Next: <a href="0017-laplace-convolution-integral-eqns.html">Lesson 17, convolution</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

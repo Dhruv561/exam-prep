@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laplace Basics Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 13 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>(a) Suppose $f$ is piecewise continuous with $|f(t)|\le Ke^{\alpha t}$ for all $t\ge0$. Prove that $F(s)=\mathcal L\{f\}$ satisfies $F(s)\to0$ as $s\to\infty$ through real values. Hence explain why $\dfrac{4s+1}{2s-3}$ is not a Laplace transform. <em>[3]</em><br>
+(b) Show that $\mathcal L\{tf(t)\}=-F'(s)$, and use it to find $\mathcal L\{t\,e^{t}\cos2t\}$. <em>[4]</em><br>
+(c) Find $\mathcal L\{e^{-t}\sin^2t\}$. <em>[2]</em><br>
+(d) Find $\mathcal L^{-1}\Big\{\dfrac{s+5}{(s-1)(s^2+4s+13)}\Big\}$ and check $f(0)$. <em>[3]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · Limit at infinity [3]</h2>
+<div class="script">
+<p>For real $s=\sigma&gt;\alpha$, since $e^{-\sigma t}&gt;0$,
+$$|F(\sigma)|\le\int_0^\infty e^{-\sigma t}\,|f(t)|\,dt\le K\int_0^\infty e^{-(\sigma-\alpha)t}\,dt=\frac{K}{\sigma-\alpha}.$$
+The right side tends to $0$ as $\sigma\to\infty$, so $F(\sigma)\to0$ by squeezing.</p>
+<p>$\dfrac{4s+1}{2s-3}\to2\neq0$ as $s\to\infty$, so it is not the Laplace transform of any such $f$.</p>
+</div>
+<p class="note">Marks: bound with absolute value (1), evaluate the integral (1), conclusion (1) with the rational function. The assumption $\sigma&gt;\alpha$ is what makes the integral converge: state it.</p>
+
+<h2>(b) · $\mathcal L\{tf\}=-F'$ and the application [4]</h2>
+<div class="script">
+<p>$F(s)=\displaystyle\int_0^\infty e^{-st}f(t)\,dt$. Differentiating under the integral sign,
+$$F'(s)=\int_0^\infty -t\,e^{-st}f(t)\,dt=-\mathcal L\{tf(t)\}\;\Rightarrow\;\mathcal L\{tf\}=-F'(s).$$</p>
+<p>Take $g=\cos2t$, so $G(s)=\dfrac{s}{s^2+4}$. Then
+$$\mathcal L\{t\cos2t\}=-G'(s)=-\frac{(s^2+4)-2s^2}{(s^2+4)^2}=\frac{s^2-4}{(s^2+4)^2}.$$
+By the s-shift with $a=1$, replace $s$ by $s-1$:
+$$\mathcal L\{te^{t}\cos2t\}=\frac{(s-1)^2-4}{\big((s-1)^2+4\big)^2}.$$</p>
+</div>
+<p class="note">Alternative order: s-shift first, $\mathcal L\{e^t\cos2t\}=\frac{s-1}{(s-1)^2+4}$, then $-\frac{d}{ds}$ of that (chain rule gives the same answer). Do whichever has less algebra: here the first.</p>
+
+<h2>(c) · Identity first [2]</h2>
+<div class="script">
+<p>$\sin^2t=\tfrac12(1-\cos2t)$, so $e^{-t}\sin^2t=\tfrac12e^{-t}-\tfrac12e^{-t}\cos2t$ and
+$$\mathcal L\{e^{-t}\sin^2t\}=\frac12\Big(\frac1{s+1}-\frac{s+1}{(s+1)^2+4}\Big).$$</p>
+</div>
+<p class="note">Simplified form: $\frac{2}{(s+1)((s+1)^2+4)}$. Not required. Never write $\mathcal L\{\sin^2\}=(\mathcal L\{\sin\})^2$.</p>
+
+<h2>(d) · Inverse [3]</h2>
+<div class="script">
+<p>$s^2+4s+13=(s+2)^2+9$ is irreducible, so
+$$\frac{s+5}{(s-1)(s^2+4s+13)}=\frac{A}{s-1}+\frac{Bs+C}{s^2+4s+13}.$$
+Cover-up at $s=1$: $A=\dfrac{6}{18}=\dfrac13$. Then $s+5=A(s^2+4s+13)+(Bs+C)(s-1)$:<br>
+$s^2$: $0=A+B\Rightarrow B=-\tfrac13$. Constant: $5=13A-C\Rightarrow C=\tfrac{13}3-5=-\tfrac23$.</p>
+<p>Check $s^1$: $1=4A+C-B=\tfrac43-\tfrac23+\tfrac13=1$ ✓. So $Bs+C=-\tfrac13(s+2)$ and
+$$F(s)=\frac13\cdot\frac1{s-1}-\frac13\cdot\frac{s+2}{(s+2)^2+9}.$$
+$$f(t)=\tfrac13e^{t}-\tfrac13e^{-2t}\cos3t.$$
+$f(0)=\tfrac13-\tfrac13=0$, consistent with $F(s)\sim1/s^2$ at large $s$ (no $1/s$ term).</p>
+</div>
+<p class="note">Here the numerator conveniently came out as a pure multiple of $(s+2)$, so no sine term appears. Always double check with the $s^1$ coefficient before inverting.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+(a) $\sigma&gt;\alpha$ stated, integral bound, limit, conclusion about $\frac{4s+1}{2s-3}$ · (b) derivative inside the integral, $G'$ computed correctly, shift $s\to s-1$ · (c) the identity, then the shift · (d) the form with $Bs+C$, three coefficients, completed square, correct exponential sign, $f(0)$ check.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0013-laplace-definition-table-inverse.html">Lesson 13, challenge</a></span>
+  <span>Reference: <a href="../reference/topic3-cheatsheet.html">Topic 3 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

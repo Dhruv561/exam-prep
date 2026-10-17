@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laplace: Mixed Exam Set</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* Lesson 19 only */
+  table.flow td, table.flow th { text-align: left; vertical-align: top; }
+  .tblwrap { overflow-x: auto; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 19 · Topic 3: Laplace · Timed mixed set</div>
+<h1>Six mixed questions, no labels</h1>
+<p class="lede">No new teaching. The exam doesn't say "this is a delta question", so this set shuffles lessons 13–18 and makes you pick the tool. Six new questions, 50 marks, each with a hidden marking scheme.</p>
+
+<div class="mission">Why this matters for 5 Nov: Laplace is about 12 of the 90 marks, usually one question built from 3 to 4 of these tools at once. Past papers pair a delta or window forcing with a repeated-root denominator, add a two-point condition, or hide a variable-coefficient ODE behind a theory part. Practise recognising which one you're facing.</div>
+
+<h2>0 · Which tool? (read once, then cover it)</h2>
+<div class="tblwrap">
+<table class="flow">
+<tr><th>You see</th><th>Do this</th><th>Lesson</th></tr>
+<tr><td>$f(t)$ has $e^{at}$ times trig or poly</td><td>Table, then s-shift: $s \to s-a$. Trig product? Identity first.</td><td><a href="0013-laplace-definition-table-inverse.html">13</a></td></tr>
+<tr><td>$F(s)$ with $s^2+bs+c$ irreducible</td><td>Complete the square, split into $(s+p)$ and constant parts.</td><td><a href="0013-laplace-definition-table-inverse.html">13</a></td></tr>
+<tr><td>Constant-coefficient IVP</td><td>Transform, solve for $Y$, partial fractions, invert.</td><td><a href="0014-laplace-solving-ivps.html">14</a></td></tr>
+<tr><td>$H(t-a)$, "switches on/off", piecewise $f$</td><td>Write with $H$, shift the <em>whole</em> function, $e^{-as}$. Final answer piecewise.</td><td><a href="0015-laplace-heaviside-t-shift.html">15</a></td></tr>
+<tr><td>$\delta(t-a)$, "struck", "impulse"</td><td>$e^{-as}$ term; $y$ continuous, $y'$ jumps by the strength. Unknown $y'(0)$? Keep it as $b$, fix it from the later condition.</td><td><a href="0016-laplace-dirac-delta.html">16</a></td></tr>
+<tr><td>Forcing $g(t)$ left general, or $\int_0^t$ in the equation</td><td>Convolution: $y = $ (impulse response) $*\,g$, or $F\,G$ in the equation.</td><td><a href="0017-laplace-convolution-integral-eqns.html">17</a></td></tr>
+<tr><td>Coefficient has $t$ in it; "prove"; two coupled unknowns</td><td>$\mathcal L\{tf\} = -F'$, first-order ODE in $Y$, limit fixes the constant. Systems: transform both, solve the $2\times2$ algebra.</td><td><a href="0018-laplace-derivations-variable-coeff-systems.html">18</a></td></tr>
+</table>
+</div>
+
+<h2>1 · Warm-up (5 min, spaced retrieval)</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> $\mathcal L\{t\,e^{2t}\}$ is… (not on the formula sheet)</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{1}{(s+2)^2}$</button>
+    <button class="opt" data-key="b">$\dfrac{2}{(s-2)^2}$</button>
+    <button class="opt" data-key="c">$\dfrac{1}{(s-2)^2}$</button>
+    <button class="opt" data-key="d">$\dfrac{1}{s^2-2}$</button>
+  </div>
+  <div class="why">Table: $\mathcal L\{t\} = 1/s^2$. The s-shift replaces $s$ by $s-2$ (<a href="0013-laplace-definition-table-inverse.html">Lesson 13</a>).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W2.</strong> $\mathcal L\{t\,H(t-2)\}$ is… (the key trap)</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{-2s}/s^2$</button>
+    <button class="opt" data-key="b">$e^{-2s}\left(\dfrac1{s^2}+\dfrac2s\right)$</button>
+    <button class="opt" data-key="c">$e^{-2s}\left(\dfrac1{s^2}-\dfrac2s\right)$</button>
+    <button class="opt" data-key="d">$e^{2s}\left(\dfrac1{s^2}+\dfrac2s\right)$</button>
+  </div>
+  <div class="why">The formula needs $f(t-2)$. Write $t = (t-2)+2$, so the function is $(t-2)+2$ shifted: $e^{-2s}(1/s^2 + 2/s)$ (<a href="0015-laplace-heaviside-t-shift.html">Lesson 15</a>).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W3.</strong> $y'' + 4y = 5\,\delta(t-1)$ at rest. At $t=1$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$y$ jumps by 5; $y'$ is continuous</button>
+    <button class="opt" data-key="b">$y$ and $y'$ both jump by 5</button>
+    <button class="opt" data-key="c">$y$ is continuous; $y'$ jumps by 4</button>
+    <button class="opt" data-key="d">$y$ is continuous; $y'$ jumps by 5</button>
+  </div>
+  <div class="why">Integrate the ODE across $t=1$: $[y']$ jumps by the strength 5, and $y$ is continuous because $y'$ stays finite (<a href="0016-laplace-dirac-delta.html">Lesson 16</a>).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W4.</strong> If $\mathcal L\{g\} = G(s)$, then $\mathcal L\!\left\{\displaystyle\int_0^t g(u)\,du\right\}$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$G(s)/s$</button>
+    <button class="opt" data-key="b">$s\,G(s)$</button>
+    <button class="opt" data-key="c">$-G'(s)$</button>
+    <button class="opt" data-key="d">$G(s)/s^2$</button>
+  </div>
+  <div class="why">The integral is $1 * g$, so the convolution theorem gives $\frac1s\,G(s)$ (<a href="0017-laplace-convolution-integral-eqns.html">Lesson 17</a>).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W5.</strong> Which cannot be a Laplace transform of any function in this course?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{1}{s+3}$</button>
+    <button class="opt" data-key="b">$\dfrac{s}{s^2+9}$</button>
+    <button class="opt" data-key="c">$\dfrac{s+1}{s+3}$</button>
+    <button class="opt" data-key="d">$\dfrac{e^{-s}}{s^2+9}$</button>
+  </div>
+  <div class="why">We need $F(s)\to0$ as $s\to\infty$. Option (c) tends to $1$ (<a href="0018-laplace-derivations-variable-coeff-systems.html">Lesson 18</a>). The others tend to $0$.</div>
+</div>
+
+<h2>2 · The set (≈ 100 min, 50 marks)</h2>
+<p>Exam pace is 2 min per mark. Do Q1–Q3 in one sitting (24 marks, ≈ 48 min), the rest in a second sitting. Paper only, formula sheet only: <a href="../exams/MAST20030_S2_2026_Formula_Sheet.pdf">the 2026 sheet</a>. It has the table (1, $t^{n-1}/(n-1)!$, $e^{at}$, $\sin\omega t$, $\cos\omega t$, $\sinh$, $\cosh$, $\delta$), the two shifts, the derivative rule and convolution. It doesn't have $\mathcal L\{tf\}$, $\mathcal L\{\int f\}$ or $H$'s transform. Open each marking scheme only after you've written the whole question.</p>
+
+<h3>Question 1 <span class="marks">[7 marks]</span></h3>
+<div class="box">
+<p>(a) Find $\mathcal L\{e^{t}\sin t\cos t\}$. <em>[2]</em></p>
+<p>(b) Find $\mathcal L^{-1}\!\left\{\dfrac{3}{s^2(s-1)}\right\}$. <em>[2]</em></p>
+<p>(c) Find $\mathcal L^{-1}\!\left\{\dfrac{s\,e^{-s}}{s^2+4s+13}\right\}$, and write the answer without Heaviside functions. <em>[3]</em></p>
+</div>
+<details><summary>Q1 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> $\sin t\cos t = \tfrac12\sin 2t$. <strong>[1]</strong> table gives $\tfrac12\cdot\frac{2}{s^2+4}$, then $s\to s-1$:
+$$\frac{1}{(s-1)^2+4}.$$</p>
+<p>(b) <strong>[1]</strong> $\frac{3}{s^2(s-1)} = \frac3{s-1} - \frac3s - \frac3{s^2}$. <strong>[1]</strong> $\;3e^t - 3 - 3t$.</p>
+<p>(c) <strong>[1]</strong> Complete the square: $\frac{s}{(s+2)^2+9} = \frac{s+2}{(s+2)^2+9} - \frac23\cdot\frac{3}{(s+2)^2+9}$. <strong>[1]</strong> Inverse of the bracket: $h(t) = e^{-2t}\big(\cos3t - \tfrac23\sin3t\big)$. <strong>[1]</strong> $e^{-s}$ means shift by 1:
+$$f(t) = \begin{cases}0 & 0\le t<1,\\ e^{-2(t-1)}\big(\cos3(t-1) - \tfrac23\sin3(t-1)\big) & t\ge1.\end{cases}$$
+Common loss: forgetting the $-\tfrac23\sin$ term (numerator $s$, not $s+2$).</p>
+</div></details>
+
+<h3>Question 2 <span class="marks">[8 marks]</span></h3>
+<div class="box">
+<p>Solve $\;y'' + 4y' + 4y = 4\big[H(t-1) - H(t-2)\big],\quad y(0)=0,\; y'(0)=1.$</p>
+<p>(a) Find $Y(s)$. <em>[2]</em></p>
+<p>(b) Find $y(t)$ and write it piecewise on $[0,1)$, $[1,2)$ and $[2,\infty)$. <em>[5]</em></p>
+<p>(c) In words, describe the forcing and the initial conditions as a physical situation. What happens as $t\to\infty$? <em>[1]</em></p>
+</div>
+<details><summary>Q2 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> transform with ICs: $(s^2Y - 1) + 4sY + 4Y = \frac{4(e^{-s}-e^{-2s})}{s}$. <strong>[1]</strong> $Y = \dfrac{1}{(s+2)^2} + \dfrac{4(e^{-s}-e^{-2s})}{s(s+2)^2}$.</p>
+<p>(b) <strong>[1]</strong> $\frac{4}{s(s+2)^2} = \frac1s - \frac1{s+2} - \frac2{(s+2)^2}$ (repeated root: both powers needed). <strong>[1]</strong> $G(t) = 1 - e^{-2t} - 2te^{-2t}$. <strong>[1]</strong> $y = te^{-2t} + G(t-1)H(t-1) - G(t-2)H(t-2)$. <strong>[2]</strong> piecewise (1 each for the correct middle and last lines):
+$$y = \begin{cases} te^{-2t} & 0\le t<1,\\ 1 + e^{-2t}\big[t + e^{2}(1-2t)\big] & 1\le t<2,\\ e^{-2t}\big[t - e^{2}(2t-1) + e^{4}(2t-3)\big] & t\ge2.\end{cases}$$
+Check: $y$ and $y'$ are continuous at $t=1$ and $t=2$ (forcing has jumps, so only $y''$ does).</p>
+<p>(c) <strong>[1]</strong> Critically damped oscillator starting at equilibrium with unit velocity, pushed with constant force 4 only for $1\le t<2$. All terms decay like $e^{-2t}\cdot$polynomial in the last piece, so $y\to0$.</p>
+</div></details>
+
+<h3>Question 3 <span class="marks">[9 marks]</span></h3>
+<div class="box">
+<p>A unit mass on an undamped spring with $k=4$ starts at the equilibrium position $y(0)=0$ with an unknown initial velocity. At $t=\pi/2$ it is struck with an impulse of strength 4. Its position at $t=3\pi/4$ is measured as $y(3\pi/4)=3$.</p>
+<p>(a) Write the IVP, with the unknown velocity $y'(0)=b$. <em>[1]</em><br>
+(b) Use Laplace transforms to find $y(t)$ in terms of $b$. <em>[3]</em><br>
+(c) Find $b$ and give $y(t)$ piecewise. <em>[2]</em><br>
+(d) Check $y$ is continuous at $t=\pi/2$ and find the jump in $y'$. Sketch $y$ on $[0,\pi]$, marking the intercepts and extreme values. <em>[3]</em></p>
+</div>
+<details><summary>Q3 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> $y'' + 4y = 4\delta(t-\pi/2)$, $y(0)=0$, $y'(0)=b$.</p>
+<p>(b) <strong>[1]</strong> $Y = \dfrac{b}{s^2+4} + \dfrac{4e^{-\pi s/2}}{s^2+4}$. <strong>[1]</strong> inverse: $\frac b2\sin2t + 2\sin\!\big(2(t-\tfrac\pi2)\big)H(t-\tfrac\pi2)$. <strong>[1]</strong> $\sin(2t-\pi) = -\sin2t$, so
+$$y = \tfrac b2\sin2t - 2\sin2t\;H(t-\tfrac\pi2).$$</p>
+<p>(c) <strong>[1]</strong> $3\pi/4 > \pi/2$, so the Heaviside is on: $y(3\pi/4) = (\tfrac b2 - 2)\sin\tfrac{3\pi}2 = 2 - \tfrac b2 = 3$, so $b=-2$. (Using only the first term gives the wrong $b$.) <strong>[1]</strong> $y = -\sin2t$ for $0\le t<\pi/2$, and $y = -3\sin2t$ for $t\ge\pi/2$.</p>
+<p>(d) <strong>[1]</strong> Both pieces are $0$ at $\pi/2$, so $y$ is continuous. $y'$: left limit $-2\cos\pi = 2$, right limit $-6\cos\pi = 6$, jump $=4$ = the strength. <strong>[2]</strong> Sketch: zero at $0$, $\pi/2$, $\pi$ (intercepts); dips to $-1$ at $t=\pi/4$; rises to $+3$ at $t=3\pi/4$; corner (not smooth) at $\pi/2$, with a steeper upward slope than the downward slope arriving.</p>
+</div></details>
+
+<h3>Question 4 <span class="marks">[9 marks]</span></h3>
+<div class="box">
+<p>(a) Let $F(s) = \mathcal L\{f\}(s)$. Prove that $\mathcal L\{t\,f(t)\} = -F'(s)$. <em>[2]</em></p>
+<p>(b) Apply $\mathcal L$ to $\;y'' + t\,y' - y = 0,\;\; y(0)=0,\; y'(0)=1$, and show that $Y = \mathcal L\{y\}$ satisfies
+$$Y' - \Big(s - \frac2s\Big)Y = -\frac1s.$$ <em>[3]</em></p>
+<p>(c) Solve the ODE in (b). Use $\lim_{s\to\infty}Y(s)=0$ to fix the constant. <em>[3]</em></p>
+<p>(d) Hence find $y(t)$, and check it in the original ODE. <em>[1]</em></p>
+</div>
+<details><summary>Q4 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> $F'(s) = \frac{d}{ds}\int_0^\infty e^{-st}f(t)\,dt = \int_0^\infty (-t)e^{-st}f(t)\,dt$ (differentiate under the integral). <strong>[1]</strong> $= -\mathcal L\{tf\}$.</p>
+<p>(b) <strong>[1]</strong> $\mathcal L\{y''\} = s^2Y - 1$. <strong>[1]</strong> $\mathcal L\{ty'\} = -\frac{d}{ds}\big(sY - y(0)\big) = -Y - sY'$. <strong>[1]</strong> Sum: $s^2Y - 1 - Y - sY' - Y = 0$, so $sY' = (s^2-2)Y - 1$, i.e. $Y' - (s - \tfrac2s)Y = -\tfrac1s$.</p>
+<p>(c) <strong>[1]</strong> Integrating factor $\mu = e^{-s^2/2 + 2\ln s} = s^2e^{-s^2/2}$. <strong>[1]</strong> $(\mu Y)' = -s\,e^{-s^2/2}$, so $\mu Y = e^{-s^2/2} + C$ and $Y = \dfrac1{s^2} + C\,\dfrac{e^{s^2/2}}{s^2}$. <strong>[1]</strong> $e^{s^2/2}/s^2\to\infty$, but $Y\to0$, so $C=0$ and $Y = 1/s^2$.</p>
+<p>(d) <strong>[1]</strong> $y = t$. Check: $0 + t\cdot1 - t = 0$ ✓, $y(0)=0$, $y'(0)=1$ ✓.</p>
+</div></details>
+
+<h3>Question 5 <span class="marks">[9 marks]</span></h3>
+<div class="box">
+<p>(a) Show that the solution of $\;y'' + y = g(t),\; y(0)=y'(0)=0\;$ is $\;y(t)=\displaystyle\int_0^t \sin(t-\tau)\,g(\tau)\,d\tau$. <em>[2]</em></p>
+<p>(b) Evaluate it for $g(t) = e^{-t}$. <em>[3]</em></p>
+<p>(c) Solve for $f(t)$ for $t \ge 0$: $\displaystyle f(t) = t + \int_0^t \sin(t-\tau)\,f(\tau)\,d\tau.$ <em>[4]</em></p>
+</div>
+<details><summary>Q5 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> $(s^2+1)Y = G$, so $Y = G\cdot\frac1{s^2+1}$. <strong>[1]</strong> Convolution theorem with $\mathcal L^{-1}\{1/(s^2+1)\} = \sin t$.</p>
+<p>(b) <strong>[1]</strong> $\int_0^t\sin(t-\tau)e^{-\tau}d\tau$: either integrate by parts twice, or use $\sin(t-\tau)=\sin t\cos\tau-\cos t\sin\tau$. <strong>[1]</strong> $\int_0^t e^{-\tau}\cos\tau\,d\tau = \tfrac12\big(e^{-t}(\sin t - \cos t) + 1\big)$ and $\int_0^t e^{-\tau}\sin\tau\,d\tau = \tfrac12\big(1 - e^{-t}(\sin t+\cos t)\big)$. <strong>[1]</strong> Combine:
+$$y = \tfrac12\big(e^{-t} + \sin t - \cos t\big).$$
+Cross-check by partial fractions: $\frac1{(s+1)(s^2+1)}$ gives the same, and $y(0)=0$, $y'(0)=\tfrac12(-1+1)=0$ ✓.</p>
+<p>(c) <strong>[1]</strong> The integral is $\sin * f$, so $F = \frac1{s^2} + \frac{1}{s^2+1}F$. <strong>[1]</strong> $F\cdot\frac{s^2}{s^2+1} = \frac1{s^2}$, so $F = \frac{s^2+1}{s^4}$. <strong>[1]</strong> $F = \frac1{s^2}+\frac1{s^4}$. <strong>[1]</strong> $f(t) = t + \frac{t^3}{6}$.</p>
+</div></details>
+
+<h3>Question 6 <span class="marks">[8 marks]</span></h3>
+<div class="box">
+<p>Let $x(t), y(t)$ be the amounts of salt in two connected tanks, modelled by
+$$x' = -3x + y,\qquad y' = x - 3y,\qquad x(0)=2,\; y(0)=0.$$
+(a) Take Laplace transforms and solve for $X(s)$ and $Y(s)$. <em>[4]</em><br>
+(b) Find $x(t)$ and $y(t)$. <em>[2]</em><br>
+(c) Find the maximum amount of salt ever in the second tank, and the time it occurs. <em>[2]</em></p>
+</div>
+<details><summary>Q6 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> $(s+3)X - Y = 2$ and $-X + (s+3)Y = 0$. <strong>[1]</strong> Second gives $Y = \frac{X}{s+3}$. <strong>[1]</strong> $X\big[(s+3) - \frac1{s+3}\big]=2$, so $X = \frac{2(s+3)}{(s+3)^2-1} = \frac{2(s+3)}{(s+2)(s+4)}$. <strong>[1]</strong> $Y = \frac{2}{(s+2)(s+4)}$.</p>
+<p>(b) <strong>[1]</strong> $X = \frac1{s+2}+\frac1{s+4}$, so $x = e^{-2t}+e^{-4t}$. <strong>[1]</strong> $Y = \frac1{s+2}-\frac1{s+4}$, so $y = e^{-2t}-e^{-4t}$. Check: $x' = -2e^{-2t}-4e^{-4t}$ and $-3x+y = -2e^{-2t}-4e^{-4t}$ ✓.</p>
+<p>(c) <strong>[1]</strong> $y' = -2e^{-2t}+4e^{-4t}=0 \Rightarrow e^{-2t}=\tfrac12$, so $t=\tfrac12\ln2$. <strong>[1]</strong> $y = \tfrac12-\tfrac14 = \tfrac14$ (the sign of $y'$ goes from + to −, so it's a maximum).</p>
+</div></details>
+
+<div class="trap"><strong>Where marks leak in this set</strong><br>
+(1) Q1(c): numerator $s$ vs $s+2$. (2) Q2: shifting only the $\frac1s$ part, not the whole $\frac{4}{s(s+2)^2}$. (3) Q3(c): using the pre-impulse formula at $t=3\pi/4$. (4) Q4(b): losing the sign in $\mathcal L\{ty'\}=-(sY)'$. (5) Q5(c): forgetting that the integral is a convolution of $f$ with $\sin$. (6) Everywhere: not checking $y(0)$ or a continuity condition at the end.</div>
+
+<h2>3 · Score and diagnose</h2>
+<p>Mark yourself against the schemes, then book the gaps:</p>
+<ul>
+  <li>Below 5/7 on Q1 or below 6/8 on Q2: redo <a href="0013-laplace-definition-table-inverse.html">Lesson 13</a> and <a href="0015-laplace-heaviside-t-shift.html">Lesson 15</a> quizzes.</li>
+  <li>Q3 under 6/9: <a href="0016-laplace-dirac-delta.html">Lesson 16</a>, especially the two-point condition.</li>
+  <li>Q4 under 6/9: <a href="0018-laplace-derivations-variable-coeff-systems.html">Lesson 18</a>. Q5 under 6/9: <a href="0017-laplace-convolution-integral-eqns.html">Lesson 17</a>.</li>
+  <li>Any plain algebra slip: do one sitting again with the formula sheet only and a slower final check.</li>
+</ul>
+<p>Written-out answers (what the paper should look like): <a href="../worked/0019-mixed-set-full-solutions.html">full solutions to Q1–Q6</a>.</p>
+
+<h2>4 · Before you close this tab</h2>
+<details><summary>Retrieval: cover §0 and list the six triggers and their first move</summary><div>
+<p>Exponential or trig product: s-shift or identity. Irreducible quadratic: complete the square. $H$: shift the whole function. $\delta$: $e^{-as}$, $y'$ jumps. $\int_0^t$ or general $g$: convolution. $t$ in a coefficient: $-F'$ and a first-order ODE in $Y$. Systems: algebra on $X, Y$.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/13_MAST20030_Lecture_Notes_Topic3_Laplace.pdf">Lecture 13</a> and <a href="../lectures/14_MAST20030_Lecture_Notes_Topic3_Laplace.pdf">Lecture 14</a> (delta, convolution, applications). Then <a href="https://tutorial.math.lamar.edu/Classes/DE/LaplaceIntro.aspx">Paul's Online Notes: Laplace Transforms</a> (table and worked IVPs). Alternatively the <a href="https://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/">MIT OCW 18.03SC</a> Laplace unit.</p>
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic3-2.pdf">Problem Booklet 3</a>, Q15: any two parts (Heaviside and delta forcing).</li>
+  <li>Booklet Q16: one part with general $g$, then a specific $g$.</li>
+  <li>Booklet Q20 and Q22: the integro-differential and RC-window problems.</li>
+  <li><a href="../tutes/tute_week_06.pdf">Tute Week 6</a>, Q3 (a) and (c).</li>
+  <li>Optional: Booklet Q17, Q18, Q21.</li>
+</ul>
+<p><strong>Spacing:</strong> in three days, redo Q3 and Q4 cold from a blank page.</p>
+
+<div class="ask">💬 Stuck on a marking-scheme step, or unsure whether your working would earn the marks? Ask me in the terminal. Paste or photograph your attempt and I'll mark it line by line.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0013-laplace-definition-table-inverse.html">13</a> to <a href="0018-laplace-derivations-variable-coeff-systems.html">18</a></span>
+  <span>Previous: <a href="0018-laplace-derivations-variable-coeff-systems.html">Lesson 18</a></span>
+  <span>Reference: <a href="../reference/topic3-cheatsheet.html">Topic 3 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>
