@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Odd Extension Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/fourier-extension-plot.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 22 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>$f(x)=\sin(\pi x)$ for $0&lt;x&lt;1$, $f(x)=0$ for $1\le x&lt;2$, with $f(-x)=-f(x)$ and $f(x+4)=f(x)$.</p>
+<p>(a) Even, odd or neither? Which coefficients are zero, and why? <em>[2]</em><br>
+(b) Sketch $f$ for $-6&lt;x&lt;6$. <em>[2]</em><br>
+(c) Compute all non-zero Fourier coefficients. <em>[5]</em><br>
+(d) Write the Fourier series using only the non-zero terms. <em>[1]</em><br>
+(e) If instead $f(-x)=f(x)$: the integral for the non-zero coefficients, and which $n$ is special. <em>[2]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · Parity</h2>
+<div class="script">
+<p>$f(-x)=-f(x)$, so $f$ is <strong>odd</strong>. Period $4=2L$, so $L=2$.</p>
+<p>$f(x)\cos\frac{n\pi x}2$ is odd × even $=$ odd, so $a_n=\frac12\int_{-2}^{2}f\cos\frac{n\pi x}2\,dx=0$ for all $n\ge0$. Only $b_n$ can be non-zero.</p>
+</div>
+<p class="note">Naming $L=2$ here saves an error later: the trig argument is $\frac{n\pi x}{2}$, not $n\pi x$.</p>
+
+<h2>(b) · Sketch</h2>
+<div class="script">
+<p>On $(0,1)$: arch $\sin\pi x$ rising to $1$ at $x=\frac12$. On $(1,2)$: zero. On $(-2,0)$: rotate by $180^\circ$, a downward arch on $(-1,0)$ with minimum $-1$ at $x=-\frac12$, zero on $(-2,-1)$. Repeat with period $4$.</p>
+</div>
+<div id="plot-c"></div>
+<p class="note">On paper: label $x=\pm1,\pm2,\dots,\pm6$ and heights $\pm1$. The sketch is continuous (no jumps), since $f(0^+)=0$ and $f(2^-)=0$. Set the slider to $0$ to see only the sketch; slide it up to watch the series match it.</p>
+
+<h2>(c) · Coefficients</h2>
+<div class="script">
+<p>Odd, so
+$$b_n=\frac2L\int_0^L f(x)\sin\frac{n\pi x}{2}\,dx=\int_0^1\sin(\pi x)\sin\frac{n\pi x}2\,dx,$$
+since $f=0$ on $(1,2)$. Product-to-sum:
+$$\sin(\pi x)\sin\frac{n\pi x}2=\frac12\Big[\cos\big((1-\tfrac n2)\pi x\big)-\cos\big((1+\tfrac n2)\pi x\big)\Big].$$</p>
+<p><strong>$n=2$</strong> (the frequencies are equal, $1-\frac n2=0$):
+$$b_2=\int_0^1\sin^2(\pi x)\,dx=\int_0^1\frac{1-\cos2\pi x}2\,dx=\frac12.$$</p>
+<p><strong>$n\ne2$:</strong>
+$$b_n=\frac12\left[\frac{\sin\big((1-\frac n2)\pi\big)}{(1-\frac n2)\pi}-\frac{\sin\big((1+\frac n2)\pi\big)}{(1+\frac n2)\pi}\right].$$
+With $\sin(\pi-\frac{n\pi}2)=\sin\frac{n\pi}2$ and $\sin(\pi+\frac{n\pi}2)=-\sin\frac{n\pi}2$:
+$$b_n=\frac{\sin\frac{n\pi}2}{2\pi}\left[\frac{1}{1-\frac n2}+\frac{1}{1+\frac n2}\right]=\frac{\sin\frac{n\pi}2}{2\pi}\cdot\frac{2}{1-\frac{n^2}4}=\frac{4\sin\frac{n\pi}2}{\pi(4-n^2)}.$$</p>
+<p>Even $n\ne2$: $\sin\frac{n\pi}2=0$, so $b_n=0$. Odd $n=2m-1$: $\sin\frac{(2m-1)\pi}2=(-1)^{m+1}$, so
+$$\boxed{b_2=\tfrac12,\qquad b_{2m-1}=\frac{4(-1)^{m+1}}{\pi\big(4-(2m-1)^2\big)},\quad m=1,2,\dots}$$
+All other coefficients are $0$.</p>
+</div>
+<p class="note">Do the special $n$ first, before you forget. The general formula at $n=2$ is $\frac{4\cdot0}{0}$: undefined, not zero, which is why $b_2$ survives while $b_4,b_6,\dots$ vanish. Sanity: $\frac12\sin(\pi x)$ alone already looks like $f$ on $(0,1)$. First few: $b_1=\frac4{3\pi}$, $b_3=\frac4{5\pi}$, $b_5=-\frac4{21\pi}$. Each step is a single product-to-sum; no integration by parts.</p>
+
+<h2>(d) · The series</h2>
+<div class="script">
+$$f(x)=\frac12\sin(\pi x)+\frac4\pi\sum_{m=1}^\infty\frac{(-1)^{m+1}}{4-(2m-1)^2}\sin\frac{(2m-1)\pi x}2.$$
+</div>
+<p class="note">The $n=2$ term is $b_2\sin\frac{2\pi x}2=\frac12\sin\pi x$. Numerical check: at $x=1$ every term should sum to $f(1)=0$, and it does ($\sum\frac{1}{4-(2m-1)^2}$ telescopes to $0$). Equality holds everywhere here because the extension is continuous (Lesson 23).</p>
+
+<h2>(e) · Even version</h2>
+<div class="script">
+<p>Then $f$ is even, $b_n=0$, and
+$$a_n=\frac2L\int_0^L f\cos\frac{n\pi x}2\,dx=\int_0^1\sin(\pi x)\cos\frac{n\pi x}2\,dx.$$
+Product-to-sum gives $\frac12[\sin((1-\frac n2)\pi x)+\sin((1+\frac n2)\pi x)]$; the first term's antiderivative has $1-\frac n2$ in the denominator, so $n=2$ needs separate treatment.</p>
+</div>
+<p class="note">(If you did evaluate: $a_2=\int_0^1\tfrac12\sin2\pi x\,dx=0$ and $a_n=\frac{4(1+\cos\frac{n\pi}2)}{\pi(4-n^2)}$ otherwise, $a_0=\frac2\pi$. Not asked.)</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+"odd" with $f\cos$ odd ⇒ $a_n=0$ · $L=2$ · sketch: 3 periods, arches up on $(0,1)$ and down on $(-1,0)$, flat on $1&lt;|x|&lt;2$, labelled axes · $b_n=\int_0^1\sin\pi x\sin\frac{n\pi x}2$ · product-to-sum · $b_2=\frac12$ done separately · $b_n=\frac{4\sin(n\pi/2)}{\pi(4-n^2)}$ · even $n\ne2$ vanish · final series over odd $n$ plus the $n=2$ term · (e) cosine integral and $n=2$.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0022-extensions-half-range.html">Lesson 22, challenge</a></span>
+  <span>Reference: <a href="../reference/topic4-cheatsheet.html">Topic 4 cheat sheet</a></span>
+</div>
+
+</main>
+<script>
+  FourierExt.mount(document.getElementById('plot-c'), {
+    f: (x) => (x < 1 ? Math.sin(Math.PI * x) : 0), L: 2, modes: ['odd'], periods: 3,
+    y: [-1.3, 1.3], yTicks: [1, -1],
+    xTicks: [-6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6].map((v) => ({ v, label: String(v).replace('-', '−') })),
+    series: {
+      odd: { b: (n) => (n === 2 ? 0.5 : 4 * Math.sin(n * Math.PI / 2) / (Math.PI * (4 - n * n))) },
+    },
+    N: { max: 30, value: 0 },
+  });
+</script>
+</body>
+</html>

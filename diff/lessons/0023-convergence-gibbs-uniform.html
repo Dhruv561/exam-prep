@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fourier: Convergence and Gibbs</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/series-plot.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 23 · Topic 4: Fourier series</div>
+<h1>Where the series lands: pointwise values, Gibbs, uniform convergence</h1>
+<p class="lede">The one win: for any $f$ on $(-L,L]$, say what its Fourier series converges to at every $x$, use one well-chosen $x$ to sum a numerical series, and decide (with a quoted theorem or an M-test) whether convergence is uniform and whether Gibbs appears.</p>
+
+<div class="mission">Why this matters for 5 Nov: the Fourier question almost always ends with 4 to 8 marks of "what does it converge to? uniformly? Gibbs? evaluate $\sum 1/(2m-1)^2$". Those marks need no new integrals, only the right sentence and one substitution. <strong>None of it is on the formula sheet</strong> (it has only the coefficient formulas): memorise the boxed theorems and the 9%.</div>
+
+<h2>0 · Warm-up from Lessons 21 and 22</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> With $k_n=n\pi/L$, the value of $\cos(k_nL)$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$0$</button>
+    <button class="opt" data-key="b">$1$</button>
+    <button class="opt" data-key="c">$(-1)^n$</button>
+    <button class="opt" data-key="d">$(-1)^{n+1}$</button>
+  </div>
+  <div class="why">$\cos(n\pi)=(-1)^n$. Plugging $x=L$ into a cosine series is how alternating signs disappear (§2).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W2.</strong> $\sin(k_n L/2)=\sin(n\pi/2)$ for $n=1,2,3,4,5$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$1,0,1,0,1$</button>
+    <button class="opt" data-key="b">$1,0,-1,0,1$</button>
+    <button class="opt" data-key="c">$0,1,0,-1,0$</button>
+    <button class="opt" data-key="d">$1,-1,1,-1,1$</button>
+  </div>
+  <div class="why">Even $n$ give $\sin(m\pi)=0$; odd $n=2m-1$ give $(-1)^{m+1}$. So $x=L/2$ in a sine series gives an alternating sum over odd $n$.</div>
+</div>
+
+<h2>1 · Pointwise convergence: the value at every $x$</h2>
+<p>Lecture notation: $F(x)$ is the periodic extension (period $2L$) of $f$. The theorem, as stated in Lecture 17 (slide 5):</p>
+
+<div class="box">
+<p><strong>Pointwise convergence (Dirichlet's sufficient condition).</strong> Let $f$ be piecewise continuously differentiable on $(-L,L]$. Then:</p>
+<ul>
+<li>The Fourier series of $f$ exists, i.e. the Euler-Fourier integrals all converge.</li>
+<li>The Fourier series converges to the periodic extension, $F(x)$, where it is continuous.</li>
+<li>For any $x$ where $F(x)$ is discontinuous, the Fourier series instead converges to
+$$\tfrac12\Big(\lim_{w\to x^-}F(w)+\lim_{w\to x^+}F(w)\Big).$$</li>
+</ul>
+</div>
+
+<ol class="steps">
+<li>Sketch $F$ over 2 or 3 periods. Jumps can hide at the <strong>endpoints $\pm L$</strong>: compare $f(L^-)$ with $f(-L^+)$.</li>
+<li>Continuous point: answer $F(x)$. To get $F(x)$ for $x$ outside $(-L,L]$, subtract a multiple of $2L$ first.</li>
+<li>Jump: answer the average of the two one-sided limits. The value $f$ was <em>given</em> there is irrelevant.</li>
+</ol>
+
+<p><strong>Worked.</strong> $L=2$: $f(x)=x+2$ on $(-2,0)$, $f(x)=1$ on $(0,2]$.<br>
+At $x=0$: $f(0^-)=2$, $f(0^+)=1$, so $s(0)=\tfrac32$.<br>
+At $x=\pm2$: $F(2^-)=f(2^-)=1$, $F(2^+)=f(-2^+)=0$, so $s(\pm2)=\tfrac12$ (even though $f(2)=1$ was given).<br>
+At $x=5$: $5-4=1$, continuous there, so $s(5)=f(1)=1$.</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q1.</strong> Same $f$. The Fourier series at $x=-3$ converges to…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$1$</button>
+    <button class="opt" data-key="b">$-1$</button>
+    <button class="opt" data-key="c">$\tfrac12$</button>
+    <button class="opt" data-key="d">$\tfrac32$</button>
+  </div>
+  <div class="why">$-3+4=1\in(0,2)$, where $F$ is continuous and equals $1$. Option (b) is the trap of plugging $-3$ into $x+2$ without shifting.</div>
+</div>
+
+<h2>2 · Summing a numerical series by choosing $x$</h2>
+<p>Once you know the series equals $F(x)$ (or the average) at a point, plugging that point in turns the series into a number series. Choose $x$ so the trig factors become simple:</p>
+<div class="box">
+<p>$x=0$: $\cos(k_n\cdot0)=1$, sines vanish. &nbsp; $x=L$: $\cos(n\pi)=(-1)^n$, sines vanish. &nbsp; $x=L/2$: $\sin(n\pi/2)$ alternates over odd $n$; $\cos(n\pi/2)$ alternates over even $n$.</p>
+<p>Write the line "<em>by pointwise convergence (F continuous at $x_0$, or the average at a jump)</em>" before substituting. Past papers say "calculation required, quoting is not enough": the substitution and the solve must be on the page.</p>
+</div>
+
+<p><strong>Worked 1 (Lecture Ex. 4.3 series, a new point).</strong> $x^2=\dfrac{\pi^2}3+4\displaystyle\sum_{n\ge1}\frac{(-1)^n}{n^2}\cos nx$ on $(-\pi,\pi]$. $F$ is continuous at $\pi$ ($f(\pi^-)=f(-\pi^+)=\pi^2$), so at $x=\pi$:
+$$\pi^2=\frac{\pi^2}3+4\sum\frac{(-1)^n(-1)^n}{n^2}=\frac{\pi^2}3+4\sum\frac1{n^2}\;\Rightarrow\;\sum_{n\ge1}\frac1{n^2}=\frac{\pi^2}6.$$
+(Lecture 17 used $x=0$ to get $\sum(-1)^n/n^2=-\pi^2/12$.)</p>
+
+<p><strong>Worked 2.</strong> $x=2\displaystyle\sum_{n\ge1}\frac{(-1)^{n+1}}{n}\sin nx$ on $(-\pi,\pi)$. At $x=\pi/2$ (continuous), only odd $n=2m-1$ survive, with $(-1)^{n+1}=1$ and $\sin\frac{(2m-1)\pi}2=(-1)^{m+1}$:
+$$\frac\pi2=2\sum_{m\ge1}\frac{(-1)^{m+1}}{2m-1}\;\Rightarrow\;1-\tfrac13+\tfrac15-\dots=\frac\pi4.$$</p>
+
+<div class="trap"><strong>Two traps</strong><br>
+(1) Plugging in a jump point and using $f(x_0)$ instead of the average. (2) Splitting odd/even: $\sum_{n}\frac{1-(-1)^n}{n^2}=2\sum_{m}\frac1{(2m-1)^2}$, because $1-(-1)^n$ is $2$ for odd $n$ and $0$ for even $n$.</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q2.</strong> A series $s(x)=\tfrac12+\sum_{m\ge1}c_m\cos\big((2m-1)\pi x\big)$ with $c_m=\dfrac{4}{\pi^2(2m-1)^2}$, period $2$, converges to $1$ at $x=0$. Then $\sum_{m\ge1}\frac1{(2m-1)^2}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\pi^2/6$</button>
+    <button class="opt" data-key="b">$\pi^2/4$</button>
+    <button class="opt" data-key="c">$\pi^2/12$</button>
+    <button class="opt" data-key="d">$\pi^2/8$</button>
+  </div>
+  <div class="why">$1=\tfrac12+\tfrac4{\pi^2}\sum\frac1{(2m-1)^2}$, so the sum is $\tfrac12\cdot\tfrac{\pi^2}4=\tfrac{\pi^2}8$. Worth memorising as a check: $\sum\frac1{n^2}=\frac{\pi^2}6$, odd part $\frac{\pi^2}8$, even part $\frac{\pi^2}{24}$.</div>
+</div>
+
+<h2>3 · Gibbs phenomenon: where, and how big</h2>
+<p>Lecture 17 (slide 10): <em>"The Fourier series of a discontinuous function overshoots and 'rings' on either side of the discontinuity, which is known as Gibbs phenomenon."</em> Drag $N$ below for $f(x)=x$ on $(-\pi,\pi]$ (the lecture's example; $F$ jumps by $2\pi$ at every odd multiple of $\pi$).</p>
+
+<div id="plot-saw"></div>
+
+<div class="box">
+<p><strong>Memorise (the slides give no number):</strong></p>
+<ul>
+<li><strong>Where:</strong> next to every jump of $F$, on both sides, including at $x=\pm L$ when $f(L^-)\ne f(-L^+)$. Nowhere else.</li>
+<li><strong>How big:</strong> the partial sums overshoot by about <strong>9% of the jump size</strong> on each side (precisely $\approx0.0895\times$ jump; "8.9%" or "9%" is accepted). For the sawtooth: $0.09\times2\pi\approx0.56$, so the peaks sit near $\pm3.70$.</li>
+<li><strong>It never goes away:</strong> as $N\to\infty$ the overshoot moves closer to the jump but its height tends to $\approx9\%$, not $0$. So the max error stays at least half the jump: not uniform.</li>
+</ul>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q3.</strong> $f(x)=e^x$ on $(-1,1]$. Near $x=1$, large-$N$ partial sums overshoot the top value by roughly…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$0.09\,(e-e^{-1})$</button>
+    <button class="opt" data-key="b">$0.09\,(e+e^{-1})$</button>
+    <button class="opt" data-key="c">$0.18\,(e-e^{-1})$</button>
+    <button class="opt" data-key="d">$0.09\,(1-e^{-1})$</button>
+  </div>
+  <div class="why">$F$ jumps from $f(1^-)=e$ to $f(-1^+)=e^{-1}$, a jump of $e-e^{-1}$. The overshoot is about 9% of the jump, above $e$ on the left and below $e^{-1}$ on the right.</div>
+</div>
+
+<h2>4 · Coefficient decay reads the continuity of $F$</h2>
+<p>Compare the two examples: $x$ has $b_n=\frac{2(-1)^{n+1}}n$, decay $1/n$. $|x|$ on $(-\pi,\pi]$ has $a_n=\frac{2((-1)^n-1)}{\pi n^2}$, decay $1/n^2$. Its extension is a continuous triangle wave, and the max error shrinks to $0$:</p>
+
+<div id="plot-tri"></div>
+
+<div class="box">
+<p><strong>Rule of thumb</strong> (Tute 8 Q1(d) and Tute 7 Q3(e) ask for exactly this):</p>
+<p>$F$ has a jump $\;\Rightarrow\;$ coefficients $\sim1/n$, not uniform, Gibbs.<br>
+$F$ continuous, corners only ($F'$ jumps) $\;\Rightarrow\;\sim1/n^2$, uniform, no Gibbs.<br>
+$F$ and $F'$ continuous $\;\Rightarrow\;\sim1/n^3$ or faster.</p>
+<p>Use it to <em>check</em> your coefficients: a sawtooth with $1/n^2$ coefficients means an algebra slip. For a proof, use §5.</p>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q4.</strong> On $(-\pi,\pi]$, which function has a uniformly convergent Fourier series?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\sin(x/2)$</button>
+    <button class="opt" data-key="b">$x+\pi$</button>
+    <button class="opt" data-key="c">$\cos(x/2)$</button>
+    <button class="opt" data-key="d">$e^{x}$</button>
+  </div>
+  <div class="why">Check the ends: $\cos(\pm\pi/2)=0$ both sides, so $F$ is continuous (a corner at $\pm\pi$) and $a_n=\frac{-4(-1)^n}{\pi(4n^2-1)}\sim1/n^2$. $\sin(x/2)$ goes $1\to-1$, $x+\pi$ goes $2\pi\to0$, $e^x$ goes $e^\pi\to e^{-\pi}$: all jump.</div>
+</div>
+
+<h2>5 · Uniform convergence: quote, or prove with Weierstrass</h2>
+<div class="box">
+<p><strong>Theorem (Lecture 17, slide 10).</strong> If $f'$ is piecewise continuous on $x\in(-L,L]$, and the periodic extension of $f$ is continuous on $\mathbb R$, then the Fourier series of $f$ converges uniformly to the periodic extension of $f$.</p>
+<p>If $f$ satisfies the conditions for pointwise convergence of its Fourier series but the periodic extension of $f$ is discontinuous, then the convergence will <strong>NOT</strong> be uniform.</p>
+</div>
+<p>Why the second line holds (one sentence for the exam): each partial sum is continuous, and a uniform limit of continuous functions is continuous, so a series converging to a discontinuous $F$ cannot converge uniformly.</p>
+
+<p><strong>Weierstrass M-test proof</strong> (Lecture 17, slides 7 to 9, Ex. 4.6). For the triangle wave:</p>
+<div class="box">
+<p>For all $x\in\mathbb R$ and $n\ge1$: $\;|a_n\cos nx+b_n\sin nx|\le|a_n|+|b_n|=\dfrac{2|(-1)^n-1|}{\pi n^2}\le\dfrac4{\pi n^2}=:M_n.$</p>
+<p>$\sum M_n=\frac4\pi\sum\frac1{n^2}$ converges ($p$-series, $p=2$). Hence, by the Weierstrass M-test, the Fourier series converges uniformly on $\mathbb R$.</p>
+</div>
+
+<div class="trap"><strong>M-test traps</strong><br>
+(1) $M_n$ must not depend on $x$: bound $|\cos|,|\sin|\le1$ first. (2) If the best bound is $\sum1/n$ (divergent), the M-test is <em>inconclusive</em>; it does not prove non-uniform. For that, use the discontinuity of $F$. (3) $f$ continuous on $(-L,L)$ is not enough: check the ends.</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q5.</strong> A student bounds $|b_n\sin nx|\le\frac2n$, notes $\sum\frac2n$ diverges, and concludes "not uniform". The verdict on this reasoning:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">valid, divergent bound proves non-uniform convergence</button>
+    <button class="opt" data-key="b">invalid, divergent bound gives no conclusion</button>
+    <button class="opt" data-key="c">valid, provided $F$ is continuous everywhere</button>
+    <button class="opt" data-key="d">invalid, should bound by $\frac1{n^2}$ instead</button>
+  </div>
+  <div class="why">The M-test is one-directional. The correct argument for non-uniform is "$F$ is discontinuous at …, so by the lecture theorem convergence is not uniform".</div>
+</div>
+
+<h2>6 · Practice (exam level)</h2>
+<div class="box">
+<p><strong>P1.</strong> $|\sin x|$ on $(-\pi,\pi]$ has Fourier series $\dfrac2\pi-\dfrac4\pi\displaystyle\sum_{k\ge1}\frac{\cos 2kx}{4k^2-1}$.
+(a) What does it converge to for each $x$? Is the convergence uniform? Prove it.
+(b) Evaluate $\sum_{k\ge1}\frac1{4k^2-1}$ and $\sum_{k\ge1}\frac{(-1)^k}{4k^2-1}$.</p>
+<p><strong>P2.</strong> $f(x)=x^3$ on $(-1,1]$ has $b_n=\dfrac{2(-1)^n(6-\pi^2n^2)}{\pi^3n^3}$, $a_n=0$.
+(a) Value of the series at $x=1$ and at $x=3$. (b) Does Gibbs occur? Where, and roughly how big? (c) Now $g(x)=x^3-x$ has $b_n=\dfrac{12(-1)^n}{\pi^3n^3}$. Is its convergence uniform? Prove it.</p>
+<p><strong>P3.</strong> For $\sin(x/2)$ and for $\cos(x/2)$ on $(-\pi,\pi]$: the value of each series at $x=\pi$, and the decay rate of the coefficients.</p>
+</div>
+<details><summary>P1 solution</summary><div>
+<p>(a) $|\sin x|$ is piecewise $C^1$ and $F$ is continuous ($|\sin(\pm\pi)|=0$, and $F$ is just $|\sin x|$ on $\mathbb R$), so the series converges to $|\sin x|$ for every $x$. Uniform: $\left|\frac{\cos2kx}{4k^2-1}\right|\le\frac1{4k^2-1}\le\frac1{3k^2}=M_k$, $\sum M_k$ converges, so uniform by the M-test.</p>
+<p>(b) $x=0$: $0=\frac2\pi-\frac4\pi\sum\frac1{4k^2-1}\Rightarrow\sum\frac1{4k^2-1}=\frac12$. $x=\frac\pi2$: $\cos k\pi=(-1)^k$, so $1=\frac2\pi-\frac4\pi\sum\frac{(-1)^k}{4k^2-1}\Rightarrow\sum\frac{(-1)^k}{4k^2-1}=\frac12-\frac\pi4$.</p>
+<p>Check: $\frac1{4k^2-1}=\frac12\big(\frac1{2k-1}-\frac1{2k+1}\big)$ telescopes to $\frac12$ ✓.</p>
+</div></details>
+<details><summary>P2 solution</summary><div>
+<p>(a) $F$ jumps at $x=1$ from $1$ to $-1$: value $\frac12(1+(-1))=0$. $x=3$ is $1+2$, same point of the period: $0$.<br>
+(b) Yes: at every odd integer, jump size $2$, so the partial sums overshoot by about $0.09\times2\approx0.18$ (peaks near $\pm1.18$). Note $b_n\sim\frac{2(-1)^{n+1}}{\pi n}$, decay $1/n$, as predicted.<br>
+(c) $g(\pm1)=0$, so $G$ is continuous and $g'$ is piecewise continuous: uniform by the lecture theorem. M-test: $|b_n\sin n\pi x|\le\frac{12}{\pi^3n^3}=M_n$, $\sum M_n$ converges ($p=3$), so uniform.</p>
+</div></details>
+<details><summary>P3 solution</summary><div>
+<p>$\sin(x/2)$: jump from $1$ to $-1$ at $\pi$, value $0$; $b_n=\frac{-8(-1)^nn}{\pi(4n^2-1)}\sim\frac1n$. Gibbs at odd multiples of $\pi$.<br>
+$\cos(x/2)$: continuous at $\pi$, value $\cos\frac\pi2=0$; $a_n=\frac{-4(-1)^n}{\pi(4n^2-1)}\sim\frac1{n^2}$. Uniform, no Gibbs. Same value $0$, for different reasons: say which.</p>
+</div></details>
+
+<h2>7 · Exam-level challenge (16 marks, about 24 minutes)</h2>
+<div class="box">
+<p>Let $f(x)=0$ for $-1&lt;x\le0$ and $f(x)=1-x$ for $0&lt;x\le1$, with $f(x+2)=f(x)$.</p>
+<p>(a) Sketch $f$ for $-3\le x\le3$. State, quoting a result from lectures, the value the Fourier series of $f$ converges to at $x=0$, $x=1$ and $x=\tfrac52$. <em>[3]</em><br>
+(b) Show that $a_0=\tfrac12$, and find $a_n$ and $b_n$ for $n\ge1$. <em>[5]</em><br>
+(c) Using (b) and pointwise convergence at a suitable point, evaluate $\displaystyle\sum_{m=1}^\infty\frac1{(2m-1)^2}$. Calculation is required. <em>[2]</em><br>
+(d) Do the partial sums exhibit Gibbs phenomenon? If so, where, and approximately how far above $1$ do they reach for large $N$? Is the convergence uniform? Explain. <em>[3]</em><br>
+(e) Let $g(x)=1-|x|$ on $(-1,1]$, period 2. Noting $g(x)=f(x)+f(-x)$ for $x\ne0$, write down the Fourier series of $g$ without integrating, and prove it converges uniformly with the Weierstrass M-test. <em>[3]</em></p>
+</div>
+<p>Full marking-style solution: <a href="../worked/0023-challenge-full-solution.html">worked/0023-challenge-full-solution.html</a>. Attempt every part first.</p>
+<details><summary>Answer key (quick check)</summary><div>
+<p>(a) $\tfrac12$, $0$, $\tfrac12$. (b) $a_n=\dfrac{1-(-1)^n}{\pi^2n^2}$, $b_n=\dfrac1{\pi n}$. (c) $\pi^2/8$. (d) Yes, at even integers; peaks $\approx1.09$; not uniform. (e) $g=\tfrac12+\tfrac4{\pi^2}\sum_m\frac{\cos((2m-1)\pi x)}{(2m-1)^2}$, $M_m=\frac4{\pi^2(2m-1)^2}$.</p>
+</div></details>
+
+<h2>8 · Before you close this tab</h2>
+<details><summary>Retrieval: write from memory, then check</summary><div>
+<ol>
+<li>The three bullet points of the pointwise theorem, and its hypothesis.</li>
+<li>The uniform-convergence theorem (two hypotheses) and the "NOT uniform" companion.</li>
+<li>Gibbs: where, and how big.</li>
+<li>Which $x$ to plug in to kill sines; to turn $(-1)^n$ into $1$.</li>
+<li>The M-test sentence, and why a divergent bound proves nothing.</li>
+</ol>
+<p><strong>Answers:</strong> (1) $f$ piecewise $C^1$: series exists; $\to F(x)$ where $F$ continuous; $\to$ average of one-sided limits at jumps. (2) $f'$ piecewise continuous and $F$ continuous on $\mathbb R$ ⇒ uniform; pointwise conditions but $F$ discontinuous ⇒ not uniform. (3) Both sides of every jump of $F$ (incl. $\pm L$); $\approx9\%$ of the jump. (4) $x=0$ kills sines; $x=L$ makes $\cos n\pi\cdot(-1)^n=1$. (5) $|{\rm term}|\le M_n$ independent of $x$, $\sum M_n&lt;\infty$ ⇒ uniform; the test only works one way.</p>
+</div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/17_MAST20030_Lecture_Notes_Topic4_Fourier_handout.pdf">Lecture 17</a> (slide 5 pointwise theorem; slide 6 Ex. 4.5; slides 7 to 9 Weierstrass recap and Ex. 4.6; slide 10 uniform theorem and Gibbs) and the recap on slide 1 of <a href="../lectures/18_MAST20030_Lecture_Notes_Topic4_Fourier_handout.pdf">Lecture 18</a>. Then Paul's Online Notes, <a href="https://tutorial.math.lamar.edu/Classes/DE/ConvergenceFourierSeries.aspx">Convergence of Fourier Series</a>. For the 9% figure: <a href="https://en.wikipedia.org/wiki/Gibbs_phenomenon">Wikipedia, Gibbs phenomenon</a> (the constant $\frac1\pi\mathrm{Si}(\pi)-\frac12\approx0.0895$). Revisit <a href="0012-uniform-convergence-genuine.html">Lesson 12</a> if the M-test feels rusty.</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic4.pdf">Booklet 4</a>, Q1 (c), (d), (f): only "what does it converge to" and "uniform?" (read the decay off the answer sheet's coefficients).</li>
+  <li>Booklet Q2(c) and Q3(c): one is uniform, one is not. Decide before writing.</li>
+  <li><a href="../tutes/tute_week_07.pdf">Tute week 7</a>, Q3 (b), (d), (e).</li>
+  <li>Optional: Tute 7 Q2(b) sums; <a href="../tutes/tute_week_08.pdf">Tute 8</a> Q1 (d), (e); Booklet Q1 (a), (b), (e) convergence parts; Q4 (c), (f).</li>
+</ul>
+<p><strong>Spacing:</strong> in 2 days, redo Q3, Q5, P2 cold, and challenge (c) and (d) without looking.</p>
+
+<div class="ask">💬 Unsure whether your "converges to" sentence would get the mark, or want your M-test checked? Ask me in the terminal and paste your working.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0022-extensions-half-range.html">Lesson 22</a> and <a href="0021-fourier-coefficients.html">Lesson 21</a></span>
+  <span>Next: <a href="0024-parseval-complex-form.html">Lesson 24, Parseval and complex form</a></span>
+  <span>Reference: <a href="../reference/topic4-cheatsheet.html">Topic 4 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+<script>
+(function () {
+  const PI = Math.PI;
+  const wrap = (t) => t - 2 * PI * Math.round(t / (2 * PI));   // to [-π, π]
+  const piTicks = [{ v: -2 * PI, label: '−2π' }, { v: -PI, label: '−π' }, { v: 0, label: '0' }, { v: PI, label: 'π' }, { v: 2 * PI, label: '2π' }];
+  const saw = (n, t) => 2 * (n % 2 ? 1 : -1) * Math.sin(n * t) / n;
+  SeriesPlot.mount(document.getElementById('plot-saw'), {
+    term: saw, n0: 1,
+    limit: (t) => { const w = wrap(t); return Math.abs(Math.abs(w) - PI) < 1e-9 ? 0 : w; },
+    x: [-2 * PI, 2 * PI], y: [-4.3, 4.3],
+    N: { min: 5, max: 200, value: 10 },
+    D: [-2 * PI, 2 * PI],
+    supNote: (N) => {
+      let best = -Infinity;
+      for (let i = 1; i <= 1500; i++) {
+        const t = PI - (PI / 2) * i / 1500; let s = 0;
+        for (let n = 1; n <= N; n++) s += saw(n, t);
+        if (s > best) best = s;
+      }
+      const ov = best - PI;
+      return `(stuck near half the jump, π) · peak ${best.toFixed(2)} = π + ${ov.toFixed(2)}, i.e. ${(100 * ov / (2 * PI)).toFixed(1)}% of the jump 2π (→ 8.95% as N → ∞)`;
+    },
+    dots: [{ t: -PI, y: 0 }, { t: PI, y: 0 }, { t: PI, y: PI, open: true }, { t: PI, y: -PI, open: true }, { t: -PI, y: PI, open: true }, { t: -PI, y: -PI, open: true }],
+    xTicks: piTicks,
+    labels: { seq: 'S_N(x) for f = x', limit: 'F(x), sawtooth' },
+    aria: 'Partial sums of the Fourier series of x on minus pi to pi, overshooting near each jump at odd multiples of pi',
+  });
+  const tri = (n, t) => (n === 0 ? PI / 2 : n % 2 ? -4 * Math.cos(n * t) / (PI * n * n) : 0);
+  const oddTail = (N) => { let s = 0; for (let n = 1; n <= N; n += 2) s += 1 / (n * n); return PI / 2 - (4 / PI) * s; };
+  SeriesPlot.mount(document.getElementById('plot-tri'), {
+    term: tri, n0: 0,
+    limit: (t) => Math.abs(wrap(t)),
+    x: [-2 * PI, 2 * PI], y: [-0.4, 3.6],
+    N: { min: 1, max: 40, value: 3 },
+    D: [-2 * PI, 2 * PI],
+    sup: (N) => ({ value: oddTail(N), t: 0 }),
+    supNote: () => '(→ 0: uniform)',
+    tail: oddTail,
+    xTicks: piTicks,
+    labels: { seq: 'S_N(x) for f = |x|', limit: 'F(x), triangle' },
+    aria: 'Partial sums of the Fourier series of |x| converging uniformly to the triangle wave',
+  });
+})();
+</script>
+</body>
+</html>

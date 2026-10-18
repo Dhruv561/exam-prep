@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topic 4 Cheat Sheet</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+@page { size: A4; margin: 8mm; }
+body.ref main { max-width: 64rem; }
+.cols { column-count: 2; column-gap: 1.4rem; }
+body.ref .cols h2 { margin: .7rem 0 .25rem; padding-top: .3rem; font-size: 1rem; break-after: avoid; }
+.cols p, .cols li { margin: .2rem 0; }
+.cols table { margin: .25rem 0; font-size: .92em; }
+.cols td, .cols th { padding: .1rem .4rem; }
+.cols .box { margin: .3rem 0; padding: .3rem .6rem; }
+.cols ul, .cols ol { margin: .2rem 0; padding-left: 1.1rem; }
+.cols .katex-display { margin: .2em 0; }
+.cols ol.steps > li { margin: .2rem 0; padding-left: 1.6rem; }
+.cols ol.steps > li::before { width: 1.2rem; height: 1.2rem; font-size: .7rem; line-height: 1.2rem; }
+.mem { font-size: .72em; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border: 1px solid currentColor; border-radius: 3px; padding: 0 .25em; white-space: nowrap; vertical-align: .1em; }
+@media print {
+  html { font-size: 6.9pt; }
+  h1 { font-size: 13pt; margin: 0; } .lede { margin: .1rem 0; }
+  .cols { column-gap: 1rem; }
+  body.ref .cols h2 { margin: .3rem 0 .1rem; padding-top: .1rem; }
+  .cols p, .cols li { margin: .12rem 0; }
+  .cols table, .cols .box { break-inside: avoid; }
+  .nav { display: none; }
+  body.ref main { padding: 0; }
+}
+</style>
+</head>
+<body class="ref">
+<main>
+<div class="kicker">MAST20030 · Reference</div>
+<h1>Topic 4: Fourier series</h1>
+<p class="lede">Lessons 21–26, lectures 15–19. <strong>[S]</strong> = on the formula sheet (only the coefficient formulas and product-to-sum identities). <span class="mem">memorise</span> = not on the sheet.</p>
+
+<div class="cols">
+
+<h2>Coefficients [S]</h2>
+<div class="box">$$f(x)\sim\frac{a_0}{2}+\sum_{n\ge1}\Big(a_n\cos\tfrac{n\pi x}{L}+b_n\sin\tfrac{n\pi x}{L}\Big)$$ $$a_n=\frac1L\!\int_{-L}^{L}\!f\cos\tfrac{n\pi x}{L}\,dx,\ \ b_n=\frac1L\!\int_{-L}^{L}\!f\sin\tfrac{n\pi x}{L}\,dx$$</div>
+<p>Period $2L$, $k_n=n\pi/L$. $a_0$ comes from the $a_n$ formula with $n=0$, so $\frac{a_0}{2}$ is the <strong>average</strong> of $f$. Compute $a_0$ separately: the general $a_n$ often has $n$ in a denominator.</p>
+<p><strong>Parity shortcuts</strong> <span class="mem">memorise</span>: $f$ even $\Rightarrow b_n=0$, $a_n=\frac2L\int_0^Lf\cos\frac{n\pi x}{L}dx$. $f$ odd $\Rightarrow a_n=0$ (incl. $a_0$), $b_n=\frac2L\int_0^Lf\sin\frac{n\pi x}{L}dx$. Say "by parity" in one line, then compute only the non-zero ones.</p>
+
+<h2>Extensions &amp; half-range</h2>
+<p>$f$ given on $(0,L)$. <strong>Even extension</strong>: $F(x)=f(-x)$ on $(-L,0)$, then $2L$-periodic $\Rightarrow$ cosine series. <strong>Odd extension</strong>: $F(x)=-f(-x)$ $\Rightarrow$ sine series. Same half-range formulas as above.</p>
+<ul>
+<li>"$f(-x)=\pm f(x)$, $f(x+2a)=f(x)$" means $L=a$ and the extension is fixed for you.</li>
+<li>Sketch 3 periods. Mark jumps with an open/closed dot and the midpoint value.</li>
+<li>Odd ext. jumps at $x=0$ if $f(0^+)\ne0$, and at $x=L$ if $f(L^-)\ne0$. Even ext. has no jumps from reflection (only kinks).</li>
+<li>Piecewise $f$: split the integral at each break; zero pieces drop out.</li>
+</ul>
+
+<h2>Integrals &amp; values <span class="mem">memorise</span></h2>
+<div class="box">$$\int x\cos ax\,dx=\frac{x\sin ax}{a}+\frac{\cos ax}{a^2}$$ $$\int x\sin ax\,dx=-\frac{x\cos ax}{a}+\frac{\sin ax}{a^2}$$</div>
+<table>
+<tr><th>$\sin n\pi$</th><th>$\cos n\pi$</th><th>$1-(-1)^n$</th><th>$\sin\frac{n\pi}2$, $n=1,2,3,4$</th><th>$\cos\frac{n\pi}2$</th></tr>
+<tr><td>$0$</td><td>$(-1)^n$</td><td>$0$ even, $2$ odd</td><td>$1,0,-1,0$</td><td>$0,-1,0,1$</td></tr>
+</table>
+<p>Products [S]: $\sin A\cos B=\tfrac12[\sin(A-B)+\sin(A+B)]$, $\cos A\cos B=\tfrac12[\cos(A-B)+\cos(A+B)]$, $\sin A\sin B=\tfrac12[\cos(A-B)-\cos(A+B)]$. With $\sin x$ or $\cos x$ in $f$: the $(1-n)$ term divides by $0$ at $n=1$, so <strong>do $n=1$ separately</strong>. Non-integer frequency ($\cos\frac x2$): no special case, gives $\frac1{n-\frac12}\pm\frac1{n+\frac12}$ terms.</p>
+<p>Known on $(-L,L]$: $x=\sum\frac{2L(-1)^{n+1}}{n\pi}\sin\frac{n\pi x}L$, $\ x^2=\frac{L^2}3+\sum\frac{4L^2(-1)^n}{n^2\pi^2}\cos\frac{n\pi x}L$. On $(-\pi,\pi]$: $|x|$: $a_0=\pi$, $a_n=\frac{2((-1)^n-1)}{\pi n^2}$; $\operatorname{sgn}x$: $b_n=\frac{2(1-(-1)^n)}{n\pi}$.</p>
+
+<h2>Pointwise convergence <span class="mem">memorise</span></h2>
+<div class="box"><strong>Dirichlet</strong> (lect. 17): $f$ piecewise $C^1$ on $(-L,L]$ $\Rightarrow$ FS converges to the periodic extension $F(x)$ where $F$ is continuous, and to $\tfrac12\big[F(x^-)+F(x^+)\big]$ at a jump.</div>
+<p>At the ends: value at $x=\pm L$ is $\tfrac12[f(L^-)+f(-L^+)]$. Answer "what does it converge to" as a piecewise function over one period, then "extended $2L$-periodically".</p>
+<p><strong>Evaluating $\sum$:</strong> plug in $x$ where cos/sin are simple ($0$, $L$, $L/2$), set series = $F$ (or midpoint), rearrange. Show the line; quoting is not enough.</p>
+<table>
+<tr><td>$\sum\frac1{n^2}=\frac{\pi^2}6$</td><td>$\sum\frac{(-1)^{n+1}}{n^2}=\frac{\pi^2}{12}$</td><td>$\sum\frac1{(2k-1)^2}=\frac{\pi^2}8$</td></tr>
+<tr><td>$\sum\frac1{n^4}=\frac{\pi^4}{90}$</td><td>$\sum\frac{(-1)^{k+1}}{2k-1}=\frac\pi4$</td><td>(answers to check against)</td></tr>
+</table>
+
+<h2>Gibbs phenomenon <span class="mem">memorise</span></h2>
+<p>Occurs <strong>iff $F$ has a jump</strong>, near each jump (incl. $x=\pm L$ if $f(L^-)\ne f(-L^+)$). Partial sums overshoot by $\approx 9\%$ <strong>of the jump size</strong> ($0.0895\times$jump) on each side. Adding terms narrows the spike but does not shrink it. No jump $\Rightarrow$ no Gibbs.</p>
+
+<h2>Uniform convergence <span class="mem">memorise</span></h2>
+<div class="box"><strong>Theorem</strong> (lect. 17): $f'$ piecewise continuous on $(-L,L]$ and $F$ <strong>continuous on $\mathbb R$</strong> $\Rightarrow$ FS converges uniformly to $F$. If $F$ has a jump: <strong>not</strong> uniform (partial sums are continuous; a uniform limit of continuous functions is continuous).</div>
+<p><strong>M-test write-up:</strong> $\big|a_n\cos\frac{n\pi x}L+b_n\sin\frac{n\pi x}L\big|\le|a_n|+|b_n|\le\frac C{n^2}$ for all $x\in\mathbb R$; $\sum\frac C{n^2}$ converges ($p=2>1$, [S]); so the FS converges uniformly on $\mathbb R$.</p>
+<p><strong>Decay rule:</strong> $F$ has a jump $\Rightarrow$ coeffs $\sim\frac1n$ (M-test fails, $\sum\frac1n$ diverges; inconclusive alone). $F$ continuous, kink only $\Rightarrow\sim\frac1{n^2}$, uniform. Smoother $\Rightarrow$ faster.</p>
+
+<h2>Parseval / average power <span class="mem">memorise</span></h2>
+<div class="box">$$\frac1L\int_{-L}^{L}|f|^2dx=\frac{a_0^2}{2}+\sum_{n\ge1}\big(a_n^2+b_n^2\big)$$</div>
+<p>Complex: $\frac1{2L}\int_{-L}^{L}|f|^2dx=\sum_{-\infty}^{\infty}|c_n|^2$.</p>
+<p>Average power = $\langle f,f\rangle$ = LHS (lecture uses $\frac1L$). Use: $1/n$ coeffs $\to\sum\frac1{n^2}$; $1/n^2$ coeffs $\to\sum\frac1{n^4}$. E.g. $x^2$ on $(-\pi,\pi]$: $\frac{2\pi^4}5=\frac{2\pi^4}9+16\sum\frac1{n^4}$.</p>
+
+<h2>Complex form <span class="mem">memorise</span></h2>
+<p>$f\sim\sum_{-\infty}^{\infty}c_ne^{ik_nx}$, $c_n=\frac1{2L}\int_{-L}^{L}fe^{-ik_nx}dx$. $c_0=\frac{a_0}2$, $c_n=\frac{a_n-ib_n}2$, $c_{-n}=\frac{a_n+ib_n}2=\overline{c_n}$ ($f$ real). Back: $a_n=c_n+c_{-n}$, $b_n=i(c_n-c_{-n})$. Use $e^{\pm in\pi}=(-1)^n$.</p>
+
+<h2>Term-by-term calculus <span class="mem">memorise</span></h2>
+<ul>
+<li><strong>Integration</strong>: always OK for piecewise continuous $f$ (result converges uniformly). Justify: "$f$ piecewise continuous, so term-by-term integration is valid." $\int_0^x\cos k_n\xi=\frac{\sin k_nx}{k_n}$, $\int_0^x\sin k_n\xi=\frac{1-\cos k_nx}{k_n}$. Trap: $\frac{a_0}2$ integrates to $\frac{a_0}2x$, not a Fourier term. Constant: collect it, or average over a period (lect. 19).</li>
+<li><strong>Differentiation</strong>: needs $F$ continuous on $\mathbb R$ and $f'$ piecewise $C^1$. Fails for $x$ on $(-\pi,\pi]$: $-2\sum(-1)^n\cos nx$ diverges.</li>
+</ul>
+
+<h2>Periodic ODE recipe</h2>
+<p>$y''+ky=s(x)=\frac{a_0}2+\sum(a_n\cos k_nx+b_n\sin k_nx)$, periodic BCs $y(\pm L)$, $y'(\pm L)$ equal.</p>
+<ol class="steps">
+<li>Trial $y_p=\frac{A_0}2+\sum(A_n\cos k_nx+B_n\sin k_nx)$ (only sines if $s$ odd, cosines if even)</li>
+<li>Differentiate term by term: $y_p''=-\sum k_n^2(\dots)$</li>
+<li>Match: $kA_0=a_0$, $(k-k_n^2)A_n=a_n$, $(k-k_n^2)B_n=b_n$</li>
+<li>Write $y_p$ with the solved $A_n,B_n$. IVP (lect. 19): add $C_1\cos\sqrt k x+C_2\sin\sqrt k x$, fit ICs</li>
+</ol>
+<div class="trap"><strong>Resonance:</strong> $k=k_m^2=(m\pi/L)^2$ for some $m$ with $a_m$ or $b_m\ne0$ $\Rightarrow$ no periodic solution; response grows like $t\cos k_mt$. For $y''-ky$ ($k&gt;0$): $-(k+k_n^2)A_n=a_n$, never resonant.</div>
+
+<h2>Exam checklist</h2>
+<ol class="steps">
+<li>Even / odd / neither? Test the <em>extension</em>, then sketch 3 periods with midpoints at jumps</li>
+<li>Coefficients: state which vanish by parity; $a_0$ separately; simplify with $(-1)^n$, $\sin\frac{n\pi}2$; split odd/even $n$</li>
+<li>"Converges to?": $F$ where continuous, averages at jumps (incl. $\pm L$), piecewise answer</li>
+<li>"Uniform?": quote theorem (continuous $F$ + $f'$ p.w. continuous), or M-test with $C/n^2$; jump $\Rightarrow$ not uniform</li>
+<li>"Gibbs?": yes iff jump; where; $\approx9\%$ of jump</li>
+<li>"Evaluate $\sum$": plug in $x$ (pointwise) or use Parseval (squared coefficients); show the calculation</li>
+<li>Given two series (e.g. $x^4$, $x^2$): combine at one $x$ to isolate the requested sum</li>
+</ol>
+
+</div>
+
+<div class="nav">
+  <span>Lessons: <a href="../lessons/0021-fourier-coefficients.html">21</a> · <a href="../lessons/0022-extensions-half-range.html">22</a> · <a href="../lessons/0023-convergence-gibbs-uniform.html">23</a> · <a href="../lessons/0024-parseval-complex-form.html">24</a> · <a href="../lessons/0025-term-by-term-periodic-odes.html">25</a> · <a href="../lessons/0026-fourier-mixed-exam-set.html">26</a></span>
+  <span>Also: <a href="topic1-cheatsheet.html">Topic 1</a> · <a href="topic2-cheatsheet.html">Topic 2</a> · <a href="topic3-cheatsheet.html">Topic 3</a> · <a href="ode-method-map.html">Decision map</a></span>
+</div>
+</main>
+</body>
+</html>

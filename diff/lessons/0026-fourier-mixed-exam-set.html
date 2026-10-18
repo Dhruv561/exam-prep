@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fourier: Mixed Exam Set</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/series-plot.js"></script>
+<style>
+  /* Lesson 26 only */
+  table.flow td, table.flow th { text-align: left; vertical-align: top; }
+  .tblwrap { overflow-x: auto; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 26 · Topic 4: Fourier series · Timed mixed set</div>
+<h1>Five Fourier questions, exam format</h1>
+<p class="lede">No new teaching here. The exam's Fourier question comes as one 10–25 mark block that mixes coefficients, extensions, convergence, Gibbs, Parseval and term-by-term work. This set has five new questions worth 50 marks in that style, each with a hidden marking scheme.</p>
+
+<div class="mission">Why this matters for 5 Nov: Fourier series is about 12–15% of the paper. The algebra is light, usually one integration by parts or one product-to-sum. Marks are lost on the words instead: "converges to what at the jump?", "is it uniform? quote a result", "is term-by-term justified?". Every question below asks at least one of these.</div>
+
+<h2>0 · Which tool? (read once, then cover it)</h2>
+<div class="tblwrap">
+<table class="flow">
+<tr><th>You see</th><th>Do this</th><th>Lesson</th></tr>
+<tr><td>"Compute the Fourier series", period $2L$</td><td>$a_n = \frac1L\int_{-L}^{L} f\cos\frac{n\pi x}{L}$, $b_n = \frac1L\int_{-L}^{L} f\sin\frac{n\pi x}{L}$. Check parity first: even means $b_n=0$, odd means $a_n=0$.</td><td><a href="0021-fourier-coefficients.html">21</a></td></tr>
+<tr><td>$f$ given on $(0,L)$ with $f(-x)=\pm f(x)$, or "even/odd extension"</td><td>Sketch 3 periods first. Then half-range: $\frac2L\int_0^L$. Compute only the nonzero family.</td><td><a href="0022-extensions-half-range.html">22</a></td></tr>
+<tr><td>A trig piece times $\cos$ or $\sin$</td><td>Product-to-sum. Find the $n$ where a denominator vanishes and do that $n$ separately.</td><td><a href="0022-extensions-half-range.html">22</a></td></tr>
+<tr><td>"What does the series converge to?" or "evaluate $\sum$…"</td><td>Continuous point: $F(x)$. Jump (including $x=\pm L$): average of the one-sided limits. Plug in a point where the trig terms are simple.</td><td><a href="0023-convergence-gibbs-uniform.html">23</a></td></tr>
+<tr><td>"Uniform?" or "Gibbs?"</td><td>Is the periodic extension continuous? If yes and $f'$ is piecewise continuous, it's uniform (or use the M-test with $\sum|a_n|+|b_n|$). If no, it isn't uniform and Gibbs gives about a 9% overshoot of the jump.</td><td><a href="0023-convergence-gibbs-uniform.html">23</a></td></tr>
+<tr><td>$\sum 1/n^4$, $\sum 1/n^6$, "average power"</td><td>Parseval: $\frac1L\int_{-L}^{L} f^2 = \frac{a_0^2}{2} + \sum(a_n^2+b_n^2)$.</td><td><a href="0024-parseval-complex-form.html">24</a></td></tr>
+<tr><td>"Complex Fourier series"</td><td>$c_n = \frac1{2L}\int f e^{-in\pi x/L}$. Equivalently $c_n = \frac12(a_n - ib_n)$, $c_{-n}=\overline{c_n}$, $c_0 = a_0/2$.</td><td><a href="0024-parseval-complex-form.html">24</a></td></tr>
+<tr><td>$\int_0^x$ of a series, or a periodic ODE $y''+ky = $ series</td><td>Integration: always allowed, but the constant needs the mean. ODE: trial a full Fourier series and match coefficients. Resonance if $k=(n\pi/L)^2$ and that forcing coefficient is nonzero.</td><td><a href="0025-term-by-term-periodic-odes.html">25</a></td></tr>
+</table>
+</div>
+
+<h2>1 · Warm-up (5 min, spaced retrieval)</h2>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W1.</strong> For $n = 1, 2, 3, 4, \dots$ the values of $\sin(n\pi/2)$ are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$1, 0, -1, 0$, then repeating</button>
+    <button class="opt" data-key="b">$0, 1, 0, -1$, then repeating</button>
+    <button class="opt" data-key="c">$1, -1, 1, -1$, then repeating</button>
+    <button class="opt" data-key="d">$1, 0, 1, 0$, then repeating</button>
+  </div>
+  <div class="why">$\sin(\pi/2)=1$, $\sin\pi=0$, $\sin(3\pi/2)=-1$, $\sin2\pi=0$. Option (b) is $\cos(n\pi/2)$ shifted by one: $\cos(n\pi/2) = 0,-1,0,1$ (<a href="0021-fourier-coefficients.html">Lesson 21</a>).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W2.</strong> $f(x)=e^x$ on $(-1,1]$, extended with period 2. At $x=1$ its Fourier series converges to…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e$</button>
+    <button class="opt" data-key="b">$e^{-1}$</button>
+    <button class="opt" data-key="c">$\cosh 1$</button>
+    <button class="opt" data-key="d">$\sinh 1$</button>
+  </div>
+  <div class="why">The extension jumps at $x=1$: from $e$ on the left to $e^{-1}$ on the right. The series takes the average $\frac12(e+e^{-1}) = \cosh1$ (<a href="0023-convergence-gibbs-uniform.html">Lesson 23</a>).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W3.</strong> Near a jump of size $J$, the partial sums $S_N$ overshoot by…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">about $0.09J$, not shrinking as $N$ grows</button>
+    <button class="opt" data-key="b">about $0.5J$, not shrinking as $N$ grows</button>
+    <button class="opt" data-key="c">about $0.09J$, shrinking to zero with $N$</button>
+    <button class="opt" data-key="d">about $0.01J$, not shrinking as $N$ grows</button>
+  </div>
+  <div class="why">This is the Gibbs phenomenon. The overshoot moves closer to the jump as $N$ grows, but its height stays near 9% of $J$. So the maximum error never goes to 0 and the convergence is not uniform (<a href="0023-convergence-gibbs-uniform.html">Lesson 23</a>).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W4.</strong> A piecewise smooth $f$ has Fourier coefficients that decay like $1/n^2$ but no faster. Its periodic extension most likely…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">has a jump, so Gibbs occurs</button>
+    <button class="opt" data-key="b">is continuous, with corners in it</button>
+    <button class="opt" data-key="c">is smooth, with no corners anywhere</button>
+    <button class="opt" data-key="d">is odd, so only sines appear</button>
+  </div>
+  <div class="why">Rule of thumb: a jump in $F$ gives $1/n$, and a jump in $F'$ (a corner) gives $1/n^2$. Decay depends on smoothness, not parity (<a href="0023-convergence-gibbs-uniform.html">Lesson 23</a>).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W5.</strong> In the lecture normalisation, $\frac1L\int_{-L}^{L} f^2\,dx$ equals…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$a_0^2 + \sum_{n\ge1}(a_n^2+b_n^2)$</button>
+    <button class="opt" data-key="b">$\tfrac14a_0^2 + \sum_{n\ge1}(a_n^2+b_n^2)$</button>
+    <button class="opt" data-key="c">$\tfrac12a_0^2 + \tfrac12\sum_{n\ge1}(a_n^2+b_n^2)$</button>
+    <button class="opt" data-key="d">$\tfrac12a_0^2 + \sum_{n\ge1}(a_n^2+b_n^2)$</button>
+  </div>
+  <div class="why">Parseval (Lecture 19). It isn't on the formula sheet, so memorise it. Quick check with $f=1$: $\frac1L\cdot 2L = 2$, and $a_0 = 2$ gives $\frac12\cdot4 = 2$ ✓ (<a href="0024-parseval-complex-form.html">Lesson 24</a>).</div>
+</div>
+
+<h2>2 · The set (≈ 100 min, 50 marks)</h2>
+<p>Exam pace is 2 min per mark. Do Q1–Q2 in one sitting (21 marks, ≈ 42 min) and Q3–Q5 in a second (29 marks, ≈ 58 min). Use paper and <a href="../exams/MAST20030_S2_2026_Formula_Sheet.pdf">the 2026 formula sheet</a> only. The sheet gives the coefficient formulas and the trig identities. It does <em>not</em> give the convergence theorem, the uniform-convergence theorem, Gibbs' 9%, Parseval or the complex form. Open each marking scheme only after you've written the whole question.</p>
+
+<h3>Question 1 <span class="marks">[12 marks]</span></h3>
+<div class="box">
+<p>Let $f$ be defined on $(0,2)$ by
+$$f(x) = \begin{cases} 1, & 0<x<1,\\ 2-x, & 1\le x<2,\end{cases}$$
+and extended to all of $\mathbb R$ by $f(-x) = -f(x)$ and $f(x+4) = f(x)$.</p>
+<p>(a) Is the extended $f$ even, odd or neither? State its period and $L$. <em>[1]</em></p>
+<p>(b) Sketch the extended $f$ for $-6 < x < 6$. <em>[2]</em></p>
+<p>(c) Find the Fourier series of $f$, computing only the coefficients that are not zero. <em>[5]</em></p>
+<p>(d) What does the Fourier series converge to at $x=0$, $x=2$ and $x=-3$? <em>[2]</em></p>
+<p>(e) Does the Gibbs phenomenon occur? If so, say where, and estimate how far the partial sums overshoot. Is the convergence uniform on $\mathbb R$? <em>[2]</em></p>
+</div>
+<details><summary>Q1 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> Odd (given $f(-x)=-f(x)$). Period $4 = 2L$, so $L=2$.</p>
+<p>(b) <strong>[2]</strong> On $(0,2)$: height 1 up to $x=1$, then a line down to $0$ at $x=2$. On $(-2,0)$: the reflection through the origin (height $-1$ on $(-1,0)$, a line from $0$ at $-2$ to $-1$ at $-1$). Repeat every 4. The only jumps are at $x = 0, \pm4$, where it jumps from $-1$ to $1$. It is continuous at $\pm2$ (both sides $\to0$). <strong>[1]</strong> shape on one period, <strong>[1]</strong> three periods with the jumps marked.</p>
+<p>(c) <strong>[1]</strong> Odd, so $a_n=0$ for all $n$. <strong>[1]</strong> $b_n = \frac22\int_0^2 f(x)\sin\frac{n\pi x}{2}\,dx$. <strong>[1]</strong> $\int_0^1\sin\frac{n\pi x}2\,dx = \frac{2}{n\pi}\big(1-\cos\frac{n\pi}2\big)$. <strong>[1]</strong> By parts, $\int_1^2(2-x)\sin\frac{n\pi x}2\,dx = \frac{2}{n\pi}\cos\frac{n\pi}2 + \frac{4}{n^2\pi^2}\sin\frac{n\pi}2$. <strong>[1]</strong> Add (the cosines cancel):
+$$b_n = \frac{2}{n\pi} + \frac{4\sin(n\pi/2)}{n^2\pi^2},\qquad f(x) \sim \sum_{n=1}^\infty\Big(\frac{2}{n\pi} + \frac{4\sin(n\pi/2)}{n^2\pi^2}\Big)\sin\frac{n\pi x}{2}.$$</p>
+<p>(d) <strong>[1]</strong> $x=0$: jump from $-1$ to $1$, so $\frac12(-1+1)=0$. $x=2$: continuous, value $0$. <strong>[1]</strong> $x=-3 \equiv 1 \pmod 4$: continuous ($1$ from both sides), so $1$.</p>
+<p>(e) <strong>[1]</strong> Yes, at $x=4k$ only (the jumps), each of size 2. The overshoot is $\approx 9\%\times2\approx0.18$: $S_N$ peaks near $1.18$ just right of $0$ and near $-1.18$ just left. <strong>[1]</strong> Not uniform, because the periodic extension is discontinuous (continuous $S_N$ can't converge uniformly to a function with a jump). This matches $b_n\sim \frac{2}{n\pi}$, which is $1/n$ decay.</p>
+<div id="plot-q1"></div>
+</div></details>
+
+<h3>Question 2 <span class="marks">[9 marks]</span></h3>
+<div class="box">
+<p>Let
+$$f(x) = \begin{cases}\sin(\pi x), & 0<x<1,\\ 0, & 1\le x<2.\end{cases}$$
+Extend $f$ to an even function on $(-2,2)$ and then periodically with period 4. Call the extension $F$.</p>
+<p>(a) Sketch $F$ for $-6<x<6$. <em>[2]</em></p>
+<p>(b) Find the Fourier series of $F$. Treat any exceptional value of $n$ separately. <em>[5]</em></p>
+<p>(c) Does the Fourier series converge uniformly on $\mathbb R$? Justify by quoting a result from lectures, and say how fast the coefficients decay. <em>[2]</em></p>
+</div>
+<details><summary>Q2 marking scheme</summary><div>
+<p>(a) <strong>[2]</strong> On $(-1,0)$, $F(x) = f(-x) = -\sin\pi x\ge0$. So there are two arches of height 1 centred at $x=\pm\frac12$, meeting at a corner at $x=0$, and $F=0$ on $1\le|x|\le2$. Repeat every 4. There are no jumps.</p>
+<p>(b) <strong>[1]</strong> Even, so $b_n = 0$, and $a_n = \frac22\int_0^2 f\cos\frac{n\pi x}{2}\,dx = \int_0^1\sin(\pi x)\cos\frac{n\pi x}{2}\,dx$. <strong>[1]</strong> $a_0 = \int_0^1\sin\pi x\,dx = \frac2\pi$. <strong>[1]</strong> Product-to-sum: $\sin A\cos B = \frac12[\sin(A+B)+\sin(A-B)]$, with $A\pm B = (1\pm\frac n2)\pi x$. <strong>[1]</strong> For $n\ne2$, using $\cos\big((1\pm\frac n2)\pi\big) = -\cos\frac{n\pi}2$:
+$$a_n = \frac{1+\cos\frac{n\pi}{2}}{\pi}\Big(\frac1{n+2}+\frac1{2-n}\Big) = \frac{4\big(1+\cos\frac{n\pi}2\big)}{\pi(4-n^2)}.$$
+<strong>[1]</strong> $n=2$: $a_2 = \int_0^1\sin\pi x\cos\pi x\,dx = \frac12\int_0^1\sin2\pi x\,dx = 0$. So
+$$F(x) \sim \frac1\pi + \sum_{n\ne2}\frac{4\big(1+\cos\frac{n\pi}2\big)}{\pi(4-n^2)}\cos\frac{n\pi x}{2}.$$
+The nonzero terms are the odd $n$ and the multiples of 4. The terms with $n\equiv2 \pmod 4$ vanish.</p>
+<p>(c) <strong>[1]</strong> $F$ is continuous on $\mathbb R$ ($\sin0=\sin\pi=0$ match the zero piece, and the even reflection has no jump) and $f'$ is piecewise continuous. So by the lecture theorem the series converges uniformly to $F$. No Gibbs. <strong>[1]</strong> $|a_n|\le\frac{8}{\pi(n^2-4)}$ for $n\ge3$, which is $1/n^2$ decay. (The M-test with this bound proves it too.)</p>
+<div id="plot-q2"></div>
+</div></details>
+
+<h3>Question 3 <span class="marks">[8 marks]</span></h3>
+<div class="box">
+<p>Let $f(x) = \dfrac{1}{3-x}$ for $-1<x\le1$, extended periodically with period 2, and let $g(x)$ be its Fourier series. <strong>Do not compute any coefficients.</strong></p>
+<p>(a) State the value of $g(x)$ for every $x\in[-3,3]$. <em>[3]</em></p>
+<p>(b) Do the partial sums of $g$ exhibit the Gibbs phenomenon? If so, where, and roughly how large is the overshoot? <em>[2]</em></p>
+<p>(c) Does $g$ converge uniformly on $\mathbb R$? Explain. <em>[1]</em></p>
+<p>(d) Let $h(x) = f(x) + f(-x)$ on $-1<x\le1$, extended with period 2. How are the Fourier coefficients of $h$ related to those of $f$? Does the Fourier series of $h$ converge uniformly? <em>[2]</em></p>
+</div>
+<details><summary>Q3 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> $f$ is piecewise $C^1$, so the series converges to the periodic extension where it is continuous:
+$$g(x) = \frac1{1-x}\ (-3<x<-1),\qquad \frac1{3-x}\ (-1<x<1),\qquad \frac1{5-x}\ (1<x<3).$$
+<strong>[1]</strong> At the jumps $x=\pm1,\pm3$: the left limit is $f(1^-)=\frac12$ and the right limit is $f(-1^+) = \frac14$. <strong>[1]</strong> So $g(\pm1) = g(\pm3) = \frac12\big(\frac12+\frac14\big) = \frac38$.</p>
+<p>(b) <strong>[1]</strong> Yes, at every odd integer (the jumps). <strong>[1]</strong> The jump size is $\frac12-\frac14=\frac14$, so the overshoot is about $9\%\times\frac14\approx0.02$ on each side.</p>
+<p>(c) <strong>[1]</strong> No. Each partial sum is continuous, and a uniform limit of continuous functions is continuous, but the limit has jumps. Equivalently, the lecture result says a discontinuous periodic extension means the convergence is not uniform.</p>
+<p>(d) <strong>[1]</strong> $h$ is even, so $b_n(h) = 0$, and $a_n(h) = \frac11\int_{-1}^1\big(f(x)+f(-x)\big)\cos n\pi x\,dx = 2a_n(f)$. <strong>[1]</strong> $h(1) = \frac12+\frac14 = h(-1^+)$, so the extension of $h$ is continuous and $h'$ is piecewise continuous. So the convergence is uniform (no Gibbs).</p>
+</div></details>
+
+<h3>Question 4 <span class="marks">[10 marks]</span></h3>
+<div class="box">
+<p>Let $f(x) = x(\pi-|x|)$ for $-\pi<x\le\pi$, extended with period $2\pi$. You may assume its Fourier series is
+$$f(x) \sim \frac8\pi\sum_{m=1}^\infty\frac{\sin\big((2m-1)x\big)}{(2m-1)^3}.$$</p>
+<p>(a) Explain why there are no cosine terms. Use the Weierstrass M-test to prove that the series converges uniformly on $\mathbb R$. <em>[3]</em></p>
+<p>(b) Evaluate the series at a suitable point to find $\displaystyle\sum_{m=1}^\infty\frac{(-1)^{m+1}}{(2m-1)^3}$. Calculation required; quoting the answer is not enough. <em>[2]</em></p>
+<p>(c) Use Parseval's identity to find the average power $\frac1\pi\int_{-\pi}^{\pi}f^2\,dx$ and hence $\displaystyle\sum_{m=1}^\infty\frac{1}{(2m-1)^6}$. <em>[3]</em></p>
+<p>(d) Write down the complex Fourier coefficients $c_n$ of $f$ for all $n\in\mathbb Z$. <em>[2]</em></p>
+</div>
+<details><summary>Q4 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> $f(-x) = -x(\pi-|x|) = -f(x)$, so $f$ is odd and every $a_n = 0$. <strong>[1]</strong> $\Big|\frac8\pi\frac{\sin((2m-1)x)}{(2m-1)^3}\Big| \le \frac{8}{\pi(2m-1)^3} =: M_m$ for all $x$. <strong>[1]</strong> $\sum M_m \le \frac8\pi\sum\frac1{m^3}<\infty$ ($p$-series, $p=3$), so the M-test gives uniform convergence on $\mathbb R$.</p>
+<p>(b) <strong>[1]</strong> $F$ is continuous, so the series equals $f$ everywhere. At $x=\frac\pi2$: $f(\frac\pi2) = \frac\pi2\cdot\frac\pi2 = \frac{\pi^2}{4}$ and $\sin\frac{(2m-1)\pi}{2} = (-1)^{m+1}$. <strong>[1]</strong> $\frac{\pi^2}4 = \frac8\pi\sum\frac{(-1)^{m+1}}{(2m-1)^3}$, so the sum is $\dfrac{\pi^3}{32}$.</p>
+<p>(c) <strong>[1]</strong> Parseval: $\frac1\pi\int_{-\pi}^\pi f^2\,dx = \sum b_n^2 = \frac{64}{\pi^2}\sum\frac1{(2m-1)^6}$. <strong>[1]</strong> $f^2$ is even: $\frac2\pi\int_0^\pi(\pi^2x^2 - 2\pi x^3 + x^4)\,dx = \frac2\pi\Big(\frac{\pi^5}3-\frac{\pi^5}2+\frac{\pi^5}5\Big) = \frac{\pi^4}{15}$. <strong>[1]</strong> $\sum\frac1{(2m-1)^6} = \frac{\pi^2}{64}\cdot\frac{\pi^4}{15} = \dfrac{\pi^6}{960}$.</p>
+<p>(d) <strong>[1]</strong> $c_n = \frac12(a_n - ib_n)$ for $n\ge1$, $c_{-n} = \overline{c_n}$ (real $f$), and $c_0 = \frac{a_0}2 = 0$. <strong>[1]</strong>
+$$c_{\pm(2m-1)} = \mp\frac{4i}{\pi(2m-1)^3},\qquad c_n = 0 \text{ for even } n.$$
+Check: $c_ke^{ikx}+c_{-k}e^{-ikx} = -\frac{4i}{\pi k^3}(2i\sin kx) = \frac{8}{\pi k^3}\sin kx$ ✓.</p>
+</div></details>
+
+<h3>Question 5 <span class="marks">[11 marks]</span></h3>
+<div class="box">
+<p>Let $F$ be the odd, $2\pi$-periodic function with
+$$F(x) = \begin{cases}1, & 0<x<\frac\pi2,\\ 0, & \frac\pi2<x<\pi.\end{cases}$$</p>
+<p>(a) Show that $F(x) \sim \displaystyle\sum_{n=1}^\infty b_n\sin nx$ with $b_n = \dfrac{2\big(1-\cos\frac{n\pi}2\big)}{n\pi}$. <em>[3]</em></p>
+<p>(b) Find a $2\pi$-periodic particular solution of $\;y'' + 2y = F(x)\;$ by trialling a general Fourier series. <em>[3]</em></p>
+<p>(c) Now replace $2$ by $N^2$, where $N$ is a positive integer. For which $N$ does $y''+N^2y = F(x)$ have no $2\pi$-periodic solution? What happens when $N=4$? <em>[2]</em></p>
+<p>(d) Let $G(x) = \int_0^xF(\xi)\,d\xi$. Is term-by-term integration of the series in (a) justified? Use it to find the Fourier series of $G$, including the constant term. <em>[3]</em></p>
+</div>
+<details><summary>Q5 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> $F$ is odd, so $a_n=0$ and $b_n = \frac2\pi\int_0^\pi F\sin nx\,dx$. <strong>[1]</strong> $= \frac2\pi\int_0^{\pi/2}\sin nx\,dx = \frac2\pi\Big[-\frac{\cos nx}{n}\Big]_0^{\pi/2}$. <strong>[1]</strong> $= \frac{2(1-\cos\frac{n\pi}2)}{n\pi}$.</p>
+<p>(b) <strong>[1]</strong> Trial $y_p = \frac{A_0}2 + \sum(A_n\cos nx + B_n\sin nx)$, so $y_p'' = -\sum n^2(A_n\cos nx + B_n\sin nx)$ (assuming term-by-term differentiation). <strong>[1]</strong> Matching: $A_0 = 0$, $(2-n^2)A_n = 0$ so $A_n=0$, and $(2-n^2)B_n = b_n$. Note $2-n^2\neq0$ for any integer $n$. <strong>[1]</strong>
+$$y_p = \sum_{n=1}^\infty\frac{2\big(1-\cos\frac{n\pi}2\big)}{n\pi\,(2-n^2)}\sin nx.$$</p>
+<p>(c) <strong>[1]</strong> Matching at $n=N$ gives $0\cdot B_N = b_N$, which is impossible exactly when $b_N\ne0$, i.e. when $\cos\frac{N\pi}2\ne1$, i.e. when $N$ is not a multiple of 4. That is resonance: no periodic solution. <strong>[1]</strong> For $N=4$, $b_4 = 0$, so $B_4$ is free. Periodic solutions exist but are not unique: add any $C\cos4x + D\sin4x$.</p>
+<p>(d) <strong>[1]</strong> Yes. $F$ is piecewise continuous, and term-by-term integration of its Fourier series is always valid. ($\int_{-\pi}^{\pi}F = 0$, so $G$ is $2\pi$-periodic.) <strong>[1]</strong> $\int_0^x\sin n\xi\,d\xi = \frac{1-\cos nx}{n}$, so $G(x) = \sum\frac{b_n}n - \sum\frac{b_n}{n}\cos nx$. <strong>[1]</strong> The constant is the mean of $G$. $G$ is even, with $G = |x|$ on $|x|\le\frac\pi2$ and $G = \frac\pi2$ on $\frac\pi2\le|x|\le\pi$, so the mean is $\frac1\pi\big(\frac{\pi^2}8+\frac{\pi^2}4\big) = \frac{3\pi}8$. Hence
+$$G(x) = \frac{3\pi}{8} - \sum_{n=1}^\infty\frac{2\big(1-\cos\frac{n\pi}2\big)}{n^2\pi}\cos nx.$$</p>
+</div></details>
+
+<div class="trap"><strong>Where marks leak in this set</strong><br>
+(1) Q1(c): an integration-by-parts sign. The two $\cos\frac{n\pi}2$ terms must cancel. If they don't, recheck $uv\big|_1^2$. (2) Q1(d), Q3(a): giving $f(x)$ at a jump instead of the average, or forgetting that $x=\pm L$ are jumps too. (3) Q2(b): dividing by $4-n^2$ at $n=2$. (4) Q3(c), Q2(c): "Gibbs/uniform?" with no reason; one sentence quoting the theorem is the mark. (5) Q4(c): Parseval with $a_0^2$ instead of $\frac12a_0^2$, or $\frac1{2\pi}$ instead of $\frac1\pi$. (6) Q5(d): dropping the constant $\sum b_n/n$ that integration creates.</div>
+
+<h2>3 · Score and diagnose</h2>
+<p>Mark yourself against the schemes, then book the gaps:</p>
+<ul>
+  <li>Under 8/12 on Q1 or 6/9 on Q2: coefficients and extensions, <a href="0021-fourier-coefficients.html">Lesson 21</a> and <a href="0022-extensions-half-range.html">Lesson 22</a>.</li>
+  <li>Under 6/8 on Q3, or lost the (d)/(e) marks in Q1: convergence wording, <a href="0023-convergence-gibbs-uniform.html">Lesson 23</a>.</li>
+  <li>Q4 under 7/10: <a href="0024-parseval-complex-form.html">Lesson 24</a>. Q5 under 7/11: <a href="0025-term-by-term-periodic-odes.html">Lesson 25</a>.</li>
+  <li>Any plain algebra slip: redo that question with the formula sheet only, and add a numerical check at the end (e.g. $b_1$ against a quick direct integral).</li>
+</ul>
+<p>Written-out answers (what your paper should look like): <a href="../worked/0026-mixed-set-full-solutions.html">full solutions to Q1–Q5</a>.</p>
+
+<h2>4 · Before you close this tab</h2>
+<details><summary>Retrieval: cover §0 and state the four facts not on the formula sheet</summary><div>
+<p>(1) Pointwise: the series converges to $F(x)$ where $F$ is continuous and to $\frac12[F(x^-)+F(x^+)]$ at jumps. (2) Uniform: if $F$ is continuous and $f'$ is piecewise continuous, the convergence is uniform. If $F$ has a jump, it is not uniform, and Gibbs gives about a 9% overshoot. (3) Parseval: $\frac1L\int_{-L}^L f^2 = \frac{a_0^2}2+\sum(a_n^2+b_n^2)$. (4) Complex form: $c_n = \frac1{2L}\int_{-L}^L fe^{-in\pi x/L}\,dx = \frac12(a_n-ib_n)$.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/17_MAST20030_Lecture_Notes_Topic4_Fourier_handout.pdf">Lecture 17</a> (pointwise and uniform convergence theorems, Gibbs) and <a href="../lectures/19_MAST20030_Lecture_Notes_Topic4_Fourier.pdf">Lecture 19</a> (anti-derivative series and its constant, forced oscillator and resonance, Parseval). Then <a href="https://tutorial.math.lamar.edu/Classes/DE/FourierSeries.aspx">Paul's Online Notes: Fourier Series</a> and <a href="https://tutorial.math.lamar.edu/Classes/DE/ConvergenceFourierSeries.aspx">Convergence of Fourier Series</a>.</p>
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic4.pdf">Problem Booklet 4</a>, Q1 (d) and (f): series, limit function, uniform or not.</li>
+  <li>Booklet Q4 (a)–(c): even extension, sketch, values at $t=0$ and $t=2$.</li>
+  <li>Booklet Q6 (a)–(b): periodic particular solution by matching coefficients.</li>
+  <li><a href="../tutes/tute_week_08.pdf">Tute Week 8</a>, Q2 (c): Fourier series of $x^4-\beta x^2$, then $\sum1/n^4$.</li>
+  <li>Optional: Booklet Q3, Q7; Tute Week 7 Q3 (d)–(e).</li>
+</ul>
+<p><strong>Spacing:</strong> in three days, redo Q2 and Q5 cold from a blank page.</p>
+
+<div class="ask">💬 Stuck on a marking-scheme step, or unsure whether your wording would get the "quote a result" mark? Ask me in the terminal. Paste or photograph your attempt and I'll mark it line by line.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0021-fourier-coefficients.html">21</a> to <a href="0025-term-by-term-periodic-odes.html">25</a></span>
+  <span>Previous: <a href="0025-term-by-term-periodic-odes.html">Lesson 25</a></span>
+  <span>Next: <a href="../reference/topic4-cheatsheet.html">Topic 4 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+
+<script>
+(function () {
+  const PI = Math.PI;
+  const mod = (x, p) => ((x % p) + p) % p;
+  // Q1: odd, period 4; f = 1 on (0,1), 2 - x on [1,2)
+  const F1 = (t) => {
+    let s = mod(t + 2, 4) - 2;               // s in [-2, 2)
+    if (Math.abs(s) < 1e-12) return NaN;     // jump: drawn as dots
+    const f = (u) => (u < 1 ? 1 : 2 - u);
+    return s > 0 ? f(s) : -f(-s);
+  };
+  SeriesPlot.mount(document.getElementById('plot-q1'), {
+    term: (n, t) => (2 / (n * PI) + 4 * Math.sin(n * PI / 2) / (n * n * PI * PI)) * Math.sin(n * PI * t / 2), n0: 1,
+    limit: F1,
+    x: [-6, 6], y: [-1.45, 1.45],
+    N: { min: 1, max: 80, value: 15 },
+    D: [-6, 6],
+    dots: [{ t: -4, y: 0 }, { t: 0, y: 0 }, { t: 4, y: 0 }],
+    labels: { seq: 'S_N(x)', limit: 'odd extension' },
+    aria: 'Partial sums of the Question 1 sine series against the odd extension, showing the Gibbs overshoot near x = 0 and x = ±4',
+  });
+  // Q2: even, period 4; sin(pi x) on (0,1), 0 on [1,2)
+  const F2 = (t) => { const s = Math.abs(mod(t + 2, 4) - 2); return s < 1 ? Math.sin(PI * s) : 0; };
+  SeriesPlot.mount(document.getElementById('plot-q2'), {
+    term: (n, t) => {
+      if (n === 0) return 1 / PI;
+      if (n === 2) return 0;
+      return 4 * (1 + Math.cos(n * PI / 2)) / (PI * (4 - n * n)) * Math.cos(n * PI * t / 2);
+    }, n0: 0,
+    limit: F2,
+    x: [-6, 6], y: [-0.25, 1.2],
+    N: { min: 1, max: 60, value: 8 },
+    D: [-6, 6],
+    labels: { seq: 'S_N(x)', limit: 'even extension' },
+    aria: 'Partial sums of the Question 2 cosine series against the even extension; the maximum error goes to zero',
+  });
+})();
+</script>
+</body>
+</html>

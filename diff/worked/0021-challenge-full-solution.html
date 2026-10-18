@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fourier Coefficients Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  .sk { max-width: 420px !important; }
+  .sk .f { stroke: var(--accent); stroke-width: 2.2; fill: none; }
+  .sk .ax { stroke: var(--muted); stroke-width: 1; }
+  .sk .jmp { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+  .sk text { fill: var(--muted); font: 11px Inter, system-ui, sans-serif; text-anchor: middle; }
+  .sk .on { fill: var(--accent); } .sk .off { fill: var(--bg); stroke: var(--accent); stroke-width: 1.6; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 21 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>Let $f(x)=\begin{cases}2,&-2&lt;x&lt;0\\ 2-x,&0\le x\le2\end{cases}$ and $f(x+4)=f(x)$.</p>
+<p>(a) Even, odd, or neither? Consequence for the coefficients. <em>[1]</em><br>
+(b) Sketch $f$ for $-6&lt;x\le6$. <em>[2]</em><br>
+(c) Compute $a_0$. <em>[1]</em><br>
+(d) Show $a_n=\dfrac{2(1-(-1)^n)}{n^2\pi^2}$, $n\ge1$. <em>[3]</em><br>
+(e) Compute $b_n$. <em>[3]</em><br>
+(f) Write the series with only non-zero cosine terms. <em>[2]</em><br>
+(g) Check $b_n$ via the odd part of $f$. <em>[2]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) Parity</h2>
+<div class="script">
+<p>$f(-1)=2$ but $f(1)=1$, so $f(-1)\ne\pm f(1)$: $f$ is neither even nor odd. Hence no coefficients vanish by symmetry; compute $a_0$, $a_n$ and $b_n$.</p>
+</div>
+<p class="note">One counterexample point is the cleanest proof of "neither".</p>
+
+<h2>(b) Sketch</h2>
+<div class="script">
+<figure class="fig">
+<svg class="sk" viewBox="0 0 340 140" role="img" aria-label="Periodic extension over three periods: flat at 2 on the left half of each period, ramp from 2 down to 0 on the right half, jumps at x = -6, -2, 2, 6">
+  <line class="ax" x1="10" y1="110" x2="330" y2="110"/>
+  <line class="ax" x1="170" y1="15" x2="170" y2="125"/>
+  <line class="jmp" x1="20" y1="30" x2="20" y2="110"/>
+  <line class="jmp" x1="120" y1="30" x2="120" y2="110"/>
+  <line class="jmp" x1="220" y1="30" x2="220" y2="110"/>
+  <line class="jmp" x1="320" y1="30" x2="320" y2="110"/>
+  <polyline class="f" points="20,30 70,30 120,110"/>
+  <polyline class="f" points="120,30 170,30 220,110"/>
+  <polyline class="f" points="220,30 270,30 320,110"/>
+  <circle class="off" cx="20" cy="30" r="3.5"/><circle class="on" cx="120" cy="110" r="3.5"/>
+  <circle class="off" cx="120" cy="30" r="3.5"/><circle class="on" cx="220" cy="110" r="3.5"/>
+  <circle class="off" cx="220" cy="30" r="3.5"/><circle class="on" cx="320" cy="110" r="3.5"/>
+  <text x="20" y="124">−6</text><text x="70" y="124">−4</text><text x="120" y="124">−2</text>
+  <text x="220" y="124">2</text><text x="270" y="124">4</text><text x="320" y="124">6</text>
+  <text x="160" y="33">2</text>
+</svg>
+<figcaption>Period 4. Flat at 2, then a ramp down to 0; jumps of size 2 at $x=-6,-2,2,6$.</figcaption>
+</figure>
+</div>
+<p class="note">Marks: correct shape on $(-2,2]$, correct repetition with period 4, axes labelled at the breakpoints. Open/closed dots follow the definition: $f(2)=0$, so the endpoint of each ramp is filled.</p>
+
+<h2>(c) $a_0$</h2>
+<div class="script">
+<p>$L=2$, so $k_n=\dfrac{n\pi}{2}$.</p>
+$$a_0=\frac12\int_{-2}^{2}f\,dx=\frac12\Big(\int_{-2}^{0}2\,dx+\int_0^2(2-x)\,dx\Big)=\frac12(4+2)=3.$$
+</div>
+<p class="note">Check: average over the period $=6/4=3/2=a_0/2$.</p>
+
+<h2>(d) $a_n$</h2>
+<div class="script">
+<p>Write $k=n\pi/2$, so $\sin2k=\sin n\pi=0$ and $\cos2k=(-1)^n$.</p>
+$$\int_{-2}^{0}2\cos kx\,dx=\frac2k\big[\sin kx\big]_{-2}^{0}=\frac2k\sin2k=0.$$
+<p>By parts with $u=2-x$, $dv=\cos kx\,dx$:</p>
+$$\int_0^2(2-x)\cos kx\,dx=\Big[\frac{(2-x)\sin kx}{k}\Big]_0^2+\frac1k\int_0^2\sin kx\,dx=0+\frac{1-\cos2k}{k^2}=\frac{4\big(1-(-1)^n\big)}{n^2\pi^2}.$$
+$$a_n=\frac12\cdot\frac{4\big(1-(-1)^n\big)}{n^2\pi^2}=\frac{2\big(1-(-1)^n\big)}{n^2\pi^2}.\qquad\blacksquare$$
+</div>
+<p class="note">The boundary term vanishes at both ends: $2-x=0$ at $x=2$, and $\sin0=0$. Show the $\cos 2k=(-1)^n$ substitution explicitly; it is the line the marker looks for in a "show that".</p>
+
+<h2>(e) $b_n$</h2>
+<div class="script">
+$$\int_{-2}^{0}2\sin kx\,dx=-\frac2k\big[\cos kx\big]_{-2}^{0}=-\frac2k\big(1-(-1)^n\big).$$
+<p>By parts with $u=2-x$, $dv=\sin kx\,dx$:</p>
+$$\int_0^2(2-x)\sin kx\,dx=\Big[-\frac{(2-x)\cos kx}{k}\Big]_0^2-\frac1k\int_0^2\cos kx\,dx=\frac2k-\frac{\sin 2k}{k^2}=\frac2k.$$
+$$b_n=\frac12\Big(-\frac2k+\frac{2(-1)^n}{k}+\frac2k\Big)=\frac{(-1)^n}{k}=\frac{2(-1)^n}{n\pi}.$$
+</div>
+<p class="note">Sign check at $n=1$: $b_1=-2/\pi&lt;0$. Plausible: $f$ is larger on the left half, where $\sin(\pi x/2)&lt;0$.</p>
+
+<h2>(f) The series</h2>
+<div class="script">
+<p>$1-(-1)^n=0$ for even $n$ and $2$ for odd $n$, so only $n=2m-1$ survives in the cosine terms, with $a_{2m-1}=\dfrac{4}{(2m-1)^2\pi^2}$:</p>
+$$f(x)\sim\frac32+\frac{4}{\pi^2}\sum_{m=1}^{\infty}\frac{1}{(2m-1)^2}\cos\frac{(2m-1)\pi x}{2}+\frac{2}{\pi}\sum_{n=1}^{\infty}\frac{(-1)^n}{n}\sin\frac{n\pi x}{2}.$$
+</div>
+<p class="note">Constant term is $a_0/2$, not $a_0$. Numerically, the series gives $2$ at $x=0$, $1$ at $x=1$, and $1$ (the midpoint of the jump) at $x=2$: checked with 20 000 terms.</p>
+
+<h2>(g) Check via the odd part</h2>
+<div class="script">
+<p>On $(-2,2)$, $f(x)=2-\tfrac12(x+|x|)=\big(2-\tfrac12|x|\big)-\tfrac12x$. The first bracket is even, so it contributes only to $a_n$. For $x$ on $(-L,L]$ with $L=2$,</p>
+$$b_n[x]=\frac22\int_0^2x\sin\frac{n\pi x}{2}\,dx=\frac{4(-1)^{n+1}}{n\pi}\;\Rightarrow\;b_n[f]=-\frac12\cdot\frac{4(-1)^{n+1}}{n\pi}=\frac{2(-1)^n}{n\pi}\ ✓$$
+</div>
+<p class="note">The coefficient map $f\mapsto(a_n,b_n)$ is linear, so splitting $f$ into familiar pieces is always allowed. Here it also confirms $a_n$ comes only from the even part $2-\tfrac12|x|$.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Parity stated with a reason · $L=2$ and $k_n=n\pi/2$ named · $a_0$ with both pieces · IBP set-up ($u$, $dv$) · $\sin n\pi=0$, $\cos n\pi=(-1)^n$ shown · the flat piece's contribution to each coefficient · final $a_n$, $b_n$ · series with $a_0/2$ and odd-$n$ cosine sum · sketch with period, jumps and breakpoints labelled.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0021-fourier-coefficients.html">Lesson 21, challenge</a></span>
+  <span>Reference: <a href="../reference/topic4-cheatsheet.html">Topic 4 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

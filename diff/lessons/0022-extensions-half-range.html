@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Even and Odd Extensions</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/fourier-extension-plot.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 22 · Topic 4: Fourier series</div>
+<h1>Half the function, all the series: even and odd extensions</h1>
+<p class="lede">The one win: given $f$ only on $(0,L)$, extend it evenly or oddly, sketch three periods, and compute the half-range coefficients, including a trig piece that needs product-to-sum and one special $n$.</p>
+
+<div class="mission">Why this matters for 5 Nov: the most common Fourier opener on past papers is "$f$ is given on $(0,a)$ with $f(-x)=\pm f(x)$ and $f(x+2a)=f(x)$: even, odd or neither? Sketch three periods. Compute only the non-zero coefficients." That is 5 to 9 marks. The formula sheet has the full-range $a_n,b_n$ only. The half-range versions below are <em>not</em> on it, so memorise them (or re-derive in one line).</div>
+
+<h2>0 · Warm-up from Lesson 21</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> $f$ is odd on $(-L,L)$. Then $f(x)\cos\!\big(\tfrac{n\pi x}{L}\big)$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">even, so $a_n=\tfrac2L\int_0^L f\cos$</button>
+    <button class="opt" data-key="b">even, so every $b_n$ vanishes</button>
+    <button class="opt" data-key="c">odd, so every $a_n$ vanishes</button>
+    <button class="opt" data-key="d">odd, so every $b_n$ vanishes</button>
+  </div>
+  <div class="why">odd × even = odd, and $\int_{-L}^{L}(\text{odd})=0$. So $a_n=0$ for all $n$, including $a_0$.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W2.</strong> For $m=1,2,3,\dots$, $\;\sin\!\big(\tfrac{(2m-1)\pi}{2}\big)=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(-1)^{m+1}$</button>
+    <button class="opt" data-key="b">$(-1)^{m}$</button>
+    <button class="opt" data-key="c">$1$</button>
+    <button class="opt" data-key="d">$0$</button>
+  </div>
+  <div class="why">$m=1$: $\sin\frac\pi2=1$; $m=2$: $\sin\frac{3\pi}2=-1$; alternates starting at $+1$.</div>
+</div>
+
+<h2>1 · Two ways to extend $f$ from $(0,L)$</h2>
+<p>A Fourier series needs $f$ on a full period $(-L,L]$. Given only $(0,L)$, you choose the left half (Lecture 18, slide 6):</p>
+<table>
+<tr><th></th><th>on $(-L,0)$</th><th>series</th><th>sketch move</th></tr>
+<tr><td><strong>even</strong></td><td>$F(x)=f(-x)$</td><td>cosine only, $b_n=0$</td><td>mirror in the $y$-axis</td></tr>
+<tr><td><strong>odd</strong></td><td>$F(x)=-f(-x)$</td><td>sine only, $a_n=0$</td><td>rotate $180^\circ$ about the origin</td></tr>
+</table>
+<p>Then $F(x+2L)=F(x)$: copy the $(-L,L]$ block left and right. Toggle below for $f(x)=2-x$ on $(0,2)$.</p>
+
+<div id="plot-a"></div>
+
+<div class="box">
+<p><strong>Sketching for marks (2 marks, 2 minutes).</strong></p>
+<ol class="steps">
+<li>Draw $f$ on $(0,L)$. Mark its end values $f(0^+)$, $f(L^-)$.</li>
+<li>Mirror (even) or rotate (odd) onto $(-L,0)$.</li>
+<li>Copy that $2L$ block to fill three periods, e.g. $-3L&lt;x&lt;3L$. Label $\pm L,\pm2L,\pm3L$ and the heights.</li>
+<li>Show jumps as clear vertical gaps. Check $x=0$ and $x=\pm L$: that is where jumps appear.</li>
+</ol>
+</div>
+
+<div class="box">
+<p><strong>Continuity check (no sketch needed).</strong> For $f$ continuous on $[0,L]$:<br>
+even extension: always continuous.<br>
+odd extension: continuous only if $f(0)=0$ <em>and</em> $f(L)=0$. Otherwise it jumps at $x=0$ (by $2f(0)$) and/or at $x=\pm L$ (by $2f(L)$).</p>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q1.</strong> $f(x)=2-x$ on $(0,2)$, even extension $F$ with period $4$. Then $F(3)=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$-1$</button>
+    <button class="opt" data-key="b">$1$</button>
+    <button class="opt" data-key="c">$3$</button>
+    <button class="opt" data-key="d">$0$</button>
+  </div>
+  <div class="why">Shift into $(-2,2]$: $F(3)=F(-1)$. Even: $F(-1)=f(1)=1$. Plugging $3$ into $2-x$ gives the trap answer $-1$: the formula only holds on $(0,2)$.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q2.</strong> $f(x)=x$ on $(0,L)$. Which periodic extension is continuous on all of $\mathbb R$?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">only the even extension</button>
+    <button class="opt" data-key="b">only the odd extension</button>
+    <button class="opt" data-key="c">both of the extensions</button>
+    <button class="opt" data-key="d">neither of the extensions</button>
+  </div>
+  <div class="why">Even: a triangle wave, continuous. Odd: $F=x$ on $(-L,L)$, a sawtooth jumping from $L$ to $-L$ at $x=\pm L$, since $f(L)=L\ne0$.</div>
+</div>
+
+<h2>2 · Half-range formulas (memorise)</h2>
+<p>Even integrand on $(-L,L)$: $\int_{-L}^{L}=2\int_0^L$. Apply to the sheet's formulas:</p>
+<div class="box">
+$$\textbf{even ext. (cosine series):}\quad a_n=\frac2L\int_0^L f(x)\cos\frac{n\pi x}{L}\,dx,\qquad b_n=0.$$
+$$\textbf{odd ext. (sine series):}\quad b_n=\frac2L\int_0^L f(x)\sin\frac{n\pi x}{L}\,dx,\qquad a_n=0.$$
+<p>Series: $\dfrac{a_0}2+\sum a_n\cos\dfrac{n\pi x}L$ or $\sum b_n\sin\dfrac{n\pi x}L$. "Half-range cosine/sine series" means exactly these.</p>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q3.</strong> $f$ is given on $(0,L)$ and you want its odd periodic extension. The coefficient to compute is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$a_n=\tfrac2L\int_0^L f\cos\tfrac{n\pi x}{L}\,dx$</button>
+    <button class="opt" data-key="b">$b_n=\tfrac1L\int_0^L f\sin\tfrac{n\pi x}{L}\,dx$</button>
+    <button class="opt" data-key="c">$b_n=\tfrac2L\int_{-L}^L f\sin\tfrac{n\pi x}{L}\,dx$</button>
+    <button class="opt" data-key="d">$b_n=\tfrac2L\int_0^L f\sin\tfrac{n\pi x}{L}\,dx$</button>
+  </div>
+  <div class="why">Odd extension → sine series. The $\frac1L\int_{-L}^L$ of the sheet becomes $\frac2L\int_0^L$ because $F\sin$ is even.</div>
+</div>
+
+<p><strong>Worked: both series for $f(x)=2-x$ on $(0,2)$</strong> ($L=2$, one integration by parts each).</p>
+<details><summary>Odd extension: $b_n$</summary><div>
+$$b_n=\int_0^2(2-x)\sin\tfrac{n\pi x}2\,dx=\Big[-(2-x)\tfrac{2}{n\pi}\cos\tfrac{n\pi x}2\Big]_0^2-\tfrac2{n\pi}\int_0^2\cos\tfrac{n\pi x}2\,dx=\frac{4}{n\pi}-0.$$
+$$F_{\text{odd}}(x)=\sum_{n=1}^\infty\frac4{n\pi}\sin\frac{n\pi x}2.$$
+</div></details>
+<details><summary>Even extension: $a_0$, $a_n$</summary><div>
+$$a_0=\int_0^2(2-x)\,dx=2,\qquad a_n=\Big[(2-x)\tfrac2{n\pi}\sin\tfrac{n\pi x}2\Big]_0^2+\tfrac2{n\pi}\int_0^2\sin\tfrac{n\pi x}2\,dx=\frac{4\,(1-(-1)^n)}{n^2\pi^2}.$$
+<p>Zero for even $n$, $\frac8{n^2\pi^2}$ for odd $n$. Write odd $n=2m-1$:</p>
+$$F_{\text{even}}(x)=1+\frac8{\pi^2}\sum_{m=1}^\infty\frac{1}{(2m-1)^2}\cos\frac{(2m-1)\pi x}2.$$
+</div></details>
+<p>Drag the slider in the plot above: the continuous even extension is matched fast ($1/n^2$); the odd one, with jumps at $0,\pm4,\dots$, slowly ($1/n$). Why that happens is <a href="0023-convergence-gibbs-uniform.html">Lesson 23</a>.</p>
+
+<h2>3 · Reading the exam's wording</h2>
+<div class="box">
+<ul>
+<li>"$f(-x)=f(x)$, $f(x+2a)=f(x)$" or "extend to an even function, then periodically" → even extension, $L=a$. Say: <em>$f$ even, so $f\sin$ is odd and $b_n=0$.</em></li>
+<li>"$f(-x)=-f(x)$" → odd, $L=a$. Say: <em>$f$ odd, so $f\cos$ is odd and $a_n=0$ (incl. $a_0$).</em></li>
+<li>"Compute only the non-zero coefficients" → that one-line parity reason earns the mark for the zero family. Then compute the other family, simplify with $\cos n\pi=(-1)^n$, $\sin\frac{n\pi}2$, and say which further $n$ give $0$.</li>
+<li>Write the final series over the surviving $n$ only (e.g. $n=2m-1$).</li>
+</ul>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q4.</strong> You find $b_n=\dfrac{4\sin(n\pi/2)}{n^2\pi^2}$. Which $n$ give $b_n=0$?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">all odd $n$</button>
+    <button class="opt" data-key="b">all even $n$</button>
+    <button class="opt" data-key="c">multiples of $4$</button>
+    <button class="opt" data-key="d">multiples of $3$</button>
+  </div>
+  <div class="why">$\sin(n\pi/2)=0$ when $n\pi/2$ is a multiple of $\pi$, i.e. $n$ even. Survivors: $n=2m-1$ with $\sin=(-1)^{m+1}$ (W2), so $b_{2m-1}=\frac{4(-1)^{m+1}}{(2m-1)^2\pi^2}$.</div>
+</div>
+
+<h2>4 · A trig piece: product-to-sum and the special $n$</h2>
+<p><strong>Example.</strong> $f(x)=\sin x$ for $0&lt;x&lt;\frac\pi2$, $f(x)=0$ for $\frac\pi2&lt;x&lt;\pi$. Find the cosine series of its even extension ($L=\pi$).</p>
+
+<div id="plot-b"></div>
+
+<p>$a_n=\dfrac2\pi\displaystyle\int_0^{\pi/2}\sin x\cos nx\,dx$ (the zero piece drops out). The sheet gives
+$\sin x\cos nx=\tfrac12\big[\sin((1-n)x)+\sin((1+n)x)\big]$.</p>
+
+<div class="trap"><strong>The special $n$</strong><br>
+Integrating $\sin((1-n)x)$ gives $-\frac{\cos((1-n)x)}{1-n}$: division by zero at $n=1$. The special case is <em>whichever $n$ makes the two frequencies equal</em> ($n\pi/L$ equal to the trig piece's frequency). Do it separately from the original integral. Also check $n=0$ separately if your formula breaks there.</div>
+
+<details><summary>$n=1$ (do first)</summary><div>
+$$a_1=\frac2\pi\int_0^{\pi/2}\sin x\cos x\,dx=\frac2\pi\int_0^{\pi/2}\tfrac12\sin2x\,dx=\frac2\pi\cdot\frac12=\frac1\pi.$$
+</div></details>
+<details><summary>$n\ne1$</summary><div>
+$$\int_0^{\pi/2}\sin x\cos nx\,dx=\frac12\left[\frac{1-\cos\frac{(n-1)\pi}2}{1-n}+\frac{1-\cos\frac{(n+1)\pi}2}{1+n}\right].$$
+<p>Use $\cos\frac{(n-1)\pi}2=\sin\frac{n\pi}2$ and $\cos\frac{(n+1)\pi}2=-\sin\frac{n\pi}2$. With $s=\sin\frac{n\pi}2$:</p>
+$$\frac12\left[\frac{1-s}{1-n}+\frac{1+s}{1+n}\right]=\frac{(1-s)(1+n)+(1+s)(1-n)}{2(1-n^2)}=\frac{1-ns}{1-n^2}.$$
+$$a_n=\frac{2}{\pi}\cdot\frac{1-n\sin\frac{n\pi}2}{1-n^2}\quad(n\ne1),\qquad a_0=\frac2\pi.$$
+</div></details>
+<details><summary>Final series</summary><div>
+$$F(x)=\frac1\pi+\frac1\pi\cos x+\frac2\pi\sum_{n=2}^\infty\frac{1-n\sin\frac{n\pi}2}{1-n^2}\cos nx.$$
+<p>Check: $n=0$ in the general formula gives $\frac2\pi=a_0$ ✓, so no separate work there. Plugging $n=1$ gives $\frac00$: that is why it was done separately.</p>
+</div></details>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q5.</strong> $L=3$ and $b_n=\tfrac23\int_0^1\sin(\pi x)\sin\!\big(\tfrac{n\pi x}{3}\big)dx$. Which $n$ needs separate treatment?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$n=1$</button>
+    <button class="opt" data-key="b">$n=2$</button>
+    <button class="opt" data-key="c">$n=3$</button>
+    <button class="opt" data-key="d">$n=6$</button>
+  </div>
+  <div class="why">Frequencies $\pi$ and $\frac{n\pi}3$ coincide at $n=3$, where $\cos\big((1-\frac n3)\pi x\big)$ becomes $1$ and the antiderivative formula divides by $0$. It is $n=1$ only when $L=\pi$ and the piece is $\sin x$.</div>
+</div>
+
+<h2>5 · Practice (exam level)</h2>
+<p>Do each on paper, then open the solution.</p>
+<div class="box">
+<p><strong>P1.</strong> $f=1$ on $(0,\frac\pi2)$, $f=0$ on $(\frac\pi2,\pi)$. Find the half-range sine series and say which $b_n$ vanish.</p>
+<p><strong>P2.</strong> Find the Fourier series of the odd periodic extension of $f(x)=\cos x$ on $(0,\pi)$. Is the extension continuous?</p>
+<p><strong>P3.</strong> Sketch the even periodic extension of $f(x)=\sin x$ on $(0,\pi)$ over $-3\pi&lt;x&lt;3\pi$, and find its Fourier series.</p>
+</div>
+<details><summary>P1 solution</summary><div>
+$$b_n=\frac2\pi\int_0^{\pi/2}\sin nx\,dx=\frac{2}{n\pi}\Big(1-\cos\frac{n\pi}2\Big).$$
+<p>$\cos\frac{n\pi}2$ cycles $0,-1,0,1$ for $n=1,2,3,4$: $b_n=\frac2{n\pi},\frac4{n\pi},\frac2{n\pi},0$. So $b_n=0$ exactly for multiples of $4$.</p>
+</div></details>
+<details><summary>P2 solution</summary><div>
+<p>$b_n=\frac2\pi\int_0^\pi\cos x\sin nx\,dx$, with $\sin nx\cos x=\frac12[\sin(n-1)x+\sin(n+1)x]$.</p>
+<p>$n=1$: $\frac2\pi\int_0^\pi\frac12\sin2x\,dx=0$.</p>
+<p>$n\ne1$: $\int_0^\pi\sin kx\,dx=\frac{1-(-1)^k}{k}$ and $(-1)^{n\pm1}=-(-1)^n$, so
+$$b_n=\frac2\pi\cdot\frac{1+(-1)^n}2\Big(\frac1{n-1}+\frac1{n+1}\Big)=\frac{2n\,(1+(-1)^n)}{\pi(n^2-1)}.$$</p>
+<p>Odd $n$: $0$. Even $n=2m$: $b_{2m}=\frac{8m}{\pi(4m^2-1)}$. So $F(x)=\frac8\pi\sum_{m\ge1}\frac{m}{4m^2-1}\sin2mx$.</p>
+<p>Not continuous: $f(0)=1\ne0$ and $f(\pi)=-1\ne0$, so it jumps at every multiple of $\pi$.</p>
+</div></details>
+<details><summary>P3 solution</summary><div>
+<p>Sketch: $F(x)=|\sin x|$, arches of height $1$ touching $0$ at every multiple of $\pi$; continuous.</p>
+<p>$a_n=\frac2\pi\int_0^\pi\sin x\cos nx\,dx$. $n=1$: $\frac2\pi\int_0^\pi\frac12\sin2x\,dx=0$. $n\ne1$: same identity as §4, giving
+$$a_n=\frac2\pi\cdot\frac{1+(-1)^n}{1-n^2},\qquad a_0=\frac4\pi.$$</p>
+<p>Odd $n$: $0$. Even $n=2m$: $a_{2m}=-\frac{4}{\pi(4m^2-1)}$. So $|\sin x|=\frac2\pi-\frac4\pi\sum_{m\ge1}\frac{\cos2mx}{4m^2-1}$.</p>
+</div></details>
+
+<h2>6 · Exam-level challenge (12 marks, about 24 minutes)</h2>
+<div class="box">
+<p>Let $f(x)=\sin(\pi x)$ for $0&lt;x&lt;1$ and $f(x)=0$ for $1\le x&lt;2$, extended to $\mathbb R$ by $f(-x)=-f(x)$ and $f(x+4)=f(x)$.</p>
+<p>(a) Is the extended $f$ even, odd or neither? Hence state which Fourier coefficients are zero, with a reason. <em>[2]</em><br>
+(b) Sketch $f$ for $-6&lt;x&lt;6$. <em>[2]</em><br>
+(c) Compute all non-zero Fourier coefficients. <em>[5]</em><br>
+(d) Write the Fourier series of $f$ using only the non-zero terms. <em>[1]</em><br>
+(e) If instead $f(-x)=f(x)$, write down (do not evaluate) the integral for the non-zero coefficients, and state which $n$ would need separate treatment. <em>[2]</em></p>
+</div>
+<p>Full marking-style solution: <a href="../worked/0022-challenge-full-solution.html">worked/0022-challenge-full-solution.html</a>. Open it only after attempting every part.</p>
+<details><summary>Answer key (quick check)</summary><div>
+<p>(a) Odd; $a_n=0$ for all $n\ge0$. (b) Continuous; positive arch on $(0,1)$, negative on $(-1,0)$, flat zero on $1&lt;|x|&lt;2$, period 4.<br>
+(c) $b_2=\frac12$; $b_n=\dfrac{4\sin(n\pi/2)}{\pi(4-n^2)}$ for $n\ne2$, so $0$ for even $n\ne2$ and $b_{2m-1}=\dfrac{4(-1)^{m+1}}{\pi(4-(2m-1)^2)}$.<br>
+(d) $f(x)=\frac12\sin\pi x+\frac4\pi\sum_{m\ge1}\frac{(-1)^{m+1}}{4-(2m-1)^2}\sin\frac{(2m-1)\pi x}{2}$.<br>
+(e) $a_n=\int_0^1\sin(\pi x)\cos\frac{n\pi x}2\,dx$; $n=2$.</p>
+</div></details>
+
+<h2>7 · Before you close this tab</h2>
+<details><summary>Retrieval: write from memory, then check</summary><div>
+<ol>
+<li>The even and odd extension of $f$ on $(-L,0)$, and which series each gives.</li>
+<li>The half-range $a_n$ and $b_n$ formulas.</li>
+<li>When is the odd extension of a continuous $f$ continuous?</li>
+<li>How to find the special $n$ in a product-to-sum integral.</li>
+</ol>
+<p><strong>Answers:</strong> (1) even $f(-x)$, cosine series; odd $-f(-x)$, sine series. (2) $\frac2L\int_0^L f\cos\frac{n\pi x}L$ and $\frac2L\int_0^L f\sin\frac{n\pi x}L$. (3) $f(0)=f(L)=0$. (4) The $n$ where $\frac{n\pi}L$ equals the piece's frequency; compute it from the original integral.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/18_MAST20030_Lecture_Notes_Topic4_Fourier_handout.pdf">Lecture 18</a> (slide 5: odd functions → sine series; slide 6: even/odd extensions; slides 7–9: Ex. 4.7, cosine series of a piecewise $f$) and <a href="../lectures/19_MAST20030_Lecture_Notes_Topic4_Fourier.pdf">Lecture 19</a> (slides 3–4: Ex. 4.9a, sine series of a tent). Then Paul's Online Notes: <a href="https://tutorial.math.lamar.edu/Classes/DE/FourierSineSeries.aspx">Fourier Sine Series</a> and <a href="https://tutorial.math.lamar.edu/Classes/DE/FourierCosineSeries.aspx">Fourier Cosine Series</a> (he uses $[0,L]$ the same way).</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic4.pdf">Booklet 4</a>, Q4 (a), (b), (e): sketch and both extensions of a step function.</li>
+  <li>Booklet Q5 (c), (d): odd extension of $t^2$ (two IBPs; this is the ceiling).</li>
+  <li><a href="../tutes/tute_week_07.pdf">Tute week 7</a>, Q3 (a), (c): $\sin t$ on a middle interval, the $n=1$ special case.</li>
+  <li>Optional: Booklet Q3 (half-wave rectifier, same trick), Q4 (d), Q5 (a), (b). Leave Q4 (c), (f) for Lesson 23.</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo Q1, Q5 and P2 cold, and the challenge's (c) without looking.</p>
+
+<div class="ask">💬 Unsure about a sketch or which $n$ is special? Ask me in the terminal and paste your working.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0021-fourier-coefficients.html">Lesson 21, coefficients</a></span>
+  <span>Next: <a href="0023-convergence-gibbs-uniform.html">Lesson 23, convergence and Gibbs</a></span>
+  <span>Reference: <a href="../reference/topic4-cheatsheet.html">Topic 4 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+<script>
+  FourierExt.mount(document.getElementById('plot-a'), {
+    f: (x) => 2 - x, L: 2, modes: ['even', 'odd'], mode: 'odd', periods: 3,
+    y: [-2.6, 2.6], yTicks: [2, 1, -1, -2],
+    series: {
+      even: { a0: 2, a: (n) => 4 * (1 - (n % 2 ? -1 : 1)) / (n * n * Math.PI * Math.PI) },
+      odd: { b: (n) => 4 / (n * Math.PI) },
+    },
+    N: { max: 40, value: 5 },
+  });
+  FourierExt.mount(document.getElementById('plot-b'), {
+    f: (x) => (x < Math.PI / 2 ? Math.sin(x) : 0), L: Math.PI, modes: ['even'], periods: 3,
+    y: [-0.4, 1.3], yTicks: [1, 0.5],
+    xTicks: [-3, -2, -1, 1, 2, 3].map((k) => ({ v: k * Math.PI, label: (k < 0 ? '−' : '') + (Math.abs(k) === 1 ? '' : Math.abs(k)) + 'π' })),
+    series: {
+      even: { a0: 2 / Math.PI, a: (n) => (n === 1 ? 1 / Math.PI : (2 / Math.PI) * (1 - n * Math.sin(n * Math.PI / 2)) / (1 - n * n)) },
+    },
+    N: { max: 40, value: 6 },
+  });
+</script>
+</body>
+</html>

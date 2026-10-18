@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fourier Coefficients</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/series-plot.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 21 · Topic 4: Fourier series</div>
+<h1>Computing a Fourier series on $(-L, L]$</h1>
+<p class="lede">One win: given a piecewise $f$ on $(-L,L]$, any $L$, write down $a_0$, $a_n$, $b_n$ in exact form, using parity to skip the integrals that are zero.</p>
+
+<div class="mission">Why this matters for 5 Nov: Fourier is one question, 10–25 marks, and the coefficient computation is 4–6 of them on every paper. The integrals are one integration by parts. Marks go on the boundary terms, $\cos n\pi=(-1)^n$, and the $a_0/2$ convention. The formula sheet gives the three formulas below and the trig identities. Everything else on this page you memorise.</div>
+
+<h2>0 · Warm-up: the two integration moves</h2>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W1.</strong> For an integer $n\ge1$, $\displaystyle\int_0^\pi x\sin(nx)\,dx=$</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\pi(-1)^{n+1}/n$</button>
+    <button class="opt" data-key="b">$\pi(-1)^{n}/n$</button>
+    <button class="opt" data-key="c">$(-1)^{n+1}/n^2$</button>
+    <button class="opt" data-key="d">$\pi(-1)^{n}/n^2$</button>
+  </div>
+  <div class="why">$\big[-\tfrac{x\cos nx}{n}\big]_0^\pi+\tfrac1n\int_0^\pi\cos nx\,dx=-\tfrac{\pi(-1)^n}{n}+0$. The leftover integral of $\cos$ over whole half-periods vanishes because $\sin n\pi=0$.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W2.</strong> Product-to-sum (on the sheet): $\cos 3x\cos 5x=$</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac12(\cos2x-\cos8x)$</button>
+    <button class="opt" data-key="b">$\tfrac12(\cos2x+\cos8x)$</button>
+    <button class="opt" data-key="c">$\tfrac12(\sin2x+\sin8x)$</button>
+    <button class="opt" data-key="d">$\tfrac12(\cos8x-\cos2x)$</button>
+  </div>
+  <div class="why">$\cos x\cos y=\tfrac12\{\cos(x-y)+\cos(x+y)\}$, and $\cos(-2x)=\cos2x$. This identity is the whole reason the formulas below work.</div>
+</div>
+
+<h2>1 · The set-up</h2>
+
+<p>Given $f$ on $(-L,L]$, its <strong>periodic extension</strong> repeats it with period $2L$. The Fourier series is (<a href="../lectures/16_MAST20030_Lecture_Notes_Topic4_Fourier_handout.pdf">Lecture 16</a>, slides 4–6; formula sheet):</p>
+<div class="box">
+$$f(x)\sim\frac{a_0}{2}+\sum_{n=1}^\infty\Big(a_n\cos\frac{n\pi x}{L}+b_n\sin\frac{n\pi x}{L}\Big),$$
+$$a_n=\frac1L\int_{-L}^{L}f(x)\cos\frac{n\pi x}{L}\,dx\ \ (n\ge0),\qquad b_n=\frac1L\int_{-L}^{L}f(x)\sin\frac{n\pi x}{L}\,dx\ \ (n\ge1).$$
+</div>
+<p>Wavenumber $k_n=n\pi/L$. The $a_n$ formula at $n=0$ gives $a_0$, and the constant term is $a_0/2=\frac1{2L}\int_{-L}^Lf$, the <strong>average of $f$ over one period</strong>. Use that as a 10-second check.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> $f(x)=4\cos^2x$ on $(-\pi,\pi]$. Which is true?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$a_0=2,\ a_2=2$, all others zero</button>
+    <button class="opt" data-key="b">$a_0=4,\ a_2=4$, all others zero</button>
+    <button class="opt" data-key="c">$a_0=4,\ a_2=2$, all others zero</button>
+    <button class="opt" data-key="d">$a_0=2,\ a_2=4$, all others zero</button>
+  </div>
+  <div class="why">$4\cos^2x=2+2\cos2x$ is already a Fourier series. Constant term $a_0/2=2$, so $a_0=4$. No integrals needed: if $f$ is a finite trig sum, rewrite it with identities and read off.</div>
+</div>
+
+<h2>2 · Why the formulas work: orthogonality</h2>
+
+<p>The modes are orthogonal on $(-L,L]$ (<a href="../lectures/15_MAST20030_Lecture_Notes_Topic4_Fourier_handout.pdf">Lecture 15</a>, Exercise 4.2). For integers $m,n\ge1$:</p>
+$$\frac1L\int_{-L}^{L}\cos\tfrac{m\pi x}{L}\cos\tfrac{n\pi x}{L}\,dx=\frac1L\int_{-L}^{L}\sin\tfrac{m\pi x}{L}\sin\tfrac{n\pi x}{L}\,dx=\begin{cases}1&m=n\\0&m\ne n\end{cases},\qquad \int_{-L}^{L}\cos\tfrac{m\pi x}{L}\sin\tfrac{n\pi x}{L}\,dx=0.$$
+<p>Proof in one line: product-to-sum turns each product into $\cos$ of $(m\pm n)\pi x/L$, which integrates to zero over a full period unless $m-n=0$. The mixed one is an odd integrand.</p>
+<p>So multiply the series by $\cos\frac{m\pi x}{L}$, integrate over $(-L,L]$ and divide by $L$: every term dies except $a_m\cdot1$. That is the $a_m$ formula. Same with $\sin$ for $b_m$. (Same idea as $c_i=\langle v_i,u\rangle/|v_i|^2$ for orthogonal eigenvectors, which is how the lectures frame it.)</p>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>2.</strong> $\displaystyle\int_{-L}^{L}\sin^2\!\frac{4\pi x}{L}\,dx=$</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$2L$</button>
+    <button class="opt" data-key="b">$L/2$</button>
+    <button class="opt" data-key="c">$0$</button>
+    <button class="opt" data-key="d">$L$</button>
+  </div>
+  <div class="why">$\sin^2\theta=\tfrac12(1-\cos2\theta)$; the $\cos$ part integrates to $0$, leaving $\tfrac12\cdot2L$. Any $n\ge1$ gives $L$, which is why the formulas have $1/L$ in front.</div>
+</div>
+
+<h2>3 · Values you must know cold</h2>
+<table>
+<tr><th>$n$</th><th>1</th><th>2</th><th>3</th><th>4</th><th>general</th></tr>
+<tr><td>$\sin n\pi$</td><td>0</td><td>0</td><td>0</td><td>0</td><td>$0$</td></tr>
+<tr><td>$\cos n\pi$</td><td>−1</td><td>1</td><td>−1</td><td>1</td><td>$(-1)^n$</td></tr>
+<tr><td>$\sin\frac{n\pi}2$</td><td>1</td><td>0</td><td>−1</td><td>0</td><td>$0$ for even $n$; $(-1)^{m+1}$ for $n=2m-1$</td></tr>
+<tr><td>$\cos\frac{n\pi}2$</td><td>0</td><td>−1</td><td>0</td><td>1</td><td>$0$ for odd $n$; $(-1)^m$ for $n=2m$</td></tr>
+</table>
+<p>Also: $1-(-1)^n$ is $2$ for odd $n$ and $0$ for even $n$. When a coefficient has this factor, write the series as a sum over odd $n=2m-1$ only.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>3.</strong> $\cos\dfrac{n\pi}{2}$ with $n=6$ equals…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$1$</button>
+    <button class="opt" data-key="b">$-1$</button>
+    <button class="opt" data-key="c">$0$</button>
+    <button class="opt" data-key="d">$\tfrac12$</button>
+  </div>
+  <div class="why">$\cos3\pi=-1$. Formula: $n=2m$ with $m=3$ gives $(-1)^3$.</div>
+</div>
+
+<h2>4 · Parity shortcuts</h2>
+<div class="box">
+<p><strong>$f$ even</strong> ($f(-x)=f(x)$): $b_n=0$ and $a_n=\dfrac2L\displaystyle\int_0^Lf(x)\cos\frac{n\pi x}{L}\,dx$. A cosine series.</p>
+<p><strong>$f$ odd</strong> ($f(-x)=-f(x)$): $a_n=0$ (including $a_0$) and $b_n=\dfrac2L\displaystyle\int_0^Lf(x)\sin\frac{n\pi x}{L}\,dx$. A sine series.</p>
+<p><strong>Neither</strong>: compute all three, or split $f=f_{\rm even}+f_{\rm odd}$ when the pieces are familiar (linearity).</p>
+</div>
+<p>Reason: even×even and odd×odd are even, even×odd is odd, and an odd function integrates to $0$ over $(-L,L)$. In the exam, <em>state</em> the parity and say which coefficients vanish because of it: that line earns a mark.</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>4.</strong> $f(x)=x\cos x$ on $(-\pi,\pi]$. Which coefficients can be non-zero?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">only the $b_n$ can be non-zero</button>
+    <button class="opt" data-key="b">only the $a_n$ can be non-zero</button>
+    <button class="opt" data-key="c">only the constant can be non-zero</button>
+    <button class="opt" data-key="d">all of them can be non-zero</button>
+  </div>
+  <div class="why">odd × even = odd, so a sine series.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>5.</strong> $f(x)=|x|-x^2$ on $(-1,1]$. Then $a_n=$</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\int_0^1(x-x^2)\cos n\pi x\,dx$</button>
+    <button class="opt" data-key="b">$2\int_0^1(x-x^2)\sin n\pi x\,dx$</button>
+    <button class="opt" data-key="c">$2\int_0^1(x-x^2)\cos n\pi x\,dx$</button>
+    <button class="opt" data-key="d">$2\int_{-1}^1(x-x^2)\cos n\pi x\,dx$</button>
+  </div>
+  <div class="why">Even, $L=1$: $\frac2L\int_0^L$ with $|x|=x$ on $(0,1)$ and $k_n=n\pi$. Option (d) uses $x$ instead of $|x|$ on $(-1,0)$ and doubles anyway.</div>
+</div>
+
+<h2>5 · Worked example: general $L$, neither parity</h2>
+
+<p>$f(x)=\begin{cases}0,&-2<x\le0\\ x,&0<x\le2\end{cases}$, so $L=2$, $k_n=n\pi/2$. Try it on paper first.</p>
+
+<div class="box">
+<p><strong>Integration-by-parts results to memorise</strong> (one IBP each, $k\ne0$):</p>
+$$\int x\cos kx\,dx=\frac{x\sin kx}{k}+\frac{\cos kx}{k^2},\qquad \int x\sin kx\,dx=-\frac{x\cos kx}{k}+\frac{\sin kx}{k^2}.$$
+<p>With $k=n\pi/L$ and limits $0$, $L$: $\sin kL=0$, $\cos kL=(-1)^n$.</p>
+</div>
+
+<details><summary>$a_0$</summary><div>
+$$a_0=\frac12\int_0^2x\,dx=1.\qquad\text{Check: average of }f=\tfrac{\text{area }2}{\text{period }4}=\tfrac12=a_0/2\ ✓$$
+</div></details>
+
+<details><summary>$a_n$</summary><div>
+$$a_n=\frac12\int_0^2x\cos\frac{n\pi x}2\,dx=\frac12\Big[\frac{2x}{n\pi}\sin\frac{n\pi x}2+\frac{4}{n^2\pi^2}\cos\frac{n\pi x}2\Big]_0^2=\frac12\cdot\frac{4}{n^2\pi^2}\big((-1)^n-1\big)=\frac{2\big((-1)^n-1\big)}{n^2\pi^2}.$$
+<p>So $a_n=-\dfrac{4}{n^2\pi^2}$ for odd $n$, $0$ for even $n$.</p>
+</div></details>
+
+<details><summary>$b_n$</summary><div>
+$$b_n=\frac12\int_0^2x\sin\frac{n\pi x}2\,dx=\frac12\Big[-\frac{2x}{n\pi}\cos\frac{n\pi x}2+\frac{4}{n^2\pi^2}\sin\frac{n\pi x}2\Big]_0^2=\frac12\cdot\Big(-\frac{4(-1)^n}{n\pi}\Big)=\frac{2(-1)^{n+1}}{n\pi}.$$
+</div></details>
+
+<details><summary>The series</summary><div>
+$$f(x)\sim\frac12-\frac{4}{\pi^2}\sum_{m=1}^\infty\frac{1}{(2m-1)^2}\cos\frac{(2m-1)\pi x}{2}+\frac{2}{\pi}\sum_{n=1}^\infty\frac{(-1)^{n+1}}{n}\sin\frac{n\pi x}{2}.$$
+</div></details>
+
+<p>Drag $N$. The partial sums converge to the periodic extension, with a wiggle at the jumps $x=\pm2$ (that's Gibbs, Lesson 23). At a jump the series sits at the midpoint, dot at height $1$.</p>
+<div id="plot-ex"></div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>6.</strong> $f=3$ on $(0,\pi)$ and $f=0$ on $(-\pi,0)$. The constant term $a_0/2$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$3$</button>
+    <button class="opt" data-key="b">$3/2$</button>
+    <button class="opt" data-key="c">$3\pi/2$</button>
+    <button class="opt" data-key="d">$0$</button>
+  </div>
+  <div class="why">Average over a period: half the time $3$, half $0$. Answer (a) is $a_0$ itself: the most common slip.</div>
+</div>
+
+<div class="trap"><strong>Traps</strong><br>
+(1) Writing $a_0$ as the constant term instead of $a_0/2$. (2) Using $\frac1L\int_0^L$ for a parity shortcut: it is $\frac2L$. (3) Dropping the factor $\frac{L}{n\pi}$ (it's not $\frac1n$ unless $L=\pi$). (4) Assuming the $\int\sin$ or $\int\cos$ leftover is zero over $(0,L)$: $\int_0^L\cos kx=0$ but $\int_0^L\sin kx=\frac{L(1-(-1)^n)}{n\pi}$. (5) Dividing by $n$ in $a_n$ then reading off $a_0$ from it: $a_0$ always needs its own integral.</div>
+
+<h2>6 · Practice (exam level)</h2>
+<p>Paper first. State parity before integrating.</p>
+<div class="box">
+<p><strong>P1.</strong> $f(x)=\begin{cases}1,&|x|&lt;1\\0,&1&lt;|x|&lt;2\end{cases}$, period $4$.</p>
+<p><strong>P2.</strong> $f(x)=2x+1$ on $(-\pi,\pi]$. (Use linearity: the lecture series for $x$ is $\sum\frac{2(-1)^{n+1}}{n}\sin nx$.)</p>
+<p><strong>P3.</strong> $f(x)=3\sin2x-\cos^2x$ on $(-\pi,\pi]$. (No integrals.)</p>
+</div>
+
+<details><summary>P1 solution</summary><div>
+<p>Even, $L=2$, so $b_n=0$. $a_0=\frac22\int_0^1dx=1$.</p>
+$$a_n=\frac22\int_0^1\cos\frac{n\pi x}2\,dx=\Big[\frac{2}{n\pi}\sin\frac{n\pi x}{2}\Big]_0^1=\frac{2}{n\pi}\sin\frac{n\pi}2.$$
+<p>Zero for even $n$; for $n=2m-1$, $\sin\frac{n\pi}{2}=(-1)^{m+1}$:</p>
+$$f(x)\sim\frac12+\frac2\pi\sum_{m=1}^\infty\frac{(-1)^{m+1}}{2m-1}\cos\frac{(2m-1)\pi x}{2}.$$
+</div></details>
+
+<details><summary>P2 solution</summary><div>
+<p>$1$ is even, $2x$ is odd. The constant $1$ is its own Fourier series: $a_0/2=1$, so $a_0=2$, $a_n=0$ ($n\ge1$). Twice the series for $x$: $b_n=\dfrac{4(-1)^{n+1}}{n}$.</p>
+$$2x+1\sim1+4\sum_{n=1}^\infty\frac{(-1)^{n+1}}{n}\sin nx.$$
+</div></details>
+
+<details><summary>P3 solution</summary><div>
+<p>$\cos^2x=\tfrac12+\tfrac12\cos2x$, so $f=-\tfrac12-\tfrac12\cos2x+3\sin2x$. Read off: $a_0=-1$, $a_2=-\tfrac12$, $b_2=3$, all others $0$. By uniqueness (orthogonality), the formulas would give exactly these.</p>
+</div></details>
+
+<h2>7 · Exam-level challenge (14 marks)</h2>
+<p>About 25 minutes on paper, then open one part at a time.</p>
+<div class="box">
+<p>Let $f(x)=\begin{cases}2,&-2&lt;x&lt;0\\ 2-x,&0\le x\le2\end{cases}$ and $f(x+4)=f(x)$.</p>
+<p>(a) Is $f$ even, odd, or neither? What does this say about its Fourier coefficients? <em>[1]</em><br>
+(b) Sketch $f$ for $-6&lt;x\le6$. <em>[2]</em><br>
+(c) Compute $a_0$. <em>[1]</em><br>
+(d) Show that $a_n=\dfrac{2\big(1-(-1)^n\big)}{n^2\pi^2}$ for $n\ge1$. <em>[3]</em><br>
+(e) Compute $b_n$. <em>[3]</em><br>
+(f) Write the Fourier series of $f$ with only the non-zero cosine terms appearing. <em>[2]</em><br>
+(g) Write $f$ on $(-2,2)$ as a constant plus a multiple of $x$ plus an even function, and use it to check $b_n$ without integrating. <em>[2]</em></p>
+</div>
+
+<details><summary>(a) Parity</summary><div>
+<p>$f(-1)=2$, $f(1)=1$, so neither. Both $a_n$ and $b_n$ must be computed.</p>
+</div></details>
+
+<details><summary>(b) Sketch</summary><div>
+<p>Each period $(-2+4j,\,2+4j]$: flat at $2$ on the left half, a ramp from $2$ down to $0$ on the right half. Continuous at $x=0,\pm4$; jumps from $0$ up to $2$ at $x=\pm2,6$. See the drawing on the <a href="../worked/0021-challenge-full-solution.html">full solution page</a>.</p>
+</div></details>
+
+<details><summary>(c) $a_0$</summary><div>
+$$a_0=\frac12\Big(\int_{-2}^02\,dx+\int_0^2(2-x)\,dx\Big)=\frac12(4+2)=3.$$
+<p>Check: average $=6/4=3/2=a_0/2$ ✓.</p>
+</div></details>
+
+<details><summary>(d) $a_n$</summary><div>
+<p>$k=n\pi/2$. The flat piece gives $\int_{-2}^02\cos kx\,dx=\frac2k\big[\sin kx\big]_{-2}^0=\frac2k\sin n\pi=0$. Then</p>
+$$\int_0^2(2-x)\cos kx\,dx=\Big[\frac{(2-x)\sin kx}{k}\Big]_0^2+\frac1k\int_0^2\sin kx\,dx=0+\frac{1-\cos2k}{k^2}=\frac{4\big(1-(-1)^n\big)}{n^2\pi^2}.$$
+$$a_n=\frac12\cdot\frac{4\big(1-(-1)^n\big)}{n^2\pi^2}=\frac{2\big(1-(-1)^n\big)}{n^2\pi^2}.\ \blacksquare$$
+</div></details>
+
+<details><summary>(e) $b_n$</summary><div>
+$$\int_{-2}^02\sin kx\,dx=-\frac2k\big[\cos kx\big]_{-2}^0=-\frac2k\big(1-(-1)^n\big).$$
+$$\int_0^2(2-x)\sin kx\,dx=\Big[-\frac{(2-x)\cos kx}{k}\Big]_0^2-\frac1k\int_0^2\cos kx\,dx=\frac2k-0=\frac2k.$$
+$$b_n=\frac12\cdot\frac2k\big((-1)^n-1+1\big)=\frac{(-1)^n}{k}=\frac{2(-1)^n}{n\pi}.$$
+</div></details>
+
+<details><summary>(f) The series</summary><div>
+<p>$a_n=\frac{4}{n^2\pi^2}$ for odd $n$, $0$ for even $n$:</p>
+$$f(x)\sim\frac32+\frac4{\pi^2}\sum_{m=1}^\infty\frac{1}{(2m-1)^2}\cos\frac{(2m-1)\pi x}{2}+\frac2\pi\sum_{n=1}^\infty\frac{(-1)^n}{n}\sin\frac{n\pi x}{2}.$$
+</div></details>
+
+<details><summary>(g) Check via the odd part</summary><div>
+<p>On $(-2,2)$: $f(x)=2-\tfrac12\big(x+|x|\big)=\underbrace{2-\tfrac12|x|}_{\text{even}}\ \underbrace{-\tfrac12x}_{\text{odd}}$. Only the odd part contributes to $b_n$. With $L=2$, the series of $x$ has $b_n=\frac{2L(-1)^{n+1}}{n\pi}=\frac{4(-1)^{n+1}}{n\pi}$, so $b_n=-\tfrac12\cdot\frac{4(-1)^{n+1}}{n\pi}=\frac{2(-1)^n}{n\pi}$ ✓.</p>
+</div></details>
+
+<p>Compare your script with the <a href="../worked/0021-challenge-full-solution.html">full written solution</a>, which shows every line to write in the exam and the sketch.</p>
+
+<h2>8 · Before you close this tab</h2>
+<details><summary>Retrieval: write from memory the parity shortcuts, the four special values, and the two IBP antiderivatives, then check</summary><div>
+<p>Even: $b_n=0$, $a_n=\frac2L\int_0^Lf\cos$. Odd: $a_n=0$, $b_n=\frac2L\int_0^Lf\sin$. Constant term $a_0/2$ = average.</p>
+<p>$\sin n\pi=0$, $\cos n\pi=(-1)^n$, $\sin\frac{n\pi}2$: $1,0,-1,0$, $\cos\frac{n\pi}2$: $0,-1,0,1$.</p>
+<p>$\int x\cos kx=\frac{x\sin kx}{k}+\frac{\cos kx}{k^2}$, $\int x\sin kx=-\frac{x\cos kx}{k}+\frac{\sin kx}{k^2}$.</p>
+</div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/15_MAST20030_Lecture_Notes_Topic4_Fourier_handout.pdf">Lecture 15</a> (eigenfunctions, inner product, orthogonality, Ex 4.1–4.2) and <a href="../lectures/16_MAST20030_Lecture_Notes_Topic4_Fourier_handout.pdf">Lecture 16</a> (Euler–Fourier formulae, Ex 4.3 $x^2$ and 4.4 $x$). Extra worked examples: <a href="https://tutorial.math.lamar.edu/Classes/DE/PeriodicOrthogonal.aspx">Paul's Notes: Periodic functions and orthogonal functions</a> and <a href="https://tutorial.math.lamar.edu/Classes/DE/FourierSeries.aspx">Paul's Notes: Fourier series</a>, Examples 1–3.</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic4.pdf">Problem Booklet 4</a>, Q1 (a), (c), (d): coefficients only. Leave "converges to / uniform?" until Lesson 23.</li>
+  <li><a href="../tutes/tute_week_07.pdf">Tutorial 7</a>, Q2 (a) and the series part of Q2 (b) (stop before the sums).</li>
+  <li>Optional: Booklet Q1 (b), (f). Answers at the back of the booklet; <a href="../tutes/tute_week_07_sol.pdf">tutorial solutions</a>.</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo quizzes 1, 5, 6 and challenge (d)–(e) cold.</p>
+
+<div class="ask">💬 Stuck on a boundary term, or not sure your parity statement is worded well enough for the mark? Ask me in the terminal. Paste or photograph your working and I'll mark it line by line.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0020-laplace-integro-differential.html">Lesson 20</a></span>
+  <span>Next: <a href="0022-extensions-half-range.html">Lesson 22, extensions and half-range series</a></span>
+  <span>Reference: <a href="../reference/topic4-cheatsheet.html">Topic 4 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+
+<script>
+(function () {
+  const PI = Math.PI;
+  const per = (t) => { const r = ((t + 2) % 4 + 4) % 4 - 2; return r; };   // map to [-2, 2)
+  SeriesPlot.mount(document.getElementById('plot-ex'), {
+    term: (n, t) => {
+      if (n === 0) return 0.5;
+      const k = n * PI / 2;
+      const an = 2 * ((n % 2 ? -1 : 1) - 1) / (n * n * PI * PI);
+      const bn = 2 * (n % 2 ? 1 : -1) / (n * PI);
+      return an * Math.cos(k * t) + bn * Math.sin(k * t);
+    },
+    n0: 0,
+    limit: (t) => { const r = per(t); return r > 0 ? r : 0; },
+    x: [-6, 6], y: [-0.4, 2.4],
+    N: { min: 1, max: 60, value: 3 },
+    D: [-1.5, 1.5],
+    dots: [{ t: -6, y: 1 }, { t: -2, y: 1 }, { t: 2, y: 1 }, { t: 6, y: 1 }],
+    labels: { seq: 'S_N(x)', limit: 'periodic extension of f' },
+    aria: 'Fourier partial sums of the function equal to 0 on minus 2 to 0 and x on 0 to 2, against its periodic extension',
+  });
+})();
+</script>
+</body>
+</html>

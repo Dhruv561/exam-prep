@@ -117,17 +117,18 @@
 const R = String.raw;
 
 const META = {
-  covered: 'Topic 1, Lessons 0–7; Topic 2, Lessons 8–12 (power series); Topic 3, Lessons 13–20 (Laplace)',
-  updated: '17 Oct 2026',
+  covered: 'Topic 1, Lessons 0–7; Topic 2, Lessons 8–12 (power series); Topic 3, Lessons 13–20 (Laplace); Topic 4, Lessons 21–26 (Fourier series)',
+  updated: '18 Oct 2026',
 };
 
 const LOG = [
+  ['18 Oct 2026', 'Unlocked Fourier series (Topic 4): extensions, product-to-sum, convergence/Gibbs/uniform, sums via plug-in or Parseval, complex form, term-by-term, periodic ODE cases.'],
   ['17 Oct 2026', 'Unlocked Laplace (Topic 3): IVP steps; repeated/resonant, Heaviside, delta, convolution, integro-differential, variable-coeff cases.'],
   ['14 Oct 2026', 'Unlocked Power series (Topic 2): steps, terminating, radius, step-3, three-term, singular-at-0, uniform/genuine cases.'],
   ['13 Oct 2026', 'Created. Topic 1 fully mapped; Topics 2–6 stubbed as later-topic boxes.'],
 ];
 
-const L = n => ({ n, href: `../lessons/${{0:'0000-assumed-knowledge',1:'0001-integrating-factors',2:'0002-reduction-of-order',3:'0003-wronskian-abel-euler',4:'0004-systems-eigenvalues',5:'0005-phase-portraits',6:'0006-inhomogeneous-matrix-exp',7:'0007-particular-solutions',8:'0008-taylor-series-radius',9:'0009-series-method-constant-coeff',10:'0010-series-variable-coeff',11:'0011-singular-points-bessel',12:'0012-uniform-convergence-genuine',14:'0014-laplace-solving-ivps'}[n]}.html` });
+const L = n => ({ n, href: `../lessons/${{0:'0000-assumed-knowledge',1:'0001-integrating-factors',2:'0002-reduction-of-order',3:'0003-wronskian-abel-euler',4:'0004-systems-eigenvalues',5:'0005-phase-portraits',6:'0006-inhomogeneous-matrix-exp',7:'0007-particular-solutions',8:'0008-taylor-series-radius',9:'0009-series-method-constant-coeff',10:'0010-series-variable-coeff',11:'0011-singular-points-bessel',12:'0012-uniform-convergence-genuine',14:'0014-laplace-solving-ivps',21:'0021-fourier-coefficients'}[n]}.html` });
 
 const METHODS = {
   intfactor: {
@@ -413,7 +414,27 @@ const METHODS = {
     ],
     traps: R`Forgetting the leading coefficient in $a(s^2Y-\dots)$. Using the wrong branch after an impulse. Treating $g(t)H_a$ as $g(t-a)H_a$. Assuming $\mathcal L\{H_a\}$, $\mathcal L\{tf\}$, $\mathcal L\{\int f\}$ are on the sheet (they are not).`,
   },
-  fourier: { future: true, title: 'Fourier series', topic: 'Topic 4', lectures: '15–19', use: R`Periodic functions or forcing; expanding a function on an interval. Formula sheet provided.` },
+  fourier: {
+    title: 'Fourier series', lesson: L(21),
+    use: R`Expanding a periodic function (period $2L$), or a function on $(0,L)$ via an even/odd extension; periodic forcing of a constant-coefficient ODE. Coefficient formulas are on the sheet; everything else is memorised.`,
+    form: R`$$f \sim \frac{a_0}{2} + \sum_{n\ge1}\Big(a_n\cos\frac{n\pi x}{L} + b_n\sin\frac{n\pi x}{L}\Big),\quad a_n=\frac1L\int_{-L}^{L} f\cos\frac{n\pi x}{L},\ b_n=\frac1L\int_{-L}^{L} f\sin\frac{n\pi x}{L}$$`,
+    steps: [
+      R`Read off $L$ (period $2L$). Sketch the periodic extension over ~3 periods.`,
+      R`Parity: even ⇒ $b_n=0$, $a_n=\frac2L\int_0^L f\cos$; odd ⇒ $a_n=0$, $b_n=\frac2L\int_0^L f\sin$.`,
+      R`Integrate (one IBP or product-to-sum); simplify with $\sin n\pi=0$, $\cos n\pi=(-1)^n$.`,
+      R`Convergence: $F$ where continuous, average of one-sided limits at jumps (incl. $x=\pm L$).`,
+    ],
+    cases: [
+      { name: 'Extensions / half-range', body: R`$f$ on $(0,L)$: even ext ⇒ cosine series, odd ext ⇒ sine series. Odd ext of continuous $f$ is continuous only if $f(0)=f(L)=0$. <a href="../lessons/0022-extensions-half-range.html">Lesson 22</a>` },
+      { name: 'Trig piece (product-to-sum)', body: R`$\sin(\omega x)\sin(n\pi x/L)$ etc.: product-to-sum; special case at the $n$ with $n\pi/L=\omega$ (compute it separately). <a href="../lessons/0022-extensions-half-range.html">Lesson 22</a>` },
+      { name: 'Converge / Gibbs / uniform', body: R`Jump ⇒ coeffs $\sim1/n$, Gibbs overshoot ≈ 9% of jump, NOT uniform. Continuous extension + $f'$ piecewise continuous ⇒ uniform; prove with M-test $\sum(|a_n|+|b_n|)<\infty$. <a href="../lessons/0023-convergence-gibbs-uniform.html">Lesson 23</a>` },
+      { name: 'Evaluate a numerical sum', body: R`Plug a point ($0$, $L$, $L/2$) into the series and use the convergence value; or Parseval $\frac1L\int_{-L}^{L}f^2=\frac{a_0^2}{2}+\sum(a_n^2+b_n^2)$ for $\sum 1/n^4$-type. <a href="../lessons/0024-parseval-complex-form.html">Lesson 24</a>` },
+      { name: 'Complex form', body: R`$c_n=\frac1{2L}\int_{-L}^{L} f e^{-in\pi x/L}$; $c_{\pm n}=\frac12(a_n\mp ib_n)$, $c_0=a_0/2$. <a href="../lessons/0024-parseval-complex-form.html">Lesson 24</a>` },
+      { name: 'Term-by-term ∫ / d/dx', body: R`Integration always OK (piecewise continuous); watch the $\frac{a_0}{2}x$ term. Differentiation needs continuous periodic extension. <a href="../lessons/0025-term-by-term-periodic-odes.html">Lesson 25</a>` },
+      { name: 'Periodic ODE', body: R`Trial $y=\frac{A_0}2+\sum(A_n\cos+B_n\sin)$, match mode by mode: $(k-\omega_n^2)A_n=a_n$. Resonance if $k=\omega_n^2$ for a forced mode (no periodic solution). <a href="../lessons/0025-term-by-term-periodic-odes.html">Lesson 25</a>` },
+    ],
+    traps: R`Using $\frac1L\int_{-L}^L$ with $\frac2L$ (double counting). Forgetting $a_0$ needs its own integral (the $a_n$ formula often divides by $n$). Missing the special $n$ in product-to-sum. Answering $f(x)$ instead of the average at a jump. Saying "uniform" for a discontinuous extension.`,
+  },
   sepvars: { future: true, title: 'Separation of variables (BVPs & PDEs)', topic: 'Topic 5', lectures: '20–27', use: R`Heat/wave/Laplace equations on a finite domain; boundary conditions at two points.` },
   ftrans:  { future: true, title: 'Fourier transform', topic: 'Topic 6', lectures: '28', use: R`PDEs on an infinite domain. Formula sheet provided.` },
 };

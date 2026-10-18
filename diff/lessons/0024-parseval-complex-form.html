@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parseval and Complex Form</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 24 · Topic 4: Fourier series</div>
+<h1>Sums of squares: Parseval's identity and the complex Fourier series</h1>
+<p class="lede">The one win: given a Fourier series, evaluate a sum like $\sum 1/n^4$ or $\sum 1/n^6$ with Parseval. Also get coefficients from one complex integral when $f$ contains $e^{ax}$.</p>
+
+<div class="mission">Why this matters for 5 Nov: past papers ask you to evaluate a numerical series from a given Fourier series. The pointwise route (Lesson 23) gives sums of the <em>coefficients</em>. Parseval gives sums of their <em>squares</em>, which is how $\sum 1/n^4$ comes out of a series with $1/n^2$ coefficients (lecture Ex 4.11). The formula sheet has the Euler–Fourier coefficient formulas only. <strong>Parseval and the complex form are not on it: memorise both boxes below.</strong></div>
+
+<h2>0 · Warm-up from Lessons 21 and 23</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> For integer $n\ge1$, $\;e^{-in\pi}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$1$</button>
+    <button class="opt" data-key="b">$-1$</button>
+    <button class="opt" data-key="c">$(-1)^n$</button>
+    <button class="opt" data-key="d">$(-1)^{n+1}$</button>
+  </div>
+  <div class="why">$e^{-in\pi}=\cos n\pi-i\sin n\pi=(-1)^n-0$. Same for $e^{+in\pi}$. You will use this in every complex coefficient.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W2.</strong> $f(x)=x$ on $(-\pi,\pi]$, extended $2\pi$-periodically. Its Fourier series at $x=\pi$ converges to…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\pi$</button>
+    <button class="opt" data-key="b">$0$</button>
+    <button class="opt" data-key="c">$-\pi$</button>
+    <button class="opt" data-key="d">$\pi/2$</button>
+  </div>
+  <div class="why">Jump from $\pi$ (left) to $-\pi$ (right). Average: $0$. Check: every $\sin n\pi=0$.</div>
+</div>
+
+<h2>1 · The complex Fourier series</h2>
+
+<div class="box">
+<p><strong>Memorise (Lecture 18, slide 3).</strong> With $k_n=\dfrac{n\pi}{L}$, $f$ on $(-L,L]$ has complex Fourier series
+$$\sum_{n=-\infty}^{\infty}c_n\,e^{ik_nx},\qquad c_n=\frac1{2L}\int_{-L}^{L}f(x)\,e^{-ik_nx}\,dx.$$
+Note the $\dfrac1{2L}$ (not $\dfrac1L$), the <em>minus</em> sign in the integral, and the sum over <em>all</em> integers $n$.</p>
+</div>
+
+<p><strong>Link to $a_n,b_n$</strong> (one line: $e^{-ik_nx}=\cos k_nx-i\sin k_nx$ inside the integral):</p>
+$$c_0=\frac{a_0}2,\qquad c_n=\frac{a_n-ib_n}2,\qquad c_{-n}=\frac{a_n+ib_n}2\quad(n\ge1).$$
+<p>So for <strong>real</strong> $f$: $\;c_{-n}=\overline{c_n}$, and back the other way</p>
+$$a_n=c_n+c_{-n}=2\,\mathrm{Re}\,c_n,\qquad b_n=i(c_n-c_{-n})=-2\,\mathrm{Im}\,c_n.$$
+<p>Even $f$ gives real $c_n$ ($b_n=0$). Odd $f$ gives purely imaginary $c_n$ ($a_n=0$).</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q1.</strong> A real $f$ has $c_3=2-5i$. Then…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$c_{-3}=2+5i,\; a_3=4,\; b_3=10$</button>
+    <button class="opt" data-key="b">$c_{-3}=2+5i,\; a_3=2,\; b_3=5$</button>
+    <button class="opt" data-key="c">$c_{-3}=2-5i,\; a_3=4,\; b_3=-10$</button>
+    <button class="opt" data-key="d">$c_{-3}=-2+5i,\; a_3=4,\; b_3=10$</button>
+  </div>
+  <div class="why">$c_{-3}=\overline{c_3}$. $a_3=2\,\mathrm{Re}\,c_3=4$, $b_3=-2\,\mathrm{Im}\,c_3=-2(-5)=10$. Check: $(a_3-ib_3)/2=2-5i$ ✓.</div>
+</div>
+
+<p><strong>When to use it:</strong> $f$ contains $e^{ax}$. The real route needs two cyclic integrations by parts for each of $a_n$, $b_n$. The complex route needs one integral.</p>
+
+<p><strong>Worked.</strong> $f(x)=e^{2x}$ on $(-1,1]$, so $L=1$, $k_n=n\pi$.</p>
+$$c_n=\frac12\int_{-1}^{1}e^{(2-in\pi)x}dx=\frac12\cdot\frac{e^{2-in\pi}-e^{-2+in\pi}}{2-in\pi}=\frac{(-1)^n}{2-in\pi}\cdot\frac{e^2-e^{-2}}2=\frac{(-1)^n\sinh2}{2-in\pi}.$$
+<p>Valid for every $n$ (including $n=0$: $c_0=\tfrac12\sinh2$, so $a_0=\sinh2$). Rationalise to read off $a_n,b_n$:</p>
+$$c_n=\frac{(-1)^n\sinh2\,(2+in\pi)}{4+n^2\pi^2}\;\Rightarrow\; a_n=\frac{4(-1)^n\sinh2}{4+n^2\pi^2},\qquad b_n=-\frac{2n\pi(-1)^n\sinh2}{4+n^2\pi^2}.$$
+
+<div class="trap"><strong>Traps</strong><br>
+• Writing $\dfrac1L$ in front of $c_n$: off by a factor 2.<br>
+• Forgetting the $n=0$ case when your formula divides by $n$ (as for $f=x$ below). Compute $c_0=\dfrac1{2L}\int f$ separately.<br>
+• Lecture Ex 4.6 ($f=x$ on $(-\pi,\pi]$): $c_n=\dfrac{i(-1)^n}{n}$, $c_0=0$, giving $b_n=-2\,\mathrm{Im}\,c_n=\dfrac{2(-1)^{n+1}}n$ ✓.</div>
+
+<h2>2 · Parseval's identity (average power)</h2>
+
+<div class="box">
+<p><strong>Memorise (Lecture 19, slide 13).</strong> For a Fourier series $s(x)$ on $(-L,L]$,
+$$\langle s,s\rangle=\frac1L\int_{-L}^{L}|s(x)|^2\,dx=\frac{|a_0|^2}{2}+\sum_{n=1}^{\infty}\big(|a_n|^2+|b_n|^2\big).$$
+The lectures call $\langle s,s\rangle$ the <strong>average power</strong> of the signal, and $\sqrt{\langle s,s\rangle}$ its norm (RMS). Proof idea: expand $s\cdot s$ and use orthogonality; every cross term integrates to $0$.</p>
+<p>Complex version (same identity, since $|c_n|^2+|c_{-n}|^2=\tfrac12(a_n^2+b_n^2)$): $\;\dfrac1{2L}\displaystyle\int_{-L}^{L}|f|^2dx=\sum_{n=-\infty}^{\infty}|c_n|^2.$</p>
+</div>
+
+<p>In practice you replace $s$ by $f$ on the left (they differ only at jump points, which don't change an integral), so the left side is an easy integral.</p>
+
+<div class="trap"><strong>Traps</strong><br>
+• $\dfrac{a_0^2}{2}$, not $a_0^2$ and not $\dfrac{a_0^2}4$ (that one belongs to the $\frac1{2L}$ form).<br>
+• Integrate over the whole period $(-L,L)$ with $\dfrac1L$ in front. For a half-range series, use the <em>extension</em> on $(-L,L)$, which for $|f|^2$ is just $\dfrac2L\int_0^L f^2$.<br>
+• Squares kill signs: $\big((-1)^n\big)^2=1$. That is exactly why Parseval gives positive-term sums.<br>
+• If $a_n$ vanishes for even $n$, you get a sum over <em>odd</em> $n$ only.</div>
+
+<p><strong>Worked (lecture Ex 4.11, condensed).</strong> $x^2$ on $(-\pi,\pi]$: $a_0=\tfrac{2\pi^2}3$, $a_n=\tfrac{4(-1)^n}{n^2}$.</p>
+$$\frac1\pi\int_{-\pi}^{\pi}x^4dx=\frac{2\pi^4}5=\frac{4\pi^4}{18}+\sum_{n\ge1}\frac{16}{n^4}\;\Rightarrow\;\sum_{n\ge1}\frac1{n^4}=\frac1{16}\Big(\frac{2\pi^4}5-\frac{2\pi^4}9\Big)=\frac{\pi^4}{90}.$$
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q2.</strong> $f(x)=x$ on $(-\pi,\pi]$ has $b_n=\dfrac{2(-1)^{n+1}}n$, $a_n=0$. Parseval gives $\sum_{n\ge1}1/n^2=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\pi^2/12$</button>
+    <button class="opt" data-key="b">$\pi^2/3$</button>
+    <button class="opt" data-key="c">$\pi^2/8$</button>
+    <button class="opt" data-key="d">$\pi^2/6$</button>
+  </div>
+  <div class="why">$\frac1\pi\int_{-\pi}^{\pi}x^2dx=\frac{2\pi^2}3$ and $b_n^2=\frac4{n^2}$ (the sign squares away). So $\frac{2\pi^2}3=\sum\frac4{n^2}$. Using $\frac1{2\pi}$ on the left with the $\frac1L$ right side gives the wrong $\pi^2/12$.</div>
+</div>
+
+<h2>3 · Given a series: pointwise or Parseval?</h2>
+
+<div class="box">
+<p><strong>Decide from the shape of the target sum.</strong></p>
+<ul>
+<li>Terms look like the <strong>coefficients</strong> (e.g. coefficients $\sim1/n^3$, target $\sum\pm1/n^3$) → <strong>pointwise</strong>: plug a point $x_0$ into $s(x)$, use the convergence theorem for its value.</li>
+<li>Terms look like the <strong>squares</strong> of the coefficients (coefficients $\sim1/n^3$, target $\sum1/n^6$) → <strong>Parseval</strong>.</li>
+<li>Target over all $n$ but you only got odd $n$? Split: $\displaystyle\sum_{n\ge1}\frac1{n^p}=\sum_{\text{odd}}\frac1{n^p}+\frac1{2^p}\sum_{n\ge1}\frac1{n^p}$, so $\displaystyle\sum_{n\ge1}=\frac{2^p}{2^p-1}\sum_{\text{odd}}$.</li>
+</ul>
+</div>
+
+<p><strong>Worked.</strong> Given: on $(-\pi,\pi]$, $\;x(\pi^2-x^2)$ has Fourier series $\displaystyle s(x)=12\sum_{n=1}^{\infty}\frac{(-1)^{n+1}}{n^3}\sin nx$.</p>
+<details><summary>(i) Evaluate $\sum_{n\ge1}1/n^6$</summary><div>
+<p>Squares of $12/n^3$ → Parseval. The integrand is even:</p>
+$$\frac1\pi\int_{-\pi}^{\pi}x^2(\pi^2-x^2)^2dx=\frac2\pi\Big(\frac{\pi^7}3-\frac{2\pi^7}5+\frac{\pi^7}7\Big)=\frac{16\pi^6}{105}=\sum\frac{144}{n^6}.$$
+$$\sum_{n\ge1}\frac1{n^6}=\frac{16\pi^6}{105\cdot144}=\frac{\pi^6}{945}.$$
+</div></details>
+<details><summary>(ii) Evaluate $\sum_{m\ge1}(-1)^{m+1}/(2m-1)^3$</summary><div>
+<p>Terms like the coefficients → pointwise. The periodic extension is continuous (it is $0$ at $\pm\pi$), so $s(x)=f(x)$ everywhere. Take $x=\tfrac\pi2$: $\sin\tfrac{n\pi}2=0$ for even $n$, and for $n=2m-1$ it is $(-1)^{m+1}$, while $(-1)^{n+1}=1$:</p>
+$$\frac\pi2\Big(\pi^2-\frac{\pi^2}4\Big)=\frac{3\pi^3}8=12\sum_{m\ge1}\frac{(-1)^{m+1}}{(2m-1)^3}\;\Rightarrow\;\sum_{m\ge1}\frac{(-1)^{m+1}}{(2m-1)^3}=\frac{\pi^3}{32}.$$
+</div></details>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q3.</strong> A series has $a_n=0$ for even $n$ and $a_n=-\dfrac{4}{\pi n^2}$ for odd $n$. To evaluate $\sum_{\text{odd}}1/n^4$ you use…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">pointwise convergence at a point where $\cos nx_0=1$</button>
+    <button class="opt" data-key="b">Parseval, because $a_n^2$ is proportional to $1/n^4$</button>
+    <button class="opt" data-key="c">term-by-term differentiation, then pointwise convergence at $0$</button>
+    <button class="opt" data-key="d">Parseval, because $a_n$ is proportional to $1/n^4$</button>
+  </div>
+  <div class="why">Pointwise gives sums of $a_n\cos nx_0\sim1/n^2$. Squaring gives $16/(\pi^2n^4)$: that is Parseval's job.</div>
+</div>
+
+<h2>4 · Practice (a notch above the notes)</h2>
+<p>Do each fully on paper, then open the solution.</p>
+<div class="box">
+<p><strong>P1.</strong> (a) A real $2\pi$-periodic $f$ has $c_n=\dfrac{1}{1+n^2}$ for all $n\in\mathbb Z$. Find $a_0,a_n,b_n$. Is $f$ even, odd or neither? (b) Same for $c_n=\dfrac{in}{1+n^2}$.</p>
+<p><strong>P2.</strong> Use Parseval on the §1 series for $e^{2x}$ on $(-1,1]$ to show $\displaystyle\sum_{n\ge1}\frac{1}{4+n^2\pi^2}=\frac{\coth2}{4}-\frac18$. (Use $\sinh4=2\sinh2\cosh2$.)</p>
+<p><strong>P3.</strong> Given: $\displaystyle|\sin x|=\frac2\pi-\frac4\pi\sum_{m=1}^{\infty}\frac{\cos2mx}{4m^2-1}$. Evaluate $\displaystyle\sum_{m\ge1}\frac1{4m^2-1}$ and $\displaystyle\sum_{m\ge1}\frac1{(4m^2-1)^2}$, choosing the right tool for each.</p>
+</div>
+<details><summary>P1 solution</summary><div>
+<p>(a) $a_0=2c_0=2$, $a_n=2\,\mathrm{Re}\,c_n=\dfrac2{1+n^2}$, $b_n=-2\,\mathrm{Im}\,c_n=0$. Even (cosine only; $c_n$ real and $c_{-n}=c_n$).<br>
+(b) $c_0=0\Rightarrow a_0=0$; $a_n=0$; $b_n=-2\cdot\dfrac{n}{1+n^2}=-\dfrac{2n}{1+n^2}$. Odd (sine only; $c_n$ purely imaginary). Real check: $c_{-n}=\dfrac{-in}{1+n^2}=\overline{c_n}$ ✓.</p>
+</div></details>
+<details><summary>P2 solution</summary><div>
+<p>Left side: $\displaystyle\frac11\int_{-1}^{1}e^{4x}dx=\frac{e^4-e^{-4}}4=\frac{\sinh4}2=\sinh2\cosh2$.</p>
+<p>Right side: $a_n^2+b_n^2=\dfrac{\sinh^22\,(16+4n^2\pi^2)}{(4+n^2\pi^2)^2}=\dfrac{4\sinh^22}{4+n^2\pi^2}$, and $\tfrac{a_0^2}2=\tfrac{\sinh^22}2$. So</p>
+$$\sinh2\cosh2=\sinh^22\Big(\frac12+4S\Big)\;\Rightarrow\;S=\frac14\Big(\coth2-\frac12\Big)=\frac{\coth2}4-\frac18.$$
+<p>Shortcut via $|c_n|^2=\dfrac{\sinh^22}{4+n^2\pi^2}$ and the complex form gives the same in one line.</p>
+</div></details>
+<details><summary>P3 solution</summary><div>
+<p>Coefficients $\sim1/(4m^2-1)$ → pointwise for the first sum. $|\sin x|$ is continuous and periodic, so at $x=0$: $0=\dfrac2\pi-\dfrac4\pi\sum\dfrac1{4m^2-1}$, so $\displaystyle\sum\frac1{4m^2-1}=\frac12$.</p>
+<p>Squares → Parseval for the second. $a_0=\tfrac4\pi$, $a_{2m}=-\dfrac4{\pi(4m^2-1)}$, $L=\pi$:</p>
+$$\frac1\pi\int_{-\pi}^{\pi}\sin^2x\,dx=1=\frac{8}{\pi^2}+\frac{16}{\pi^2}\sum\frac1{(4m^2-1)^2}\;\Rightarrow\;\sum_{m\ge1}\frac1{(4m^2-1)^2}=\frac{\pi^2}{16}-\frac12.$$
+</div></details>
+
+<h2>5 · Exam-level challenge (12 marks, about 24 minutes)</h2>
+<div class="box">
+<p>Let $f(x)=0$ for $-2&lt;x\le0$ and $f(x)=x$ for $0&lt;x\le2$, extended periodically with period $4$.</p>
+<p>(a) Using the complex form, show that for $n\ne0$
+$$c_n=\frac{i(-1)^n}{n\pi}+\frac{(-1)^n-1}{n^2\pi^2},$$
+and find $c_0$. <em>[4]</em><br>
+(b) Hence write down $a_0$, $a_n$, $b_n$, and verify $c_{-n}=\overline{c_n}$. <em>[2]</em><br>
+(c) State the value of the Fourier series at $x=0$, justifying it, and use it to evaluate $\displaystyle\sum_{m\ge1}\frac1{(2m-1)^2}$. <em>[2]</em><br>
+(d) Use Parseval's identity to evaluate $\displaystyle\sum_{m\ge1}\frac1{(2m-1)^4}$, and hence $\displaystyle\sum_{n\ge1}\frac1{n^4}$. You may use $\sum_{n\ge1}1/n^2=\pi^2/6$. <em>[4]</em></p>
+</div>
+<p>Full marking-style solution: <a href="../worked/0024-challenge-full-solution.html">worked/0024-challenge-full-solution.html</a>. Open it only after attempting all four parts.</p>
+<details><summary>Answer key (for a quick check)</summary><div>
+<p>(a) $c_0=\tfrac12$.<br>
+(b) $a_0=1$, $a_n=\dfrac{2((-1)^n-1)}{n^2\pi^2}$, $b_n=\dfrac{2(-1)^{n+1}}{n\pi}$.<br>
+(c) $0$ (extension continuous at $0$); $\sum1/(2m-1)^2=\pi^2/8$.<br>
+(d) $\tfrac43=\tfrac12+\tfrac23+\tfrac{16}{\pi^4}\sum_{\text{odd}}\tfrac1{n^4}$, so $\sum_{\text{odd}}=\pi^4/96$, and $\sum1/n^4=\pi^4/90$.</p>
+</div></details>
+
+<h2>6 · Before you close this tab</h2>
+<details><summary>Retrieval: write from memory, then check</summary><div>
+<ol>
+<li>The formula for $c_n$ (prefactor, sign, range of $n$).</li>
+<li>$a_n,b_n$ in terms of $c_n$ for real $f$.</li>
+<li>Parseval's identity in the lecture's form.</li>
+<li>How to choose between pointwise and Parseval.</li>
+<li>$\sum_{n\ge1}1/n^p$ from the odd-only sum.</li>
+</ol>
+<p><strong>Answers:</strong> (1) $c_n=\frac1{2L}\int_{-L}^{L}fe^{-ik_nx}dx$, $n\in\mathbb Z$. (2) $a_n=2\,\mathrm{Re}\,c_n$, $b_n=-2\,\mathrm{Im}\,c_n$, $a_0=2c_0$. (3) $\frac1L\int_{-L}^{L}|f|^2=\frac{a_0^2}2+\sum(a_n^2+b_n^2)$. (4) Target terms like coefficients → pointwise; like squares → Parseval. (5) Multiply by $\frac{2^p}{2^p-1}$.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/18_MAST20030_Lecture_Notes_Topic4_Fourier_handout.pdf">Lecture 18</a> (slides 3–4: complex Fourier series, Ex 4.6) and <a href="../lectures/19_MAST20030_Lecture_Notes_Topic4_Fourier.pdf">Lecture 19</a> (slides 13–15: Parseval, average power, Ex 4.11). Neither the problem booklet nor the tutes have a Parseval question, so the homework below adds a Parseval step to booklet/tute series.</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic4.pdf">Booklet 4</a>, Q2(b): compute the series of $e^t$ via $c_n$ (one integral), convert to $a_n,b_n$, check against the answer key. Then apply Parseval to get $\sum_{n\ge1}\frac1{1+n^2}=\frac{\pi\coth\pi-1}2$.</li>
+  <li>Booklet 4, Q3(b) (half-wave rectifier), then Parseval: you should get $\sum\frac1{(4m^2-1)^2}=\frac{\pi^2}{16}-\frac12$ again (matches P3).</li>
+  <li><a href="../tutes/tute_week_07.pdf">Tute week 7</a>, Q2(b) ($|x|$ on $[-1,1]$), then Parseval for $\sum_{\text{odd}}1/n^4$ (matches the challenge).</li>
+  <li>Optional: Booklet Q1(c) + Parseval ($\sum_{\text{odd}}1/n^2$); redo lecture Ex 4.6 in complex form without notes.</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, write both memorise boxes from memory, then redo Q1, Q2 and challenge (d) cold.</p>
+
+<div class="ask">💬 Unsure whether you set up Parseval right, or want your working marked line by line? Ask me in the terminal and paste it.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0021-fourier-coefficients.html">Lesson 21</a> and <a href="0023-convergence-gibbs-uniform.html">Lesson 23</a></span>
+  <span>Next: <a href="0025-term-by-term-periodic-odes.html">Lesson 25, term-by-term and periodic ODEs</a></span>
+  <span>Reference: <a href="../reference/topic4-cheatsheet.html">Topic 4 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parseval Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 24 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>$f(x)=0$ for $-2&lt;x\le0$, $f(x)=x$ for $0&lt;x\le2$, extended periodically with period $4$.</p>
+<p>(a) Using the complex form, show $c_n=\dfrac{i(-1)^n}{n\pi}+\dfrac{(-1)^n-1}{n^2\pi^2}$ for $n\ne0$, and find $c_0$. <em>[4]</em><br>
+(b) Write down $a_0,a_n,b_n$ and verify $c_{-n}=\overline{c_n}$. <em>[2]</em><br>
+(c) State the value of the series at $x=0$ with justification; use it to evaluate $\sum_{m\ge1}\frac1{(2m-1)^2}$. <em>[2]</em><br>
+(d) Use Parseval to evaluate $\sum_{m\ge1}\frac1{(2m-1)^4}$ and hence $\sum_{n\ge1}\frac1{n^4}$, given $\sum1/n^2=\pi^2/6$. <em>[4]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · Complex coefficients <em>[4]</em></h2>
+<div class="script">
+<p>Period $2L=4$, so $L=2$, $k_n=\dfrac{n\pi}2$. Since $f=0$ on $(-2,0]$,
+$$c_n=\frac1{2L}\int_{-L}^{L}f(x)e^{-ik_nx}dx=\frac14\int_0^2x\,e^{-ik_nx}dx.$$
+For $n\ne0$, integrate by parts ($u=x$, $dv=e^{-ik_nx}dx$):
+$$\int_0^2x\,e^{-ik_nx}dx=\Big[\frac{x\,e^{-ik_nx}}{-ik_n}\Big]_0^2+\frac1{ik_n}\int_0^2e^{-ik_nx}dx=\frac{2e^{-in\pi}}{-ik_n}+\frac{e^{-in\pi}-1}{k_n^2}.$$
+With $e^{-in\pi}=(-1)^n$, $\frac1{-i}=i$ and $k_n=\frac{n\pi}2$:
+$$\int_0^2x\,e^{-ik_nx}dx=\frac{4i(-1)^n}{n\pi}+\frac{4\big((-1)^n-1\big)}{n^2\pi^2}.$$
+Multiplying by $\frac14$:
+$$c_n=\frac{i(-1)^n}{n\pi}+\frac{(-1)^n-1}{n^2\pi^2},\quad n\ne0.$$
+For $n=0$: $\;c_0=\dfrac14\displaystyle\int_0^2x\,dx=\dfrac12.$</p>
+</div>
+<p class="note">Second term: $\frac1{ik_n}\cdot\frac{e^{-ik_nx}}{-ik_n}=\frac{e^{-ik_nx}}{k_n^2}$ because $i\cdot(-i)=1$. Marks: setup with $\frac1{2L}$ and the right limits (1), by parts (2), simplify plus $c_0$ separately (1). The formula divides by $n$, so $c_0$ must be done on its own.</p>
+
+<h2>(b) · Real coefficients and the symmetry check <em>[2]</em></h2>
+<div class="script">
+<p>For real $f$: $a_0=2c_0$, $a_n=2\,\mathrm{Re}\,c_n$, $b_n=-2\,\mathrm{Im}\,c_n$. So
+$$a_0=1,\qquad a_n=\frac{2\big((-1)^n-1\big)}{n^2\pi^2},\qquad b_n=-\frac{2(-1)^n}{n\pi}=\frac{2(-1)^{n+1}}{n\pi}.$$
+Replacing $n$ by $-n$ and using $(-1)^{-n}=(-1)^n$:
+$$c_{-n}=-\frac{i(-1)^n}{n\pi}+\frac{(-1)^n-1}{n^2\pi^2}=\overline{c_n}.\;\checkmark$$</p>
+</div>
+<p class="note">Sanity check: $a_0=\frac12\int_0^2x\,dx=1$ ✓. $a_n=0$ for even $n$ and $-\frac4{n^2\pi^2}$ for odd $n$. Neither even nor odd, so both $a_n$ and $b_n$ survive.</p>
+
+<h2>(c) · Pointwise value at $x=0$ <em>[2]</em></h2>
+<div class="script">
+<p>$f$ is piecewise smooth and $f(0^-)=0=f(0^+)$, so the periodic extension is continuous at $x=0$ and the series converges to $f(0)=0$. At $x=0$ all sine terms vanish:
+$$0=\frac{a_0}2+\sum_{n\ge1}a_n=\frac12-\frac4{\pi^2}\sum_{n\text{ odd}}\frac1{n^2}\;\Rightarrow\;\sum_{m\ge1}\frac1{(2m-1)^2}=\frac{\pi^2}8.$$</p>
+</div>
+<p class="note">"Calculation required" means show the substitution; quoting $\pi^2/8$ earns nothing. The jumps are at $x=\pm2$ (value $2$ to $0$), where the series gives the average $1$.</p>
+
+<h2>(d) · Parseval <em>[4]</em></h2>
+<div class="script">
+<p>Parseval's identity (Lecture 19): $\displaystyle\frac1L\int_{-L}^{L}|f|^2dx=\frac{a_0^2}2+\sum_{n\ge1}(a_n^2+b_n^2)$.</p>
+<p>Left side: $\displaystyle\frac12\int_0^2x^2dx=\frac12\cdot\frac83=\frac43.$</p>
+<p>Right side: $\dfrac{a_0^2}2=\dfrac12$; $\;a_n^2=\dfrac{16}{n^4\pi^4}$ for odd $n$ and $0$ for even $n$; $\;b_n^2=\dfrac4{n^2\pi^2}$, so $\displaystyle\sum b_n^2=\frac4{\pi^2}\cdot\frac{\pi^2}6=\frac23$. Hence
+$$\frac43=\frac12+\frac23+\frac{16}{\pi^4}\sum_{n\text{ odd}}\frac1{n^4}\;\Rightarrow\;\sum_{m\ge1}\frac1{(2m-1)^4}=\frac{\pi^4}{16}\cdot\frac16=\frac{\pi^4}{96}.$$
+Splitting into odd and even $n$, with $\sum_{\text{even}}\frac1{n^4}=\frac1{16}\sum_{n\ge1}\frac1{n^4}$:
+$$\sum_{n\ge1}\frac1{n^4}=\frac{\pi^4}{96}+\frac1{16}\sum_{n\ge1}\frac1{n^4}\;\Rightarrow\;\sum_{n\ge1}\frac1{n^4}=\frac{16}{15}\cdot\frac{\pi^4}{96}=\frac{\pi^4}{90}.$$</p>
+</div>
+<p class="note">Marks: correct statement with $\frac1L$ and $\frac{a_0^2}2$ (1), left side (1), right side with $(-1)^n$ squared away and odd-only $a_n^2$ (1), both sums (1). Cross-check: $\pi^4/90$ matches lecture Ex 4.11, which got it from $x^2$.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+$L=2$, $\frac14\int_0^2$ · by parts with $e^{-in\pi}=(-1)^n$ · $c_0=\frac12$ done separately · $a_n=2\,\mathrm{Re}\,c_n$, $b_n=-2\,\mathrm{Im}\,c_n$ · continuity at $0$ stated before substituting · Parseval written out in full · $\frac43$ on the left · $\frac12+\frac23$ on the right · $\pi^4/96$ then the $\frac{16}{15}$ split to $\pi^4/90$.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0024-parseval-complex-form.html">Lesson 24, challenge</a></span>
+  <span>Reference: <a href="../reference/topic4-cheatsheet.html">Topic 4 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

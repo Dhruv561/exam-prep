@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fourier Mixed Set Solutions</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 26 · Fourier mixed set · Full written solutions</div>
+<h1>Q1–Q5 written out as exam answers</h1>
+<p class="lede">Inside the red rule is what goes on your paper. Grey notes are reasoning you don't write. Questions are in <a href="../lessons/0026-fourier-mixed-exam-set.html">Lesson 26</a>; only read these after attempting them.</p>
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>Q1 [12]</h2>
+<div class="script">
+<p>(a) $f(-x) = -f(x)$, so $f$ is odd. Period $4 = 2L$, so $L = 2$.</p>
+<p>(b) [Sketch] On $(0,1)$ height 1. On $[1,2)$ a line from 1 down to 0. On $(-2,0)$ the reflection through the origin. Repeat with period 4. Jumps from $-1$ to $1$ at $x=0,\pm4$, marked with a dot at height 0. Continuous at $x=\pm2$.</p>
+<p>(c) $f$ is odd, so $a_n = 0$ for all $n$, and
+$$b_n = \frac22\int_0^2 f(x)\sin\frac{n\pi x}2\,dx = \int_0^1\sin\frac{n\pi x}2\,dx + \int_1^2(2-x)\sin\frac{n\pi x}2\,dx.$$
+First: $\displaystyle\int_0^1\sin\frac{n\pi x}2\,dx = \Big[-\frac{2}{n\pi}\cos\frac{n\pi x}2\Big]_0^1 = \frac2{n\pi}\Big(1-\cos\frac{n\pi}2\Big).$<br>
+Second, by parts with $u = 2-x$, $v = -\frac2{n\pi}\cos\frac{n\pi x}2$:
+$$\int_1^2(2-x)\sin\frac{n\pi x}2\,dx = \Big[-(2-x)\frac2{n\pi}\cos\frac{n\pi x}2\Big]_1^2 - \frac2{n\pi}\int_1^2\cos\frac{n\pi x}2\,dx = \frac2{n\pi}\cos\frac{n\pi}2 + \frac4{n^2\pi^2}\sin\frac{n\pi}2.$$
+Adding,
+$$b_n = \frac2{n\pi} + \frac{4\sin(n\pi/2)}{n^2\pi^2},\qquad f(x)\sim\sum_{n=1}^\infty\Big(\frac2{n\pi}+\frac{4\sin(n\pi/2)}{n^2\pi^2}\Big)\sin\frac{n\pi x}2.$$</p>
+<p>(d) $f$ is piecewise $C^1$, so the series converges to $f$ where $f$ is continuous and to the average of the one-sided limits at jumps.<br>
+$x=0$: $\frac12(-1+1) = 0$. $\quad x=2$: $f(2^\pm) = 0$, so $0$. $\quad x=-3$: $f(-3) = f(1) = 1$ (continuous there), so $1$.</p>
+<p>(e) Yes. Gibbs occurs at the jumps $x = 4k$, $k\in\mathbb Z$. The jump size is 2, so the partial sums overshoot by about $0.09\times2\approx0.18$ (peaks near $\pm1.18$ beside each jump). The convergence is not uniform on $\mathbb R$, since the periodic extension is discontinuous.</p>
+</div>
+<p class="note">Check $b_1 = \frac2\pi+\frac4{\pi^2}$ against the direct integral numerically: $\approx 1.042$. The two $\cos\frac{n\pi}2$ terms cancelling is your signal that the parts were right. Numerically $S_N$ peaks at $1.179$ for $N=50,200,800$: that's 8.95% of the jump.</p>
+
+<h2>Q2 [9]</h2>
+<div class="script">
+<p>(a) [Sketch] $F(x) = -\sin\pi x$ on $(-1,0)$ and $\sin\pi x$ on $(0,1)$: two arches of height 1 at $x=\pm\frac12$, a corner at $0$, zero on $1\le|x|\le2$, repeated every 4. $F$ is continuous.</p>
+<p>(b) $F$ is even, so $b_n=0$. With $L=2$,
+$$a_n = \frac22\int_0^2 f\cos\frac{n\pi x}2\,dx = \int_0^1\sin(\pi x)\cos\frac{n\pi x}2\,dx,\qquad a_0 = \int_0^1\sin\pi x\,dx = \frac2\pi.$$
+Using $\sin A\cos B = \frac12[\sin(A+B)+\sin(A-B)]$, for $n\ne2$:
+$$a_n = \frac12\int_0^1\Big[\sin\big(1+\tfrac n2\big)\pi x + \sin\big(1-\tfrac n2\big)\pi x\Big]dx = \frac12\left[\frac{1-\cos(1+\frac n2)\pi}{(1+\frac n2)\pi} + \frac{1-\cos(1-\frac n2)\pi}{(1-\frac n2)\pi}\right].$$
+Since $\cos\big((1\pm\tfrac n2)\pi\big) = -\cos\frac{n\pi}2$,
+$$a_n = \frac{1+\cos\frac{n\pi}2}{\pi}\Big(\frac1{2+n}+\frac1{2-n}\Big) = \frac{4\big(1+\cos\frac{n\pi}2\big)}{\pi(4-n^2)},\quad n\ne2.$$
+For $n=2$: $a_2 = \int_0^1\sin\pi x\cos\pi x\,dx = \frac12\int_0^1\sin2\pi x\,dx = 0$. Therefore
+$$F(x)\sim\frac1\pi + \sum_{\substack{n=1\\ n\ne2}}^\infty\frac{4\big(1+\cos\frac{n\pi}2\big)}{\pi(4-n^2)}\cos\frac{n\pi x}2.$$</p>
+<p>(c) $F$ is continuous on $\mathbb R$ and $f'$ is piecewise continuous on $(-2,2]$, so by the theorem from lectures the Fourier series converges uniformly to $F$. The coefficients decay like $1/n^2$: $|a_n|\le\frac{8}{\pi(n^2-4)}$ for $n\ge3$.</p>
+</div>
+<p class="note">Sanity check: the $n\ne2$ formula at $n=0$ gives $\frac{4\cdot2}{4\pi} = \frac2\pi = a_0$ ✓. First few: $a_1 = \frac4{3\pi}$, $a_3 = -\frac4{5\pi}$, $a_4 = -\frac2{3\pi}$, $a_2=a_6=0$.</p>
+
+<h2>Q3 [8]</h2>
+<div class="script">
+<p>(a) $f$ is piecewise $C^1$ on $(-1,1]$, so $g(x)$ equals the periodic extension where it is continuous, and the average of the one-sided limits at jumps:
+$$g(x) = \begin{cases}\dfrac1{1-x}, & -3<x<-1,\\[4pt] \dfrac1{3-x}, & -1<x<1,\\[4pt] \dfrac1{5-x}, & 1<x<3,\\[4pt] \dfrac12\Big(\dfrac12+\dfrac14\Big) = \dfrac38, & x=\pm1,\pm3.\end{cases}$$</p>
+<p>(b) Yes, at the jumps $x = \pm1,\pm3,\dots$ The jump is $\frac12-\frac14 = \frac14$, so the overshoot is about $0.09\times\frac14\approx0.02$ on each side of each jump.</p>
+<p>(c) No. The partial sums are continuous, and a uniform limit of continuous functions is continuous, but $g$ has jumps.</p>
+<p>(d) $a_n(h) = \int_{-1}^1 f(x)\cos n\pi x\,dx + \int_{-1}^1 f(-x)\cos n\pi x\,dx = 2a_n(f)$, and $b_n(h) = b_n(f) - b_n(f) = 0$. $h(\pm1) = \frac12+\frac14 = \frac34$, so the periodic extension of $h$ is continuous, and $h'$ is piecewise continuous. Hence the Fourier series of $h$ converges uniformly.</p>
+</div>
+<p class="note">On $(1,3)$ the extension is $f(x-2) = \frac1{3-(x-2)} = \frac1{5-x}$. In the second integral of (d), substitute $x\to-x$; $\cos$ is even, $\sin$ is odd. Numerically, 150 terms give $g(1)\approx0.3749$ and an overshoot of $0.021$.</p>
+
+<h2>Q4 [10]</h2>
+<div class="script">
+<p>(a) $f(-x) = (-x)(\pi-|x|) = -f(x)$, so $f$ is odd and $a_n = 0$ for all $n$. For all $x\in\mathbb R$,
+$$\left|\frac8\pi\,\frac{\sin(2m-1)x}{(2m-1)^3}\right|\le\frac{8}{\pi(2m-1)^3}\le\frac{8}{\pi m^3} =: M_m,$$
+and $\sum M_m$ converges ($p$-series, $p=3>1$). By the Weierstrass M-test the series converges uniformly on $\mathbb R$.</p>
+<p>(b) The extension is continuous ($f(\pm\pi)=0$), so the series equals $f(x)$ for every $x$. At $x=\frac\pi2$, $\sin\frac{(2m-1)\pi}2 = (-1)^{m+1}$ and $f(\frac\pi2) = \frac{\pi^2}4$:
+$$\frac{\pi^2}4 = \frac8\pi\sum_{m=1}^\infty\frac{(-1)^{m+1}}{(2m-1)^3}\;\Rightarrow\;\sum_{m=1}^\infty\frac{(-1)^{m+1}}{(2m-1)^3} = \frac{\pi^3}{32}.$$</p>
+<p>(c) $f^2$ is even, so
+$$\frac1\pi\int_{-\pi}^\pi f^2\,dx = \frac2\pi\int_0^\pi x^2(\pi-x)^2\,dx = \frac2\pi\Big(\frac{\pi^5}3-\frac{2\pi^5}4+\frac{\pi^5}5\Big) = \frac2\pi\cdot\frac{\pi^5}{30} = \frac{\pi^4}{15}.$$
+Parseval: $\frac1\pi\int_{-\pi}^\pi f^2 = \frac{a_0^2}2+\sum(a_n^2+b_n^2) = \frac{64}{\pi^2}\sum\frac1{(2m-1)^6}$. So
+$$\sum_{m=1}^\infty\frac1{(2m-1)^6} = \frac{\pi^2}{64}\cdot\frac{\pi^4}{15} = \frac{\pi^6}{960}.$$</p>
+<p>(d) $c_n = \frac1{2\pi}\int_{-\pi}^\pi f e^{-inx}dx = \frac12(a_n-ib_n)$ for $n\ge1$, $c_{-n} = \overline{c_n}$, $c_0 = \frac{a_0}{2} = 0$. Hence
+$$c_{2m-1} = -\frac{4i}{\pi(2m-1)^3},\qquad c_{-(2m-1)} = \frac{4i}{\pi(2m-1)^3},\qquad c_n = 0\ \text{for even } n.$$</p>
+</div>
+<p class="note">(a) An alternative one-liner: the extension is continuous and $f'$ is piecewise continuous, so it's uniform by the lecture theorem. The question says M-test, though, so give the M-test. Numerically, $\sum_{m\le2000}(-1)^{m+1}/(2m-1)^3 = 0.968946 = \pi^3/32$ ✓.</p>
+
+<h2>Q5 [11]</h2>
+<div class="script">
+<p>(a) $F$ is odd, so $a_n=0$ and
+$$b_n = \frac2\pi\int_0^\pi F(x)\sin nx\,dx = \frac2\pi\int_0^{\pi/2}\sin nx\,dx = \frac2\pi\Big[-\frac{\cos nx}n\Big]_0^{\pi/2} = \frac{2\big(1-\cos\frac{n\pi}2\big)}{n\pi}.\;\blacksquare$$</p>
+<p>(b) Try $y_p = \frac{A_0}2+\sum_{n\ge1}(A_n\cos nx + B_n\sin nx)$. Differentiating term by term, $y_p'' = -\sum n^2(A_n\cos nx+B_n\sin nx)$, so
+$$y_p''+2y_p = A_0 + \sum_{n\ge1}\big[(2-n^2)A_n\cos nx + (2-n^2)B_n\sin nx\big] = \sum_{n\ge1}b_n\sin nx.$$
+Matching coefficients: $A_0 = 0$; $(2-n^2)A_n = 0\Rightarrow A_n=0$; $(2-n^2)B_n = b_n$, and $2-n^2\ne0$ for integer $n$. So
+$$y_p(x) = \sum_{n=1}^\infty\frac{2\big(1-\cos\frac{n\pi}2\big)}{n\pi(2-n^2)}\sin nx.$$</p>
+<p>(c) Now $(N^2-n^2)B_n = b_n$. At $n=N$ this reads $0 = b_N$. If $b_N\ne0$, i.e. $\cos\frac{N\pi}2\ne1$, i.e. $N$ is not a multiple of 4, there is no periodic solution (resonance). For $N=4$, $b_4 = \frac{2(1-\cos2\pi)}{4\pi} = 0$, so $B_4$ (and $A_4$) is arbitrary: periodic solutions exist but are not unique ($y_p + C\cos4x + D\sin4x$).</p>
+<p>(d) $F$ is piecewise continuous, so its Fourier series can be integrated term by term. Since $\int_0^x\sin n\xi\,d\xi = \frac{1-\cos nx}n$,
+$$G(x) = \sum_{n=1}^\infty\frac{b_n}n - \sum_{n=1}^\infty\frac{b_n}n\cos nx.$$
+$\int_{-\pi}^\pi F = 0$, so $G$ is $2\pi$-periodic, and its constant term is its mean. $G$ is even, with $G(x) = x$ on $[0,\frac\pi2]$ and $G(x) = \frac\pi2$ on $[\frac\pi2,\pi]$, so
+$$\frac1\pi\int_0^\pi G\,dx = \frac1\pi\Big(\frac{\pi^2}8+\frac{\pi^2}4\Big) = \frac{3\pi}8.$$
+Therefore
+$$G(x) = \frac{3\pi}8 - \sum_{n=1}^\infty\frac{2\big(1-\cos\frac{n\pi}2\big)}{n^2\pi}\cos nx.$$</p>
+</div>
+<p class="note">Check (b) numerically: 3000 terms of $y_p''+2y_p$ at $x=1$ give $1.0002 \approx F(1) = 1$ ✓. In (d), the constant also tells you $\sum b_n/n = \frac{3\pi}8$; summing it directly is the hard way. Coefficients of $G$ cross-checked by direct integration ($a_1 = -\frac2\pi$, $a_2 = -\frac1\pi$, $a_4=0$).</p>
+
+<p><a href="../lessons/0026-fourier-mixed-exam-set.html">Back to Lesson 26</a></p>
+</main>
+</body>
+</html>

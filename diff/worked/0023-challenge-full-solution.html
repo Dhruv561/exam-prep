@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Convergence Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  .sk text { font-family: Inter, system-ui, sans-serif; font-size: 10px; fill: var(--muted); }
+  .sk .open { fill: var(--bg); stroke: var(--ok); stroke-width: 1.8; }
+  .sk .shut { fill: var(--ok); }
+  .sk .mid { stroke: var(--accent); stroke-width: 2; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 23 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>$f(x)=0$ for $-1&lt;x\le0$, $\;f(x)=1-x$ for $0&lt;x\le1$, $\;f(x+2)=f(x)$.</p>
+<p>(a) Sketch for $-3\le x\le3$; value of the Fourier series at $x=0,1,\tfrac52$. <em>[3]</em><br>
+(b) Show $a_0=\tfrac12$; find $a_n,b_n$. <em>[5]</em><br>
+(c) Evaluate $\sum_{m\ge1}\frac1{(2m-1)^2}$. <em>[2]</em><br>
+(d) Gibbs? Where, how high? Uniform? <em>[3]</em><br>
+(e) Series of $g=1-|x|$ from (b); uniform by the M-test. <em>[3]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · Sketch and pointwise values</h2>
+<div class="script">
+<figure class="fig" style="max-width:360px">
+<svg class="sk" viewBox="0 0 360 150" style="max-width:360px" role="img" aria-label="Sketch of the periodic extension: zero on (-1,0], a ramp from 1 down to 0 on (0,1], repeated with period 2, with jumps at even integers">
+  <line class="s-ax" x1="10" y1="130" x2="350" y2="130"/>
+  <line class="s-ax" x1="180" y1="20" x2="180" y2="140"/>
+  <g class="s-hl">
+    <line x1="20" y1="130" x2="73.3" y2="130"/><line x1="126.7" y1="130" x2="180" y2="130"/><line x1="233.3" y1="130" x2="286.7" y2="130"/>
+    <line x1="73.3" y1="30" x2="126.7" y2="130"/><line x1="180" y1="30" x2="233.3" y2="130"/><line x1="286.7" y1="30" x2="340" y2="130"/>
+  </g>
+  <circle class="open" cx="73.3" cy="30" r="3.5"/><circle class="open" cx="180" cy="30" r="3.5"/><circle class="open" cx="286.7" cy="30" r="3.5"/>
+  <circle class="shut" cx="73.3" cy="130" r="3.5"/><circle class="shut" cx="180" cy="130" r="3.5"/><circle class="shut" cx="286.7" cy="130" r="3.5"/>
+  <g class="mid"><line x1="68" y1="80" x2="78" y2="80"/><line x1="175" y1="80" x2="185" y2="80"/><line x1="281.7" y1="80" x2="291.7" y2="80"/></g>
+  <text x="20" y="144" text-anchor="middle">−3</text><text x="73.3" y="144" text-anchor="middle">−2</text><text x="126.7" y="144" text-anchor="middle">−1</text>
+  <text x="233.3" y="144" text-anchor="middle">1</text><text x="286.7" y="144" text-anchor="middle">2</text><text x="340" y="144" text-anchor="middle">3</text>
+  <text x="172" y="33" text-anchor="end">1</text><text x="172" y="83" text-anchor="end">½</text>
+</svg>
+<figcaption>Ramps from 1 down to 0 on $(2k,2k+1]$, zero on $(2k-1,2k]$. Red ticks: the series' value $\tfrac12$ at the jumps.</figcaption>
+</figure>
+<p>$f$ is piecewise continuously differentiable on $(-1,1]$, so by the pointwise convergence theorem the Fourier series converges to $F(x)$ where $F$ is continuous and to $\tfrac12\big(F(x^-)+F(x^+)\big)$ where it jumps.</p>
+<p>$x=0$: $F(0^-)=0$, $F(0^+)=1$, jump, so the series converges to $\boxed{\tfrac12}$.<br>
+$x=1$: $F(1^-)=1-1=0$, $F(1^+)=f(-1^+)=0$, continuous, so it converges to $\boxed{0}$.<br>
+$x=\tfrac52$: $F(\tfrac52)=f(\tfrac12)=\tfrac12$, continuous, so it converges to $\boxed{\tfrac12}$.</p>
+</div>
+<p class="note">Marks: sketch with open/closed ends and period 2 shown (1), $x=0$ average (1), $x=1$ and $x=\tfrac52$ (1). The value $f(0)=0$ given in the definition is a decoy at a jump. At $x=\tfrac52$ the answer equals the value at a jump by coincidence; the reason is different.</p>
+
+<h2>(b) · Coefficients ($L=1$, $k_n=n\pi$)</h2>
+<div class="script">
+<p>$$a_0=\int_{-1}^{1}f\,dx=\int_0^1(1-x)\,dx=\Big[x-\tfrac{x^2}2\Big]_0^1=\tfrac12.$$</p>
+<p>By parts with $u=1-x$, $du=-dx$:</p>
+<p>$$a_n=\int_0^1(1-x)\cos n\pi x\,dx=\Big[\frac{(1-x)\sin n\pi x}{n\pi}\Big]_0^1+\frac1{n\pi}\int_0^1\sin n\pi x\,dx=0+\frac1{n\pi}\Big[\frac{-\cos n\pi x}{n\pi}\Big]_0^1=\frac{1-(-1)^n}{\pi^2n^2}.$$</p>
+<p>$$b_n=\int_0^1(1-x)\sin n\pi x\,dx=\Big[\frac{-(1-x)\cos n\pi x}{n\pi}\Big]_0^1-\frac1{n\pi}\int_0^1\cos n\pi x\,dx=\frac1{n\pi}-0=\frac1{\pi n}.$$</p>
+<p>$$s(x)=\frac14+\sum_{n=1}^\infty\left[\frac{1-(-1)^n}{\pi^2n^2}\cos n\pi x+\frac1{\pi n}\sin n\pi x\right].$$</p>
+</div>
+<p class="note">Boundary terms: in $a_n$, $\sin0=\sin n\pi=0$. In $b_n$, at $x=1$ the factor $1-x=0$, at $x=0$ it gives $-(-\frac1{n\pi})$. The integral over $(-1,0]$ is zero since $f=0$ there. Remember the $\tfrac12a_0=\tfrac14$ in front. $f$ is neither even nor odd, so you need both $a_n$ and $b_n$.</p>
+
+<h2>(c) · Sum of reciprocal odd squares</h2>
+<div class="script">
+<p>At $x=0$ the sines vanish and $\cos0=1$. By (a) the series converges to $\tfrac12$ there:
+$$\frac12=\frac14+\sum_{n\ge1}\frac{1-(-1)^n}{\pi^2n^2}=\frac14+\frac2{\pi^2}\sum_{m\ge1}\frac1{(2m-1)^2},$$
+since $1-(-1)^n=2$ for odd $n=2m-1$ and $0$ for even $n$. Hence
+$$\sum_{m=1}^\infty\frac1{(2m-1)^2}=\frac{\pi^2}{2}\cdot\frac14=\boxed{\frac{\pi^2}8}.$$</p>
+</div>
+<p class="note">Using $f(0)=0$ instead of $\tfrac12$ gives $-\pi^2/8$, a negative sum of positive terms: an instant red flag. $x=1$ also works: $0=\tfrac14-\tfrac2{\pi^2}\sum\frac1{(2m-1)^2}$ (since $\cos n\pi\,(1-(-1)^n)=-2$ for odd $n$), the same answer.</p>
+
+<h2>(d) · Gibbs and uniform convergence</h2>
+<div class="script">
+<p>$F$ is discontinuous at $x=2k$ (jump of size $1$, from $0$ to $1$) and continuous elsewhere, including at the odd integers.</p>
+<p>Yes, Gibbs phenomenon occurs, at the even integers $x=0,\pm2,\pm4,\dots$ only. The partial sums overshoot by about $9\%$ of the jump, so just to the right of each even integer they reach about $1+0.09=\boxed{1.09}$ (and dip to about $-0.09$ just to the left).</p>
+<p>The convergence is <strong>not uniform</strong>: $f$ satisfies the pointwise conditions but its periodic extension is discontinuous, so by the theorem in lectures the convergence is not uniform. (The partial sums are continuous, and a uniform limit of continuous functions would be continuous.) Consistent with $b_n=\frac1{\pi n}$ decaying only like $1/n$.</p>
+</div>
+<p class="note">Numerical check: for $N=400$ the max of $S_N$ just right of $0$ is $1.087$ and the min just left is $-0.0895$. Do not try the M-test here: $\sum\frac1{\pi n}$ diverges, which proves nothing.</p>
+
+<h2>(e) · $g=1-|x|$ and the M-test</h2>
+<div class="script">
+<p>Replacing $x$ by $-x$ keeps the cosine terms and flips the sine terms, so the series of $f(-x)$ has coefficients $a_n$, $-b_n$. Adding, for $g(x)=f(x)+f(-x)$:
+$$g(x)=\frac12+\sum_{n\ge1}\frac{2(1-(-1)^n)}{\pi^2n^2}\cos n\pi x=\frac12+\frac4{\pi^2}\sum_{m\ge1}\frac{\cos\big((2m-1)\pi x\big)}{(2m-1)^2}.$$
+For all $x\in\mathbb R$ and $m\ge1$:
+$$\left|\frac{4\cos((2m-1)\pi x)}{\pi^2(2m-1)^2}\right|\le\frac4{\pi^2(2m-1)^2}\le\frac4{\pi^2m^2}=:M_m,$$
+and $\sum M_m=\frac4{\pi^2}\sum\frac1{m^2}$ converges ($p$-series, $p=2$). By the Weierstrass M-test the Fourier series of $g$ converges uniformly on $\mathbb R$.</p>
+</div>
+<p class="note">$2m-1\ge m$ for $m\ge1$ gives the second inequality. Check: at $x=0$, $\tfrac12+\tfrac4{\pi^2}\cdot\tfrac{\pi^2}8=1=g(0)$ ✓. Consistent with the lecture theorem: the triangle wave is continuous on $\mathbb R$ and $g'$ is piecewise continuous. The value at $x=0$ (where $f(0)+f(-0)=0\ne1$) does not matter: changing one point does not change any integral.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+"piecewise $C^1$ ⇒ pointwise theorem" quoted · average at $x=0$, continuity checked at $x=1$ · $a_0=\tfrac12$ and both by-parts results · the substitution at $x=0$ with $\tfrac12$ on the left and the odd/even split · Gibbs at even integers, "about 9% of the jump" · "periodic extension discontinuous ⇒ not uniform" · $M_m$ independent of $x$ and a convergent $\sum M_m$ named.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0023-convergence-gibbs-uniform.html">Lesson 23, challenge</a></span>
+  <span>Reference: <a href="../reference/topic4-cheatsheet.html">Topic 4 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>
