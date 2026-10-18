@@ -80,7 +80,39 @@ $$F(s)=\mathcal L\{f\}=\int_0^\infty e^{-st}f(t)\,dt .$$
 <table class="sheet">
 <tr><th>$f(t)$</th><td>$1$</td><td>$\dfrac{t^{n-1}}{(n-1)!}$</td><td>$e^{at}$</td><td>$\sin\omega t$</td><td>$\cos\omega t$</td><td>$\sinh at$</td><td>$\cosh at$</td><td>$\delta(t-a)$</td></tr>
 <tr><th>$F(s)$</th><td>$\dfrac1s$</td><td>$\dfrac1{s^n}$</td><td>$\dfrac1{s-a}$</td><td>$\dfrac{\omega}{s^2+\omega^2}$</td><td>$\dfrac{s}{s^2+\omega^2}$</td><td>$\dfrac{a}{s^2-a^2}$</td><td>$\dfrac{s}{s^2-a^2}$</td><td>$e^{-as}$</td></tr>
+<tr><th>Domain</th><td>$s>0$</td><td>$s>0$</td><td>$s>a$</td><td>$s>0$</td><td>$s>0$</td><td>$s>|a|$</td><td>$s>|a|$</td><td>all $s$ ($a\ge0$)</td></tr>
 </table>
+</div>
+
+<div class="box">
+<p><strong>Where the domains come from.</strong> The integral only converges when $e^{-st}f(t)$ decays, so the domain is $s>$ (growth rate of $f$).</p>
+<ul>
+  <li>$e^{at}$: $\int_0^\infty e^{-(s-a)t}dt=\dfrac1{s-a}$ <em>only if</em> $s-a>0$. This is the master case; the rest follow from it.</li>
+  <li>$1=e^{0t}$: $s>0$. $t^{n-1}$ grows only polynomially, slower than any $e^{\varepsilon t}$: $s>0$.</li>
+  <li>$\sin,\cos$ are bounded (growth rate $0$): $s>0$. Writing $e^{i\omega t}$ means $a=i\omega$, real part $0$.</li>
+  <li>$\sinh at,\cosh at=\tfrac12(e^{at}\pm e^{-at})$: need both $s>a$ and $s>-a$, so $s>|a|$. This is why the denominator $s^2-a^2$ vanishes exactly at the edge of the domain.</li>
+  <li>$\delta(t-a)$: the integral just evaluates $e^{-st}$ at $t=a$, giving $e^{-as}$ for every $s$ (take $a\ge0$).</li>
+</ul>
+<p>Rule of thumb: the domain ends at the pole(s) of $F$ with the largest real part. After an s-shift $s\to s-a$ the domain shifts too.</p>
+</div>
+
+<div class="box">
+<p><strong>Remember or derive the whole table from one integral.</strong> Learn $\mathcal L\{e^{at}\}=\frac1{s-a}$, then:</p>
+<ul>
+  <li><strong>$1$:</strong> set $a=0$.</li>
+  <li><strong>$\sinh,\cosh$:</strong> average / half-difference of $\frac1{s-a}$ and $\frac1{s+a}$: $\tfrac12\big(\tfrac1{s-a}+\tfrac1{s+a}\big)=\tfrac{s}{s^2-a^2}$ (cosh), minus sign gives $\tfrac{a}{s^2-a^2}$ (sinh).</li>
+  <li><strong>$\sin,\cos$:</strong> $a=i\omega$: $\frac1{s-i\omega}=\frac{s+i\omega}{s^2+\omega^2}$. Real part is $\cos$ ($s$ on top), imaginary part is $\sin$ ($\omega$ on top).</li>
+  <li><strong>$t^n$:</strong> $\mathcal L\{tf\}=-F'$ applied to $1/s$ repeatedly: $\frac1{s}\to\frac1{s^2}\to\frac2{s^3}\to\frac6{s^4}$, so $\frac{n!}{s^{n+1}}$.</li>
+</ul>
+<p><strong>Memory hooks.</strong></p>
+<ul>
+  <li><strong>cos has $s$, sin has $\omega$ on top.</strong> Same denominator $s^2+\omega^2$. Hyperbolics: same, with a minus sign. Same pairing: $\cosh\leftrightarrow s$, $\sinh\leftrightarrow a$.</li>
+  <li><strong>Small-$t$ check:</strong> $\cos\omega t\approx1$ so $F\approx\frac1s$ for large $s$ (and $\frac{s}{s^2+\omega^2}\approx\frac1s$ &#10003;). $\sin\omega t\approx\omega t$ so $F\approx\frac{\omega}{s^2}$ (&#10003;). Large $s$ probes small $t$.</li>
+  <li><strong>Always $F\to0$ as $s\to\infty$.</strong> Numerator degree must be below denominator degree. $\frac{s^2}{s^2+\omega^2}\to1$ cannot be a transform.</li>
+  <li><strong>Factorial sits on the $t$ side:</strong> $\frac{t^{n}}{n!}\leftrightarrow\frac1{s^{n+1}}$. Power of $s$ is one more than power of $t$ (integrating $e^{-st}$ gives a $\frac1s$ each time).</li>
+  <li><strong>Units check:</strong> $s$ has units of $1/t$, so $\omega$ and $a$ must pair with $s$ (e.g. $s^2+\omega^2$, $s-a$); $F$ has units of $f\cdot t$.</li>
+  <li><strong>Sign of shift:</strong> $e^{at}$ moves the pole to $s=a$, so $s\to s-a$. $e^{-2t}$ gives $s+2$.</li>
+</ul>
 </div>
 
 <div class="box">
