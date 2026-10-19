@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Struck String Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/pde-wave-plot.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 31 · Exam-level challenge · Full written solution</div>
+<h1>The struck string, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>A taut string of length $1$, wave speed $c=3$, fixed at both ends. At $t=0$: displacement $\frac1{20}\sin(2\pi x)$; the middle third $\frac13&lt;x&lt;\frac23$ is struck and given velocity $v_0&gt;0$, the rest has zero velocity.</p>
+<p>(a) PDE, BCs, ICs. <em>[2]</em> (b) Separate: $X''-\lambda X=0$, $\ddot T-9\lambda T=0$. <em>[2]</em> (c) Three cases, eigenpairs. <em>[4]</em> (d) General solution, normal frequencies. <em>[2]</em> (e) Apply ICs. <em>[5]</em> (f) Absent harmonics, period. <em>[2]</em> (g) Steady state? Kinks? <em>[1]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · The IBVP</h2>
+<div class="script">
+$$u_{tt}=9u_{xx},\qquad 0&lt;x&lt;1,\ t&gt;0,$$
+$$u(0,t)=u(1,t)=0\quad(t&gt;0),$$
+$$u(x,0)=\tfrac1{20}\sin(2\pi x),\qquad u_t(x,0)=g(x)=\begin{cases}v_0,&amp;\frac13&lt;x&lt;\frac23\\0,&amp;\text{otherwise}\end{cases}\quad(0&lt;x&lt;1).$$
+</div>
+<p class="note">$c^2=9$, not $3$. "Fixed at both ends" → Dirichlet. "Struck…velocity" → the $u_t$ IC.</p>
+
+<h2>(b) · Separation</h2>
+<div class="script">
+<p>Substitute $u=X(x)T(t)$: $X\ddot T=9X''T$. Divide by $9XT$:
+$$\frac{\ddot T}{9T}=\frac{X''}{X}.$$
+The left side depends only on $t$, the right only on $x$, so both equal a constant $\lambda$:
+$$X''-\lambda X=0,\qquad \ddot T-9\lambda T=0.$$
+BCs: $u(0,t)=X(0)T(t)=0$ for all $t&gt;0$; $T\not\equiv0$ (else $u\equiv0$), so $X(0)=0$. Likewise $X(1)=0$.</p>
+</div>
+
+<h2>(c) · Three cases</h2>
+<div class="script">
+<p><strong>$\lambda=\mu^2&gt;0$:</strong> $X=A\cosh\mu x+B\sinh\mu x$. $X(0)=A=0$; $X(1)=B\sinh\mu=0$ with $\sinh\mu\ne0$ ⇒ $B=0$. Trivial.</p>
+<p><strong>$\lambda=0$:</strong> $X=A+Bx$. $X(0)=A=0$, $X(1)=B=0$. Trivial.</p>
+<p><strong>$\lambda=-k^2&lt;0$:</strong> $X=A\cos kx+B\sin kx$. $X(0)=A=0$; $X(1)=B\sin k=0$, non-trivial needs $\sin k=0$, $k=n\pi$.</p>
+$$\lambda_n=-n^2\pi^2,\qquad X_n(x)=\sin(n\pi x),\qquad n=1,2,3,\dots$$
+</div>
+<p class="note">$n=0$ gives $X\equiv0$ and negative $n$ repeat the same functions, so $n\ge1$. One mark per case plus one for the eigenpairs is typical.</p>
+
+<h2>(d) · General solution</h2>
+<div class="script">
+<p>$\ddot T_n-9\lambda_nT_n=\ddot T_n+9n^2\pi^2T_n=0$ ⇒ $T_n=a_n\cos\omega_nt+b_n\sin\omega_nt$, $\;\omega_n=3n\pi$.
+$$u(x,t)=\sum_{n=1}^\infty\big(a_n\cos(3n\pi t)+b_n\sin(3n\pi t)\big)\sin(n\pi x).$$
+Normal frequencies $\omega_n=ck_n=3n\pi$, $n=1,2,\dots$</p>
+</div>
+
+<h2>(e) · Initial conditions</h2>
+<div class="script">
+<p><strong>Displacement.</strong> $u(x,0)=\sum a_n\sin(n\pi x)=\frac1{20}\sin(2\pi x)$. Comparing coefficients: $a_2=\frac1{20}$, $a_n=0$ for $n\ne2$.</p>
+<p><strong>Velocity.</strong> $u_t(x,0)=\sum \omega_nb_n\sin(n\pi x)=g(x)$, a sine series on $(0,1)$, so
+$$3n\pi\,b_n=2\int_0^1g(x)\sin(n\pi x)\,dx=2v_0\int_{1/3}^{2/3}\sin(n\pi x)\,dx=\frac{2v_0}{n\pi}\Big[\cos\frac{n\pi}3-\cos\frac{2n\pi}3\Big].$$
+$$\boxed{b_n=\frac{2v_0}{3n^2\pi^2}\Big(\cos\frac{n\pi}3-\cos\frac{2n\pi}3\Big)}$$
+$$u(x,t)=\frac1{20}\cos(6\pi t)\sin(2\pi x)+\frac{2v_0}{3\pi^2}\sum_{n=1}^\infty\frac{\cos\frac{n\pi}3-\cos\frac{2n\pi}3}{n^2}\,\sin(3n\pi t)\sin(n\pi x).$$</p>
+</div>
+<p class="note">Dividing by $\omega_n=3n\pi$ is the mark most often dropped. Equivalent form via sum-to-product: $\cos\frac{n\pi}3-\cos\frac{2n\pi}3=2\sin\frac{n\pi}2\sin\frac{n\pi}6$. First values of $\frac{3\pi^2}{v_0}b_n$: $2,0,-\frac49,0,\frac2{25},0,\frac2{49},\dots$ (checked numerically: the velocity series returns $\approx v_0$ inside $(\frac13,\frac23)$ and $\approx0$ outside).</p>
+
+<h2>(f) · Absent harmonics, period</h2>
+<div class="script">
+<p>Mode $n$ is absent iff $a_n=b_n=0$. For even $n$: $\cos\frac{n\pi}3=\cos\frac{2n\pi}3$ ($n=2m$ ⇒ $\cos\frac{4m\pi}3=\cos\big(2m\pi-\frac{2m\pi}3\big)=\cos\frac{2m\pi}3$), so $b_n=0$. For odd $n$, $\cos\frac{n\pi}3-\cos\frac{2n\pi}3=2\sin\frac{n\pi}2\sin\frac{n\pi}6\ne0$.<br>
+$a_2\ne0$, so $n=2$ is present. <strong>Absent: $n=4,6,8,\dots$</strong> (even $n\ge4$).</p>
+<p>Every term has period dividing $\frac{2\pi}{\omega_1}=\frac{2\pi}{3\pi}=\frac23$. <strong>Period $\frac23$</strong> $\big(=\frac{2L}c\big)$.</p>
+</div>
+<p class="note">Why even $n$ vanish from the strike: the strike is symmetric about $x=\frac12$, and even modes are antisymmetric about $x=\frac12$. Odd $n$: $\sin\frac{n\pi}6\ne0$ because $6\nmid n$. Don't forget the displacement brings back $n=2$; "all even $n$ absent" loses the mark.</p>
+
+<h2>(g) · Long time</h2>
+<div class="script">
+<p>No: the modes $\cos(3n\pi t)$, $\sin(3n\pi t)$ do not decay, so there is no steady state. The kinks at $x=\frac13,\frac23$ are not smoothed; they propagate along the string at speed $3$, reflect at the fixed ends, and the motion repeats with period $\frac23$.</p>
+</div>
+
+<p>See it (with $v_0=3$, 120 terms; the $\sin2\pi x$ part is small):</p>
+<div id="wave-c"></div>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+$c^2=9$ in the PDE, velocity IC piecewise · $\frac{\ddot T}{9T}=\frac{X''}X=\lambda$ with reason · $X(0)=X(1)=0$ with reason $T\not\equiv0$ · three cases, $\sinh\mu\ne0$ · $X_n=\sin n\pi x$, $n\ge1$ · $\omega_n=3n\pi$ · $a_2=\frac1{20}$ by matching · $\omega_nb_n=2\int$, divided by $3n\pi$ · absent: even $n\ge4$ · period $\frac23$ · "no decay ⇒ no steady state; kinks propagate".</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0031-wave-equation-normal-modes.html">Lesson 31, challenge</a></span>
+  <span>Reference: <a href="../reference/topic5-cheatsheet.html">Topic 5 cheat sheet</a></span>
+</div>
+
+</main>
+<script>
+  (function () {
+    const N = 120, PI = Math.PI, v0 = 3;
+    const b = [];
+    for (let n = 1; n <= N; n++) b[n] = 2 * v0 * (Math.cos(n * PI / 3) - Math.cos(2 * n * PI / 3)) / (3 * n * n * PI * PI);
+    const u = (x, t) => {
+      let s = Math.cos(6 * PI * t) * Math.sin(2 * PI * x) / 20;
+      for (let n = 1; n <= N; n++) s += b[n] * Math.sin(3 * n * PI * t) * Math.sin(n * PI * x);
+      return s;
+    };
+    PdeWave.mount(document.getElementById('wave-c'), {
+      curves: [{ u, label: 'u(x, t), v₀ = 3' }],
+      L: 1, tMax: 2 / 3, speed: 0.12, y: [-0.25, 0.25],
+      xTicks: [{ v: 0, label: '0' }, { v: 1 / 3, label: '1/3' }, { v: 2 / 3, label: '2/3' }, { v: 1, label: '1' }],
+    });
+  })();
+</script>
+</body>
+</html>

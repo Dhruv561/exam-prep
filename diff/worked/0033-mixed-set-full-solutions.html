@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDE Mixed Set Solutions</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 33 · PDE mixed set · Full written solutions</div>
+<h1>Q1–Q5 written out as exam answers</h1>
+<p class="lede">Inside the red rule is what goes on your paper. Grey notes are reasoning you don't write. The questions are in <a href="../lessons/0033-pde-mixed-exam-set.html">Lesson 33</a>; only read these after attempting them.</p>
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>Q1 [19]</h2>
+<div class="script">
+<p>(a) BCs: $\;u_x(0,t) = -1,\quad u(1,t) = 0,\quad t>0.\;$ IC: $\;u(x,0) = 0,\quad 0\lt x\lt 1.$</p>
+<p>(b) The steady state is independent of $t$, so $2u_S''=0$, giving $u_S = Ax+B$. Then $u_S'(0) = A = -1$ and $u_S(1) = -1+B = 0$, so $B=1$:
+$$u_S(x) = 1-x.$$</p>
+<p>(c) Since the PDE is linear and $u_S$ satisfies it, $v = u-u_S$ satisfies
+$$v_t = 2v_{xx},\qquad v_x(0,t) = -1-u_S'(0) = 0,\quad v(1,t) = 0-u_S(1) = 0,\qquad v(x,0) = 0-(1-x) = x-1.$$</p>
+<p>(d) Let $v = X(x)T(t)$. Then $X\dot T = 2X''T$, so
+$$\frac{\dot T}{2T} = \frac{X''}{X} = \lambda\ \ (\text{const})\quad\Rightarrow\quad \dot T - 2\lambda T = 0,\qquad X''-\lambda X=0.$$
+The BCs give $X'(0)T(t) = 0$ and $X(1)T(t)=0$ for all $t$. Since $T\equiv0$ is trivial, $X'(0) = 0$ and $X(1) = 0$.<br>
+<em>Case $\lambda = k^2>0$:</em> $X = A\cosh kx + B\sinh kx$, $X' = k(A\sinh kx + B\cosh kx)$. $X'(0) = kB = 0\Rightarrow B=0$. $X(1) = A\cosh k = 0\Rightarrow A = 0$ (since $\cosh k\ge1$). Trivial.<br>
+<em>Case $\lambda=0$:</em> $X = A + Bx$. $X'(0) = B = 0$, $X(1) = A = 0$. Trivial.<br>
+<em>Case $\lambda = -k^2\lt 0$:</em> $X = A\cos kx + B\sin kx$. $X'(0) = kB = 0\Rightarrow B = 0$. $X(1) = A\cos k = 0$, and $A\ne0$ for a non-trivial solution, so $\cos k = 0$:
+$$k_n = \frac{(2n-1)\pi}{2},\qquad \lambda_n = -k_n^2 = -\frac{(2n-1)^2\pi^2}{4},\qquad X_n(x) = \cos\frac{(2n-1)\pi x}{2},\quad n = 1,2,\dots$$</p>
+<p>(e) $\dot T_n = 2\lambda_nT_n = -2k_n^2T_n$, so $T_n = e^{-2k_n^2t}$. By superposition,
+$$v(x,t) = \sum_{n=1}^\infty c_n\,e^{-2k_n^2t}\cos k_nx.$$
+At $t=0$: $x-1 = \sum c_n\cos k_nx$. By orthogonality of $\cos k_nx$ on $[0,1]$,
+$$c_n = 2\int_0^1(x-1)\cos k_nx\,dx = 2\left\{\Big[(x-1)\frac{\sin k_nx}{k_n}\Big]_0^1 - \frac1{k_n}\int_0^1\sin k_nx\,dx\right\} = 2\Big[\frac{\cos k_nx}{k_n^2}\Big]_0^1 = \frac{2(\cos k_n - 1)}{k_n^2} = -\frac{2}{k_n^2},$$
+using $\cos k_n = 0$. So $c_n = -\dfrac{8}{(2n-1)^2\pi^2}$ and
+$$u(x,t) = 1-x-\frac{8}{\pi^2}\sum_{n=1}^\infty\frac{1}{(2n-1)^2}\,e^{-(2n-1)^2\pi^2t/2}\cos\frac{(2n-1)\pi x}{2}.$$</p>
+<p>(f) [Sketch, axes $u$ against $x\in[0,1]$] $t=0$: the segment $u=0$. $t\to\infty$: the line $u = 1-x$ from $(0,1)$ to $(1,0)$. $t_1\lt t_2$: curves between these, rising with $t$, all through $(1,0)$, each with slope $-1$ at $x=0$, concave up.</p>
+<p>(g) As $t\to\infty$ every exponential $\to0$, so $u(0,t)\to u_S(0) = 1$. The leading term gives
+$$u(0,t)\approx 1-\frac8{\pi^2}e^{-\pi^2t/2}.\qquad \frac8{\pi^2}e^{-\pi^2t/2} = 0.01\ \Rightarrow\ t = \frac{2}{\pi^2}\ln\frac{800}{\pi^2}\approx0.89.$$</p>
+</div>
+<p class="note">Check $t=0$, $x=0$: $\frac8{\pi^2}\sum\frac1{(2n-1)^2} = \frac8{\pi^2}\cdot\frac{\pi^2}8 = 1$, so $u(0,0) = 0$ ✓. Numerically (4000 terms) $u(0,0.89) = 0.990$ ✓. The intermediate curves are concave up: $u$ rises everywhere ($u_t>0$) and $u_{xx} = u_t/2$. Before writing the cosine series, check that the $X$ BCs say "derivative zero at 0", which means cos.</p>
+
+<h2>Q2 [10]</h2>
+<div class="script">
+<p>(a) Substituting $u=R\Theta$: $R''\Theta + \frac1rR'\Theta + \frac1{r^2}R\Theta''=0$. Multiplying by $\frac{r^2}{R\Theta}$,
+$$\frac{r^2R''+rR'}{R} = -\frac{\Theta''}{\Theta} = \mu\quad\Rightarrow\quad \Theta''+\mu\Theta = 0,\qquad r^2R''+rR'-\mu R=0.$$
+Insulated edges: $u_\theta(r,0) = u_\theta(r,\frac\pi2) = 0$, so $\Theta'(0) = \Theta'(\frac\pi2) = 0$.</p>
+<p>(b) <em>$\mu=-k^2\lt 0$:</em> $\Theta = A\cosh k\theta + B\sinh k\theta$. $\Theta'(0) = kB=0$, $\Theta'(\frac\pi2) = kA\sinh\frac{k\pi}2 = 0\Rightarrow A=0$. Trivial.<br>
+<em>$\mu=0$:</em> $\Theta = A + B\theta$, $\Theta' = B = 0$. So $\Theta_0 = 1$ (non-trivial).<br>
+<em>$\mu=k^2>0$:</em> $\Theta = A\cos k\theta + B\sin k\theta$. $\Theta'(0) = kB = 0$. $\Theta'(\frac\pi2) = -kA\sin\frac{k\pi}2 = 0\Rightarrow \frac{k\pi}2 = n\pi$, so $k = 2n$.<br>
+Eigenvalues $\mu_n = 4n^2$, eigenfunctions $\Theta_n = \cos2n\theta$, $n = 0,1,2,\dots$</p>
+<p>(c) $n=0$: $r^2R''+rR' = 0\Rightarrow (rR')' = 0\Rightarrow R = C_0 + D_0\ln r$.<br>
+$n\ge1$: Euler equation; $R = r^m$ gives $m^2 = 4n^2$, so $R = C_nr^{2n} + D_nr^{-2n}$. ($r=0$ is not in the domain, so nothing is discarded.)
+$$u(r,\theta) = C_0 + D_0\ln r + \sum_{n=1}^\infty\big(C_nr^{2n}+D_nr^{-2n}\big)\cos2n\theta.$$</p>
+<p>(d) $u(1,\theta) = C_0 + \sum(C_n+D_n)\cos2n\theta = 0$, so $C_0 = 0$ and $D_n = -C_n$.<br>
+$u(2,\theta) = D_0\ln2 + \sum C_n\big(4^n-4^{-n}\big)\cos2n\theta = 3+\cos4\theta$. Matching coefficients: $D_0 = \frac3{\ln2}$; $n=2$: $C_2\big(16-\frac1{16}\big) = 1$, so $C_2 = \frac{16}{255}$; $C_n = 0$ otherwise.
+$$u(r,\theta) = \frac{3\ln r}{\ln2} + \frac{16}{255}\big(r^4-r^{-4}\big)\cos4\theta.$$
+$$u(\sqrt2,0) = \frac{3\cdot\frac12\ln2}{\ln2} + \frac{16}{255}\Big(4-\frac14\Big) = \frac32 + \frac{4}{17} = \frac{59}{34}\approx1.74.$$</p>
+</div>
+<p class="note">Check with sympy: Laplacian $=0$, $u(1,\theta) = 0$, $u(2,\theta) = 3+\cos4\theta$, $u_\theta = 0$ on both edges ✓. The constant 3 needs the $\mu=0$ mode with $\ln r$, because $C_0$ is already forced to 0 by the inner arc. That is the point of the question.</p>
+
+<h2>Q3 [8]</h2>
+<div class="script">
+<p>(a) $u(0,t) = u(1,t) = 0$ for $t\ge0$; $\;u(x,0) = \sin3\pi x$, $\;u_t(x,0) = 4\pi\sin\pi x$.</p>
+<p>(b) $u = XT$ gives $X\ddot T = 4X''T$, so $\frac{\ddot T}{4T} = \frac{X''}{X} = \lambda$, with $X(0) = X(1) = 0$. As for Dirichlet BCs on $[0,1]$, only $\lambda = -k^2\lt 0$ gives non-trivial solutions: $k_n = n\pi$, $X_n = \sin n\pi x$. Then
+$$\ddot T_n + 4n^2\pi^2T_n = 0\ \Rightarrow\ T_n = a_n\cos2n\pi t + b_n\sin2n\pi t,$$
+which oscillates with $\omega_n = 2n\pi$. Superposing,
+$$u(x,t) = \sum_{n=1}^\infty\big(a_n\cos2n\pi t + b_n\sin2n\pi t\big)\sin n\pi x.$$</p>
+<p>(c) $u(x,0) = \sum a_n\sin n\pi x = \sin3\pi x\Rightarrow a_3 = 1$, $a_n = 0$ for $n\ne3$.<br>
+$u_t(x,0) = \sum2n\pi b_n\sin n\pi x = 4\pi\sin\pi x\Rightarrow 2\pi b_1 = 4\pi$, so $b_1 = 2$ and $b_n = 0$ for $n\ne1$.
+$$u(x,t) = 2\sin(2\pi t)\sin\pi x + \cos(6\pi t)\sin3\pi x.$$</p>
+<p>(d) Frequencies $\omega_1 = 2\pi$ and $\omega_3 = 6\pi$. Both are integer multiples of $2\pi$, so the motion is periodic with period $1$.</p>
+<p>(e) Wave equation: the corner is not smoothed. It splits into two kinks that travel at speed $c = 2$ and reflect off the ends indefinitely. Heat equation: the corner is smoothed out immediately, and $u$ is smooth for all $t>0$.</p>
+</div>
+<p class="note">Check: $u_{tt} - 4u_{xx} = 0$, both ICs and both BCs hold (sympy) ✓. The classic slip is $b_1 = 4\pi$. The velocity coefficient must be divided by $\omega_1$.</p>
+
+<h2>Q4 [7]</h2>
+<div class="script">
+<p>(a) (i) Second order, linear, inhomogeneous (the term $e^x$). $A=2$, $B=-4$, $C=2$: $B^2-4AC = 16-16 = 0$, so parabolic.<br>
+(ii) Second order, linear, homogeneous. $A=1$, $B=-2$, $C=x$: $B^2-4AC = 4-4x$. Hyperbolic for $x\lt 1$, parabolic on $x=1$, elliptic for $x>1$.</p>
+<p>(b) $y = A\cos3x + B\sin3x$. $y(0) = A = 0$, then $y(L) = B\sin3L = \beta$.<br>
+If $\sin3L\ne0$, i.e. $L\ne\frac{m\pi}3$: exactly one solution, $y = \frac{\beta}{\sin3L}\sin3x$ (any $\beta$).<br>
+If $L = \frac{m\pi}3$ ($m = 1,2,\dots$) and $\beta\ne0$: $0 = \beta$ is impossible, so no solution.<br>
+If $L = \frac{m\pi}3$ and $\beta = 0$: $y = B\sin3x$ for any $B$, infinitely many solutions.</p>
+<p>(c) $u = (1-x) + \sum_{n\ge1}u_n$ with $u_n = c_ne^{-2k_n^2t}\cos k_nx$, $c_n = -\frac2{k_n^2}$, $k_n = \frac{(2n-1)\pi}2$. The polynomial part is smooth, so consider the series. Fix $T>0$ and let $D = [0,1]\times[T,\infty)$. On $D$,
+$$|u_n|\le\frac{2}{k_n^2}e^{-2k_n^2T},\quad |\partial_xu_n|\le\frac{2}{k_n}e^{-2k_n^2T},\quad |\partial_x^2u_n|\le2e^{-2k_n^2T},\quad |\partial_tu_n| = 2|\partial_x^2u_n|\le4e^{-2k_n^2T}.$$
+Since $k_n\ge\frac\pi2>1$, all four are bounded by $M_n = 4e^{-2k_n^2T}$. $\sum M_n$ converges by the ratio test: $\frac{M_{n+1}}{M_n} = e^{-2T(k_{n+1}^2-k_n^2)} = e^{-4\pi^2nT}\to0$. By the Weierstrass M-test, $\sum u_n$, $\sum\partial_xu_n$, $\sum\partial_x^2u_n$ and $\sum\partial_tu_n$ converge uniformly on $D$. So term-by-term differentiation is justified, and since each $u_n$ satisfies $u_t = 2u_{xx}$, so does $u$: it is a genuine solution for $t\ge T$.<br>
+At $T=0$ the bound for $u_{xx}$ is $\sum2$, which diverges, so the argument fails. (Indeed the IC $u(x,0)=0$ has $u_x(0,0) = 0\ne-1$, so it does not satisfy the BC.)</p>
+</div>
+<p class="note">Any $T>0$ works, which is why the conclusion is "genuine for all $t>0$". The $u_x$ series at $t=0$ is $\sum\frac{4}{(2n-1)\pi}\sin k_nx$, roughly $1/n$, the same decay as a series with a jump. That's the mismatch $u_x(0)$: $0$ vs $-1$.</p>
+
+<h2>Q5 [8]</h2>
+<div class="script">
+<p>(a) $u(2,t) = 0$ for $t>0$, and $\lim_{r\to0}u(r,t)$ finite.</p>
+<p>(b) $u = R(r)T(t)$: $R\dot T = 3\big(R''+\frac1rR'\big)T$, so
+$$\frac{\dot T}{3T} = \frac{R''+r^{-1}R'}{R} = \lambda\ \Rightarrow\ \dot T - 3\lambda T = 0,\qquad R''+\frac1rR'-\lambda R = 0,$$
+with $R(2) = 0$ and $R$ bounded as $r\to0$.</p>
+<p>(c) With $\lambda = -k^2$: $R''+\frac1rR'+k^2R = 0$. Let $s = kr$, $S(s) = R(r)$. Then $R' = kS'$, $R'' = k^2S''$, and $\frac1r = \frac ks$, so
+$$k^2S'' + \frac{k^2}{s}S' + k^2S = 0\ \Rightarrow\ S''+\frac1sS'+S = 0,$$
+Bessel's equation of order 0. Hence $R(r) = AJ_0(kr) + BY_0(kr)$. $Y_0$ is unbounded as $r\to0$ (logarithmic), so $B = 0$. $R(2) = AJ_0(2k) = 0$ with $A\ne0$ requires
+$$J_0(2k) = 0\ \Rightarrow\ k_n = \frac{j_n}{2},\quad j_n = n\text{-th positive zero of } J_0;\qquad R_n = J_0(k_nr).$$</p>
+<p>(d) $\dot T_n = -3k_n^2T_n\Rightarrow T_n = e^{-3k_n^2t}$, and
+$$u(r,t) = \sum_{n=1}^\infty C_n\,e^{-3k_n^2t}J_0(k_nr),\qquad C_n = \frac{2}{4J_1^2(2k_n)}\int_0^2f(r)J_0(k_nr)\,r\,dr.$$
+For large $t$ the $n=1$ term dominates: $u\approx C_1e^{-3k_1^2t}J_0(k_1r)$ with $k_1 = \frac{2.405}{2}\approx1.202$, so it decays like $e^{-4.34t}$.</p>
+</div>
+<p class="note">Coefficient formula is the lecture's $C_n = \frac{2}{a^2J_1^2(k_na)}\int_0^a fJ_0(k_nr)r\,dr$ with $a = 2$. Exact: $j_1 = 2.40483$, $3(j_1/2)^2 = 4.337$. The next mode decays at about $22.9$, so after $t\approx0.2$ the profile already looks like a single $J_0$ hump.</p>
+
+<p><a href="../lessons/0033-pde-mixed-exam-set.html">Back to Lesson 33</a></p>
+</main>
+</body>
+</html>

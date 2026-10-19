@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radial Problems, Genuine Solutions</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/series-plot.js"></script>
+<style>
+  .j0 svg { width: 100%; max-width: 600px; height: auto; display: block; margin: 0 auto; }
+  .j0 .ax { stroke: var(--muted); stroke-width: 1; }
+  .j0 .cv { fill: none; stroke: var(--accent); stroke-width: 2.2; }
+  .j0 .zr { fill: var(--bg); stroke: var(--fg); stroke-width: 1.5; }
+  .j0 .tk, .j0 .zl { font-family: Inter, system-ui, sans-serif; font-size: 12px; fill: var(--muted); }
+  .j0 .zl { fill: var(--fg); }
+  .j0 figcaption { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); text-align: center; margin-top: .3rem; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 32 · Topic 5: BVPs &amp; PDEs · Radial problems and genuine solutions</div>
+<h1>Discs, drums and Bessel; then proving the series really solves the PDE</h1>
+<p class="lede">Two wins. (A) For an axisymmetric disc or drum: separate in $r$ and $t$, list the three cases, turn the $R$ equation into Bessel order $0$ with $s=kr$, kill $Y_0$ by boundedness, get $J_0(k_na)=0$, and write the series with a quoted coefficient formula. (B) For a heat series: the four-line Weierstrass argument on $t\ge T>0$ for $u,u_x,u_{xx},u_t$, why it fails at $t=0$, and why the wave series is usually only weak.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topic 5 is predicted to be the biggest question (masked 2026 paper: Q6, 18 marks, parts (a)–(c), very long intro). Recent papers have set a full radial question (half A: "derive the ODEs, list the three cases, which one oscillates/decays, solve $R$, write the general series, don't compute coefficients"), sometimes linked to a Topic 2 Bessel series question, so <a href="0011-singular-points-bessel.html">Lesson 11</a> pays twice. "Is the solution genuine? Justify" (half B) is a recurring short part. <strong>The formula sheet has none of this</strong>: no separation recipe, no $J_0$ facts, no orthogonality formula. Memorise the boxes.</div>
+
+<h2>0 · Warm-up from Lessons 11 and 12</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> Bessel order $0$, $\;s\,y''+y'+s\,y=0$, has $y_1=J_0(s)$ with $J_0(0)=1$. A second independent solution $y_2$ near $s=0$ behaves like…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">a power series with $y_2(0)=0$</button>
+    <button class="opt" data-key="b">$s^{-1}$, a simple pole at $s=0$</button>
+    <button class="opt" data-key="c">$\ln s$, unbounded as $s\to0^+$</button>
+    <button class="opt" data-key="d">$s^{1/2}$, bounded but not smooth</button>
+  </div>
+  <div class="why">Abel: $\operatorname{wr}=C/s$, so $(y_2/y_1)'\sim C/s$ and $y_2\sim C\ln s$ (<a href="0011-singular-points-bessel.html">Lesson 11</a>). This $\ln$ is exactly what "finite at the centre" kills below.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W2.</strong> On $D$ you bound $|w_n|\le a_n$ but $\sum a_n$ diverges. The Weierstrass test tells you…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\sum w_n$ is not uniform on $D$</button>
+    <button class="opt" data-key="b">nothing: it is inconclusive</button>
+    <button class="opt" data-key="c">$\sum w_n$ diverges somewhere on $D$</button>
+    <button class="opt" data-key="d">$\sum w_n$ is uniform but not absolute</button>
+  </div>
+  <div class="why">The test only ever proves "uniform". To prove "not uniform", use the continuity test: continuous terms with a discontinuous sum (<a href="0012-uniform-convergence-genuine.html">Lesson 12</a>, §3).</div>
+</div>
+
+<h2>Part A · Axisymmetric radial problems</h2>
+
+<h2>1 · Set-up and words → conditions</h2>
+<p>Axisymmetric means $u=u(r,t)$, no $\theta$. Then $\nabla^2u=u_{rr}+\frac1r u_r$, and on $0\le r\lt a$:</p>
+$$\text{heat (plate): } u_t=\alpha\Big(u_{rr}+\frac1r u_r\Big),\qquad \text{wave (drum): } u_{tt}=c^2\Big(u_{rr}+\frac1r u_r\Big).$$
+<table>
+<tr><th>words in the question</th><th>condition</th></tr>
+<tr><td>"temperature depends only on distance from the centre", "radially symmetric"</td><td>$u=u(r,t)$</td></tr>
+<tr><td>"edge held at zero temperature", "rim clamped", "membrane fixed at boundary"</td><td>$u(a,t)=0$</td></tr>
+<tr><td>(always, even if unstated)</td><td>$\lim_{r\to0}u(r,t)$ finite (regularity)</td></tr>
+<tr><td>"released from rest" (drum)</td><td>$u_t(r,0)=0$</td></tr>
+<tr><td>"initially flat and struck" (drum)</td><td>$u(r,0)=0,\;u_t(r,0)=g(r)$</td></tr>
+</table>
+<p>There is no condition at $r=0$ in the question, but you need two for a second-order $R$ equation. Lecture 24 lists regularity as a boundary condition, and 2023's marking scheme gave a mark for writing it ("$R(0)$ must remain finite").</p>
+
+<h2>2 · Separate, then the three cases</h2>
+<p><strong>Heat</strong> (Lecture 24's convention). Put $u=R(r)T(t)$:</p>
+$$R\dot T=\alpha\Big(R''+\tfrac1rR'\Big)T\;\Longrightarrow\;\frac{\dot T}{\alpha T}=\frac{R''+r^{-1}R'}{R}=\lambda,$$
+<p>since the left side depends only on $t$ and the middle only on $r$, both equal a constant. So</p>
+$$\dot T-\alpha\lambda T=0,\qquad r^2R''+rR'-\lambda r^2R=0,\qquad R(a)=0,\ R \text{ bounded at } 0.$$
+<p><strong>Wave:</strong> identical, with $\dfrac{\ddot T}{c^2T}=\lambda$, so $\ddot T-c^2\lambda T=0$ and the same $R$ problem.</p>
+
+<table>
+<tr><th>case</th><th>heat $T$</th><th>drum $T$</th><th>$R$ with $R(a)=0$, bounded</th></tr>
+<tr><td>$\lambda=k^2>0$</td><td>$e^{\alpha k^2t}$, grows</td><td>$e^{\pm ckt}$, no oscillation</td><td>only $R\equiv0$</td></tr>
+<tr><td>$\lambda=0$</td><td>constant</td><td>$A+Bt$</td><td>only $R\equiv0$</td></tr>
+<tr><td>$\lambda=-k^2\lt0$</td><td>$e^{-\alpha k^2t}$, <strong>decays</strong></td><td>$\cos ckt,\ \sin ckt$, <strong>oscillates</strong></td><td>$J_0(kr)$, non-trivial</td></tr>
+</table>
+
+<div class="trap"><strong>"Which case oscillates?" depends on your sign</strong><br>
+With $\frac{\ddot T}{c^2T}=\lambda$ it is $\lambda\lt0$. 2023's solutions wrote $=-\lambda$, so there it was $\lambda>0$. Both are right. State your convention in the line where you separate, then answer for <em>your</em> $\lambda$, e.g. "$\lambda=-k^2\lt0$ gives $\ddot T+c^2k^2T=0$, oscillatory".</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q1.</strong> A student separates the drum equation as $\dfrac{\ddot T}{T}=\dfrac{c^2(R''+R'/r)}{R}=\mu$. Oscillation in time needs…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\mu>0$, so $\ddot T=\mu T$ oscillates</button>
+    <button class="opt" data-key="b">$\mu=0$, so $T$ is linear in $t$</button>
+    <button class="opt" data-key="c">$\mu>0$, as $R$ is then a Bessel function</button>
+    <button class="opt" data-key="d">$\mu\lt0$, so $\ddot T+|\mu|T=0$</button>
+  </div>
+  <div class="why">$\ddot T=\mu T$ oscillates only for $\mu\lt0$: $T=A\cos\sqrt{-\mu}\,t+B\sin\sqrt{-\mu}\,t$. The $c^2$ sitting on the $R$ side doesn't change which sign oscillates.</div>
+</div>
+
+<h2>3 · Why $\lambda\ge0$ gives nothing</h2>
+<p>An exam "write down the three cases" needs the table and the sentence about which one decays or oscillates. The lecture goes straight to $\lambda=-k^2$. If asked to <em>show</em> the others are trivial:</p>
+<details><summary>$\lambda=0$ (direct, 3 lines)</summary><div>
+<p>$R''+\frac1rR'=0\iff (rR')'=0\iff rR'=B\iff R=A+B\ln r$.<br>
+Bounded as $r\to0$: $\ln r\to-\infty$, so $B=0$. Then $R(a)=A=0$. So $R\equiv0$.</p>
+</div></details>
+<details><summary>$\lambda>0$ (optional: the "multiply and integrate" trick)</summary><div>
+<p>The $R$ equation is $(rR')'=\lambda rR$. Multiply by $R$, integrate over $[0,a]$, integrate by parts:
+$$\big[rRR'\big]_0^a-\int_0^a rR'^2\,dr=\lambda\int_0^a rR^2\,dr.$$
+The bracket is $0$: $R(a)=0$, and $r\to0$ with $R,R'$ bounded. So $\lambda\int rR^2=-\int rR'^2\le0$. With $\lambda>0$ this forces $\int rR^2=0$, so $R\equiv0$.<br>
+(Same identity also handles $\lambda=0$: $R'\equiv0$, so $R$ is constant $=R(a)=0$.)</p>
+<p>Physical sense for heat: $\lambda>0$ would make $T=e^{\alpha k^2t}$ blow up while the edge is held at $0$. Impossible.</p>
+</div></details>
+
+<h2>4 · $\lambda=-k^2$: Bessel order $0$</h2>
+<p>$R''+\frac1rR'+k^2R=0$. Let $s=kr$, $S(s)=R(r)$. Chain rule: $R'=kS'(s)$, $R''=k^2S''(s)$, and $\frac1r=\frac ks$:</p>
+$$k^2S''+\frac ks\,kS'+k^2S=0\;\Longrightarrow\;S''+\frac1sS'+S=0\quad(\text{Bessel order }0).$$
+<div class="box">
+<p>$S=C_1J_0(s)+C_2Y_0(s)$, so $R(r)=A\,J_0(kr)+B\,Y_0(kr)$. (Lecture 24 calls the second one $y_2$.)</p>
+<ol class="steps">
+<li><strong>Bounded at $r=0$:</strong> $Y_0(kr)\sim\frac2\pi\ln(kr)\to-\infty$, so $B=0$.</li>
+<li><strong>$R(a)=0$:</strong> $A\,J_0(ka)=0$, and $A\ne0$ (non-trivial), so $J_0(ka)=0$.</li>
+<li>$J_0$ has infinitely many positive zeros $j_1\lt j_2\lt\cdots$, so $k_n=\dfrac{j_n}{a}$ and $R_n(r)=J_0(k_nr)$, $n=1,2,\dots$</li>
+</ol>
+</div>
+
+<figure class="j0"><svg viewBox="0 0 600 230" role="img" aria-label="Graph of J0(s) for s from 0 to 12.6: starts at 1, decaying oscillation, zeros at 2.405, 5.520, 8.654, 11.79"><line class="ax" x1="40" y1="136.9" x2="585" y2="136.9"/><line class="ax" x1="40" y1="15" x2="40" y2="195"/><text class="tk" x="34" y="24.8" text-anchor="end">1</text><text class="tk" x="34" y="82.9" text-anchor="end">0.5</text><text class="tk" x="34" y="199.0" text-anchor="end">−0.5</text><path class="cv" d="M40.0,20.8 L41.4,20.8 L42.7,20.9 L44.1,21.1 L45.5,21.3 L46.8,21.5 L48.2,21.8 L49.6,22.2 L50.9,22.7 L52.3,23.1 L53.7,23.7 L55.0,24.3 L56.4,24.9 L57.8,25.6 L59.1,26.4 L60.5,27.2 L61.9,28.1 L63.2,29.0 L64.6,30.0 L66.0,31.0 L67.3,32.1 L68.7,33.2 L70.1,34.4 L71.4,35.6 L72.8,36.9 L74.1,38.2 L75.5,39.6 L76.9,41.0 L78.2,42.4 L79.6,43.9 L81.0,45.4 L82.3,47.0 L83.7,48.6 L85.1,50.3 L86.4,51.9 L87.8,53.7 L89.2,55.4 L90.5,57.2 L91.9,59.0 L93.3,60.8 L94.6,62.7 L96.0,64.6 L97.4,66.5 L98.7,68.5 L100.1,70.4 L101.5,72.4 L102.8,74.4 L104.2,76.5 L105.6,78.5 L106.9,80.6 L108.3,82.7 L109.7,84.7 L111.0,86.8 L112.4,89.0 L113.8,91.1 L115.1,93.2 L116.5,95.3 L117.9,97.5 L119.2,99.6 L120.6,101.7 L122.0,103.9 L123.3,106.0 L124.7,108.1 L126.1,110.2 L127.4,112.3 L128.8,114.4 L130.2,116.5 L131.5,118.6 L132.9,120.7 L134.2,122.8 L135.6,124.8 L137.0,126.8 L138.3,128.8 L139.7,130.8 L141.1,132.8 L142.4,134.7 L143.8,136.6 L145.2,138.5 L146.5,140.4 L147.9,142.3 L149.3,144.1 L150.6,145.8 L152.0,147.6 L153.4,149.3 L154.7,151.0 L156.1,152.7 L157.5,154.3 L158.8,155.9 L160.2,157.4 L161.6,158.9 L162.9,160.4 L164.3,161.8 L165.7,163.2 L167.0,164.6 L168.4,165.9 L169.8,167.1 L171.1,168.4 L172.5,169.5 L173.9,170.7 L175.2,171.8 L176.6,172.8 L178.0,173.8 L179.3,174.7 L180.7,175.7 L182.1,176.5 L183.4,177.3 L184.8,178.1 L186.2,178.8 L187.5,179.5 L188.9,180.1 L190.3,180.6 L191.6,181.2 L193.0,181.6 L194.3,182.1 L195.7,182.4 L197.1,182.8 L198.4,183.0 L199.8,183.3 L201.2,183.4 L202.5,183.6 L203.9,183.7 L205.3,183.7 L206.6,183.7 L208.0,183.6 L209.4,183.5 L210.7,183.4 L212.1,183.2 L213.5,183.0 L214.8,182.7 L216.2,182.4 L217.6,182.0 L218.9,181.6 L220.3,181.2 L221.7,180.7 L223.0,180.1 L224.4,179.6 L225.8,179.0 L227.1,178.3 L228.5,177.6 L229.9,176.9 L231.2,176.2 L232.6,175.4 L234.0,174.6 L235.3,173.7 L236.7,172.9 L238.1,171.9 L239.4,171.0 L240.8,170.0 L242.2,169.1 L243.5,168.0 L244.9,167.0 L246.3,165.9 L247.6,164.9 L249.0,163.8 L250.4,162.6 L251.7,161.5 L253.1,160.3 L254.4,159.1 L255.8,158.0 L257.2,156.8 L258.5,155.5 L259.9,154.3 L261.3,153.1 L262.6,151.8 L264.0,150.6 L265.4,149.3 L266.7,148.1 L268.1,146.8 L269.5,145.5 L270.8,144.3 L272.2,143.0 L273.6,141.7 L274.9,140.5 L276.3,139.2 L277.7,137.9 L279.0,136.7 L280.4,135.4 L281.8,134.2 L283.1,133.0 L284.5,131.8 L285.9,130.6 L287.2,129.4 L288.6,128.2 L290.0,127.1 L291.3,125.9 L292.7,124.8 L294.1,123.7 L295.4,122.6 L296.8,121.5 L298.2,120.5 L299.5,119.4 L300.9,118.4 L302.3,117.5 L303.6,116.5 L305.0,115.6 L306.4,114.7 L307.7,113.8 L309.1,112.9 L310.5,112.1 L311.8,111.3 L313.2,110.6 L314.5,109.8 L315.9,109.1 L317.3,108.5 L318.6,107.8 L320.0,107.2 L321.4,106.6 L322.7,106.1 L324.1,105.6 L325.5,105.1 L326.8,104.7 L328.2,104.3 L329.6,103.9 L330.9,103.6 L332.3,103.2 L333.7,103.0 L335.0,102.7 L336.4,102.5 L337.8,102.4 L339.1,102.3 L340.5,102.2 L341.9,102.1 L343.2,102.1 L344.6,102.1 L346.0,102.1 L347.3,102.2 L348.7,102.3 L350.1,102.5 L351.4,102.7 L352.8,102.9 L354.2,103.1 L355.5,103.4 L356.9,103.7 L358.3,104.1 L359.6,104.5 L361.0,104.9 L362.4,105.3 L363.7,105.8 L365.1,106.3 L366.5,106.8 L367.8,107.3 L369.2,107.9 L370.6,108.5 L371.9,109.2 L373.3,109.8 L374.6,110.5 L376.0,111.2 L377.4,111.9 L378.7,112.7 L380.1,113.4 L381.5,114.2 L382.8,115.0 L384.2,115.9 L385.6,116.7 L386.9,117.6 L388.3,118.5 L389.7,119.4 L391.0,120.3 L392.4,121.2 L393.8,122.1 L395.1,123.1 L396.5,124.0 L397.9,125.0 L399.2,125.9 L400.6,126.9 L402.0,127.9 L403.3,128.9 L404.7,129.9 L406.1,130.9 L407.4,131.9 L408.8,132.9 L410.2,133.9 L411.5,134.9 L412.9,135.9 L414.3,136.9 L415.6,137.9 L417.0,138.9 L418.4,139.9 L419.7,140.8 L421.1,141.8 L422.5,142.8 L423.8,143.7 L425.2,144.7 L426.6,145.6 L427.9,146.5 L429.3,147.4 L430.7,148.3 L432.0,149.2 L433.4,150.1 L434.7,150.9 L436.1,151.7 L437.5,152.5 L438.8,153.3 L440.2,154.1 L441.6,154.9 L442.9,155.6 L444.3,156.3 L445.7,157.0 L447.0,157.7 L448.4,158.3 L449.8,159.0 L451.1,159.6 L452.5,160.1 L453.9,160.7 L455.2,161.2 L456.6,161.7 L458.0,162.2 L459.3,162.6 L460.7,163.0 L462.1,163.4 L463.4,163.8 L464.8,164.1 L466.2,164.4 L467.5,164.7 L468.9,165.0 L470.3,165.2 L471.6,165.4 L473.0,165.5 L474.4,165.7 L475.7,165.8 L477.1,165.9 L478.5,165.9 L479.8,165.9 L481.2,165.9 L482.6,165.9 L483.9,165.8 L485.3,165.7 L486.7,165.6 L488.0,165.4 L489.4,165.3 L490.8,165.1 L492.1,164.8 L493.5,164.6 L494.8,164.3 L496.2,164.0 L497.6,163.6 L498.9,163.2 L500.3,162.9 L501.7,162.4 L503.0,162.0 L504.4,161.5 L505.8,161.0 L507.1,160.5 L508.5,160.0 L509.9,159.4 L511.2,158.9 L512.6,158.3 L514.0,157.7 L515.3,157.0 L516.7,156.4 L518.1,155.7 L519.4,155.0 L520.8,154.3 L522.2,153.6 L523.5,152.9 L524.9,152.1 L526.3,151.4 L527.6,150.6 L529.0,149.8 L530.4,149.0 L531.7,148.2 L533.1,147.4 L534.5,146.6 L535.8,145.8 L537.2,144.9 L538.6,144.1 L539.9,143.2 L541.3,142.4 L542.7,141.5 L544.0,140.7 L545.4,139.8 L546.8,139.0 L548.1,138.1 L549.5,137.3 L550.9,136.4 L552.2,135.6 L553.6,134.7 L554.9,133.9 L556.3,133.1 L557.7,132.2 L559.0,131.4 L560.4,130.6 L561.8,129.8 L563.1,129.0 L564.5,128.2 L565.9,127.4 L567.2,126.6 L568.6,125.9 L570.0,125.2 L571.3,124.4 L572.7,123.7 L574.1,123.0 L575.4,122.3 L576.8,121.7 L578.2,121.0 L579.5,120.4 L580.9,119.8 L582.3,119.2 L583.6,118.6 L585.0,118.1"/><circle class="zr" cx="144.0" cy="136.9" r="4"/><text class="zl" x="144.0" y="154.9" text-anchor="middle">j₁ ≈ 2.405</text><circle class="zr" cx="278.8" cy="136.9" r="4"/><text class="zl" x="278.8" y="126.9" text-anchor="middle">j₂ ≈ 5.520</text><circle class="zr" cx="414.3" cy="136.9" r="4"/><text class="zl" x="414.3" y="154.9" text-anchor="middle">j₃ ≈ 8.654</text><circle class="zr" cx="550.0" cy="136.9" r="4"/><text class="zl" x="550.0" y="126.9" text-anchor="middle">j₄ ≈ 11.79</text><text class="tk" x="585" y="222" text-anchor="end">s = kr</text><text class="tk" x="78.9" y="24.8">J₀(s)</text></svg><figcaption>$J_0$ starts at $1$ and oscillates with slowly shrinking amplitude. Zeros are not equally spaced at first; the gaps tend to $\pi$.</figcaption></figure>
+
+<p>Know $j_1\approx2.405$ (enough for "lowest frequency" or "slowest decay" parts). The others: $5.520,\ 8.654$.</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q2.</strong> Plate of radius $a=2$, edge at $0$. The eigenvalues are $\lambda_n=-k_n^2$ with…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$k_n=j_n/2$, where $J_0(j_n)=0$</button>
+    <button class="opt" data-key="b">$k_n=2j_n$, where $J_0(j_n)=0$</button>
+    <button class="opt" data-key="c">$k_n=n\pi/2$, since $R(2)=0$</button>
+    <button class="opt" data-key="d">$k_n=j_n$, where $J_0(2j_n)=0$</button>
+  </div>
+  <div class="why">$J_0(2k)=0\iff 2k=j_n\iff k_n=j_n/2$. Option (c) is the string answer: sines vanish at $n\pi$, but $J_0$ doesn't.</div>
+</div>
+
+<h2>5 · Time part, series, coefficients</h2>
+<div class="box">
+<p><strong>Heat:</strong> $\dot T_n+\alpha k_n^2T_n=0\Rightarrow T_n=e^{-\alpha k_n^2t}$, and
+$$u(r,t)=\sum_{n=1}^\infty C_n\,e^{-\alpha k_n^2t}J_0(k_nr),\qquad C_n=\frac{2}{a^2J_1^2(k_na)}\int_0^a f(r)\,J_0(k_nr)\,r\,dr.$$
+<p><strong>Drum:</strong> $\ddot T_n+c^2k_n^2T_n=0\Rightarrow T_n=A_n\cos\omega_nt+B_n\sin\omega_nt$, $\;\omega_n=ck_n=\dfrac{c\,j_n}{a}$.
+$$u(r,t)=\sum_{n=1}^\infty\big(A_n\cos\omega_nt+B_n\sin\omega_nt\big)J_0(k_nr).$$
+<p>The coefficients come from the orthogonality (Lecture 24, slide 10): $\int_0^aJ_0(k_mr)J_0(k_nr)\,r\,dr=0$ for $m\ne n$, and $=\frac{a^2}{2}J_1^2(k_na)$ for $m=n$. Note the weight $r$. Exams say "do not compute the coefficients": write the integral and stop.</p>
+</div>
+
+<p><strong>Applying the drum ICs</strong> (the step 2023 gave 3 marks for):</p>
+<ul>
+<li>Released from rest: $u_t(r,0)=\sum B_n\omega_nJ_0(k_nr)=0$ for all $r\in[0,a]$ ⇒ $B_n=0$. Then $A_n$ from $u(r,0)=f(r)$, same formula as $C_n$.</li>
+<li>Flat and struck: $u(r,0)=\sum A_nJ_0(k_nr)=0$ ⇒ $A_n=0$. Then $u_t(r,0)=\sum B_n\omega_nJ_0(k_nr)=g(r)$, so
+$$B_n=\frac{2}{\omega_n\,a^2J_1^2(k_na)}\int_0^a g(r)J_0(k_nr)\,r\,dr.$$ Don't forget the $\omega_n$.</li>
+</ul>
+
+<p><strong>Example.</strong> Plate of radius $2$, $u_t=5(u_{rr}+u_r/r)$, edge at $0$, $u(r,0)=4-r^2$.<br>
+$k_n=j_n/2$, $u=\sum C_ne^{-5k_n^2t}J_0(k_nr)$, $C_n=\dfrac{1}{2J_1^2(j_n)}\displaystyle\int_0^2(4-r^2)J_0\big(\tfrac{j_nr}2\big)r\,dr$.<br>
+For large $t$ the $n=1$ term dominates: $u\approx C_1e^{-5(2.405/2)^2t}J_0(1.20r)\approx C_1e^{-7.23t}J_0(1.20r)$. One hump, hottest at the centre, decaying to $0$. (Numerically $C_1\approx4.43$; not something you'd be asked for.)</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q3.</strong> Drum radius $a$, speed $c$. The ratio of the second to the lowest frequency, $\omega_2/\omega_1$, is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$2$, as for a string</button>
+    <button class="opt" data-key="b">$4$, since $\omega\propto k^2$</button>
+    <button class="opt" data-key="c">$j_2/j_1\approx2.30$</button>
+    <button class="opt" data-key="d">$c\,j_2/a\approx5.52$</button>
+  </div>
+  <div class="why">$\omega_n=cj_n/a$, so the ratio is $5.520/2.405\approx2.30$, not an integer. That's why a drum has no clear pitch and its motion is not periodic in $t$, unlike a string ($\omega_n=n\omega_1$).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q4.</strong> The plate's edge is instead held at $U\ne0$ for $t>0$. The axisymmetric steady state is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$u_S=U\,J_0(j_1r/a)$</button>
+    <button class="opt" data-key="b">$u_S=U$, a constant</button>
+    <button class="opt" data-key="c">$u_S=U\ln(r)/\ln(a)$</button>
+    <button class="opt" data-key="d">$u_S=U\,r/a$</button>
+  </div>
+  <div class="why">$(ru_S')'=0\Rightarrow u_S=A+B\ln r$; bounded ⇒ $B=0$; $u_S(a)=U$ ⇒ $u_S=U$. Then $v=u-U$ has $v(a,t)=0$ and $v(r,0)=f(r)-U$: the §5 series again (<a href="0029-inhomogeneous-bcs-steady-transient.html">Lesson 29</a> pattern).</div>
+</div>
+
+<h2>Part B · Genuine solutions (Lecture 25)</h2>
+
+<h2>6 · What "genuine" means for a PDE</h2>
+<div class="box">
+<p>SoV gives a <strong>formal</strong> solution: the term-by-term differentiated series satisfies the PDE. It is <strong>genuine</strong> on $D$ if the series for $u$ <em>and</em> for every derivative in the PDE converge uniformly on $D$. For heat $u_t=\alpha u_{xx}$: $u,\ u_x,\ u_{xx},\ u_t$ (you need $u_x$ to justify differentiating a second time). Then term-by-term differentiation is valid and the sum really solves the PDE.</p>
+<p><strong>Domain:</strong> $D=\{(x,t):0\le x\le L,\ t\ge T\}$ with <strong>$T>0$ fixed</strong>. Every point with $t>0$ lies in such a $D$, so the conclusion is "genuine for all $t>0$".</p>
+</div>
+
+<div class="box">
+<p><strong>The one lemma you need.</strong> For any power $p$ and constants $c,T>0$, $\;\sum_n n^p e^{-cn^2T}$ converges. Ratio test:
+$$\frac{a_{n+1}}{a_n}=\Big(1+\frac1n\Big)^pe^{-c(2n+1)T}\to1\cdot0=0\lt1.$$
+<em>The exponential beats any power, but only because $T>0$.</em></p>
+</div>
+
+<h3>Model write-up</h3>
+<p>Rod $0\lt x\lt2$, $u_t=3u_{xx}$, $u(0,t)=u(2,t)=0$, $u(x,0)=x(2-x)$. SoV gives $b_n=\frac{16(1-(-1)^n)}{\pi^3n^3}$, so with odd $n$ and $k_n=\frac{n\pi}2$:
+$$u=\sum_{n\text{ odd}}u_n,\qquad u_n=\frac{32}{\pi^3n^3}e^{-3k_n^2t}\sin k_nx.$$</p>
+<details><summary>Show $u$ is genuine for $t>0$ (try first)</summary><div>
+<p>Let $D=[0,2]\times[T,\infty)$, $T>0$. On $D$, $|\sin|,|\cos|\le1$ and $e^{-3k_n^2t}\le e^{-3k_n^2T}$.</p>
+<ol class="steps">
+<li>$|u_n|\le\dfrac{32}{\pi^3n^3}$; $\sum1/n^3$ converges ($p=3$).</li>
+<li>$\big|\partial_xu_n\big|=\Big|\dfrac{32}{\pi^3n^3}\dfrac{n\pi}{2}e^{-3k_n^2t}\cos k_nx\Big|\le\dfrac{16}{\pi^2n^2}$; $p=2$ series converges.</li>
+<li>$\big|\partial_x^2u_n\big|\le\dfrac{8}{\pi n}e^{-3n^2\pi^2T/4}$; converges by the lemma ($p=-1$, ratio $\to0$).</li>
+<li>$\partial_tu_n=3\,\partial_x^2u_n$, so the same bound times $3$ works.</li>
+</ol>
+<p>By the Weierstrass test all four series converge uniformly on $D$, so term-by-term differentiation is justified and $u$ satisfies the PDE on $D$. Since $T>0$ is arbitrary, $u$ is a genuine solution for all $t>0$, $0\le x\le2$.</p>
+</div></details>
+
+<div class="trap"><strong>Where marks go</strong><br>
+Name $D$ with $T>0$ · bound with no $x,t$ left · name the test for $\sum a_n$ (p-series or ratio) · say "Weierstrass" · do all four series (or say $u_t=\alpha u_{xx}$ termwise) · conclude "genuine for $t>0$". Saying "the exponential makes it converge" earns little.</div>
+
+<h2>7 · Why $t\ge T>0$, and what fails at $t=0$</h2>
+<p>At $t=0$ the exponential is $1$ and the bound is just the coefficient times $k_n^p$. Steps 1–2 above didn't need $T$ (bounds $1/n^3$, $1/n^2$), so $u$ and $u_x$ converge uniformly on all of $[0,2]\times[0,\infty)$. Step 3 did: at $t=0$ the $u_{xx}$ series is $-\sum\frac{8}{\pi n}\sin k_nx$, the sine series of $f''=-2$. Its odd extension jumps at $x=0,2$: sum $-2$ inside, $0$ at the ends. Continuous terms, discontinuous sum ⇒ <strong>not uniform</strong> (Gibbs). Slide $T$ below to $0$.</p>
+
+<div id="plot-uxx"></div>
+
+<div class="box">
+<p><strong>Rule of thumb (which series are uniform on $t\ge0$):</strong> coefficient of the differentiated series $\sim1/n^2$ or faster ⇒ yes by M-test. $\sim1/n$ with a jump in the corresponding extension ⇒ no. Lecture 25's Problem 3 (inhomogeneous BCs) has $b_n\sim1/n$ already in $u$: the transient's IC $-x$ has a jumping odd extension, so even $u$ shows Gibbs at $t=0$.</p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q5.</strong> $u=\sum_{n\ge1}\dfrac{(-1)^n}{n}e^{-n^2t}\sin nx$ on $[0,\pi]$. Which series can the Weierstrass test show uniform on $[0,\pi]\times[0,\infty)$?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">none of $u,\ u_x,\ u_{xx},\ u_t$</button>
+    <button class="opt" data-key="b">$u$ only, with $a_n=1/n$</button>
+    <button class="opt" data-key="c">$u$ and $u_x$, but not $u_{xx},u_t$</button>
+    <button class="opt" data-key="d">all four, as $e^{-n^2t}\le1$</button>
+  </div>
+  <div class="why">On $t\ge0$ the best bound for $u$ is $1/n$, and $\sum1/n$ diverges; derivatives are worse. In fact $u$ is not uniform: at $t=0$ it is the sawtooth $-x/2$ on $(-\pi,\pi)$, jumping at $x=\pi$. On $t\ge T>0$ all four are uniform by the lemma.</div>
+</div>
+
+<h2>8 · The wave equation: weak, not genuine (in general)</h2>
+<p>$u=\sum b_n\cos(\omega_nt)\sin k_nx$ has <strong>no decaying factor</strong>, so moving to $t\ge T$ gains nothing. M-test for $u_{xx}$ and $u_{tt}$ needs $\sum k_n^2|b_n|\lt\infty$, i.e. $b_n$ decaying faster than $1/n^3$.</p>
+<ul>
+<li>Plucked string: $b_n\sim1/n^2$. $u$: uniform ($\sum1/n^2$). $u_x$: bound $\sim1/n$, M-test fails. $u_{xx}$: terms don't even tend to $0$, so the series diverges. The kink in the IC travels forever and is never smoothed (Lecture 26). The formal solution is a <strong>weak solution</strong> (Lecture 25/26; weak solutions themselves are not assessed).</li>
+<li>Finite sum of modes (e.g. $u(x,0)=\sin2x$): finite sum ⇒ genuine trivially.</li>
+<li>Drum: same story with $J_0(k_nr)$; no exponential, so only very smooth ICs give a genuine solution.</li>
+</ul>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q6.</strong> Why does the heat argument "restrict to $t\ge T>0$" not help for $u=\sum b_n\cos(cn\pi t/L)\sin(n\pi x/L)$?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\cos$ terms can be negative for $t\ge T$</button>
+    <button class="opt" data-key="b">the series for $u$ itself always diverges</button>
+    <button class="opt" data-key="c">$|\cos|$ has no decay in $n$ for any $t$</button>
+    <button class="opt" data-key="d">the wave equation has two initial conditions</button>
+  </div>
+  <div class="why">The heat bound uses $e^{-\alpha k_n^2T}$, which shrinks with $n$. The best bound on $|\cos(\omega_nt)|$ is $1$ for every $T$, so the bound for $u_{xx}$ stays $k_n^2|b_n|$, whatever $T$ is.</div>
+</div>
+
+<h2>9 · Practice (exam level)</h2>
+<p>Paper first. Answers are short; full working is in the hidden blocks.</p>
+<div class="box">
+<p><strong>P1.</strong> A circular plate of radius $4$ satisfies $u_t=2(u_{rr}+u_r/r)$. Initially it is at $20^\circ$ everywhere; from $t=0$ its edge is held at $10^\circ$.<br>
+(a) Write the full IBVP. (b) Find the steady state. (c) State the IBVP for $v=u-u_S$. (d) Write $u$ as a series, coefficients as integrals. (e) Which term dominates for large $t$, and at what rate does it decay?</p>
+<p><strong>P2.</strong> $u=\sum_{n\ge1}\dfrac{(-1)^{n+1}}{n^2}e^{-\mu_n^2t}\sin\mu_nx$, $\mu_n=(n-\frac12)\pi$, solves $u_t=u_{xx}$ on $[0,1]$ with $u(0,t)=0$, $u_x(1,t)=0$. Show it is genuine for $t>0$. Which of your four bounds did not need $T>0$?</p>
+<p><strong>P3.</strong> $u_{tt}=4u_{xx}$ on $[0,\pi]$. (a) $u=\sum_{n\ge1}\frac{1}{n^3}\cos(2nt)\sin nx$. Which of $u,u_x,u_t,u_{xx},u_{tt}$ can the M-test show uniform on $[0,\pi]\times[0,\infty)$? Can you conclude genuine? (b) Same with $\frac1{n^4}$.</p>
+<p><strong>P4.</strong> A circular drumhead of radius $0.3$, clamped at its rim, is pushed into the shape $u=h(r)$ and let go. Write the BCs and ICs, and say which coefficient family vanishes.</p>
+</div>
+<details><summary>P1 solution</summary><div>
+<p>(a) $u_t=2(u_{rr}+\frac1ru_r)$, $0\le r\lt4$, $t>0$; $u(4,t)=10$; $u$ finite as $r\to0$; $u(r,0)=20$.<br>
+(b) $(ru_S')'=0\Rightarrow u_S=A+B\ln r$, bounded ⇒ $B=0$, $u_S(4)=10$ ⇒ $u_S=10$.<br>
+(c) $v_t=2(v_{rr}+\frac1rv_r)$, $v(4,t)=0$, $v$ finite at $0$, $v(r,0)=10$.<br>
+(d) $k_n=j_n/4$: $\;u=10+\sum_{n\ge1}C_ne^{-2k_n^2t}J_0(k_nr)$, $\;C_n=\dfrac{2}{16J_1^2(j_n)}\displaystyle\int_0^4 10\,J_0\big(\tfrac{j_nr}4\big)r\,dr$.<br>
+(e) $n=1$: $u-10\approx C_1e^{-2(2.405/4)^2t}J_0(0.601r)$, rate $2(0.601)^2\approx0.72$. $u\to10$.</p>
+</div></details>
+<details><summary>P2 solution</summary><div>
+<p>$D=[0,1]\times[T,\infty)$, $T>0$. Using $\mu_n\le n\pi$ and $e^{-\mu_n^2t}\le e^{-\mu_n^2T}\le e^{-(n-\frac12)^2\pi^2T}$:</p>
+<p>$|u_n|\le\frac1{n^2}$ ($p$-series). $|\partial_xu_n|\le\frac{\pi}{n}e^{-\pi^2(n-\frac12)^2T}$. $|\partial_x^2u_n|\le\pi^2e^{-\pi^2(n-\frac12)^2T}$. $\partial_tu_n=\partial_x^2u_n$. The last three converge by the ratio test: since $(n+\frac12)^2-(n-\frac12)^2=2n$, e.g. $\frac{a_{n+1}}{a_n}=\frac{n}{n+1}e^{-2n\pi^2T}\to0\lt1$. Weierstrass ⇒ all uniform on $D$ ⇒ genuine for $t>0$.</p>
+<p>Only the bound for $u$ ($1/n^2$) didn't need $T$.</p>
+</div></details>
+<details><summary>P3 solution</summary><div>
+<p>(a) $|u_n|\le\frac1{n^3}$ ✓; $|\partial_xu_n|\le\frac1{n^2}$ ✓; $|\partial_tu_n|\le\frac2{n^2}$ ✓; $|\partial_x^2u_n|\le\frac1n$ ✗; $|\partial_t^2u_n|\le\frac4n$ ✗. The second-derivative bounds diverge, so the M-test can't justify $u_{tt}=4u_{xx}$ termwise: no conclusion that it is genuine.<br>
+(b) Bounds $\frac1{n^4},\frac1{n^3},\frac2{n^3},\frac1{n^2},\frac4{n^2}$: all summable ⇒ genuine on $[0,\pi]\times[0,\infty)$, with no $T$ needed. Decay of $b_n$ does all the work for waves.</p>
+</div></details>
+<details><summary>P4 solution</summary><div>
+<p>$u(0.3,t)=0$; $u$ finite at $r=0$; $u(r,0)=h(r)$; "let go" = released from rest: $u_t(r,0)=0$. Then $u=\sum(A_n\cos\omega_nt+B_n\sin\omega_nt)J_0(k_nr)$ with $k_n=j_n/0.3$: $u_t(r,0)=0$ ⇒ $B_n=0$.</p>
+</div></details>
+
+<h2>10 · Exam-level challenge (18 marks, about 32 minutes)</h2>
+<div class="box">
+<p><strong>Q1 [12].</strong> A circular drumhead of radius $3$ performs axisymmetric vibrations governed by $u_{tt}=4\big(u_{rr}+\frac1ru_r\big)$, $0\le r\lt3$, $t>0$. The rim is clamped. At $t=0$ the drumhead is flat and is struck so that its velocity is $u_t(r,0)=9-r^2$.<br>
+(a) Using $u=R(r)T(t)$, derive the ODEs for $R$ and $T$. Do not apply any conditions yet. <em>[2]</em><br>
+(b) Write down the three cases for the separation constant and state which gives oscillation in time. Show that the zero case gives only the trivial solution. <em>[3]</em><br>
+(c) For the oscillatory case, solve the BVP for $R$ using $s=kr$. You may quote the solutions of Bessel's equation of order zero and their behaviour at $0$. <em>[4]</em><br>
+(d) Solve for $T_n$, apply the initial conditions, and write the solution as a series. Write the remaining coefficients as integrals; do not evaluate them. <em>[3]</em></p>
+<p><strong>Q2 [6].</strong> The formal solution of $u_t=2u_{xx}$, $0\lt x\lt\pi$, $u_x(0,t)=u_x(\pi,t)=0$, $u(x,0)=x$ is
+$$u(x,t)=\frac\pi2-\frac4\pi\sum_{m=1}^\infty\frac{e^{-2(2m-1)^2t}}{(2m-1)^2}\cos\big((2m-1)x\big).$$
+(a) Show that $u$ is a genuine solution for $t>0$. <em>[4]</em><br>
+(b) Does the series for $u_x$ converge uniformly on $[0,\pi]\times[0,\infty)$? Justify. <em>[2]</em></p>
+</div>
+<p>Full marking-style solution: <a href="../worked/0032-challenge-full-solution.html">worked/0032-challenge-full-solution.html</a>. Open it only after attempting every part.</p>
+<details><summary>Answer key (quick check)</summary><div>
+<p>Q1 (a) $\frac{\ddot T}{4T}=\frac{R''+R'/r}{R}=\lambda$: $\ddot T-4\lambda T=0$, $r^2R''+rR'-\lambda r^2R=0$. (b) $\lambda>0,=0,\lt0$; $\lambda=-k^2\lt0$ oscillates; $\lambda=0$: $R=A+B\ln r\Rightarrow0$. (c) $R_n=J_0(k_nr)$, $k_n=j_n/3$. (d) $u=\sum B_n\sin(\tfrac{2j_n}3t)J_0(\tfrac{j_n}3r)$, $B_n=\dfrac{1}{3j_nJ_1^2(j_n)}\displaystyle\int_0^3(9-r^2)J_0\big(\tfrac{j_nr}3\big)r\,dr$.<br>
+Q2 (a) M-test on $[0,\pi]\times[T,\infty)$ with $a_m=\frac{4}{\pi(2m-1)^2}$, $\frac{4}{\pi(2m-1)}e^{-2(2m-1)^2T}$, $\frac4\pi e^{-2(2m-1)^2T}$, $\frac8\pi e^{-2(2m-1)^2T}$. (b) No: at $t=0$ it sums to $1$ on $(0,\pi)$ but $0$ at $x=0$; continuous terms, discontinuous sum.</p>
+</div></details>
+
+<h2>11 · Before you close this tab</h2>
+<details><summary>Retrieval: write from memory, then check</summary><div>
+<ol>
+<li>The axisymmetric heat equation and its two "boundary" conditions.</li>
+<li>The $R$ ODE, the substitution, and why $Y_0$ goes.</li>
+<li>The eigenvalue condition and $j_1$.</li>
+<li>Heat and drum series; $B_n$ for a struck drum.</li>
+<li>The four series for a genuine heat solution, the domain, and the lemma.</li>
+<li>Why wave solutions are usually weak.</li>
+</ol>
+<p><strong>Answers:</strong> (1) $u_t=\alpha(u_{rr}+\frac1ru_r)$; $u(a,t)=0$ and $u$ finite at $r=0$. (2) $R''+\frac1rR'+k^2R=0$, $s=kr$ gives $S''+\frac1sS'+S=0$; $Y_0\sim\ln$ unbounded. (3) $J_0(ka)=0$, $k_n=j_n/a$, $j_1\approx2.405$. (4) $\sum C_ne^{-\alpha k_n^2t}J_0(k_nr)$; $\sum(A_n\cos\omega_nt+B_n\sin\omega_nt)J_0(k_nr)$, $\omega_n=ck_n$; $B_n=\frac{2}{\omega_na^2J_1^2(k_na)}\int_0^ag\,J_0(k_nr)r\,dr$. (5) $u,u_x,u_{xx},u_t$ on $[0,L]\times[T,\infty)$, $T>0$; $\sum n^pe^{-cn^2T}$ converges by ratio. (6) No decaying factor; $u_{xx}$ needs $\sum n^2|b_n|\lt\infty$, false for kinked ICs.</p>
+</div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/24_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 24</a> (slides 4–10: circular panel, Bessel, $J_0$ zeros, orthogonality and $C_n$) and <a href="../lectures/25_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 25</a> (slides 3–15: genuine solutions, the M-test for $u,u_x,u_{xx},u_t$, Gibbs at $t=0$). Lecture 26, slide 14 for the wave being weak, and Lecture 27, slide 10 for axisymmetric drum modes. Paul's Online Notes doesn't cover Bessel or genuine solutions. For pictures of the drum modes, see Wikipedia's <a href="https://en.wikipedia.org/wiki/Vibrations_of_a_circular_membrane">Vibrations of a circular membrane</a>, "The axisymmetric case" (the lecture cites it).</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic5.pdf">Booklet 5</a>, Q6 (b), including "can you show your formal solutions are genuine?" (write the four-line M-test for each series).</li>
+  <li>Booklet Q6 (a): same, Neumann. Which of the four series are uniform down to $t=0$?</li>
+  <li><a href="../tutes/tute_week_11.pdf">Tute week 11</a>, Q1 (b): plucked string. Then say which of $u,u_x,u_{xx}$ the M-test handles (§8).</li>
+  <li>Optional: redo Lecture 24 slides 4–10 for a drum released from rest with $c=3$, $a=1$, without looking.</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo Q1, Q3, Q5 and P3 cold, and the challenge's Q1 (c).</p>
+
+<div class="ask">💬 Stuck on a bound, or unsure whether a step needs $T>0$? Ask me in the terminal and paste your working.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0031-wave-equation-normal-modes.html">Lesson 31, wave equation</a></span>
+  <span>Next: <a href="0033-pde-mixed-exam-set.html">Lesson 33, mixed exam set</a></span>
+  <span>Reference: <a href="../reference/topic5-cheatsheet.html">Topic 5 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+<script>
+  // u_xx partial sums for u_t = 3u_xx on (0,2), u(x,0) = x(2-x), at time T (slider).
+  (function () {
+    let T = 0;
+    const PI = Math.PI;
+    const term = (n, x) => (n % 2 === 0 ? 0 : -(8 / (PI * n)) * Math.exp(-3 * (n * PI / 2) ** 2 * T) * Math.sin(n * PI * x / 2));
+    const limit = (x) => {
+      if (T === 0) return x <= 0 || x >= 2 ? 0 : -2;
+      let s = 0;
+      for (let n = 1; n < 600; n += 2) s += term(n, x);
+      return s;
+    };
+    SeriesPlot.mount(document.getElementById('plot-uxx'), {
+      term, n0: 1, limit,
+      x: [-0.05, 2.05], y: [-2.8, 0.6],
+      N: { min: 1, max: 81, value: 15 },
+      win: { label: 'T', min: 0, max: 0.06, step: 0.002, value: 0,
+             D: (v) => { T = v; return [0, 2]; }, text: (v) => `time t = T = ${v.toFixed(3)}` },
+      labels: { seq: 'partial sum of u_xx', limit: 'u_xx(x, T)' },
+      aria: 'Partial sums of the u_xx series at time T; at T = 0 the error near the ends stays near 2, for T > 0 it shrinks to 0',
+    });
+  })();
+</script>
+</body>
+</html>

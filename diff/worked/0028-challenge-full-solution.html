@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mixed-End Rod Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/pde-heat-plot.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 28 · Exam-level challenge · Full written solution</div>
+<h1>The mixed-end rod, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>A rod of length $2$ has its lateral surface insulated and thermal diffusivity $3$. The end $x=0$ is kept in ice and the end $x=2$ is insulated. Initially $u(x,0)=x$.</p>
+<p>(a) PDE, BCs, IC. <em>[2]</em> (b) Separate; conditions on $X$. <em>[2]</em> (c) Three cases: eigenvalues and eigenfunctions. <em>[4]</em> (d) $T_n$ and general solution. <em>[2]</em> (e) $u(x,t)$. <em>[4]</em> (f) One-term approximation to $u(2,t)$; sketch. <em>[2]</em> (g) $u$ if $u(x,0)=4\sin\frac{\pi x}{4}-\sin\frac{5\pi x}{4}$. <em>[2]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · The IBVP <em>[2]</em></h2>
+<div class="script">
+$$u_t=3u_{xx},\qquad 0\lt x\lt2,\ t\gt0,$$
+$$u(0,t)=0,\quad u_x(2,t)=0\quad(t\gt0),\qquad u(x,0)=x\quad(0\lt x\lt2).$$
+</div>
+<p class="note">[1] PDE with $\alpha=3$ and ranges; [1] both BCs plus IC. "Lateral surface insulated" only justifies the 1D equation. "Insulated" at $x=2$ is the Neumann condition.</p>
+
+<h2>(b) · Separation <em>[2]</em></h2>
+<div class="script">
+<p>Substitute $u=X(x)T(t)$: $XT'=3X''T$. Divide by $3XT$:
+$$\frac{T'}{3T}=\frac{X''}{X}=\lambda,$$
+constant because the left side depends only on $t$ and the right only on $x$. Hence $X''-\lambda X=0$ and $T'-3\lambda T=0$.</p>
+<p>$u(0,t)=X(0)T(t)=0$ for all $t\gt0$, and $T\not\equiv0$ (else $u\equiv0$), so $X(0)=0$. Similarly $u_x(2,t)=X'(2)T(t)=0\Rightarrow X'(2)=0$.</p>
+</div>
+<p class="note">The "$T\not\equiv0$" clause is the step that's usually skipped and usually marked.</p>
+
+<h2>(c) · Three cases <em>[4]</em></h2>
+<div class="script">
+<p><strong>$\lambda=k^2\gt0$:</strong> $X=A\cosh kx+B\sinh kx$. $X(0)=A=0$. $X'(2)=Bk\cosh2k=0$, and $k\cosh2k\ne0$, so $B=0$. Trivial only.</p>
+<p><strong>$\lambda=0$:</strong> $X=Ax+B$. $X(0)=B=0$, $X'(2)=A=0$. Trivial only.</p>
+<p><strong>$\lambda=-k^2\lt0$:</strong> $X=A\cos kx+B\sin kx$. $X(0)=A=0$. $X'(2)=Bk\cos2k=0$; for $B\ne0$, $\cos2k=0$, so $2k=\left(n-\tfrac12\right)\pi$:
+$$k_n=\frac{(2n-1)\pi}{4},\qquad \lambda_n=-k_n^2=-\frac{(2n-1)^2\pi^2}{16},\qquad X_n=\sin\frac{(2n-1)\pi x}{4},\quad n=1,2,\dots$$</p>
+</div>
+<p class="note">Using $\cosh,\sinh$ instead of $e^{\pm kx}$ makes $X(0)=0$ kill a term at once. Both forms get full marks. [1] each trivial case, [2] the oscillatory case with $k_n$.</p>
+
+<h2>(d) · Time ODE and general solution <em>[2]</em></h2>
+<div class="script">
+<p>$T_n'-3\lambda_nT_n=0\Rightarrow T_n=e^{3\lambda_nt}=e^{-3(2n-1)^2\pi^2t/16}$. By superposition,
+$$u(x,t)=\sum_{n=1}^\infty C_n\,e^{-3(2n-1)^2\pi^2t/16}\,\sin\frac{(2n-1)\pi x}{4}.$$</p>
+</div>
+
+<h2>(e) · Coefficients <em>[4]</em></h2>
+<div class="script">
+<p>At $t=0$: $x=\sum C_n\sin k_nx$. The $X_n$ are orthogonal on $(0,2)$ with $\int_0^2X_n^2\,dx=1$, so
+$$C_n=\frac22\int_0^2x\sin k_nx\,dx=\Big[-\frac{x\cos k_nx}{k_n}\Big]_0^2+\frac1{k_n}\int_0^2\cos k_nx\,dx=-\frac{2\cos2k_n}{k_n}+\frac{\sin2k_n}{k_n^2}.$$</p>
+<p>$2k_n=\frac{(2n-1)\pi}2$, so $\cos2k_n=0$ and $\sin2k_n=(-1)^{n+1}$. Hence
+$$C_n=\frac{(-1)^{n+1}}{k_n^2}=\frac{16(-1)^{n+1}}{(2n-1)^2\pi^2},$$
+$$\boxed{u(x,t)=\frac{16}{\pi^2}\sum_{n=1}^\infty\frac{(-1)^{n+1}}{(2n-1)^2}\,e^{-3(2n-1)^2\pi^2t/16}\sin\frac{(2n-1)\pi x}{4}.}$$</p>
+</div>
+<p class="note">[1] formula $C_n=\frac2L\int_0^LfX_n$ (not on the formula sheet). [1] integration by parts. [1] evaluating $\cos2k_n=0$, $\sin2k_n=(-1)^{n+1}$. [1] final series. Sanity check: $C_1=\frac{16}{\pi^2}\approx1.6$, about the size of $x$ on $(0,2)$.</p>
+
+<h2>(f) · Long time and sketch <em>[2]</em></h2>
+<div class="script">
+<p>Every term decays; $n=1$ decays slowest. For large $t$,
+$$u(x,t)\approx\frac{16}{\pi^2}e^{-3\pi^2t/16}\sin\frac{\pi x}{4},\qquad u(2,t)\approx\frac{16}{\pi^2}e^{-3\pi^2t/16}.$$</p>
+<p>Sketch: $t=0$, the line from $(0,0)$ to $(2,2)$. $t_1$: smooth, through $0$ at $x=0$, increasing, flat at $x=2$, and below the line. $t_2$: a lower quarter-sine. $t=\infty$: $u\equiv0$.</p>
+</div>
+<div id="plot"></div>
+<p class="note">The IC has slope $1$ at $x=2$, but every $t\gt0$ curve has slope $0$ there: the BC wins instantly. Turn on "Exam sketch" for the four curves.</p>
+
+<h2>(g) · Matching variant <em>[2]</em></h2>
+<div class="script">
+<p>$\sin\frac{\pi x}4=X_1$ ($k_1=\frac\pi4$) and $\sin\frac{5\pi x}4=X_3$ ($k_3=\frac{5\pi}4$). By linear independence, $C_1=4$, $C_3=-1$, and all other $C_n=0$:
+$$u(x,t)=4e^{-3\pi^2t/16}\sin\frac{\pi x}{4}-e^{-75\pi^2t/16}\sin\frac{5\pi x}{4}.$$</p>
+</div>
+<p class="note">Check that each term is in the eigen-list for <em>these</em> BCs: $\frac{5\pi}{4}=\frac{(2\cdot3-1)\pi}{4}$ ✓. Something like $\sin\frac{\pi x}{2}$ would not be ($k=\frac{2\pi}4$ is not half-odd).</p>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0028-heat-equation-separation.html">Lesson 28</a></span>
+  <span>Next: <a href="../lessons/0029-inhomogeneous-bcs-steady-transient.html">Lesson 29, inhomogeneous BCs</a></span>
+</div>
+</main>
+<script>
+  PdeHeat.mount(document.getElementById('plot'), {
+    L: 2, alpha: 3, f: (x) => x,
+    series: { c: (n) => 16 * (n % 2 ? 1 : -1) / ((2 * n - 1) ** 2 * Math.PI ** 2), k: (n) => (2 * n - 1) * Math.PI / 4, fn: 'sin', N: 300 },
+    tMax: 2, t: 0.05, snapshots: [0.08, 0.5],
+    y: [-0.2, 2.2], yTicks: [1, 2], xTicks: [0.5, 1, 1.5, 2].map((v) => ({ v, label: String(v) })),
+  });
+</script>
+</body>
+</html>

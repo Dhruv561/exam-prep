@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laplace on Rectangles and Wedges</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* Lesson 30 only */
+  .tblwrap { overflow-x: auto; }
+  table.eig td, table.eig th { text-align: left; vertical-align: top; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 30 · Topic 5: BVPs &amp; PDEs · Laplace's equation</div>
+<h1>Laplace's equation: rectangles, discs, wedges and annuli</h1>
+<p class="lede">The one win: given $\nabla^2u=0$ on a rectangle or a polar region, decide in one glance which variable gets the eigenvalue problem, pick the right partner functions ($\sinh$/$\cosh$ or $r^{\pm k}$), and finish by matching coefficients.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topic 5 is predicted to be the biggest question (masked 2026 paper Q6 = 18 marks, parts (a)–(c), long intro). Laplace appears as "the steady state of the 2D heat equation". 2022 had a 28-mark semi-annulus question: show the separated ODEs $r^2R''+rR'-\lambda R=0$, $S''+\lambda S=0$, then solve with boundary data that is a finite sine sum. The formula sheet has <em>no</em> separation recipe and no eigenfunction table, so memorise §1.</div>
+
+<h2>0 · Warm-up (Lessons 3 and 27)</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W1.</strong> $X''+k^2X=0$, $X'(0)=0$, $X'(L)=0$. The eigenfunctions are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\sin\frac{n\pi x}{L}$, $n=1,2,\dots$</button>
+    <button class="opt" data-key="b">$\cos\frac{n\pi x}{L}$, $n=0,1,\dots$</button>
+    <button class="opt" data-key="c">$\cos\frac{n\pi x}{L}$, $n=1,2,\dots$</button>
+    <button class="opt" data-key="d">$\sin\frac{(n-\frac12)\pi x}{L}$, $n=1,2,\dots$</button>
+  </div>
+  <div class="why">Neumann–Neumann: cosines, and $k=0$ (constant) survives. Forgetting $n=0$ loses the mean of the data (<a href="0027-bvps-eigenvalue-problems.html">Lesson 27</a>).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W2.</strong> General solution of $r^2R''+rR'-9R=0$, $r&gt;0$:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$Ae^{3r}+Be^{-3r}$</button>
+    <button class="opt" data-key="b">$A\cos(3\ln r)+B\sin(3\ln r)$</button>
+    <button class="opt" data-key="c">$Ar^{3}+Br^{-3}$</button>
+    <button class="opt" data-key="d">$Ar^{9}+Br^{-1}$</button>
+  </div>
+  <div class="why">Euler equation (<a href="0003-wronskian-abel-euler.html">Lesson 3</a>): try $r^m$: $m(m-1)+m-9=m^2-9=0$, $m=\pm3$. Option (a) is the constant-coefficient slip.</div>
+</div>
+
+<h2>1 · The decision rule and the table to memorise</h2>
+<div class="box">
+<p><strong>Rule.</strong> After $u=X(x)Y(y)$ (or $R(r)\Theta(\theta)$), the eigenvalue problem goes to the variable whose <em>two</em> boundaries are both homogeneous ($u=0$ or $\partial u/\partial n=0$, or periodic). The other variable gets the "partner" ODE with no BCs used yet, except any homogeneous one it has. The nonzero side is used <em>last</em>, to find coefficients.</p>
+</div>
+
+<div class="fig-row">
+<div class="fig">
+<svg viewBox="0 0 300 200" role="img" aria-label="Rectangle with zero on three sides and f(x) on top">
+  <rect x="60" y="40" width="180" height="120" fill="none" class="s-ax"/>
+  <line x1="60" y1="40" x2="60" y2="160" class="s-hl"/>
+  <line x1="240" y1="40" x2="240" y2="160" class="s-hl"/>
+  <line x1="60" y1="160" x2="240" y2="160" class="s-nv"/>
+  <line x1="60" y1="40" x2="240" y2="40" class="s-hl2"/>
+  <text x="150" y="30" text-anchor="middle" class="lbl lbl-h2">u(x,b) = f(x)</text>
+  <text x="150" y="178" text-anchor="middle" class="lbl lbl-m">u(x,0) = 0</text>
+  <text x="54" y="104" text-anchor="end" class="lbl lbl-h">u = 0</text>
+  <text x="246" y="104" class="lbl lbl-h">u = 0</text>
+  <text x="150" y="98" text-anchor="middle" class="lbl">x: both ends zero</text>
+  <text x="150" y="114" text-anchor="middle" class="lbl">→ X = sin(nπx/a)</text>
+  <text x="150" y="195" text-anchor="middle" class="lbl lbl-m">Y = sinh(nπy/a)</text>
+</svg>
+</div>
+<div class="fig">
+<svg viewBox="0 0 300 200" role="img" aria-label="Annular sector with homogeneous conditions on both straight edges">
+  <line x1="110" y1="180" x2="210" y2="180" class="s-hl"/>
+  <line x1="60" y1="130" x2="60" y2="30" class="s-hl"/>
+  <path d="M 110 180 A 50 50 0 0 0 60 130" fill="none" class="s-nv"/>
+  <path d="M 210 180 A 150 150 0 0 0 60 30" fill="none" class="s-hl2"/>
+  <text x="160" y="195" text-anchor="middle" class="lbl lbl-h">θ = 0</text>
+  <text x="54" y="80" text-anchor="end" class="lbl lbl-h">θ = β</text>
+  <text x="180" y="62" class="lbl lbl-h2">r = b: g(θ)</text>
+  <text x="74" y="165" class="lbl lbl-m">r = a</text>
+  <text x="70" y="94" class="lbl">both θ edges</text>
+  <text x="70" y="110" class="lbl">homogeneous →</text>
+  <text x="70" y="126" class="lbl">eigenproblem in Θ</text>
+  <text x="122" y="152" class="lbl lbl-m">R = r<tspan dy="-4" font-size="75%">±k</tspan></text>
+</svg>
+</div>
+</div>
+
+<div class="tblwrap">
+<table class="eig">
+<tr><th>BCs on $0\le s\le \ell$ (homogeneous)</th><th>eigenvalue $k$</th><th>eigenfunction</th></tr>
+<tr><td>$u=0$, $u=0$</td><td>$\frac{n\pi}{\ell}$, $n\ge1$</td><td>$\sin\frac{n\pi s}{\ell}$</td></tr>
+<tr><td>$u_s=0$, $u_s=0$</td><td>$\frac{n\pi}{\ell}$, $n\ge0$</td><td>$\cos\frac{n\pi s}{\ell}$ ($n=0$: constant)</td></tr>
+<tr><td>$u=0$ at $0$, $u_s=0$ at $\ell$</td><td>$\frac{(n-\frac12)\pi}{\ell}$, $n\ge1$</td><td>$\sin\frac{(n-\frac12)\pi s}{\ell}$</td></tr>
+<tr><td>$u_s=0$ at $0$, $u=0$ at $\ell$</td><td>$\frac{(n-\frac12)\pi}{\ell}$, $n\ge1$</td><td>$\cos\frac{(n-\frac12)\pi s}{\ell}$</td></tr>
+<tr><td>periodic, $\theta\in[0,2\pi)$ (full disc/annulus)</td><td>$n\ge0$</td><td>$1,\ \cos n\theta,\ \sin n\theta$</td></tr>
+</table>
+</div>
+<p>For a wedge $0\le\theta\le\beta$ use the same rows with $s=\theta$, $\ell=\beta$: $k=\frac{n\pi}{\beta}$ (or $\frac{(n-\frac12)\pi}{\beta}$).</p>
+
+<div class="box">
+<p><strong>Partner functions</strong> (for each eigenvalue $k$):</p>
+<table>
+<tr><th></th><th>$k&gt;0$</th><th>$k=0$ (only if it is an eigenvalue)</th></tr>
+<tr><td>Cartesian: $Y''-k^2Y=0$</td><td>$A\cosh ky+B\sinh ky$</td><td>$A+By$</td></tr>
+<tr><td>Polar: $r^2R''+rR'-k^2R=0$</td><td>$Ar^{k}+Br^{-k}$</td><td>$A+B\ln r$</td></tr>
+</table>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q1.</strong> $0&lt;x&lt;2$, $0&lt;y&lt;3$: $u(0,y)=g(y)$, $u(2,y)=0$, $u_y(x,0)=0$, $u_y(x,3)=0$. The eigenfunctions are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\cos\frac{n\pi y}{3}$, $n\ge0$, in $y$</button>
+    <button class="opt" data-key="b">$\sin\frac{n\pi x}{2}$, $n\ge1$, in $x$</button>
+    <button class="opt" data-key="c">$\sin\frac{n\pi y}{3}$, $n\ge1$, in $y$</button>
+    <button class="opt" data-key="d">$\cos\frac{n\pi x}{2}$, $n\ge0$, in $x$</button>
+  </div>
+  <div class="why">Only $y$ has two homogeneous ends, both Neumann, so cosines in $y$ including $n=0$. $x$ has a nonzero end ($g$), so $x$ gets the partner ($\sinh$, or $A+Bx$ for $n=0$).</div>
+</div>
+
+<h2>2 · Rectangle, one nonzero side</h2>
+<p><strong>Example.</strong> $u_{xx}+u_{yy}=0$ on $0&lt;x&lt;\pi$, $0&lt;y&lt;1$; $u(0,y)=u(\pi,y)=0$, $u(x,0)=0$, $u(x,1)=3\sin2x-\sin5x$.</p>
+<details><summary>Steps 1–2: separate, eigenvalue problem in $x$</summary><div>
+<p>$u=XY$: $X''Y+XY''=0\Rightarrow \dfrac{X''}{X}=-\dfrac{Y''}{Y}=\lambda$. So $X''-\lambda X=0$, $Y''+\lambda Y=0$, with $X(0)=X(\pi)=0$.</p>
+<p>$\lambda=k^2&gt;0$: $X=Ae^{kx}+Be^{-kx}$, BCs give $A=B=0$. $\lambda=0$: $X=A+Bx$, $A=B=0$. $\lambda=-k^2&lt;0$: $X=A\cos kx+B\sin kx$, $A=0$, $\sin k\pi=0\Rightarrow k=n$. So $X_n=\sin nx$, $\lambda_n=-n^2$.</p>
+</div></details>
+<details><summary>Steps 3–5: partner, superpose, match</summary><div>
+<p>$Y_n''-n^2Y_n=0$, $Y_n(0)=0$ ⇒ $Y_n=\sinh ny$. Superpose:
+$$u=\sum_{n\ge1}B_n\sinh(ny)\sin nx.$$
+At $y=1$: $\sum B_n\sinh n\,\sin nx=3\sin2x-\sin5x$. Match: $B_2\sinh2=3$, $B_5\sinh5=-1$, all others $0$.
+$$u=\frac{3\sinh2y}{\sinh2}\sin2x-\frac{\sinh5y}{\sinh5}\sin5x.$$</p>
+</div></details>
+
+<div class="trap"><strong>Pick the partner that kills a side directly</strong><br>
+Zero at $y=0$: use $\sinh(ky)$. Zero at $y=b$: use $\sinh\big(k(b-y)\big)$, not $A\cosh ky+B\sinh ky$ with messy $A/B$. Neumann zero at $y=0$: $\cosh ky$; at $y=b$: $\cosh(k(b-y))$. Then normalise: $\dfrac{\sinh(k(b-y))}{\sinh(kb)}$ equals $1$ on the data side, so the coefficient is just the Fourier coefficient of the data.</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q2.</strong> Same strip but now $u(x,1)=0$ and $u(x,0)=\sin3x$ (sides still zero). Then $u=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{\sinh 3y}{\sinh3}\sin3x$</button>
+    <button class="opt" data-key="b">$\dfrac{\cosh(3(1-y))}{\cosh3}\sin3x$</button>
+    <button class="opt" data-key="c">$\sinh(3(1-y))\sin3x$</button>
+    <button class="opt" data-key="d">$\dfrac{\sinh(3(1-y))}{\sinh3}\sin3x$</button>
+  </div>
+  <div class="why">Zero at $y=1$ ⇒ $\sinh(3(1-y))$; dividing by $\sinh 3$ makes it $1$ at $y=0$. (c) misses the normalisation; (a) is zero at the wrong side.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q3.</strong> $u_x=0$ on $x=0$ and $x=a$. The $n=0$ eigenfunction $X_0=1$ pairs with $Y_0=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$A\cosh y+B\sinh y$</button>
+    <button class="opt" data-key="b">$A+By$</button>
+    <button class="opt" data-key="c">$A$ only</button>
+    <button class="opt" data-key="d">$0$ (trivial)</button>
+  </div>
+  <div class="why">$k=0$: $Y_0''=0$ ⇒ linear. It carries the mean of the data; e.g. data $c$ at $y=0$ and $0$ at $y=b$ gives $c(1-y/b)$.</div>
+</div>
+
+<h2>3 · Two nonzero sides</h2>
+<div class="box">
+<ul>
+<li><strong>Opposite sides</strong> nonzero ($y=0$ and $y=b$), other pair homogeneous: no split needed. Use $Y_n=A_n\sinh(k_n(b-y))+B_n\sinh(k_ny)$, match each side separately.</li>
+<li><strong>Adjacent sides</strong> nonzero (e.g. $x=a$ and $y=b$): no variable has two homogeneous ends. Split $u=v+w$: $v$ keeps the $y=b$ data with zero on the other three sides; $w$ keeps the $x=a$ data with zero on the other three. Solve each as §2, add.</li>
+</ul>
+</div>
+<p><strong>Example.</strong> Unit square, $u=0$ on $x=0$ and $y=0$, $u(x,1)=\sin\pi x$, $u(1,y)=\sin2\pi y$.</p>
+<details><summary>Solution</summary><div>
+<p>$v$: zero on $x=0,1$ ⇒ $\sin n\pi x$, zero at $y=0$ ⇒ $\sinh n\pi y$. Match at $y=1$: only $n=1$. $v=\dfrac{\sinh\pi y}{\sinh\pi}\sin\pi x$.</p>
+<p>$w$: zero on $y=0,1$ ⇒ $\sin n\pi y$, zero at $x=0$ ⇒ $\sinh n\pi x$. Match at $x=1$: only $n=2$. $w=\dfrac{\sinh2\pi x}{\sinh2\pi}\sin2\pi y$.</p>
+$$u=\frac{\sinh\pi y}{\sinh\pi}\sin\pi x+\frac{\sinh2\pi x}{\sinh2\pi}\sin2\pi y.$$
+<p>Check: on $y=1$, $w=\dots\sin2\pi=0$ ✓; on $x=1$, $v=\dots\sin\pi=0$ ✓.</p>
+</div></details>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q4.</strong> On $0&lt;x&lt;1$, $0&lt;y&lt;1$: $u(x,0)=f(x)$, $u(x,1)=g(x)$, $u(0,y)=0$, $u(1,y)=0$. You should…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">split into two subproblems, sines in $y$ for each</button>
+    <button class="opt" data-key="b">split into two subproblems, sines in $x$ and in $y$</button>
+    <button class="opt" data-key="c">not split; sines in $x$, both $\sinh$ partners in $y$</button>
+    <button class="opt" data-key="d">not split; sines in $y$, both $\sinh$ partners in $x$</button>
+  </div>
+  <div class="why">$x$ has two zero ends, so one eigenfunction family works for both data sides: $Y_n=A_n\sinh(n\pi(1-y))+B_n\sinh(n\pi y)$. Splitting is allowed but unnecessary.</div>
+</div>
+
+<h2>4 · Polar coordinates</h2>
+<p>$$\nabla^2u=u_{rr}+\frac1ru_r+\frac1{r^2}u_{\theta\theta}=0.$$
+$u=R(r)\Theta(\theta)$, multiply by $\frac{r^2}{R\Theta}$:
+$$\frac{r^2R''+rR'}{R}=-\frac{\Theta''}{\Theta}=\lambda\ \Rightarrow\ r^2R''+rR'-\lambda R=0,\quad \Theta''+\lambda\Theta=0.$$
+Note the sign: here <em>positive</em> $\lambda=k^2$ gives oscillation in $\theta$ (2022 exam and Lecture 24 use this form; Lecture 24 calls it $\mu$). The $R$-equation is an Euler equation: $r^m$ gives $m^2=\lambda$.</p>
+
+<div class="tblwrap">
+<table class="eig">
+<tr><th>Region</th><th>$\theta$-problem</th><th>$R$ kept</th></tr>
+<tr><td>disc $0\le r&lt;a$</td><td>periodic: $1,\cos n\theta,\sin n\theta$</td><td>$r^n$, and $1$ (bounded at $0$ kills $r^{-n}$, $\ln r$)</td></tr>
+<tr><td>outside a disc $r&gt;a$, bounded</td><td>periodic</td><td>$r^{-n}$, and $1$</td></tr>
+<tr><td>wedge $0\le r&lt;a$, $0\le\theta\le\beta$</td><td>table §1 with $\ell=\beta$</td><td>$r^{k}$ (and $1$ if $k=0$)</td></tr>
+<tr><td>annulus / annular sector $a&lt;r&lt;b$</td><td>periodic or table §1</td><td>$Ar^k+Br^{-k}$ (and $A+B\ln r$ if $k=0$): both kept</td></tr>
+</table>
+</div>
+
+<p><strong>Disc example.</strong> $r&lt;2$, $u(2,\theta)=1+4\cos\theta-8\sin3\theta$.</p>
+<details><summary>Solution</summary><div>
+$$u=\tfrac12a_0+\sum_{n\ge1}r^n(a_n\cos n\theta+b_n\sin n\theta).$$
+<p>At $r=2$ match: $\frac12a_0=1$, $2a_1=4$, $8b_3=-8$. So $u=1+2r\cos\theta-r^3\sin3\theta$. Centre value $u(0)=1$ = mean of the boundary data.</p>
+</div></details>
+
+<p><strong>Wedge example.</strong> $0\le r&lt;1$, $0\le\theta\le\frac\pi2$, $u=0$ on both straight edges, $u(1,\theta)=\sin2\theta+3\sin6\theta$.</p>
+<details><summary>Solution</summary><div>
+<p>Dirichlet both ends, $\beta=\frac\pi2$: $\Theta_n=\sin\frac{n\pi\theta}{\pi/2}=\sin2n\theta$, $k=2n$. Bounded: $R_n=r^{2n}$. $u=\sum B_nr^{2n}\sin2n\theta$. Match at $r=1$: $B_1=1$, $B_3=3$.
+$$u=r^2\sin2\theta+3r^6\sin6\theta.$$</p>
+</div></details>
+
+<p><strong>Annulus example.</strong> $1&lt;r&lt;2$, full $\theta$, $u(1,\theta)=0$, $u(2,\theta)=3\sin2\theta$.</p>
+<details><summary>Solution</summary><div>
+<p>Periodic: $n\ge0$. Keep both: $u=A_0+B_0\ln r+\sum (A_nr^n+B_nr^{-n})\cos n\theta+(C_nr^n+D_nr^{-n})\sin n\theta$.</p>
+<p>Only $\sin2\theta$ appears in either boundary, so all other terms are $0$ (match at $r=1$ and $r=2$ gives a $2\times2$ system with zero RHS). For $\sin2\theta$: $C_2+D_2=0$, $4C_2+\frac14D_2=3$ ⇒ $C_2=\frac45$, $D_2=-\frac45$.
+$$u=\tfrac45\big(r^2-r^{-2}\big)\sin2\theta.$$</p>
+<p>Shortcut, like $\sinh(k(b-y))$: $\big(\frac ra\big)^k-\big(\frac ar\big)^k$ vanishes at $r=a$.</p>
+</div></details>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q5.</strong> Wedge $0\le\theta\le\frac\pi3$ with $u_\theta=0$ on $\theta=0$ and $u=0$ on $\theta=\frac\pi3$. The $\Theta$ eigenfunctions are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\cos\big(3(n-\frac12)\theta\big)$, $n\ge1$</button>
+    <button class="opt" data-key="b">$\sin\big(3(n-\frac12)\theta\big)$, $n\ge1$</button>
+    <button class="opt" data-key="c">$\cos(3n\theta)$, $n\ge0$</button>
+    <button class="opt" data-key="d">$\sin(3n\theta)$, $n\ge1$</button>
+  </div>
+  <div class="why">Neumann at $0$ ⇒ cosine; Dirichlet at $\beta=\frac\pi3$ ⇒ $\cos(k\pi/3)=0$, $k=3(n-\frac12)$.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q6.</strong> Why is $r^{-k}$ discarded in a wedge $0\le r&lt;a$ but kept in $1&lt;r&lt;2$?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$r^{-k}$ fails the $\theta$ boundary conditions</button>
+    <button class="opt" data-key="b">$r^{-k}$ does not solve the Euler equation there</button>
+    <button class="opt" data-key="c">$r^{-k}$ is unbounded as $r\to\infty$ in both</button>
+    <button class="opt" data-key="d">$r^{-k}\to\infty$ at $r=0$, which is in the wedge only</button>
+  </div>
+  <div class="why">Boundedness (regularity) at the origin is the "missing BC" in a disc or wedge. An annulus excludes $r=0$, so both are allowed and the two arcs fix both constants.</div>
+</div>
+
+<div class="trap"><strong>Exam habits</strong><br>
+(1) Show the three cases for the variable with the homogeneous BCs unless told to skip them (2022: "assume $\lambda\le0$ trivial"). (2) State boundedness explicitly when you drop $r^{-k}$ or $\ln r$. (3) Finite trig sum on the boundary ⇒ match, don't integrate. Otherwise half-range formula: e.g. $B_n\,b^{k_n}=\frac2\beta\int_0^\beta g(\theta)\sin\frac{n\pi\theta}{\beta}d\theta$.</div>
+
+<h2>5 · Practice (exam style)</h2>
+<div class="box">
+<p><strong>P1</strong> <span class="marks">[9]</span> $u_{xx}+u_{yy}=0$, $0&lt;x&lt;2$, $0&lt;y&lt;1$. The plate's vertical edges are insulated, the top edge is held at $0$, and $u(x,0)=2+5\cos\pi x$.<br>
+(a) Write the four BCs. <em>[1]</em> (b) Separate variables and find the eigenvalues and eigenfunctions, all cases. <em>[3]</em> (c) Find $u$. <em>[4]</em> (d) Find $u(1,\frac12)$ in terms of $\cosh$. <em>[1]</em></p>
+<p><strong>P2</strong> <span class="marks">[6]</span> On $0&lt;x&lt;\pi$, $0&lt;y&lt;\pi$: $u(0,y)=0$, $u(x,0)=0$, $u(\pi,y)=2\sin3y$, $u(x,\pi)=\sin2x$. Solve.</p>
+<p><strong>P3</strong> <span class="marks">[6]</span> Wedge $0\le r&lt;2$, $0\le\theta\le\frac\pi3$, $u_\theta(r,0)=u_\theta(r,\frac\pi3)=0$, $u(2,\theta)=1+8\cos3\theta$. (a) Find the eigenfunctions in $\theta$ including $\lambda=0$. (b) Solve, justifying each discarded term. (c) $u$ at the origin?</p>
+</div>
+<details><summary>P1 solution</summary><div>
+<p>(a) $u_x(0,y)=u_x(2,y)=0$, $u(x,1)=0$, $u(x,0)=2+5\cos\pi x$.</p>
+<p>(b) $X''-\lambda X=0$, $Y''+\lambda Y=0$, $X'(0)=X'(2)=0$. $\lambda=k^2&gt;0$: $X'=k(Ae^{kx}-Be^{-kx})$, BCs ⇒ $A=B=0$. $\lambda=0$: $X=A+Bx$, $B=0$: $X_0=1$. $\lambda=-k^2$: $X=A\cos kx+B\sin kx$, $X'(0)=0\Rightarrow B=0$, $\sin2k=0\Rightarrow k=\frac{n\pi}2$. Eigenfunctions $\cos\frac{n\pi x}2$, $n\ge0$.</p>
+<p>(c) $Y_0''=0$, $Y_0(1)=0$ ⇒ $Y_0=1-y$. $Y_n''-k_n^2Y_n=0$, $Y_n(1)=0$ ⇒ $\sinh(k_n(1-y))$.
+$$u=A_0(1-y)+\sum_{n\ge1}A_n\frac{\sinh(\frac{n\pi}2(1-y))}{\sinh\frac{n\pi}2}\cos\frac{n\pi x}2.$$
+At $y=0$ match: $A_0=2$, $n=2$ term $\cos\pi x$: $A_2=5$.
+$$u=2(1-y)+5\frac{\sinh(\pi(1-y))}{\sinh\pi}\cos\pi x.$$</p>
+<p>(d) $u(1,\frac12)=1+5\cdot\frac{\sinh(\pi/2)}{2\sinh(\pi/2)\cosh(\pi/2)}\cdot(-1)=1-\dfrac{5}{2\cosh(\pi/2)}\approx0.0037$.</p>
+</div></details>
+<details><summary>P2 solution</summary><div>
+<p>Adjacent nonzero sides ⇒ split. $v$ (top data): $\sin nx$, $\sinh ny$, match $n=2$: $v=\dfrac{\sinh2y}{\sinh2\pi}\sin2x$. $w$ (right data): $\sin ny$, $\sinh nx$, match $n=3$: $w=\dfrac{2\sinh3x}{\sinh3\pi}\sin3y$.
+$$u=\frac{\sinh2y}{\sinh2\pi}\sin2x+\frac{2\sinh3x}{\sinh3\pi}\sin3y.$$</p>
+</div></details>
+<details><summary>P3 solution</summary><div>
+<p>(a) $\Theta''+\lambda\Theta=0$, $\Theta'(0)=\Theta'(\frac\pi3)=0$. $\lambda&lt;0$: trivial. $\lambda=0$: $\Theta_0=1$. $\lambda=k^2$: $\cos k\theta$ with $\sin\frac{k\pi}3=0$, $k=3n$: $\Theta_n=\cos3n\theta$, $n\ge0$.</p>
+<p>(b) $R_0=A+B\ln r$, $R_n=Ar^{3n}+Br^{-3n}$. $\ln r$ and $r^{-3n}$ unbounded as $r\to0$ ⇒ $B=0$. $u=a_0+\sum a_nr^{3n}\cos3n\theta$. Match at $r=2$: $a_0=1$, $8a_1=8$.
+$$u=1+r^3\cos3\theta.$$</p>
+<p>(c) $u(0)=1$.</p>
+</div></details>
+
+<h2>6 · Exam-level challenge (20 marks, about 30 minutes)</h2>
+<div class="box">
+<p>A thin plate occupies the quarter-annulus $1&lt;r&lt;2$, $0\le\theta\le\frac\pi2$. Its steady temperature satisfies $\nabla^2u=u_{rr}+\frac1ru_r+\frac1{r^2}u_{\theta\theta}=0$. The edge $\theta=0$ is held at $0$, the edge $\theta=\frac\pi2$ is insulated, the outer arc is held at $0$, and the inner arc has temperature $\sin\theta-2\sin5\theta$.</p>
+<p>(a) Write the four boundary conditions. <em>[2]</em><br>
+(b) With $u=R(r)\Theta(\theta)$, show that $r^2R''+rR'-\lambda R=0$ and $\Theta''+\lambda\Theta=0$. <em>[3]</em><br>
+(c) Find all eigenvalues and eigenfunctions $\Theta_n$, working through all three cases for $\lambda$. <em>[5]</em><br>
+(d) Solve for $R_n$, using the outer-arc condition. <em>[4]</em><br>
+(e) Find $u(r,\theta)$. <em>[4]</em><br>
+(f) Find the temperature at $r=\sqrt2$ on the insulated edge. <em>[2]</em></p>
+</div>
+<p>Full marking-style solution: <a href="../worked/0030-challenge-full-solution.html">worked/0030-challenge-full-solution.html</a>. Open it only after attempting every part.</p>
+<details><summary>Answer key (quick check)</summary><div>
+<p>(a) $u(r,0)=0$, $u_\theta(r,\frac\pi2)=0$, $u(2,\theta)=0$, $u(1,\theta)=\sin\theta-2\sin5\theta$. (c) $\lambda_n=(2n-1)^2$, $\Theta_n=\sin(2n-1)\theta$. (d) $R_n=\big(\frac2r\big)^{2n-1}-\big(\frac r2\big)^{2n-1}$.<br>
+(e) $u=\dfrac{4-r^2}{3r}\sin\theta-\dfrac{2(1024-r^{10})}{1023\,r^5}\sin5\theta$. (f) $\dfrac{\sqrt2}{11}$.</p>
+</div></details>
+
+<h2>7 · Before you close this tab</h2>
+<details><summary>Retrieval: write from memory, then check</summary><div>
+<ol>
+<li>Which variable gets the eigenvalue problem?</li>
+<li>The five eigen-rows (D–D, N–N, D–N, N–D, periodic).</li>
+<li>Partner for $k&gt;0$ and $k=0$, Cartesian and polar.</li>
+<li>When do you split, and how?</li>
+<li>Which radial terms survive in a disc, a wedge, an annulus?</li>
+</ol>
+<p><strong>Answers:</strong> (1) the one with two homogeneous ends. (2) §1 table. (3) $\cosh/\sinh$, $A+By$; $r^{\pm k}$, $A+B\ln r$. (4) adjacent nonzero sides: $u=v+w$, each with one nonzero side. (5) disc/wedge: $r^k$ (and $1$); annulus: all.</p>
+</div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/24_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 24</a> (slides 11–17: steady state of 2D heat ⇒ Laplace on a disc, periodic $\Theta$, $r^n$ by boundedness, Euler ODE from Ex. 1.8). Then Paul's Online Notes: <a href="https://tutorial.math.lamar.edu/Classes/DE/LaplacesEqn.aspx">Laplace's Equation</a> (rectangle with one nonzero side, superposition of four subproblems, and the disc). Rectangles are in <a href="../tutes/tute_week_10_sol.pdf">tute week 10 Q2</a>.</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../tutes/tute_week_10.pdf">Tute week 10</a>, Q2: square plate, triangle data (half-range integral you have already done).</li>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic5.pdf">Booklet 5</a>, Q8: two opposite nonzero sides, by matching.</li>
+  <li>Booklet Q11 (a): Dirichlet wedge, half-range sine integral (two IBPs, the ceiling).</li>
+  <li>Optional: Booklet Q7 (Neumann sides, constant mode), Q9, Q10 (a), Q11 (b), (c).</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo Q1, Q5 and P3 cold, and the challenge's (c)–(d) without looking.</p>
+
+<div class="ask">💬 Stuck on which side gets the eigenvalue problem, or on the Euler step? Ask me (Claude) in the terminal and paste your working.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0029-inhomogeneous-bcs-steady-transient.html">Lesson 29, inhomogeneous BCs</a></span>
+  <span>Next: <a href="0031-wave-equation-normal-modes.html">Lesson 31, wave equation</a></span>
+  <span>Reference: <a href="../reference/topic5-cheatsheet.html">Topic 5 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

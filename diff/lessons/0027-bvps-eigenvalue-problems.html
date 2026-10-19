@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BVPs and Eigenvalue Problems</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* Lesson 27 only */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .tblwrap { overflow-x: auto; }
+  table.eig td, table.eig th { white-space: nowrap; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-weight: 600; }
+  .eigplot { margin: 1.2rem 0; font-family: Inter, system-ui, sans-serif; font-size: .82rem; }
+  .eigplot svg { display: block; width: 100%; max-width: 520px; height: auto; margin: 0 auto; background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; }
+  .eigplot .ctl { display: flex; flex-wrap: wrap; gap: .4rem .8rem; justify-content: center; align-items: center; margin-top: .6rem; }
+  .eigplot button { font: inherit; padding: .25rem .6rem; border: 1px solid var(--rule); border-radius: 4px; background: var(--card); color: var(--fg); cursor: pointer; }
+  .eigplot button.on { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .eigplot input[type=range] { accent-color: var(--accent); }
+  .eigplot .read { text-align: center; margin-top: .4rem; color: var(--muted); min-height: 1.4em; }
+  .script .katex-display, .box .katex-display { overflow-x: auto; overflow-y: hidden; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 27 · Topic 5: BVPs &amp; PDEs · Eigenvalue problems</div>
+<h1>Three cases, every boundary condition</h1>
+<p class="lede">The one win: given $X''-\lambda X=0$ and any pair of homogeneous BCs, write the $\lambda&gt;0$, $\lambda=0$, $\lambda&lt;0$ analysis the way markers award it, and land on the right eigenvalues and eigenfunctions in under 5 minutes.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topic 5 is predicted to be the biggest question on the paper (about 18 marks; the masked 2026 paper's Q6 is 18 marks, parts (a)–(c), with a long wordy intro). Every separation-of-variables question has a "three cases for the separation constant" part worth 3–6 marks, and every later lesson (heat, Laplace, wave) reuses the eigen-table below. The 2026 formula sheet has <strong>no</strong> separation-of-variables recipe and <strong>no</strong> BVP results: the three cases and the eigen-table must be memorised.</div>
+
+<h2>0 · Warm-up</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> The general solution of $X''-9X=0$ that is most convenient when $X(0)=0$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$X=A\cos3x+B\sin3x$</button>
+    <button class="opt" data-key="b">$X=Ae^{3x}+Be^{-3x}$, then $A=B$</button>
+    <button class="opt" data-key="c">$X=A\cosh3x+B\sinh3x$</button>
+    <button class="opt" data-key="d">$X=(A+Bx)e^{3x}$</button>
+  </div>
+  <div class="why">Roots $\pm3$. Exponentials are correct too, but $\cosh$/$\sinh$ give $X(0)=A$ and $X'(0)=3B$ in one line ($\cosh0=1$, $\sinh0=0$). Option (b) is wrong: $X(0)=A+B=0$ forces $B=-A$, not $B=A$.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W2.</strong> For $k&gt;0$, which statement is true?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\sinh k$ and $\cosh k$ can both be zero</button>
+    <button class="opt" data-key="b">$\sinh k&gt;0$ and $\cosh k\ge1$, never zero</button>
+    <button class="opt" data-key="c">$\sinh k=0$ when $k=n\pi$</button>
+    <button class="opt" data-key="d">$\cosh k=0$ when $k=(n-\frac12)\pi$</button>
+  </div>
+  <div class="why">This single fact kills every $\lambda&gt;0$ case below. The zeros at $n\pi$ and $(n-\frac12)\pi$ belong to $\sin$ and $\cos$.</div>
+</div>
+
+<h2>1 · Boundary value problems (Lecture 20)</h2>
+<p>A 2nd-order linear BVP: $f_2y''+f_1y'+f_0y=g(x)$ with conditions at <em>two different points</em>, $a_1y'(x_1)+b_1y(x_1)=c_1$, $a_2y'(x_2)+b_2y(x_2)=c_2$.</p>
+<table>
+<tr><th>BC type</th><th>fixes</th><th>example</th></tr>
+<tr><td>Dirichlet</td><td>value</td><td>$y(0)=0$</td></tr>
+<tr><td>Neumann</td><td>derivative</td><td>$y'(2)=0$</td></tr>
+<tr><td>Robin</td><td>weighted sum</td><td>$y(0)-3y'(0)=0$</td></tr>
+</table>
+<p>BCs are <strong>homogeneous</strong> if $c_1=c_2=0$. The <em>BVP</em> is homogeneous if also $g=0$.</p>
+
+<h3>From words to BCs (the 2026 paper is wordy)</h3>
+<table>
+<tr><th>exam says</th><th>write</th></tr>
+<tr><td>"end $x=0$ held at zero temperature / in ice"</td><td>$u(0,t)=0$ (Dirichlet)</td></tr>
+<tr><td>"end $x=L$ kept at $5^\circ$"</td><td>$u(L,t)=5$ (Dirichlet, inhomogeneous)</td></tr>
+<tr><td>"end insulated" / "no heat flux"</td><td>$u_x(L,t)=0$ (Neumann)</td></tr>
+<tr><td>"string fixed at both ends"</td><td>$u(0,t)=u(L,t)=0$</td></tr>
+<tr><td>"end free to slide vertically"</td><td>$u_x(L,t)=0$</td></tr>
+<tr><td>"thin ring / closed loop / full disc in $\theta$"</td><td>periodic: same $u$ and $u_x$ at both ends</td></tr>
+<tr><td>"released from rest"</td><td>$u_t(x,0)=0$ (an <em>IC</em>, not a BC)</td></tr>
+</table>
+
+<h3>0, 1 or ∞ solutions</h3>
+<p>Unlike IVPs, a BVP need not have a unique solution. Method: general solution first, then apply both BCs and see what the constants do. Example: $y''+4y=8x$ on $(0,\pi)$. Here $y=2x+A\cos2x+B\sin2x$.</p>
+<table>
+<tr><th>BCs</th><th>algebra</th><th>verdict</th></tr>
+<tr><td>$y(0)=0,\ y(\pi/4)=0$</td><td>$A=0$; $\frac\pi2+B=0$</td><td><strong>one</strong>: $y=2x-\frac\pi2\sin2x$</td></tr>
+<tr><td>$y(0)=0,\ y(\pi)=0$</td><td>$A=0$; $2\pi+A=0$</td><td><strong>none</strong> (contradiction)</td></tr>
+<tr><td>$y(0)=0,\ y(\pi)=2\pi$</td><td>$A=0$; $2\pi+A=2\pi$ ✓, $B$ never appears</td><td><strong>infinitely many</strong>: $y=2x+B\sin2x$</td></tr>
+</table>
+<div class="box"><p><strong>Structure (Lecture 20, slide 7).</strong> Solutions = one particular solution + all solutions of the homogeneous BVP. The homogeneous BVP's solutions form a vector space, possibly just $\{0\}$. If it has a non-zero solution (here $\sin2x$ vanishes at $0$ and $\pi$), the full BVP has either none or infinitely many.</p></div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q1.</strong> $y''+y=0$, $y'(0)=0$, $y'(\pi)=c$. How many solutions?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">exactly one for every value of $c$</button>
+    <button class="opt" data-key="b">none for every value of $c$</button>
+    <button class="opt" data-key="c">infinitely many for every value of $c$</button>
+    <button class="opt" data-key="d">infinitely many if $c=0$, none otherwise</button>
+  </div>
+  <div class="why">$y=A\cos x+B\sin x$, $y'=-A\sin x+B\cos x$. $y'(0)=B=0$. $y'(\pi)=-B=0$, so we need $c=0$, and then $A$ is free: $y=A\cos x$.</div>
+</div>
+
+<h2>2 · Where the eigenvalue problem comes from</h2>
+<p>Lecture 22: $u_t=\alpha u_{xx}$, try $u=X(x)T(t)$:</p>
+$$XT'=\alpha X''T\ \Rightarrow\ \frac{T'}{\alpha T}=\frac{X''}{X}=\lambda\ \Rightarrow\ X''-\lambda X=0,\quad T'-\alpha\lambda T=0.$$
+<p>Write "LHS depends only on $t$, RHS only on $x$, so both equal a constant $\lambda$" (that sentence is a mark). A BC like $u(0,t)=X(0)T(t)=0$ for all $t$ gives $X(0)=0$, because $T\equiv0$ would give only $u\equiv0$. <strong>Homogeneous BCs on $u$ become BCs on $X$.</strong> Then you have a BVP that always has $X=0$; the job is to find the $\lambda$ for which it has non-zero solutions.</p>
+
+<div class="trap"><strong>Sign convention</strong><br>
+Lectures and past solutions: $X''-\lambda X=0$, so $\lambda&lt;0$ is the oscillating case and $\lambda_n=-k_n^2$. The booklet, tutes and Paul's notes use $X''+\lambda X=0$ (or $-X''=\lambda X$), where $\lambda&gt;0$ oscillates. If the exam gives you the ODE, use its sign. If you choose, state it. Either way: <em>the case where $X$ is $\cos$/$\sin$ is the one that survives.</em></div>
+
+<h2>3 · The three cases, written for marks</h2>
+<p><strong>Dirichlet–Dirichlet</strong> on $0&lt;x&lt;2$: $\;X''-\lambda X=0,\ X(0)=0,\ X(2)=0.$ Everything inside the red rule goes on your paper.</p>
+
+<div class="script">
+<p><strong>Case $\lambda=k^2&gt;0$</strong> ($k&gt;0$): $X=A\cosh kx+B\sinh kx$.<br>
+$X(0)=A=0$. Then $X(2)=B\sinh2k=0$. Since $k&gt;0$, $\sinh 2k\neq0$, so $B=0$. Only the trivial solution.</p>
+<p><strong>Case $\lambda=0$</strong>: $X=Ax+B$.<br>
+$X(0)=B=0$, $X(2)=2A=0$. Only the trivial solution.</p>
+<p><strong>Case $\lambda=-k^2&lt;0$</strong> ($k&gt;0$): $X=A\cos kx+B\sin kx$.<br>
+$X(0)=A=0$. Then $X(2)=B\sin2k=0$. For a non-trivial solution $B\neq0$, so $\sin2k=0$, i.e. $2k=n\pi$:
+$$k_n=\frac{n\pi}{2},\qquad \lambda_n=-\frac{n^2\pi^2}{4},\qquad X_n(x)=\sin\frac{n\pi x}{2},\qquad n=1,2,3,\dots$$</p>
+</div>
+
+<div class="box"><p><strong>What the marker ticks.</strong></p>
+<ol class="steps">
+<li>All three cases named, with $k&gt;0$ stated.</li>
+<li>Correct general solution in each case.</li>
+<li>Both BCs applied, with the <em>reason</em> a factor is non-zero ("$\sinh2k\ne0$ as $k&gt;0$").</li>
+<li>"For non-trivial solutions $B\ne0$, so $\sin2k=0$."</li>
+<li>Eigenvalues <em>and</em> eigenfunctions, with the range of $n$. ($n\le0$ adds nothing new: $n=0$ gives $X=0$, negative $n$ repeat up to sign.)</li>
+</ol></div>
+
+<p>The other four BC types. Same skeleton; only the BC algebra changes. Try each on paper before opening.</p>
+
+<details><summary>Neumann–Neumann: $X'(0)=0,\ X'(2)=0$</summary><div>
+<div class="script">
+<p><strong>$\lambda=k^2&gt;0$:</strong> $X'=k(A\sinh kx+B\cosh kx)$. $X'(0)=kB=0\Rightarrow B=0$. $X'(2)=kA\sinh2k=0\Rightarrow A=0$ ($k&gt;0$). Trivial.</p>
+<p><strong>$\lambda=0$:</strong> $X=Ax+B$, $X'=A$. Both BCs give $A=0$; $B$ is free. <strong>Eigenvalue $\lambda_0=0$, $X_0=1$.</strong></p>
+<p><strong>$\lambda=-k^2&lt;0$:</strong> $X'=k(-A\sin kx+B\cos kx)$. $X'(0)=kB=0\Rightarrow B=0$. $X'(2)=-kA\sin2k=0$; non-trivial needs $A\ne0$, so $\sin2k=0$:
+$$\lambda_n=-\frac{n^2\pi^2}4,\quad X_n=\cos\frac{n\pi x}2,\quad n=1,2,\dots\quad(\text{plus }\lambda_0=0,\ X_0=1).$$</p>
+</div>
+<p>The $\lambda=0$ mode is the one students drop. It becomes the $\frac{a_0}2$ term (the steady state of an insulated rod, Lesson 28).</p>
+</div></details>
+
+<details><summary>Dirichlet–Neumann: $X(0)=0,\ X'(2)=0$</summary><div>
+<div class="script">
+<p><strong>$\lambda=k^2&gt;0$:</strong> $X(0)=A=0$. $X'(2)=kB\cosh2k=0$; $\cosh2k\ge1$, so $B=0$. Trivial.</p>
+<p><strong>$\lambda=0$:</strong> $X(0)=B=0$, $X'(2)=A=0$. Trivial.</p>
+<p><strong>$\lambda=-k^2&lt;0$:</strong> $X(0)=A=0$. $X'(2)=kB\cos2k=0$; non-trivial needs $\cos2k=0$, so $2k=(n-\frac12)\pi$:
+$$k_n=\frac{(2n-1)\pi}{4},\quad \lambda_n=-\frac{(2n-1)^2\pi^2}{16},\quad X_n=\sin\frac{(2n-1)\pi x}{4},\quad n=1,2,\dots$$</p>
+</div>
+<p>Check $n=1$: $\sin\frac{\pi x}4$ is $0$ at $x=0$ and peaks (flat) at $x=2$. A quarter-wave.</p>
+</div></details>
+
+<details><summary>Neumann–Dirichlet: $X'(0)=0,\ X(2)=0$</summary><div>
+<div class="script">
+<p><strong>$\lambda=k^2&gt;0$:</strong> $X'(0)=kB=0\Rightarrow B=0$. $X(2)=A\cosh2k=0\Rightarrow A=0$. Trivial.</p>
+<p><strong>$\lambda=0$:</strong> $X'(0)=A=0$, $X(2)=B=0$. Trivial.</p>
+<p><strong>$\lambda=-k^2&lt;0$:</strong> $X'(0)=kB=0\Rightarrow B=0$. $X(2)=A\cos2k=0\Rightarrow\cos2k=0$:
+$$\lambda_n=-\frac{(2n-1)^2\pi^2}{16},\quad X_n=\cos\frac{(2n-1)\pi x}{4},\quad n=1,2,\dots$$</p>
+</div>
+</div></details>
+
+<details><summary>Periodic: $X(-\pi)=X(\pi),\ X'(-\pi)=X'(\pi)$ (a disc in $\theta$, a ring)</summary><div>
+<div class="script">
+<p><strong>$\lambda=k^2&gt;0$:</strong> $X=A\cosh kx+B\sinh kx$ ($\cosh$ even, $\sinh$ odd).<br>
+$X(-\pi)=X(\pi)$: $A\cosh k\pi-B\sinh k\pi=A\cosh k\pi+B\sinh k\pi\Rightarrow 2B\sinh k\pi=0\Rightarrow B=0$.<br>
+$X'=k(A\sinh kx+B\cosh kx)$; $X'(-\pi)=X'(\pi)$: $-kA\sinh k\pi=kA\sinh k\pi\Rightarrow A=0$. Trivial.</p>
+<p><strong>$\lambda=0$:</strong> $X=Ax+B$: $-A\pi+B=A\pi+B\Rightarrow A=0$; derivative BC holds. <strong>$\lambda_0=0$, $X_0=1$.</strong></p>
+<p><strong>$\lambda=-k^2&lt;0$:</strong> $X=A\cos kx+B\sin kx$. First BC: $2B\sin k\pi=0$. Second BC: $2kA\sin k\pi=0$. Non-trivial ($A$ or $B\ne0$) needs $\sin k\pi=0$, so $k=n$, and then <em>both</em> $A,B$ are free:
+$$\lambda_n=-n^2,\qquad X_n=\cos nx\ \text{ and }\ \sin nx,\qquad n=1,2,\dots\quad(\text{plus }X_0=1).$$</p>
+</div>
+<p>Two eigenfunctions per eigenvalue: that's why a disc gives a <em>full</em> Fourier series in $\theta$ (Lesson 30). Lecture 24 does this with $\Theta''+\mu\Theta=0$ on $(0,2\pi)$, so its signs are flipped; the result is identical.</p>
+</div></details>
+
+<h3>See them</h3>
+<p>Dirichlet end: the curve hits zero. Neumann end: the curve is flat. Count how many quarter-waves fit in $(0,2)$.</p>
+<div class="eigplot" id="eigplot">
+  <svg viewBox="0 0 520 220" role="img" aria-label="Eigenfunction on 0 to 2 for the chosen boundary conditions"></svg>
+  <div class="ctl" data-role="bc">
+    <button data-bc="DD" class="on">Dirichlet–Dirichlet</button>
+    <button data-bc="NN">Neumann–Neumann</button>
+    <button data-bc="DN">Dirichlet–Neumann</button>
+    <button data-bc="ND">Neumann–Dirichlet</button>
+  </div>
+  <div class="ctl"><label>$n$ = <input type="range" min="0" max="5" value="1" data-role="n"> <span data-role="nval">1</span></label></div>
+  <div class="read" data-role="read"></div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q2.</strong> $X''-\lambda X=0$, $X(0)=0$, $X'(3)=0$, case $\lambda=-k^2&lt;0$. The BC algebra gives…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\cos3k=0$, so $k_n=\frac{(2n-1)\pi}{6}$</button>
+    <button class="opt" data-key="b">$\sin3k=0$, so $k_n=\frac{n\pi}{3}$</button>
+    <button class="opt" data-key="c">$\cos3k=0$, so $k_n=\frac{(2n-1)\pi}{3}$</button>
+    <button class="opt" data-key="d">$\sin3k=0$, so $k_n=\frac{(2n-1)\pi}{6}$</button>
+  </div>
+  <div class="why">$A=0$ from $X(0)=0$; $X'(3)=kB\cos3k=0$. $3k=(n-\frac12)\pi$ gives $k=\frac{(2n-1)\pi}{6}$. Option (c) forgets the $\frac12$.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q3.</strong> For which BC pair is $\lambda=0$ an eigenvalue of $X''-\lambda X=0$?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$X(0)=0,\ X'(L)=0$</button>
+    <button class="opt" data-key="b">$X'(0)=0,\ X'(L)=0$</button>
+    <button class="opt" data-key="c">$X'(0)=0,\ X(L)=0$</button>
+    <button class="opt" data-key="d">$X(0)=0,\ X(L)=0$</button>
+  </div>
+  <div class="why">$X=Ax+B$. Any Dirichlet condition pins $X$ to $0$ somewhere; with the other BC that forces $X\equiv0$. Only "no Dirichlet anywhere" (Neumann–Neumann, or periodic) leaves the constant $X_0=1$.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q4.</strong> In the $\lambda=k^2&gt;0$ case with $X(0)=0$, $X(2)=0$ you reach $B\sinh2k=0$. The line the marker wants next is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">"so $k=n\pi/2$ and $X_n=\sinh(n\pi x/2)$"</button>
+    <button class="opt" data-key="b">"so $\sinh 2k=0$ for a non-trivial solution"</button>
+    <button class="opt" data-key="c">"$\sinh2k\ne0$ as $k&gt;0$, so $B=0$: trivial"</button>
+    <button class="opt" data-key="d">"$B$ is free, so $\lambda&gt;0$ gives eigenvalues"</button>
+  </div>
+  <div class="why">$\sinh$ has only one real zero, at $0$, and $k&gt;0$. Option (b) is the $\sin$ reasoning from the $\lambda&lt;0$ case pasted into the wrong case.</div>
+</div>
+
+<h2>4 · The eigen-table (memorise)</h2>
+<p>$X''-\lambda X=0$ on $0&lt;x&lt;L$ (periodic: $-L&lt;x&lt;L$). In <em>all five</em>, $\lambda&gt;0$ gives only the trivial solution.</p>
+<div class="tblwrap">
+<table class="eig">
+<tr><th>BCs</th><th>$\lambda=0$?</th><th>$k_n$ ($\lambda_n=-k_n^2$)</th><th>$X_n$</th><th>$n$</th></tr>
+<tr><td>$X(0)=X(L)=0$</td><td>no</td><td>$\frac{n\pi}{L}$</td><td>$\sin k_nx$</td><td>$1,2,\dots$</td></tr>
+<tr><td>$X'(0)=X'(L)=0$</td><td>yes, $X_0=1$</td><td>$\frac{n\pi}{L}$</td><td>$\cos k_nx$</td><td>$0,1,2,\dots$</td></tr>
+<tr><td>$X(0)=X'(L)=0$</td><td>no</td><td>$\frac{(2n-1)\pi}{2L}$</td><td>$\sin k_nx$</td><td>$1,2,\dots$</td></tr>
+<tr><td>$X'(0)=X(L)=0$</td><td>no</td><td>$\frac{(2n-1)\pi}{2L}$</td><td>$\cos k_nx$</td><td>$1,2,\dots$</td></tr>
+<tr><td>periodic, period $2L$</td><td>yes, $X_0=1$</td><td>$\frac{n\pi}{L}$</td><td>$\cos k_nx,\ \sin k_nx$</td><td>$0,1,2,\dots$</td></tr>
+</table>
+</div>
+<div class="box">
+<p><strong>Two hooks.</strong> (1) <em>What happens at $x=0$ picks the function</em>: Dirichlet at $0$ → $\sin$, Neumann at $0$ → $\cos$. (2) <em>Same type at both ends → whole half-waves $\frac{n\pi}L$; mixed → odd quarter-waves $\frac{(2n-1)\pi}{2L}$.</em></p>
+<p><strong>Coefficients later</strong> (orthogonality on $(0,L)$): sine or cosine rows use $\frac2L\int_0^L f\,X_n\,dx$ (Neumann: $\frac{a_0}2$ with $a_0=\frac2L\int_0^Lf$). Mixed rows use the same $\frac2L\int_0^L f X_n\,dx$ (Booklet Q1). Periodic: full Fourier, $\frac1L\int_{-L}^L$. When $f$ is a finite sum of the $X_n$, just match coefficients.</p>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q5.</strong> A rod $0&lt;x&lt;\frac\pi2$ is insulated at $x=0$ and kept at $0^\circ$ at $x=\frac\pi2$. The spatial eigenfunctions are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\sin(2nx)$, $n=1,2,\dots$</button>
+    <button class="opt" data-key="b">$\cos(2nx)$, $n=0,1,\dots$</button>
+    <button class="opt" data-key="c">$\sin\big((2n-1)x\big)$, $n=1,2,\dots$</button>
+    <button class="opt" data-key="d">$\cos\big((2n-1)x\big)$, $n=1,2,\dots$</button>
+  </div>
+  <div class="why">Neumann at $0$ → $\cos$. Mixed → $k_n=\frac{(2n-1)\pi}{2L}=\frac{(2n-1)\pi}{\pi}=2n-1$. Check: $\cos\big((2n-1)\frac\pi2\big)=0$ ✓.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q6.</strong> After separating $u_{tt}=4u_{xx}$ as $X''-\lambda X=0$, $T''-4\lambda T=0$, which case gives oscillation in time?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\lambda&gt;0$, since then $T''=4\lambda T$ grows</button>
+    <button class="opt" data-key="b">$\lambda&lt;0$, since then $T''+4k^2T=0$</button>
+    <button class="opt" data-key="c">$\lambda=0$, since then $T=a+bt$</button>
+    <button class="opt" data-key="d">every case gives oscillation in $t$</button>
+  </div>
+  <div class="why">$\lambda=-k^2$: $T=a\cos2kt+b\sin2kt$. With the other sign convention ($X''+\lambda X=0$) the answer flips to "$\lambda&gt;0$". Always read the ODE you were given.</div>
+</div>
+
+<h2>5 · PDE classification drill (Lecture 21)</h2>
+<div class="box">
+<p><strong>Order</strong>: highest derivative. <strong>Linear</strong>: $u$ and its derivatives appear only to the first power, not multiplied together, with coefficients depending only on the independent variables. <strong>Homogeneous</strong>: every term contains $u$; a term with only $x,y,t$ makes it inhomogeneous.</p>
+<p><strong>Type</strong> for $Au_{xx}+Bu_{xy}+Cu_{yy}+\text{lower}=0$ (here $B$ is the whole $u_{xy}$ coefficient):
+$B^2-4AC&lt;0$ elliptic, $=0$ parabolic, $&gt;0$ hyperbolic. Heat is parabolic, wave hyperbolic, Laplace elliptic. Treat $t$ as one of the variables.</p>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q7.</strong> $u_t=u_{xx}+u^2$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">2nd order, linear, homogeneous</button>
+    <button class="opt" data-key="b">2nd order, nonlinear, inhomogeneous</button>
+    <button class="opt" data-key="c">2nd order, nonlinear, homogeneous</button>
+    <button class="opt" data-key="d">1st order, nonlinear, homogeneous</button>
+  </div>
+  <div class="why">$u^2$ makes it nonlinear, but it still contains $u$, so every term has $u$: homogeneous (compare Lecture 21's $\nabla^2u=-e^{\lambda u}$).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q8.</strong> $x\,u_{xx}+u_y=\sin(xy)$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">2nd order, linear, inhomogeneous</button>
+    <button class="opt" data-key="b">2nd order, nonlinear, inhomogeneous</button>
+    <button class="opt" data-key="c">2nd order, linear, homogeneous</button>
+    <button class="opt" data-key="d">1st order, linear, inhomogeneous</button>
+  </div>
+  <div class="why">A coefficient $x$ is fine (independent variable). $\sin(xy)$ has no $u$: inhomogeneous.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q9.</strong> $u_{xx}+4u_{xy}+3u_{yy}-u_x=0$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">elliptic, as $B^2-4AC=-8$</button>
+    <button class="opt" data-key="b">parabolic, as $B^2-4AC=0$</button>
+    <button class="opt" data-key="c">elliptic, as $B^2-4AC=-2$</button>
+    <button class="opt" data-key="d">hyperbolic, as $B^2-4AC=4$</button>
+  </div>
+  <div class="why">$A=1$, $B=4$, $C=3$: $16-12=4&gt;0$. Option (a) uses $B=2$ (halving the $u_{xy}$ coefficient), which belongs to the $B^2-AC$ convention, not this course's.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q10.</strong> $u_{tt}=9u_{xx}$ (variables $x,t$) is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">elliptic, as $B^2-4AC=-36$</button>
+    <button class="opt" data-key="b">hyperbolic, as $B^2-4AC=36$</button>
+    <button class="opt" data-key="c">parabolic, as $B^2-4AC=0$</button>
+    <button class="opt" data-key="d">hyperbolic, as $B^2-4AC=9$</button>
+  </div>
+  <div class="why">$9u_{xx}-u_{tt}=0$: $A=9$, $B=0$, $C=-1$, so $0-4(9)(-1)=36$. The minus sign between the second derivatives is what makes it hyperbolic.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q11.</strong> $u_{xx}+x\,u_{yy}=0$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">elliptic everywhere in the plane</button>
+    <button class="opt" data-key="b">hyperbolic everywhere in the plane</button>
+    <button class="opt" data-key="c">elliptic for $x&gt;0$, hyperbolic for $x&lt;0$</button>
+    <button class="opt" data-key="d">hyperbolic for $x&gt;0$, elliptic for $x&lt;0$</button>
+  </div>
+  <div class="why">$B^2-4AC=-4x$. Negative when $x&gt;0$, positive when $x&lt;0$, zero (parabolic) on $x=0$.</div>
+</div>
+
+<h2>6 · Practice (exam level)</h2>
+<div class="box">
+<p><strong>P1</strong> <span class="marks">[5]</span> $X''-\lambda X=0$, $X'(0)=0$, $X(\frac\pi2)=0$. Consider all three cases and find all eigenvalues and eigenfunctions.</p>
+<p><strong>P2</strong> <span class="marks">[4]</span> $y''+9y=9$ on $(0,\frac\pi3)$. (a) With $y(0)=0$, $y(\frac\pi3)=\beta$: for which $\beta$ is there a solution, and how many? (b) With $y(0)=0$, $y(\frac\pi6)=\beta$ instead?</p>
+<p><strong>P3</strong> <span class="marks">[7]</span> A string $0&lt;x&lt;\pi$ is fixed at $x=0$; the end $x=\pi$ slides freely on a vertical rod. Its displacement satisfies $u_{tt}=4u_{xx}$. (a) Write the BCs. (b) Separate variables with constant $\lambda$ and give the BCs on $X$. (c) Do the three cases. (d) Solve for $T_n$ and say which case gives oscillation.</p>
+<p><strong>P4</strong> <span class="marks">[3]</span> Show $X_n=e^{-x}\sin\frac{n\pi x}{2}$ satisfies $X(0)=X(2)=0$ and $-X''-2X'=\mu X$, and find $\mu_n$.</p>
+</div>
+
+<details><summary>P1 solution</summary><div>
+<div class="script">
+<p>$\lambda=k^2&gt;0$: $X'(0)=kB=0\Rightarrow B=0$; $X(\frac\pi2)=A\cosh\frac{k\pi}2=0\Rightarrow A=0$ ($\cosh\ge1$). Trivial.</p>
+<p>$\lambda=0$: $X'=A=0$; $X(\frac\pi2)=B=0$. Trivial.</p>
+<p>$\lambda=-k^2&lt;0$: $X'(0)=kB=0\Rightarrow B=0$; $X(\frac\pi2)=A\cos\frac{k\pi}2=0$. Non-trivial: $\frac{k\pi}2=(n-\frac12)\pi\Rightarrow k=2n-1$.
+$$\lambda_n=-(2n-1)^2,\qquad X_n=\cos\big((2n-1)x\big),\qquad n=1,2,\dots$$</p>
+</div>
+</div></details>
+
+<details><summary>P2 solution</summary><div>
+<p>$y_p=1$, so $y=1+A\cos3x+B\sin3x$. $y(0)=1+A=0\Rightarrow A=-1$.</p>
+<p>(a) $y(\frac\pi3)=1+A\cos\pi+B\sin\pi=1-A=2$. So $\beta=2$: infinitely many, $y=1-\cos3x+B\sin3x$. $\beta\ne2$: none.</p>
+<p>(b) $y(\frac\pi6)=1+A\cdot0+B=\beta\Rightarrow B=\beta-1$: exactly one for every $\beta$, $y=1-\cos3x+(\beta-1)\sin3x$.</p>
+<p>Why: $\sin3x$ vanishes at $0$ and $\frac\pi3$ (a non-zero homogeneous solution) but not at $\frac\pi6$.</p>
+</div></details>
+
+<details><summary>P3 solution</summary><div>
+<div class="script">
+<p>(a) $u(0,t)=0$, $u_x(\pi,t)=0$.</p>
+<p>(b) $u=XT$: $XT''=4X''T\Rightarrow\frac{T''}{4T}=\frac{X''}{X}=\lambda$ (LHS only $t$, RHS only $x$). So $X''-\lambda X=0$, $T''-4\lambda T=0$, with $X(0)=0$, $X'(\pi)=0$ (else $T\equiv0$, $u\equiv0$).</p>
+<p>(c) $\lambda=k^2&gt;0$: $X(0)=A=0$; $X'(\pi)=kB\cosh k\pi=0\Rightarrow B=0$. Trivial.<br>
+$\lambda=0$: $X(0)=B=0$, $X'(\pi)=A=0$. Trivial.<br>
+$\lambda=-k^2&lt;0$: $A=0$; $X'(\pi)=kB\cos k\pi=0\Rightarrow k\pi=(n-\frac12)\pi$:
+$$k_n=n-\tfrac12,\quad \lambda_n=-(n-\tfrac12)^2,\quad X_n=\sin\big((n-\tfrac12)x\big),\quad n=1,2,\dots$$</p>
+<p>(d) $T_n''+4k_n^2T_n=0\Rightarrow T_n=a_n\cos\big((2n-1)t\big)+b_n\sin\big((2n-1)t\big)$. The $\lambda&lt;0$ case gives oscillation (and it's the only case with non-trivial $X$).</p>
+</div>
+</div></details>
+
+<details><summary>P4 solution</summary><div>
+<p>BCs: $e^{0}\sin0=0$, $e^{-2}\sin n\pi=0$ ✓. With $s=\sin kx$, $k=\frac{n\pi}2$: $X'=e^{-x}(s'-s)$, $X''=e^{-x}(s''-2s'+s)$, so
+$$X''+2X'=e^{-x}(s''-s)=e^{-x}(-k^2-1)s\ \Rightarrow\ -X''-2X'=(1+k^2)X,\qquad \mu_n=1+\frac{n^2\pi^2}{4}.$$</p>
+</div></details>
+
+<h2>7 · Exam-level challenge (15 marks, about 30 minutes)</h2>
+<div class="box">
+<p>A thin wire is bent into a closed loop of length $1$. Its temperature $u(x,t)$, with $x$ the arc length from a marked point, satisfies $u_t=2u_{xx}$ for $0&lt;x&lt;1$, $t&gt;0$.</p>
+<p>(a) Classify the PDE: order, linear or not, homogeneous or not, and elliptic/parabolic/hyperbolic with reason. <em>[2]</em><br>
+(b) Explain why $u(0,t)=u(1,t)$ and $u_x(0,t)=u_x(1,t)$. Separate variables with constant $\lambda$; give both ODEs and the conditions on $X$. <em>[3]</em><br>
+(c) Consider the three cases for $\lambda$ and find all eigenvalues and eigenfunctions. <em>[6]</em><br>
+(d) Write the general series solution and the limit of $u$ as $t\to\infty$ in terms of $u(x,0)=f(x)$. <em>[2]</em><br>
+(e) Solve the problem when $u(x,0)=3+\sin^2(\pi x)$. <em>[2]</em></p>
+</div>
+<p>Full marking-style solution: <a href="../worked/0027-challenge-full-solution.html">worked/0027-challenge-full-solution.html</a>. Open it only after attempting every part.</p>
+<details><summary>Answer key (quick check)</summary><div>
+<p>(a) 2nd order, linear, homogeneous, parabolic ($B^2-4AC=0$). (b) $X''-\lambda X=0$, $T'-2\lambda T=0$, $X(0)=X(1)$, $X'(0)=X'(1)$.<br>
+(c) $\lambda&gt;0$: determinant $2-2\cosh k\ne0$, trivial. $\lambda=0$: $X_0=1$. $\lambda&lt;0$: $2-2\cos k=0$, $k=2n\pi$, $X_n=\cos2n\pi x,\ \sin2n\pi x$, $\lambda_n=-4n^2\pi^2$.<br>
+(d) $u=\frac{a_0}2+\sum_{n\ge1}e^{-8n^2\pi^2t}(a_n\cos2n\pi x+b_n\sin2n\pi x)\to\frac{a_0}{2}=\int_0^1f\,dx$.<br>
+(e) $u=\frac72-\frac12e^{-8\pi^2t}\cos2\pi x$.</p>
+</div></details>
+
+<h2>8 · Before you close this tab</h2>
+<details><summary>Retrieval: write from memory, then check</summary><div>
+<ol>
+<li>The three general solutions of $X''-\lambda X=0$.</li>
+<li>Why is $\lambda&gt;0$ always trivial for D/N BCs?</li>
+<li>Eigenfunctions for Dirichlet–Neumann on $(0,L)$.</li>
+<li>Which BCs keep $\lambda=0$?</li>
+<li>$B^2-4AC$ for the heat equation.</li>
+</ol>
+<p><strong>Answers:</strong> (1) $A\cosh kx+B\sinh kx$; $Ax+B$; $A\cos kx+B\sin kx$. (2) The BC leaves $\sinh kL$ or $\cosh kL$ as a factor, never zero for $k&gt;0$. (3) $\sin\frac{(2n-1)\pi x}{2L}$, $n\ge1$. (4) Neumann–Neumann and periodic. (5) $0$, parabolic.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/20_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 20</a> (slides 4–7: BVPs, Ex. 5.1, structure of solutions), <a href="../lectures/21_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 21</a> (slides 3–4 and 8: classification), <a href="../lectures/22_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 22</a> (slides 5–7: Dirichlet three cases), <a href="../lectures/23_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 23</a> (slides 4–7: Neumann), <a href="../lectures/24_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 24</a> (slide 14: periodic). Then Paul's Online Notes: <a href="https://tutorial.math.lamar.edu/Classes/DE/BVPEvals.aspx">Eigenvalues and Eigenfunctions</a> (he writes $y''+\lambda y=0$, so his $\lambda&gt;0$ is our $\lambda&lt;0$).</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic5.pdf">Booklet 5</a>, Q1 (a) and the eigenvalue part of (d): both mixed BC pairs, three cases (note its $+\lambda$ sign).</li>
+  <li>Booklet Q2 (a), (c): classification.</li>
+  <li><a href="../tutes/tute_week_9.pdf">Tute week 9</a>, Q1 (a)–(c) (BVPs with 1, 0, ∞ solutions) and Q2.</li>
+  <li>Optional: Booklet Q1 (b), (c); Q2 (b), (d); Tute 9 Q4 (a) (Robin, hard: one negative eigenvalue appears). Tute 9 Q3 is for Lesson 28.</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, write the five-row eigen-table from memory, then redo P1 and P3 (c) cold.</p>
+
+<div class="ask">💬 Unsure whether a case is trivial, or which sign convention a question uses? Ask me in the terminal and paste your working.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0026-fourier-mixed-exam-set.html">Lesson 26, Fourier mixed set</a></span>
+  <span>Next: <a href="0028-heat-equation-separation.html">Lesson 28, heat equation</a></span>
+  <span>Reference: <a href="../reference/topic5-cheatsheet.html">Topic 5 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+<script>
+(function () {
+  const root = document.getElementById('eigplot');
+  const svg = root.querySelector('svg');
+  const NS = 'http://www.w3.org/2000/svg';
+  const slider = root.querySelector('[data-role="n"]');
+  const nval = root.querySelector('[data-role="nval"]');
+  const read = root.querySelector('[data-role="read"]');
+  const L = 2, W = 520, H = 220, x0 = 40, x1 = 490, ymid = 110, amp = 80;
+  let bc = 'DD';
+  const c = (m) => (m === 1 ? '' : String(m));
+  const info = {
+    DD: { f: (n, x) => Math.sin(n * Math.PI * x / L), min: 1, k: (n) => c(n) + 'π/2', fn: 'sin', left: 'D', right: 'D' },
+    NN: { f: (n, x) => Math.cos(n * Math.PI * x / L), min: 0, k: (n) => c(n) + 'π/2', fn: 'cos', left: 'N', right: 'N' },
+    DN: { f: (n, x) => Math.sin((2 * n - 1) * Math.PI * x / (2 * L)), min: 1, k: (n) => c(2 * n - 1) + 'π/4', fn: 'sin', left: 'D', right: 'N' },
+    ND: { f: (n, x) => Math.cos((2 * n - 1) * Math.PI * x / (2 * L)), min: 1, k: (n) => c(2 * n - 1) + 'π/4', fn: 'cos', left: 'N', right: 'D' },
+  };
+  const css = (v) => getComputedStyle(document.body).getPropertyValue(v).trim();
+  const el = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const a in attrs) e.setAttribute(a, attrs[a]); return e; };
+  const sx = (x) => x0 + (x1 - x0) * x / L;
+  function marker(side, x, y) {
+    const c = css('--ok');
+    if (side === 'D') svg.appendChild(el('circle', { cx: sx(x), cy: y, r: 5, fill: c }));
+    else svg.appendChild(el('line', { x1: sx(x) - 16, x2: sx(x) + 16, y1: y, y2: y, stroke: c, 'stroke-width': 3 }));
+  }
+  function draw() {
+    const I = info[bc];
+    let n = Math.max(+slider.value, I.min);
+    slider.value = n; nval.textContent = n;
+    svg.textContent = '';
+    const fg = css('--fg'), muted = css('--muted'), rule = css('--rule'), acc = css('--accent');
+    svg.appendChild(el('line', { x1: x0, x2: x1, y1: ymid, y2: ymid, stroke: rule }));
+    [0, 0.5, 1, 1.5, 2].forEach((v) => {
+      svg.appendChild(el('line', { x1: sx(v), x2: sx(v), y1: ymid - 4, y2: ymid + 4, stroke: muted }));
+      const t = el('text', { x: sx(v), y: H - 8, 'text-anchor': 'middle', fill: muted, 'font-size': 12 });
+      t.textContent = String(v); svg.appendChild(t);
+    });
+    let d = '';
+    for (let i = 0; i <= 300; i++) {
+      const x = L * i / 300, y = ymid - amp * I.f(n, x);
+      d += (i ? 'L' : 'M') + sx(x).toFixed(1) + ' ' + y.toFixed(1);
+    }
+    svg.appendChild(el('path', { d, fill: 'none', stroke: acc, 'stroke-width': 2.4 }));
+    marker(I.left, 0, ymid - amp * I.f(n, 0));
+    marker(I.right, L, ymid - amp * I.f(n, L));
+    const lab = el('text', { x: x0, y: 18, fill: fg, 'font-size': 13 });
+    lab.textContent = 'dot = Dirichlet (X = 0)    bar = Neumann (X′ = 0)';
+    svg.appendChild(lab);
+    read.textContent = (bc === 'NN' && n === 0)
+      ? 'n = 0: λ₀ = 0, X₀ = 1 (the constant mode, Neumann–Neumann only)'
+      : 'n = ' + n + ': k = ' + I.k(n) + ',  X = ' + I.fn + '(' + I.k(n).replace('π', 'πx') + '),  λ = −k²';
+  }
+  root.querySelectorAll('[data-bc]').forEach((b) => b.addEventListener('click', () => {
+    bc = b.dataset.bc;
+    root.querySelectorAll('[data-bc]').forEach((o) => o.classList.toggle('on', o === b));
+    draw();
+  }));
+  slider.addEventListener('input', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

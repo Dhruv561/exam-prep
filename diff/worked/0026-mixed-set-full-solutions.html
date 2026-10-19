@@ -66,7 +66,7 @@ $$F(x)\sim\frac1\pi + \sum_{\substack{n=1\\ n\ne2}}^\infty\frac{4\big(1+\cos\fra
 <h2>Q3 [8]</h2>
 <div class="script">
 <p>(a) $f$ is piecewise $C^1$ on $(-1,1]$, so $g(x)$ equals the periodic extension where it is continuous, and the average of the one-sided limits at jumps:
-$$g(x) = \begin{cases}\dfrac1{1-x}, & -3<x<-1,\\[4pt] \dfrac1{3-x}, & -1<x<1,\\[4pt] \dfrac1{5-x}, & 1<x<3,\\[4pt] \dfrac12\Big(\dfrac12+\dfrac14\Big) = \dfrac38, & x=\pm1,\pm3.\end{cases}$$</p>
+$$g(x) = \begin{cases}\dfrac1{1-x}, & -3\lt x<-1,\\[4pt] \dfrac1{3-x}, & -1\lt x<1,\\[4pt] \dfrac1{5-x}, & 1\lt x<3,\\[4pt] \dfrac12\Big(\dfrac12+\dfrac14\Big) = \dfrac38, & x=\pm1,\pm3.\end{cases}$$</p>
 <p>(b) Yes, at the jumps $x = \pm1,\pm3,\dots$ The jump is $\frac12-\frac14 = \frac14$, so the overshoot is about $0.09\times\frac14\approx0.02$ on each side of each jump.</p>
 <p>(c) No. The partial sums are continuous, and a uniform limit of continuous functions is continuous, but $g$ has jumps.</p>
 <p>(d) $a_n(h) = \int_{-1}^1 f(x)\cos n\pi x\,dx + \int_{-1}^1 f(-x)\cos n\pi x\,dx = 2a_n(f)$, and $b_n(h) = b_n(f) - b_n(f) = 0$. $h(\pm1) = \frac12+\frac14 = \frac34$, so the periodic extension of $h$ is continuous, and $h'$ is piecewise continuous. Hence the Fourier series of $h$ converges uniformly.</p>

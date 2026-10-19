@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Periodic Loop Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 27 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>A thin wire is bent into a closed loop of length $1$. Its temperature $u(x,t)$, with $x$ the arc length from a marked point, satisfies $u_t=2u_{xx}$ for $0&lt;x&lt;1$, $t&gt;0$.</p>
+<p>(a) Classify the PDE. <em>[2]</em><br>
+(b) Explain the periodic BCs; separate variables; ODEs and conditions on $X$. <em>[3]</em><br>
+(c) Three cases for $\lambda$; all eigenvalues and eigenfunctions. <em>[6]</em><br>
+(d) General series solution; limit as $t\to\infty$ in terms of $f(x)=u(x,0)$. <em>[2]</em><br>
+(e) Solve with $u(x,0)=3+\sin^2(\pi x)$. <em>[2]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · Classification</h2>
+<div class="script">
+<p>Second order, linear, homogeneous (every term contains $u$). Written as $2u_{xx}-u_t=0$ with variables $(x,t)$: $A=2$, $B=0$, $C=0$, so $B^2-4AC=0$: <strong>parabolic</strong>.</p>
+</div>
+<p class="note">$C$ is the coefficient of $u_{tt}$, which is absent. $u_t$ is lower order and doesn't enter the discriminant.</p>
+
+<h2>(b) · Boundary conditions and separation</h2>
+<div class="script">
+<p>$x=0$ and $x=1$ are the same physical point of the loop, so the temperature and the heat flux $-\kappa u_x$ agree there: $u(0,t)=u(1,t)$, $u_x(0,t)=u_x(1,t)$.</p>
+<p>Try $u=X(x)T(t)$: $XT'=2X''T\Rightarrow\dfrac{T'}{2T}=\dfrac{X''}{X}$. The left side depends only on $t$, the right only on $x$, so both equal a constant $\lambda$:
+$$X''-\lambda X=0,\qquad T'-2\lambda T=0.$$
+The BCs give $\big(X(0)-X(1)\big)T(t)=0$ for all $t$; $T\not\equiv0$ for a non-trivial $u$, so
+$$X(0)=X(1),\qquad X'(0)=X'(1).$$</p>
+</div>
+
+<h2>(c) · Three cases</h2>
+<div class="script">
+<p><strong>Case $\lambda=k^2&gt;0$</strong> ($k&gt;0$): $X=A\cosh kx+B\sinh kx$, $X'=k(A\sinh kx+B\cosh kx)$.<br>
+$X(0)=X(1)$: $A=A\cosh k+B\sinh k\ \Rightarrow\ A(\cosh k-1)+B\sinh k=0$.<br>
+$X'(0)=X'(1)$: $kB=k(A\sinh k+B\cosh k)\ \Rightarrow\ A\sinh k+B(\cosh k-1)=0$.<br>
+Determinant: $(\cosh k-1)^2-\sinh^2k=2-2\cosh k&lt;0$ since $k&gt;0$. Non-zero, so $A=B=0$. Only the trivial solution.</p>
+<p><strong>Case $\lambda=0$</strong>: $X=Ax+B$. $X(0)=X(1)$: $B=A+B\Rightarrow A=0$. $X'=0$ on both sides ✓. So $X_0=1$ is an eigenfunction, <strong>$\lambda_0=0$</strong>.</p>
+<p><strong>Case $\lambda=-k^2&lt;0$</strong> ($k&gt;0$): $X=A\cos kx+B\sin kx$, $X'=k(-A\sin kx+B\cos kx)$.<br>
+$X(0)=X(1)$: $A(1-\cos k)-B\sin k=0$.<br>
+$X'(0)=X'(1)$: $A\sin k+B(1-\cos k)=0$.<br>
+Determinant: $(1-\cos k)^2+\sin^2k=2-2\cos k$. A non-trivial $(A,B)$ needs this to be $0$: $\cos k=1$, so $k=2n\pi$. Then both equations read $0=0$ and $A,B$ are both free:
+$$\lambda_n=-4n^2\pi^2,\qquad X_n=\cos(2n\pi x)\ \text{ and }\ \sin(2n\pi x),\qquad n=1,2,\dots$$
+together with $\lambda_0=0$, $X_0=1$.</p>
+</div>
+<p class="note">The interval $(0,1)$ isn't symmetric, so the even/odd shortcut from the lesson's $(-\pi,\pi)$ example doesn't apply. Writing the two BCs as a $2\times2$ linear system and taking the determinant is the clean route. You can quote $(\cosh k-1)^2-\sinh^2k=2-2\cosh k$ after one line of expansion using $\cosh^2-\sinh^2=1$. Sanity check: the period is $1=2L$, so the table predicts $k_n=\frac{n\pi}{L}=2n\pi$ ✓.</p>
+
+<h2>(d) · General solution and long-time limit</h2>
+<div class="script">
+<p>$T_n'=2\lambda_nT_n=-8n^2\pi^2T_n\Rightarrow T_n=e^{-8n^2\pi^2t}$; $T_0=1$. Superposing,
+$$u(x,t)=\frac{a_0}2+\sum_{n=1}^\infty e^{-8n^2\pi^2t}\big(a_n\cos2n\pi x+b_n\sin2n\pi x\big).$$
+As $t\to\infty$ every exponential $\to0$, so
+$$u\to\frac{a_0}{2}=\int_0^1f(x)\,dx,$$
+the average initial temperature, since $u(x,0)=f$ is the full Fourier series of $f$ with period $1$, $a_0=\frac{1}{1/2}\int_0^1f\,dx$.</p>
+</div>
+<p class="note">Period $1$ means $L=\frac12$, so the sheet's $a_0=\frac1L\int f$ becomes $2\int_0^1f$. Physically: a closed loop loses no heat, so it settles to its mean temperature.</p>
+
+<h2>(e) · The given IC</h2>
+<div class="script">
+<p>$3+\sin^2\pi x=3+\tfrac12-\tfrac12\cos2\pi x=\tfrac72-\tfrac12\cos2\pi x$. Matching with $u(x,0)$: $\frac{a_0}2=\frac72$, $a_1=-\frac12$, all other $a_n,b_n=0$.
+$$\boxed{u(x,t)=\frac72-\frac12e^{-8\pi^2t}\cos(2\pi x)}$$</p>
+</div>
+<p class="note">Check: $u_t=4\pi^2e^{-8\pi^2t}\cos2\pi x$ and $2u_{xx}=2\cdot\frac12\cdot4\pi^2e^{-8\pi^2t}\cos2\pi x$ ✓; $u(0,t)=u(1,t)$ ✓; $u(x,0)=3+\sin^2\pi x$ ✓. Limit $\frac72=\int_0^1(3+\sin^2\pi x)\,dx$, agreeing with (d). No integrals needed: the IC is already a finite trig sum.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+order/linear/homogeneous + $B^2-4AC=0$ parabolic · "same point, so $u$ and $u_x$ match" · "LHS only $t$, RHS only $x$ ⇒ constant" · both ODEs · BCs on $X$ with "$T\not\equiv0$" · each case's general solution · $\lambda&gt;0$: determinant $2-2\cosh k\ne0$ ⇒ trivial · $\lambda=0$: constant survives · $\lambda&lt;0$: $\cos k=1$, $k=2n\pi$, <em>both</em> $\cos$ and $\sin$ · $T_n$ exponentials · series with $\frac{a_0}{2}$ · limit = mean · $\sin^2$ identity and matching.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0027-bvps-eigenvalue-problems.html">Lesson 27, challenge</a></span>
+  <span>Reference: <a href="../reference/topic5-cheatsheet.html">Topic 5 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

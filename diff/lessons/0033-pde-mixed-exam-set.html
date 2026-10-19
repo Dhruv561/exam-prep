@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDEs: Mixed Exam Set</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* Lesson 33 only */
+  table.flow td, table.flow th { text-align: left; vertical-align: top; }
+  .tblwrap { overflow-x: auto; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-weight: 600; }
+  .box .katex-display, details .katex-display { overflow-x: auto; overflow-y: hidden; }
+  #sketch-q1 svg { max-width: 360px; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 33 · Topic 5: BVPs &amp; PDEs · Timed mixed set</div>
+<h1>Five PDE questions, exam format</h1>
+<p class="lede">No new teaching. Five new questions, 52 marks, built on the 2021–2024 PDE questions: one long inhomogeneous heat question, a polar Laplace problem, a string, a short conceptual block and a Bessel plate. Each has a hidden marking scheme.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topic 5 is predicted to be the biggest question on the paper. Q6 of the masked 2026 paper is worth 18 marks, has parts (a)–(c) and a very long intro, which almost certainly means a modelling setup like Q1 below. The formula sheet has <em>no</em> separation-of-variables recipe, no eigen-table and no half-range formulas. The three-case analysis, the eigenfunctions for each BC type and $\frac2L\int_0^L$ must come from memory.</div>
+
+<h2>0 · Which tool? (read once, then cover it)</h2>
+<div class="tblwrap">
+<table class="flow">
+<tr><th>You see</th><th>Do this</th><th>Lesson</th></tr>
+<tr><td>"Classify", or a BVP that may have 0/1/∞ solutions</td><td>Order, linear?, homogeneous? Then $B^2-4AC$ for $Au_{xx}+Bu_{xy}+Cu_{yy}$: $\lt 0$ elliptic, $=0$ parabolic, $>0$ hyperbolic. A BVP: general solution first, then impose both BCs.</td><td><a href="0027-bvps-eigenvalue-problems.html">27</a></td></tr>
+<tr><td>Words: "insulated end", "held at $T_0$", "temperature gradient is…"</td><td>Insulated end means $u_x=0$ there. Held at $T_0$ means $u=T_0$. A given gradient is a Neumann BC $u_x = c$. "Insulated except at its ends" is just why the PDE is 1D.</td><td><a href="0029-inhomogeneous-bcs-steady-transient.html">29</a></td></tr>
+<tr><td>Homogeneous heat IBVP</td><td>5 steps: separate ($X''=\lambda X$, $\dot T = \alpha\lambda T$), three cases, solve $T_n$, superpose, match IC (by inspection, or $\frac2L\int_0^L$).</td><td><a href="0028-heat-equation-separation.html">28</a></td></tr>
+<tr><td>Inhomogeneous BCs (or a source term)</td><td>$u = u_S(x) + v(x,t)$. $u_S$ solves the time-independent problem with the inhomogeneous BCs. $v$ gets homogeneous BCs and IC $f - u_S$.</td><td><a href="0029-inhomogeneous-bcs-steady-transient.html">29</a></td></tr>
+<tr><td>Laplace on a rectangle, wedge or annulus</td><td>The variable with homogeneous BCs on both ends gives the eigenfunctions. In polar, $\Theta''+\mu\Theta=0$ and $r^2R''+rR'-\mu R=0$, so $R = Cr^{k}+Dr^{-k}$, or $C + D\ln r$ when $\mu = 0$. Keep both unless $r=0$ is in the domain.</td><td><a href="0030-laplace-equation-rectangle-polar.html">30</a></td></tr>
+<tr><td>String or membrane</td><td>$T_n = a_n\cos\omega_nt + b_n\sin\omega_nt$, $\omega_n = ck_n$. Displacement fixes $a_n$, velocity fixes $\omega_nb_n$.</td><td><a href="0031-wave-equation-normal-modes.html">31</a></td></tr>
+<tr><td>Disc, axisymmetric</td><td>$\lambda=-k^2$, $s=kr$ gives Bessel order 0. Boundedness kills $Y_0$, and the edge condition gives $J_0(ka)=0$. Don't compute the coefficients unless asked.</td><td><a href="0032-radial-bessel-genuine-solutions.html">32</a></td></tr>
+<tr><td>"Genuine?"</td><td>M-test on $D=[0,L]\times[T,\infty)$, $T>0$, for $u$, $u_x$, $u_{xx}$, $u_t$. The factor $e^{-\alpha k_n^2T}$ does the work. It fails at $t=0$.</td><td><a href="0032-radial-bessel-genuine-solutions.html">32</a></td></tr>
+</table>
+</div>
+
+<h2>1 · Warm-up (5 min, spaced retrieval)</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> $X''=\lambda X$ with $X(0)=0$ and $X'(L)=0$ has eigenfunctions…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\sin\frac{n\pi x}{L}$, $n=1,2,\dots$</button>
+    <button class="opt" data-key="b">$\cos\frac{n\pi x}{L}$, $n=0,1,\dots$</button>
+    <button class="opt" data-key="c">$\sin\frac{(2n-1)\pi x}{2L}$, $n=1,2,\dots$</button>
+    <button class="opt" data-key="d">$\cos\frac{(2n-1)\pi x}{2L}$, $n=1,2,\dots$</button>
+  </div>
+  <div class="why">$X(0)=0$ means sine. $X'(L) = k\cos kL = 0$ means $kL = (n-\frac12)\pi$. Option (d) is the mirror case, $X'(0)=0$ and $X(L)=0$ (<a href="0027-bvps-eigenvalue-problems.html">Lesson 27</a>).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W2.</strong> $u_t = u_{xx}$ on $0\lt x\lt 2$, both ends insulated, $u(x,0)=x$. As $t\to\infty$, $u\to$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$0$</button>
+    <button class="opt" data-key="b">$1$</button>
+    <button class="opt" data-key="c">$2$</button>
+    <button class="opt" data-key="d">$x$</button>
+  </div>
+  <div class="why">Neumann–Neumann: every mode decays except the $\lambda=0$ constant, which is the mean of the IC, $\frac12\int_0^2x\,dx = 1$ (<a href="0028-heat-equation-separation.html">Lesson 28</a>).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W3.</strong> $u_{xx} + 6u_{xy} + 9u_{yy} = 0$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">elliptic everywhere</button>
+    <button class="opt" data-key="b">hyperbolic everywhere</button>
+    <button class="opt" data-key="c">elliptic for some $(x,y)$ only</button>
+    <button class="opt" data-key="d">parabolic everywhere</button>
+  </div>
+  <div class="why">$B^2-4AC = 36-36 = 0$ (<a href="0027-bvps-eigenvalue-problems.html">Lesson 27</a>).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W4.</strong> Laplace's equation on the annulus $1\lt r\lt 3$. The $\theta$-independent ($\mu=0$) part of the solution is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$C + D\ln r$</button>
+    <button class="opt" data-key="b">$C$ only</button>
+    <button class="opt" data-key="c">$Cr + D/r$</button>
+    <button class="opt" data-key="d">$C + Dr^2$</button>
+  </div>
+  <div class="why">$rR''+R'=0$ means $(rR')'=0$, so $R = C + D\ln r$. $\ln r$ is dropped only when $r=0$ is in the domain (<a href="0030-laplace-equation-rectangle-polar.html">Lesson 30</a>).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W5.</strong> A heat-equation series solution is shown to be genuine on $t\ge T>0$ rather than on $t\ge0$ because…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\sin k_nx$ is only orthogonal on $[0,L]$ when $t>0$</button>
+    <button class="opt" data-key="b">$e^{-\alpha k_n^2T}$ beats every power of $k_n$ in the M-test</button>
+    <button class="opt" data-key="c">the BCs on $u(0,t)$, $u(L,t)$ only hold when $t>0$</button>
+    <button class="opt" data-key="d">the coefficients $c_n$ only converge when $t>0$</button>
+  </div>
+  <div class="why">Differentiating twice in $x$ brings down $k_n^2$. At $t=0$ nothing controls that, and $\sum k_n^2|c_n|$ usually diverges (<a href="0032-radial-bessel-genuine-solutions.html">Lesson 32</a>).</div>
+</div>
+
+<h2>2 · The set (≈ 105 min, 52 marks)</h2>
+<p>Exam pace is 2 min per mark. Sitting 1: Q1 alone (19 marks, ≈ 38 min). Sitting 2: Q2–Q5 (33 marks, ≈ 66 min). Use paper and <a href="../exams/MAST20030_S2_2026_Formula_Sheet.pdf">the 2026 formula sheet</a> only. Open each marking scheme only after you have written the whole question.</p>
+
+<h3>Question 1 <span class="marks">[19 marks]</span></h3>
+<div class="box">
+<p>A metal rod of length 1 has its curved surface insulated, so heat flows only along the rod. It has been sitting in iced water, so initially its temperature is $0$ everywhere. From $t=0$ the end $x=1$ is kept in the iced water (temperature $0$). At the end $x=0$ a heater pumps heat in at a constant rate, which holds the temperature gradient there at $-1$. The temperature $u(x,t)$ satisfies
+$$\frac{\partial u}{\partial t} = 2\,\frac{\partial^2 u}{\partial x^2},\qquad 0\lt x\lt 1,\ t>0.$$</p>
+<p>(a) Write down the boundary conditions and the initial condition for $u$. <em>[2]</em></p>
+<p>(b) Find the steady-state temperature $u_S(x)$. <em>[2]</em></p>
+<p>(c) Let $u = u_S(x) + v(x,t)$. Write down the IBVP (PDE, BCs, IC) satisfied by $v$. <em>[2]</em></p>
+<p>(d) Use separation of variables, $v = X(x)T(t)$, to find the ODEs for $X$ and $T$. Considering all three cases for the separation constant, find the eigenvalues and eigenfunctions. <em>[5]</em></p>
+<p>(e) Hence find $u(x,t)$. <em>[4]</em></p>
+<p>(f) Sketch $u(x,t)$ against $x$ at $t=0$, at two intermediate times $0\lt t_1\lt t_2$, and as $t\to\infty$. <em>[2]</em></p>
+<p>(g) What does the temperature at the heated end tend to as $t\to\infty$? Using only the leading term of the series, estimate the time after which $u(0,t)$ is within $0.01$ of this limit. <em>[2]</em></p>
+</div>
+<details><summary>Q1 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> BCs: $u_x(0,t) = -1$ and $u(1,t) = 0$ for $t>0$. <strong>[1]</strong> IC: $u(x,0) = 0$ for $0\lt x\lt 1$.</p>
+<p>(b) <strong>[1]</strong> $u_S''=0$, so $u_S = Ax+B$. <strong>[1]</strong> $u_S'(0)=A=-1$ and $u_S(1) = -1+B = 0$, so $u_S = 1-x$.</p>
+<p>(c) <strong>[1]</strong> $v_t = 2v_{xx}$, with $v_x(0,t) = -1-(-1) = 0$ and $v(1,t)=0$ (homogeneous). <strong>[1]</strong> $v(x,0) = 0-u_S = x-1$.</p>
+<p>(d) <strong>[1]</strong> $X\dot T = 2X''T$, so $\frac{\dot T}{2T} = \frac{X''}{X} = \lambda$, which gives $\dot T = 2\lambda T$ and $X''=\lambda X$ with $X'(0)=0$, $X(1)=0$. <strong>[1]</strong> $\lambda=k^2>0$: $X = A\cosh kx + B\sinh kx$. $X'(0)=kB=0$, then $X(1)=A\cosh k=0$ forces $A=0$, so only the trivial solution. <strong>[1]</strong> $\lambda=0$: $X=A+Bx$. $X'(0)=B=0$, $X(1)=A=0$: trivial. <strong>[1]</strong> $\lambda=-k^2$: $X = A\cos kx + B\sin kx$. $X'(0)=kB=0$, $X(1)=A\cos k=0$, so $k_n = \frac{(2n-1)\pi}{2}$. <strong>[1]</strong> Eigenvalues $\lambda_n = -\frac{(2n-1)^2\pi^2}{4}$, eigenfunctions $X_n = \cos\frac{(2n-1)\pi x}{2}$, $n=1,2,\dots$</p>
+<p>(e) <strong>[1]</strong> $T_n = e^{-2k_n^2t}$, so $v = \sum_{n\ge1} c_n e^{-2k_n^2t}\cos k_nx$. <strong>[1]</strong> $c_n = 2\int_0^1(x-1)\cos k_nx\,dx$. <strong>[1]</strong> By parts: $\big[(x-1)\frac{\sin k_nx}{k_n}\big]_0^1 - \int_0^1\frac{\sin k_nx}{k_n}dx = \frac{\cos k_n - 1}{k_n^2} = -\frac1{k_n^2}$, since $\cos k_n = 0$. So $c_n = -\frac{2}{k_n^2} = -\frac{8}{(2n-1)^2\pi^2}$. <strong>[1]</strong>
+$$u(x,t) = 1-x-\frac{8}{\pi^2}\sum_{n=1}^\infty\frac{1}{(2n-1)^2}\,e^{-(2n-1)^2\pi^2t/2}\cos\frac{(2n-1)\pi x}{2}.$$</p>
+<p>(f) <strong>[1]</strong> $t=0$: the line $u=0$. As $t\to\infty$: the line $1-x$. <strong>[1]</strong> Intermediate curves lie between the two, rise with $t$, all pass through $(1,0)$, and all leave $x=0$ with slope $-1$. The biggest change is near $x=0$.</p>
+<div class="fig" id="sketch-q1"></div>
+<p>(g) <strong>[1]</strong> $u(0,t)\to u_S(0) = 1$. <strong>[1]</strong> $u(0,t)\approx 1-\frac8{\pi^2}e^{-\pi^2t/2}$. Setting $\frac8{\pi^2}e^{-\pi^2t/2}=0.01$ gives $t = \frac2{\pi^2}\ln\frac{800}{\pi^2}\approx 0.89$.</p>
+</div></details>
+
+<h3>Question 2 <span class="marks">[10 marks]</span></h3>
+<div class="box">
+<p>A thin plate occupies the quarter-annulus $1\lt r\lt 2$, $0\lt\theta\lt\frac\pi2$. Its two straight edges ($\theta=0$ and $\theta=\frac\pi2$) are insulated, the inner arc $r=1$ is held at temperature $0$, and the outer arc is held at $u(2,\theta) = 3 + \cos4\theta$. The steady-state temperature $u(r,\theta)$ satisfies
+$$\frac{\partial^2u}{\partial r^2}+\frac1r\frac{\partial u}{\partial r}+\frac1{r^2}\frac{\partial^2u}{\partial\theta^2}=0.$$</p>
+<p>(a) Write $u = R(r)\Theta(\theta)$. Show that $\Theta''+\mu\Theta=0$ and $r^2R''+rR'-\mu R=0$, and state the boundary conditions on $\Theta$. <em>[2]</em></p>
+<p>(b) Considering all three cases for $\mu$, find the eigenvalues $\mu_n$ and eigenfunctions $\Theta_n$. <em>[3]</em></p>
+<p>(c) Solve the $R$ equation for each eigenvalue and write down the general series solution. <em>[2]</em></p>
+<p>(d) Apply the arc conditions to find $u(r,\theta)$, and hence find $u(\sqrt2,0)$. <em>[3]</em></p>
+</div>
+<details><summary>Q2 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> $R''\Theta + \frac1rR'\Theta + \frac1{r^2}R\Theta''=0$. Multiply by $\frac{r^2}{R\Theta}$: $\frac{r^2R''+rR'}{R} = -\frac{\Theta''}{\Theta} = \mu$, which gives both ODEs. <strong>[1]</strong> Insulated edges: $u_\theta=0$ there, so $\Theta'(0)=\Theta'(\frac\pi2)=0$.</p>
+<p>(b) <strong>[1]</strong> $\mu=-k^2$: $\Theta = A\cosh k\theta + B\sinh k\theta$. $\Theta'(0)=kB=0$ and $\Theta'(\frac\pi2) = kA\sinh\frac{k\pi}2=0$, so $A=0$: trivial. <strong>[1]</strong> $\mu=0$: $\Theta = A+B\theta$, $B=0$, so $\Theta_0 = 1$ (non-trivial). <strong>[1]</strong> $\mu=k^2$: $\Theta = A\cos k\theta+B\sin k\theta$, $B=0$, and $-kA\sin\frac{k\pi}2=0$ gives $k=2n$. So $\mu_n = 4n^2$, $\Theta_n = \cos2n\theta$, $n = 0,1,2,\dots$</p>
+<p>(c) <strong>[1]</strong> $n\ge1$: the Euler equation with trial $r^m$ gives $m^2=4n^2$, so $R = C_nr^{2n}+D_nr^{-2n}$. $n=0$: $R = C_0 + D_0\ln r$. <strong>[1]</strong>
+$$u = C_0 + D_0\ln r + \sum_{n\ge1}\big(C_nr^{2n}+D_nr^{-2n}\big)\cos2n\theta.$$
+Both powers are kept because $r=0$ is not in the domain.</p>
+<p>(d) <strong>[1]</strong> $r=1$: $C_0 = 0$ and $C_n + D_n = 0$. <strong>[1]</strong> $r=2$, matching coefficients: $D_0\ln2 = 3$; for $n=2$, $C_2(16-\frac1{16}) = 1$ so $C_2 = \frac{16}{255}$; all other $C_n=0$.
+$$u = \frac{3\ln r}{\ln 2} + \frac{16}{255}\big(r^4-r^{-4}\big)\cos4\theta.$$
+<strong>[1]</strong> $u(\sqrt2,0) = \frac32 + \frac{16}{255}\cdot\frac{15}{4} = \frac32+\frac4{17} = \frac{59}{34}\approx1.74$.</p>
+</div></details>
+
+<h3>Question 3 <span class="marks">[8 marks]</span></h3>
+<div class="box">
+<p>A string of length 1 is fixed at both ends, and its transverse displacement $u(x,t)$ satisfies $u_{tt} = 4u_{xx}$. At $t=0$ the string has the shape $\sin3\pi x$ and is given an initial velocity $4\pi\sin\pi x$.</p>
+<p>(a) Write down the boundary and initial conditions. <em>[1]</em></p>
+<p>(b) Separate variables with $u = X(x)T(t)$. State which sign of the separation constant gives non-trivial $X$, and show that $T$ then oscillates. Write down the general series solution. (You may quote the eigenvalues of the $X$-problem.) <em>[3]</em></p>
+<p>(c) Find $u(x,t)$. <em>[2]</em></p>
+<p>(d) Which normal frequencies are present? Is the motion periodic in $t$? If so, give the period. <em>[1]</em></p>
+<p>(e) Suppose instead the string started from rest with a corner in it (plucked). In one sentence each, what happens to the corner under the wave equation, and what would happen to a corner in the initial temperature under the heat equation? <em>[1]</em></p>
+</div>
+<details><summary>Q3 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> $u(0,t)=u(1,t)=0$; $u(x,0) = \sin3\pi x$, $u_t(x,0) = 4\pi\sin\pi x$.</p>
+<p>(b) <strong>[1]</strong> $\frac{\ddot T}{4T} = \frac{X''}{X}=\lambda$ with $X(0)=X(1)=0$. Only $\lambda = -k^2\lt 0$ gives non-trivial $X$: $k_n = n\pi$, $X_n = \sin n\pi x$. <strong>[1]</strong> $\ddot T_n + 4n^2\pi^2T_n = 0$, so $T_n = a_n\cos2n\pi t + b_n\sin2n\pi t$, which oscillates. <strong>[1]</strong> $u = \sum_{n\ge1}(a_n\cos2n\pi t + b_n\sin2n\pi t)\sin n\pi x$.</p>
+<p>(c) <strong>[1]</strong> $u(x,0) = \sum a_n\sin n\pi x = \sin3\pi x$, so $a_3 = 1$ and all other $a_n = 0$. $u_t(x,0) = \sum 2n\pi b_n\sin n\pi x = 4\pi\sin\pi x$, so $2\pi b_1 = 4\pi$, $b_1 = 2$, others $0$. <strong>[1]</strong>
+$$u = 2\sin(2\pi t)\sin\pi x + \cos(6\pi t)\sin3\pi x.$$</p>
+<p>(d) <strong>[1]</strong> $\omega_1 = 2\pi$ and $\omega_3 = 6\pi$. Yes, periodic: $\omega_3 = 3\omega_1$, so the period is $\frac{2\pi}{2\pi} = 1$.</p>
+<p>(e) <strong>[1]</strong> Wave: the corner does not smooth out. It splits and travels along the string at speed $c=2$, reflecting off the ends forever. Heat: the corner is smoothed instantly, and $u$ is smooth for every $t>0$.</p>
+</div></details>
+
+<h3>Question 4 <span class="marks">[7 marks]</span></h3>
+<div class="box">
+<p>(a) State the order of each PDE, whether it is linear, whether it is homogeneous, and its type (elliptic, parabolic or hyperbolic). <em>[2]</em></p>
+<p style="margin-left:1rem">(i) $2u_{xx} - 4u_{xy} + 2u_{yy} + u_y = e^x$ &nbsp;&nbsp; (ii) $u_{xx} - 2u_{xy} + x\,u_{yy} = 0$</p>
+<p>(b) Consider $y''+9y=0$, $y(0)=0$, $y(L)=\beta$, with $L>0$. For which $L$ and $\beta$ does this BVP have exactly one solution, no solution, and infinitely many solutions? <em>[2]</em></p>
+<p>(c) Show that the series for $u(x,t)$ found in Q1(e) is a genuine solution of $u_t = 2u_{xx}$ for $0\le x\le1$, $t\ge T$, for any fixed $T>0$. Why can't $T=0$ be used? <em>[3]</em></p>
+</div>
+<details><summary>Q4 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> (i) 2nd order, linear, inhomogeneous ($e^x$). $B^2-4AC = 16-16=0$: parabolic. <strong>[1]</strong> (ii) 2nd order, linear, homogeneous. $B^2-4AC = 4-4x$: hyperbolic for $x\lt 1$, parabolic on $x=1$, elliptic for $x>1$.</p>
+<p>(b) <strong>[1]</strong> $y = A\cos3x+B\sin3x$. $y(0)=0$ gives $A=0$, then $B\sin3L = \beta$. If $\sin 3L\ne0$ ($L\ne\frac{m\pi}3$): exactly one solution, $B = \beta/\sin3L$. <strong>[1]</strong> If $L = \frac{m\pi}3$: no solution when $\beta\ne0$; infinitely many ($B\sin3x$, any $B$) when $\beta=0$.</p>
+<p>(c) <strong>[1]</strong> $u_S = 1-x$ is smooth, so only the series $\sum u_n$, $u_n = c_ne^{-2k_n^2t}\cos k_nx$, needs checking. On $D = [0,1]\times[T,\infty)$: $|u_n|\le|c_n|e^{-2k_n^2T}$, $|\partial_xu_n|\le |c_n|k_ne^{-2k_n^2T}$, $|\partial_x^2u_n|\le|c_n|k_n^2e^{-2k_n^2T} = 2e^{-2k_n^2T}$, and $\partial_tu_n = 2\partial_x^2u_n$. Since $|c_n|\le1$ and $|c_n|k_n\le\frac4\pi$, all four are $\le M_n = 4e^{-2k_n^2T}$. <strong>[1]</strong> $\sum M_n$ converges (ratio test: $M_{n+1}/M_n = e^{-4\pi^2nT}\to0$). By the Weierstrass M-test, the series for $u$, $u_x$, $u_{xx}$ and $u_t$ all converge uniformly on $D$. So term-by-term differentiation is justified, each term solves the PDE, and $u$ is genuine for $t\ge T$. <strong>[1]</strong> At $t=0$ the bound becomes $\sum|c_n|k_n^2 = \sum 2$, which diverges, so the M-test gives nothing. (Also, the IC $u=0$ has $u_x=0\ne-1$ at $x=0$, so it is incompatible with the BC.)</p>
+</div></details>
+
+<h3>Question 5 <span class="marks">[8 marks]</span></h3>
+<div class="box">
+<p>A thin circular plate of radius 2 has insulated faces. Its edge is kept at temperature $0$, and its initial temperature $f(r)$ depends only on the distance $r$ from the centre. The temperature $u(r,t)$ satisfies
+$$\frac{\partial u}{\partial t} = 3\Big(\frac{\partial^2u}{\partial r^2}+\frac1r\frac{\partial u}{\partial r}\Big),\qquad 0\lt r\lt 2,\ t>0.$$</p>
+<p>(a) State the boundary conditions, including the one at $r=0$. <em>[1]</em></p>
+<p>(b) Separate variables, $u = R(r)T(t)$, and find the two ODEs. <em>[2]</em></p>
+<p>(c) Take the separation constant to be $-k^2$. Use the substitution $s=kr$ to show that the $R$ equation becomes Bessel's equation of order 0. Hence find the eigenfunctions and the condition on $k$. <em>[3]</em></p>
+<p>(d) Write down the general series solution, with a formula for its coefficients (do not evaluate it). For large $t$, which term dominates, and at what rate does it decay? The first zero of $J_0$ is $2.405$. <em>[2]</em></p>
+</div>
+<details><summary>Q5 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> $u(2,t) = 0$ for $t>0$, and $u(r,t)$ finite (bounded) as $r\to0$.</p>
+<p>(b) <strong>[1]</strong> $R\dot T = 3(R''+\frac1rR')T$, so $\frac{\dot T}{3T} = \frac{R''+R'/r}{R}=\lambda$. <strong>[1]</strong> $\dot T - 3\lambda T = 0$ and $R''+\frac1rR'-\lambda R = 0$, with $R(2)=0$ and $R$ bounded.</p>
+<p>(c) <strong>[1]</strong> $\lambda=-k^2$: $R''+\frac1rR'+k^2R=0$. With $S(s)=R(r)$, $R' = kS'$ and $R''=k^2S''$, so $k^2S''+\frac{k^2}{s}S'+k^2S=0$, i.e. $S''+\frac1sS'+S=0$: Bessel order 0. <strong>[1]</strong> $R = AJ_0(kr)+BY_0(kr)$. $Y_0$ is unbounded (log) at $0$, so $B=0$. <strong>[1]</strong> $R(2)=0$ gives $J_0(2k)=0$, so $k_n = j_n/2$, where $j_n$ is the $n$-th positive zero of $J_0$. Eigenfunctions $J_0(k_nr)$.</p>
+<p>(d) <strong>[1]</strong> $T_n = e^{-3k_n^2t}$ and $u = \sum_{n\ge1}C_ne^{-3k_n^2t}J_0(k_nr)$, with $C_n = \frac{2}{4J_1^2(2k_n)}\int_0^2f(r)J_0(k_nr)\,r\,dr$ (from $J_0$ orthogonality with weight $r$). <strong>[1]</strong> The $n=1$ term: $u\approx C_1e^{-3k_1^2t}J_0(1.2024r)$, with decay rate $3(1.2024)^2\approx4.34$.</p>
+</div></details>
+
+<div class="trap"><strong>Where marks leak in this set</strong><br>
+(1) Q1(a): writing $u_x(0,t)=1$. The text says the gradient is $-1$, which is heat flowing <em>into</em> the rod. (2) Q1(c): forgetting to subtract $u_S$ from the IC, or leaving the BC for $v$ inhomogeneous. (3) Q1(d), Q2(b): writing only the case that works. Each "trivial" case is a mark. (4) Q1(e): using $\frac2L\int_0^L$ with sine eigenfunctions out of habit. Here they are $\cos k_nx$. (5) Q2(c): dropping $\ln r$ or $r^{-2n}$ as if $r=0$ were in the domain. (6) Q3(c): $b_n = $ coefficient, forgetting to divide by $\omega_n$. (7) Q4(c): bounding only $u$ and not $u_{xx}$ and $u_t$.</div>
+
+<h2>3 · Score and diagnose</h2>
+<p>Mark yourself against the schemes, then book the gaps:</p>
+<ul>
+  <li>Q1 under 14/19: lost (a)–(c) marks means <a href="0029-inhomogeneous-bcs-steady-transient.html">Lesson 29</a>; lost (d)–(e) marks means <a href="0028-heat-equation-separation.html">Lesson 28</a> and the eigen-table in <a href="0027-bvps-eigenvalue-problems.html">Lesson 27</a>.</li>
+  <li>Q2 under 7/10: <a href="0030-laplace-equation-rectangle-polar.html">Lesson 30</a>. Q3 under 6/8: <a href="0031-wave-equation-normal-modes.html">Lesson 31</a>.</li>
+  <li>Q4(a)–(b) slips: <a href="0027-bvps-eigenvalue-problems.html">Lesson 27</a>. Q4(c) or Q5 under 6/8: <a href="0032-radial-bessel-genuine-solutions.html">Lesson 32</a>.</li>
+  <li>Any final answer you didn't check: plug it back into the PDE, both BCs and the IC. That takes a minute and catches most sign errors.</li>
+</ul>
+<p>Written-out answers (what your paper should look like): <a href="../worked/0033-mixed-set-full-solutions.html">full solutions to Q1–Q5</a>.</p>
+
+<h2>4 · Before you close this tab</h2>
+<details><summary>Retrieval: cover §0 and write the four eigen-pairs for $X''=\lambda X$ on $[0,L]$</summary><div>
+<p>Dirichlet–Dirichlet: $\sin\frac{n\pi x}L$, $n\ge1$. Neumann–Neumann: $\cos\frac{n\pi x}L$, $n\ge0$ (includes the constant). $X(0)=0$, $X'(L)=0$: $\sin\frac{(2n-1)\pi x}{2L}$. $X'(0)=0$, $X(L)=0$: $\cos\frac{(2n-1)\pi x}{2L}$. In every case $\lambda_n = -k_n^2$, where $k_n$ is the number multiplying $x$. None of this is on the formula sheet.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/23_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 23</a> (inhomogeneous BCs, $u_S + u_T$), <a href="../lectures/24_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 24</a> (disc, Bessel, polar Laplace) and <a href="../lectures/25_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 25</a> (genuine solutions). Then <a href="https://tutorial.math.lamar.edu/Classes/DE/HeatEqnNonZero.aspx">Paul's Online Notes: Heat Equation with Non-Zero Temperature Boundaries</a>.</p>
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../tutes/tute_week_10.pdf">Tute Week 10</a>, Q1: inhomogeneous Neumann heat problem, start to finish, timed.</li>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic5.pdf">Problem Booklet 5</a>, Q11 (Laplace in polar domains) and Q14 (wave with mixed BCs), timed at 2 min per mark.</li>
+  <li>Optional: Tute Week 9 Q4 (Robin BCs).</li>
+</ul>
+<p><strong>Spacing:</strong> in three days, redo Q1 cold from a blank page in 38 minutes.</p>
+
+<div class="ask">💬 Stuck on a marking-scheme step, or unsure whether your wording would get the "justify" mark? Ask me in the terminal. Paste or photograph your attempt and I'll mark it line by line.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0027-bvps-eigenvalue-problems.html">27</a> to <a href="0032-radial-bessel-genuine-solutions.html">32</a></span>
+  <span>Previous: <a href="0032-radial-bessel-genuine-solutions.html">Lesson 32</a></span>
+  <span>Next: <a href="../reference/topic5-cheatsheet.html">Topic 5 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+
+<script>
+(function () {
+  // Q1 sketch: u(x,t) = 1 - x - (8/pi^2) sum e^{-(2n-1)^2 pi^2 t/2} cos((2n-1) pi x/2)/(2n-1)^2
+  const PI = Math.PI;
+  const u = (x, t) => {
+    let s = 0;
+    for (let n = 1; n <= 400; n++) {
+      const m = 2 * n - 1;
+      s += Math.exp(-m * m * PI * PI * t / 2) * Math.cos(m * PI * x / 2) / (m * m);
+    }
+    return 1 - x - 8 / (PI * PI) * s;
+  };
+  const css = (n, f) => (getComputedStyle(document.documentElement).getPropertyValue(n).trim() || f);
+  const W = 340, H = 220, L = 36, R = 12, T = 12, B = 30;
+  const X = (x) => L + x * (W - L - R), Y = (y) => H - B - y * (H - T - B);
+  const fg = css('--fg', '#1d1d1b'), mu = css('--muted', '#6b6b66'), ac = css('--accent', '#8a2b0e'), ru = css('--rule', '#e4e2d6');
+  const times = [[0.02, 't = 0.02'], [0.1, 't = 0.1'], [0.3, 't = 0.3']];
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Temperature profiles for Question 1 rising from zero towards the line 1 minus x">`;
+  svg += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(1)}" y2="${Y(0)}" stroke="${mu}"/><line x1="${X(0)}" y1="${Y(0)}" x2="${X(0)}" y2="${Y(1.05)}" stroke="${mu}"/>`;
+  svg += `<text x="${X(1)}" y="${Y(0) + 18}" fill="${mu}" font-size="11" text-anchor="middle">1</text><text x="${X(0) - 6}" y="${Y(1) + 4}" fill="${mu}" font-size="11" text-anchor="end">1</text><text x="${X(0.5)}" y="${Y(0) + 18}" fill="${mu}" font-size="11" text-anchor="middle">x</text>`;
+  svg += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(1)}" y2="${Y(0)}" stroke="${fg}" stroke-width="2" stroke-dasharray="4 3"/>`;
+  times.forEach(([t, lab], i) => {
+    let d = '';
+    for (let k = 0; k <= 100; k++) { const x = k / 100; d += (k ? 'L' : 'M') + X(x).toFixed(1) + ',' + Y(u(x, t)).toFixed(1); }
+    svg += `<path d="${d}" fill="none" stroke="${ac}" stroke-opacity="${0.45 + 0.2 * i}" stroke-width="1.8"/>`;
+    svg += `<text x="${X(0) + 4}" y="${Y(u(0, t)) - 4}" fill="${ac}" font-size="10">${lab}</text>`;
+  });
+  svg += `<line x1="${X(0)}" y1="${Y(1)}" x2="${X(1)}" y2="${Y(0)}" stroke="${fg}" stroke-width="2"/>`;
+  svg += `<text x="${X(0.55)}" y="${Y(0.5) - 6}" fill="${fg}" font-size="11">t → ∞: 1 − x</text><text x="${X(0.6)}" y="${Y(0) - 5}" fill="${fg}" font-size="11">t = 0</text></svg>`;
+  const el = document.getElementById('sketch-q1');
+  el.innerHTML = svg + '<figcaption>Every curve leaves $x=0$ with slope $-1$ (for $t>0$) and ends at $u(1,t)=0$.</figcaption>';
+})();
+</script>
+</body>
+</html>

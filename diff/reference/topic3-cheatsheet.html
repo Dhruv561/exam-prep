@@ -82,7 +82,7 @@ $\dfrac{s+2}{s^2+2s+10}=\dfrac{(s+1)+1}{(s+1)^2+9}\to e^{-t}\!\left(\cos3t+\tfra
 <p><strong>Two-point conditions</strong> ($y(0)=0$, $y(t_1)=0$): keep $y'(0)=c$ as a symbol, invert, then solve for $c$ from the later condition. Pick the branch of the piecewise answer that applies at $t_1$.</p>
 
 <h2>Heaviside and t-shift</h2>
-<div class="box">$$\mathcal L\{f(t-a)H(t-a)\}=e^{-as}F(s)\qquad H_a-H_b=\begin{cases}1&a<t<b\\0&\text{else}\end{cases}$$</div>
+<div class="box">$$\mathcal L\{f(t-a)H(t-a)\}=e^{-as}F(s)\qquad H_a-H_b=\begin{cases}1&a\lt t\lt b\\0&\text{else}\end{cases}$$</div>
 <p><strong>Key trap:</strong> $g(t)H(t-a)$ is not shifted until you rewrite $g(t)=g((t-a)+a)$:
 $$\mathcal L\{g(t)H(t-a)\}=e^{-as}\,\mathcal L\{g(t+a)\}.$$
 E.g. $t\,H(t-2)$: $g(t+2)=t+2\to e^{-2s}\!\left(\frac1{s^2}+\frac2s\right)$.</p>
@@ -117,7 +117,7 @@ E.g. $t\,H(t-2)$: $g(t+2)=t+2\to e^{-2s}\!\left(\frac1{s^2}+\frac2s\right)$.</p>
 <li>s-shift: $e^{at}$ merges into $e^{-(s-a)t}$.</li>
 <li>t-shift: substitute $u=t-a$. $\ \ \mathcal L\{tf\}$: differentiate $\int e^{-st}f$ in $s$.</li>
 <li>$F\to0$: $|F|\le\int_0^\infty e^{-st}Me^{ct}dt=\frac{M}{s-c}$.</li>
-<li>Convolution: swap the order of integration over $0<\tau<t$.</li>
+<li>Convolution: swap the order of integration over $0\lt \tau\lt t$.</li>
 </ul>
 
 <h2>Which tool?</h2>

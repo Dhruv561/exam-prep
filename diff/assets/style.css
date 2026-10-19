@@ -116,6 +116,8 @@ h4 { font-weight: 600; font-size: 1.02rem; margin: 2rem 0 .3rem; }
 .lbl-m { fill: var(--muted); } .lbl-a { fill: var(--accent); } .lbl-h { fill: var(--ok); } .lbl-h2 { fill: var(--trap); } .lbl-tr { fill: var(--accent); font-weight: 600; }
 
 .th-math th { text-transform: none; letter-spacing: 0; font-size: .9rem; }
+/* Never uppercase maths inside headers/kickers (s would become S) */
+th .katex, .kicker .katex, .trap strong .katex { text-transform: none; letter-spacing: 0; }
 
 /* Small portraits inside tables */
 .phase.mini { width: 140px; margin: 0; }

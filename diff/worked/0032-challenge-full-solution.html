@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drum and Genuine Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 32 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p><strong>Q1 [12].</strong> $u_{tt}=4\big(u_{rr}+\frac1ru_r\big)$, $0\le r\lt3$, $t>0$; rim clamped; flat at $t=0$; $u_t(r,0)=9-r^2$.<br>
+(a) Derive the ODEs for $R$, $T$. <em>[2]</em> (b) Three cases; which oscillates; zero case trivial. <em>[3]</em> (c) Solve the $R$ BVP via $s=kr$. <em>[4]</em> (d) $T_n$, ICs, series; coefficients as integrals. <em>[3]</em></p>
+<p><strong>Q2 [6].</strong> $u=\frac\pi2-\frac4\pi\sum_{m\ge1}\frac{e^{-2(2m-1)^2t}}{(2m-1)^2}\cos((2m-1)x)$ solves $u_t=2u_{xx}$, $u_x(0,t)=u_x(\pi,t)=0$, $u(x,0)=x$.<br>
+(a) Genuine for $t>0$. <em>[4]</em> (b) Is the $u_x$ series uniform on $[0,\pi]\times[0,\infty)$? <em>[2]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>Q1 (a) · Separate</h2>
+<div class="script">
+<p>Substitute $u=R(r)T(t)$: $\;R\ddot T=4\big(R''+\frac1rR'\big)T$. Divide by $4RT$:
+$$\frac{\ddot T}{4T}=\frac{R''+\frac1rR'}{R}=\lambda.$$
+The left side depends on $t$ only, the middle on $r$ only, so both equal a constant $\lambda$:
+$$\ddot T-4\lambda T=0,\qquad r^2R''+rR'-\lambda r^2R=0.$$</p>
+</div>
+<p class="note">1 mark for the separated form with the "constant" reason, 1 for the two ODEs. Keep the $4$ with $T$: then $R$'s equation has no $c$ and the zeros come out as $k_n=j_n/3$ cleanly.</p>
+
+<h2>Q1 (b) · Three cases</h2>
+<div class="script">
+<p>Conditions: $u(3,t)=0\Rightarrow R(3)=0$; $u$ finite at $r=0\Rightarrow R$ bounded as $r\to0$.</p>
+<p>Case $\lambda=k^2>0$: $T=Ae^{2kt}+Be^{-2kt}$, no oscillation.<br>
+Case $\lambda=0$: $T=A+Bt$, no oscillation.<br>
+Case $\lambda=-k^2\lt0$ ($k>0$): $\ddot T+4k^2T=0$, $T=A\cos2kt+B\sin2kt$: <strong>oscillatory</strong>.</p>
+<p>$\lambda=0$: $R''+\frac1rR'=\frac1r(rR')'=0\Rightarrow rR'=B\Rightarrow R=A+B\ln r$. Bounded as $r\to0$ ⇒ $B=0$; $R(3)=A=0$. So $R\equiv0$, trivial.</p>
+</div>
+<p class="note">If you separate with $-\lambda$ instead, the oscillatory case is $\lambda>0$. Either is fine if consistent. 2023 gave 1 mark for listing the cases and naming the oscillatory one; the $\lambda=0$ line is the extra "show".</p>
+
+<h2>Q1 (c) · Bessel</h2>
+<div class="script">
+<p>$\lambda=-k^2$: $R''+\frac1rR'+k^2R=0$. Let $s=kr$, $S(s)=R(r)$: $R'=kS'$, $R''=k^2S''$, $\frac1r=\frac ks$, so
+$$k^2\Big(S''+\frac1sS'+S\Big)=0\;\Longrightarrow\;S''+\frac1sS'+S=0,$$
+Bessel's equation of order zero. Hence $R(r)=A\,J_0(kr)+B\,Y_0(kr)$.</p>
+<p>$Y_0(kr)$ has a $\ln(kr)$ singularity and is unbounded as $r\to0$, so $B=0$.</p>
+<p>$R(3)=0$: $A\,J_0(3k)=0$ with $A\ne0$, so $J_0(3k)=0$. $J_0$ has infinitely many positive zeros $j_1\lt j_2\lt\cdots$ ($j_1\approx2.405$), so
+$$k_n=\frac{j_n}{3},\qquad R_n(r)=J_0\Big(\frac{j_nr}{3}\Big),\quad n=1,2,3,\dots$$</p>
+</div>
+<p class="note">Marks (2023 pattern): $R$ ODE in $k$; general solution; boundedness kills the second solution; $J_0(3k)=0$; infinitely many zeros. If the paper had an earlier Bessel series question, quote it: "$J_0$ is the power-series solution from Q3; the second solution contains $\ln$ (Abel)".</p>
+
+<h2>Q1 (d) · Time, ICs, series</h2>
+<div class="script">
+<p>$\ddot T_n+4k_n^2T_n=0$, so with $\omega_n=2k_n=\frac{2j_n}{3}$: $\;T_n=A_n\cos\omega_nt+B_n\sin\omega_nt$. Superposing,
+$$u(r,t)=\sum_{n=1}^\infty\big(A_n\cos\omega_nt+B_n\sin\omega_nt\big)J_0(k_nr).$$
+Flat at $t=0$: $u(r,0)=\sum A_nJ_0(k_nr)=0$ for all $r\in[0,3]$ ⇒ $A_n=0$.<br>
+$u_t(r,0)=\sum B_n\omega_nJ_0(k_nr)=9-r^2$. By orthogonality, $\int_0^3J_0(k_mr)J_0(k_nr)\,r\,dr=\frac92J_1^2(j_n)\delta_{mn}$, so
+$$B_n=\frac{2}{9\,\omega_nJ_1^2(j_n)}\int_0^3(9-r^2)J_0\Big(\frac{j_nr}3\Big)r\,dr=\frac{1}{3j_nJ_1^2(j_n)}\int_0^3(9-r^2)J_0\Big(\frac{j_nr}3\Big)r\,dr.$$
+$$\boxed{u(r,t)=\sum_{n=1}^\infty B_n\sin\Big(\frac{2j_n}{3}t\Big)J_0\Big(\frac{j_n}{3}r\Big)}$$</p>
+</div>
+<p class="note">The trap is forgetting $\omega_n$ when matching $u_t$. Check: with $80$ terms the series for $u_t(r,0)$ reproduces $9-r^2$ to $5$ figures (verified numerically). Lowest frequency $\omega_1=2(2.405)/3\approx1.60$; $\omega_2/\omega_1=j_2/j_1\approx2.30$, not an integer, so the motion isn't periodic.</p>
+
+<h2>Q2 (a) · Genuine for $t>0$</h2>
+<div class="script">
+<p>Write $n=2m-1$, $u_m=-\frac4\pi\frac{e^{-2n^2t}}{n^2}\cos nx$. Let $D=[0,\pi]\times[T,\infty)$, $T>0$. On $D$, $|\cos|,|\sin|\le1$ and $e^{-2n^2t}\le e^{-2n^2T}$.</p>
+<ol class="steps">
+<li>$|u_m|\le\dfrac{4}{\pi n^2}=a_m$; $\sum\frac1{(2m-1)^2}$ converges (compare $p=2$).</li>
+<li>$\partial_xu_m=\frac4\pi\frac{e^{-2n^2t}}{n}\sin nx$, $\;|\partial_xu_m|\le\dfrac{4}{\pi n}e^{-2n^2T}=b_m$.</li>
+<li>$\partial_x^2u_m=\frac4\pi e^{-2n^2t}\cos nx$, $\;|\partial_x^2u_m|\le\dfrac4\pi e^{-2n^2T}=c_m$.</li>
+<li>$\partial_tu_m=2\,\partial_x^2u_m$, $\;|\partial_tu_m|\le 2c_m$.</li>
+</ol>
+<p>Ratio test, using $(2m+1)^2-(2m-1)^2=8m$: $\dfrac{c_{m+1}}{c_m}=e^{-16mT}\to0\lt1$, and $\dfrac{b_{m+1}}{b_m}=\dfrac{2m-1}{2m+1}e^{-16mT}\to0\lt1$. So $\sum b_m$, $\sum c_m$ converge.</p>
+<p>By the Weierstrass test the series for $u,u_x,u_{xx},u_t$ converge uniformly on $D$, so term-by-term differentiation is justified and $u$ satisfies $u_t=2u_{xx}$ on $D$. As $T>0$ is arbitrary, $u$ is a genuine solution for $0\le x\le\pi$, $t>0$.</p>
+</div>
+<p class="note">Marks: domain with $T>0$; correct derivative series; bounds free of $x,t$; named convergence test; "Weierstrass" + conclusion. The constant $\frac\pi2$ has zero derivatives and doesn't affect convergence.</p>
+
+<h2>Q2 (b) · $u_x$ down to $t=0$</h2>
+<div class="script">
+<p><strong>No.</strong> At $t=0$ the $u_x$ series is $\frac4\pi\sum\frac{\sin((2m-1)x)}{2m-1}$, the Fourier sine series of $f'(x)=1$ on $(0,\pi)$. It sums to $1$ for $0\lt x\lt\pi$ but to $0$ at $x=0$ (and $x=\pi$). Its terms are continuous and its sum is discontinuous, so the convergence is not uniform on $[0,\pi]\times[0,\infty)$ (Gibbs phenomenon near $x=0,\pi$ as $t\to0^+$).</p>
+</div>
+<p class="note">Root cause: the IC has $f'(0)=1$ but the BC demands $u_x(0,t)=0$. That mismatch is the jump. A weaker answer, "the M-test bound $\frac4{\pi n}$ is not summable", is <em>not</em> a proof of non-uniformity (the test is only inconclusive) and would lose the justification mark.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Q1: separated form = constant · two ODEs · three cases with $T$ behaviour · oscillatory case named · $\lambda=0$: $A+B\ln r\Rightarrow0$ · $s=kr$ substitution → Bessel order $0$ · $Y_0$ unbounded ⇒ $B=0$ · $J_0(3k)=0$, infinitely many zeros, $k_n=j_n/3$ · $T_n$ · $A_n=0$ from flat start · $B_n$ with the $\omega_n$ · final series.<br>
+Q2: $D$ with $T>0$ · four bounds · ratio/p-series · Weierstrass · "genuine for $t>0$" · (b) "no" with the discontinuous-limit argument.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0032-radial-bessel-genuine-solutions.html">Lesson 32, challenge</a></span>
+  <span>Reference: <a href="../reference/topic5-cheatsheet.html">Topic 5 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

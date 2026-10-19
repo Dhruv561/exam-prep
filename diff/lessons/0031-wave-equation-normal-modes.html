@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wave Equation, Normal Modes</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/pde-wave-plot.js"></script>
+<style>
+  .katex-display { overflow-x: auto; overflow-y: hidden; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 31 · Topic 5: BVPs &amp; PDEs · Wave equation</div>
+<h1>Strings and drums: the wave equation and its normal modes</h1>
+<p class="lede">The one win: solve $u_{tt}=c^2u_{xx}$ on a string with fixed ends from <em>two</em> initial conditions (shape and velocity), say which harmonics are missing, list a drum's frequencies, and explain in one sentence why a wave keeps its kinks while heat smooths them.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topic 5 is predicted to be the biggest question (masked 2026 paper Q6 = 18 marks, parts (a)–(c), long intro). Wave pieces seen before: a drum question (19 marks, 2023), a 2-mark "heat vs wave, how does the discontinuity propagate?" part, and booklet/tute strings. The formula sheet has <strong>no</strong> separation-of-variables recipe: the three cases, the eigenfunctions and the $\frac2L\int_0^L$ coefficient formula must be memorised.</div>
+
+<h2>0 · Warm-up from Lessons 27–28</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W1.</strong> $X''-\lambda X=0$, $X(0)=X(L)=0$. The non-trivial solutions are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$X_n=\cos\frac{n\pi x}{L}$, $\lambda_n=-\frac{n^2\pi^2}{L^2}$, $n\ge0$</button>
+    <button class="opt" data-key="b">$X_n=\sin\frac{n\pi x}{L}$, $\lambda_n=-\frac{n^2\pi^2}{L^2}$, $n\ge1$</button>
+    <button class="opt" data-key="c">$X_n=\sin\frac{n\pi x}{L}$, $\lambda_n=+\frac{n^2\pi^2}{L^2}$, $n\ge1$</button>
+    <button class="opt" data-key="d">$X_n=\sinh\frac{n\pi x}{L}$, $\lambda_n=+\frac{n^2\pi^2}{L^2}$, $n\ge1$</button>
+  </div>
+  <div class="why">Only $\lambda=-k^2&lt;0$ survives Dirichlet–Dirichlet: $X=B\sin kx$ with $\sin kL=0$, $k_n=\frac{n\pi}L$. $\lambda\ge0$ gives $X\equiv0$. Cosines are the Neumann family.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W2.</strong> For the heat equation $u_t=\alpha u_{xx}$ the time factor is $T_n=e^{-\alpha k_n^2t}$. For $u_{tt}=c^2u_{xx}$, the same separation gives…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$T_n''=-c^2k_n^2T_n$, so $T_n=a_ne^{-ck_nt}$</button>
+    <button class="opt" data-key="b">$T_n'=-c^2k_n^2T_n$, so $T_n=a_ne^{-c^2k_n^2t}$</button>
+    <button class="opt" data-key="c">$T_n''=+c^2k_n^2T_n$, so $T_n=a_n\cosh ck_nt$</button>
+    <button class="opt" data-key="d">$T_n''=-c^2k_n^2T_n$, so $T_n=a_n\cos ck_nt+b_n\sin ck_nt$</button>
+  </div>
+  <div class="why">$\ddot T-c^2\lambda T=0$ with $\lambda=-k_n^2$: simple harmonic motion with angular frequency $\omega_n=ck_n$. Two constants, so two ICs are needed.</div>
+</div>
+
+<h2>1 · Words → IBVP</h2>
+<p>Lecture 26's guitar string: $u(x,t)$ = transverse displacement, $c$ = wave speed. The 2026 paper wants you to translate text yourself.</p>
+<table>
+<tr><th>The question says…</th><th>You write</th></tr>
+<tr><td>"pinned / fixed / clamped at both ends"</td><td>$u(0,t)=u(L,t)=0$</td></tr>
+<tr><td>"released from rest" / "initially not moving"</td><td>$u_t(x,0)=0$</td></tr>
+<tr><td>"from its equilibrium (straight) position"</td><td>$u(x,0)=0$</td></tr>
+<tr><td>"struck / hit with velocity $g(x)$"</td><td>$u_t(x,0)=g(x)$</td></tr>
+<tr><td>"plucked at $x=\ell$ to height $h$" (and let go)</td><td>$u(x,0)=\begin{cases}hx/\ell,&amp;0\le x\le\ell\\ h(L-x)/(L-\ell),&amp;\ell\le x\le L\end{cases}$, $u_t(x,0)=0$</td></tr>
+<tr><td>"ends free to slide" (ring on a frictionless rod)</td><td>$u_x(0,t)=u_x(L,t)=0$ (Neumann)</td></tr>
+</table>
+<p>A wave problem always needs <strong>two</strong> ICs, a heat problem one. If a text gives only a shape, the missing one is usually "released from rest".</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q1.</strong> "A string of length 3 with fixed ends lies in its equilibrium position. At $t=0$ the segment $1&lt;x&lt;2$ is hit by a hammer and given speed $v_0$." The ICs are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$u(x,0)=v_0$ on $(1,2)$, else $0$; $\;u_t(x,0)=0$</button>
+    <button class="opt" data-key="b">$u(x,0)=v_0x$ on $(1,2)$, else $0$; $\;u_t(x,0)=0$</button>
+    <button class="opt" data-key="c">$u(x,0)=0$; $\;u_t(x,0)=v_0$ on $(1,2)$, else $0$</button>
+    <button class="opt" data-key="d">$u(x,0)=0$; $\;u_t(x,0)=v_0$ on $(0,3)$ everywhere</button>
+  </div>
+  <div class="why">"Equilibrium position" = zero displacement. Speed is a velocity, so it goes in $u_t(x,0)$, and only on the struck segment.</div>
+</div>
+
+<h2>2 · Separation of variables: same 5 steps as heat</h2>
+<div class="box">
+<ol class="steps">
+<li><strong>Separate.</strong> $u=X(x)T(t)$: $\;X\ddot T=c^2X''T\Rightarrow\dfrac{\ddot T}{c^2T}=\dfrac{X''}{X}=\lambda$, so $X''-\lambda X=0$, $\;\ddot T-c^2\lambda T=0$.</li>
+<li><strong>BCs → eigenproblem.</strong> $u(0,t)=X(0)T(t)=0$ for all $t$ ⇒ $X(0)=0$ (else $u\equiv0$); same at $L$. Three cases (Lesson 27): only $\lambda_n=-k_n^2$, $k_n=\frac{n\pi}L$, $X_n=\sin k_nx$, $n=1,2,\dots$</li>
+<li><strong>Time ODE.</strong> $\ddot T_n+c^2k_n^2T_n=0\Rightarrow T_n=a_n\cos\omega_nt+b_n\sin\omega_nt$, $\;\omega_n=ck_n=\dfrac{cn\pi}{L}$.</li>
+<li><strong>Superpose.</strong> $u(x,t)=\displaystyle\sum_{n=1}^\infty\big(a_n\cos\omega_nt+b_n\sin\omega_nt\big)\sin k_nx$.</li>
+<li><strong>ICs.</strong> Differentiate in $t$, then set $t=0$:
+$$u(x,0)=\sum a_n\sin k_nx=f(x),\qquad u_t(x,0)=\sum \omega_n b_n\sin k_nx=g(x).$$</li>
+</ol>
+$$\boxed{a_n=\frac2L\int_0^Lf(x)\sin k_nx\,dx,\qquad b_n=\frac{2}{L\,\omega_n}\int_0^Lg(x)\sin k_nx\,dx}$$
+</div>
+
+<div class="trap"><strong>The $\omega_n$ trap</strong><br>
+The velocity series has coefficients $\omega_nb_n$, not $b_n$. Forgetting to divide by $\omega_n=\frac{cn\pi}{L}$ is the most common lost mark. Check: your $b_n$ should carry an extra $\frac1n$ compared with an $a_n$-type integral.</div>
+
+<p><strong>Worked (matching, no integrals).</strong> $u_{tt}=4u_{xx}$, $0&lt;x&lt;\pi$, ends fixed, $u(x,0)=3\sin2x-\sin5x$, $u_t(x,0)=6\sin x$.</p>
+<details><summary>Solution</summary><div>
+<p>$c=2$, $L=\pi$: $k_n=n$, $\omega_n=2n$. So $u=\sum(a_n\cos2nt+b_n\sin2nt)\sin nx$.</p>
+<p>$t=0$: $\sum a_n\sin nx=3\sin2x-\sin5x$ ⇒ $a_2=3$, $a_5=-1$, others $0$.</p>
+<p>$u_t(x,0)=\sum 2n\,b_n\sin nx=6\sin x$ ⇒ $2b_1=6$, $b_1=3$, others $0$.</p>
+$$u(x,t)=3\sin2t\,\sin x+3\cos4t\,\sin2x-\cos10t\,\sin5x.$$
+<p>Check: $t=0$ gives $3\sin2x-\sin5x$ ✓; $u_t(x,0)=6\sin x$ ✓; each term has $T''/T=-4n^2=4X''/X$ ✓.</p>
+</div></details>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q2.</strong> $u_{tt}=9u_{xx}$ on $0&lt;x&lt;1$, fixed ends, $u(x,0)=0$, $u_t(x,0)=\sin(2\pi x)$. Then $u=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\frac{1}{6\pi}\sin(6\pi t)\sin(2\pi x)$</button>
+    <button class="opt" data-key="b">$\frac{1}{2\pi}\sin(6\pi t)\sin(2\pi x)$</button>
+    <button class="opt" data-key="c">$\frac{1}{6\pi}\cos(6\pi t)\sin(2\pi x)$</button>
+    <button class="opt" data-key="d">$\frac{1}{3}\sin(6\pi t)\sin(2\pi x)$</button>
+  </div>
+  <div class="why">$n=2$: $\omega_2=3\cdot2\pi=6\pi$. $u(x,0)=0$ kills all $a_n$. $\omega_2b_2=1\Rightarrow b_2=\frac1{6\pi}$. (b) divided by $k_2$ instead of $\omega_2=ck_2$.</div>
+</div>
+
+<h2>3 · Plucked strings and missing harmonics</h2>
+<p>Pluck at $x=\ell$ to height $h$ on $(0,1)$, released from rest. Then $b_n=0$ and the two-piece integral (one integration by parts per piece; derived in Tute 11 Q1(b), and for $\ell=\frac12$ in Lecture 26) gives
+$$a_n=\frac{2h\,\sin(n\pi\ell)}{n^2\pi^2\,\ell(1-\ell)},\qquad u=\sum_{n=1}^\infty a_n\cos(n\pi ct)\sin(n\pi x).$$</p>
+<div class="box">
+<p><strong>Missing harmonics.</strong> Mode $n$ is absent exactly when $a_n=0$ (and $b_n=0$), here when $\sin(n\pi\ell)=0$, i.e. $n\ell\in\mathbb Z$. Physically: mode $n$ has a node (a zero of $\sin n\pi x$) at the pluck point, so plucking there cannot excite it.<br>
+$\ell=\frac12$: all even $n$ missing. $\ell=\frac13$: $n=3,6,9,\dots$ missing. $\ell=\frac14$: $n=4,8,\dots$ missing.</p>
+<p>When both ICs are present, a mode is missing only if <strong>both</strong> $a_n$ and $b_n$ vanish.</p>
+</div>
+
+<p>Below: plucked at $\ell=\frac13$ ($h=1$, $c=1$, 80 terms). Wave (solid) vs heat $u_t=0.1u_{xx}$ from the same shape (dashed). Press Play.</p>
+<div id="wave-a"></div>
+<p>Watch the wave: the corner splits into two corners that travel at speed $c$, reflect (and flip) at the fixed ends, and the shape returns exactly at $t=2L/c=2$. The heat profile rounds off the corner instantly and decays to $0$.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q3.</strong> A string on $(0,1)$ is plucked at $\ell=\frac25$ and released from rest. Which harmonics are absent?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$n=2,4,6,8,\dots$</button>
+    <button class="opt" data-key="b">$n=5,10,15,\dots$</button>
+    <button class="opt" data-key="c">$n=2,5,7,10,\dots$</button>
+    <button class="opt" data-key="d">$n=3,6,9,12,\dots$</button>
+  </div>
+  <div class="why">$\sin\frac{2n\pi}5=0\iff\frac{2n}5\in\mathbb Z\iff5\mid n$.</div>
+</div>
+
+<h2>4 · Normal modes and frequencies</h2>
+<div class="box">
+<p><strong>Normal mode</strong> (Lecture 27): $u_n(x,t)=\big(a_n\cos\omega_nt+b_n\sin\omega_nt\big)\sin k_nx$, one term of the series. Every point oscillates at the same frequency; nodes at the zeros of $\sin k_nx$ ($n-1$ interior nodes).<br>
+<strong>Normal (resonant) frequencies:</strong> $\omega_n=ck_n=\dfrac{cn\pi}{L}$. Fundamental $\omega_1=\frac{c\pi}L$; the rest are integer multiples (harmonics). In Hz: $\omega_n/2\pi=\frac{nc}{2L}$.<br>
+<strong>Period</strong> of the whole motion: $\frac{2\pi}{\omega_1}=\frac{2L}c$. Any finite sum of normal modes is a genuine solution.</p>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q4.</strong> A string's length is halved and its wave speed doubled. Its fundamental frequency is multiplied by…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$1$</button>
+    <button class="opt" data-key="b">$2$</button>
+    <button class="opt" data-key="c">$4$</button>
+    <button class="opt" data-key="d">$\tfrac12$</button>
+  </div>
+  <div class="why">$\omega_1=\frac{c\pi}L$: doubling $c$ gives $\times2$, halving $L$ gives another $\times2$.</div>
+</div>
+
+<h2>5 · Free ends (Neumann): the $n=0$ mode</h2>
+<p>Not in Lectures 26–27 (only Dirichlet strings); appears in Booklet Q14. Low priority, but know the one twist.</p>
+<div class="box">
+<p>$u_x(0,t)=u_x(L,t)=0$ ⇒ $X_n=\cos k_nx$, $n=0,1,2,\dots$ For $n=0$ ($\lambda=0$): $\ddot T_0=0\Rightarrow T_0=A_0+B_0t$, not a cosine.
+$$u=A_0+B_0t+\sum_{n\ge1}\big(a_n\cos\omega_nt+b_n\sin\omega_nt\big)\cos k_nx,$$
+with $A_0=$ mean of $f$, $B_0=$ mean of $g$ over $(0,L)$. If the initial velocity has non-zero mean, the whole string drifts off at speed $B_0$.</p>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q5.</strong> $u_{tt}=u_{xx}$, $0&lt;x&lt;1$, $u_x=0$ at both ends, $u(x,0)=0$, $u_t(x,0)=2+\cos\pi x$. Then $u=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$2+\frac1\pi\sin(\pi t)\cos(\pi x)$</button>
+    <button class="opt" data-key="b">$2t+\cos(\pi t)\cos(\pi x)$</button>
+    <button class="opt" data-key="c">$2t+\sin(\pi t)\cos(\pi x)$</button>
+    <button class="opt" data-key="d">$2t+\frac1\pi\sin(\pi t)\cos(\pi x)$</button>
+  </div>
+  <div class="why">$f=0$ ⇒ $A_0=a_n=0$. $B_0=2$ (the constant part). $n=1$: $\omega_1=\pi$, $\omega_1b_1=1\Rightarrow b_1=\frac1\pi$.</div>
+</div>
+
+<h2>6 · Rectangular drum: two indices, a dispersion relation</h2>
+<p>$u_{tt}=c^2(u_{xx}+u_{yy})$ on $0&lt;x&lt;L_x$, $0&lt;y&lt;L_y$, $u=0$ on all four edges (Lecture 27).</p>
+<div class="box">
+<p>$u=X(x)Y(y)T(t)$: divide by $c^2XYT$, so $\frac{\ddot T}{c^2T}=\frac{X''}X+\frac{Y''}Y$. Each ratio is constant:
+$$X''-\mu X=0,\qquad Y''-\nu Y=0,\qquad \ddot T-c^2(\mu+\nu)T=0.$$
+Dirichlet in both: $X_m=\sin\frac{m\pi x}{L_x}$, $Y_n=\sin\frac{n\pi y}{L_y}$, $m,n\ge1$. Then $T_{m,n}=a_{m,n}\cos\omega_{m,n}t+b_{m,n}\sin\omega_{m,n}t$ with the <strong>dispersion relation</strong>
+$$\omega_{m,n}^2=c^2\big(k_{x,m}^2+k_{y,n}^2\big)=c^2\pi^2\Big(\frac{m^2}{L_x^2}+\frac{n^2}{L_y^2}\Big).$$
+Normal mode: $u_{m,n}=T_{m,n}(t)\sin\frac{m\pi x}{L_x}\sin\frac{n\pi y}{L_y}$, with $m-1$ nodal lines parallel to the $y$-axis and $n-1$ parallel to the $x$-axis.</p>
+</div>
+<div class="box">
+<p><strong>Degenerate frequencies:</strong> different $(m,n)$ with the same $\omega$. Square, side $\pi$, $c=1$: $\omega=\sqrt{m^2+n^2}$.</p>
+<table>
+<tr><th>$m^2+n^2$</th><td>2</td><td>5</td><td>8</td><td>10</td><td>13</td><td>…</td><td>50</td></tr>
+<tr><th>modes</th><td>(1,1)</td><td>(1,2),(2,1)</td><td>(2,2)</td><td>(1,3),(3,1)</td><td>(2,3),(3,2)</td><td>…</td><td>(1,7),(7,1),(5,5)</td></tr>
+</table>
+<p>Swapping $m\leftrightarrow n$ always works on a square. Rectangles with rational $L_x/L_y$ can also be degenerate: $L_x=2$, $L_y=1$ gives $\frac{m^2}4+n^2$, equal $5$ for $(2,2)$ and $(4,1)$.<br>
+Unlike the string, $\omega_{m,n}/\omega_{1,1}$ is not an integer in general ($\sqrt{5/2}$, $2$, $\sqrt5$, …): a drum's overtones are not harmonics.</p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q6.</strong> Drum $0&lt;x&lt;3$, $0&lt;y&lt;1$, fixed edges, $c=1$. Which mode has the second-lowest frequency?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$(m,n)=(2,1)$</button>
+    <button class="opt" data-key="b">$(m,n)=(1,2)$</button>
+    <button class="opt" data-key="c">$(m,n)=(2,2)$</button>
+    <button class="opt" data-key="d">$(m,n)=(3,1)$</button>
+  </div>
+  <div class="why">$\omega^2/\pi^2=\frac{m^2}9+n^2$: $(1,1)\to\frac{10}9$, $(2,1)\to\frac{13}9$, $(3,1)\to2$, $(1,2)\to\frac{37}9$. Wiggling along the long side is cheap.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q7.</strong> On a square drum (side $\pi$, $c=1$), how many normal modes share the frequency $\omega=5$?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">one</button>
+    <button class="opt" data-key="b">three</button>
+    <button class="opt" data-key="c">two</button>
+    <button class="opt" data-key="d">four</button>
+  </div>
+  <div class="why">$m^2+n^2=25$ with $m,n\ge1$: $(3,4)$ and $(4,3)$. $(5,0)$ and $(0,5)$ are not allowed ($\sin0=0$).</div>
+</div>
+
+<h2>7 · Heat vs wave (the 1–2 sentence answer)</h2>
+<table>
+<tr><th></th><th>heat $u_t=\alpha u_{xx}$</th><th>wave $u_{tt}=c^2u_{xx}$</th></tr>
+<tr><td>time factor</td><td>$e^{-\alpha k_n^2t}$: high $n$ die fastest</td><td>$\cos\omega_nt,\sin\omega_nt$: no decay</td></tr>
+<tr><td>kink / jump in IC</td><td>smoothed instantly for $t&gt;0$</td><td>kept; travels at speed $c$, reflects at ends</td></tr>
+<tr><td>$t\to\infty$</td><td>steady state $u_S(x)$</td><td>no steady state; periodic, period $2L/c$</td></tr>
+<tr><td>genuine?</td><td>yes for $t&gt;0$ (Lecture 25)</td><td>only weak if IC has a kink or jump</td></tr>
+</table>
+<div class="box">
+<p><strong>Model answers (write one of these).</strong><br>
+<em>Heat:</em> "The exponential factors $e^{-\alpha k_n^2t}$ damp the high-frequency modes immediately, so the discontinuity is smoothed out for every $t&gt;0$ and $u$ tends to the steady state."<br>
+<em>Wave:</em> "The modes oscillate without decay, so the discontinuity is not smoothed; it propagates along the string at speed $c$, reflecting at the ends, and recurs periodically in time, with no steady state."</p>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q8.</strong> A string released from rest has a corner in its initial shape. For $t&gt;0$ the series solution…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">is smooth and decays to zero as $t\to\infty$</button>
+    <button class="opt" data-key="b">keeps corners and repeats with period $2L/c$</button>
+    <button class="opt" data-key="c">keeps corners and decays to a steady shape</button>
+    <button class="opt" data-key="d">is smooth and repeats with period $2L/c$</button>
+  </div>
+  <div class="why">Each term has period $\frac{2\pi}{\omega_n}=\frac{2L}{nc}$, which divides $\frac{2L}c$. Amplitudes don't decay, so the corners never round off (so it is only a weak solution).</div>
+</div>
+
+<h2>8 · Practice (exam level)</h2>
+<div class="box">
+<p><strong>P1.</strong> $u_{tt}=9u_{xx}$, $0&lt;x&lt;2$, fixed ends, $u(x,0)=\sin\pi x+2\sin\frac{3\pi x}2$, $u_t(x,0)=3\pi\sin\frac{\pi x}2$. (a) Solve. (b) Give the fundamental frequency and the period of the motion.</p>
+<p><strong>P2.</strong> A string of length 1 with $c=1$ and fixed ends is at rest in equilibrium; at $t=0$ the segment $0&lt;x&lt;\frac13$ is struck, given velocity $1$. (a) Write the IBVP. (b) Find $u$. (c) Which harmonics are missing?</p>
+<p><strong>P3.</strong> Drum $0&lt;x&lt;\pi$, $0&lt;y&lt;\pi$, fixed edges, $c=1$. (a) List the four lowest distinct frequencies and their modes. (b) Find a frequency shared by three modes.</p>
+<p><strong>P4.</strong> $u_t=u_{xx}$ and $v_{tt}=v_{xx}$ on $0&lt;x&lt;1$, zero at both ends, with $u(x,0)=v(x,0)=1$ for $\frac13&lt;x&lt;\frac23$ and $0$ otherwise ($v_t(x,0)=0$). In 1–2 sentences each: what happens to the jumps, and to each solution as $t\to\infty$?</p>
+</div>
+<details><summary>P1 solution</summary><div>
+<p>$k_n=\frac{n\pi}2$, $\omega_n=\frac{3n\pi}2$. Matching: $\sin\pi x=\sin k_2x$ ⇒ $a_2=1$; $2\sin\frac{3\pi x}2$ ⇒ $a_3=2$. Velocity: $\omega_1b_1=3\pi$ ⇒ $b_1=\frac{3\pi}{3\pi/2}=2$.
+$$u=2\sin\tfrac{3\pi t}2\sin\tfrac{\pi x}2+\cos(3\pi t)\sin\pi x+2\cos\tfrac{9\pi t}2\sin\tfrac{3\pi x}2.$$
+(b) $\omega_1=\frac{3\pi}2$; period $\frac{2\pi}{\omega_1}=\frac43=\frac{2L}c$ ✓.</p>
+</div></details>
+<details><summary>P2 solution</summary><div>
+<p>(a) $u_{tt}=u_{xx}$, $u(0,t)=u(1,t)=0$, $u(x,0)=0$, $u_t(x,0)=1$ on $(0,\frac13)$, $0$ on $(\frac13,1)$.</p>
+<p>(b) $a_n=0$. $\omega_n=n\pi$, $\omega_nb_n=2\int_0^{1/3}\sin n\pi x\,dx=\frac{2}{n\pi}\big(1-\cos\frac{n\pi}3\big)$, so
+$$b_n=\frac{2\big(1-\cos\frac{n\pi}3\big)}{n^2\pi^2},\qquad u=\sum_{n\ge1}\frac{2\big(1-\cos\frac{n\pi}3\big)}{n^2\pi^2}\sin(n\pi t)\sin(n\pi x).$$</p>
+<p>(c) $b_n=0\iff\cos\frac{n\pi}3=1\iff n=6,12,18,\dots$</p>
+</div></details>
+<details><summary>P3 solution</summary><div>
+<p>(a) $\omega=\sqrt{m^2+n^2}$: $\sqrt2$ $(1,1)$; $\sqrt5$ $(1,2),(2,1)$; $\sqrt8$ $(2,2)$; $\sqrt{10}$ $(1,3),(3,1)$.<br>
+(b) $\sqrt{50}$: $(1,7),(7,1),(5,5)$. (Also $\sqrt{65}$: four modes $(1,8),(8,1),(4,7),(7,4)$.)</p>
+</div></details>
+<details><summary>P4 solution</summary><div>
+<p>Heat: the factors $e^{-n^2\pi^2t}$ smooth the jumps instantly, so $u$ is smooth for $t&gt;0$ and decays to the steady state $u\equiv0$.<br>
+Wave: the modes $\cos(n\pi t)\sin(n\pi x)$ don't decay, so each jump splits into two half-height jumps travelling at speed $1$, reflecting (with sign flip) at the ends; the motion has period $2$ and no steady state.</p>
+</div></details>
+
+<h2>9 · Exam-level challenge (18 marks, about 30 minutes)</h2>
+<div class="box">
+<p>A taut string of length $1$ with wave speed $c=3$ is fixed at both ends. At $t=0$ it has displacement $\frac1{20}\sin(2\pi x)$, and at the same instant a hammer strikes the middle third $\frac13&lt;x&lt;\frac23$, giving it velocity $v_0&gt;0$ (the rest of the string has zero initial velocity).</p>
+<p>(a) Write down the PDE, BCs and ICs for the displacement $u(x,t)$. <em>[2]</em><br>
+(b) Using $u=X(x)T(t)$, show that $X''-\lambda X=0$ and $\ddot T-9\lambda T=0$. <em>[2]</em><br>
+(c) Consider $\lambda&gt;0$, $\lambda=0$, $\lambda&lt;0$ and find the eigenvalues and eigenfunctions. <em>[4]</em><br>
+(d) Write the general series solution and identify the normal frequencies. <em>[2]</em><br>
+(e) Apply the ICs to find $u(x,t)$. <em>[5]</em><br>
+(f) Which harmonics are absent? What is the period of the motion? <em>[2]</em><br>
+(g) Does $u$ approach a steady state? What happens to the kinks created at $x=\frac13,\frac23$? Answer in 1–2 sentences. <em>[1]</em></p>
+</div>
+<p>Full marking-style solution: <a href="../worked/0031-challenge-full-solution.html">worked/0031-challenge-full-solution.html</a>. Attempt every part first.</p>
+<details><summary>Answer key (quick check)</summary><div>
+<p>(c) $\lambda_n=-n^2\pi^2$, $X_n=\sin n\pi x$, $n\ge1$. (d) $\omega_n=3n\pi$.<br>
+(e) $u=\frac1{20}\cos(6\pi t)\sin(2\pi x)+\displaystyle\sum_{n\ge1}\frac{2v_0\big(\cos\frac{n\pi}3-\cos\frac{2n\pi}3\big)}{3n^2\pi^2}\sin(3n\pi t)\sin(n\pi x)$.<br>
+(f) Even $n\ge4$ absent ($n=2$ survives through the displacement); period $\frac23$. (g) No steady state; kinks travel at speed $3$ and reflect, never smoothing.</p>
+</div></details>
+
+<h2>10 · Before you close this tab</h2>
+<details><summary>Retrieval: write from memory, then check</summary><div>
+<ol>
+<li>The formula for $b_n$ from the velocity IC.</li>
+<li>When is harmonic $n$ missing from a plucked string?</li>
+<li>The time factor of the $n=0$ mode for free ends.</li>
+<li>The dispersion relation for a rectangular drum.</li>
+<li>The heat-vs-wave sentence.</li>
+</ol>
+<p><strong>Answers:</strong> (1) $b_n=\frac{2}{L\omega_n}\int_0^Lg\sin k_nx\,dx$. (2) $\sin(n\pi\ell/L)=0$: mode $n$ has a node at the pluck point. (3) $A_0+B_0t$. (4) $\omega_{m,n}^2=c^2\pi^2(m^2/L_x^2+n^2/L_y^2)$. (5) Heat damps modes so jumps smooth and $u\to u_S$; wave modes don't decay, so jumps travel at speed $c$, reflect and recur, no steady state.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/26_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 26</a> (slides 4–11: plucked guitar string by SoV; slide 13: heat vs wave; slide 14: weak, no steady state) and <a href="../lectures/27_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 27</a> (slides 3–4: normal modes; slides 5–9: rectangular drum, dispersion relation). Then Paul's Online Notes: <a href="https://tutorial.math.lamar.edu/Classes/DE/VibratingString.aspx">Vibrating String</a> (same method; he writes the velocity coefficient with the $\frac{n\pi c}{L}$ factor too).</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic5.pdf">Booklet 5</a>, Q12 (a), (b): both ICs by matching.</li>
+  <li><a href="../tutes/tute_week_11.pdf">Tute week 11</a>, Q1 (a), (b), (d): plucked at $\ell$, missing harmonics for $\ell=\frac13$.</li>
+  <li>Booklet Q14, first line only (Dirichlet, $u=u_t=x(1-x)$; two integrations by parts, the ceiling).</li>
+  <li>Optional: Booklet Q13; Q14 second line (free ends, $n=0$ mode); Tute 11 Q1 (c), (e). Skip the damped/Klein–Gordon/telegraph variants.</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo Q2, Q5, Q6 cold and the challenge's (e) without looking.</p>
+
+<div class="ask">💬 Stuck on which $n$ survive, or how to word the heat-vs-wave answer? Ask me (Claude) in the terminal and paste your working.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0030-laplace-equation-rectangle-polar.html">Lesson 30, Laplace's equation</a></span>
+  <span>Next: <a href="0032-radial-bessel-genuine-solutions.html">Lesson 32, drums and genuine solutions</a></span>
+  <span>Reference: <a href="../reference/topic5-cheatsheet.html">Topic 5 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+<script>
+  (function () {
+    const N = 80, l = 1 / 3, PI = Math.PI;
+    const a = [];
+    for (let n = 1; n <= N; n++) a[n] = 2 * Math.sin(n * PI * l) / (n * n * PI * PI * l * (1 - l));
+    const wave = (x, t) => { let s = 0; for (let n = 1; n <= N; n++) s += a[n] * Math.cos(n * PI * t) * Math.sin(n * PI * x); return s; };
+    const heat = (x, t) => { let s = 0; for (let n = 1; n <= N; n++) s += a[n] * Math.exp(-0.1 * n * n * PI * PI * t) * Math.sin(n * PI * x); return s; };
+    PdeWave.mount(document.getElementById('wave-a'), {
+      curves: [{ u: wave, label: 'wave, c = 1' }, { u: heat, label: 'heat, α = 0.1', dashed: true }],
+      L: 1, tMax: 2, speed: 0.4, y: [-1.2, 1.2],
+      xTicks: [{ v: 0, label: '0' }, { v: 1 / 3, label: '1/3' }, { v: 2 / 3, label: '2/3' }, { v: 1, label: '1' }],
+    });
+  })();
+</script>
+</body>
+</html>

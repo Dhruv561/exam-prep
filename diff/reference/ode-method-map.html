@@ -117,18 +117,19 @@
 const R = String.raw;
 
 const META = {
-  covered: 'Topic 1, Lessons 0–7; Topic 2, Lessons 8–12 (power series); Topic 3, Lessons 13–20 (Laplace); Topic 4, Lessons 21–26 (Fourier series)',
-  updated: '18 Oct 2026',
+  covered: 'Topic 1, Lessons 0–7; Topic 2, Lessons 8–12 (power series); Topic 3, Lessons 13–20 (Laplace); Topic 4, Lessons 21–26 (Fourier series); Topic 5, Lessons 27–33 (BVPs & PDEs)',
+  updated: '19 Oct 2026',
 };
 
 const LOG = [
+  ['19 Oct 2026', 'Unlocked separation of variables (Topic 5): eigen-table, heat (homog + steady/transient), Laplace rectangle/polar, wave, radial Bessel, genuine.'],
   ['18 Oct 2026', 'Unlocked Fourier series (Topic 4): extensions, product-to-sum, convergence/Gibbs/uniform, sums via plug-in or Parseval, complex form, term-by-term, periodic ODE cases.'],
   ['17 Oct 2026', 'Unlocked Laplace (Topic 3): IVP steps; repeated/resonant, Heaviside, delta, convolution, integro-differential, variable-coeff cases.'],
   ['14 Oct 2026', 'Unlocked Power series (Topic 2): steps, terminating, radius, step-3, three-term, singular-at-0, uniform/genuine cases.'],
   ['13 Oct 2026', 'Created. Topic 1 fully mapped; Topics 2–6 stubbed as later-topic boxes.'],
 ];
 
-const L = n => ({ n, href: `../lessons/${{0:'0000-assumed-knowledge',1:'0001-integrating-factors',2:'0002-reduction-of-order',3:'0003-wronskian-abel-euler',4:'0004-systems-eigenvalues',5:'0005-phase-portraits',6:'0006-inhomogeneous-matrix-exp',7:'0007-particular-solutions',8:'0008-taylor-series-radius',9:'0009-series-method-constant-coeff',10:'0010-series-variable-coeff',11:'0011-singular-points-bessel',12:'0012-uniform-convergence-genuine',14:'0014-laplace-solving-ivps',21:'0021-fourier-coefficients'}[n]}.html` });
+const L = n => ({ n, href: `../lessons/${{0:'0000-assumed-knowledge',1:'0001-integrating-factors',2:'0002-reduction-of-order',3:'0003-wronskian-abel-euler',4:'0004-systems-eigenvalues',5:'0005-phase-portraits',6:'0006-inhomogeneous-matrix-exp',7:'0007-particular-solutions',8:'0008-taylor-series-radius',9:'0009-series-method-constant-coeff',10:'0010-series-variable-coeff',11:'0011-singular-points-bessel',12:'0012-uniform-convergence-genuine',14:'0014-laplace-solving-ivps',21:'0021-fourier-coefficients',28:'0028-heat-equation-separation'}[n]}.html` });
 
 const METHODS = {
   intfactor: {
@@ -435,7 +436,28 @@ const METHODS = {
     ],
     traps: R`Using $\frac1L\int_{-L}^L$ with $\frac2L$ (double counting). Forgetting $a_0$ needs its own integral (the $a_n$ formula often divides by $n$). Missing the special $n$ in product-to-sum. Answering $f(x)$ instead of the average at a jump. Saying "uniform" for a discontinuous extension.`,
   },
-  sepvars: { future: true, title: 'Separation of variables (BVPs & PDEs)', topic: 'Topic 5', lectures: '20–27', use: R`Heat/wave/Laplace equations on a finite domain; boundary conditions at two points.` },
+  sepvars: {
+    title: 'Separation of variables (BVPs & PDEs)', lesson: L(28),
+    use: R`Heat $u_t=\alpha u_{xx}$, wave $u_{tt}=c^2u_{xx}$ or Laplace $\nabla^2u=0$ on a finite domain (interval, rectangle, disc, wedge). NOT on the formula sheet: memorise the 3 cases and the eigen-table.`,
+    form: R`$$u=X(x)T(t)\ \Rightarrow\ \frac{\dot T}{\alpha T}=\frac{X''}{X}=\lambda,\qquad u=\sum_n C_n T_n(t)X_n(x)$$`,
+    steps: [
+      R`Separate: substitute $u=XT$, divide by $XT$, set both sides $=\lambda$ ⇒ two ODEs.`,
+      R`BCs on $u$ ⇒ BCs on $X$. Work the 3 cases $\lambda>0,\ \lambda=0,\ \lambda<0$ ⇒ eigenvalues/eigenfunctions.`,
+      R`Solve the $T$ ODE for each eigenvalue (heat: $e^{-\alpha k_n^2t}$; wave: $a_n\cos\omega_nt+b_n\sin\omega_nt$).`,
+      R`Superpose: $u=\sum C_nT_nX_n$.`,
+      R`IC ⇒ coefficients: match a finite trig sum, else half-range integral $\frac2L\int_0^L f\,X_n$.`,
+    ],
+    cases: [
+      { name: 'Eigen-table', body: R`D–D: $\sin\frac{n\pi x}L$, $n\ge1$. N–N: $\cos\frac{n\pi x}L$, $n\ge0$ (constant mode). D–N: $\sin\frac{(n-\frac12)\pi x}L$. N–D: $\cos\frac{(n-\frac12)\pi x}L$. Periodic: $\cos n\theta,\sin n\theta$. <a href="../lessons/0027-bvps-eigenvalue-problems.html">Lesson 27</a>` },
+      { name: 'Homogeneous BCs (heat)', body: R`Five steps. N–N: steady state $=\frac{a_0}2$ = mean of IC. <a href="../lessons/0028-heat-equation-separation.html">Lesson 28</a>` },
+      { name: 'Inhomogeneous BCs / source', body: R`$u=u_S(x)+u_T$: $u_S$ solves the time-independent ODE + inhomogeneous BCs (polynomial trial for a source); $u_T$ gets homogeneous BCs and IC $f-u_S$. <a href="../lessons/0029-inhomogeneous-bcs-steady-transient.html">Lesson 29</a>` },
+      { name: 'Laplace equation', body: R`Eigenproblem in the variable with homogeneous BCs at both ends; other variable gets $\sinh/\cosh$ (rectangle) or $r^{\pm k}$ (polar, Euler eq.). Bounded at $r=0$ ⇒ drop $r^{-k}$, $\log r$. <a href="../lessons/0030-laplace-equation-rectangle-polar.html">Lesson 30</a>` },
+      { name: 'Wave equation', body: R`Two ICs: $u(x,0)$ gives $a_n$, $u_t(x,0)$ gives $\omega_nb_n$. Normal modes, $\omega_n=ck_n$; no steady state; kinks propagate. <a href="../lessons/0031-wave-equation-normal-modes.html">Lesson 31</a>` },
+      { name: 'Radial (disc / drum)', body: R`$R''+\frac1rR'+k^2R=0$ ⇒ Bessel order 0 via $s=kr$; bounded ⇒ $J_0(kr)$; $J_0(k_na)=0$. <a href="../lessons/0032-radial-bessel-genuine-solutions.html">Lesson 32</a>` },
+      { name: 'Genuine?', body: R`M-test on $t\ge T>0$ for $u,u_x,u_{xx},u_t$ (the $e^{-ck^2T}$ factor wins). Fails at $t=0$ if IC/BCs jump. Wave series: weak, not genuine in general. <a href="../lessons/0032-radial-bessel-genuine-solutions.html">Lesson 32</a>` },
+    ],
+    traps: R`Skipping a case (markers want all three). Forgetting the $\lambda=0$ constant mode for Neumann. Applying the IC before subtracting $u_S$. Putting the eigenproblem in the variable with inhomogeneous BCs. Wave: forgetting the $\omega_n$ factor in $b_n$.`,
+  },
   ftrans:  { future: true, title: 'Fourier transform', topic: 'Topic 6', lectures: '28', use: R`PDEs on an infinite domain. Formula sheet provided.` },
 };
 

@@ -127,7 +127,7 @@ $$b_n = \frac{2}{n\pi} + \frac{4\sin(n\pi/2)}{n^2\pi^2},\qquad f(x) \sim \sum_{n
 <p>Let
 $$f(x) = \begin{cases}\sin(\pi x), & 0\lt x<1,\\ 0, & 1\le x<2.\end{cases}$$
 Extend $f$ to an even function on $(-2,2)$ and then periodically with period 4. Call the extension $F$.</p>
-<p>(a) Sketch $F$ for $-6<x<6$. <em>[2]</em></p>
+<p>(a) Sketch $F$ for $-6\lt x<6$. <em>[2]</em></p>
 <p>(b) Find the Fourier series of $F$. Treat any exceptional value of $n$ separately. <em>[5]</em></p>
 <p>(c) Does the Fourier series converge uniformly on $\mathbb R$? Justify by quoting a result from lectures, and say how fast the coefficients decay. <em>[2]</em></p>
 </div>
@@ -144,11 +144,11 @@ The nonzero terms are the odd $n$ and the multiples of 4. The terms with $n\equi
 
 <h3>Question 3 <span class="marks">[8 marks]</span></h3>
 <div class="box">
-<p>Let $f(x) = \dfrac{1}{3-x}$ for $-1<x\le1$, extended periodically with period 2, and let $g(x)$ be its Fourier series. <strong>Do not compute any coefficients.</strong></p>
+<p>Let $f(x) = \dfrac{1}{3-x}$ for $-1\lt x\le1$, extended periodically with period 2, and let $g(x)$ be its Fourier series. <strong>Do not compute any coefficients.</strong></p>
 <p>(a) State the value of $g(x)$ for every $x\in[-3,3]$. <em>[3]</em></p>
 <p>(b) Do the partial sums of $g$ exhibit the Gibbs phenomenon? If so, where, and roughly how large is the overshoot? <em>[2]</em></p>
 <p>(c) Does $g$ converge uniformly on $\mathbb R$? Explain. <em>[1]</em></p>
-<p>(d) Let $h(x) = f(x) + f(-x)$ on $-1<x\le1$, extended with period 2. How are the Fourier coefficients of $h$ related to those of $f$? Does the Fourier series of $h$ converge uniformly? <em>[2]</em></p>
+<p>(d) Let $h(x) = f(x) + f(-x)$ on $-1\lt x\le1$, extended with period 2. How are the Fourier coefficients of $h$ related to those of $f$? Does the Fourier series of $h$ converge uniformly? <em>[2]</em></p>
 </div>
 <details><summary>Q3 marking scheme</summary><div>
 <p>(a) <strong>[1]</strong> $f$ is piecewise $C^1$, so the series converges to the periodic extension where it is continuous:
@@ -169,7 +169,7 @@ $$f(x) \sim \frac8\pi\sum_{m=1}^\infty\frac{\sin\big((2m-1)x\big)}{(2m-1)^3}.$$<
 <p>(d) Write down the complex Fourier coefficients $c_n$ of $f$ for all $n\in\mathbb Z$. <em>[2]</em></p>
 </div>
 <details><summary>Q4 marking scheme</summary><div>
-<p>(a) <strong>[1]</strong> $f(-x) = -x(\pi-|x|) = -f(x)$, so $f$ is odd and every $a_n = 0$. <strong>[1]</strong> $\Big|\frac8\pi\frac{\sin((2m-1)x)}{(2m-1)^3}\Big| \le \frac{8}{\pi(2m-1)^3} =: M_m$ for all $x$. <strong>[1]</strong> $\sum M_m \le \frac8\pi\sum\frac1{m^3}<\infty$ ($p$-series, $p=3$), so the M-test gives uniform convergence on $\mathbb R$.</p>
+<p>(a) <strong>[1]</strong> $f(-x) = -x(\pi-|x|) = -f(x)$, so $f$ is odd and every $a_n = 0$. <strong>[1]</strong> $\Big|\frac8\pi\frac{\sin((2m-1)x)}{(2m-1)^3}\Big| \le \frac{8}{\pi(2m-1)^3} =: M_m$ for all $x$. <strong>[1]</strong> $\sum M_m \le \frac8\pi\sum\frac1{m^3}\lt \infty$ ($p$-series, $p=3$), so the M-test gives uniform convergence on $\mathbb R$.</p>
 <p>(b) <strong>[1]</strong> $F$ is continuous, so the series equals $f$ everywhere. At $x=\frac\pi2$: $f(\frac\pi2) = \frac\pi2\cdot\frac\pi2 = \frac{\pi^2}{4}$ and $\sin\frac{(2m-1)\pi}{2} = (-1)^{m+1}$. <strong>[1]</strong> $\frac{\pi^2}4 = \frac8\pi\sum\frac{(-1)^{m+1}}{(2m-1)^3}$, so the sum is $\dfrac{\pi^3}{32}$.</p>
 <p>(c) <strong>[1]</strong> Parseval: $\frac1\pi\int_{-\pi}^\pi f^2\,dx = \sum b_n^2 = \frac{64}{\pi^2}\sum\frac1{(2m-1)^6}$. <strong>[1]</strong> $f^2$ is even: $\frac2\pi\int_0^\pi(\pi^2x^2 - 2\pi x^3 + x^4)\,dx = \frac2\pi\Big(\frac{\pi^5}3-\frac{\pi^5}2+\frac{\pi^5}5\Big) = \frac{\pi^4}{15}$. <strong>[1]</strong> $\sum\frac1{(2m-1)^6} = \frac{\pi^2}{64}\cdot\frac{\pi^4}{15} = \dfrac{\pi^6}{960}$.</p>
 <p>(d) <strong>[1]</strong> $c_n = \frac12(a_n - ib_n)$ for $n\ge1$, $c_{-n} = \overline{c_n}$ (real $f$), and $c_0 = \frac{a_0}2 = 0$. <strong>[1]</strong>
@@ -180,7 +180,7 @@ Check: $c_ke^{ikx}+c_{-k}e^{-ikx} = -\frac{4i}{\pi k^3}(2i\sin kx) = \frac{8}{\p
 <h3>Question 5 <span class="marks">[11 marks]</span></h3>
 <div class="box">
 <p>Let $F$ be the odd, $2\pi$-periodic function with
-$$F(x) = \begin{cases}1, & 0<x<\frac\pi2,\\ 0, & \frac\pi2<x<\pi.\end{cases}$$</p>
+$$F(x) = \begin{cases}1, & 0\lt x\lt \frac\pi2,\\ 0, & \frac\pi2\lt x\lt \pi.\end{cases}$$</p>
 <p>(a) Show that $F(x) \sim \displaystyle\sum_{n=1}^\infty b_n\sin nx$ with $b_n = \dfrac{2\big(1-\cos\frac{n\pi}2\big)}{n\pi}$. <em>[3]</em></p>
 <p>(b) Find a $2\pi$-periodic particular solution of $\;y'' + 2y = F(x)\;$ by trialling a general Fourier series. <em>[3]</em></p>
 <p>(c) Now replace $2$ by $N^2$, where $N$ is a positive integer. For which $N$ does $y''+N^2y = F(x)$ have no $2\pi$-periodic solution? What happens when $N=4$? <em>[2]</em></p>
@@ -228,7 +228,7 @@ $$G(x) = \frac{3\pi}{8} - \sum_{n=1}^\infty\frac{2\big(1-\cos\frac{n\pi}2\big)}{
 <div class="nav">
   <span>Builds on: <a href="0021-fourier-coefficients.html">21</a> to <a href="0025-term-by-term-periodic-odes.html">25</a></span>
   <span>Previous: <a href="0025-term-by-term-periodic-odes.html">Lesson 25</a></span>
-  <span>Next: <a href="../reference/topic4-cheatsheet.html">Topic 4 cheat sheet</a></span>
+  <span>Next: <a href="../reference/topic4-cheatsheet.html">Topic 4 cheat sheet</a>, then <a href="0027-bvps-eigenvalue-problems.html">Lesson 27</a> (Topic 5)</span>
 </div>
 
 <div class="score" data-score></div>

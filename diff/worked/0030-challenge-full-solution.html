@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quarter-Annulus Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 30 · Exam-level challenge · Full written solution</div>
+<h1>The quarter-annulus, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>Plate $1&lt;r&lt;2$, $0\le\theta\le\frac\pi2$, steady state $u_{rr}+\frac1ru_r+\frac1{r^2}u_{\theta\theta}=0$. Edge $\theta=0$ held at $0$; edge $\theta=\frac\pi2$ insulated; outer arc at $0$; inner arc temperature $\sin\theta-2\sin5\theta$.</p>
+<p>(a) BCs <em>[2]</em> (b) separated ODEs <em>[3]</em> (c) eigenvalues/eigenfunctions, three cases <em>[5]</em> (d) $R_n$ <em>[4]</em> (e) $u(r,\theta)$ <em>[4]</em> (f) temperature at $r=\sqrt2$ on the insulated edge <em>[2]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · Boundary conditions</h2>
+<div class="script">
+<p>$u(r,0)=0$, $\;\dfrac{\partial u}{\partial\theta}(r,\tfrac\pi2)=0$ for $1&lt;r&lt;2$; $\;u(2,\theta)=0$, $\;u(1,\theta)=\sin\theta-2\sin5\theta$ for $0\le\theta\le\frac\pi2$.</p>
+</div>
+<p class="note">"Insulated" = zero normal derivative. On a radial edge the normal is the $\theta$ direction, so it is $\frac1r u_\theta=0$, i.e. $u_\theta=0$.</p>
+
+<h2>(b) · Separation</h2>
+<div class="script">
+<p>Let $u=R(r)\Theta(\theta)$. Then $R''\Theta+\frac1rR'\Theta+\frac1{r^2}R\Theta''=0$. Multiply by $\dfrac{r^2}{R\Theta}$:
+$$\frac{r^2R''+rR'}{R}=-\frac{\Theta''}{\Theta}.$$
+The left side depends only on $r$, the right only on $\theta$, so both equal a constant $\lambda$:
+$$r^2R''+rR'-\lambda R=0,\qquad \Theta''+\lambda\Theta=0.$$</p>
+</div>
+<p class="note">The "depends only on … so constant" sentence is the mark. Don't divide by $r^2$ the wrong way round: you need the $r$-terms all on one side.</p>
+
+<h2>(c) · Eigenvalue problem in $\theta$</h2>
+<div class="script">
+<p>$u(r,0)=R(r)\Theta(0)=0$ for all $r$ ⇒ $\Theta(0)=0$ (else $u\equiv0$). Similarly $\Theta'(\frac\pi2)=0$.</p>
+<p><strong>$\lambda=-k^2&lt;0$:</strong> $\Theta=A\cosh k\theta+B\sinh k\theta$. $\Theta(0)=0\Rightarrow A=0$; $\Theta'(\frac\pi2)=Bk\cosh\frac{k\pi}2=0\Rightarrow B=0$ since $\cosh&gt;0$. Trivial.</p>
+<p><strong>$\lambda=0$:</strong> $\Theta=A+B\theta$. $A=0$, $\Theta'=B=0$. Trivial.</p>
+<p><strong>$\lambda=k^2&gt;0$:</strong> $\Theta=A\cos k\theta+B\sin k\theta$. $A=0$; $\Theta'(\frac\pi2)=Bk\cos\frac{k\pi}2=0\Rightarrow \frac{k\pi}2=(n-\frac12)\pi\Rightarrow k=2n-1$.</p>
+$$\lambda_n=(2n-1)^2,\qquad \Theta_n(\theta)=\sin\big((2n-1)\theta\big),\quad n=1,2,3,\dots$$
+</div>
+<p class="note">Check against the table: Dirichlet at $0$, Neumann at $\beta=\frac\pi2$ ⇒ $\sin\frac{(n-\frac12)\pi\theta}{\beta}=\sin(2n-1)\theta$. Both $\sin\theta$ and $\sin5\theta$ in the data are in this family ($n=1,3$), which is your sign the setup is right.</p>
+
+<h2>(d) · Radial equation</h2>
+<div class="script">
+<p>$r^2R''+rR'-(2n-1)^2R=0$ is an Euler equation. Try $R=r^m$: $m(m-1)+m-(2n-1)^2=0\Rightarrow m=\pm(2n-1)$. So
+$$R_n=A_nr^{2n-1}+B_nr^{-(2n-1)}.$$
+Both are kept: $r=0$ is not in the domain. $u(2,\theta)=0\Rightarrow R_n(2)=0$, so (up to a constant)
+$$R_n(r)=\Big(\frac2r\Big)^{2n-1}-\Big(\frac r2\Big)^{2n-1}.$$</p>
+</div>
+<p class="note">Long way: $A_n2^{k}+B_n2^{-k}=0\Rightarrow B_n=-4^{k}A_n$, same thing. Writing $(\frac ba)^{k}$-style ratios directly is the polar version of $\sinh(k(b-y))$. Saying why $r^{-k}$ stays (no origin) is worth a line.</p>
+
+<h2>(e) · Superpose and match</h2>
+<div class="script">
+$$u(r,\theta)=\sum_{n=1}^\infty c_n\Big[\Big(\frac2r\Big)^{2n-1}-\Big(\frac r2\Big)^{2n-1}\Big]\sin\big((2n-1)\theta\big).$$
+<p>At $r=1$: $\displaystyle\sum c_n\big(2^{2n-1}-2^{-(2n-1)}\big)\sin(2n-1)\theta=\sin\theta-2\sin5\theta$. Match:</p>
+<p>$n=1$: $c_1(2-\frac12)=1\Rightarrow c_1=\frac23$. $\quad n=3$: $c_3(32-\frac1{32})=-2\Rightarrow c_3=-\frac{64}{1023}$. All other $c_n=0$.</p>
+$$u(r,\theta)=\frac{4-r^2}{3r}\sin\theta-\frac{2(1024-r^{10})}{1023\,r^5}\sin5\theta.$$
+</div>
+<p class="note">Simplify: $\frac23(\frac2r-\frac r2)=\frac23\cdot\frac{4-r^2}{2r}$, and $-\frac{64}{1023}\cdot\frac{1024-r^{10}}{32r^5}$. Quick check: $r=2$ gives $0$ ✓, $r=1$ gives $1\cdot\sin\theta-\frac{2\cdot1023}{1023}\sin5\theta$ ✓. Verified in sympy: $\nabla^2u=0$ and all four BCs.</p>
+
+<h2>(f) · A point value</h2>
+<div class="script">
+<p>Insulated edge: $\theta=\frac\pi2$, $\sin\frac\pi2=1$, $\sin\frac{5\pi}2=1$. At $r=\sqrt2$: $r^2=2$, $r^{10}=32$, $r^5=4\sqrt2$.
+$$u=\frac{2}{3\sqrt2}-\frac{2\cdot992}{1023\cdot4\sqrt2}=\frac{\sqrt2}{3}-\frac{4\sqrt2}{33}=\frac{\sqrt2}{11}\approx0.129.$$</p>
+</div>
+<p class="note">$992/1023=32/33$ (both divisible by 31). If you got a different number, recheck $\sin\frac{5\pi}2=+1$.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+BCs incl. $u_\theta=0$ for "insulated" · separation with "function of $r$ = function of $\theta$ = constant" · $\Theta(0)=0$, $\Theta'(\frac\pi2)=0$ from $u=R\Theta$ · three cases, $\cosh&gt;0$ reason · $k=2n-1$ · Euler trial $r^m$, $m=\pm k$ · both powers kept (no origin) · $R_n(2)=0$ · superposition · matching $n=1,3$ only · final $u$ · $\sqrt2/11$.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0030-laplace-equation-rectangle-polar.html">Lesson 30, challenge</a></span>
+  <span>Reference: <a href="../reference/topic5-cheatsheet.html">Topic 5 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

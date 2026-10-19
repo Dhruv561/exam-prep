@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heat Equation by Separation</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/pde-heat-plot.js"></script>
+<style>
+  .marks { font-family: Inter, system-ui, sans-serif; font-weight: 600; }
+  .tblwrap { overflow-x: auto; }
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .step { font-family: Inter, system-ui, sans-serif; font-size: .78rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); margin: 1rem 0 .2rem; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 28 · Topic 5: BVPs &amp; PDEs · Heat equation by separation</div>
+<h1>The heat equation in five steps</h1>
+<p class="lede">The one win: read a rod problem in words, turn it into an IBVP, and write the five-step separation-of-variables answer for Dirichlet, Neumann or mixed ends. Then get the coefficients either by matching or by one half-range integral, and sketch how $u$ evolves.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topic 5 is predicted to be the biggest question on the paper (masked 2026 Q6 is 18 marks, parts (a)–(c), with a long setup). Every heat question, including the inhomogeneous ones in <a href="0029-inhomogeneous-bcs-steady-transient.html">Lesson 29</a>, ends with exactly the homogeneous problem solved here. The formula sheet has no separation recipe, no eigenfunctions and no half-range formulas. All of this page must be memorised.</div>
+
+<h2>0 · Warm-up from Lesson 27</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W1.</strong> $X''-\lambda X=0$, $X'(0)=X'(L)=0$. The non-trivial solutions are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\sin\frac{n\pi x}{L}$ for $n\ge1$, with $\lambda=-\frac{n^2\pi^2}{L^2}$</button>
+    <button class="opt" data-key="b">$\cos\frac{n\pi x}{L}$ for $n\ge0$, with $\lambda=-\frac{n^2\pi^2}{L^2}$</button>
+    <button class="opt" data-key="c">$\cos\frac{n\pi x}{L}$ for $n\ge1$, with $\lambda=+\frac{n^2\pi^2}{L^2}$</button>
+    <button class="opt" data-key="d">$\sin\frac{n\pi x}{L}$ for $n\ge0$, with $\lambda=+\frac{n^2\pi^2}{L^2}$</button>
+  </div>
+  <div class="why">Neumann–Neumann: cosines, and $n=0$ is allowed because $\lambda=0$ gives the constant $X=1$. With the lecture form $X''-\lambda X=0$, oscillation needs $\lambda=-k^2\lt 0$.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W2.</strong> $X''-\lambda X=0$, $X'(0)=0$, $X(L)=0$. The eigenfunctions are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\sin\frac{(2n-1)\pi x}{2L}$, $n\ge1$</button>
+    <button class="opt" data-key="b">$\cos\frac{n\pi x}{L}$, $n\ge0$</button>
+    <button class="opt" data-key="c">$\sin\frac{n\pi x}{L}$, $n\ge1$</button>
+    <button class="opt" data-key="d">$\cos\frac{(2n-1)\pi x}{2L}$, $n\ge1$</button>
+  </div>
+  <div class="why">$X'(0)=0$ kills $\sin$, leaving $\cos kx$. Then $\cos kL=0$ gives $kL=(n-\tfrac12)\pi$. Mixed ends always give the "half-odd" wavenumbers $k_n=\frac{(2n-1)\pi}{2L}$, and no $\lambda=0$ mode.</div>
+</div>
+
+<h2>1 · Words → IBVP</h2>
+<p>A 2026-format question gives you a paragraph and expects you to write the PDE, BCs and IC yourself (Lecture 22, slide 3).</p>
+<div class="tblwrap"><table>
+<tr><th>The question says</th><th>You write</th></tr>
+<tr><td>"lateral surface insulated", "insulated except at its ends", "sides insulated"</td><td>Nothing at $x=0,L$. It only justifies the 1D equation $u_t=\alpha u_{xx}$ (heat leaves through the ends only).</td></tr>
+<tr><td>"end held in ice", "kept at zero temperature", "quenched in ice"</td><td>$u=0$ at that end (Dirichlet)</td></tr>
+<tr><td>"end insulated", "no heat flows through the end", "reflecting"</td><td>$u_x=0$ at that end (Neumann)</td></tr>
+<tr><td>"rod entirely / perfectly insulated"</td><td>$u_x(0,t)=u_x(L,t)=0$</td></tr>
+<tr><td>"end held at temperature $T_0\ne0$"</td><td>$u=T_0$: inhomogeneous, so use <a href="0029-inhomogeneous-bcs-steady-transient.html">Lesson 29</a></td></tr>
+<tr><td>"initially at temperature $f(x)$", "initially uniform at $T_1$"</td><td>$u(x,0)=f(x)$, or $u(x,0)=T_1$</td></tr>
+</table></div>
+<p>Always add the ranges: PDE for $0\lt x\lt L$, $t\gt 0$; BCs for $t\gt 0$; IC for $0\lt x\lt L$.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q1.</strong> "A rod of length $3$ is insulated except at its ends, which are kept at $0^\circ$C." The BCs are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$u_x(0,t)=u_x(3,t)=0$</button>
+    <button class="opt" data-key="b">$u(0,t)=0,\ u_x(3,t)=0$</button>
+    <button class="opt" data-key="c">$u(0,t)=u(3,t)=0$</button>
+    <button class="opt" data-key="d">$u_x(0,t)=0,\ u(3,t)=0$</button>
+  </div>
+  <div class="why">"Insulated except at its ends" is about the sides, so it gives no BC. The ends are "kept at $0$", which is Dirichlet at both. Reading "insulated" as $u_x=0$ is the trap.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q2.</strong> "The end $x=0$ is insulated and the end $x=L$ is held in ice." The BCs are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$u_x(0,t)=0,\ u(L,t)=0$</button>
+    <button class="opt" data-key="b">$u(0,t)=0,\ u_x(L,t)=0$</button>
+    <button class="opt" data-key="c">$u_x(0,t)=0,\ u_x(L,t)=0$</button>
+    <button class="opt" data-key="d">$u(0,t)=0,\ u(L,t)=0$</button>
+  </div>
+  <div class="why">Insulated end: no flux, $u_x=0$. Ice: $u=0$. The eigenfunctions are then $\cos\frac{(2n-1)\pi x}{2L}$ (W2).</div>
+</div>
+
+<h2>2 · The five-step answer template</h2>
+<p>These are the lecture's five steps (Lecture 22, slide 4). Write the step names on the exam: the marking follows them.</p>
+<div class="box">
+<ol class="steps">
+<li><strong>Separate.</strong> $u=X(x)T(t)$ gives $\dfrac{T'}{\alpha T}=\dfrac{X''}{X}=\lambda$, so $X''-\lambda X=0$ and $T'-\alpha\lambda T=0$. Say why it is constant: the left side depends on $t$ only, the right on $x$ only.</li>
+<li><strong>BCs → eigenvalue problem, three cases.</strong> Turn the BCs into BCs on $X$ (since $T\not\equiv0$). Do $\lambda=k^2\gt 0$, $\lambda=0$, $\lambda=-k^2\lt 0$.</li>
+<li><strong>Solve for $T_n$.</strong> $T_n=e^{\alpha\lambda_n t}=e^{-\alpha k_n^2 t}$.</li>
+<li><strong>Superpose.</strong> $u=\sum C_n e^{-\alpha k_n^2t}X_n(x)$ (plus the constant if $\lambda=0$ survived).</li>
+<li><strong>IC.</strong> Set $t=0$ and find the $C_n$: by matching, or by the half-range integral.</li>
+</ol>
+</div>
+
+<p><strong>Worked example.</strong> $u_t=2u_{xx}$, $0\lt x\lt 4$, both ends in ice, $u(x,0)=5\sin\frac{\pi x}{2}+\sin\frac{3\pi x}{4}$.</p>
+<div class="script">
+<p class="step">1 · Separate</p>
+<p>$u=XT$: $XT'=2X''T\Rightarrow\dfrac{T'}{2T}=\dfrac{X''}{X}=\lambda$ (a function of $t$ equals a function of $x$, so both are constant). So $X''-\lambda X=0$ and $T'-2\lambda T=0$.</p>
+<p class="step">2 · Eigenvalue problem</p>
+<p>$u(0,t)=X(0)T(t)=0$ for all $t$ and $T\not\equiv0$, so $X(0)=0$. Likewise $X(4)=0$.</p>
+<p>$\lambda=k^2\gt 0$: $X=Ae^{kx}+Be^{-kx}$. $X(0)=0\Rightarrow B=-A$, so $X=2A\sinh kx$; $X(4)=2A\sinh4k=0\Rightarrow A=0$. Trivial.</p>
+<p>$\lambda=0$: $X=Ax+B$. $X(0)=0\Rightarrow B=0$; $X(4)=4A=0\Rightarrow A=0$. Trivial.</p>
+<p>$\lambda=-k^2\lt 0$: $X=A\cos kx+B\sin kx$. $X(0)=0\Rightarrow A=0$. $X(4)=B\sin4k=0$ with $B\ne0\Rightarrow k_n=\frac{n\pi}{4}$. So $X_n=\sin\frac{n\pi x}4$, $\lambda_n=-\frac{n^2\pi^2}{16}$, $n=1,2,\dots$</p>
+<p class="step">3 · Time ODE</p>
+<p>$T_n'+2k_n^2T_n=0\Rightarrow T_n=e^{-2k_n^2t}=e^{-n^2\pi^2t/8}$.</p>
+<p class="step">4 · Superpose</p>
+$$u(x,t)=\sum_{n=1}^\infty C_n\,e^{-n^2\pi^2t/8}\sin\frac{n\pi x}{4}.$$
+<p class="step">5 · IC by matching</p>
+<p>$\sum C_n\sin\frac{n\pi x}4=5\sin\frac{2\pi x}{4}+\sin\frac{3\pi x}{4}$. By linear independence of the $\sin\frac{n\pi x}4$: $C_2=5$, $C_3=1$, all other $C_n=0$.</p>
+$$u(x,t)=5e^{-\pi^2t/2}\sin\frac{\pi x}{2}+e^{-9\pi^2t/8}\sin\frac{3\pi x}{4}.$$
+</div>
+<p>Check (worth 10 seconds): each term satisfies the PDE ($-\alpha k^2=-2k^2$ on both sides), vanishes at $x=0,4$, and $t=0$ returns the IC.</p>
+
+<div id="plot-a"></div>
+<p>Slide $t$ up: the $\sin\frac{3\pi x}{4}$ ripple decays about twice as fast ($\frac{9\pi^2}{8}$ vs $\frac{\pi^2}{2}$), so the curve becomes a single hump before it flattens to $0$.</p>
+
+<div class="trap"><strong>Notation for the separation constant</strong><br>
+The lecture writes $\frac{T'}{\alpha T}=\frac{X''}{X}=\lambda$, so the oscillating case is $\lambda=-k^2\lt0$ and $T=e^{\alpha\lambda t}$. If a question writes $\frac{T'}{T}=\alpha\frac{X''}{X}=\mu$, then $\mu=\alpha\lambda$. Paul's Notes use $X''+\lambda X=0$, so their eigenvalues are positive. All are fine. Use the form the question gives, state it, and stay consistent. If the question says "you may assume $\lambda\ge0$ gives trivial solutions", skip those two cases.</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q3.</strong> For $u_t=3u_{xx}$ you separate as $\frac{T'}{T}=\frac{3X''}{X}=\mu$. With Dirichlet ends on $(0,L)$, the allowed values of $\mu$ are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\mu_n=-\frac{n^2\pi^2}{L^2}$</button>
+    <button class="opt" data-key="b">$\mu_n=-\frac{3n^2\pi^2}{L^2}$</button>
+    <button class="opt" data-key="c">$\mu_n=+\frac{3n^2\pi^2}{L^2}$</button>
+    <button class="opt" data-key="d">$\mu_n=-\frac{n^2\pi^2}{3L^2}$</button>
+  </div>
+  <div class="why">$X''=\frac{\mu}{3}X$, so $\frac\mu3=-k_n^2=-\frac{n^2\pi^2}{L^2}$. Then $T_n=e^{\mu_nt}=e^{-3n^2\pi^2t/L^2}$, the same answer as with the lecture's $\lambda$.</div>
+</div>
+
+<h2>3 · Swap the BCs: the four homogeneous cases</h2>
+<p>Steps 1, 3 and 4 never change. Step 2 gives (derivations in <a href="0027-bvps-eigenvalue-problems.html">Lesson 27</a>):</p>
+<div class="tblwrap"><table>
+<tr><th>BCs</th><th>$X_n$</th><th>$k_n$</th><th>General solution</th></tr>
+<tr><td>$u=0$, $u=0$</td><td>$\sin k_nx$, $n\ge1$</td><td>$\frac{n\pi}{L}$</td><td>$\sum C_ne^{-\alpha k_n^2t}\sin k_nx$</td></tr>
+<tr><td>$u_x=0$, $u_x=0$</td><td>$1$; $\cos k_nx$, $n\ge1$</td><td>$\frac{n\pi}{L}$</td><td>$\frac{a_0}2+\sum a_ne^{-\alpha k_n^2t}\cos k_nx$</td></tr>
+<tr><td>$u(0)=0$, $u_x(L)=0$</td><td>$\sin k_nx$, $n\ge1$</td><td>$\frac{(2n-1)\pi}{2L}$</td><td>$\sum C_ne^{-\alpha k_n^2t}\sin k_nx$</td></tr>
+<tr><td>$u_x(0)=0$, $u(L)=0$</td><td>$\cos k_nx$, $n\ge1$</td><td>$\frac{(2n-1)\pi}{2L}$</td><td>$\sum C_ne^{-\alpha k_n^2t}\cos k_nx$</td></tr>
+</table></div>
+<div class="box">
+<p><strong>Coefficients (all four cases, memorise):</strong> $\displaystyle C_n=\frac2L\int_0^L f(x)\,X_n(x)\,dx$, and for Neumann–Neumann also $\displaystyle a_0=\frac2L\int_0^Lf(x)\,dx$.</p>
+<p>The $\frac2L$ works because $\int_0^LX_n^2\,dx=\frac L2$ for every $X_n$ in the table, the quarter-wave ones included.</p>
+</div>
+
+<p><strong>Neumann step 2, written out</strong> (the case where $\lambda=0$ survives, Lecture 23 slides 5–7):</p>
+<div class="script">
+<p>$X'(0)=X'(L)=0$. $\lambda=k^2\gt0$: $X'=k(Ae^{kx}-Be^{-kx})$, so $A=B$ and then $2Ak\sinh kL=0\Rightarrow A=0$. Trivial.<br>
+$\lambda=0$: $X=Ax+B$, $X'=A=0$; $B$ is free. <strong>Non-trivial:</strong> $X_0=1$, $\lambda_0=0$, and $T_0=1$.<br>
+$\lambda=-k^2$: $X'=-Ak\sin kx+Bk\cos kx$. $X'(0)=0\Rightarrow B=0$; $X'(L)=-Ak\sin kL=0\Rightarrow k_n=\frac{n\pi}L$. $X_n=\cos\frac{n\pi x}L$.</p>
+</div>
+
+<h2>4 · Step 5, route A: matching (IC is a finite trig sum)</h2>
+<p>If $f$ is already a finite sum of the eigenfunctions $X_n$, read off the coefficients. No integrals.</p>
+<ol>
+<li>Rewrite $f$ using the sheet's product-to-sum formulas if needed: $\sin^2x=\tfrac12(1-\cos2x)$, $2\sin x\cos x=\sin2x$, $\cos^2x=\tfrac12(1+\cos2x)$.</li>
+<li>Write each term as $X_n$ for a specific $n$. For example, on $(0,4)$ with Dirichlet ends, $\sin\frac{\pi x}{2}=\sin\frac{2\pi x}{4}$, so $n=2$.</li>
+<li>Say "by linear independence (orthogonality), $C_2=\dots$, all other $C_n=0$". That sentence is the mark.</li>
+</ol>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q4.</strong> $u_t=\alpha u_{xx}$ on $(0,\pi)$, $u(0,t)=u(\pi,t)=0$, $u(x,0)=2\sin x\cos x$. Then $u(x,t)=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{-4\alpha t}\sin2x$</button>
+    <button class="opt" data-key="b">$2e^{-\alpha t}\sin x\cos x$</button>
+    <button class="opt" data-key="c">$e^{-2\alpha t}\sin2x$</button>
+    <button class="opt" data-key="d">$2e^{-4\alpha t}\sin2x$</button>
+  </div>
+  <div class="why">$2\sin x\cos x=\sin2x=X_2$, with $k_2=2$, so the decay is $e^{-\alpha k_2^2t}=e^{-4\alpha t}$. Option (b) is not even a solution: $\sin x\cos x$ is not an eigenfunction until you rewrite it.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q5.</strong> Dirichlet ends on $(0,1)$ and $u(x,0)=\sin\frac{\pi x}{2}$. To find the coefficients you…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">match, since it is $X_n$ with $n=\tfrac12$</button>
+    <button class="opt" data-key="b">match, since it is $X_n$ with $n=1$</button>
+    <button class="opt" data-key="c">integrate, since it is not any $X_n$</button>
+    <button class="opt" data-key="d">integrate, since it fails the BCs</button>
+  </div>
+  <div class="why">The eigenfunctions are $\sin n\pi x$ with integer $n\ge1$; $\sin\frac{\pi x}{2}$ is none of them, so every $C_n$ is generally non-zero and you need $C_n=2\int_0^1\sin\frac{\pi x}2\sin n\pi x\,dx$. (Under $u(0)=0,\ u_x(1)=0$ it <em>would</em> be $X_1$: always check against the correct $k_n$.)</div>
+</div>
+
+<h2>5 · Step 5, route B: one half-range integral</h2>
+<p>For polynomial or piecewise $f$, step 5 is a Topic 4 half-range series, so reuse Lesson 22's results. Take $f(x)=2-x$ on $(0,2)$ with $\alpha=1$:</p>
+<details><summary>Dirichlet ends: sine series</summary><div>
+<p>Lesson 22 computed $b_n=\frac{4}{n\pi}$. So
+$$u(x,t)=\sum_{n=1}^\infty\frac{4}{n\pi}\,e^{-n^2\pi^2t/4}\sin\frac{n\pi x}{2}.$$</p>
+</div></details>
+<details><summary>Neumann ends: cosine series</summary><div>
+<p>Lesson 22: $a_0=2$, $a_n=\frac{4(1-(-1)^n)}{n^2\pi^2}$, which is $\frac{8}{(2m-1)^2\pi^2}$ for $n=2m-1$ and $0$ for even $n$. So
+$$u(x,t)=1+\frac{8}{\pi^2}\sum_{m=1}^\infty\frac{1}{(2m-1)^2}\,e^{-(2m-1)^2\pi^2t/4}\cos\frac{(2m-1)\pi x}{2}.$$</p>
+</div></details>
+<p>Same IC, different ends. Compare the two below. Turn on "Exam sketch" to see $t=0,t_1,t_2$ with $u(x,\infty)$ dashed.</p>
+<p><strong>Dirichlet:</strong> the value $2$ at $x=0$ drops to $0$ instantly, and everything decays to $0$.</p>
+<div id="plot-b"></div>
+<p><strong>Neumann:</strong> the slope at each end becomes $0$ instantly, and $u\to1$, the mean of $2-x$.</p>
+<div id="plot-c"></div>
+
+<h2>6 · The $\lambda_0=0$ mode: steady state</h2>
+<div class="box">
+<p>As $t\to\infty$ every $e^{-\alpha k_n^2t}\to0$. What survives is the $\lambda=0$ term:</p>
+<ul>
+<li><strong>At least one Dirichlet end</strong> (D–D, D–N, N–D): no $\lambda=0$ mode, so $u\to0$.</li>
+<li><strong>Both ends insulated</strong> (N–N): $u\to\dfrac{a_0}2=\dfrac1L\displaystyle\int_0^Lf(x)\,dx$, the <em>mean of the IC</em>. Heat can't escape, so it spreads out evenly.</li>
+</ul>
+<p>So "find the steady state, do not solve the full problem" for an insulated rod is one integral (or an area from a graph) divided by $L$.</p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q6.</strong> A rod $0\lt x\lt 4$ is entirely insulated with $u(x,0)=x^2$. As $t\to\infty$, $u\to$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac{16}{3}$</button>
+    <button class="opt" data-key="b">$\tfrac{32}{3}$</button>
+    <button class="opt" data-key="c">$\tfrac{64}{3}$</button>
+    <button class="opt" data-key="d">$0$</button>
+  </div>
+  <div class="why">Mean $=\frac14\int_0^4x^2\,dx=\frac14\cdot\frac{64}{3}=\frac{16}3$. Option (b) is $\frac{a_0}{1}$ instead of $\frac{a_0}2$ (with $a_0=\frac24\cdot\frac{64}3=\frac{32}3$), and (c) forgets to divide by $L$.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q7.</strong> The end $x=0$ is insulated, the end $x=L$ is in ice, and $u(x,0)=5$. As $t\to\infty$, $u\to$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$5$</button>
+    <button class="opt" data-key="b">$\tfrac52$</button>
+    <button class="opt" data-key="c">$5\cos\frac{\pi x}{2L}$</button>
+    <button class="opt" data-key="d">$0$</button>
+  </div>
+  <div class="why">Mixed ends: no $\lambda=0$ mode, so all heat leaves through the iced end and $u\to0$. Option (c) is the <em>shape</em> as $u\to0$ (the slowest mode), not the limit.</div>
+</div>
+
+<h2>7 · Sketching $u(x,0)$, $u(x,t_1)$, $u(x,t_2)$, $u(x,\infty)$</h2>
+<div class="box">
+<ol class="steps">
+<li>$t=0$: draw $f$ exactly, corners and jumps included.</li>
+<li>Any $t\gt0$: a <strong>smooth</strong> curve that obeys the BCs, even where $f$ didn't. Dirichlet end: through $0$. Neumann end: flat (horizontal tangent).</li>
+<li>Peaks drop and troughs rise. No new maxima or minima appear. Wiggles (high $n$) die first, at rate $\alpha k_n^2$.</li>
+<li>Large $t$: the shape is the first surviving mode, e.g. a $\sin\frac{\pi x}L$ hump (D–D), a quarter-wave $\sin\frac{\pi x}{2L}$ (D–N), or a $\cos\frac{\pi x}{L}$ tilt about the mean (N–N).</li>
+<li>$t=\infty$: the horizontal line $u=0$, or $u=$ mean for N–N. For N–N, keep the area under each curve the same as at $t=0$.</li>
+</ol>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q8.</strong> $u(x,t)=3e^{-4t}\sin2x-e^{-t}\sin x$ on $(0,\pi)$. For large $t$, $u(\tfrac\pi2,t)$ is approximately…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$+3e^{-4t}$, so positive</button>
+    <button class="opt" data-key="b">$-e^{-t}$, so negative</button>
+    <button class="opt" data-key="c">$+e^{-t}$, so positive</button>
+    <button class="opt" data-key="d">$-3e^{-4t}$, so negative</button>
+  </div>
+  <div class="why">The slowest mode ($k=1$, rate $1$) dominates. At $x=\frac\pi2$ the $\sin2x$ term is $0$ anyway, so $u(\frac\pi2,t)=-e^{-t}$ exactly. The profile ends as a downward $\sin x$ dip.</div>
+</div>
+
+<h2>8 · Practice (exam level)</h2>
+<p>Write each in full on paper with the step headings, then open the solution.</p>
+
+<h3>P1 <span class="marks">[6 marks]</span></h3>
+<div class="box">
+<p>$u_t=5u_{xx}$ for $0\lt x\lt 3$, $t\gt0$. Both ends are held in ice, and $u(x,0)=2\sin(\pi x)-6\sin\frac{2\pi x}{3}$.</p>
+<p>(a) Write down the eigenfunctions and the general series solution satisfying the BCs (you may quote the three-case result). <em>[2]</em><br>
+(b) Find $u(x,t)$. <em>[2]</em><br>
+(c) Find $u(\tfrac32,t)$ and describe the profile for large $t$. <em>[2]</em></p>
+</div>
+<details><summary>P1 solution</summary><div>
+<p>(a) $X_n=\sin\frac{n\pi x}3$, $k_n=\frac{n\pi}3$, $T_n=e^{-5n^2\pi^2t/9}$. $u=\sum_{n\ge1}C_ne^{-5n^2\pi^2t/9}\sin\frac{n\pi x}{3}$.</p>
+<p>(b) $\sin\pi x=\sin\frac{3\pi x}3$ ($n=3$) and $\sin\frac{2\pi x}3$ ($n=2$). Matching: $C_3=2$, $C_2=-6$, others $0$.
+$$u=-6e^{-20\pi^2t/9}\sin\frac{2\pi x}3+2e^{-5\pi^2t}\sin\pi x.$$</p>
+<p>(c) $\sin\pi=0$ and $\sin\frac{3\pi}{2}=-1$, so $u(\frac32,t)=-2e^{-5\pi^2t}$. For large $t$ the $n=2$ mode dominates (rate $\frac{20\pi^2}9\lt5\pi^2$): a full sine wave, negative on $(0,\frac32)$ and positive on $(\frac32,3)$, shrinking to $0$. Note that $n=1$ is absent, so there is no single hump at the end.</p>
+</div></details>
+
+<h3>P2 <span class="marks">[6 marks]</span></h3>
+<div class="box">
+<p>A rod $0\lt x\lt\pi$ is perfectly insulated (including its ends). $u_t=u_{xx}$ and $u(x,0)=6\sin^2x$.</p>
+<p>(a) Write the BCs and the general solution. <em>[2]</em><br>
+(b) Find $u(x,t)$. <em>[2]</em><br>
+(c) Find the steady state two ways, and say whether $u(0,t)$ rises or falls. <em>[2]</em></p>
+</div>
+<details><summary>P2 solution</summary><div>
+<p>(a) $u_x(0,t)=u_x(\pi,t)=0$. $u=\frac{a_0}2+\sum_{n\ge1}a_ne^{-n^2t}\cos nx$.</p>
+<p>(b) $6\sin^2x=3-3\cos2x$. Matching: $\frac{a_0}2=3$, $a_2=-3$, others $0$. So $u=3-3e^{-4t}\cos2x$.</p>
+<p>(c) $t\to\infty$: $u\to3$. Mean: $\frac1\pi\int_0^\pi6\sin^2x\,dx=\frac1\pi\cdot3\pi=3$ ✓. $u(0,t)=3-3e^{-4t}$ rises from $0$ to $3$. The ends warm up, and the middle ($u(\frac\pi2,t)=3+3e^{-4t}$) cools.</p>
+</div></details>
+
+<h3>P3 <span class="marks">[8 marks]</span></h3>
+<div class="box">
+<p>An insulated rod $0\lt x\lt2$ (ends insulated too) obeys $u_t=2u_{xx}$. Initially the left half is at temperature $1$ and the right half at $0$.</p>
+<p>(a) Without solving the PDE, find $\lim_{t\to\infty}u$. <em>[1]</em><br>
+(b) Find $u(x,t)$. <em>[4]</em><br>
+(c) Show that $u(1,t)$ is constant for $t\gt0$ and give its value. <em>[1]</em><br>
+(d) Sketch $u(x,0)$, $u(x,t_1)$, $u(x,t_2)$, $u(x,\infty)$ for $0\lt t_1\lt t_2$. <em>[2]</em></p>
+</div>
+<details><summary>P3 solution</summary><div>
+<p>(a) Mean $=\frac12\int_0^1 1\,dx=\frac12$.</p>
+<p>(b) Neumann, $L=2$: $u=\frac{a_0}2+\sum a_ne^{-2(n\pi/2)^2t}\cos\frac{n\pi x}2=\frac{a_0}{2}+\sum a_ne^{-n^2\pi^2t/2}\cos\frac{n\pi x}2$.
+$a_0=\frac22\int_0^1dx=1$. $a_n=\int_0^1\cos\frac{n\pi x}2\,dx=\frac{2}{n\pi}\sin\frac{n\pi}2$: zero for even $n$, and $\frac{2(-1)^{m+1}}{(2m-1)\pi}$ for $n=2m-1$.
+$$u=\frac12+\frac2\pi\sum_{m=1}^\infty\frac{(-1)^{m+1}}{2m-1}e^{-(2m-1)^2\pi^2t/2}\cos\frac{(2m-1)\pi x}{2}.$$</p>
+<p>(c) $\cos\frac{(2m-1)\pi}{2}=0$ for every $m$, so $u(1,t)=\frac12$ for all $t\gt0$ (the jump's midpoint, by symmetry).</p>
+<p>(d) $t=0$: a step from $1$ down to $0$ at $x=1$. $t_1$: a smooth S-curve through $(1,\frac12)$, flat at both ends, with values below $1$ and above $0$. $t_2$: a flatter S, close to the one-term shape $\frac12+\frac2\pi e^{-\pi^2t_2/2}\cos\frac{\pi x}2$. $\infty$: the line $u=\frac12$. All curves pass through $(1,\frac12)$, are point-symmetric about it, and enclose the same area.</p>
+<div id="plot-p3"></div>
+</div></details>
+
+<h2>9 · Exam-level challenge (18 marks, about 36 minutes)</h2>
+<div class="box">
+<p>A rod of length $2$ has its lateral surface insulated and thermal diffusivity $3$. The end $x=0$ is kept in ice and the end $x=2$ is insulated. Initially the temperature is $u(x,0)=x$.</p>
+<p>(a) Write down the PDE, BCs and IC for the temperature $u(x,t)$. <em>[2]</em><br>
+(b) Seek $u=X(x)T(t)$ and show that $X''-\lambda X=0$ and $T'-3\lambda T=0$. State the conditions on $X$. <em>[2]</em><br>
+(c) Considering $\lambda\gt0$, $\lambda=0$ and $\lambda\lt0$, find all eigenvalues and eigenfunctions. <em>[4]</em><br>
+(d) Find $T_n$ and write the general series solution. <em>[2]</em><br>
+(e) Find $u(x,t)$. <em>[4]</em><br>
+(f) Give a one-term approximation to $u(2,t)$ for large $t$, and sketch $u$ at $t=0,t_1,t_2,\infty$. <em>[2]</em><br>
+(g) If instead $u(x,0)=4\sin\frac{\pi x}{4}-\sin\frac{5\pi x}{4}$, write down $u(x,t)$. <em>[2]</em></p>
+</div>
+<p>Full exam-style solution: <a href="../worked/0028-challenge-full-solution.html">worked/0028-challenge-full-solution.html</a>. Open it only after attempting every part.</p>
+<details><summary>Answer key (quick check)</summary><div>
+<p>(a) $u_t=3u_{xx}$; $u(0,t)=0$, $u_x(2,t)=0$; $u(x,0)=x$. (c) $\lambda_n=-k_n^2$, $k_n=\frac{(2n-1)\pi}{4}$, $X_n=\sin k_nx$.<br>
+(d) $u=\sum C_ne^{-3(2n-1)^2\pi^2t/16}\sin\frac{(2n-1)\pi x}4$. (e) $C_n=\frac{16(-1)^{n+1}}{(2n-1)^2\pi^2}$.<br>
+(f) $u(2,t)\approx\frac{16}{\pi^2}e^{-3\pi^2t/16}$; profile → quarter-sine hump → $0$. (g) $u=4e^{-3\pi^2t/16}\sin\frac{\pi x}4-e^{-75\pi^2t/16}\sin\frac{5\pi x}4$.</p>
+</div></details>
+
+<h2>10 · Before you close this tab</h2>
+<details><summary>Retrieval: write from memory, then check</summary><div>
+<ol>
+<li>The five step names.</li>
+<li>$X_n$ and $k_n$ for D–D, N–N, D–N, N–D.</li>
+<li>The coefficient formula, and $a_0$ for N–N.</li>
+<li>Steady state for each BC type.</li>
+<li>What "insulated except at the ends" tells you.</li>
+</ol>
+<p><strong>Answers:</strong> (1) separate; BCs → eigenproblem (three cases); solve $T$; superpose; IC. (2) $\sin\frac{n\pi x}L$; $1,\cos\frac{n\pi x}L$; $\sin\frac{(2n-1)\pi x}{2L}$; $\cos\frac{(2n-1)\pi x}{2L}$. (3) $C_n=\frac2L\int_0^LfX_n$, $a_0=\frac2L\int_0^Lf$. (4) $0$ unless both ends are insulated, then the mean of $f$. (5) Nothing about the ends: it only justifies the 1D PDE.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/22_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 22</a> (slides 3–13: Problem 1, the five steps, Dirichlet ends, tent IC) and <a href="../lectures/23_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 23</a> (slides 3–12: Problem 2, insulated rod, the $\lambda_0=0$ mode, matching with $1-\cos\frac{\pi x}L$). Then Paul's Online Notes: <a href="https://tutorial.math.lamar.edu/Classes/DE/SolvingHeatEquation.aspx">Solving the Heat Equation</a>. He writes $X''+\lambda X=0$, so his $\lambda$ is minus ours.</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic5.pdf">Booklet 5</a>, Q3: Dirichlet, matching (do it with the three cases written out).</li>
+  <li>Booklet Q5: Neumann with $x(L-x)$, cosine series. Then state the steady state as a mean and check it against $\frac{a_0}{2}$.</li>
+  <li><a href="../tutes/tute_week_9.pdf">Tute week 9</a>, Q3 (a)–(c): mixed N–D ends, IC $\cos\frac{5x}2$ (matching with half-odd $k_n$). Solutions: <a href="../tutes/tute_week_9_sol.pdf">tute_week_9_sol</a>.</li>
+  <li>Optional: Booklet Q4, Q6 (a), (b). Leave the "genuine?" part of Q6 for <a href="0032-radial-bessel-genuine-solutions.html">Lesson 32</a>.</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo Q1, Q6, Q7 and P3 (a), (c) cold, and write the challenge's (c) from a blank page.</p>
+
+<div class="ask">💬 Unsure whether your three-case write-up would get full marks, or which $k_n$ a set of BCs gives? Ask me in the terminal and paste or photograph your working.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0027-bvps-eigenvalue-problems.html">Lesson 27, BVPs and eigenvalue problems</a></span>
+  <span>Next: <a href="0029-inhomogeneous-bcs-steady-transient.html">Lesson 29, inhomogeneous BCs</a></span>
+  <span>Reference: <a href="../reference/topic5-cheatsheet.html">Topic 5 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+<script>
+  const PI = Math.PI;
+  PdeHeat.mount(document.getElementById('plot-a'), {
+    L: 4, alpha: 2,
+    terms: [{ c: 5, k: PI / 2, fn: 'sin' }, { c: 1, k: 3 * PI / 4, fn: 'sin' }],
+    tMax: 0.5, t: 0, snapshots: [0.03, 0.12],
+    y: [-5, 6.5], yTicks: [-2.5, 2.5, 5], xTicks: [1, 2, 3, 4].map((v) => ({ v, label: String(v) })),
+  });
+  const ticks2 = [0.5, 1, 1.5, 2].map((v) => ({ v, label: String(v) }));
+  PdeHeat.mount(document.getElementById('plot-b'), {
+    L: 2, alpha: 1, f: (x) => 2 - x,
+    series: { c: (n) => 4 / (n * PI), k: (n) => n * PI / 2, fn: 'sin', N: 400 },
+    tMax: 1.5, t: 0.02, snapshots: [0.05, 0.3],
+    y: [-0.3, 2.3], yTicks: [1, 2], xTicks: ticks2,
+  });
+  PdeHeat.mount(document.getElementById('plot-c'), {
+    L: 2, alpha: 1, f: (x) => 2 - x, c0: 1,
+    series: { c: (n) => (n % 2 ? 8 / (n * n * PI * PI) : 0), k: (n) => n * PI / 2, fn: 'cos', N: 200 },
+    tMax: 1.5, t: 0.02, snapshots: [0.05, 0.3],
+    y: [-0.3, 2.3], yTicks: [1, 2], xTicks: ticks2,
+  });
+  PdeHeat.mount(document.getElementById('plot-p3'), {
+    L: 2, alpha: 2, f: (x) => (x < 1 ? 1 : 0), c0: 0.5,
+    series: { c: (n) => 2 * Math.sin(n * PI / 2) / (n * PI), k: (n) => n * PI / 2, fn: 'cos', N: 400 },
+    tMax: 0.6, t: 0.01, snapshots: [0.01, 0.08],
+    y: [-0.2, 1.2], yTicks: [0.5, 1], xTicks: ticks2,
+  });
+</script>
+</body>
+</html>

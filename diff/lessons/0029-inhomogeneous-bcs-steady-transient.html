@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Steady State and Transient</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/pde-profiles.js"></script>
+<style>
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 29 · Topic 5: BVPs &amp; PDEs · Steady state + transient</div>
+<h1>Inhomogeneous BCs: split off the steady state, then it's Lesson 28 again</h1>
+<p class="lede">The one win: given a heat problem with non-zero boundary values or a source term, write $u=u_S+u_T$, find $u_S$ from an ODE, hand $u_T$ homogeneous BCs and the IC $f-u_S$, solve by separation of variables, then answer the limit, point-value and sketch parts.</p>
+
+<div class="mission">Why this matters for 5 Nov: this is the single most examined Topic 5 pattern. 2021 Q6 (22 marks: linear source, mixed BCs, polynomial IC) and 2024 Q5 (30 marks: mixed inhomogeneous BCs, IC that is "steady state + one eigenfunction"). The masked 2026 paper's Q6 is 18 marks in parts (a)–(c) with a very long intro: expect a worded heat problem. The formula sheet has <em>no</em> separation-of-variables recipe and no eigenfunction table: everything below is memorised.</div>
+
+<h2>0 · Warm-up from Lesson 28</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> $X''-\lambda X=0$, $X(0)=0$, $X'(L)=0$. The eigenfunctions are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\sin\big(\tfrac{n\pi x}{L}\big)$, $n=1,2,\dots$</button>
+    <button class="opt" data-key="b">$\cos\big(\tfrac{(n-\frac12)\pi x}{L}\big)$, $n=1,2,\dots$</button>
+    <button class="opt" data-key="c">$\sin\big(\tfrac{(n-\frac12)\pi x}{L}\big)$, $n=1,2,\dots$</button>
+    <button class="opt" data-key="d">$\cos\big(\tfrac{n\pi x}{L}\big)$, $n=0,1,\dots$</button>
+  </div>
+  <div class="why">$X(0)=0$ kills $\cos$, leaving $B\sin kx$. $X'(L)=kB\cos kL=0$ needs $kL=(n-\frac12)\pi$. Dirichlet at the left end → sine; Neumann at the right end → half-integer.</div>
+</div>
+
+<div class="box">
+<p><strong>Eigen-table (from <a href="0027-bvps-eigenvalue-problems.html">Lesson 27</a>; memorise).</strong> $X''-\lambda X=0$ with $\lambda=-k^2$; $T_n=e^{-\alpha k_n^2 t}$.</p>
+<table>
+<tr><th>BCs on $X$</th><th>$X_n$</th><th>$k_n$</th></tr>
+<tr><td>$X(0)=X(L)=0$</td><td>$\sin k_nx$</td><td>$\frac{n\pi}{L}$, $n\ge1$</td></tr>
+<tr><td>$X'(0)=X'(L)=0$</td><td>$\cos k_nx$ (incl. $X_0=1$)</td><td>$\frac{n\pi}{L}$, $n\ge0$</td></tr>
+<tr><td>$X(0)=X'(L)=0$</td><td>$\sin k_nx$</td><td>$\frac{(2n-1)\pi}{2L}$, $n\ge1$</td></tr>
+<tr><td>$X'(0)=X(L)=0$</td><td>$\cos k_nx$</td><td>$\frac{(2n-1)\pi}{2L}$, $n\ge1$</td></tr>
+</table>
+</div>
+
+<h2>1 · The recipe (Lecture 23, Problem 3)</h2>
+<p>Separation of variables needs <em>homogeneous</em> BCs: $X(0)T(t)=5$ for all $t$ is impossible. So peel off a time-independent piece that carries the non-zero data.</p>
+<div class="box">
+<ol class="steps">
+<li><strong>Steady state.</strong> Put $u=u_S(x)$ into the PDE ($u_t=0$): $\alpha u_S''+(\text{source})=0$. Solve the ODE, impose the <em>inhomogeneous</em> BCs.</li>
+<li><strong>Transient BCs.</strong> $u_T=u-u_S$. Subtract: every BC becomes $\dots=0$ (same type, same end).</li>
+<li><strong>Transient IC.</strong> $u_T(x,0)=f(x)-u_S(x)=:g(x)$.</li>
+<li><strong>SoV on $u_T$</strong>: homogeneous heat equation, homogeneous BCs. Three cases, eigen-table, $T_n$, superpose, match $g$ (by inspection or half-range integral).</li>
+<li><strong>Answer.</strong> $u=u_S+u_T$. Every $T_n\to0$, so $u\to u_S$ as $t\to\infty$.</li>
+</ol>
+</div>
+<p>Why the source disappears from $u_T$: $u_t=\alpha u_{xx}+q(x)$ and $0=\alpha u_S''+q$. Subtract: $(u_T)_t=\alpha (u_T)_{xx}$. The source must depend on $x$ only for this to work.</p>
+
+<p><strong>Example A (inhomogeneous Dirichlet, IC by matching).</strong> $u_t=2u_{xx}$, $0&lt;x&lt;\pi$; $u(0,t)=1$, $u(\pi,t)=3$; $u(x,0)=1+\frac{2x}{\pi}+4\sin2x-\sin5x$.</p>
+<details><summary>Steps 1–3</summary><div>
+<p>$u_S''=0\Rightarrow u_S=Ax+B$. $u_S(0)=1\Rightarrow B=1$; $u_S(\pi)=3\Rightarrow A=\frac2\pi$. So $u_S=1+\frac{2x}{\pi}$.</p>
+<p>$u_T(0,t)=1-u_S(0)=0$, $u_T(\pi,t)=3-u_S(\pi)=0$. $g(x)=4\sin2x-\sin5x$.</p>
+</div></details>
+<details><summary>Steps 4–5</summary><div>
+<p>Dirichlet–Dirichlet, $L=\pi$: $X_n=\sin nx$, $T_n=e^{-2n^2t}$, $u_T=\sum b_ne^{-2n^2t}\sin nx$. At $t=0$: $\sum b_n\sin nx=4\sin2x-\sin5x$, so by orthogonality $b_2=4$, $b_5=-1$, all others $0$.</p>
+$$u=1+\frac{2x}{\pi}+4e^{-8t}\sin2x-e^{-50t}\sin5x.$$
+<p>Midpoint: $\sin\pi=0$, $\sin\frac{5\pi}2=1$, so $u(\frac\pi2,t)=2-e^{-50t}\to2$.</p>
+</div></details>
+
+<div id="plot-a"></div>
+
+<div class="box">
+<p><strong>Sketch at $t=0,t_1,t_2,\infty$ (2–3 marks).</strong></p>
+<ol class="steps">
+<li>$t=0$: draw $f$. Label the end values.</li>
+<li>$t\to\infty$: draw $u_S$ (a line, or a parabola/cubic if there is a source). Label its ends.</li>
+<li>$t_1$, $t_2$: in between, closer to $u_S$ as $t$ grows. High-$n$ wiggles die first ($e^{-50t}$ vs $e^{-8t}$), so $t_1$ looks like "$u_S$ + slowest mode".</li>
+<li>For $t>0$ every curve obeys the BCs: Dirichlet ends pinned at the boundary value; an insulated end meets the wall flat ($u_x=0$); a Neumann end with $u_x=c$ has that slope.</li>
+</ol>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q1.</strong> $u(0,t)=5$, $u(2,t)=1$. The transient BCs are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$u_T(0,t)=5$, $\;u_T(2,t)=1$</button>
+    <button class="opt" data-key="b">$u_T(0,t)=0$, $\;u_T(2,t)=0$</button>
+    <button class="opt" data-key="c">$u_T(0,t)=-5$, $\;u_T(2,t)=-1$</button>
+    <button class="opt" data-key="d">$u_T(0,t)=0$, $\;\partial_xu_T(2,t)=0$</button>
+  </div>
+  <div class="why">$u_S(0)=5$ and $u_S(2)=1$ absorb the data: $u_T(0,t)=5-5=0$, $u_T(2,t)=1-1=0$. The BC <em>type</em> never changes, only its right-hand side becomes $0$.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q2.</strong> $u_t=u_{xx}$, $u(0,t)=0$, $u_x(1,t)=2$. Then $u_S$ and the transient BCs are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$u_S=2$; $\;u_T(0,t)=0$, $\partial_xu_T(1,t)=0$</button>
+    <button class="opt" data-key="b">$u_S=2x$; $\;u_T(0,t)=0$, $\partial_xu_T(1,t)=2$</button>
+    <button class="opt" data-key="c">$u_S=x^2$; $\;u_T(0,t)=0$, $\partial_xu_T(1,t)=0$</button>
+    <button class="opt" data-key="d">$u_S=2x$; $\;u_T(0,t)=0$, $\partial_xu_T(1,t)=0$</button>
+  </div>
+  <div class="why">$u_S=Ax+B$, $B=0$, $u_S'=A=2$. Then $\partial_xu_T(1,t)=2-u_S'(1)=0$. Eigenfunctions: $\sin\frac{(2n-1)\pi x}{2}$.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q3.</strong> Same problem as Q2 with $u(x,0)=2x+3\sin\frac{3\pi x}{2}$. The transient IC is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$u_T(x,0)=3\sin\frac{3\pi x}{2}$</button>
+    <button class="opt" data-key="b">$u_T(x,0)=2x+3\sin\frac{3\pi x}{2}$</button>
+    <button class="opt" data-key="c">$u_T(x,0)=-2x+3\sin\frac{3\pi x}{2}$</button>
+    <button class="opt" data-key="d">$u_T(x,0)=2x-3\sin\frac{3\pi x}{2}$</button>
+  </div>
+  <div class="why">$g=f-u_S$. It is the eigenfunction $n=2$, so $u_T=3e^{-9\pi^2t/4}\sin\frac{3\pi x}{2}$ with no integral at all. This is the 2024 shape.</div>
+</div>
+
+<h2>2 · Words → BCs and ICs</h2>
+<div class="box">
+<ul>
+<li>"rod insulated <em>except at its ends</em>" / "laterally insulated" → heat flows only along $x$: the 1D heat equation. Says nothing about the ends.</li>
+<li>"end $x=a$ is insulated" → $u_x(a,t)=0$.</li>
+<li>"end held at temperature $T_0$" / "kept in a bath at $T_0$" / "in ice" → $u(a,t)=T_0$ (ice: $0$).</li>
+<li>"constant temperature gradient $c$ at $x=a$" → $u_x(a,t)=c$.</li>
+<li>"initially at temperature $f(x)$" / "initially at uniform temperature $T_1$" → $u(x,0)=f(x)$ / $T_1$.</li>
+<li>"heat generated uniformly inside" → constant source, $u_t=\alpha u_{xx}+q$.</li>
+</ul>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q4.</strong> "A rod $0\le x\le 3$, insulated except at its ends. The left end is kept in ice, the right end is insulated." The BCs are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$u_x(0,t)=0$, $\;u_x(3,t)=0$</button>
+    <button class="opt" data-key="b">$u_x(0,t)=0$, $\;u(3,t)=0$</button>
+    <button class="opt" data-key="c">$u(0,t)=0$, $\;u_x(3,t)=0$</button>
+    <button class="opt" data-key="d">$u(0,t)=0$, $\;u(3,t)=0$</button>
+  </div>
+  <div class="why">"Insulated except at its ends" is about the sides (1D model). Ice → $u=0$ at $x=0$. Insulated right end → $u_x(3,t)=0$.</div>
+</div>
+
+<h2>3 · Source term: polynomial steady state</h2>
+<p>$u_t=\alpha u_{xx}+q(x)$ with polynomial $q$: $u_S''=-q/\alpha$, integrate twice. A constant source gives a parabola, a linear source a cubic. (The 2021 paper phrased it as "trial $\sum_{n=0}^3 a_nx^n$": same thing.)</p>
+<p><strong>Example B.</strong> $u_t=u_{xx}+2$, $u(0,t)=u(1,t)=0$: $u_S''=-2\Rightarrow u_S=-x^2+Ax+B$; $B=0$, $-1+A=0$. So $u_S=x(1-x)$: the generated heat leaves through both cold ends, hottest in the middle.</p>
+
+<div class="trap"><strong>Divide by $\alpha$</strong><br>
+$u_t=3u_{xx}+6$ gives $3u_S''=-6$, i.e. $u_S''=-2$, not $-6$. And the sign: $u_S''=-q/\alpha$ (a positive source makes $u_S$ concave down).</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q5.</strong> $u_t=3u_{xx}+6$, $u(0,t)=0$, $u_x(1,t)=0$. Then $u_S=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$6x-3x^2$</button>
+    <button class="opt" data-key="b">$2x-x^2$</button>
+    <button class="opt" data-key="c">$x^2-2x$</button>
+    <button class="opt" data-key="d">$x-x^2$</button>
+  </div>
+  <div class="why">$u_S''=-2\Rightarrow u_S=-x^2+Ax+B$. $u_S(0)=0\Rightarrow B=0$; $u_S'(1)=-2+A=0\Rightarrow A=2$. Option (d) is the Dirichlet–Dirichlet answer.</div>
+</div>
+
+<h2>4 · Neumann–Neumann: the constant is free, the mean fixes it</h2>
+<p>Tute 10 Q1: $u_t=\alpha u_{xx}$, $u_x(0,t)=u_x(L,t)=b$. Then $u_S''=0$, $u_S'=b$, so $u_S=bx+d$ with <em>$d$ arbitrary</em>: the BCs only see slopes.</p>
+<p>It still works: the transient has Neumann–Neumann BCs, so its series includes the $n=0$ mode $\frac{a_0}{2}$, and
+$$\tfrac{a_0}2=\tfrac1L\int_0^L (f-bx-d)\,dx\quad\Rightarrow\quad d+\tfrac{a_0}{2}=\tfrac1L\int_0^L(f-bx)\,dx.$$
+$d$ cancels. As $t\to\infty$, $u\to bx+C$ with $C$ chosen so that $bx+C$ has <strong>the same mean as $f$</strong> (heat in at one end = heat out at the other, so the average temperature never changes).</p>
+
+<p><strong>Example C.</strong> $u_t=u_{xx}$, $0&lt;x&lt;\pi$, $u_x(0,t)=u_x(\pi,t)=1$, $u(x,0)=1+x+4\cos2x$.</p>
+<details><summary>Solution</summary><div>
+<p>$u_S=x+d$. $u_T(x,0)=1-d+4\cos2x$, BCs $\partial_xu_T=0$ at both ends, $u_T=\frac{a_0}2+\sum a_ne^{-n^2t}\cos nx$. Matching: $\frac{a_0}2=1-d$, $a_2=4$.</p>
+$$u=x+d+(1-d)+4e^{-4t}\cos2x=1+x+4e^{-4t}\cos2x\;\to\;1+x.$$
+</div></details>
+
+<div class="trap"><strong>Unequal fluxes: no steady state</strong><br>
+$u_x(0,t)=1$, $u_x(\pi,t)=2$ with no source: $u_S'=A$ can't equal both $1$ and $2$. No steady state exists (net heat flows in, the rod keeps warming). In the exam: say "$u_S''=0$ can't satisfy both BCs, so there is no steady state". Solving such problems is beyond the lectures. With a source, the test is $\alpha\big(u_S'(L)-u_S'(0)\big)=-\int_0^L q\,dx$; just try to solve for $u_S$ and see if the BCs clash.</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q6.</strong> $u_t=u_{xx}$ on $(0,2)$, $u_x(0,t)=u_x(2,t)=-1$, $u(x,0)=3-x$. As $t\to\infty$, $u\to$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$3-x$, already steady</button>
+    <button class="opt" data-key="b">$2-x$, the mean is $1$</button>
+    <button class="opt" data-key="c">$-x$, since $d$ is free</button>
+    <button class="opt" data-key="d">$2$, the mean of $f$</button>
+  </div>
+  <div class="why">$f=3-x$ is of the form $-x+d$ and satisfies the BCs, so $g=f-u_S$ can be taken as $0$: it is already steady. Check by mean: mean of $3-x$ on $(0,2)$ is $2$; mean of $-x+C$ is $C-1$, so $C=3$.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q7.</strong> $u_t=u_{xx}$ on $(0,1)$ with $u_x(0,t)=0$, $u_x(1,t)=2$. Which is true?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$u_S=2x+d$ with $d$ fixed by the mean</button>
+    <button class="opt" data-key="b">$u_S=x^2$, the parabola meets both slopes</button>
+    <button class="opt" data-key="c">no steady state: the two slopes clash</button>
+    <button class="opt" data-key="d">$u_S=2x$ since $d$ cancels anyway</button>
+  </div>
+  <div class="why">$u_S''=0$ forces a constant slope; $0\ne2$. ($x^2$ does meet both slopes, but $x^2$ fails $u_S''=0$: it is not time-independent under $u_t=u_{xx}$.)</div>
+</div>
+
+<h2>5 · Practice (exam level)</h2>
+<p>Full exam-style write-ups. Give each part a go on paper before opening. Do P1 and P2 in one sitting, P3 and P4 in another.</p>
+
+<div class="box">
+<p><strong>P1 (inhomogeneous Dirichlet, one integration by parts).</strong> <span class="marks">[12 marks]</span> A rod $0\le x\le1$, insulated except at its ends, is at uniform temperature $2$. From $t=0$ the end $x=0$ is kept at $2$ and the end $x=1$ is put in ice. Take $u_t=u_{xx}$.</p>
+<p>(a) Write the BCs and IC. <span class="marks">[1]</span><br>
+(b) Find the steady state $u_S$. <span class="marks">[2]</span><br>
+(c) State the IBVP for $u_T=u-u_S$. <span class="marks">[2]</span><br>
+(d) Solve for $u_T$ (you may quote the Dirichlet eigenfunctions) and write $u(x,t)$. <span class="marks">[4]</span><br>
+(e) Find $u(\frac12,t)$ as a series. What is its limit, and the leading correction for large $t$? <span class="marks">[1]</span><br>
+(f) Sketch $u$ at $t=0$, two later times and $t\to\infty$. <span class="marks">[2]</span></p>
+</div>
+<details><summary>P1 solution</summary><div>
+<p>(a) $u(0,t)=2$, $u(1,t)=0$, $u(x,0)=2$.</p>
+<p>(b) $u_S''=0$, $u_S(0)=2$, $u_S(1)=0$: $u_S=2-2x$.</p>
+<p>(c) $(u_T)_t=(u_T)_{xx}$, $u_T(0,t)=u_T(1,t)=0$, $u_T(x,0)=2-(2-2x)=2x$.</p>
+<p>(d) $u_T=\sum b_ne^{-n^2\pi^2t}\sin n\pi x$ with
+$$b_n=2\int_0^1 2x\sin n\pi x\,dx=4\Big[-\frac{x\cos n\pi x}{n\pi}\Big]_0^1+\frac{4}{n\pi}\int_0^1\cos n\pi x\,dx=\frac{4(-1)^{n+1}}{n\pi}.$$
+$$u(x,t)=2-2x+\frac4\pi\sum_{n=1}^\infty\frac{(-1)^{n+1}}{n}e^{-n^2\pi^2t}\sin n\pi x.$$</p>
+<p>(e) $\sin\frac{n\pi}2=0$ for even $n$; for $n=2m-1$ it is $(-1)^{m+1}$ and $(-1)^{n+1}=1$:
+$$u(\tfrac12,t)=1+\frac4\pi\sum_{m=1}^\infty\frac{(-1)^{m+1}}{2m-1}e^{-(2m-1)^2\pi^2t}\to1,\qquad u(\tfrac12,t)\approx1+\tfrac4\pi e^{-\pi^2t}.$$
+(Check $t=0$: $1+\frac4\pi\cdot\frac\pi4=2$ ✓.)</p>
+<p>(f) See plot: $t=0$ flat at $2$ (jumps to $0$ at $x=1$); for $t>0$ the right end is pinned at $0$ and a cold dip spreads leftwards; curves approach the line $2-2x$.</p>
+<div id="plot-p1"></div>
+</div></details>
+
+<div class="box">
+<p><strong>P2 (mixed Neumann/Dirichlet, IC by matching).</strong> <span class="marks">[16 marks]</span> $u_t=3u_{xx}$ for $0&lt;x&lt;\pi$, $t&gt;0$, with
+$$u_x(0,t)=-1,\qquad u(\pi,t)=0,\qquad u(x,0)=\pi-x+3\cos\tfrac x2-\cos\tfrac{5x}2.$$
+(a) Find $u_S$. <span class="marks">[2]</span><br>
+(b) Write the BCs and IC for $u_T$. <span class="marks">[2]</span><br>
+(c) Separate $u_T=X(x)T(t)$ and derive the ODEs. Considering all three signs of the separation constant, find the eigenvalues and eigenfunctions. <span class="marks">[6]</span><br>
+(d) Find $u(x,t)$. <span class="marks">[3]</span><br>
+(e) Find the temperature at $x=0$ for all $t$, and its limit. <span class="marks">[1]</span><br>
+(f) Sketch $u$ at $t=0$, $t_1$, $t_2$, $\infty$. <span class="marks">[2]</span></p>
+</div>
+<details><summary>P2 solution</summary><div>
+<p>(a) $u_S=Ax+B$, $u_S'(0)=A=-1$, $u_S(\pi)=-\pi+B=0$. $u_S=\pi-x$.</p>
+<p>(b) $\partial_xu_T(0,t)=-1-(-1)=0$, $u_T(\pi,t)=0$, $u_T(x,0)=3\cos\frac x2-\cos\frac{5x}2$.</p>
+<p>(c) $X\dot T=3X''T\Rightarrow\frac{\dot T}{3T}=\frac{X''}{X}=\lambda$: $\dot T-3\lambda T=0$, $X''-\lambda X=0$, with $X'(0)=0$, $X(\pi)=0$ (else $T\equiv0$).</p>
+<ul>
+<li>$\lambda=k^2&gt;0$: $X=A\cosh kx+B\sinh kx$. $X'(0)=kB=0\Rightarrow B=0$; $X(\pi)=A\cosh k\pi=0\Rightarrow A=0$. Trivial.</li>
+<li>$\lambda=0$: $X=Ax+B$. $X'(0)=A=0$, $X(\pi)=B=0$. Trivial.</li>
+<li>$\lambda=-k^2&lt;0$: $X=A\cos kx+B\sin kx$. $X'(0)=kB=0\Rightarrow B=0$; $X(\pi)=A\cos k\pi=0\Rightarrow k\pi=(n-\frac12)\pi$.</li>
+</ul>
+<p>$k_n=\frac{2n-1}{2}$, $\lambda_n=-k_n^2$, $X_n=\cos\frac{(2n-1)x}{2}$, $n=1,2,\dots$</p>
+<p>(d) $T_n=e^{-3k_n^2t}$, $u_T=\sum c_ne^{-3k_n^2t}\cos k_nx$. At $t=0$ match: $c_1=3$ ($k_1=\frac12$), $c_3=-1$ ($k_3=\frac52$), rest $0$.
+$$u=\pi-x+3e^{-3t/4}\cos\tfrac x2-e^{-75t/4}\cos\tfrac{5x}2.$$</p>
+<p>(e) $u(0,t)=\pi+3e^{-3t/4}-e^{-75t/4}\to\pi$. (At $t=0$: $\pi+2$ ✓ $=f(0)$.)</p>
+<p>(f) $t=0$: $f$, from $\pi+2$ at $x=0$ down to $0$ at $\pi$, slope $-1$ at $x=0$. $t_1$: the $\cos\frac{5x}2$ wiggle already gone, $\approx\pi-x+3e^{-3t_1/4}\cos\frac x2$. $t_2$: closer to the line. $\infty$: $\pi-x$. Every curve has slope $-1$ at $x=0$ and value $0$ at $x=\pi$.</p>
+<div id="plot-p2"></div>
+</div></details>
+
+<div class="box">
+<p><strong>P3 (linear source, cubic steady state).</strong> <span class="marks">[14 marks]</span> $u_t=u_{xx}+6x$, $0&lt;x&lt;1$, with $u(0,t)=1$, $u(1,t)=0$, $u(x,0)=1+x-x^3$.</p>
+<p>(a) Trial $u_S=a_0+a_1x+a_2x^2+a_3x^3$. Find the $a_i$ from the ODE and BCs. <span class="marks">[3]</span><br>
+(b) Show $u_T=u-u_S$ satisfies the homogeneous heat equation with homogeneous BCs and $u_T(x,0)=x$. <span class="marks">[3]</span><br>
+(c) Solve for $u_T$ (quote eigenfunctions) and write $u$. <span class="marks">[5]</span><br>
+(d) Does the problem have a steady state? If so, give it and the limiting temperature at $x=\frac12$. <span class="marks">[2]</span><br>
+(e) Where is the steady temperature highest? <span class="marks">[1]</span></p>
+</div>
+<details><summary>P3 solution</summary><div>
+<p>(a) $u_S''=2a_2+6a_3x=-6x\Rightarrow a_2=0$, $a_3=-1$. $u_S(0)=a_0=1$; $u_S(1)=1+a_1-1=0\Rightarrow a_1=0$. $u_S=1-x^3$.</p>
+<p>(b) $(u_T)_t=u_t=u_{xx}+6x=(u_T)_{xx}+u_S''+6x=(u_T)_{xx}$ since $u_S''=-6x$. BCs: $u_T(0,t)=1-1=0$, $u_T(1,t)=0-0=0$. IC: $1+x-x^3-(1-x^3)=x$.</p>
+<p>(c) $u_T=\sum b_ne^{-n^2\pi^2t}\sin n\pi x$, $b_n=2\int_0^1x\sin n\pi x\,dx=\frac{2(-1)^{n+1}}{n\pi}$ (one IBP, as in P1).
+$$u=1-x^3+\frac2\pi\sum_{n=1}^\infty\frac{(-1)^{n+1}}{n}e^{-n^2\pi^2t}\sin n\pi x.$$</p>
+<p>(d) Yes: every term has $e^{-n^2\pi^2t}\to0$, so $u\to u_S=1-x^3$. $u(\frac12,t)\to\frac78$.</p>
+<p>(e) $u_S'=-3x^2\le0$: decreasing, highest at $x=0$ (value $1$).</p>
+</div></details>
+
+<div class="box">
+<p><strong>P4 (inhomogeneous Neumann–Neumann).</strong> <span class="marks">[10 marks]</span> $u_t=2u_{xx}$, $0&lt;x&lt;2$, with $u_x(0,t)=u_x(2,t)=3$ and $u(x,0)=3x-1+6\cos^2\frac{\pi x}{2}$.</p>
+<p>(a) Show $u_S=3x+d$ satisfies the BCs for every $d$. <span class="marks">[1]</span><br>
+(b) Write the IBVP for $u_T$ and its general series solution. <span class="marks">[3]</span><br>
+(c) Find $u(x,t)$ and show $d$ drops out. <span class="marks">[3]</span><br>
+(d) Find $\lim_{t\to\infty}u(1,t)$ and check the answer by the mean of the IC. <span class="marks">[2]</span><br>
+(e) If instead $u_x(2,t)=4$, does a steady state exist? <span class="marks">[1]</span></p>
+</div>
+<details><summary>P4 solution</summary><div>
+<p>(a) $u_S''=0$ ✓; $u_S'=3$ at both ends ✓, any $d$.</p>
+<p>(b) $(u_T)_t=2(u_T)_{xx}$, $\partial_xu_T(0,t)=\partial_xu_T(2,t)=0$, $u_T(x,0)=f-3x-d$. Neumann–Neumann, $L=2$:
+$$u_T=\tfrac{a_0}2+\sum_{n\ge1}a_ne^{-2(n\pi/2)^2t}\cos\tfrac{n\pi x}2=\tfrac{a_0}2+\sum_{n\ge1}a_ne^{-n^2\pi^2t/2}\cos\tfrac{n\pi x}2.$$</p>
+<p>(c) $6\cos^2\frac{\pi x}2=3+3\cos\pi x$ (double angle), so $f=3x+2+3\cos\pi x$ and $u_T(x,0)=(2-d)+3\cos\pi x$. $\cos\pi x$ is $n=2$. Match: $\frac{a_0}2=2-d$, $a_2=3$.
+$$u=3x+d+(2-d)+3e^{-2\pi^2t}\cos\pi x=3x+2+3e^{-2\pi^2t}\cos\pi x.$$</p>
+<p>(d) $u(1,t)=5-3e^{-2\pi^2t}\to5$. Mean of $f$ on $(0,2)$: $\frac12\int_0^2(3x+2+3\cos\pi x)\,dx=\frac12(6+4+0)=5$; mean of $3x+C$ is $3+C$, so $C=2$ ✓ and $u_S(1)=5$.</p>
+<p>(e) No: $u_S'$ would need to be $3$ at $x=0$ and $4$ at $x=2$, impossible for a line. Net heat flows in; no steady state.</p>
+</div></details>
+
+<h2>6 · Exam-level challenge (22 marks, about 40 minutes)</h2>
+<div class="box">
+<p>A rod $0\le x\le1$ is insulated except at its ends. Heat is generated uniformly inside it, so its temperature satisfies $u_t=u_{xx}+2$. The end $x=0$ is held at temperature $1$ and the end $x=1$ is insulated. Initially
+$$u(x,0)=1+2x-x^2+4\sin\tfrac{\pi x}{2}\cos\pi x.$$</p>
+<p>(a) Write down the BCs. <span class="marks">[2]</span><br>
+(b) Find the steady-state temperature $u_S(x)$. <span class="marks">[3]</span><br>
+(c) Writing $u=u_S+v$, state the PDE, BCs and IC for $v$. <span class="marks">[3]</span><br>
+(d) Use separation of variables, treating all three cases of the separation constant, to find the general solution for $v$. <span class="marks">[6]</span><br>
+(e) Find $u(x,t)$. <span class="marks">[3]</span><br>
+(f) Find the temperature at the insulated end for all $t$, and as $t\to\infty$. <span class="marks">[2]</span><br>
+(g) Sketch $u$ against $x$ at $t=0$, two times $0&lt;t_1&lt;t_2$, and $t\to\infty$. <span class="marks">[3]</span></p>
+</div>
+<p>Full exam-style solution: <a href="../worked/0029-challenge-full-solution.html">worked/0029-challenge-full-solution.html</a>. Open it only after attempting every part.</p>
+<details><summary>Answer key (quick check)</summary><div>
+<p>(a) $u(0,t)=1$, $u_x(1,t)=0$. (b) $u_S=1+2x-x^2$. (c) $v_t=v_{xx}$, $v(0,t)=0$, $v_x(1,t)=0$, $v(x,0)=2\sin\frac{3\pi x}2-2\sin\frac{\pi x}2$. (d) $v=\sum b_ne^{-(2n-1)^2\pi^2t/4}\sin\frac{(2n-1)\pi x}{2}$.<br>
+(e) $u=1+2x-x^2-2e^{-\pi^2t/4}\sin\frac{\pi x}2+2e^{-9\pi^2t/4}\sin\frac{3\pi x}2$. (f) $u(1,t)=2-2e^{-\pi^2t/4}-2e^{-9\pi^2t/4}\to2$. (g) From $f$ (value $-2$ at $x=1$) up to the parabola peaking at $2$ at $x=1$; all curves flat at $x=1$, pinned at $1$ at $x=0$.</p>
+</div></details>
+
+<h2>7 · Before you close this tab</h2>
+<details><summary>Retrieval: write from memory, then check</summary><div>
+<ol>
+<li>The ODE for $u_S$ when $u_t=\alpha u_{xx}+q(x)$.</li>
+<li>How the BCs and IC for $u_T$ are obtained.</li>
+<li>Eigenfunctions for $X'(0)=0$, $X(L)=0$.</li>
+<li>Neumann–Neumann: what fixes the constant in $u_S$? When is there no steady state?</li>
+<li>Three rules for the $t_1$, $t_2$ sketch curves.</li>
+</ol>
+<p><strong>Answers:</strong> (1) $\alpha u_S''=-q$, plus the inhomogeneous BCs. (2) Same BC types with zero right-hand side; $g=f-u_S$. (3) $\cos\frac{(2n-1)\pi x}{2L}$. (4) Mean of $u$ equals mean of $f$ (via the $a_0$ mode, $d$ cancels); slopes clash (with no source, $u_x(0)\ne u_x(L)$) → none. (5) Obey the BCs; lie between $f$ and $u_S$, closer to $u_S$ later; high modes vanish first.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/23_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 23</a> (slides 13–17: Problem 3, $u=u_S+u_T$, transient BCs/IC) and <a href="../lectures/24_MAST20030_Lecture_Notes_Topic5_BVPsPDEs_handout.pdf">Lecture 24</a> (slide 11: $u_S$ depends only on the BCs, $u\to u_S$). Then Paul's Online Notes: <a href="https://tutorial.math.lamar.edu/Classes/DE/HeatEqnNonZero.aspx">Heat Equation with Non-Zero Temperature Boundaries</a> (he calls $u_S$ the equilibrium temperature $u_E$; Dirichlet only).</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../tutes/tute_week_10.pdf">Tute week 10</a>, Q1 (a)–(c): inhomogeneous Neumann–Neumann, general $f$. Answer the "what happens to $d$?" in one sentence.</li>
+  <li>Lecture 23, Problem 3 (slides 13–17): close the slides and redo it from the problem statement, including $b_n$.</li>
+  <li>Redo P2 (c) cold with the BCs swapped: $u(0,t)=0$, $u_x(\pi,t)=1$.</li>
+  <li>Optional: <a href="../problem-booklet/MAST20030ProblemBooklet_Topic5.pdf">Booklet 5</a> Q1 (a), (d) (mixed eigenvalue proofs). The booklet has no inhomogeneous-BC question, so this lesson's P1–P4 are the main set.</li>
+</ul>
+<p><strong>Spacing:</strong> in two days, redo Q2, Q5, Q7 and the challenge's (b)–(e) without looking.</p>
+
+<div class="ask">💬 Stuck on a BC sign, a three-case argument or a sketch? Ask me (Claude) in the terminal and paste your working.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0028-heat-equation-separation.html">Lesson 28, heat equation by separation</a></span>
+  <span>Next: <a href="0030-laplace-equation-rectangle-polar.html">Lesson 30, Laplace's equation</a></span>
+  <span>Reference: <a href="../reference/topic5-cheatsheet.html">Topic 5 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+<script>
+  const PI = Math.PI;
+  const piTicks = [{ v: PI / 2, label: 'π/2' }, { v: PI, label: 'π' }];
+  PDEProfiles.mount(document.getElementById('plot-a'), {
+    u: (x, t) => 1 + 2 * x / PI + 4 * Math.exp(-8 * t) * Math.sin(2 * x) - Math.exp(-50 * t) * Math.sin(5 * x),
+    uS: (x) => 1 + 2 * x / PI, L: PI, snaps: [0.03, 0.12], tMax: 0.6,
+    y: [-1.6, 6.8], yTicks: [1, 2, 3, 5], xTicks: piTicks, probe: { x: PI / 2, label: 'x = π/2' },
+  });
+  function sumP(c, t, x, N) { // Σ c/n (-1)^{n+1} e^{-n²π²t} sin nπx
+    let s = 0;
+    for (let n = 1; n <= N; n++) s += (n % 2 ? 1 : -1) / n * Math.exp(-n * n * PI * PI * t) * Math.sin(n * PI * x);
+    return c * s;
+  }
+  PDEProfiles.mount(document.getElementById('plot-p1'), {
+    u: (x, t) => 2 - 2 * x + sumP(4 / PI, t, x, 80),
+    uS: (x) => 2 - 2 * x, L: 1, snaps: [0.005, 0.05], tMax: 0.4,
+    y: [-0.3, 2.4], yTicks: [1, 2], probe: { x: 0.5, label: 'x = 1/2' },
+  });
+  PDEProfiles.mount(document.getElementById('plot-p2'), {
+    u: (x, t) => PI - x + 3 * Math.exp(-0.75 * t) * Math.cos(x / 2) - Math.exp(-18.75 * t) * Math.cos(2.5 * x),
+    uS: (x) => PI - x, L: PI, snaps: [0.15, 1], tMax: 6,
+    y: [-0.5, 5.8], yTicks: [1, 2, 3, 5], xTicks: piTicks, probe: { x: 0, label: 'x = 0' },
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heat Source Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/pde-profiles.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 29 · Exam-level challenge · Full written solution</div>
+<h1>The challenge, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>Rod $0\le x\le1$, insulated except at its ends, $u_t=u_{xx}+2$. End $x=0$ held at $1$, end $x=1$ insulated, $u(x,0)=1+2x-x^2+4\sin\frac{\pi x}{2}\cos\pi x$.</p>
+<p>(a) BCs. <em>[2]</em> (b) $u_S$. <em>[3]</em> (c) IBVP for $v=u-u_S$. <em>[3]</em> (d) SoV, three cases, general $v$. <em>[6]</em> (e) $u(x,t)$. <em>[3]</em> (f) $u(1,t)$ and its limit. <em>[2]</em> (g) Sketch at $t=0,t_1,t_2,\infty$. <em>[3]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · Boundary conditions</h2>
+<div class="script">
+<p>Held at $1$: $u(0,t)=1$. Insulated end: no heat flux, $u_x(1,t)=0$. (Both for $t&gt;0$.)</p>
+</div>
+<p class="note">"Insulated except at its ends" is the lateral surface: it is why the model is 1D. It is not a BC.</p>
+
+<h2>(b) · Steady state</h2>
+<div class="script">
+<p>$u_S$ is time independent, so $0=u_S''+2$, i.e. $u_S''=-2$, giving $u_S=-x^2+Ax+B$.</p>
+<p>$u_S(0)=1\Rightarrow B=1$. $u_S'(1)=-2+A=0\Rightarrow A=2$.
+$$\boxed{u_S(x)=1+2x-x^2}$$</p>
+</div>
+<p class="note">Check: $u_S(0)=1$ ✓, $u_S'(1)=2-2=0$ ✓. Physically: heat made inside can only leave through $x=0$, so the rod is hottest at the insulated end ($u_S(1)=2$).</p>
+
+<h2>(c) · IBVP for the transient</h2>
+<div class="script">
+<p>PDE: $v_t=u_t=u_{xx}+2=v_{xx}+u_S''+2=v_{xx}$.</p>
+<p>BCs: $v(0,t)=u(0,t)-u_S(0)=1-1=0$; $\;v_x(1,t)=u_x(1,t)-u_S'(1)=0$.</p>
+<p>IC: $v(x,0)=u(x,0)-u_S(x)=4\sin\frac{\pi x}2\cos\pi x$. By $\sin a\cos b=\frac12[\sin(a-b)+\sin(a+b)]$:
+$$v(x,0)=2\sin\big(-\tfrac{\pi x}2\big)+2\sin\tfrac{3\pi x}{2}=2\sin\tfrac{3\pi x}2-2\sin\tfrac{\pi x}2.$$</p>
+</div>
+<p class="note">The product-to-sum identity is on the formula sheet. Doing it here, before SoV, makes (e) pure matching.</p>
+
+<h2>(d) · Separation of variables</h2>
+<div class="script">
+<p>Let $v=X(x)T(t)$: $X\dot T=X''T\Rightarrow\dfrac{\dot T}{T}=\dfrac{X''}{X}=\lambda$ (constant, since the left side depends on $t$ only and the right on $x$ only). So
+$$X''-\lambda X=0,\qquad \dot T-\lambda T=0.$$
+BCs: $X(0)T(t)=0$ and $X'(1)T(t)=0$ for all $t$; $T\equiv0$ is trivial, so $X(0)=0$, $X'(1)=0$.</p>
+<p><strong>$\lambda=k^2&gt;0$:</strong> $X=A\cosh kx+B\sinh kx$. $X(0)=A=0$. $X'(1)=kB\cosh k=0$, and $\cosh k\ne0$, $k\ne0$, so $B=0$. Trivial.</p>
+<p><strong>$\lambda=0$:</strong> $X=Ax+B$. $X(0)=B=0$, $X'(1)=A=0$. Trivial.</p>
+<p><strong>$\lambda=-k^2&lt;0$:</strong> $X=A\cos kx+B\sin kx$. $X(0)=A=0$. $X'(1)=kB\cos k=0$; non-trivial needs $\cos k=0$:
+$$k_n=\frac{(2n-1)\pi}{2},\quad \lambda_n=-k_n^2,\quad X_n=\sin k_nx,\quad n=1,2,\dots$$</p>
+<p>Then $\dot T_n=-k_n^2T_n\Rightarrow T_n=e^{-k_n^2t}$. Superposing:
+$$v(x,t)=\sum_{n=1}^\infty b_n\,e^{-(2n-1)^2\pi^2t/4}\sin\frac{(2n-1)\pi x}{2}.$$</p>
+</div>
+<p class="note">Marks are for: the separated ODEs with the constant justified, BCs transferred to $X$, each case concluded, $k_n$ with the half-integer, $T_n$, and the sum. Taking $k&gt;0$ loses nothing ($-k$ gives the same functions).</p>
+
+<h2>(e) · Full solution</h2>
+<div class="script">
+<p>At $t=0$: $\sum b_n\sin k_nx=2\sin\frac{3\pi x}2-2\sin\frac{\pi x}2$. $\frac{\pi}{2}=k_1$, $\frac{3\pi}2=k_2$, so by orthogonality (matching coefficients) $b_1=-2$, $b_2=2$, $b_n=0$ for $n\ge3$.
+$$\boxed{u(x,t)=1+2x-x^2-2e^{-\pi^2t/4}\sin\frac{\pi x}2+2e^{-9\pi^2t/4}\sin\frac{3\pi x}2}$$</p>
+</div>
+<p class="note">Check all four: PDE ($u_S''+2=0$ and each term solves $v_t=v_{xx}$) · $u(0,t)=1$ · $u_x(1,t)=0$ since $\cos\frac\pi2=\cos\frac{3\pi}2=0$ · $t=0$ gives $f$. A wrong sign in (c) shows up immediately at $x=1$: $f(1)=1+2-1+4(1)(-1)=-2$.</p>
+
+<h2>(f) · The insulated end</h2>
+<div class="script">
+<p>$\sin\frac\pi2=1$, $\sin\frac{3\pi}2=-1$:
+$$u(1,t)=2-2e^{-\pi^2t/4}-2e^{-9\pi^2t/4}\;\longrightarrow\;2\quad(t\to\infty),$$
+since both exponentials decay. ($u(1,0)=-2=f(1)$ ✓.)</p>
+</div>
+<p class="note">$u(1,t)$ increases monotonically from $-2$ to $2$. Both exponentials are positive and decaying, so no overshoot.</p>
+
+<h2>(g) · Sketch</h2>
+<div class="script">
+<p>Axes $u$ vs $x\in[0,1]$, label $u=1$ at $x=0$ and $u=\pm2$ at $x=1$.</p>
+<ul>
+<li>$t=0$: $f$. Starts at $1$, rises to about $2.6$ near $x\approx0.3$, falls to $-2$ at $x=1$, arriving flat.</li>
+<li>$t_1$: the $\sin\frac{3\pi x}2$ term has mostly gone (decays 9× faster): $u\approx u_S-2e^{-\pi^2t_1/4}\sin\frac{\pi x}2$, a parabola pulled down most at $x=1$.</li>
+<li>$t_2$: same shape, smaller dip.</li>
+<li>$t\to\infty$: $u_S=1+2x-x^2$, rising from $1$ to its maximum $2$ at $x=1$.</li>
+<li>Every $t&gt;0$ curve passes through $(0,1)$ and is horizontal at $x=1$.</li>
+</ul>
+</div>
+<div id="plot-ch"></div>
+<p class="note">Drag the slider: the hump near $x=0.3$ at $t=0$ is the $\sin\frac{3\pi x}{2}$ mode; it is gone by $t\approx0.1$. Your $t_1$ should already be a single smooth dip.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+$u(0,t)=1$, $u_x(1,t)=0$ · $u_S''=-2$ and $u_S=1+2x-x^2$ · $v$ has homogeneous PDE and BCs, $v(x,0)=f-u_S$ · product-to-sum · three cases with each conclusion · $\cos k=0\Rightarrow k_n=(n-\frac12)\pi$ · $T_n=e^{-k_n^2t}$ · $b_1=-2$, $b_2=2$ by matching · $u=u_S+v$ · $u(1,t)\to2$ · sketch through $(0,1)$, flat at $x=1$, ending at $u_S$.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0029-inhomogeneous-bcs-steady-transient.html">Lesson 29, challenge</a></span>
+  <span>Reference: <a href="../reference/topic5-cheatsheet.html">Topic 5 cheat sheet</a></span>
+</div>
+
+</main>
+<script>
+  const PI = Math.PI;
+  PDEProfiles.mount(document.getElementById('plot-ch'), {
+    u: (x, t) => 1 + 2 * x - x * x - 2 * Math.exp(-PI * PI * t / 4) * Math.sin(PI * x / 2) + 2 * Math.exp(-9 * PI * PI * t / 4) * Math.sin(3 * PI * x / 2),
+    uS: (x) => 1 + 2 * x - x * x, L: 1, snaps: [0.1, 0.4], tMax: 2.5,
+    y: [-2.3, 2.9], yTicks: [-2, -1, 1, 2], probe: { x: 1, label: 'x = 1' },
+  });
+</script>
+</body>
+</html>

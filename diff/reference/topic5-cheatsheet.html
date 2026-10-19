@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topic 5 Cheat Sheet</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+@page { size: A4; margin: 8mm; }
+body.ref main { max-width: 64rem; }
+.cols { column-count: 2; column-gap: 1.4rem; }
+body.ref .cols h2 { margin: .7rem 0 .25rem; padding-top: .3rem; font-size: 1rem; break-after: avoid; }
+.cols p, .cols li { margin: .2rem 0; }
+.cols table { margin: .25rem 0; font-size: .92em; }
+.cols td, .cols th { padding: .1rem .4rem; }
+.cols .box { margin: .3rem 0; padding: .3rem .6rem; }
+.cols ul, .cols ol { margin: .2rem 0; padding-left: 1.1rem; }
+.cols .katex-display { margin: .2em 0; }
+.cols ol.steps > li { margin: .2rem 0; padding-left: 1.6rem; }
+.cols ol.steps > li::before { width: 1.2rem; height: 1.2rem; font-size: .7rem; line-height: 1.2rem; }
+.mem { font-size: .72em; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border: 1px solid currentColor; border-radius: 3px; padding: 0 .25em; white-space: nowrap; vertical-align: .1em; }
+.tblwrap { overflow-x: auto; }
+@media (max-width: 720px) { .cols { column-count: 1; } }
+@media print {
+  html { font-size: 6.9pt; }
+  h1 { font-size: 13pt; margin: 0; } .lede { margin: .1rem 0; }
+  .cols { column-gap: 1rem; }
+  body.ref .cols h2 { margin: .3rem 0 .1rem; padding-top: .1rem; }
+  .cols p, .cols li { margin: .12rem 0; }
+  .cols table, .cols .box { break-inside: avoid; }
+  .nav { display: none; }
+  body.ref main { padding: 0; }
+}
+</style>
+</head>
+<body class="ref">
+<main>
+<div class="kicker">MAST20030 · Reference</div>
+<h1>Topic 5: BVPs &amp; PDEs</h1>
+<p class="lede">Lessons 27–33, lectures 20–27. Nothing here is on the formula sheet <span class="mem">memorise</span> all of it (only Fourier coefficient formulas and trig identities are printed).</p>
+
+<div class="cols">
+
+<h2>BVPs &amp; classification</h2>
+<p>Linear 2nd-order ODE + two BCs at different points. Dirichlet fixes $y$, Neumann fixes $y'$, Robin a mix. Solutions = particular + homogeneous BVP solutions $\Rightarrow$ <strong>0, 1 or ∞</strong> solutions. Homogeneous BVP has a nonzero solution $\Rightarrow$ 0 or ∞.</p>
+<p><strong>PDE:</strong> order = highest derivative; linear if $u$ and derivatives appear linearly with coefficients in independent variables only; homogeneous if every term contains $u$. $Au_{xx}+Bu_{xy}+Cu_{yy}$: $B^2-4AC\lt0$ elliptic (Laplace), $=0$ parabolic (heat), $\gt0$ hyperbolic (wave).</p>
+
+<h2>Words → conditions</h2>
+<table>
+<tr><td>"held at / quenched in ice"</td><td>$u=T_0$ / $u=0$</td></tr>
+<tr><td>"end insulated", "reflecting"</td><td>$u_x=0$</td></tr>
+<tr><td>"insulated except at ends"</td><td>1D model (not a BC)</td></tr>
+<tr><td>"heat flux $q$ in at $x=0$"</td><td>$u_x(0,t)=-q$ (Fourier's law)</td></tr>
+<tr><td>"released from rest"</td><td>$u_t(x,0)=0$</td></tr>
+<tr><td>"struck from equilibrium with velocity $g$"</td><td>$u(x,0)=0,\ u_t(x,0)=g$</td></tr>
+<tr><td>"pinned / fixed" vs "free" end</td><td>$u=0$ vs $u_x=0$</td></tr>
+<tr><td>disc/drum centre</td><td>$u$ bounded at $r=0$</td></tr>
+</table>
+
+<h2>Three cases (write all three)</h2>
+<p>Lecture convention: $\frac{\dot T}{\alpha T}=\frac{X''}{X}=\lambda$ ("LHS only $t$, RHS only $x$ ⇒ constant"). $T\not\equiv0$ ⇒ BCs on $X$.</p>
+<ul>
+<li>$\lambda=k^2\gt0$: $X=A\cosh kx+B\sinh kx$ ⇒ trivial ($\sinh kL,\cosh kL\ne0$).</li>
+<li>$\lambda=0$: $X=Ax+B$ ⇒ trivial, <strong>except Neumann–Neumann</strong>: $X_0=1$.</li>
+<li>$\lambda=-k^2\lt0$: $X=A\cos kx+B\sin kx$ ⇒ "non-trivial ⇒ $B\ne0$ ⇒ $\sin kL=0$" ⇒ $k_n$. State range of $n$.</li>
+</ul>
+<p>Booklet/tutes/Paul use $X''+\lambda X=0$: signs flip. Polar $\Theta''+\lambda\Theta=0$ (2022 paper).</p>
+
+<h2>Eigen-table on $0\le x\le L$</h2>
+<div class="tblwrap"><table>
+<tr><th>BCs</th><th>$X_n$</th><th>$k_n$</th><th>$n$</th></tr>
+<tr><td>D–D</td><td>$\sin k_nx$</td><td>$\frac{n\pi}L$</td><td>$\ge1$</td></tr>
+<tr><td>N–N</td><td>$\cos k_nx$</td><td>$\frac{n\pi}L$</td><td>$\ge0$</td></tr>
+<tr><td>D–N</td><td>$\sin k_nx$</td><td>$\frac{(2n-1)\pi}{2L}$</td><td>$\ge1$</td></tr>
+<tr><td>N–D</td><td>$\cos k_nx$</td><td>$\frac{(2n-1)\pi}{2L}$</td><td>$\ge1$</td></tr>
+<tr><td>periodic $2L$</td><td>$1,\cos,\sin$</td><td>$\frac{n\pi}L$</td><td>$\ge0$</td></tr>
+</table></div>
+<p>Hook: BC at $x=0$ picks the function (D→sin, N→cos); same type both ends → $n\pi/L$, mixed → odd multiples of $\pi/2L$.</p>
+
+<h2>Heat: 5 steps (lect. 22)</h2>
+<ol class="steps">
+<li>Separate: $\dot T-\alpha\lambda T=0$, $X''-\lambda X=0$</li>
+<li>BCs ⇒ three cases ⇒ $\lambda_n=-k_n^2$, $X_n$</li>
+<li>$T_n=e^{-\alpha k_n^2t}$ (N–N: $T_0=1$)</li>
+<li>Superpose $u=\sum C_ne^{-\alpha k_n^2t}X_n$ (N–N: $\frac{a_0}2+\dots$)</li>
+<li>IC: <strong>match</strong> if $f$ is a finite trig sum (double-angle / product-to-sum first), else $C_n=\frac2L\int_0^L fX_n\,dx$</li>
+</ol>
+<p>N–N: $u\to\frac{a_0}2=$ mean of IC. Sketch: start at $f$, end at $u_S$; high modes die first; every $t\gt0$ curve obeys the BCs (pinned value, or flat slope at an insulated end).</p>
+
+<h2>Inhomogeneous BCs / source (most examined)</h2>
+<div class="box">$u=u_S(x)+u_T(x,t)$. <strong>$u_S$</strong>: $u_t=0$ ⇒ $\alpha u_S''=-q(x)$, impose the inhomogeneous BCs (constant source → parabola, linear → cubic; divide by $\alpha$, mind the sign). <strong>$u_T$</strong>: same PDE without source, same BC types with RHS $0$, IC $g=f-u_S$.</div>
+<ul>
+<li>Transient IC is often $u_S$ + one eigenfunction ⇒ match, no integral.</li>
+<li>$t\to\infty$: $u\to u_S$; point value: substitute $x$.</li>
+<li>N–N with equal slopes $b$: $u_S=bx+d$, $d$ free; $n=0$ mode absorbs it; limit has mean = mean of $f$. Unequal fluxes, no source: no steady state.</li>
+</ul>
+
+<h2>Laplace's equation</h2>
+<p><strong>Rule:</strong> the variable with homogeneous BCs at <em>both</em> ends gets the eigenproblem; the nonzero side is used last for coefficients.</p>
+<ul>
+<li>Rectangle: partner $\cosh/\sinh(ky)$; $\lambda=0$: $A+By$. Kill side $y=b$ with $\sinh k(b-y)$ (Neumann there: $\cosh k(b-y)$). Two adjacent nonzero sides: split $u=v+w$.</li>
+<li>Polar: $\Theta''+\lambda\Theta=0$, $r^2R''+rR'-\lambda R=0$ (Euler): $R=Ar^k+Br^{-k}$, $k=0$: $A+B\ln r$.</li>
+<li>Disc: periodic $\theta$ ⇒ $n$; bounded ⇒ drop $r^{-n},\ln r$: $u=\frac{a_0}2+\sum r^n(a_n\cos n\theta+b_n\sin n\theta)$; $a^na_n$ = FS coeffs of $f$.</li>
+<li>Wedge $0\le\theta\le\beta$: $k_n$ from the table with $L=\beta$. Annulus: keep both $r^{\pm k}$; $(r/a)^k-(a/r)^k$ vanishes at $r=a$.</li>
+</ul>
+
+<h2>Wave equation</h2>
+<p>$\ddot T-c^2\lambda T=0$; D–D: $u=\sum(a_n\cos\omega_nt+b_n\sin\omega_nt)\sin k_nx$, $\omega_n=ck_n$.</p>
+<div class="box">$a_n=\frac2L\int_0^Lf\sin k_nx$, $\quad b_n=\frac{2}{L\,\omega_n}\int_0^Lg\sin k_nx$ (don't forget $\omega_n$).</div>
+<ul>
+<li>Normal mode = one term; harmonics $\omega_n=n\omega_1$; period $2L/c$.</li>
+<li>Plucked at $\ell$: mode $n$ missing iff $n\ell\in\mathbb Z$ (pluck point is a node).</li>
+<li>Rectangle drum: $\omega_{m,n}^2=c^2\pi^2\big(\frac{m^2}{L_x^2}+\frac{n^2}{L_y^2}\big)$ (dispersion relation); square ⇒ $(m,n),(n,m)$ degenerate.</li>
+</ul>
+
+<h2>Radial (disc heat / drum)</h2>
+<p>$R''+\frac1rR'+k^2R=0$ with $\lambda=-k^2$ (only non-trivial case: decay for heat, oscillation for drum). $s=kr$ ⇒ $S''+\frac1sS'+S=0$, Bessel order 0. $Y_0$ log-singular ⇒ dropped (bounded). $J_0(k_na)=0$: $k_na\approx2.405,\ 5.520,\ 8.654$.</p>
+<p>$u=\sum C_ne^{-\alpha k_n^2t}J_0(k_nr)$, $C_n=\frac{2}{a^2J_1^2(k_na)}\int_0^afJ_0(k_nr)\,r\,dr$ (weight $r$). Drum: $\omega_n=ck_n$, not integer multiples.</p>
+
+<h2>Heat vs wave (1–2 sentences)</h2>
+<p><strong>Heat</strong> (parabolic): $e^{-\alpha k^2t}$ smooths jumps/kinks instantly, $u\to u_S$. <strong>Wave</strong> (hyperbolic): no decay; kinks/jumps travel at speed $c$, reflect at ends, repeat with period $2L/c$; no steady state.</p>
+
+<h2>Genuine solution (lect. 25)</h2>
+<ol class="steps">
+<li>Domain $D=\{0\le x\le L,\ t\ge T\gt0\}$</li>
+<li>Bound $|u_n|,|\partial_xu_n|,|\partial_x^2u_n|,|\partial_tu_n|\le Mn^pe^{-\alpha k_n^2T}$</li>
+<li>$\sum n^pe^{-cn^2T}$ converges (ratio test) ⇒ M-test ⇒ uniform ⇒ term-by-term OK ⇒ genuine for $t\gt0$</li>
+</ol>
+<p>Fails at $t=0$ if IC jumps or mismatches BCs (Gibbs: continuous terms, discontinuous sum). Wave: no decay factor ⇒ needs $\sum n^2|a_n|\lt\infty$; plucked string is only weak.</p>
+
+<h2>Exam checklist</h2>
+<ol class="steps">
+<li>Translate words → PDE, BCs, ICs</li>
+<li>Inhomogeneous BC/source? Find $u_S$ first, then $u_T$ BCs + IC</li>
+<li>Separate with the constant named; write all three cases</li>
+<li>Eigenvalues + range of $n$; time/partner ODE per eigenvalue</li>
+<li>Superpose; coefficients by matching or half-range integral</li>
+<li>Check BCs and IC on the final answer; limit $t\to\infty$; sketch</li>
+</ol>
+
+</div>
+
+<div class="nav">
+  <span>Lessons: <a href="../lessons/0027-bvps-eigenvalue-problems.html">27</a> · <a href="../lessons/0028-heat-equation-separation.html">28</a> · <a href="../lessons/0029-inhomogeneous-bcs-steady-transient.html">29</a> · <a href="../lessons/0030-laplace-equation-rectangle-polar.html">30</a> · <a href="../lessons/0031-wave-equation-normal-modes.html">31</a> · <a href="../lessons/0032-radial-bessel-genuine-solutions.html">32</a> · <a href="../lessons/0033-pde-mixed-exam-set.html">33</a></span>
+  <span>Also: <a href="topic1-cheatsheet.html">Topic 1</a> · <a href="topic2-cheatsheet.html">Topic 2</a> · <a href="topic3-cheatsheet.html">Topic 3</a> · <a href="topic4-cheatsheet.html">Topic 4</a> · <a href="ode-method-map.html">Decision map</a></span>
+</div>
+</main>
+</body>
+</html>
