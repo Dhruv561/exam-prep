@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bounds on Option Prices</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.widget { border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.2rem; margin: 1.4rem 0; font-family: Inter, system-ui, sans-serif; font-size: .85rem; }
+.widget .controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem 1.2rem; }
+.widget label { display: flex; flex-direction: column; }
+.widget input[type=range] { width: 100%; accent-color: var(--accent); }
+.widget .out { margin-top: .8rem; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .3rem 1.2rem; font-variant-numeric: tabular-nums; }
+.widget .out b { font-size: 1rem; }
+.widget .note { color: var(--muted); margin-top: .5rem; }
+.widget svg { width: 100%; height: auto; display: block; margin-top: .6rem; }
+.widget .verdict2 { margin: .2rem 0 .8rem; padding: .5rem .7rem; border-radius: 6px; border-left: 4px solid var(--rule); background: var(--card); }
+.widget .verdict2.good { border-left-color: var(--ok); background: var(--ok-bg); }
+.widget .verdict2.bad { border-left-color: var(--bad); background: var(--bad-bg); }
+.widget label.tgl { flex-direction: row; gap: .5rem; align-items: center; }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 13 · Topic 4: Options</div>
+<h1>Bounds on option prices: how high, how low, and what you do when the market breaks them</h1>
+<p class="lede">The goal: for any call or put (European or American, with or without dividends) write down the range its price must sit in, explain <em>why</em> with a two-portfolio argument, predict how the range moves when \(r\), \(T\), \(K\), \(S_0\) or dividends change, and when a quote falls outside the range, lay out the arbitrage with cash flows at \(t=0\) and \(t=T\).</p>
+
+<div class="mission">Why this matters for 5 Nov: "lower bound for a call/put" is a Tutorial 4 opener (Q1, Q2), and bounds show up in past MCQs as "which statement about a European call is correct" (cannot exceed the stock price; lower bound is not simply zero; not always worth more than the American). A 3–5 mark question then asks you to spot a mispriced option and write the arbitrage table. This lesson needs the discounting from Lesson 6 and the definitions from <a href="0011-options-payoffs-profits-and-moneyness.html">Lesson 11</a> and <a href="0012-factors-affecting-option-prices.html">Lesson 12</a>.</div>
+
+<p>Quick vocabulary, since everything below depends on it. A <strong>call</strong> gives its holder the right to buy one share at the <strong>strike</strong> \(K\); a <strong>put</strong> the right to sell at \(K\). <strong>European</strong> options can be exercised only at expiry \(T\); <strong>American</strong> ones at any time up to \(T\). Prices: lower-case \(c, p\) for European, upper-case \(C, P\) for American. \(S_0\) is today's stock price, \(S_T\) its price at expiry, \(r\) the continuously compounded risk-free rate. The <strong>present value of the strike</strong> is \(Ke^{-rT}\): the dollars you'd need in the bank today to hold exactly \(K\) at \(T\).</p>
+
+<h2>1 · What a "bound" is, and why it needs no model</h2>
+
+<p>An <strong>arbitrage</strong> is a trade that costs nothing (or pays you today), can never lose, and sometimes wins. Markets are assumed not to leave these lying around. A <strong>bound</strong> is a price limit whose breach would hand someone an arbitrage. So a bound says "the price <em>cannot</em> be here", never "the price <em>is</em> here". Nothing about volatility, probabilities or Black-Scholes is used: just compare two portfolios where one always pays at least as much as the other, and conclude it can't be cheaper.</p>
+
+<div class="box"><p><strong>The one logic move behind every bound.</strong> If portfolio X pays at least as much as portfolio Y at \(T\) in <em>every</em> scenario, then X must cost at least as much as Y today. If not, buy X, sell Y, pocket the difference today, and X's payoff covers Y's liability at \(T\).</p></div>
+
+<div class="trap"><strong>A bound is a fence, not a price</strong><br>
+A call whose lower bound is $6.80 is not "worth $6.80". It might trade at $9. The bound only tells you the market can't quote $6.20. Exam questions say "<em>a</em> lower bound", and your answer is the number, not a claim about fair value (that is Black-Scholes, Topic 7).</div>
+
+<h2>2 · Upper bounds: how much can an option possibly be worth?</h2>
+
+<p><strong>Predict first.</strong> A call lets you buy the stock for \(K\). Could it ever be worth more than the stock itself? A put lets you sell the stock for \(K\), and a stock can't fall below zero. What is the most a put can ever pay you?</p>
+
+<details><summary>Reveal the three upper bounds</summary><div>
+<table>
+<tr><th>Option</th><th>Upper bound</th><th>Reason in one line</th></tr>
+<tr><td>Call (European or American)</td><td>\(c \le S_0,\;\; C \le S_0\)</td><td>The best the call gives you is the stock, and you pay \(K \ge 0\) for it. Why pay more than the stock for a right to get the stock?</td></tr>
+<tr><td>American put</td><td>\(P \le K\)</td><td>The stock can only fall to 0, so the put pays at most \(K - 0 = K\), whenever it is exercised.</td></tr>
+<tr><td>European put</td><td>\(p \le Ke^{-rT}\)</td><td>At most \(K\) arrives, but only at \(T\). \(K\) at \(T\) is worth \(Ke^{-rT}\) today, so the put can't cost more than that.</td></tr>
+</table>
+</div></details>
+
+<p>The European put bound is <em>tighter</em> than the American one, because the European holder can't collect early. That small gap is a first taste of why American options are worth more.</p>
+
+<h3>If the bound is broken: the arbitrage</h3>
+<p>Rule: <strong>sell the over-priced thing and cover yourself with something that cannot lose</strong>.</p>
+
+<div class="box">
+<p><strong>Call above the stock price.</strong> \(S_0 = 30\), \(K = 28\), the call is quoted at \(c = 31\). Sell the call, buy the stock.</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Action</th><th>\(t=0\)</th><th>\(T\), \(S_T \gt 28\)</th><th>\(T\), \(S_T \le 28\)</th></tr>
+<tr><td>Sell call</td><td>+31</td><td>\(-(S_T - 28)\)</td><td>0</td></tr>
+<tr><td>Buy stock</td><td>−30</td><td>\(+S_T\)</td><td>\(+S_T\)</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>+1</strong></td><td><strong>+28</strong></td><td><strong>\(S_T \ge 0\)</strong></td></tr>
+</table></div>
+<p>You're paid $1 now and never owe anything at \(T\). The stock covers the call whatever happens.</p>
+</div>
+
+<div class="box">
+<p><strong>European put above \(Ke^{-rT}\).</strong> \(K = 50\), \(r = 4\%\), \(T = 2\): \(Ke^{-rT} = 50e^{-0.08} = 46.1558\). The put is quoted at \(p = 47.50\). Sell the put and lend \(46.1558\).</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Action</th><th>\(t=0\)</th><th>\(T\), \(S_T \lt 50\)</th><th>\(T\), \(S_T \ge 50\)</th></tr>
+<tr><td>Sell put</td><td>+47.50</td><td>\(-(50 - S_T)\)</td><td>0</td></tr>
+<tr><td>Lend \(Ke^{-rT}\)</td><td>−46.1558</td><td>+50</td><td>+50</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>+1.3442</strong></td><td><strong>\(S_T\)</strong></td><td><strong>50</strong></td></tr>
+</table></div>
+<p>The loan grows to exactly the most the put can make you pay. (American version: if \(P \gt K\), sell it and lend \(K\) today. Whenever it is exercised you pay at most \(K\), and you hold at least \(K\).)</p>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q1.</strong> A stock trades at $40. Which price is impossible (no arbitrage) for a European call on it, whatever its strike?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A price of $0.05 for a far out-of-the-money call</button>
+    <button class="opt" data-key="b">A price of $39.90 for a call with a tiny strike</button>
+    <button class="opt" data-key="c">A price of $40.50 for any call on that stock</button>
+    <button class="opt" data-key="d">A price of $12.00 for an in-the-money call</button>
+  </div>
+  <div class="why">\(c \le S_0 = 40\) always. At $40.50 you'd sell the call, buy the stock and keep a sure $0.50. A call with a tiny strike is nearly the stock itself, so $39.90 is fine.</div>
+</div>
+
+<div class="quiz num" data-answer="1.66" data-tol="0.01">
+  <p class="q"><strong>Q2.</strong> A 2-year European put has \(K = 80\) and \(r = 3\%\). It is quoted at $77.00. The arbitrage (sell the put, lend the PV of the strike) pays you how much today?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(Ke^{-rT} = 80e^{-0.06} = 75.3412\). Profit \(= 77.00 - 75.3412 = \mathbf{1.66}\) at \(t=0\), and \(\ge 0\) at \(T\).</div>
+</div>
+
+<h2>3 · The lower bound for a European call: the two-portfolio proof</h2>
+
+<p>The upper bound is easy. The lower bound is where the course spends its time, and it's the one examined. Start with intuition.</p>
+<p>A call on a non-dividend stock is like <strong>buying the stock on credit, with an escape hatch</strong>. Buying the stock outright costs \(S_0\). Buying it on credit means putting \(Ke^{-rT}\) into a bank account that becomes \(K\) at \(T\), exactly the sum needed to exercise. The call is that credit purchase <em>plus</em> the right to walk away if the stock ends below \(K\). A right to walk away can't be worth less than nothing, so the call is worth at least "stock minus the debt": \(S_0 - Ke^{-rT}\). And a right can never be negative, so also at least 0.</p>
+
+<p><strong>Predict first.</strong> Portfolio A = one European call + cash \(Ke^{-rT}\) in the bank. Portfolio B = one share. At \(T\), what are A and B worth if \(S_T\) is above \(K\)? Below \(K\)? Which is worth more?</p>
+
+<details><summary>Reveal: the payoff table</summary><div>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Portfolio</th><th>Value today</th><th>At \(T\), \(S_T \gt K\)</th><th>At \(T\), \(S_T \le K\)</th></tr>
+<tr><td>A: call + cash \(Ke^{-rT}\)</td><td>\(c + Ke^{-rT}\)</td><td>\((S_T - K) + K = S_T\)</td><td>\(0 + K = K\)</td></tr>
+<tr><td>B: one share</td><td>\(S_0\)</td><td>\(S_T\)</td><td>\(S_T\)</td></tr>
+</table></div>
+<p>A pays \(\max(S_T, K)\); B pays \(S_T\). Since \(\max(S_T,K) \ge S_T\) in every scenario, A can't be cheaper than B today:</p>
+$$c + Ke^{-rT} \ge S_0 \;\Rightarrow\; c \ge S_0 - Ke^{-rT}, \qquad\text{and}\quad c \ge 0 \;\Rightarrow\; \boxed{c \ge \max\!\big(S_0 - Ke^{-rT},\, 0\big)}$$
+</div></details>
+
+<div class="box"><p><strong>Tutorial 4, Q1.</strong> Six-month call, \(S_0 = 80\), \(K = 75\), \(r = 10\%\), no dividends. \(Ke^{-rT} = 75e^{-0.05} = 71.34\), so \(c \ge 80 - 71.34 = \mathbf{8.66}\). That's more than the $5 intrinsic value \(S_0-K\): a European call can't be cheaper than intrinsic, because paying \(K\) later beats paying \(K\) now.</p></div>
+
+<h3>Scenario: a worked base case with arbitrage</h3>
+<p>Take \(S_0 = 52\), \(K = 48\), \(r = 8\%\), \(T = 0.75\). Then \(Ke^{-rT} = 48e^{-0.06} = 45.2047\), so the lower bound is \(52 - 45.2047 = 6.7953\). The call is quoted at <strong>$5.80</strong>, below its floor. Predict: do you buy or sell the call, and what do you do with the stock? (A = call + cash is too cheap and B = the share is the dear one, so: buy the call, short the stock, and lend the cash.)</p>
+
+<div class="tablewrap"><table class="ledger">
+<tr><th>Action</th><th>\(t=0\)</th><th>\(T\), \(S_T \gt 48\)</th><th>\(T\), \(S_T \le 48\)</th></tr>
+<tr><td>Buy call</td><td>−5.80</td><td>\(S_T - 48\)</td><td>0</td></tr>
+<tr><td>Short stock (sell a borrowed share)</td><td>+52.00</td><td>\(-S_T\)</td><td>\(-S_T\)</td></tr>
+<tr><td>Lend \(Ke^{-rT}\)</td><td>−45.2047</td><td>+48</td><td>+48</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>+0.9953</strong></td><td><strong>0</strong></td><td><strong>\(48 - S_T \gt 0\)</strong></td></tr>
+</table></div>
+<p>Profit today \(= 6.7953 - 5.80 = 0.9953\): exactly the gap between the bound and the quote, and nothing owed at \(T\) (sometimes you even gain). That "gap = profit today" shortcut is a good check on your table. If the call finishes in the money you exercise it, paying \(K = 48\) from the bank to get the share to return to the lender. Otherwise you buy the share in the market for \(S_T \lt 48\) and keep the change.</p>
+
+<div class="quiz num" data-answer="6.80" data-tol="0.01">
+  <p class="q"><strong>Q3.</strong> A 9-month European call has \(S_0 = 52\), \(K = 48\), \(r = 8\%\) (continuous), no dividends. Lower bound for its price?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(52 - 48e^{-0.06} = 52 - 45.2047 = 6.795 \approx \mathbf{6.80}\). The trap is using \(K\) and getting 4.</div>
+</div>
+
+<div class="trap"><strong>Using \(S_0 - K\) instead of \(S_0 - Ke^{-rT}\)</strong><br>
+\(S_0 - K\) (intrinsic value) is a lower bound for an <em>American</em> option, which can be exercised now. For a European call on a non-dividend stock, \(S_0 - Ke^{-rT}\) is higher, so it is the tighter bound and the exam answer. The two coincide only when \(r = 0\) or \(T = 0\).</div>
+
+<h2>4 · The lower bound for a European put</h2>
+
+<p>Mirror the logic. A put is <strong>insurance on a share you own</strong>: share plus put can never end below \(K\). Portfolio C = European put + one share. Portfolio D = cash \(Ke^{-rT}\), which grows to \(K\). <strong>Predict</strong> the payoff of C when \(S_T\) is below \(K\) (you exercise) and when it is above.</p>
+
+<details><summary>Reveal: the payoff table</summary><div>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Portfolio</th><th>Value today</th><th>At \(T\), \(S_T \lt K\)</th><th>At \(T\), \(S_T \ge K\)</th></tr>
+<tr><td>C: put + share</td><td>\(p + S_0\)</td><td>\((K - S_T) + S_T = K\)</td><td>\(0 + S_T = S_T\)</td></tr>
+<tr><td>D: cash \(Ke^{-rT}\)</td><td>\(Ke^{-rT}\)</td><td>\(K\)</td><td>\(K\)</td></tr>
+</table></div>
+<p>C pays \(\max(S_T, K) \ge K\), the payoff of D. So C costs at least as much today:</p>
+$$p + S_0 \ge Ke^{-rT} \;\Rightarrow\; \boxed{p \ge \max\!\big(Ke^{-rT} - S_0,\, 0\big)}$$
+</div></details>
+
+<div class="box"><p><strong>Tutorial 4, Q2.</strong> Two-month European put, \(S_0 = 58\), \(K = 65\), \(r = 5\%\). \(Ke^{-rT} = 65e^{-0.05\times2/12} = 64.46\), so \(p \ge 64.46 - 58 = \mathbf{6.46}\).</p></div>
+
+<p><strong>Arbitrage when \(p\) is below its floor.</strong> \(S_0 = 36\), \(K = 40\), \(r = 5\%\), \(T = 1\): \(Ke^{-rT} = 38.0492\), floor \(= 2.0492\). The put is quoted at <strong>$1.50</strong>. Portfolio C is too cheap, so buy the put, buy the share, and borrow \(Ke^{-rT}\) (the short side of D).</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Action</th><th>\(t=0\)</th><th>\(T\), \(S_T \lt 40\)</th><th>\(T\), \(S_T \ge 40\)</th></tr>
+<tr><td>Buy put</td><td>−1.50</td><td>\(40 - S_T\)</td><td>0</td></tr>
+<tr><td>Buy stock</td><td>−36.00</td><td>\(+S_T\)</td><td>\(+S_T\)</td></tr>
+<tr><td>Borrow \(Ke^{-rT}\)</td><td>+38.0492</td><td>−40</td><td>−40</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>+0.5492</strong></td><td><strong>0</strong></td><td><strong>\(S_T - 40 \ge 0\)</strong></td></tr>
+</table></div>
+
+<div class="quiz num" data-answer="5.75" data-tol="0.01">
+  <p class="q"><strong>Q4.</strong> A 1.5-year European put: \(S_0 = 36\), \(K = 45\), \(r = 5\%\), no dividends. Lower bound?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(45e^{-0.075} = 41.7485\); \(41.7485 - 36 = \mathbf{5.75}\).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q5.</strong> Why does the put's lower-bound proof hold the share <em>long</em> alongside the put?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The put pays \(S_T\) at expiry, so you must hold cash to match it</button>
+    <button class="opt" data-key="b">Put + share is protected at \(K\), so it is worth at least \(K\) in cash</button>
+    <button class="opt" data-key="c">The put gives the right to buy shares, so a share is needed to exercise</button>
+    <button class="opt" data-key="d">The share is held to fund the put premium from expected dividends</button>
+  </div>
+  <div class="why">Put + share can't end below \(K\): the put tops it up to \(K\). So it must cost at least the PV of \(K\). (a) and (c) mix up put and call; (d) is invented.</div>
+</div>
+
+<h2>5 · Known dividends: subtract (calls) or add (puts) their present value</h2>
+
+<p>A dividend is cash paid to whoever owns the share, not to the option holder, and the share price drops by about the dividend when it is paid. For a known schedule, define \(D\) = <strong>present value of all dividends paid during the life of the option</strong>, each discounted at \(r\) from its own payment date.</p>
+
+<p><strong>Predict first.</strong> A call buyer misses the dividends; a put buyer benefits from the price drop. With dividends, does the call's lower bound go up or down? The put's?</p>
+
+<details><summary>Reveal</summary><div>
+<p>In the proof, replace the share by "the share minus the dividends it will pay": a share held to \(T\) is worth \(S_0\) today, but the ex-dividend part you actually need to compare with is \(S_0 - D\). Then</p>
+$$c \ge \max\!\big(S_0 - D - Ke^{-rT},\, 0\big), \qquad p \ge \max\!\big(D + Ke^{-rT} - S_0,\, 0\big).$$
+<p>Call bound falls, put bound rises. The upper bounds \(c \le S_0\) and \(p \le Ke^{-rT}\) are unchanged.</p>
+</div></details>
+
+<div class="box"><p><strong>Worked.</strong> \(S_0 = 40\), \(K = 38\), \(r = 6\%\), \(T = 1\). Dividends of $1.00 in 4 months and in 10 months.<br>
+\(D = e^{-0.06\times4/12} + e^{-0.06\times10/12} = 0.9802 + 0.9512 = 1.9314\). \(Ke^{-rT} = 38e^{-0.06} = 35.7871\).<br>
+Call: \(40 - 1.9314 - 35.7871 = \mathbf{2.28}\) (without dividends it would be 4.21).<br>
+Put: \(1.9314 + 35.7871 - 40 = -2.28 \to \mathbf{0}\): a negative bound just means the floor is zero.</p></div>
+
+<div class="trap"><strong>Dividends after expiry don't count</strong><br>
+Include only dividends paid <em>before \(T\)</em>, each discounted from its own payment date to today (a dividend in 2 months is worth \(\text{div}\cdot e^{-r\times2/12}\)). And don't forget the zero floor.</div>
+
+<div class="quiz num" data-answer="7.04" data-tol="0.01">
+  <p class="q"><strong>Q6.</strong> \(S_0 = 60\), \(K = 55\), \(r = 6\%\), \(T = 1\). A $1.20 dividend is paid in exactly 6 months. Lower bound of the European call?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(D = 1.20e^{-0.03} = 1.1645\); \(55e^{-0.06} = 51.7973\). \(60 - 1.1645 - 51.7973 = \mathbf{7.04}\).</div>
+</div>
+
+<div class="quiz num" data-answer="0" data-tol="0.001">
+  <p class="q"><strong>Q7.</strong> Same stock and dividend as Q6, but the European <em>put</em> with \(K = 55\). Lower bound (remember the \(\max(\cdot,0)\))?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(D + Ke^{-rT} - S_0 = 1.1645 + 51.7973 - 60 = -7.04\), negative, so the bound is \(\mathbf{0}\). The stock is well above the PV of the strike; arbitrage alone can't show the put is worth anything.</div>
+</div>
+
+<h2>6 · American options: what changes</h2>
+
+<p>An American option can be exercised <em>now</em>. That adds a simple extra floor: you can always cash in the intrinsic value, so the option must trade at least there, or you buy it and exercise.</p>
+<table>
+<tr><th></th><th>American call</th><th>American put</th></tr>
+<tr><td>Upper bound</td><td>\(C \le S_0\)</td><td>\(P \le K\)</td></tr>
+<tr><td>Lower bound</td><td>\(C \ge \max(S_0 - K, 0)\), and \(C \ge c\)</td><td>\(P \ge \max(K - S_0, 0)\), and \(P \ge p\)</td></tr>
+<tr><td>Early exercise</td><td>No dividends: never worth exercising early, so \(C = c\) and the bound is \(\max(S_0 - Ke^{-rT}, 0)\)</td><td>Can be worth exercising early, so \(P \gt p\) in general</td></tr>
+</table>
+
+<p>Separate two things. <strong>(1) An American option is worth at least its European twin</strong> (every right the European has, plus more), so \(C \ge c\) and \(P \ge p\). <strong>(2) Whether the extra right is ever <em>used</em>.</strong> For a call on a non-dividend stock it never is (<a href="0015-early-exercise-of-american-options.html">Lesson 15</a>), because \(c \ge S_0 - Ke^{-rT} \gt S_0 - K\): selling the call beats exercising it, so \(C = c\). Hence the lecture's \(C \ge \max(S_0 - Ke^{-rT}, 0)\).</p>
+
+<div class="box"><p><strong>Arbitrage for an American put under its floor.</strong> \(S_0 = 44\), \(K = 50\), \(P = 5.20\), floor \(K - S_0 = 6\). Buy the put and the share (cost \(49.20\)), exercise immediately and receive \(50\). Profit \(+0.80\) at \(t=0\), no risk, nothing left at \(T\). Same for a call priced under \(S_0 - K\): buy it, exercise, sell the share.</p></div>
+
+<h3>Can a European option trade below intrinsic value?</h3>
+<p>Compare each floor with intrinsic value:</p>
+<ul>
+<li><strong>European call, no dividends:</strong> floor \(S_0 - Ke^{-rT} \ge S_0 - K\). It can't be below intrinsic value.</li>
+<li><strong>European call, with dividends:</strong> floor \(S_0 - D - Ke^{-rT}\) can be below \(S_0 - K\). Allowed: the holder loses the dividends to shareholders.</li>
+<li><strong>European put, any case:</strong> floor \(Ke^{-rT} - S_0 \lt K - S_0\). So a deep in-the-money European put can trade below intrinsic value: it receives \(K\) only at \(T\).</li>
+</ul>
+
+<div class="box"><p><strong>Example.</strong> \(S_0 = 100\), \(K = 120\), \(r = 6\%\), \(T = 0.5\). Intrinsic \(= 20\). European floor \(= 120e^{-0.03} - 100 = 16.45\). The European put can sell for $18 without arbitrage; the American put can't (below $20 you buy and exercise at once). The $3.55 gap is roughly the interest on $120 for half a year that you'd earn if you could collect now. That is why deep in-the-money American puts get exercised early: you give up a little time value to start earning interest on the strike.</p></div>
+
+<div class="quiz num" data-answer="3.55" data-tol="0.01">
+  <p class="q"><strong>Q8.</strong> European put: \(S_0 = 100\), \(K = 120\), \(r = 6\%\), \(T = 0.5\). By how many dollars can a no-arbitrage price lie below the put's intrinsic value (the maximum gap)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Intrinsic \(= 20\); floor \(= 120e^{-0.03} - 100 = 16.4535\). Gap \(= 20 - 16.4535 = \mathbf{3.55}\).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q9.</strong> A non-dividend stock; which of these is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A European put can never trade below its intrinsic value, since that is arbitrage</button>
+    <button class="opt" data-key="b">An American call has a higher lower bound than a European call, as it can exercise early</button>
+    <button class="opt" data-key="c">A European call can trade below \(S_0-K\) when the option is deep in the money</button>
+    <button class="opt" data-key="d">A European put can trade below \(K - S_0\), while an American put cannot</button>
+  </div>
+  <div class="why">(d): the American put can be exercised for \(K-S_0\) immediately, so it can't trade below that; the European put can. (a) and (c) are the wrong way round; (b) is false since without dividends the American call is never exercised early and \(C = c\).</div>
+</div>
+
+<h2>7 · The recipe for "is this price arbitrage-free? What do you do?"</h2>
+
+<ol class="steps">
+<li><strong>Write both bounds</strong> for the option type, including \(D\) if there are dividends, with the zero floor and \(Ke^{-rT}\) (time in years).</li>
+<li><strong>Locate the quote.</strong> Inside the range: no arbitrage (the answer is "none"). Below the lower bound: option too cheap. Above the upper bound: option too dear.</li>
+<li><strong>Too cheap:</strong> buy the option and take the opposite side of the matching portfolio (call: short stock and lend \(Ke^{-rT}\); put: buy stock and borrow \(Ke^{-rT}\)). <strong>Too dear:</strong> sell it and hold the cover (call: buy stock; European put: lend \(Ke^{-rT}\)).</li>
+<li><strong>Cash flows:</strong> \(t=0\) total \(=\) the gap to the bound; at \(T\) each scenario total \(\ge 0\). Say so explicitly.</li>
+</ol>
+
+<div class="box"><p><strong>Check on the table.</strong> Rows = each position. Columns = \(t=0\), then \(T\) split at \(S_T\) vs \(K\). The \(S_T\) terms must cancel (or leave a positive stock term) and the \(K\) terms net to zero or better. If \(S_T\) is left over with a negative sign, you hedged the wrong way round.</p></div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q10.</strong> A European call is quoted <em>below</em> \(\max(S_0 - Ke^{-rT}, 0)\). The arbitrage is to:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">buy the call, short the stock, and lend \(Ke^{-rT}\) at the risk-free rate</button>
+    <button class="opt" data-key="b">sell the call, buy the stock, and borrow \(Ke^{-rT}\) at the risk-free rate</button>
+    <button class="opt" data-key="c">buy the call, buy the stock, and borrow \(Ke^{-rT}\) at the risk-free rate</button>
+    <button class="opt" data-key="d">sell the call, short the stock, and lend \(Ke^{-rT}\) at the risk-free rate</button>
+  </div>
+  <div class="why">Too cheap: buy it. The matching dear portfolio is the share, so short it; the proceeds fund the call and the PV of the strike you'll need at \(T\) (to exercise or to rebuy the share).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q11.</strong> A European put is quoted <em>above</em> \(Ke^{-rT}\). The arbitrage is to:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">buy the put, buy the stock, and borrow \(Ke^{-rT}\) at the risk-free rate</button>
+    <button class="opt" data-key="b">buy the put and lend \(Ke^{-rT}\) at the risk-free rate</button>
+    <button class="opt" data-key="c">sell the put and lend \(Ke^{-rT}\) at the risk-free rate</button>
+    <button class="opt" data-key="d">sell the put and borrow \(Ke^{-rT}\) at the risk-free rate</button>
+  </div>
+  <div class="why">Too dear: sell it. The most it can cost you is \(K\) at \(T\); the loan of \(Ke^{-rT}\) lent grows to exactly \(K\). Borrowing instead would add a debt you can't fund.</div>
+</div>
+
+<div class="quiz num" data-answer="0.79" data-tol="0.01">
+  <p class="q"><strong>Q12.</strong> \(S_0 = 70\), \(K = 65\), \(r = 4\%\), \(T = 0.5\), no dividends. A European call is quoted at $5.50. How much does the section 7 arbitrage pay you at \(t=0\)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(65e^{-0.02} = 63.7129\); floor \(= 6.2871\). Profit \(= 6.2871 - 5.50 = \mathbf{0.79}\) at \(t=0\) (buy call, short stock, lend 63.71).</div>
+</div>
+
+<div class="quiz num" data-answer="2" data-tol="0.001">
+  <p class="q"><strong>Q13.</strong> \(S_0 = 50\), \(K = 50\), \(r = 10\%\), \(T = 0.5\), no dividends. Four European quotes: call $2.60, call $2.10, put $0.30, put $48.00. How many break a no-arbitrage bound?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">count</span></div>
+  <div class="why">\(50e^{-0.05} = 47.5615\). Call floor \(= 2.4385\): 2.60 is fine, <strong>2.10 is not</strong>. Put range \([0, 47.56]\) (the floor \(47.56 - 50\) is negative): 0.30 is fine, <strong>48.00 is not</strong>. Answer: 2.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q14.</strong> Stock $40, \(K = 35\), \(r = 5\%\), \(T = 1\), no dividends. Which European call price is consistent with no arbitrage?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$5.00 (equal to the intrinsic value, so it must be fine)</button>
+    <button class="opt" data-key="b">$6.90 (above the floor and below the stock price, so fine)</button>
+    <button class="opt" data-key="c">$6.20 (between intrinsic value and the floor, so fine)</button>
+    <button class="opt" data-key="d">$40.60 (a call can be worth more than the stock price)</button>
+  </div>
+  <div class="why">Floor \(= 40 - 35e^{-0.05} = 6.71\). So 5.00 and 6.20 are both below it (arbitrage), and 40.60 is above the stock price. Only 6.90 sits in \([6.71, 40]\).</div>
+</div>
+
+<h2>8 · How the ranges move: what happens if…?</h2>
+
+<p>Everything flows from \(Ke^{-rT}\) and \(D\). The PV of the strike is the "moving part": anything that makes it <em>smaller</em> (higher \(r\), longer \(T\), lower \(K\)) raises the call's floor and lowers the put's floor and ceiling. Predict, then check the table. Base: \(S_0 = 50\), \(K = 48\), \(r = 6\%\), \(T = 1\), no dividends, so \(Ke^{-rT} = 45.20\).</p>
+
+<table class="ledger">
+<tr><th>Change</th><th>\(Ke^{-rT}\)</th><th>Call floor</th><th>Call ceiling</th><th>Euro put ceiling</th></tr>
+<tr><td>Base</td><td>45.20</td><td>4.80</td><td>50</td><td>45.20</td></tr>
+<tr><td>\(r\) up to 10%</td><td>43.43</td><td>6.57 ↑</td><td>50</td><td>43.43 ↓</td></tr>
+<tr><td>\(r\) down to 0</td><td>48.00</td><td>2.00 ↓ (= intrinsic)</td><td>50</td><td>48.00 ↑ (= K)</td></tr>
+<tr><td>\(T\) up to 2 years</td><td>42.57</td><td>7.43 ↑</td><td>50</td><td>42.57 ↓</td></tr>
+<tr><td>\(T\) down to 3 months</td><td>47.29</td><td>2.71 ↓</td><td>50</td><td>47.29 ↑</td></tr>
+<tr><td>\(K\) up to 52</td><td>48.97</td><td>1.03 ↓</td><td>50</td><td>48.97 ↑</td></tr>
+<tr><td>\(K\) down to 44</td><td>41.44</td><td>8.56 ↑</td><td>50</td><td>41.44 ↓</td></tr>
+<tr><td>\(S_0\) up to 55</td><td>45.20</td><td>9.80 ↑</td><td>55 ↑</td><td>45.20</td></tr>
+<tr><td>PV of dividends \(D = 2\)</td><td>45.20</td><td>2.80 ↓</td><td>50</td><td>45.20</td></tr>
+</table>
+
+<p>The put's <em>floor</em> \(Ke^{-rT} - S_0\) uses the same pieces with the opposite sign. With \(S_0 = 42\), \(K = 48\), \(r = 6\%\), \(T = 1\) it is \(45.20 - 42 = 3.20\). Then: \(r\) up to 10% gives 1.43 (↓); \(T\) up to 2 gives 0.57 (↓); \(K\) up to 52 gives 6.97 (↑); \(D = 2\) gives 5.20 (↑); \(S_0\) down to 38 gives 7.20 (↑).</p>
+
+<div class="box"><p><strong>Rule of thumb.</strong> Shrink the PV of the strike (higher \(r\), longer \(T\), lower \(K\)): the <em>call</em> floor rises, the <em>put</em> floor and European ceiling fall. Add dividends: the call floor falls, the put floor rises. As \(T \to 0\) or \(r \to 0\) the European floors collapse onto intrinsic value. These are statements about the <em>bounds</em>; the actual option price also depends on volatility (<a href="0012-factors-affecting-option-prices.html">Lesson 12</a>), which the bounds ignore.</p></div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q15.</strong> The risk-free rate rises, everything else equal (no dividends). What happens to the lower bounds of a European call and a European put?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The call bound falls and the put bound rises, as stock is dearer to hold</button>
+    <button class="opt" data-key="b">The call bound rises and the put bound falls, as the PV of the strike shrinks</button>
+    <button class="opt" data-key="c">Both bounds rise, as every option is worth more when rates are high</button>
+    <button class="opt" data-key="d">Neither moves, as the bounds do not depend on the interest rate</button>
+  </div>
+  <div class="why">\(Ke^{-rT}\) falls. Call floor \(S_0 - Ke^{-rT}\) rises; put floor \(Ke^{-rT} - S_0\) falls. Intuition: the call defers payment of \(K\), and a higher rate makes deferral more valuable.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q16.</strong> Lengthening the time to expiry (same \(K\), \(S_0\), \(r\), no dividends) changes the <em>upper</em> bound of a European put how?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It rises: there is more time for the stock to fall to zero</button>
+    <button class="opt" data-key="b">It stays at \(K\), because the maximum put payoff is always \(K\)</button>
+    <button class="opt" data-key="c">It rises, because the put is worth more the longer it lives</button>
+    <button class="opt" data-key="d">It falls, because the maximum payoff of \(K\) arrives later</button>
+  </div>
+  <div class="why">\(p \le Ke^{-rT}\): a longer \(T\) means \(K\) is received later, so its PV falls. (For an <em>American</em> put the bound is \(K\) whatever the maturity.)</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q17.</strong> A dividend is announced that will be paid before expiry. What happens to the lower bounds of a European call and put on the stock?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The call bound falls and the put bound rises, by the PV of the dividend</button>
+    <button class="opt" data-key="b">The call bound rises and the put bound falls, by the PV of the dividend</button>
+    <button class="opt" data-key="c">Both bounds fall, because the stock price will drop by the dividend</button>
+    <button class="opt" data-key="d">Neither moves, because only the upper bounds depend on dividends</button>
+  </div>
+  <div class="why">Floors use \(S_0 - D\): the stock "minus the cash it will pay out". Call floor \(S_0 - D - Ke^{-rT}\) falls; put floor \(D + Ke^{-rT} - S_0\) rises. Upper bounds are unchanged.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q18.</strong> With no dividends, which statement about a European call on the stock is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Its price can exceed the stock price when volatility is very high</button>
+    <button class="opt" data-key="b">Its lower bound is zero for every strike and every maturity</button>
+    <button class="opt" data-key="c">Its price must be at least the stock price less the PV of the strike</button>
+    <button class="opt" data-key="d">Its price must equal its intrinsic value whenever it is in the money</button>
+  </div>
+  <div class="why">(a) volatility can't push the call above \(S_0\). (b) the floor is zero only when \(S_0 \le Ke^{-rT}\). (d) intrinsic value is a lower bound, not the price; time value sits on top.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q19.</strong> As expiry arrives (\(T \to 0\)), the call's floor \(\max(S_0 - Ke^{-rT},0)\) tends to what, and why must the price end up there?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\max(S_0 - K, 0)\): the option is exercised or lapses, with no time value left</button>
+    <button class="opt" data-key="b">\(S_0\): at expiry the call is worth exactly the stock price</button>
+    <button class="opt" data-key="c">\(\max(K - S_0, 0)\): the lower bound flips sign when time runs out</button>
+    <button class="opt" data-key="d">Zero: with no time left the option has lost all of its value</button>
+  </div>
+  <div class="why">With \(T=0\), \(e^{-rT} = 1\) and the floor is \(\max(S_0-K,0)\), the payoff. The price equals the payoff since nothing more can happen.</div>
+</div>
+
+<h3>Try it: bounds on a number line</h3>
+<p>Move \(S_0\), \(K\), \(r\), \(T\), \(D\) and watch the green "allowed" zone move. Drag a quoted price into the red and read the arbitrage. Tick American to see how the zone changes.</p>
+
+<div class="widget" id="bw">
+  <div class="controls">
+    <label>Stock \(S_0\): <span id="vS"></span><input type="range" id="S" min="20" max="100" step="0.5" value="52"></label>
+    <label>Strike \(K\): <span id="vK"></span><input type="range" id="K" min="20" max="100" step="0.5" value="48"></label>
+    <label>Rate \(r\): <span id="vr"></span><input type="range" id="r" min="0" max="0.15" step="0.005" value="0.08"></label>
+    <label>Time \(T\) (years): <span id="vT"></span><input type="range" id="T" min="0.05" max="3" step="0.05" value="0.75"></label>
+    <label>PV of dividends \(D\): <span id="vD"></span><input type="range" id="D" min="0" max="8" step="0.1" value="0"></label>
+    <label class="tgl"><input type="checkbox" id="am"> American options</label>
+    <label>Quoted call price: <span id="vc"></span><input type="range" id="cm" min="0" max="110" step="0.05" value="5.8"></label>
+    <label>Quoted put price: <span id="vp"></span><input type="range" id="pm" min="0" max="110" step="0.05" value="1"></label>
+  </div>
+  <div class="out">
+    <div>PV of strike: <b id="oPV"></b></div>
+    <div>Intrinsic: call <b id="oIc"></b> · put <b id="oIp"></b></div>
+    <div>Call range: <b id="oCr"></b></div>
+    <div>Put range: <b id="oPr"></b></div>
+  </div>
+  <svg id="svgc" viewBox="0 0 640 86" aria-label="Call price number line"></svg>
+  <div class="verdict2" id="vdc"></div>
+  <svg id="svgp" viewBox="0 0 640 86" aria-label="Put price number line"></svg>
+  <div class="verdict2" id="vdp"></div>
+  <div class="note">Green = prices with no arbitrage; red = arbitrage. Try: (1) set \(r\) = 0: the call floor equals intrinsic. (2) Raise \(T\): the call floor rises, the European put ceiling falls. (3) Set \(D\) to 3: the call floor falls and the put floor lifts. (4) Tick American: the put ceiling jumps from \(Ke^{-rT}\) to \(K\). (5) Make \(K\) much bigger than \(S_0\): the European put floor sits below intrinsic, the American one on it.</div>
+</div>
+<script>
+(function () {
+  const el = id => document.getElementById(id);
+  function drawLine(svg, lo, hi, marker, M, labels) {
+    const L = 24, W = 592, y = 40, h = 18;
+    const X = v => L + Math.max(0, Math.min(v, M)) / M * W;
+    let s = '';
+    s += `<rect x="${L}" y="${y}" width="${W}" height="${h}" fill="var(--bad-bg)" stroke="var(--bad)" stroke-width="0.6"/>`;
+    s += `<rect x="${X(lo)}" y="${y}" width="${Math.max(X(hi) - X(lo), 0)}" height="${h}" fill="var(--ok-bg)" stroke="var(--ok)" stroke-width="1.2"/>`;
+    labels.forEach((t, i) => {
+      const x = X(t[0]);
+      s += `<line x1="${x}" x2="${x}" y1="${y - 4}" y2="${y + h + 4}" stroke="var(--muted)" stroke-width="1"/>`;
+      s += `<text x="${Math.min(Math.max(x, 40), 600)}" y="${i % 2 ? y + h + 18 : y - 8}" text-anchor="middle" font-size="10.5" fill="var(--fg)" font-family="Inter,sans-serif">${t[1]}</text>`;
+    });
+    const mx = X(marker);
+    s += `<polygon points="${mx - 6},${y - 24} ${mx + 6},${y - 24} ${mx},${y - 13}" fill="var(--accent)"/>`;
+    s += `<text x="${Math.min(Math.max(mx, 40), 600)}" y="${y - 28}" text-anchor="middle" font-size="11" font-weight="600" fill="var(--accent)" font-family="Inter,sans-serif">${marker > M ? 'quote (off scale)' : 'quote'}</text>`;
+    svg.innerHTML = s;
+  }
+  const fmt = x => x.toFixed(2);
+  function upd() {
+    const S = +el('S').value, K = +el('K').value, r = +el('r').value, T = +el('T').value, D = +el('D').value;
+    const am = el('am').checked, cm = +el('cm').value, pm = +el('pm').value;
+    const pv = K * Math.exp(-r * T);
+    const Ic = Math.max(S - K, 0), Ip = Math.max(K - S, 0);
+    const cEuro = Math.max(S - D - pv, 0), pEuro = Math.max(D + pv - S, 0);
+    let cLo = cEuro, cHi = S, pLo = pEuro, pHi = pv;
+    if (am) { cLo = Math.max(cEuro, Ic); pLo = Math.max(pEuro, Ip); pHi = K; }
+    el('vS').textContent = S.toFixed(1); el('vK').textContent = K.toFixed(1);
+    el('vr').textContent = (r * 100).toFixed(1) + '%'; el('vT').textContent = T.toFixed(2);
+    el('vD').textContent = D.toFixed(1); el('vc').textContent = cm.toFixed(2); el('vp').textContent = pm.toFixed(2);
+    el('oPV').textContent = fmt(pv); el('oIc').textContent = fmt(Ic); el('oIp').textContent = fmt(Ip);
+    el('oCr').textContent = `${fmt(cLo)} to ${fmt(cHi)}`;
+    el('oPr').textContent = `${fmt(pLo)} to ${fmt(pHi)}`;
+    const M = Math.max(S, K) * 1.15;
+    drawLine(el('svgc'), cLo, cHi, cm, M, [[cLo, 'floor ' + fmt(cLo)], [cHi, 'S0 ' + fmt(cHi)]]);
+    drawLine(el('svgp'), pLo, pHi, pm, M, [[pLo, 'floor ' + fmt(pLo)], [pHi, (am ? 'K ' : 'PV(K) ') + fmt(pHi)]]);
+    const eps = 0.005, tag = am ? 'American' : 'European';
+    function verdict(div, name, q, lo, hi, lowAct, highAct) {
+      div.className = 'verdict2';
+      if (q < lo - eps) {
+        div.classList.add('bad');
+        div.innerHTML = `<b>${tag} ${name} at ${fmt(q)} is below its floor ${fmt(lo)}: arbitrage worth ${fmt(lo - q)} today.</b> ${lowAct}`;
+      } else if (q > hi + eps) {
+        div.classList.add('bad');
+        div.innerHTML = `<b>${tag} ${name} at ${fmt(q)} is above its ceiling ${fmt(hi)}: arbitrage worth ${fmt(q - hi)} today.</b> ${highAct}`;
+      } else {
+        div.classList.add('good');
+        div.innerHTML = `<b>${tag} ${name} at ${fmt(q)} is inside [${fmt(lo)}, ${fmt(hi)}]: no arbitrage from these bounds.</b>`;
+      }
+    }
+    const callImm = am && Ic > cEuro + eps;
+    const putImm = am && Ip > pEuro + eps;
+    verdict(el('vdc'), 'call', cm, cLo, cHi,
+      callImm ? 'Buy the call, exercise it immediately, sell the share.' : 'Buy the call, short the stock, lend ' + fmt(pv) + (D > 0 ? ' plus ' + fmt(D) + ' to cover the dividends you owe' : '') + '.',
+      'Sell the call, buy the stock.');
+    verdict(el('vdp'), 'put', pm, pLo, pHi,
+      putImm ? 'Buy the put and the stock, exercise immediately for K.' : 'Buy the put, buy the stock, borrow ' + fmt(pv) + (D > 0 ? ' (dividends collected repay ' + fmt(D) + ' of it)' : '') + '.',
+      am ? 'Sell the put, lend K.' : 'Sell the put, lend ' + fmt(pv) + '.');
+  }
+  ['S', 'K', 'r', 'T', 'D', 'am', 'cm', 'pm'].forEach(id => el(id).addEventListener('input', upd));
+  upd();
+})();
+</script>
+
+<h2>9 · An exam-style multi-part question</h2>
+
+<p>A stock trades at $55. A 4-month European call with \(K = 50\) is quoted at $4.10. The continuously compounded risk-free rate is 9% for all maturities; no dividends.</p>
+<p>(a) Lower bound for the call? (b) Is there an arbitrage? (c) Give the strategy with a cash-flow table at \(t=0\) and \(T\). (d) What changes if a $1.00 dividend will be paid in 2 months? Try each part before opening the working.</p>
+
+<details><summary>Step 1: part (a)</summary><div>
+<p>\(Ke^{-rT} = 50e^{-0.09\times4/12} = 50e^{-0.03} = 48.5223\). Lower bound \(= 55 - 48.5223 = \mathbf{6.4777}\); the upper bound is \(S_0 = 55\).</p></div></details>
+<details><summary>Step 2: part (b)</summary><div>
+<p>\(4.10 \lt 6.4777\): the call is below its floor, so it's too cheap. Arbitrage profit today \(= 6.4777 - 4.10 = \mathbf{2.3777}\) per share.</p></div></details>
+<details><summary>Step 3: part (c)</summary><div>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Action</th><th>\(t=0\)</th><th>\(T\), \(S_T \gt 50\)</th><th>\(T\), \(S_T \le 50\)</th></tr>
+<tr><td>Buy call</td><td>−4.10</td><td>\(S_T - 50\)</td><td>0</td></tr>
+<tr><td>Short stock</td><td>+55.00</td><td>\(-S_T\)</td><td>\(-S_T\)</td></tr>
+<tr><td>Lend \(50e^{-0.03}\)</td><td>−48.5223</td><td>+50</td><td>+50</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>+2.3777</strong></td><td><strong>0</strong></td><td><strong>\(50 - S_T \ge 0\)</strong></td></tr>
+</table></div></div></details>
+<details><summary>Step 4: part (d), the $1 dividend</summary><div>
+<p>The short seller must pay the $1.00 dividend to the share's lender, so extra cash must be set aside. In the bound, \(D = 1.00e^{-0.09\times2/12} = 0.9851\). New floor \(= 55 - 0.9851 - 48.5223 = \mathbf{5.4926}\); the quote $4.10 is still below it, and profit today \(= 5.4926 - 4.10 = 1.3926\). (Table: add a row "pay dividend", \(-1\) at month 2, funded by lending an extra \(0.9851\) today.) The dividend lowers the call's floor by \(D\), so the arbitrage shrinks from 2.38 to 1.39.</p></div></details>
+
+<h2>10 · Mixed review and traps</h2>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q20.</strong> A student takes a European put's lower bound to be \(K - S_0\) and finds a quote below it. Which comment is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Right: any European put price under \(K-S_0\) is an arbitrage</button>
+    <button class="opt" data-key="b">Wrong: the European put bound is \(K-S_0\) only if there are dividends</button>
+    <button class="opt" data-key="c">Right if the rate is positive, as then \(K - S_0\) is the stricter bound</button>
+    <button class="opt" data-key="d">Wrong: \(K - S_0\) is the American bound; the European floor is \(Ke^{-rT}-S_0\)</button>
+  </div>
+  <div class="why">\(Ke^{-rT} \lt K\), so the European floor is below \(K - S_0\). A quote between the two is fine for a European put, an arbitrage for an American one.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q21.</strong> Which of these is guaranteed by the no-arbitrage bounds?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A European call is never worth more than the PV of the strike</button>
+    <button class="opt" data-key="b">An American call is never cheaper than the same European call</button>
+    <button class="opt" data-key="c">A European put always trades at exactly its intrinsic value</button>
+    <button class="opt" data-key="d">A call's price always equals the stock price less the strike</button>
+  </div>
+  <div class="why">The American option has every right the European has, so \(C \ge c\). (a) is false (calls can exceed \(Ke^{-rT}\) easily); (c) and (d) confuse bounds with prices.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q22.</strong> A trader sells a European put priced above \(Ke^{-rT}\), lends \(Ke^{-rT}\), and keeps the difference. What risk is left at \(T\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A loss if the stock falls well below \(K\), as the put is then exercised against them</button>
+    <button class="opt" data-key="b">A loss if the stock rises above \(K\), as the loan then falls short of the strike</button>
+    <button class="opt" data-key="c">None: the loan grows to \(K\), the most they can owe, and they receive the stock</button>
+    <button class="opt" data-key="d">A loss if rates fall, as the loan then grows to less than \(K\)</button>
+  </div>
+  <div class="why">At \(T\) the loan equals \(K\). If exercised, you pay \(K\) and receive a share worth \(S_T \ge 0\); otherwise you keep \(K\). The rate is locked in at \(t=0\).</div>
+</div>
+
+<h2>11 · Before you close this tab</h2>
+
+<details><summary>Retrieval: from memory, write all the bounds for calls and puts (European, American, with dividends), give the two-portfolio proof for one of them, and the arbitrage for a call quoted under its floor. Then check</summary><div>
+<p><strong>Calls:</strong> \(\max(S_0 - D - Ke^{-rT}, 0) \le c \le S_0\) (\(C = c\) when \(D = 0\); American with dividends also \(C \ge S_0 - K\)). <strong>Puts:</strong> \(\max(D + Ke^{-rT} - S_0, 0) \le p \le Ke^{-rT}\); American \(\max(K - S_0, 0) \le P \le K\). <strong>Proof (call floor):</strong> A = call + \(Ke^{-rT}\) cash pays \(\max(S_T, K)\); B = share pays \(S_T\); A \(\ge\) B at \(T\), so A \(\ge\) B today. <strong>Arbitrage:</strong> call below floor: buy call, short stock, lend \(Ke^{-rT}\); \(t=0\) profit = floor − quote; at \(T\) the net is 0 if \(S_T \gt K\), else \(K - S_T\). General rule: buy the cheap portfolio, sell the dear one.</p></div></details>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, Ch. 11, "Properties of Stock Options" (upper and lower bounds), the reading for <a href="../lectures/Lecture%204_Options%20intro.pdf">Lecture 4</a> (slides 24–31 on bounds; the handwritten <em>Lecture 4 notes</em> follow the same order).</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%204.pdf">Tutorial 4</a>, Q1 and Q2 (<a href="../tutes/Tutorial%204%20solutions.pdf">solutions</a>): cover the two worked boxes above and redo them cold, then write the arbitrage table for each if the quote were $1 below the bound. Q4 and Q5 (dividends, parity) come in <a href="0014-put-call-parity.html">Lesson 14</a>, Q6 in <a href="0015-early-exercise-of-american-options.html">Lesson 15</a>.</p>
+<p><strong>Spacing:</strong> tomorrow redo Q3, Q6, Q8, Q12 and the section 9 table without looking; in three days write all the bounds on one page from memory, then check against the Lecture 4 slides.</p>
+
+<div class="ask">💬 Not sure which side of a bound a quote is on, or the table won't net out? Paste your working into the terminal and ask me. I'm your teacher for this. Ask me for more "what happens if…" scenarios, and for more mispriced-option drills with new numbers.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0012-factors-affecting-option-prices.html">Lesson 12, factors affecting option prices</a></span>
+  <span>Reference: <a href="../reference/glossary.html">Glossary</a> · <a href="0011-options-payoffs-profits-and-moneyness.html">Lesson 11, payoffs and moneyness</a></span>
+  <span>Next: <a href="0014-put-call-parity.html">Lesson 14, put-call parity</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

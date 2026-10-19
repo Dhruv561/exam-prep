@@ -99,6 +99,31 @@
 <tr><td>Offsetting forward</td><td>A new opposite forward entered today at \(F_0\), locking in \(F_0 - K\) at \(T\)</td><td>10</td></tr>
 <tr><td>Value of a futures position</td><td>Cumulative \(F - K\), already paid via daily settlement; worth 0 after each settlement</td><td>10</td></tr>
 <tr><td>Calendar (spread) bound</td><td>\(F_2 \le F_1e^{r(t_2-t_1)}\) for two maturities on the same asset, no storage</td><td>10</td></tr>
+<tr><td>Call / put option</td><td>Right (not obligation) to buy / sell the underlying at the strike \(K\) by expiry \(T\)</td><td><a href="../lessons/0011-options-payoffs-profits-and-moneyness.html">11</a></td></tr>
+<tr><td>Premium</td><td>The price paid up front for an option (\(c\) call, \(p\) put; \(C\), \(P\) American)</td><td><a href="../lessons/0011-options-payoffs-profits-and-moneyness.html">11</a></td></tr>
+<tr><td>Holder / writer</td><td>Long the option (has the right) / short the option (has the obligation)</td><td><a href="../lessons/0011-options-payoffs-profits-and-moneyness.html">11</a></td></tr>
+<tr><td>European / American option</td><td>Exercisable only at expiry / at any time up to expiry</td><td><a href="../lessons/0011-options-payoffs-profits-and-moneyness.html">11</a></td></tr>
+<tr><td>Payoff vs profit</td><td>Payoff ignores the premium, profit includes it. Long call profit \(=\max(S_T-K,0)-c\)</td><td><a href="../lessons/0011-options-payoffs-profits-and-moneyness.html">11</a></td></tr>
+<tr><td>Break-even</td><td>Call: \(K+c\). Put: \(K-p\)</td><td><a href="../lessons/0011-options-payoffs-profits-and-moneyness.html">11</a></td></tr>
+<tr><td>Moneyness (ITM / ATM / OTM)</td><td>Call ITM if \(S>K\), put ITM if \(S&lt;K\), ATM if \(S=K\)</td><td><a href="../lessons/0011-options-payoffs-profits-and-moneyness.html">11</a></td></tr>
+<tr><td>Intrinsic value</td><td>\(\max(S-K,0)\) for a call, \(\max(K-S,0)\) for a put</td><td><a href="../lessons/0011-options-payoffs-profits-and-moneyness.html">11</a></td></tr>
+<tr><td>Time value</td><td>Premium − intrinsic value. Highest near the money, 0 at expiry. Always ≥ 0 for American options, can be negative for a deep-ITM European put</td><td><a href="../lessons/0011-options-payoffs-profits-and-moneyness.html">11</a></td></tr>
+<tr><td>Straddle / strangle</td><td>Long call + long put at the same strike / at different strikes. A bet on large moves</td><td><a href="../lessons/0011-options-payoffs-profits-and-moneyness.html">11</a></td></tr>
+<tr><td>Protective put / covered call</td><td>Stock + long put (floor) / stock + short call (capped upside)</td><td><a href="../lessons/0011-options-payoffs-profits-and-moneyness.html">11</a></td></tr>
+<tr><td>Bull / bear spread</td><td>Bull call spread: buy low-\(K\) call, sell high-\(K\) call. Bear is the reverse</td><td><a href="../lessons/0011-options-payoffs-profits-and-moneyness.html">11</a></td></tr>
+<tr><td>Volatility \(\sigma\)</td><td>Uncertainty of the stock's return. Raises both calls and puts (limited-liability asymmetry)</td><td><a href="../lessons/0012-factors-affecting-option-prices.html">12</a></td></tr>
+<tr><td>Limited-liability asymmetry</td><td>The option holder keeps upside but loses at most the premium, so more spread helps</td><td><a href="../lessons/0012-factors-affecting-option-prices.html">12</a></td></tr>
+<tr><td>Ex-dividend date</td><td>Date after which a buyer no longer gets the dividend. The stock drops by about the dividend</td><td><a href="../lessons/0012-factors-affecting-option-prices.html">12</a></td></tr>
+<tr><td>No-arbitrage bound</td><td>A floor or ceiling on an option price. Violating it gives a riskless profit</td><td><a href="../lessons/0013-bounds-on-option-prices.html">13</a></td></tr>
+<tr><td>PV of strike \(Ke^{-rT}\)</td><td>The strike discounted at the risk-free rate, used in all European bounds and parity</td><td><a href="../lessons/0013-bounds-on-option-prices.html">13</a></td></tr>
+<tr><td>PV of dividends \(D\)</td><td>Dividends before \(T\), each discounted from its own date. Subtract for calls, add for puts</td><td><a href="../lessons/0013-bounds-on-option-prices.html">13</a></td></tr>
+<tr><td>Short sale</td><td>Selling a borrowed share now, to buy it back later</td><td><a href="../lessons/0013-bounds-on-option-prices.html">13</a></td></tr>
+<tr><td>Put-call parity</td><td>\(c+Ke^{-rT}=p+S_0\) (European, no dividends). With dividends: \(c+D+Ke^{-rT}=p+S_0\)</td><td><a href="../lessons/0014-put-call-parity.html">14</a></td></tr>
+<tr><td>Fiduciary call</td><td>Call + cash \(Ke^{-rT}\). Matches a protective put at \(T\) (pays \(\max(S_T,K)\))</td><td><a href="../lessons/0014-put-call-parity.html">14</a></td></tr>
+<tr><td>Synthetic position</td><td>Replicating an instrument with others, e.g. synthetic put = long call + short stock + lend \(Ke^{-rT}\)</td><td><a href="../lessons/0014-put-call-parity.html">14</a></td></tr>
+<tr><td>American put-call range</td><td>\(S_0-K\le C-P\le S_0-Ke^{-rT}\); with dividends the lower end is \(S_0-D-K\)</td><td><a href="../lessons/0014-put-call-parity.html">14</a></td></tr>
+<tr><td>Early exercise</td><td>Exercising an American option before expiry. Beats selling only when time value is about 0</td><td><a href="../lessons/0015-early-exercise-of-american-options.html">15</a></td></tr>
+<tr><td>Insurance value</td><td>What a call's holder keeps by not committing to buy: protection if the stock falls</td><td><a href="../lessons/0015-early-exercise-of-american-options.html">15</a></td></tr>
 </table>
 </main>
 </body>

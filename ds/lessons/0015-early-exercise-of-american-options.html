@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Early Exercise of American Options</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.widget { border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.2rem; margin: 1.4rem 0; font-family: Inter, system-ui, sans-serif; font-size: .85rem; }
+.widget .controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem 1.2rem; }
+.widget label { display: flex; flex-direction: column; }
+.widget input[type=range], .widget select { width: 100%; accent-color: var(--accent); }
+.widget select { font: inherit; padding: .3rem; background: var(--bg); color: var(--fg); border: 1px solid var(--rule); border-radius: 4px; }
+.widget .out { margin-top: .8rem; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .3rem 1.2rem; font-variant-numeric: tabular-nums; }
+.widget .out b { font-size: 1rem; }
+.widget .verdict-box { margin-top: .8rem; padding: .6rem .8rem; border-radius: 6px; font-weight: 600; }
+.widget .verdict-box.hold { background: var(--ok-bg); color: var(--ok); }
+.widget .verdict-box.ex { background: var(--trap-bg); color: var(--trap); }
+.widget .note { color: var(--muted); margin-top: .5rem; }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 15 · Topic 4: Options introduction (capstone)</div>
+<h1>Early exercise of American options, and how all of Topic 4 fits together</h1>
+<p class="lede">The goal: say, for any American call or put, whether the holder should exercise before expiry or hold/sell, explain why in one sentence (time value, interest on the strike, dividends, capped upside), predict how \(r\), \(\sigma\), \(T\), \(K\), \(S\) and dividends push the incentive, and then use that to tie Lessons 11–14 into one picture.</p>
+
+<div class="mission">Why this matters for 5 Nov: "American call on a non-dividend stock: should it be exercised early?" is a recurring 1–2 mark MCQ (distractors: "if deep in the money", "if volatility is very low", "only if \(r = 0\)"). "Which change makes early exercise of an American put <em>more</em> likely?" appears in MSTs, and Tutorial 4 Q6 asks for the intuition in words. Later, the binomial lessons ask you to decide early exercise node by node: this lesson gives you the reasons you will be testing numerically.</div>
+
+<p>This lesson assumes <a href="0011-options-payoffs-profits-and-moneyness.html">Lesson 11</a> (payoffs, moneyness, intrinsic and time value), <a href="0012-factors-affecting-option-prices.html">Lesson 12</a> (what moves option prices), <a href="0013-bounds-on-option-prices.html">Lesson 13</a> (upper and lower bounds) and <a href="0014-put-call-parity.html">Lesson 14</a> (put-call parity). Terms are re-defined briefly where they first appear here; the <a href="../reference/glossary.html">glossary</a> has the rest.</p>
+
+<h2>1 · The decision: exercise now, wait, or sell?</h2>
+
+<p>An <strong>American option</strong> can be exercised on any day up to expiry; a <strong>European option</strong> only at expiry. <strong>Exercising</strong> means using the right: a call holder pays \(K\) and receives the share, a put holder hands over the share and receives \(K\). <strong>Early exercise</strong> means exercising before the expiry date. Using the Lesson 11 vocabulary:</p>
+<ul>
+  <li><strong>Intrinsic value</strong> = what you would get by exercising right now: \(\max(S-K,0)\) for a call, \(\max(K-S,0)\) for a put.</li>
+  <li><strong>Time value</strong> = option price \(-\) intrinsic value: the extra people pay for the chance of a better outcome later. </li>
+</ul>
+<p>A holder who wants out of an in-the-money option has <em>three</em> choices, not two: <strong>exercise</strong>, <strong>hold</strong>, or <strong>sell the option in the market</strong>. Selling gets you the option's full price (intrinsic <em>plus</em> time value). Exercising gets you intrinsic value only. So</p>
+<div class="box"><strong>Core principle.</strong> Exercising early throws away the option's time value. It only makes sense when something you get by exercising early is worth <em>more</em> than the time value you give up. The whole lesson is: what could that something be? For a call it can only be a <strong>dividend</strong>. For a put it can be <strong>interest on the strike</strong>.</div>
+<p>(<a href="../lectures/Lecture%204_Options%20intro.pdf">Lecture 4, slides 13 and 19–22</a>; Hull Ch. 11, "Early exercise".)</p>
+
+<h2>2 · An American call on a stock with no dividends: never exercise early</h2>
+
+<p>Setup from the lecture: the stock pays no dividends, \(S = \$70\), strike \(K = \$40\), one month left, \(r = 5\%\). The call is deep in the money. <strong>Predict first:</strong> a holder says "I'm already $30 in the money, lock it in, exercise now." Good idea?</p>
+
+<h3>Three reasons to wait, from three different angles</h3>
+<ol class="steps">
+  <li><strong>Pay later.</strong> Exercising now means paying $40 today. Waiting one month and paying then costs \(40e^{-0.05/12}\) in today's money, a bit less. Delaying the strike payment is worth \(K(1-e^{-rT})\): here about $0.17. Meanwhile the holder still owns the call, and the shares carry no dividend that the holder would miss by waiting.</li>
+  <li><strong>Insurance.</strong> If you exercise you own the shares and bear all their risk. If instead you hold the call and the stock crashes below $40, you simply don't exercise and lose nothing more. This protection is the call's <strong>insurance value</strong> (a part of its time value, and the reason a higher \(\sigma\) makes options dearer, Lesson 12). Exercising throws it away for nothing.</li>
+  <li><strong>The bound (Lesson 13).</strong> A European call on a non-dividend stock satisfies \(c \ge S - Ke^{-rT}\). An American call is worth at least as much as the European, so</li>
+</ol>
+$$C \;\ge\; c \;\ge\; S - Ke^{-rT} \;>\; S - K \quad (\text{when } r>0,\ T>0).$$
+<p>The last step is because \(Ke^{-rT} < K\). The call's market value is <em>strictly above</em> what exercising gives you (\(S-K\)). Here: \(C \ge 70 - 40e^{-0.05/12} = \$30.17 > \$30\). So even a speculator who doesn't want the shares does better <strong>selling</strong> the call (at \(\ge \$30.17\)) than exercising (\(\$30\)): that is the lecture's slide 20 argument.</p>
+
+<p>Since waiting is never worse, an American call on a non-dividend stock is held to maturity (or sold), which means it behaves exactly like a European call:</p>
+$$\boxed{\,C = c \quad \text{(no dividends)}\,}$$
+<p>So any European-call formula or bound (binomial, Black-Scholes) also prices the American call. Early exercise only adds value to the American <em>put</em> (section 4).</p>
+
+<h3>What-if scenarios (non-dividend call, always: hold or sell)</h3>
+<div class="tablewrap">
+<table>
+<tr><th>Change</th><th>Does it make early exercise optimal?</th><th>Why</th></tr>
+<tr><td>Deeper in the money (\(S\) to $200)</td><td>No</td><td>\(S-Ke^{-rT} > S-K\) at any \(S\). Deep ITM only means the option behaves like the stock minus a bond; it still saves interest on \(K\).</td></tr>
+<tr><td>Volatility very low</td><td>No</td><td>Insurance value shrinks, but the interest saving on \(K\) is still positive and there is no benefit to exercising at all. Waiting is <em>weakly</em> better.</td></tr>
+<tr><td>Interest rate \(r = 0\)</td><td>No (not strictly better)</td><td>The interest saving is zero, so holding and exercising are tied <em>at worst</em>: \(C \ge S-K\) with equality only in extreme cases. Never strictly better to exercise.</td></tr>
+<tr><td>Interest rate rises</td><td>No, waiting gets better</td><td>Saving \(K(1-e^{-rT})\) grows. (Contrast with puts.)</td></tr>
+<tr><td>Expiry one day away</td><td>Not "early": hold until expiry</td><td>You can exercise on the last day; that's not early exercise. The gain from exercising today instead of tomorrow is one day of interest saved.</td></tr>
+<tr><td>Stock pays a dividend</td><td><strong>Maybe</strong></td><td>Section 3.</td></tr>
+</table>
+</div>
+
+<div class="trap"><strong>Distractors that sound sensible</strong><br>
+"Exercise early if deep in the money" (it's the classic wrong answer), "exercise early if volatility is very low" (insurance value falls but the interest saving still points to waiting), "exercise early only if \(r = 0\)". The only correct options are "never" or "only if a dividend is coming". A European call on the same non-dividend stock is <em>never</em> worth more than the American one, and for this stock they are <em>equal</em>.</div>
+
+<h2>3 · An American call when a dividend is coming: sometimes, and only just before the ex-dividend date</h2>
+
+<p>The <strong>ex-dividend date</strong> is the day from which a buyer of the stock no longer gets the next dividend; on that day the share price drops by roughly the dividend. A call holder gets <em>no</em> dividend, and the drop hurts them (Lesson 12: dividends lower calls). The only way to capture the dividend is to own the shares, which means exercising <em>before</em> the ex-dividend date.</p>
+<p><strong>Predict first:</strong> the dividend is $1.50 and it goes ex in 1 month. What are you weighing?</p>
+<details><summary>Reveal: gain vs. cost of exercising just before ex-dividend</summary><div>
+<p>Exercising just before the ex-date: you <strong>gain</strong> the dividend \(D\) (you now own the shares), and you start paying \(K\) earlier. You <strong>give up</strong> (a) the interest saving on the strike for the rest of the option's life and (b) the insurance value of the option. So</p>
+$$\text{exercise just before ex-date only if } D \;>\; \underbrace{K\left(1-e^{-r\tau}\right)}_{\text{interest on strike}} + \underbrace{\text{insurance value}}_{\text{time value left}}$$
+<p>where \(\tau\) is the time from the ex-date to expiry (or to the next ex-date). A clean sufficient test from the dividend lower bound \(c \ge S - D - Ke^{-rT}\) (Lecture 4 slide 30): if \(D \le K(1-e^{-r\tau})\), early exercise is <strong>not</strong> optimal, because the bound sits above \(S-K\) again. A big dividend relative to the interest on the strike breaks that guarantee.</p>
+<p>Why <em>just before</em> the ex-date and not earlier? Between dividends the no-dividend logic applies again (nothing to capture, so waiting is better), so you wait until the last moment to keep the interest and the insurance. Why not after? Once the stock has gone ex, the dividend is gone.</p>
+</div></details>
+
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>\(K=40\), \(r=6\%\), expiry in 6 months</th><th style="text-align:left">Dividend \(D\) just after</th><th style="text-align:left">\(K(1-e^{-r\tau})\), \(\tau = 5/12\)</th><th style="text-align:left">Verdict</th></tr>
+<tr><td>Dividend $0.50</td><td>0.50</td><td>0.99</td><td style="text-align:left">\(D \lt\) interest: do not exercise (guaranteed)</td></tr>
+<tr><td>Dividend $1.50</td><td>1.50</td><td>0.99</td><td style="text-align:left">Test is silent. Exercise only if also deep ITM with little insurance value left</td></tr>
+<tr><td>Dividend $3.00, \(S=\$70\)</td><td>3.00</td><td>0.99</td><td style="text-align:left">Very likely exercise just before ex-date</td></tr>
+</table>
+</div>
+
+<div class="trap"><strong>Reading the dividend direction</strong><br>
+More dividends before expiry make early exercise of a <em>call</em> more attractive and make the call cheaper. They make early exercise of a <em>put</em> <em>less</em> attractive (section 4). When a question mixes both, say which instrument.</div>
+
+<h2>4 · An American put: early exercise can be optimal even with no dividends</h2>
+
+<p>A put holder receives \(K\) when exercising. That cash can be put in the bank <em>now</em>. Waiting keeps the chance of a better price, but a put has a ceiling: the share price can't fall below zero, so the most the put can ever pay is \(K\). <strong>Predict first:</strong> \(K=\$50\), the stock has crashed to \(S=\$1\), \(r = 6\%\), one year left. The holder can exercise and get $49 now. What does waiting add?</p>
+
+<details><summary>Reveal: capped upside vs interest</summary><div>
+<p>The stock could fall by at most $1 more, so waiting can gain you <em>at most $1</em> of extra payoff (and could lose, if the stock rebounds). Exercising now gets $49, which grows to \(49e^{0.06} = \$52.03\) in a year if invested: roughly $3 of interest, more than the most waiting can ever add. So exercise now.</p>
+<p>The bound shows it too: a European put can never exceed \(Ke^{-rT} = 50e^{-0.06} = \$47.09\) (Lesson 13), yet the intrinsic value is $49. A European put worth $47.09 at most is trading <em>below</em> its intrinsic value. An American put can't be worth less than $49, so the American put is strictly more valuable here: <strong>\(P > p\)</strong>. Unlike calls, American and European puts differ.</p>
+</div></details>
+
+<p>The mirror image of the call argument: for a call, exercising means <em>paying</em> \(K\) early (bad: lose interest). For a put, exercising means <em>receiving</em> \(K\) early (good: earn interest). Waiting for the put brings you insurance value, which shrinks as the put goes deep in the money, so there is a price \(S^*\) below which exercising wins. Deeper in the money and lower insurance value both push the holder towards exercising.</p>
+
+<h3>The incentive, factor by factor (American put)</h3>
+<p>Base case: \(K=\$50\), \(S = \$32\), \(r=6\%\), \(T = 1\) year, \(\sigma\) medium (30%), no dividends. Predict each direction first, then open the table. (Verdicts come from the bound-style widget in section 6, so read them as the <em>direction</em> of the effect; they are not model prices.)</p>
+<details><summary>Reveal the scenario table</summary><div>
+<div class="tablewrap">
+<table>
+<tr><th>Change from base</th><th>Early exercise becomes…</th><th>Because</th></tr>
+<tr><td>\(S\) falls to $28</td><td>More attractive</td><td>Deeper ITM: more interest on a bigger \(K-S\), less room left for the stock to fall.</td></tr>
+<tr><td>\(S\) rises to $38</td><td>Less attractive (hold)</td><td>Closer to the strike, more insurance value left.</td></tr>
+<tr><td>\(r\) rises 6% → 10%</td><td>More attractive</td><td>Interest earned on the strike is the main reason to exercise.</td></tr>
+<tr><td>\(r\) falls 6% → 2%</td><td>Less attractive</td><td>Interest on $18 of intrinsic is too small to beat the insurance value. At \(r=0\) it's never worth exercising a put early on a no-dividend stock (exercising ties at best).</td></tr>
+<tr><td>\(\sigma\) falls 30% → 15%</td><td>More attractive</td><td>Less insurance (time) value to sacrifice.</td></tr>
+<tr><td>\(\sigma\) rises 30% → 50%</td><td>Less attractive</td><td>A big chance of a rebound in either direction means the put is worth more alive than dead.</td></tr>
+<tr><td>\(T\) shortens (1 year → 3 months)</td><td>More attractive for a deep-ITM put</td><td>Insurance value of a deep-ITM option decays fast as expiry nears; holding just wastes a few days of interest.</td></tr>
+<tr><td>\(T\) lengthens (1 → 2 years)</td><td>Less attractive</td><td>More time for the stock to move; insurance value grows.</td></tr>
+<tr><td>\(K\) rises 50 → 60</td><td>More attractive</td><td>Deeper ITM: a bigger sum to earn interest on.</td></tr>
+<tr><td>Dividend $1 due before expiry</td><td>Less attractive</td><td>The stock is going to drop by about $1 on the ex-date anyway, which helps the put holder for free: no need to rush.</td></tr>
+</table>
+</div>
+</div></details>
+
+<div class="trap"><strong>"Exercise early when it's deep in the money" is not enough</strong><br>
+Deep ITM alone isn't the condition for a put either. The condition is: interest earned on the strike beats the time value given up. That's why the Tutorial 4 answer talks about <em>both</em> \(r\) up <em>and</em> \(\sigma\) down.</div>
+
+<h3>Tutorial 4, Question 6: the answer in words</h3>
+<p>"Give an intuitive explanation of why the early exercise of an American put often becomes more attractive as the risk-free rate increases and volatility decreases." Write a four-sentence answer before reading on.</p>
+<details><summary>Model answer (from the tutorial, tightened)</summary><div>
+<p>Early exercise lets the put holder start <strong>earning interest on the strike</strong> before expiry, so a higher \(r\) makes that benefit bigger. To be worth doing, the interest benefit must exceed the <strong>time (insurance) value</strong> the holder gives up by exercising. Volatility drives that time value: the higher \(\sigma\), the bigger the upside from waiting compared with the downside (a long option has no downside beyond the premium). So higher \(r\) raises the benefit and lower \(\sigma\) lowers the cost of exercising, and early exercise becomes more attractive. Hull calls the time-value part "insurance value", which suits hedgers; speculators with no underlying exposure are better described by time value.</p>
+</div></details>
+
+<h2>5 · Early exercise versus selling, and "other possible reasons"</h2>
+<p><strong>Selling beats exercising whenever the option still has time value.</strong> A put at $19.10 with intrinsic $18 is worth more sold than exercised ($1.10 of time value). Exercise is the better exit only when the market price has collapsed onto intrinsic value (time value \(\approx 0\)). Then selling and exercising pay the same, and exercising earns the interest (puts) or captures the dividend (calls).</p>
+<p>Lecture 4 slide 22 lists "other possible reasons" for early put exercise: <strong>volatility decreases</strong> and <strong>interest rates increase</strong>. Those are exactly the two forces above (less insurance value, more interest on the strike). Practical reasons also exist (the holder needs cash, or cannot sell the option because the market is illiquid), but exam answers use the economic ones.</p>
+<p>In the binomial tree (Lessons 16–17, coming) you apply this mechanically: at each node compare the continuation value (hold) with the intrinsic value (exercise now) and take the larger. For a non-dividend call that never picks "exercise"; for a put it sometimes does at the low-price nodes.</p>
+
+<h2>6 · Try it: would exercising now beat holding?</h2>
+<p>This widget uses <strong>bound-style logic, not a pricing model</strong>. It compares what exercising gains (call: the dividend \(D\), put: interest earned on the intrinsic \(K-S\) over \(T\)) with what holding offers (interest saved on the strike, the dividend that the put holder gets free, and a rough "insurance value" placeholder that peaks when \(S\approx K\), grows with \(\sigma\sqrt{T}\), and fades when deep in or out of the money). The placeholder is illustrative only. \(\sigma\) is chosen as a qualitative level (low 15%, medium 30%, high 50%). The dividend is assumed to go ex essentially immediately.</p>
+<div class="widget" id="ee">
+  <div class="controls">
+    <label>Option type:
+      <select id="eType"><option value="call">American call</option><option value="put" selected>American put</option></select></label>
+    <label>Volatility level \(\sigma\):
+      <select id="eSig"><option value="0.15">Low (15%)</option><option value="0.30" selected>Medium (30%)</option><option value="0.50">High (50%)</option></select></label>
+    <label>Stock \(S\): <span id="vS"></span><input type="range" id="eS" min="5" max="120" step="1" value="32"></label>
+    <label>Strike \(K\): <span id="vK"></span><input type="range" id="eK" min="20" max="100" step="1" value="50"></label>
+    <label>Rate \(r\): <span id="vr"></span><input type="range" id="er" min="0" max="0.15" step="0.005" value="0.06"></label>
+    <label>Time left \(T\) (years): <span id="vT"></span><input type="range" id="eT" min="0.05" max="2" step="0.05" value="1"></label>
+    <label>Dividend \(D\) about to go ex: <span id="vD"></span><input type="range" id="eD" min="0" max="6" step="0.25" value="0"></label>
+  </div>
+  <div class="out">
+    <div>Intrinsic value now: <b id="oInt"></b></div>
+    <div>Rough insurance value (placeholder): <b id="oTV"></b></div>
+    <div id="lblA">Benefit of exercising now: <b id="oA"></b></div>
+    <div id="lblB">Benefit of holding: <b id="oB"></b></div>
+    <div>Bound check: <b id="oBound"></b></div>
+  </div>
+  <div class="verdict-box hold" id="eVerdict"></div>
+  <div class="note" id="eNote"></div>
+</div>
+<p><strong>Things to try.</strong> (1) American call, \(D=0\): drag \(S\) anywhere; verdict is always hold/sell. (2) Call with \(S=70\), \(K=40\), \(T=0.5\): \(D=1.5\) holds, \(D=3\) exercises. (3) Put, \(S=32\): raise \(r\), lower \(\sigma\), shorten \(T\): each pushes towards exercise; then add a dividend and watch it flip back. (4) Put with \(r = 0\): never exercise.</p>
+<script>
+(function () {
+  const el = id => document.getElementById(id);
+  function upd() {
+    const type = el('eType').value, sg = +el('eSig').value;
+    const S = +el('eS').value, K = +el('eK').value, r = +el('er').value, T = +el('eT').value, D = +el('eD').value;
+    el('vS').textContent = S.toFixed(0); el('vK').textContent = K.toFixed(0);
+    el('vr').textContent = (r * 100).toFixed(1) + '%'; el('vT').textContent = T.toFixed(2); el('vD').textContent = D.toFixed(2);
+    const intr = type === 'call' ? Math.max(S - K, 0) : Math.max(K - S, 0);
+    const d = Math.abs(S - K) / (S * sg * Math.sqrt(T));
+    const tv = 0.4 * S * sg * Math.sqrt(T) * Math.exp(-d * d / 2);
+    const interestOnK = K * (1 - Math.exp(-r * T));
+    let A, B, verdict, cls, note, bound;
+    if (type === 'call') {
+      el('lblA').firstChild.textContent = 'Benefit of exercising now (dividend captured): ';
+      el('lblB').firstChild.textContent = 'Benefit of holding (interest on K + insurance): ';
+      A = D; B = interestOnK + tv;
+      const lb = S - D - K * Math.exp(-r * T);
+      bound = 'lower bound S − D − Ke^(−rT) = ' + lb.toFixed(2) + ' vs S − K = ' + (S - K).toFixed(2);
+      if (S <= K) { verdict = 'Out of the money: nothing to exercise. Hold or sell.'; cls = 'hold'; }
+      else if (D === 0) { verdict = 'Hold or sell: with no dividend, C ≥ S − Ke^(−rT) > S − K, so exercising is never better.'; cls = 'hold'; }
+      else if (D <= interestOnK) { verdict = 'Hold: the dividend is no bigger than the interest saved on the strike, so the bound already beats S − K.'; cls = 'hold'; }
+      else if (A > B) { verdict = 'Exercising just before the ex-dividend date plausibly beats holding.'; cls = 'ex'; }
+      else { verdict = 'Hold: the bound cannot rule out exercise, but the interest + insurance you would give up outweigh the dividend.'; cls = 'hold'; }
+      note = 'A call holder can only capture the dividend by exercising before the ex-date.';
+    } else {
+      el('lblA').firstChild.textContent = 'Benefit of exercising now (interest on K − S over T): ';
+      el('lblB').firstChild.textContent = 'Benefit of holding (insurance + dividend that is coming anyway): ';
+      A = intr * (1 - Math.exp(-r * T)); B = tv + D;
+      bound = 'European put ≤ Ke^(−rT) = ' + (K * Math.exp(-r * T)).toFixed(2) + ' vs intrinsic K − S = ' + intr.toFixed(2);
+      if (S >= K) { verdict = 'Out of the money: nothing to exercise. Hold or sell.'; cls = 'hold'; }
+      else if (r === 0) { verdict = 'Hold: with r = 0 there is no interest to earn on the strike, so exercising can at best tie.'; cls = 'hold'; }
+      else if (A > B) { verdict = 'Exercising now plausibly beats holding: interest on the strike outweighs the time value given up.'; cls = 'ex'; }
+      else { verdict = 'Hold or sell: the insurance value (plus any dividend that is coming) outweighs the interest from exercising.'; cls = 'hold'; }
+      note = 'A put has capped upside (the stock cannot go below 0), so deep ITM puts have little insurance value left.';
+    }
+    el('oInt').textContent = intr.toFixed(2); el('oTV').textContent = tv.toFixed(2);
+    el('oA').textContent = A.toFixed(2); el('oB').textContent = B.toFixed(2); el('oBound').textContent = bound;
+    const vb = el('eVerdict'); vb.textContent = verdict; vb.className = 'verdict-box ' + cls;
+    el('eNote').textContent = note;
+  }
+  ['eType', 'eSig', 'eS', 'eK', 'er', 'eT', 'eD'].forEach(id => el(id).addEventListener('input', upd));
+  upd();
+})();
+</script>
+
+<h2>7 · How American and European options relate (the bounds you can use)</h2>
+<ul>
+  <li>American \(\ge\) European, always (more rights can't hurt): \(C \ge c\), \(P \ge p\).</li>
+  <li>No dividends: \(C = c\). Put: \(P \ge p\), possibly strictly.</li>
+  <li>Lower bounds: \(C \ge \max(S-Ke^{-rT},0)\) (no dividends), \(P \ge \max(K-S,0)\) (can't be below intrinsic, otherwise buy the put and the stock, exercise: a free profit). European puts can trade <em>below</em> intrinsic; American puts can't.</li>
+  <li>Upper bounds: \(C \le S\), \(P \le K\) (American); \(p \le Ke^{-rT}\) (European only).</li>
+  <li>Parity for American options, no dividends (Lecture 4 slide 34): \(S - K < C - P < S - Ke^{-rT}\). With dividends: \(S - D - K < C - P < S - Ke^{-rT}\). Equality \(c + Ke^{-rT} = p + S\) is for European only. Tutorial 4 Q7.2 tests exactly this range for a put.</li>
+</ul>
+<p><strong>Quick use:</strong> if the market offers an American put for less than \(K - S\), buy the put and the stock, exercise now, and pocket the difference: an arbitrage with no risk. A put quoted at or above intrinsic is fine.</p>
+
+<h2>8 · Practice: early exercise</h2>
+<p>Numeric answers: type a number (commas and $ are fine). Continuous compounding.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q1.</strong> An American call on a non-dividend stock is deep in the money with 3 months left. A holder says they want out of the position. Which action is best?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Exercise now to lock in the intrinsic value</button>
+    <button class="opt" data-key="b">Exercise now, because the call is deep in the money</button>
+    <button class="opt" data-key="c">Sell the call in the market for the full premium</button>
+    <button class="opt" data-key="d">Hold the call only if volatility is very low</button>
+  </div>
+  <div class="why">The market price is above intrinsic value (\(C \ge S - Ke^{-rT} > S-K\)); selling collects the interest saving and the time value that exercising would throw away.</div>
+</div>
+
+<div class="quiz num" data-answer="30.17" data-tol="0.01">
+  <p class="q"><strong>Q2.</strong> A stock paying no dividends trades at $70. An American call has \(K=\$40\), one month to expiry, \(r = 5\%\). What is the lowest price it can have (the lower bound), and note it exceeds the $30 exercise value?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(S - Ke^{-rT} = 70 - 40e^{-0.05/12} = 70 - 39.8337 = \$30.17 > \$30\).</div>
+</div>
+
+<div class="quiz num" data-answer="1.78" data-tol="0.01">
+  <p class="q"><strong>Q3.</strong> A call has \(K=\$80\), \(r = 4.5\%\), \(T = 0.5\). How much is delaying the payment of the strike to expiry worth in today's dollars, \(K(1-e^{-rT})\)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(80(1 - e^{-0.0225}) = 80 \times 0.022249 = \$1.78\). This is the first of the three reasons not to exercise a non-dividend call early.</div>
+</div>
+
+<div class="quiz num" data-answer="1.19" data-tol="0.01">
+  <p class="q"><strong>Q4.</strong> An American call has \(K=\$60\), \(r=5\%\). A dividend goes ex 4.8 months before expiry, so \(\tau = 0.4\) years. Up to what dividend \(D\) can you be sure early exercise is <em>not</em> optimal, using \(D \le K(1-e^{-r\tau})\)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(60(1-e^{-0.02}) = 60 \times 0.019801 = \$1.19\). A dividend above $1.19 doesn't prove exercise is optimal, only that the test no longer rules it out.</div>
+</div>
+
+<div class="quiz num" data-answer="1.5" data-tol="0.005">
+  <p class="q"><strong>Q5.</strong> An American put on a stock at $1 with \(K=\$50\) is quoted at $47.50. What riskless profit can you lock in today by buying the put and the stock and exercising immediately?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Pay \(1 + 47.50 = 48.50\); exercise, deliver the share and receive $50. Profit \(= 50 - 48.50 = \$1.50\) (the put is priced below its intrinsic value \(K-S = 49\)). A European put can legitimately be this cheap (\(p \le Ke^{-rT} = 47.09\)), an American one cannot.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q6.</strong> Which combination makes early exercise of an in-the-money American put on a non-dividend stock <em>most</em> likely?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Interest rates fall and volatility rises</button>
+    <button class="opt" data-key="b">Interest rates rise and volatility falls</button>
+    <button class="opt" data-key="c">Interest rates rise and volatility rises</button>
+    <button class="opt" data-key="d">Interest rates fall and volatility falls</button>
+  </div>
+  <div class="why">Higher \(r\) means more interest on the strike; lower \(\sigma\) means less insurance (time) value to give up. Tutorial 4 Q6.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q7.</strong> A company announces a dividend payable before an American put's expiry. All else equal, what happens?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The put gets cheaper and early exercise gets more likely</button>
+    <button class="opt" data-key="b">The put gets cheaper and early exercise gets less likely</button>
+    <button class="opt" data-key="c">The put gets dearer and early exercise gets more likely</button>
+    <button class="opt" data-key="d">The put gets dearer and early exercise gets less likely</button>
+  </div>
+  <div class="why">The stock will drop on the ex-date, which helps a put holder, so the put is worth more. But that fall comes for free if you wait, so there is less reason to rush: early exercise is less likely.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q8.</strong> An analyst says: "Interest rates are zero, so early exercise of an American call on a non-dividend stock must be optimal." Evaluate.</p>
+  <div class="opts">
+    <button class="opt" data-key="a">False: it is at best a tie, never strictly better than waiting</button>
+    <button class="opt" data-key="b">True: with no interest saving, there is no reason to wait</button>
+    <button class="opt" data-key="c">True: but only if the call is deep in the money</button>
+    <button class="opt" data-key="d">False: exercising is strictly worse because of the dividend</button>
+  </div>
+  <div class="why">With \(r=0\) the interest saving vanishes but the insurance value remains (\(\ge 0\)), so \(C \ge S-K\): waiting is never worse. There is no dividend in the setup, so (d) is wrong.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q9.</strong> Which statement is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">An American call on a dividend-free stock is worth more than a European call</button>
+    <button class="opt" data-key="b">An American put on a dividend-free stock is worth the same as a European put</button>
+    <button class="opt" data-key="c">An American put on a dividend-free stock can be worth more than a European put</button>
+    <button class="opt" data-key="d">A European put can never trade below its intrinsic value</button>
+  </div>
+  <div class="why">Calls: \(C = c\). Puts: \(P \ge p\), strictly when early exercise has value. (d) is false: European puts can trade below \(K-S\) (e.g. \(p \le Ke^{-rT}\) while \(K-S\) can exceed that).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q10.</strong> A call holder is 6 weeks from a large dividend (relative to the interest on the strike) and the call is deep in the money. When is the best moment to exercise?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Immediately, to avoid forgetting later</button>
+    <button class="opt" data-key="b">Just before the ex-dividend date</button>
+    <button class="opt" data-key="c">Just after the ex-dividend date</button>
+    <button class="opt" data-key="d">Only at expiry, because early exercise is never optimal</button>
+  </div>
+  <div class="why">You must own the shares before the ex-date to get the dividend; waiting until the last moment keeps the interest saving and insurance. After the ex-date, the dividend is already gone.</div>
+</div>
+
+<h2>9 · Topic 4 on one page: how Lessons 11–15 fit together</h2>
+<p>Everything in this topic answers one question from different directions: <em>what is an option worth, and what constrains it?</em></p>
+<div class="box">
+<strong>The chain of reasoning.</strong>
+<ol class="steps">
+  <li><strong>Payoffs (L11):</strong> call \(\max(S_T-K,0)\), put \(\max(K-S_T,0)\); moneyness; value = intrinsic + time value.</li>
+  <li><strong>Factors (L12):</strong> \(S, K, T, \sigma, r, D\) move prices in known directions; each direction has a story.</li>
+  <li><strong>Bounds (L13):</strong> no-arbitrage limits on prices (\(c\le S\), \(p\le Ke^{-rT}\), \(c\ge S-Ke^{-rT}\), \(p\ge Ke^{-rT}-S\)).</li>
+  <li><strong>Parity (L14):</strong> \(c + Ke^{-rT} = p + S\): a call and put are tied together; arbitrage if not.</li>
+  <li><strong>Early exercise (L15):</strong> uses (2) and (3): a bound that sits above intrinsic means never exercise; a bound below intrinsic (a put near zero, a call before a big dividend) means exercise can win. Parity bounds for American options come from the same logic.</li>
+</ol>
+</div>
+
+<h3>Direction table: what happens when each input goes up?</h3>
+<div class="tablewrap">
+<table>
+<tr><th>Input ↑</th><th>Euro call \(c\)</th><th>Euro put \(p\)</th><th>Amer. call \(C\)</th><th>Amer. put \(P\)</th><th>Incentive to exercise a put early</th><th>Incentive to exercise a call early</th></tr>
+<tr><td>\(S\)</td><td>↑</td><td>↓</td><td>↑</td><td>↓</td><td>↓ (less)</td><td>↑ (deeper ITM, but only matters with a dividend)</td></tr>
+<tr><td>\(K\)</td><td>↓</td><td>↑</td><td>↓</td><td>↑</td><td>↑ (more)</td><td>↓</td></tr>
+<tr><td>\(T\)</td><td>ambiguous with dividends; ↑ without</td><td>ambiguous</td><td>↑</td><td>↑</td><td>↓ (more time value)</td><td>↓</td></tr>
+<tr><td>\(\sigma\)</td><td>↑</td><td>↑</td><td>↑</td><td>↑</td><td>↓ (more insurance value)</td><td>↓</td></tr>
+<tr><td>\(r\)</td><td>↑</td><td>↓</td><td>↑</td><td>↓</td><td>↑ (more interest on \(K\))</td><td>↓ (more interest saved by waiting)</td></tr>
+<tr><td>Dividends</td><td>↓</td><td>↑</td><td>↓</td><td>↑</td><td>↓ (stock falls anyway)</td><td>↑ (only way to capture it)</td></tr>
+</table>
+</div>
+<p>(Read the "incentive" columns as the direction for the holder who is already in the money. \(T\): European options with dividends are ambiguous because a longer life adds both volatility benefit and extra dividends. American options are monotonic in \(T\).)</p>
+
+<h2>10 · Mixed retrieval: Lessons 11–15 interleaved</h2>
+<p>These deliberately jump around. Predict before clicking. Continuous compounding, no dividends unless stated.</p>
+
+<div class="quiz num" data-answer="3.8" data-tol="0.005">
+  <p class="q"><strong>M1 (L11).</strong> You buy a call with \(K=\$45\) for a premium of $3.20. At expiry the stock is $52. What is your profit?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Payoff \(52-45=7\); profit \(7-3.20 = \$3.80\).</div>
+</div>
+
+<div class="quiz num" data-answer="2.1" data-tol="0.005">
+  <p class="q"><strong>M2 (L11).</strong> A put with \(K=\$60\) is trading at $5.10 with the stock at $57. What is its time value?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Intrinsic \(=60-57=3\); time value \(=5.10-3=\$2.10\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>M3 (L12).</strong> Volatility of a non-dividend stock rises sharply. What happens to European calls and puts on it?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Both become more valuable</button>
+    <button class="opt" data-key="b">The call rises and the put falls</button>
+    <button class="opt" data-key="c">The call falls and the put rises</button>
+    <button class="opt" data-key="d">Both become less valuable</button>
+  </div>
+  <div class="why">A long option has no downside beyond the premium, so a wider spread of outcomes raises the chance of big payoffs for both.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>M4 (L12, L15).</strong> The risk-free rate rises. Which pair of effects is correct for a European call and an in-the-money American put on a non-dividend stock?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Call falls; early exercise of the put gets less likely</button>
+    <button class="opt" data-key="b">Call falls; early exercise of the put gets more likely</button>
+    <button class="opt" data-key="c">Call rises; early exercise of the put gets less likely</button>
+    <button class="opt" data-key="d">Call rises; early exercise of the put gets more likely</button>
+  </div>
+  <div class="why">A higher \(r\) cuts the PV of the strike you pay (call up) and raises interest earned on the strike you receive (put exercise more likely).</div>
+</div>
+
+<div class="quiz num" data-answer="4.33" data-tol="0.01">
+  <p class="q"><strong>M5 (L13).</strong> A non-dividend stock trades at $48. A 9-month European call has \(K=\$45\), \(r=4\%\). What is the lower bound for the call?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(48 - 45e^{-0.03} = 48 - 43.67 = \$4.33\). Since it's a non-dividend stock, the American call has the same lower bound and the same price.</div>
+</div>
+
+<div class="quiz num" data-answer="3.13" data-tol="0.01">
+  <p class="q"><strong>M6 (L13).</strong> Same call as M5, but the stock will pay a dividend with present value $1.20 during the option's life. Lower bound?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(c \ge S - D - Ke^{-rT} = 48 - 1.20 - 43.67 = \$3.13\).</div>
+</div>
+
+<div class="quiz num" data-answer="7.22" data-tol="0.01">
+  <p class="q"><strong>M7 (L14).</strong> A non-dividend stock is $50. A 6-month European call with \(K=\$52\) trades at $6.50, \(r=5\%\). What should the matching European put cost?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(p = c + Ke^{-rT} - S = 6.50 + 52e^{-0.025} - 50 = 6.50 + 50.72 - 50 = \$7.22\).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>M8 (L14).</strong> In M7 the put actually trades at $8.50. Which arbitrage works?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Buy the put, buy the stock, sell the call, borrow the PV of the strike</button>
+    <button class="opt" data-key="b">Buy the put, short the stock, sell the call, borrow the PV of the strike</button>
+    <button class="opt" data-key="c">Sell the put, short the stock, buy the call, lend the PV of the strike</button>
+    <button class="opt" data-key="d">Sell the put, buy the stock, buy the call, lend the PV of the strike</button>
+  </div>
+  <div class="why">Put too dear means sell it. Parity \(p + S = c + Ke^{-rT}\): sell the dear side (put + stock, so short the stock) and buy the cheap side (call + lend the PV of the strike). At expiry the cash flows cancel.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>M9 (L13, L15).</strong> Which statement is true?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A European put with \(K=\$50\), \(r=6\%\), \(T=1\) can be worth up to $50</button>
+    <button class="opt" data-key="b">A European put with \(K=\$50\), \(r=6\%\), \(T=1\) can be worth at most $47.09</button>
+    <button class="opt" data-key="c">An American put with \(K=\$50\) can be worth at most $47.09</button>
+    <button class="opt" data-key="d">An American put can be worth less than its intrinsic value</button>
+  </div>
+  <div class="why">\(p \le Ke^{-rT} = 50e^{-0.06} = 47.09\) because a European put can only be exercised at \(T\). An American put can be worth up to \(K\) and never below intrinsic value.</div>
+</div>
+
+<div class="quiz num" data-answer="4.88" data-tol="0.01">
+  <p class="q"><strong>M10 (L14, L15).</strong> For American options on a non-dividend stock, \(S - K < C - P < S - Ke^{-rT}\). With \(S=K=\$100\), \(r = 5\%\), \(T = 1\), what is the upper limit for \(C - P\)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(100 - 100e^{-0.05} = 100 - 95.12 = \$4.88\). The lower limit is \(S-K = 0\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>M11 (L14, L15).</strong> Following M10, an American call is $7.10 and the American put is $2.00 (same \(S,K,r,T\)). What do we conclude?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(C-P = 5.10\) is above 4.88: the pair violates the parity bound</button>
+    <button class="opt" data-key="b">\(C-P = 5.10\) is within 0 and 4.88: fairly priced</button>
+    <button class="opt" data-key="c">\(C-P = 9.10\) exceeds the bound, so the pair is mispriced</button>
+    <button class="opt" data-key="d">Parity bounds cannot be applied to American options</button>
+  </div>
+  <div class="why">\(7.10-2.00 = 5.10 > 4.88\): outside the allowed range, so an arbitrage exists (sell the call, buy the put and the stock, borrow). Parity bounds do apply to American options.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>M12 (L12, L15).</strong> An American call on a non-dividend stock has a European twin priced at $4.33. What is the American call worth?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">More than $4.33, because it can be exercised any time</button>
+    <button class="opt" data-key="b">Less than $4.33, because early exercise is never done</button>
+    <button class="opt" data-key="c">Exactly $4.33, because early exercise is never optimal</button>
+    <button class="opt" data-key="d">Cannot be determined without the volatility</button>
+  </div>
+  <div class="why">The extra right has no value, so \(C=c\).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>M13 (L11, L12, L15).</strong> A trader says: "Longer maturity always makes a European option worth more." Is this right?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Right: more time always adds value to any option</button>
+    <button class="opt" data-key="b">Wrong in general: true for American options, ambiguous for some European ones</button>
+    <button class="opt" data-key="c">Wrong: longer maturity always lowers option values</button>
+    <button class="opt" data-key="d">Right for puts only</button>
+  </div>
+  <div class="why">A longer American option contains the shorter one's rights plus more, so it's worth at least as much. A European put (or a call with dividends) can fall in value with more time because the PV of the strike falls or a dividend is missed.</div>
+</div>
+
+<h2>11 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, state when an American call and put are exercised early and why. Then check</summary><div>
+<p>Call, no dividends: never (C = c; sell instead; \(C\ge S-Ke^{-rT}>S-K\)). Reasons: interest on the strike saved by waiting, insurance value, and the bound. Call with dividends: only just before an ex-date and only if \(D\) beats interest on the strike plus time value (test: \(D \le K(1-e^{-r\tau})\) means don't). Put: yes, even with no dividends, deep in the money: earns interest on \(K\), upside capped at \(K\). More likely with \(r\uparrow\), \(\sigma\downarrow\), deeper ITM, \(K\uparrow\), \(T\) short for a deep ITM put; less likely with dividends coming. Exercise beats sale only when time value is gone.</p>
+</div></details>
+<details><summary>Retrieval: one sentence each for the chain L11 to L15</summary><div>
+<p>Payoffs define intrinsic value; factors tell the direction of the price; bounds give no-arbitrage limits; parity ties \(c\) and \(p\) together; early exercise asks when the price equals intrinsic value, which only happens when a bound drops to it.</p>
+</div></details>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, Ch. 11, "Early exercise" sections (calls on non-dividend stocks, calls with dividends, puts, and put-call parity for American options), the reading for <a href="../lectures/Lecture%204_Options%20intro.pdf">Lecture 4</a>, slides 18–22 and 31–34.</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%204.pdf">Tutorial 4</a>, Q6 (answer in your own words, then check against section 4) and Q7.2 (the GameStop American put no-arbitrage range; <a href="../tutes/Tutorial%204%20solutions.pdf">solutions</a>). Optional: redo the mixed quiz in section 10 tomorrow without looking.</p>
+<p><strong>Spacing:</strong> tomorrow redo Q2, Q5, M7 and M10 cold, and write the direction table in section 9 from memory. Then sit a short options MCQ set before moving to the binomial lessons.</p>
+
+<div class="ask">💬 Not sure whether to exercise a given put or call, or want more "what happens if…" scenarios on \(r\), \(\sigma\), \(T\), \(K\) or a dividend? Paste your working in the terminal and ask me. I'm your teacher for this. Ask me to quiz you on any of Lessons 11–15 too.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0014-put-call-parity.html">Lesson 14, put-call parity</a></span>
+  <span>Topic 4: <a href="0011-options-payoffs-profits-and-moneyness.html">L11</a> · <a href="0012-factors-affecting-option-prices.html">L12</a> · <a href="0013-bounds-on-option-prices.html">L13</a> · <a href="0014-put-call-parity.html">L14</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: Lesson 16, binomial trees (coming)</span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

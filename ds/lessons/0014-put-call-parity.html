@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Put-Call Parity</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.widget { border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.2rem; margin: 1.4rem 0; font-family: Inter, system-ui, sans-serif; font-size: .85rem; }
+.widget .controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem 1.2rem; }
+.widget label { display: flex; flex-direction: column; }
+.widget input[type=range] { width: 100%; accent-color: var(--accent); }
+.widget .out { margin-top: .8rem; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .3rem 1.2rem; font-variant-numeric: tabular-nums; }
+.widget .out b { font-size: 1rem; }
+.widget .note { color: var(--muted); margin-top: .5rem; }
+.widget .verdict2 { margin-top: .8rem; padding: .6rem .8rem; border-radius: 6px; font-size: .9rem; }
+.widget .verdict2.fair { background: var(--ok-bg); border-left: 4px solid var(--ok); }
+.widget .verdict2.arb { background: var(--trap-bg); border-left: 4px solid var(--trap); }
+.widget button.fix { font: inherit; font-size: .8rem; margin-top: .6rem; padding: .3rem .7rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); color: var(--fg); cursor: pointer; }
+.widget button.fix:hover { border-color: var(--accent); }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 14 · Topic 4: Options intro</div>
+<h1>Put-call parity: why a call and a put on the same stock can't be priced independently</h1>
+<p class="lede">The goal: given any three of the call price, the put price, the stock and the strike's present value, find the fourth; say which way \(c - p\) moves when \(S_0\), \(K\), \(r\), \(T\), \(\sigma\) or dividends change; build a synthetic stock, bond, call or put from the other pieces; and lay out the arbitrage with cash flows at \(t = 0\) and \(T\) when parity fails in either direction.</p>
+
+<div class="mission">Why this matters for 5 Nov: put-call parity is the one options identity <em>named</em> in the lecture as "know these formulas and use them in an exam". Past papers use it three ways: a one-mark "price the put from the call" (with discrete dividends, or with a dividend yield on an index or currency, e.g. the 2025 final's currency put); an MST-style 5-option MCQ on the price of a put; and a full arbitrage with a cash-flow table when the put is mispriced (Tutorial 4 Q4 and Q5). Distractors: the wrong sign on \(D\), \(K\) undiscounted, the stock discounted, and trading the wrong side.</div>
+
+<p>This lesson assumes <a href="0011-options-payoffs-profits-and-moneyness.html">Lesson 11</a> (call and put payoffs, long vs short) and the arbitrage habit from <a href="0006-cost-of-carry-and-arbitrage.html">Lesson 6</a> (sell what's dear, buy what's cheap, check that the future cash flow is certain). The relationship to bounds is in <a href="0013-bounds-on-option-prices.html">Lesson 13</a>, the factors that move \(c\) and \(p\) individually are in <a href="0012-factors-affecting-option-prices.html">Lesson 12</a>, and early exercise is in <a href="0015-early-exercise-of-american-options.html">Lesson 15</a>.</p>
+
+<p><strong>Notation.</strong> Lowercase \(c\) and \(p\) are <strong>European</strong> prices (exercise only at expiry). Capital \(C\) and \(P\) are <strong>American</strong> (exercise any time). \(S_0\) is today's stock price, \(S_T\) the price at expiry, \(K\) the strike, \(r\) the continuously compounded risk-free rate, \(T\) the time to expiry in years. \(D\) is the <strong>present value of the dividends</strong> paid during the option's life (not their sum), exactly as in Lesson 7's income \(I\).</p>
+
+<h2>1 · Two portfolios, one payoff</h2>
+
+<p>Take a European call and a European put on the same stock with the <em>same strike \(K\) and same expiry \(T\)</em>. No dividends yet. Build two portfolios:</p>
+<ul>
+  <li><strong>Portfolio A, "fiduciary call":</strong> one call plus cash of \(Ke^{-rT}\), invested at the risk-free rate so that it grows to exactly \(K\) at \(T\). (Think: the call, plus the money to exercise it.)</li>
+  <li><strong>Portfolio C, "protective put":</strong> one put plus one share. (The put is insurance on the share: you can sell at \(K\) whatever happens.)</li>
+</ul>
+<p><strong>Predict first:</strong> at expiry, if \(S_T > K\), what is each portfolio worth? And if \(S_T < K\)? Fill in the table in your head, then open it.</p>
+
+<details><summary>Reveal: the payoff table at \(T\)</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th></th><th>\(S_T \gt K\) (call ITM)</th><th>\(S_T \lt K\) (put ITM)</th></tr>
+<tr><td>A: call</td><td>\(S_T - K\)</td><td>0</td></tr>
+<tr><td>A: cash grown to \(T\)</td><td>\(K\)</td><td>\(K\)</td></tr>
+<tr><td><strong>A total</strong></td><td>\(S_T\)</td><td>\(K\)</td></tr>
+<tr><td>C: put</td><td>0</td><td>\(K - S_T\)</td></tr>
+<tr><td>C: share</td><td>\(S_T\)</td><td>\(S_T\)</td></tr>
+<tr><td><strong>C total</strong></td><td>\(S_T\)</td><td>\(K\)</td></tr>
+</table>
+</div>
+<p>Both are worth \(\max(S_T, K)\) in every state. Two things that pay exactly the same thing at \(T\) must cost the same today (no-arbitrage; the same logic as Lesson 6's "same payoff, same price"):</p>
+$$c + Ke^{-rT} = p + S_0.$$
+<p>This is <a href="../lectures/Lecture%204_Options%20intro.pdf">Lecture 4, slide 33</a> (Hull Ch. 11).</p>
+</div></details>
+
+<div class="box"><p><strong>Mental model.</strong> A call gives you the upside above \(K\) with a floor of zero. A put on top of a share also gives the upside, but with a floor of \(K\). The call alone has a floor of 0, so to match the floor of \(K\) you must also hold cash \(Ke^{-rT}\). Parity says: <em>call + cash = put + stock</em>. Left side: the "pay \(K\) if you want it" structure. Right side: the "insured stock" structure.</p></div>
+
+<div class="trap"><strong>What parity needs</strong><br>
+(1) <strong>European</strong> options (an American option can be exercised early, which breaks the same-payoff-at-\(T\) argument; section 8 gives inequalities instead). (2) The <strong>same strike and expiry</strong> for the call and the put. (3) The cash is \(Ke^{-rT}\), the <em>present value</em> of the strike. The stock is plain \(S_0\), never discounted. (4) Nothing here depends on volatility or on what you believe the stock will do. Parity is an identity between prices, not a forecast.</div>
+
+<h3>Rearranged: four prices, any one from the other three</h3>
+$$p = c + Ke^{-rT} - S_0, \qquad c = p + S_0 - Ke^{-rT}, \qquad c - p = S_0 - Ke^{-rT}.$$
+<p>The third form is the most useful: <strong>the call-minus-put gap is pinned to \(S_0 - Ke^{-rT}\)</strong>, whatever the volatility. Buy a call and sell a put at the same strike and you've built something whose price is fixed by \(S_0\), \(K\), \(r\), \(T\) alone. Section 4 shows what that something is.</p>
+
+<div class="box">
+<p><strong>Worked base case (used all through this lesson).</strong> \(S_0 = \$50\), \(K = \$50\), \(r = 6\%\), \(T = 0.5\), no dividends.</p>
+<p>\(Ke^{-rT} = 50e^{-0.03} = 48.5223\), so \(c - p = 50 - 48.5223 = \mathbf{1.4777}\). If the call trades at \(c = 4.20\), the put must be \(p = 4.20 - 1.4777 = \mathbf{2.7223}\). Note the at-the-money call is dearer than the put: holding the stock lets you earn interest on the cash you didn't spend on the strike. Hold that thought for section 5.</p>
+</div>
+
+<h2>2 · Adding dividends</h2>
+
+<p>The portfolio C holds a share, so it collects any dividends paid before \(T\). Portfolio A holds a call, which pays nothing on the way. So C has an extra source of cash, and A needs a top-up: add cash worth \(D\) today (the PV of the dividends), which is invested and grows to match.</p>
+$$\boxed{\,c + D + Ke^{-rT} = p + S_0\,} \qquad\text{(lecture slide 34; known discrete dividends)}$$
+<p>Rearranged: \(c - p = S_0 - D - Ke^{-rT}\), or \(p = c + D + Ke^{-rT} - S_0\). Exactly the substitution used in Lesson 7 for forwards, \(S_0 \to S_0 - D\): <strong>strip the PV of the income from the stock</strong> and the rest of the story is unchanged.</p>
+
+<p><strong>Continuous dividend yield \(q\)</strong> (an index, or a currency's foreign rate \(r_f\)). Here the stock gives a stream proportional to its price. The equivalent substitution is \(S_0 \to S_0e^{-qT}\):</p>
+$$c + Ke^{-rT} = p + S_0e^{-qT} \qquad\text{(Hull Ch. 17; currency: } q \to r_f).$$
+<p>The Lecture 4 slides give the discrete-dividend form (\(D\)). The yield form follows from the same argument and is the one you need when the stock is an index or a currency: the 2025 final's "use put-call parity to price the put on one euro in USD" is exactly this with \(q = r_f\), so write it on your formula sheet.</p>
+
+<div class="tablewrap">
+<table>
+<tr><th>Underlying pays</th><th>Parity</th><th>\(c - p\)</th></tr>
+<tr><td>Nothing</td><td>\(c + Ke^{-rT} = p + S_0\)</td><td>\(S_0 - Ke^{-rT}\)</td></tr>
+<tr><td>Known dividends, PV \(D\)</td><td>\(c + D + Ke^{-rT} = p + S_0\)</td><td>\(S_0 - D - Ke^{-rT}\)</td></tr>
+<tr><td>Yield \(q\) (index)</td><td>\(c + Ke^{-rT} = p + S_0e^{-qT}\)</td><td>\(S_0e^{-qT} - Ke^{-rT}\)</td></tr>
+<tr><td>Foreign rate \(r_f\) (currency)</td><td>\(c + Ke^{-rT} = p + S_0e^{-r_fT}\)</td><td>\(S_0e^{-r_fT} - Ke^{-rT}\)</td></tr>
+</table>
+</div>
+
+<div class="trap"><strong>Dividends: the three slips</strong><br>
+(1) <strong>Using the sum of dividends</strong> instead of their PV. Each is discounted from its own payment date to <em>today</em> (same as Lesson 7). (2) <strong>Wrong sign</strong>: dividends push \(c - p\) <em>down</em> (stock holders collect cash, so the put is dearer and the call cheaper relative to the no-dividend case). If your put comes out lower after adding a dividend, you subtracted it. (3) <strong>Counting dividends outside the option's life</strong>. Only those paid <em>before expiry</em> go in \(D\).</div>
+
+<div class="box">
+<p><strong>Tutorial 4, Q4.</strong> A European call with 6 months to expiry and \(K = 30\) costs $2. The stock is $29, with a $0.50 dividend in 2 months and again in 5 months. \(r = 10\%\). Find the European put.</p>
+<p>\(D = 0.5e^{-0.1\times2/12} + 0.5e^{-0.1\times5/12} = 0.4917 + 0.4796 = 0.9713\). \(Ke^{-rT} = 30e^{-0.05} = 28.5369\).<br>
+\(p = c + D + Ke^{-rT} - S_0 = 2 + 0.9713 + 28.5369 - 29 = \mathbf{\$2.51}\).</p>
+</div>
+
+<h2>3 · Synthetic positions: build any piece from the other three</h2>
+
+<p>A <strong>synthetic</strong> position is a portfolio of other instruments that has the same payoff as the target. Parity is one equation with four pieces: call, put, stock, bond (cash \(Ke^{-rT}\) lent). Solve it for each piece and you get a recipe. Written with signs (+ long/buy/lend, − short/sell/borrow):</p>
+
+<div class="tablewrap">
+<table>
+<tr><th>Build this</th><th>From parity</th><th>Recipe</th></tr>
+<tr><td><strong>Synthetic long put</strong></td><td>\(p = c - S_0 + Ke^{-rT}\)</td><td>Buy call, short the stock, lend \(Ke^{-rT}\)</td></tr>
+<tr><td><strong>Synthetic long call</strong></td><td>\(c = p + S_0 - Ke^{-rT}\)</td><td>Buy put, buy the stock, borrow \(Ke^{-rT}\)</td></tr>
+<tr><td><strong>Synthetic long stock</strong></td><td>\(S_0 = c - p + Ke^{-rT}\)</td><td>Buy call, sell put, lend \(Ke^{-rT}\)</td></tr>
+<tr><td><strong>Synthetic risk-free bond</strong></td><td>\(Ke^{-rT} = p + S_0 - c\)</td><td>Buy put, buy stock, sell call (it pays \(K\) at \(T\) for sure)</td></tr>
+</table>
+</div>
+<p>For the <em>short</em> version of each, flip every sign: a synthetic <strong>short</strong> stock is sell call, buy put, borrow \(Ke^{-rT}\); a synthetic short call is sell put, short stock, lend \(Ke^{-rT}\), and so on. With dividends, hold the extra \(D\) in cash where the stock is held short (or treat the stock as \(S_0 - D\)).</p>
+
+<p><strong>Tutorial 4, Q3 (calls traded before puts):</strong> how do you create a European put synthetically? Answer from the first row. <em>Buy the call, short the stock, and keep \(Ke^{-rT}\) in cash.</em></p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Synthetic put</th><th>\(S_T \gt K\)</th><th>\(S_T \lt K\)</th></tr>
+<tr><td>Call</td><td>\(S_T - K\)</td><td>0</td></tr>
+<tr><td>Short stock (buy it back)</td><td>\(-S_T\)</td><td>\(-S_T\)</td></tr>
+<tr><td>Cash grown to \(T\)</td><td>\(+K\)</td><td>\(+K\)</td></tr>
+<tr><td><strong>Total</strong></td><td>0</td><td>\(K - S_T\)</td></tr>
+</table>
+</div>
+<p>That's a put: zero when the stock ends above \(K\) (the cash pays for exercising the call, and the stock you receive closes the short), \(K - S_T\) when it ends below. In words: exercising the call is how you cover the short, and if the stock falls, you pocket the fall.</p>
+
+<h3>Check your understanding before moving on</h3>
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> Which portfolio replicates a long European <em>put</em> (same strike and expiry, no dividends)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Buy the call, buy the stock, borrow \(Ke^{-rT}\)</button>
+    <button class="opt" data-key="b">Sell the call, short the stock, lend \(Ke^{-rT}\)</button>
+    <button class="opt" data-key="c">Buy the call, short the stock, lend \(Ke^{-rT}\)</button>
+    <button class="opt" data-key="d">Buy the call, sell the stock, borrow \(Ke^{-rT}\)</button>
+  </div>
+  <div class="why">\(p = c - S_0 + Ke^{-rT}\): long call, <strong>short</strong> stock, <strong>lend</strong> the PV of the strike. (a) is a long call plus stock, financed by borrowing: not a put at all (a synthetic call is put + stock − bond). (b) is the negative of the target, a synthetic short put. (d) borrows instead of lending, so at \(T\) you would owe \(K\) rather than have it.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>2.</strong> Long one call and short one put, same strike \(K\) and expiry, have a combined payoff at \(T\) of:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\max(S_T, K)\), the same as owning the stock outright</button>
+    <button class="opt" data-key="b">\(S_T - K\), the same as a long forward with delivery price \(K\)</button>
+    <button class="opt" data-key="c">\(|S_T - K|\), a bet on the size of the move either way</button>
+    <button class="opt" data-key="d">\(K - S_T\), the same as a short forward with delivery price \(K\)</button>
+  </div>
+  <div class="why">If \(S_T > K\) the call pays \(S_T - K\) and the put expires worthless. If \(S_T < K\) you're short the put, which costs \(K - S_T\), so you get \(-(K - S_T) = S_T - K\). One formula for both states: \(S_T - K\). That's a forward payoff, and it's the building block for section 5. (c) is a straddle (long call and long put).</div>
+</div>
+
+<h2>4 · Arbitrage when parity fails</h2>
+
+<p>Parity holds only if the market is free of free lunches. When prices break the identity, an arbitrageur trades the mispricing. The procedure is the same every time (as in Lesson 6):</p>
+<ol class="steps">
+  <li><strong>Compute both sides.</strong> Left \(L = c + D + Ke^{-rT}\) (call + cash). Right \(R = p + S_0\) (put + stock).</li>
+  <li><strong>The dearer side is overpriced.</strong> Sell the dearer portfolio, buy the cheaper. Selling the dearer side means selling whatever it contains: if \(L > R\): sell the call, <em>borrow</em> \(Ke^{-rT}\) (a short bond) and buy the put and stock. If \(R > L\): sell the put, short the stock, and buy the call and lend \(Ke^{-rT}\).</li>
+  <li><strong>Net the cash at \(t=0\).</strong> Lend if positive, borrow if negative. The riskless profit is the price gap \(|L - R|\) today.</li>
+  <li><strong>At \(T\), check every state of the world.</strong> \(S_T > K\), \(S_T < K\) (and \(= K\)). The \(S_T\) must cancel, and the net must be the same, positive amount: \(|L - R|e^{rT}\).</li>
+</ol>
+
+<h3>Case 1: the call is too dear (or the put too cheap), \(L > R\)</h3>
+<p>Base case again: \(S_0 = 50\), \(K = 50\), \(r = 6\%\), \(T = 0.5\), no dividends. But now the market quotes \(c = \$5.00\) and \(p = \$2.80\). Parity says the gap \(c - p\) should be 1.4777; it's 2.20. <strong>Predict first:</strong> which instrument is overpriced? Which way do you trade the call, the put and the stock?</p>
+<details><summary>Reveal: sell call, buy put, buy stock, borrow</summary><div>
+<p>\(L = 5.00 + 48.5223 = 53.5223\), \(R = 2.80 + 50 = 52.80\). \(L > R\) by 0.7223. Sell the left side (the call and a bond), buy the right (put + stock):</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>\(t = 0\)</th><th>\(T,\ S_T \gt 50\)</th><th>\(T,\ S_T \lt 50\)</th></tr>
+<tr><td>Sell call</td><td>+5.00</td><td>\(-(S_T - 50)\)</td><td>0</td></tr>
+<tr><td>Buy put</td><td>−2.80</td><td>0</td><td>\(50 - S_T\)</td></tr>
+<tr><td>Buy stock</td><td>−50.00</td><td>\(S_T\)</td><td>\(S_T\)</td></tr>
+<tr><td>Borrow 47.80 at 6% (repay at \(T\))</td><td>+47.80</td><td>−49.2557</td><td>−49.2557</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>0</strong></td><td><strong>+0.7443</strong></td><td><strong>+0.7443</strong></td></tr>
+</table>
+</div>
+<p>Net cash at \(t=0\) from the first three lines is \(5.00 - 2.80 - 50 = -47.80\), so you borrow 47.80 (zero net outlay). At \(T\) you owe \(47.80e^{0.03} = 49.2557\). In both states the options and stock combine into exactly $50 (you hold the protective-put payoff \(\max(S_T,K)\) and owe the call's \(\max(S_T-K,0)\), which nets to \(K\)), leaving \(50 - 49.2557 = 0.7443\). Check: \(0.7223 \times e^{0.03} = 0.7443\) ✓. The profit is certain, whichever way the stock moves.</p>
+</div></details>
+
+<h3>Case 2: the put is too dear (or the call too cheap), \(R > L\)</h3>
+<p>Same base, but the market quotes \(c = \$3.60\), \(p = \$3.00\). Gap \(c - p = 0.60\), well below 1.4777. Now the right side (put + stock) is dear:</p>
+<details><summary>Reveal: buy call, sell put, short stock, lend</summary><div>
+<p>\(L = 3.60 + 48.5223 = 52.1223\), \(R = 3.00 + 50 = 53.00\). \(R > L\) by 0.8777.</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>\(t = 0\)</th><th>\(T,\ S_T \gt 50\)</th><th>\(T,\ S_T \lt 50\)</th></tr>
+<tr><td>Buy call</td><td>−3.60</td><td>\(S_T - 50\)</td><td>0</td></tr>
+<tr><td>Sell put</td><td>+3.00</td><td>0</td><td>\(-(50 - S_T)\)</td></tr>
+<tr><td>Short stock</td><td>+50.00</td><td>\(-S_T\)</td><td>\(-S_T\)</td></tr>
+<tr><td>Lend 49.40 at 6%</td><td>−49.40</td><td>+50.9045</td><td>+50.9045</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>0</strong></td><td><strong>+0.9045</strong></td><td><strong>+0.9045</strong></td></tr>
+</table>
+</div>
+<p>The first three lines bring in \(-3.60 + 3.00 + 50 = 49.40\); you lend it. At \(T\) it has grown to \(49.40e^{0.03} = 50.9045\). Buy the call, sell the put, close the short: in either state you pay exactly $50 for the stock (the call lets you buy at 50 if \(S_T > 50\); you're <em>forced</em> to buy at 50 because you sold the put if \(S_T < 50\)). Profit \(50.9045 - 50 = 0.9045\) (\(= 0.8777e^{0.03}\) ✓).</p>
+</div></details>
+
+<div class="box"><p><strong>Rule of thumb.</strong> <em>Sell the dearer side of \(c + D + Ke^{-rT} = p + S_0\) and buy the cheaper.</em> Quick shortcut for which: compare the market gap \(c - p\) to the fair gap \(S_0 - D - Ke^{-rT}\).<br>
+Market gap <strong>larger</strong> → the call is dear (or put cheap): <strong>sell call, buy put, buy stock, borrow</strong>.<br>
+Market gap <strong>smaller</strong> → the call is cheap (or put dear): <strong>buy call, sell put, short stock, lend</strong>.<br>
+Either way \(S_T\) cancels and you collect \(|\text{mispricing}|\times e^{rT}\) at \(T\).</p></div>
+
+<p><strong>What closes the gap?</strong> In case 1 arbitrageurs sell calls (pushes \(c\) down), buy puts (pushes \(p\) up) and buy stock (pushes \(S_0\) up). Every leg moves the gap towards fair value. In practice the market is rarely this wrong: brokers' bid-ask spreads, the fee for borrowing stock to short and the short-selling constraints can make a small gap unprofitable (you only profit if the gap exceeds your trading costs). Tutorial 4 Q7(c) turns on exactly this.</p>
+
+<h3>Tutorial 4, Q5 (dividends): the put is $3 when fair is $2.51</h3>
+<p>In Q4 the fair put is 2.51. If the market put is $3.00, it's too dear, so (the right side is dear): <strong>long call, short put, short stock</strong>, lend the cash.</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>\(t = 0\)</th><th>Dividends (2m, 5m)</th><th>\(T,\ S_T \gt 30\)</th><th>\(T,\ S_T \lt 30\)</th></tr>
+<tr><td>Buy call</td><td>−2.00</td><td></td><td>\(S_T - 30\)</td><td>0</td></tr>
+<tr><td>Sell put</td><td>+3.00</td><td></td><td>0</td><td>\(-(30 - S_T)\)</td></tr>
+<tr><td>Short stock</td><td>+29.00</td><td>−0.50 each (you pay the lender)</td><td>\(-S_T\)</td><td>\(-S_T\)</td></tr>
+<tr><td>Cash investment of 30</td><td>−30.00</td><td>funds the dividends</td><td colspan="2">worth \((30 - 0.9713)e^{0.05} = 30.52\) after dividends</td></tr>
+<tr><td><strong>Net at \(T\)</strong></td><td><strong>0</strong></td><td></td><td><strong>+0.52</strong></td><td><strong>+0.52</strong></td></tr>
+</table>
+</div>
+<p>The short seller must pay the stock's dividends to the lender, which is why the PV of the dividends (0.9713) comes out of the cash pile before it grows. In both states you pay exactly \(K = 30\) for the stock; the cash pile ends at 30.52, so the profit is $0.52 (PV \(0.52e^{-0.05} = 0.49\), the same as the price gap \(3 - 2.51\)). This is the Tutorial 4 solution, restated.</p>
+
+<h2>5 · Parity is a statement about forwards</h2>
+
+<p>From section 3, long call + short put at strike \(K\) pays \(S_T - K\) at \(T\): the payoff of a long <strong>forward with delivery price \(K\)</strong>. So its price today must be the forward's value from <a href="0010-valuing-forward-and-futures-contracts.html">Lesson 10</a>:</p>
+$$c - p = f_{\text{long forward at } K} = (F_0 - K)e^{-rT}.$$
+<p>Check with no dividends: \(F_0 = S_0e^{rT}\), so \((F_0 - K)e^{-rT} = S_0 - Ke^{-rT}\), exactly the parity gap. With dividends \(F_0 = (S_0 - D)e^{rT}\) gives \(S_0 - D - Ke^{-rT}\), also the parity gap. <strong>Parity is the cost-of-carry formula in disguise.</strong> If parity breaks, so does the relationship between the option market and the forward market (it's the same arbitrage as Lessons 6–7, built from options instead of a real forward).</p>
+
+<div class="box">
+<p><strong>The "at-the-forward" strike.</strong> Choose \(K = F_0\). The forward then has zero value, so \(c - p = 0\) and <strong>\(c = p\)</strong>. This is the strike at which the call and put cost the same (not \(K = S_0\)!). For \(S_0 = 100\), \(r = 5\%\), \(T = 1\): \(F_0 = 105.13\) and \(c = p\) at \(K = 105.13\). At the money (\(K = S_0 = 100\)) the call is dearer than the put by \(100 - 100e^{-0.05} = 4.88\): that's the interest earned on the 100 not spent on the stock.</p>
+<p>Reading prices the other way: from a call and a put at the same strike you can <em>back out the market's implied forward</em>, \(F_0 = K + (c - p)e^{rT}\), or the implied spot, \(S_0 = c - p + Ke^{-rT}\).</p>
+</div>
+
+<h2>6 · Direction drills: what happens to \(c - p\)?</h2>
+
+<p>The parity gap is \(c - p = S_0 - D - Ke^{-rT}\) (or \(S_0e^{-qT} - Ke^{-rT}\)). Read directions straight off it; don't compute. Base: \(S_0 = 50\), \(K = 50\), \(r = 6\%\), \(T = 0.5\): \(c - p = \mathbf{1.4777}\).</p>
+<p><strong>Predict first</strong> for each change (everything else fixed): does \(c - p\) rise, fall or stay put? Then open the table.</p>
+<ol>
+  <li>\(S_0\) rises to 55.</li>
+  <li>\(K\) rises to 55.</li>
+  <li>\(r\) rises to 10%.</li>
+  <li>\(T\) lengthens to 1 year.</li>
+  <li>\(T\) shortens to 0.25.</li>
+  <li>Volatility \(\sigma\) doubles.</li>
+  <li>A $1 dividend (PV 0.995) is announced for next month.</li>
+</ol>
+
+<details><summary>Reveal the scenario table</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Scenario</th><th>\(c - p\)</th><th>Direction</th><th style="text-align:left">Why</th></tr>
+<tr><td>Base</td><td>1.4777</td><td>—</td><td style="text-align:left">\(50 - 48.5223\)</td></tr>
+<tr><td>1. \(S_0 = 55\)</td><td>6.4777</td><td>up by 5</td><td style="text-align:left">Call up, put down; gap moves one-for-one with \(S_0\)</td></tr>
+<tr><td>2. \(K = 55\)</td><td>−3.3745</td><td>down</td><td style="text-align:left">Higher strike: call cheaper, put dearer; the PV of \(K\) rises</td></tr>
+<tr><td>3. \(r = 10\%\)</td><td>2.4385</td><td>up</td><td style="text-align:left">PV of \(K\) shrinks: calls (which defer paying \(K\)) gain, puts lose</td></tr>
+<tr><td>4. \(T = 1\)</td><td>2.9118</td><td>up</td><td style="text-align:left">More time to earn interest on \(K\): \(Ke^{-rT}\) falls</td></tr>
+<tr><td>5. \(T = 0.25\)</td><td>0.7444</td><td>down, towards \(S_0 - K = 0\)</td><td style="text-align:left">At \(T=0\): \(c - p = S_0 - K\), the intrinsic values</td></tr>
+<tr><td>6. \(\sigma\) doubles</td><td>1.4777</td><td><strong>unchanged</strong></td><td style="text-align:left">Both \(c\) and \(p\) rise by the same amount; \(\sigma\) isn't in the formula</td></tr>
+<tr><td>7. $1 dividend</td><td>0.4827</td><td>down by \(D\)</td><td style="text-align:left">Stock holders collect it: call cheaper, put dearer</td></tr>
+</table>
+</div>
+<p>Patterns: \(c - p\) moves <strong>up</strong> with \(S_0\), \(r\), \(T\) (when \(r > 0\)); <strong>down</strong> with \(K\) and with dividends; and <strong>doesn't care about \(\sigma\)</strong>. Intuition for the second pair: a call is a way to buy the stock later and keep the money earning interest (rises with \(r\) and \(T\)), a put is a way to sell it later and be paid later (hurt by \(r\) and \(T\)). Rule: <em>the call is a long-forward-like asset and the put a short-forward-like asset, so anything that raises the forward price raises \(c - p\)</em>. Everything about \(c - p\) is the same as the forward-value story in Lesson 10.</p>
+</div></details>
+
+<h3>Try it: is parity violated? What's the trade?</h3>
+<p>Set the market prices and the inputs. The widget computes the fair gap, the mispricing, and the arbitrage, with the cash-flow table collapsed into net cash today and at \(T\).</p>
+
+<div class="widget" id="pc">
+  <div class="controls">
+    <label>Call \(c\): <span id="vc"></span><input type="range" id="c" min="0" max="15" step="0.05" value="4.20"></label>
+    <label>Put \(p\): <span id="vp"></span><input type="range" id="p" min="0" max="15" step="0.05" value="2.72"></label>
+    <label>Stock \(S_0\): <span id="vS"></span><input type="range" id="S" min="30" max="70" step="0.5" value="50"></label>
+    <label>Strike \(K\): <span id="vK"></span><input type="range" id="K" min="30" max="70" step="0.5" value="50"></label>
+    <label>Rate \(r\): <span id="vr"></span><input type="range" id="r" min="0" max="0.15" step="0.005" value="0.06"></label>
+    <label>Time \(T\) (years): <span id="vT"></span><input type="range" id="T" min="0.05" max="2" step="0.05" value="0.5"></label>
+    <label>PV of dividends \(D\): <span id="vD"></span><input type="range" id="D" min="0" max="4" step="0.05" value="0"></label>
+  </div>
+  <div class="out">
+    <div>Left side \(L = c + D + Ke^{-rT}\): <b id="oL"></b></div>
+    <div>Right side \(R = p + S_0\): <b id="oR"></b></div>
+    <div>Market gap \(c - p\): <b id="oM"></b></div>
+    <div>Fair gap \(S_0 - D - Ke^{-rT}\): <b id="oF"></b></div>
+    <div>Fair put (given \(c\)): <b id="oP"></b></div>
+    <div>Fair call (given \(p\)): <b id="oC"></b></div>
+  </div>
+  <div class="verdict2" id="oV"></div>
+  <button class="fix" id="fixP">Set put to its fair value</button>
+  <div class="note">Start state: parity holds. Nudge the put by 0.30 either way and read the trade. Set \(T\) very small and watch \(c - p\) tend to \(S_0 - K\). Add dividends and see which way the fair put moves.</div>
+</div>
+<script>
+(function () {
+  const el = id => document.getElementById(id);
+  const ids = ['c', 'p', 'S', 'K', 'r', 'T', 'D'];
+  const f2 = x => x.toFixed(2), f4 = x => x.toFixed(4);
+  function upd() {
+    const c = +el('c').value, p = +el('p').value, S = +el('S').value, K = +el('K').value,
+          r = +el('r').value, T = +el('T').value, D = +el('D').value;
+    const pvK = K * Math.exp(-r * T), g = Math.exp(r * T);
+    const L = c + D + pvK, R = p + S, gap = L - R;
+    el('vc').textContent = f2(c); el('vp').textContent = f2(p); el('vS').textContent = f2(S);
+    el('vK').textContent = f2(K); el('vr').textContent = (r * 100).toFixed(1) + '%';
+    el('vT').textContent = f2(T); el('vD').textContent = f2(D);
+    el('oL').textContent = f4(L); el('oR').textContent = f4(R);
+    el('oM').textContent = f4(c - p); el('oF').textContent = f4(S - D - pvK);
+    el('oP').textContent = f4(c + D + pvK - S); el('oC').textContent = f4(p + S - D - pvK);
+    const v = el('oV');
+    if (Math.abs(gap) < 0.005) {
+      v.className = 'verdict2 fair';
+      v.textContent = 'Parity holds (gap ' + f4(gap) + '). No arbitrage: the two portfolios cost the same.';
+    } else if (gap > 0) {
+      const cash0 = c - p - S;
+      v.className = 'verdict2 arb';
+      v.textContent = 'Left side dearer by ' + f4(gap) + ' (call too dear or put too cheap). Trade: SELL the call, BUY the put, BUY the stock; net cash at t=0 is ' + f2(cash0) +
+        (cash0 < 0 ? ', so borrow ' + f2(-cash0) : ', so lend ' + f2(cash0)) + ' at r' + (D > 0 ? ' (the long stock collects the dividends, PV ' + f2(D) + ', already counted in the gap)' : '') +
+        '. At T the stock position is worth the strike in every state. Riskless profit at T = ' + f4(gap * g) + ' (PV ' + f4(gap) + ').';
+    } else {
+      const cash0 = S + p - c;
+      v.className = 'verdict2 arb';
+      v.textContent = 'Right side dearer by ' + f4(-gap) + ' (put too dear or call too cheap). Trade: BUY the call, SELL the put, SHORT the stock; net cash at t=0 is +' + f2(cash0) + ', so lend it at r' +
+        (D > 0 ? ' (the short seller pays the dividends; PV ' + f2(D) + ' of them is already accounted for in the profit)' : '') +
+        '. At T you pay the strike for the stock in every state. Riskless profit at T = ' + f4(-gap * g) + ' (PV ' + f4(-gap) + ').';
+    }
+  }
+  ids.forEach(id => el(id).addEventListener('input', upd));
+  el('fixP').addEventListener('click', () => {
+    const c = +el('c').value, S = +el('S').value, K = +el('K').value, r = +el('r').value, T = +el('T').value, D = +el('D').value;
+    const pf = Math.max(0, Math.min(15, c + D + K * Math.exp(-r * T) - S));
+    el('p').value = (Math.round(pf * 20) / 20).toFixed(2); upd();
+  });
+  upd();
+})();
+</script>
+
+<h2>7 · What a violation looks like in numbers: practice</h2>
+<p>Do these cold. The first four are price-finding; then synthetic and direction questions; then an arbitrage with a profit.</p>
+
+<div class="quiz num" data-answer="1.54" data-tol="0.01">
+  <p class="q"><strong>3.</strong> A 6-month European call (\(K = 35\)) costs $3.40. The stock is $36, pays no dividends, and \(r = 5\%\). What should the 6-month European put with the same strike cost?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(p = c + Ke^{-rT} - S_0 = 3.40 + 35e^{-0.025} - 36 = 3.40 + 34.1358 - 36 = \$1.54\). Forgetting to discount \(K\) gives 2.40. Using \(S_0 - K = 1\) as the call-minus-put gap gives 2.40 too: same error.</div>
+</div>
+
+<div class="quiz num" data-answer="4.73" data-tol="0.01">
+  <p class="q"><strong>4.</strong> A 9-month European call (\(K = 42\)) is $3.10. The stock is $40 and will pay $0.60 in 3 months and $0.60 in 6 months. \(r = 5\%\) for all maturities. Fair price of the European put?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(D = 0.6e^{-0.05\times0.25} + 0.6e^{-0.05\times0.5} = 0.5925 + 0.5852 = 1.1777\). \(Ke^{-rT} = 42e^{-0.0375} = 40.4584\). \(p = 3.10 + 1.1777 + 40.4584 - 40 = \$4.73\). Dropping the dividends gives 3.56; <em>subtracting</em> them gives 2.38, the wrong-sign slip.</div>
+</div>
+
+<div class="quiz num" data-answer="144.00" data-tol="0.1">
+  <p class="q"><strong>5.</strong> A 1-year European call on an equity index (\(K = 2{,}500\)) costs 95 points. The index is 2,400, with a continuous dividend yield of 3% and \(r = 5\%\). What is the fair 1-year European put, in points?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">points</span></div>
+  <div class="why">Yield form: \(p = c + Ke^{-rT} - S_0e^{-qT} = 95 + 2500e^{-0.05} - 2400e^{-0.03} = 95 + 2378.07 - 2329.07 = 144.00\). Using \(S_0\) undiscounted gives 73.07; the index's yield makes holding it less valuable than the spot suggests, so the put is dearer.</div>
+</div>
+
+<div class="quiz num" data-answer="0.0189" data-tol="0.0002">
+  <p class="q"><strong>6.</strong> A 6-month European call to buy one AUD for USD 0.64 costs USD 0.0450. Spot is USD 0.66 per AUD, the USD rate is 4%, the AUD rate is 2% (both continuous). Price of the matching European put, in USD?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">USD</span></div>
+  <div class="why">Currency parity: the foreign rate plays the dividend yield. \(p = c + Ke^{-rT} - S_0e^{-r_fT} = 0.0450 + 0.64e^{-0.02} - 0.66e^{-0.01} = 0.0450 + 0.62733 - 0.65343 = \$0.0189\). Swapping which rate is \(r\) and which is \(r_f\) is the usual trap: the strike is in USD, so discount \(K\) at the USD rate and the AUD at the AUD rate.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>7.</strong> Everything else fixed, the 6-month interest rate rises. What happens to the parity gap \(c - p\) on a non-dividend stock?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It widens, as PV of the strike falls so the call gains on the put</button>
+    <button class="opt" data-key="b">It narrows, as higher rates make both options less valuable</button>
+    <button class="opt" data-key="c">It stays put, as parity involves no interest rate effect</button>
+    <button class="opt" data-key="d">It narrows, as the put's value rises faster than the call's</button>
+  </div>
+  <div class="why">\(c - p = S_0 - Ke^{-rT}\): a higher \(r\) shrinks \(Ke^{-rT}\), so the gap grows. The call (right to buy later, so the cash sits earning interest) gains and the put (right to be paid \(K\) later) loses. (c) is false: \(r\) is in the formula. (b) and (d) have the direction backwards.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>8.</strong> Implied volatility of the market's options on a stock doubles after a news shock; \(S_0\), \(K\), \(r\), \(T\) are unchanged. For a European call and put with the same strike:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(c\) rises and \(p\) falls, so \(c - p\) widens</button>
+    <button class="opt" data-key="b">\(c\) falls and \(p\) rises, so \(c - p\) narrows</button>
+    <button class="opt" data-key="c">\(c\) rises and \(p\) is unchanged, so \(c - p\) widens</button>
+    <button class="opt" data-key="d">Both rise by the same amount, so \(c - p\) is unchanged</button>
+  </div>
+  <div class="why">Volatility raises the value of <em>both</em> options (each is a limited-downside bet on movement, Lesson 12). Parity pins the <em>difference</em> to \(S_0 - Ke^{-rT}\), with no \(\sigma\) in it, so the two rise by exactly the same amount.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>9.</strong> A 3-month European call (\(K = 82\)) is $2.60 and the matching put is $4.55. The stock is $80, \(r = 6\%\), no dividends. Which strategy locks in a riskless profit?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Sell the call, buy the put, buy the stock and borrow</button>
+    <button class="opt" data-key="b">Buy the call, buy the put, short the stock and lend</button>
+    <button class="opt" data-key="c">Buy the call, sell the put, short the stock and lend</button>
+    <button class="opt" data-key="d">Sell the call, sell the put, buy the stock and borrow</button>
+  </div>
+  <div class="why">\(L = 2.60 + 82e^{-0.015} = 83.3792\); \(R = 4.55 + 80 = 84.55\). The put-and-stock side is dearer by 1.1708, so sell it (sell put, short stock) and buy the cheaper side (buy call, lend \(Ke^{-rT}\)). Equivalently the market gap 2.60 − 4.55 = −1.95 is far below the fair gap \(80 - 80.7798 = -0.78\). (a) is the Case 1 trade, correct for the opposite mispricing; (b) and (d) don't make \(S_T\) cancel.</div>
+</div>
+
+<div class="quiz num" data-answer="1.19" data-tol="0.01">
+  <p class="q"><strong>10.</strong> Run the trade in Q9 for one share. After the trade, what is your riskless profit at expiry (3 months), in dollars?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">At \(t=0\): \(-2.60 + 4.55 + 80 = +81.95\) (buy call, sell put, short stock), lent at 6% for 3 months: \(81.95e^{0.015} = 83.1885\). At \(T\) you pay $82 for the stock in every state, so profit \(= 83.1885 - 82 = \$1.19\). Check: gap \(1.1708 \times e^{0.015} = 1.1885\). Quoting the PV (1.17) is close, so check what the question asks for ("at expiry" vs "today").</div>
+</div>
+
+<div class="quiz num" data-answer="51.11" data-tol="0.02">
+  <p class="q"><strong>11.</strong> A 6-month call and put on a stock with \(K = 50\) cost $5.20 and $3.10. \(r = 4\%\), no dividends. If parity holds, what stock price are the two options implying?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(S_0 = c - p + Ke^{-rT} = 2.10 + 50e^{-0.02} = 2.10 + 49.0099 = \$51.11\). (Implied forward price: \(F_0 = K + (c - p)e^{rT} = 50 + 2.10e^{0.02} = 52.14\).) Treating \(c - p\) as the stock minus the strike gives 52.10, which ignores discounting.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>12.</strong> A trader sees a call and a put on the same stock whose \(c - p\) matches \(S_0 - Ke^{-rT}\) exactly, but the put has a much higher volatility than the call (as quoted in the market). The best conclusion is:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">An arbitrage exists, as the two options imply different volatilities</button>
+    <button class="opt" data-key="b">No arbitrage exists; parity is satisfied whatever volatilities are quoted</button>
+    <button class="opt" data-key="c">An arbitrage exists, as the put is dearer than the call</button>
+    <button class="opt" data-key="d">No arbitrage exists only if the options are at the money</button>
+  </div>
+  <div class="why">Parity involves prices, not volatilities. Because the gap matches, the identity holds. (In practice, if parity holds, European options with the same strike and expiry must have the same implied volatility; a mismatch would show a parity breach.) (c) confuses "dearer put" with violation: for a deep in-the-money put the put <em>should</em> be dearer.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>13.</strong> \(S_0 = 100\), \(r = 5\%\), \(T = 1\), no dividends. For which strike are the European call and put equal in price?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(K = 100\), the at-the-money strike, always</button>
+    <button class="opt" data-key="b">\(K = 100e^{-0.05} = 95.12\), the PV of the spot</button>
+    <button class="opt" data-key="c">\(K = 100e^{0.05} = 105.13\), the forward price</button>
+    <button class="opt" data-key="d">There is no such strike when rates are positive</button>
+  </div>
+  <div class="why">\(c = p\) needs \(S_0 = Ke^{-rT}\), i.e. \(K = S_0e^{rT} = F_0 = 105.13\). The forward price, as section 5 says. At \(K = 100\), \(c - p = 100 - 95.12 = 4.88 > 0\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>14.</strong> A stock announces an unexpected special dividend that will be paid before the options expire. Holding \(S_0\), \(K\), \(r\), \(T\) fixed, what is the effect on the parity gap \(c - p\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It falls by the PV of the dividend, as the call loses and the put gains</button>
+    <button class="opt" data-key="b">It rises by the PV of the dividend, as holders get extra cash</button>
+    <button class="opt" data-key="c">It falls by the dividend, undiscounted, as cash flows are paid at once</button>
+    <button class="opt" data-key="d">It is unchanged, as dividends only affect American options</button>
+  </div>
+  <div class="why">\(c - p = S_0 - D - Ke^{-rT}\): the gap falls by <em>the PV</em> \(D\). Intuition: the stock will drop by about the dividend when it goes ex-dividend, which hurts calls and helps puts. (d) is wrong: dividends affect both European and American options, though only American options have an early-exercise angle.</div>
+</div>
+
+<h2>8 · American options: only inequalities</h2>
+
+<p>An American option can be exercised before \(T\), so the "same payoff at \(T\)" argument no longer pins down one price. What survives are bounds on \(C - P\) (<a href="../lectures/Lecture%204_Options%20intro.pdf">Lecture 4, slide 34</a>; Hull Ch. 11):</p>
+$$\underbrace{S_0 - K}_{\text{no dividends}} \;\le\; C - P \;\le\; S_0 - Ke^{-rT} \qquad\qquad \underbrace{S_0 - D - K}_{\text{with dividends}} \;\le\; C - P \;\le\; S_0 - Ke^{-rT}.$$
+<p>The lecture writes strict inequalities for the American case. Two things to note: the <strong>upper bound is the same</strong> European parity gap, and the <strong>lower bound replaces \(Ke^{-rT}\) with \(K\)</strong> (the put can be exercised early and \(K\) received sooner, so it is worth more). In the dividend case \(D\) comes off only the lower bound.</p>
+
+<details><summary>Why those bounds? (the idea, not the proof: the lecture says you needn't derive them)</summary><div>
+<p><strong>Upper bound.</strong> Without dividends an American call is never exercised early (Lecture 4 slide 19: you'd lose the time value and the interest on \(K\)), so \(C = c\). And \(P \ge p\) (more rights are worth at least as much). So \(C - P \le c - p = S_0 - Ke^{-rT}\).</p>
+<p><strong>Lower bound.</strong> Suppose \(C - P \lt S_0 - K\). Buy the call, sell the put, short the stock, lend \(K\): you pocket \(S_0 + P - C - K \gt 0\) today. If the put is exercised early at \(K\), you use the loan to buy the stock you're short; if not, the same at \(T\) with extra interest. Either way no loss. With dividends the stock's short seller pays the dividends, so \(D\) is subtracted.</p>
+</div></details>
+
+<div class="box"><p><strong>Reading the range.</strong> With \(S_0 = 60\), \(K = 55\), \(r = 4\%\), \(T = 0.5\): \(S_0 - K = 5\) and \(S_0 - Ke^{-rT} = 6.089\). So \(5 \le C - P \le 6.089\). Hull's version of this question: given \(C\), the bounds on \(P\) are \(C - (S_0 - Ke^{-rT}) \le P \le C - (S_0 - K)\); that is \(C + Ke^{-rT} - S_0 \le P \le C + K - S_0\) (the form on the Tutorial 4 Q7 solution).</p></div>
+
+<h3>What an out-of-range price means</h3>
+<div class="tablewrap">
+<table>
+<tr><th>Observed \(C - P\)</th><th>What's wrong</th><th>Arbitrage</th></tr>
+<tr><td>Above \(S_0 - Ke^{-rT}\)</td><td>Call too dear / put too cheap</td><td>Sell call, buy put, buy stock, borrow \(Ke^{-rT}\) (same as European Case 1; the put can only be worth more than the European one, so you are safe holding it)</td></tr>
+<tr><td>Below \(S_0 - D - K\)</td><td>Call too cheap / put too dear (even allowing early exercise)</td><td>Buy call, sell put, short stock, lend \(K\) (+ dividends set aside)</td></tr>
+<tr><td>Between the bounds</td><td>Nothing to exploit: the room is the value of the early-exercise right of the put</td><td>None</td></tr>
+</table>
+</div>
+<p>A price <em>inside</em> the range can still be "wrong" for a European option, but for an American option you can't make a riskless profit from it. This is the point of Tutorial 4 Q7.2: a price inside the range says the put is consistent with no arbitrage.</p>
+
+<div class="box">
+<p><strong>Tutorial 4, Q7.2 pattern with generic numbers</strong> (the GameStop xlsx isn't in the workspace). A stock at $25 pays no dividend; a 3-month American call (\(K = 25\)) costs $2.60; \(r = 4.5\%\), \(T = 0.25\). Then</p>
+<p>\(C + Ke^{-rT} - S_0 \le P \le C + K - S_0\), that is \(\mathbf{2.32 \le P \le 2.60}\).<br>
+An observed \(P = 2.45\) is inside: fine. \(P = 2.80\) is above 2.60: sell the put, buy the call, short the stock, lend \(K = 25\). \(P = 2.10\) is below 2.32: buy the put, sell the call, buy the stock, borrow \(Ke^{-rT}\).</p>
+<p><strong>7.1:</strong> bullish but afraid of losing the full share price: <strong>long call</strong>. Losses are capped at the premium; the upside is open. A short put also has the bullish view but loses up to \(K\) if the stock collapses, and a long put or short call is bearish.</p>
+<p><strong>7.2(c):</strong> the tute's answer is that normal market conditions (liquid options, easy stock borrowing) keep prices inside the range, whereas in the January 2021 short squeeze the stock was <em>extremely</em> hard to short and borrowing fees exploded, so the "short the stock" leg of the arbitrage was costly or impossible, and quoted prices could sit outside the range. (I haven't got the lecture's squeeze numbers: check Lecture 4's GameStop slide for them.)</p>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>15.</strong> For a non-dividend stock, \(S_0 = 60\), \(K = 55\), \(r = 4\%\), \(T = 0.5\), an American call is $7.20 and the American put $0.90. Compared with the American parity range \(5 \le C - P \le 6.089\):</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(C - P = 6.30\) is inside the range, so there is no arbitrage</button>
+    <button class="opt" data-key="b">\(C - P = 6.30\) is below the lower bound, so buy the call and sell the put</button>
+    <button class="opt" data-key="c">\(C - P = 8.10\) is above the range, so sell the call and sell the put</button>
+    <button class="opt" data-key="d">\(C - P = 6.30\) exceeds the upper bound, so sell the call, buy the put, buy the stock and borrow</button>
+  </div>
+  <div class="why">\(C - P = 7.20 - 0.90 = 6.30 \gt 6.089\). The call is too dear relative to the put, so run Case 1: sell the call, buy the put, buy the stock, borrow \(Ke^{-rT}\) (= 53.911). The bounds hold for American options. (b) reverses the inequality; (c) mis-computes the gap by adding the prices.</div>
+</div>
+
+<div class="quiz num" data-answer="2.32" data-tol="0.01">
+  <p class="q"><strong>16.</strong> A stock is $25 with no dividends. A 3-month American call with \(K = 25\) costs $2.60; \(r = 4.5\%\). What is the lower bound on the American put?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(P \ge C + Ke^{-rT} - S_0 = 2.60 + 25e^{-0.01125} - 25 = 2.60 + 24.7203 - 25 = \$2.32\). The upper bound is \(C + K - S_0 = 2.60\). Using \(K\) undiscounted in the lower bound gives 2.60, the upper bound.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>17.</strong> For American options on a dividend-paying stock, the range for \(C - P\) is (lecture slide 34):</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(S_0 - K \le C - P \le S_0 - D - Ke^{-rT}\)</button>
+    <button class="opt" data-key="b">\(S_0 - D - K \le C - P \le S_0 - Ke^{-rT}\)</button>
+    <button class="opt" data-key="c">\(S_0 - K \le C - P \le S_0 + D - Ke^{-rT}\)</button>
+    <button class="opt" data-key="d">\(S_0 - D - Ke^{-rT} \le C - P \le S_0 - K\)</button>
+  </div>
+  <div class="why">Dividends lower the <em>lower</em> bound (\(-D\) next to \(K\)); the upper bound keeps the European gap \(S_0 - Ke^{-rT}\) as given on the slide. (a) and (d) put the dividend/bound on the wrong side; (c) adds the dividend rather than subtracting.</div>
+</div>
+
+<h2>9 · Exam-level challenge</h2>
+<p>Write it all out, then open the steps one at a time.</p>
+<div class="box">
+<p>A stock trades at <strong>$64</strong>. It will pay a dividend of <strong>$1.50</strong> in 2 months and nothing else before expiry. A 6-month European call with strike <strong>$65</strong> trades at <strong>$3.85</strong>, and the matching European put trades at <strong>$5.45</strong>. The risk-free rate is <strong>4%</strong> p.a. continuously compounded for all maturities.</p>
+<p>(a) What is the fair price of the put, given the call?<br>
+(b) Is there an arbitrage? Which instrument looks mispriced, and by how much?<br>
+(c) Set up the trade and show the cash flows at \(t = 0\), at the dividend date and at \(T\) for \(S_T \gt 65\) and \(S_T \lt 65\).<br>
+(d) What is the riskless profit at \(T\)?<br>
+(e) The market makers suddenly price the put at $5.05 instead of $5.45. Does your arbitrage still work? Predict, then check.<br>
+(f) A colleague says: "The options are American, so put-call parity doesn't apply and there's no arbitrage." Respond.</p>
+</div>
+
+<details><summary>Step 1: part (a), PV of the dividend and parity</summary><div>
+<p>\(D = 1.5e^{-0.04\times2/12} = 1.4900\). \(Ke^{-rT} = 65e^{-0.02} = 63.7129\).<br>
+\(p = c + D + Ke^{-rT} - S_0 = 3.85 + 1.4900 + 63.7129 - 64 = \mathbf{\$5.0529}\).</p></div></details>
+<details><summary>Step 2: part (b), which side is dear</summary><div>
+<p>Market put 5.45 against fair 5.0529: the put is too dear by $0.3971. In side language: \(L = 3.85 + 1.49 + 63.7129 = 69.0529\), \(R = 5.45 + 64 = 69.45\). The right side is dearer by 0.3971. Sell the put and the stock, buy the call, lend.</p></div></details>
+<details><summary>Step 3: part (c), the cash-flow table</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>\(t = 0\)</th><th>2 months</th><th>\(T,\ S_T \gt 65\)</th><th>\(T,\ S_T \lt 65\)</th></tr>
+<tr><td>Buy call</td><td>−3.85</td><td></td><td>\(S_T - 65\)</td><td>0</td></tr>
+<tr><td>Sell put</td><td>+5.45</td><td></td><td>0</td><td>\(-(65 - S_T)\)</td></tr>
+<tr><td>Short stock</td><td>+64.00</td><td>−1.50 (pay the lender's dividend)</td><td>\(-S_T\)</td><td>\(-S_T\)</td></tr>
+<tr><td>Lend 65.60 at 4%</td><td>−65.60</td><td>(account pays the dividend)</td><td colspan="2">65.60\(e^{0.02}\) = 66.9252, less dividend grown 1.5\(e^{0.04\times4/12}\) = 1.5201, = 65.4051</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>0</strong></td><td></td><td><strong>+0.405</strong></td><td><strong>+0.405</strong></td></tr>
+</table>
+</div>
+<p>In either state the stock position costs exactly $65 to close (via the call or the assigned put), so the cash left is \(65.4051 - 65 = 0.4051\).</p></div></details>
+<details><summary>Step 4: part (d), the profit</summary><div>
+<p>Profit at \(T\) = mispricing \(\times e^{rT} = 0.3971\times e^{0.02} = \mathbf{\$0.405}\) per share (PV \$0.397). The short seller pays the dividend: it's why \(D\) sits in the fair-put calculation, and why the naive gap \(5.45 - 5.00\) would overstate the profit.</p></div></details>
+<details><summary>Step 5: part (e), the put falls to $5.05</summary><div>
+<p>Prediction: fair put is 5.0529, so the put at 5.05 is cheaper by only 0.0029: essentially parity. A gap that small is smaller than any bid-ask spread or stock-borrow fee, so no real profit remains; on paper there's a tiny gap in the opposite direction (buy the put, sell the call, buy the stock, borrow) worth \(0.0029e^{0.02} = 0.003\). Rule: <em>the arbitrage disappears when the market gap equals the fair gap, and reverses when it crosses it.</em></p></div></details>
+<details><summary>Step 6: part (f), the American objection</summary><div>
+<p>Exact parity needs European exercise, so the identity \(c + D + Ke^{-rT} = p + S_0\) doesn't hold as an equality for American options. But the inequality does: the arbitrage in Case 1 (upper bound) is safe for American options, and so is the lower-bound trade. Here the American range is \(S_0 - D - K \le C - P \le S_0 - Ke^{-rT}\), i.e. \(-2.49 \le C - P \le 0.2871\), and the market gap is \(3.85 - 5.45 = -1.60\), which sits <em>inside</em> it (assuming those are American prices). So for American options the colleague is right that no arbitrage exists, but for the right reason: the price lies in the range, not because parity is irrelevant. For European options the arbitrage in (c) exists.</p></div></details>
+
+<h2>10 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, write European parity (three versions), derive it from the payoff table, build a synthetic put, state which way \(c - p\) moves with each input, and write the American range. Then check</summary><div>
+<p>\(c + Ke^{-rT} = p + S_0\); with dividends \(c + D + Ke^{-rT} = p + S_0\) (\(D\) = PV of dividends in the life); with yield \(c + Ke^{-rT} = p + S_0e^{-qT}\) (currency: \(q \to r_f\)). Derivation: call + \(Ke^{-rT}\) cash and put + stock both pay \(\max(S_T, K)\). Synthetic put = long call + short stock + lend \(Ke^{-rT}\). \(c - p\) up with \(S_0\), \(r\), \(T\); down with \(K\), \(D\), \(q\); unaffected by \(\sigma\). Arbitrage: sell the dearer side, buy the cheaper, \(S_T\) cancels, profit \(|L-R|e^{rT}\) at \(T\). Link: \(c - p = (F_0 - K)e^{-rT}\), so \(c = p\) at \(K = F_0\). American: \(S_0 - D - K \le C - P \le S_0 - Ke^{-rT}\).</p></div></details>
+
+<div class="quiz num" data-answer="3.42" data-tol="0.02">
+  <p class="q"><strong>R1.</strong> (Spacing, Lesson 10) You're long a 6-month forward on a non-dividend stock with delivery price $48. The stock is $50, \(r = 6\%\). What is the forward worth? (Compare with parity: it's the same as \(c - p\) for a call and put struck at 48.)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(f = S_0 - Ke^{-rT} = 50 - 48e^{-0.03} = 50 - 46.5826 = \$3.42\). That's also \(c - p\) for a call and put struck at 48: the synthetic forward is worth the same as the real one. \(S_0 - K = 2\) forgets the discounting.</div>
+</div>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, Ch. 11 ("Properties of stock options": put-call parity, American options, dividends), the reading for <a href="../lectures/Lecture%204_Options%20intro.pdf">Lecture 4</a>, slides 33–34. For the currency and index forms see Hull's Ch. 17 (or the equivalent chapter on options on indices and currencies).</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%204.pdf">Tutorial 4</a>, Q3, Q4 and Q5 (<a href="../tutes/Tutorial%204%20solutions.pdf">solutions</a>), which are all worked above, so cover them and redo them cold; then Q7 (GameStop) with the generic numbers in section 8, doing 7.2(a)–(b) yourself.</p>
+<p><strong>Spacing:</strong> tomorrow, redo the challenge's step 1–3 without looking and the two arbitrage cases in section 4 (all signs, both directions). In three days, redo quizzes 5, 6, 9 and 15 from scratch.</p>
+
+<div class="ask">💬 Unsure which side of the arbitrage to trade, or how dividends enter the cash-flow table? Paste your working in the terminal and ask me. I'm your teacher for this. Ask me for more "what happens to \(c - p\) if…" drills, or for a run of arbitrages with different inputs.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0013-bounds-on-option-prices.html">Lesson 13, bounds on option prices</a></span>
+  <span>Siblings: <a href="0011-options-payoffs-profits-and-moneyness.html">L11 payoffs</a> · <a href="0012-factors-affecting-option-prices.html">L12 factors</a> · <a href="0015-early-exercise-of-american-options.html">L15 early exercise</a></span>
+  <span>Reference: <a href="../reference/futures-cheatsheet.html">Futures cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0015-early-exercise-of-american-options.html">Lesson 15, early exercise of American options</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

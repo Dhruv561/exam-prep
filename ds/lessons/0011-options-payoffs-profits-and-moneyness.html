@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Options: Payoffs, Profits and Moneyness</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.widget { background: var(--card); border: 1px solid var(--rule); border-radius: 6px; padding: 1rem 1.2rem; margin: 1.2rem 0; font-family: Inter, system-ui, sans-serif; font-size: .85rem; }
+.widget .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem 1.4rem; }
+.widget label { display: flex; flex-direction: column; gap: .2rem; }
+.widget input[type=range] { width: 100%; accent-color: var(--accent); }
+.widget .out { margin-top: .8rem; line-height: 1.6; }
+.widget table { font-size: .82rem; }
+.widget .panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; margin-top: .8rem; }
+.widget .panel { border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); padding: .3rem .4rem; }
+.widget .panel .t { font-weight: 600; font-size: .78rem; }
+.widget svg { width: 100%; height: auto; display: block; }
+.pos { color: var(--ok); font-weight: 600; } .neg { color: var(--bad); font-weight: 600; }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 11 · Topic 4: Options introduction</div>
+<h1>Options: payoffs, profits, and moneyness</h1>
+<p class="lede">The goal: given any option position (long or short, call or put), sketch its payoff and profit, find the break-even and the maximum gain and loss in your head, say whether it is in the money and how much of its price is "time value", and know exactly how it differs from a futures contract.</p>
+
+<div class="mission">Why this matters for 5 Nov: option-intro marks in past papers are mostly 1–2 mark MCQs (intrinsic vs time value from a quoted premium, "which statement is correct" about calls and puts, straddle and bull-spread definitions) plus the occasional "build a profit table for the strategy you chose" part. A wrong sign here silently breaks every later lesson (parity, binomial, BSM, Greeks), so this is the foundation for roughly half the remaining course.</div>
+
+<p>Siblings in this topic: <a href="0012-factors-affecting-option-prices.html">Lesson 12, what drives option prices</a>, <a href="0013-bounds-on-option-prices.html">Lesson 13, bounds</a>, <a href="0014-put-call-parity.html">Lesson 14, put-call parity</a>, <a href="0015-early-exercise-of-american-options.html">Lesson 15, early exercise</a>. No finance knowledge is assumed beyond Lessons 1–10 (a futures contract is an <em>obligation</em> to trade at a fixed price; that contrast drives this whole lesson).</p>
+
+<h2>1 · An option is a right, not an obligation</h2>
+
+<p>Start from the futures idea: you lock in a price today, and at the end you <em>must</em> trade at it. That's a problem if the price moves your way after you've agreed a deal you'd rather not have. Suppose you want the right to buy a share at $50, but only if that turns out to be a bargain. You'd happily <em>pay a fee</em> for that flexibility. That fee-for-flexibility is an option.</p>
+
+<ul>
+  <li>A <strong>call option</strong> gives its holder the <em>right to buy</em> an asset (the <strong>underlying</strong>, here a share) for a fixed price.</li>
+  <li>A <strong>put option</strong> gives its holder the <em>right to sell</em> the underlying for a fixed price.</li>
+  <li>The fixed price is the <strong>strike price</strong> (or exercise price) \(K\). The last day is the <strong>expiration</strong> (maturity) date \(T\). <strong>Exercising</strong> means using the right.</li>
+  <li>The fee paid up front by the buyer to the seller is the <strong>premium</strong> (the option's price): \(c\) for a European call, \(p\) for a European put (capitals \(C, P\) for American). It is paid on day one, win or lose, and not refunded.</li>
+  <li>A <strong>European</strong> option can be exercised only at \(T\); an <strong>American</strong> option at any time up to \(T\). (Most of this lesson is identical for both; Lesson 15 covers when early exercise is sensible.)</li>
+</ul>
+
+<p>Notation used from now on (Lecture 4, slide 6): \(S_0\) = share price today, \(S_T\) = share price at maturity, \(K\) = strike, \(T\) = life of the option, \(r\) = continuously compounded risk-free rate, \(\sigma\) = volatility.</p>
+
+<h3>Two people on every contract</h3>
+<p>Every option has two sides, and the whole lesson is about telling them apart:</p>
+<ul>
+  <li>The <strong>buyer</strong> takes a <strong>long</strong> position and is the <strong>holder</strong>. They pay the premium and get the <em>right</em>; they decide whether to exercise.</li>
+  <li>The <strong>seller</strong> takes a <strong>short</strong> position and is the <strong>writer</strong>. They collect the premium and take on the <em>obligation</em>: if the holder exercises, the writer must deliver (call) or buy (put).</li>
+</ul>
+<p>Four positions: long call, short call, long put, short put. Everything in this lesson is a different view of these four.</p>
+
+<details><summary>Predict first: who would ever <em>write</em> an option, if the buyer has the right and the writer only the obligation?</summary><div>
+<p>Someone who thinks the option will probably expire worthless and wants the premium, or who is happy to trade at \(K\) anyway. The writer is paid for taking the risk, like an insurance company. The premium is the writer's maximum gain; the writer's loss can be much larger. That asymmetry (buyer: pay a little, risk a little; writer: earn a little, risk a lot) will show up in every diagram below.</p></div></details>
+
+<h2>2 · Payoffs: what the contract is worth on the last day</h2>
+
+<p>The <strong>payoff</strong> is the cash value of the position at maturity, ignoring what you paid for it. Think about the holder at \(T\): they exercise only if it helps them.</p>
+<ul>
+  <li><strong>Long call.</strong> The right to buy at \(K\). If \(S_T > K\), buy at \(K\) and the share is worth \(S_T\): gain \(S_T - K\). If \(S_T \le K\), nobody pays \(K\) for a share worth less; let it lapse: 0. Payoff \(= \max(S_T - K, 0)\).</li>
+  <li><strong>Long put.</strong> The right to sell at \(K\). If \(S_T < K\), sell at \(K\) a share worth \(S_T\): gain \(K - S_T\). Otherwise 0. Payoff \(= \max(K - S_T, 0)\).</li>
+  <li><strong>The writer is the mirror image.</strong> Whatever the holder gains, the writer loses (trading the option is a <strong>zero-sum game</strong>, ignoring fees). So short call payoff \(= -\max(S_T - K, 0) = \min(K - S_T, 0)\), short put payoff \(= -\max(K - S_T, 0) = \min(S_T - K, 0)\).</li>
+</ul>
+
+<p>The <strong>profit</strong> then adds back what you paid or received on day one (Lecture 4, slides 7–10):</p>
+<div class="tablewrap">
+<table>
+<tr><th>Position</th><th>Payoff at \(T\)</th><th>Profit (ignoring interest)</th><th>Break-even \(S_T\)</th><th>Max gain</th><th>Max loss</th></tr>
+<tr><td>Long call</td><td>\(\max(S_T-K,0)\)</td><td>\(\max(S_T-K,0) - c\)</td><td>\(K + c\)</td><td>unlimited</td><td>\(c\) (the premium)</td></tr>
+<tr><td>Short call</td><td>\(\min(K-S_T,0)\)</td><td>\(\min(K-S_T,0) + c\)</td><td>\(K + c\)</td><td>\(c\)</td><td>unlimited</td></tr>
+<tr><td>Long put</td><td>\(\max(K-S_T,0)\)</td><td>\(\max(K-S_T,0) - p\)</td><td>\(K - p\)</td><td>\(K - p\) (price falls to 0)</td><td>\(p\)</td></tr>
+<tr><td>Short put</td><td>\(\min(S_T-K,0)\)</td><td>\(\min(S_T-K,0) + p\)</td><td>\(K - p\)</td><td>\(p\)</td><td>\(K - p\)</td></tr>
+</table>
+</div>
+
+<p>Read the table by <em>sides</em>, not by memorising 24 cells. The break-even \(K \pm\) premium is the strike shifted by the fee in the direction that makes you wait longer: a call buyer needs the share to clear \(K\) <em>and</em> recover the premium, so \(K + c\); a put buyer needs it to fall below \(K\) by the premium, \(K - p\). The long and short of the same option share a break-even and swap the gain/loss columns.</p>
+
+<div class="box">
+<p><strong>Example.</strong> A 3-month call with \(K = 50\) is sold for \(c = 3\); a put with the same \(K\) costs \(p = 2\). At maturity the share is at \(S_T\):</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>\(S_T\)</th><th>40</th><th>48</th><th>50</th><th>52</th><th>55</th><th>60</th></tr>
+<tr><td>Long call profit</td><td>−3</td><td>−3</td><td>−3</td><td>−1</td><td>+2</td><td>+7</td></tr>
+<tr><td>Short call profit</td><td>+3</td><td>+3</td><td>+3</td><td>+1</td><td>−2</td><td>−7</td></tr>
+<tr><td>Long put profit</td><td>+8</td><td>0</td><td>−2</td><td>−2</td><td>−2</td><td>−2</td></tr>
+<tr><td>Short put profit</td><td>−8</td><td>0</td><td>+2</td><td>+2</td><td>+2</td><td>+2</td></tr>
+</table></div>
+<p>Call break-even \(= 50 + 3 = 53\) (between 52 and 55 ✓.). Put break-even \(= 50 - 2 = 48\) (profit exactly 0 at 48 ✓.). Each long row is the negative of the short row above or below it.</p>
+</div>
+
+<div class="trap"><strong>Payoff vs profit, and the interest wrinkle</strong><br>
+Payoff excludes the premium; profit includes it. The slides ignore interest: profit \(= \) payoff \(- c\). Strictly, the premium is paid at \(t = 0\) but the payoff arrives at \(T\), so the careful profit is payoff \(- c\,e^{rT}\) (the premium's value at \(T\)), and the break-even moves to \(K + ce^{rT}\). Default to "ignore interest" as in the lecture and the tutorial; only compound the premium when the question gives \(r\) and asks you to account for the time value of money (practice Q14). A negative payoff does not exist for a holder: the lowest payoff of a long option is 0.</div>
+
+<h3>Try it: drag the sliders</h3>
+<p>Make a prediction before you move anything: if you raise the strike \(K\) with premiums unchanged, which break-even moves right? Then check.</p>
+
+<div class="widget" id="w">
+<div class="grid">
+  <label><span>Share price at maturity \(S_T\): <b id="vST"></b></span><input id="wST" type="range" min="0" max="100" step="0.5" value="55"></label>
+  <label><span>Strike \(K\): <b id="vK"></b></span><input id="wK" type="range" min="20" max="80" step="1" value="50"></label>
+  <label><span>Call premium \(c\): <b id="vc"></b></span><input id="wc" type="range" min="0.5" max="15" step="0.1" value="4"></label>
+  <label><span>Put premium \(p\): <b id="vp"></b></span><input id="wp" type="range" min="0.5" max="15" step="0.1" value="3"></label>
+</div>
+<div class="panels" id="panels"></div>
+<div class="out"><div class="tablewrap"><table id="wtab"></table></div></div>
+</div>
+<p>Play: (1) set \(S_T\) exactly at \(K\): who profits? (2) Slide \(S_T\) from 0 to 100: the long call's profit is flat then rises one-for-one, the long put is the opposite. (3) Raise the call premium and watch the long call's line drop and its break-even move right while the short call's line rises: one side's loss is the other's gain. (4) Find an \(S_T\) where all four positions show a different sign pattern.</p>
+
+<h2>3 · Directional what-ifs: how the inputs move the answers</h2>
+
+<p>Exam questions rarely ask for the formula; they change one input and ask what happens. Use the base case: long call, \(K = 50\), \(c = 3\), \(S_T = 55\), profit \(= 5 - 3 = +2\). Predict each row, then reveal.</p>
+
+<details><summary>What if \(S_T\) is 60 instead of 55? And 45?</summary><div>
+<p>60: profit \(10 - 3 = +7\). 45: the call lapses, profit \(= -3\), the whole premium and no more. For \(S_T\) above \(K\) the long call moves one-for-one with the share; below \(K\) nothing moves. Rule: <strong>the buyer's loss is capped, the gain isn't (call) or is capped only by the price hitting zero (put).</strong></p></div></details>
+
+<details><summary>What if the premium rises to 4 (same \(K\), same \(S_T = 55\))?</summary><div>
+<p>Profit falls to \(5 - 4 = +1\); break-even rises from 53 to 54; max loss rises from 3 to 4. A dearer option is a worse deal for the buyer at every outcome, and a better deal for the writer (max gain 4). The payoff is unchanged: only the premium moved.</p></div></details>
+
+<details><summary>What if the strike were 52 with the same premium 3?</summary><div>
+<p>Payoff at 55 falls to 3, profit \(0\), break-even 55. For a <em>call</em>, a higher strike means a worse right, so at the same premium the buyer is worse off. (In reality a higher-strike call is also <em>cheaper</em>, which is the next lesson: compare payoff and price together, not separately.) For a <em>put</em> it's reversed: a higher strike is a better right to sell.</p></div></details>
+
+<details><summary>Same \(K\) and \(S_T = 55\), but now you hold the <em>put</em> (\(p = 2\)). And the writer of that put?</summary><div>
+<p>Put payoff \(\max(50 - 55, 0) = 0\), profit \(-2\) for the holder; the writer keeps the premium: \(+2\). Share rises means the put holder loses and the put writer gains, the opposite of a call. Directional summary: <strong>long call and short put both profit from a rising share price; long put and short call both profit from a falling one.</strong></p></div></details>
+
+<table>
+<tr><th>You think the share will</th><th>Bullish ways (profit if \(S_T\) rises)</th><th>Bearish ways (profit if \(S_T\) falls)</th></tr>
+<tr><td>Move a lot; risk limited to what you pay</td><td>Long call</td><td>Long put</td></tr>
+<tr><td>Barely move or move my way; I want income</td><td>Short put (earn \(p\))</td><td>Short call (earn \(c\))</td></tr>
+</table>
+<p>Look at the diagonal: long call and short put have the same direction but very different risk. Long call: lose at most \(c\). Short put: lose up to \(K - p\). The seller's smaller, certain income is paid for with a bigger risk.</p>
+
+<h2>4 · Moneyness, intrinsic value and time value</h2>
+
+<p>Suppose today's share price is \(S\) (use \(S\) for the price now). If the holder could exercise <em>right now</em>, would it pay?</p>
+
+<div class="tablewrap">
+<table>
+<tr><th></th><th>In the money (ITM)</th><th>At the money (ATM)</th><th>Out of the money (OTM)</th><th>Intrinsic value</th></tr>
+<tr><td>Call</td><td>\(S &gt; K\)</td><td>\(S = K\)</td><td>\(S &lt; K\)</td><td>\(\max(S - K, 0)\)</td></tr>
+<tr><td>Put</td><td>\(S &lt; K\)</td><td>\(S = K\)</td><td>\(S &gt; K\)</td><td>\(\max(K - S, 0)\)</td></tr>
+</table></div>
+
+<p><strong>Intrinsic value</strong> is the cash the option would give if exercised immediately (never negative). An option can be worth <em>more</em> than that. A call with \(S = 48\), \(K = 50\) is out of the money, so its intrinsic value is 0, yet it trades for, say, $1.20, because there's still time for the share to rise above 50. That extra is the <strong>time value</strong>:</p>
+$$\text{option price} = \text{intrinsic value} + \text{time value}.$$
+
+<p>Where does time value come from? The holder has no downside beyond the premium, so extra uncertainty (volatility, more time) can only help: the chance of a big payoff increases, the loss is already capped. Time value is therefore highest when the option is close to the money (most uncertainty whether it will end ITM or OTM) and small when it is deep in the money (it behaves almost like the share itself, so there's little optionality left) or far out of the money (very unlikely to pay). It shrinks as maturity nears, falling fastest near the end, and equals exactly 0 at maturity, when price \(=\) payoff.</p>
+
+<div class="box">
+<p><strong>Example.</strong> A call has \(K = 50\) and costs $4.20 when \(S = 52\): ITM by 2, intrinsic 2.00, time value \(4.20 - 2.00 = 2.20\). A put with \(K = 50\) costs $0.90 with \(S = 52\): OTM, intrinsic 0, time value 0.90. Notice an OTM option's whole price is time value.</p>
+</div>
+
+<div class="trap"><strong>Moneyness is flipped for puts</strong><br>
+For a call, ITM means the share is <em>above</em> the strike; for a put, <em>below</em>. At one share price, a call and a put on the same strike are never both ITM (the ATM point is the borderline). Always say which option you are talking about before "in the money".</div>
+
+<details><summary>Predict first: time passes, nothing else changes. What happens to the price of an ATM option, and of a deep-ITM one?</summary><div>
+<p>The ATM option has no intrinsic value, so its whole price is time value, and it falls towards 0: it is the most "melting". The deep-ITM option has large intrinsic value that doesn't melt (if exercised it would still give \(S - K\)), so its price changes little and its time value is small to begin with. The opposite is a trap: "time value is zero means the option is worthless". No: it means price \(=\) intrinsic value (as at maturity).</p></div></details>
+
+<div class="trap"><strong>Can time value be negative?</strong><br>
+For an <strong>American</strong> option, no: it can always be exercised right away, so its price is at least its intrinsic value. For a deep-ITM <strong>European</strong> put, the price can briefly sit below intrinsic value (you can't collect \(K\) until \(T\); Lesson 13). Past papers ask about the sign for an in-the-money American option, where the answer is positive because the price must exceed what immediate exercise would give.</div>
+
+<h2>5 · Options versus forwards and futures</h2>
+
+<p>This is the cleanest 1-mark territory. Think of a long futures at delivery price \(F_0\) as having payoff \(S_T - F_0\) at \(T\): it can be large and <em>negative</em>. A long call has payoff \(\max(S_T - K, 0)\): never negative.</p>
+
+<div class="tablewrap">
+<table>
+<tr><th></th><th>Futures / forwards</th><th>Options</th></tr>
+<tr><td>Rights or obligations</td><td>Both sides are obliged to trade at \(F_0\)</td><td>Holder has the right; only the writer is obliged</td></tr>
+<tr><td>Cost to enter</td><td>Zero (futures: initial margin posted, not a fee)</td><td>The buyer pays the premium up front, non-refundable</td></tr>
+<tr><td>Margin</td><td>Both sides post margin and are marked to market daily</td><td>Buyer: none, the premium is the most they can lose. Writer: posts margin because of the obligation</td></tr>
+<tr><td>Payoff shape</td><td>Linear: gains and losses both unlimited (both sides)</td><td>Non-linear: buyer's loss capped at premium; asymmetric</td></tr>
+<tr><td>Use</td><td>Lock in a price</td><td>Insure against a bad price but keep the good one</td></tr>
+</table></div>
+
+<p><strong>Leverage with a cap on the downside.</strong> A share is at $50. You buy a call (\(K = 50\)) for $3. If the share rises 10% to $55 the share gains 10% but your $3 became $5: profit \(+2\) on \(3 = +67\%\). If it falls 10% to $45 the share loses 10%, but you lose your entire premium: \(-100\%\), no more. Compare a long futures at 50 held to $45: \(-5\), and it could keep falling. Options give leverage (large % gains and losses on a small outlay), and the buyer's worst case is known on day one.</p>
+
+<details><summary>Predict first: the share finishes at $40. Compare the long futures (price 50), the long call (\(K=50\), \(c=3\)), and the long put (\(K=50\), \(p=2\)).</summary><div>
+<p>Futures: \(40 - 50 = -10\). Long call: lapses, profit \(-3\). Long put: payoff 10, profit \(+8\). Option buyers pay for protection: the call limited the loss to 3 where the futures lost 10, at the cost of paying 3 even if the share goes up (futures would have gained \(S_T - 50\) for free, if it had been \(S_T = 60\): futures \(+10\), call \(+7\)). Insurance has a price.</p></div></details>
+
+<h3>Where options trade, and how big one contract is</h3>
+<ul>
+  <li><strong>Exchange-traded</strong> options (ASX, CBOE) have standardised strikes and expiry dates, a clearing house guaranteeing each trade (as in Lessons 1–2), and are liquid. <strong>Over-the-counter (OTC)</strong> options are bespoke contracts between two institutions: any strike or date, but counterparty risk and less liquidity.</li>
+  <li><strong>Contract size.</strong> An exchange-traded equity option contract usually covers <strong>100 shares</strong> (the question will tell you). The premium is quoted <em>per share</em>, so buying 1 contract at a quoted premium of $2.50 costs \(2.50 \times 100 = \$250\).</li>
+</ul>
+
+<h2>6 · Strategies: combinations of the four building blocks</h2>
+
+<p>Lecture 4 stops at single options, but past papers use four standard combinations in 2-mark definition MCQs and in "build a profit table for the strategy you chose" parts. You can always rebuild each profit line from the table in section 2 by <em>adding</em> the legs, so only the definitions need memorising. All profits below ignore interest.</p>
+
+<div class="tablewrap">
+<table>
+<tr><th>Strategy</th><th>Legs</th><th>View</th><th>Shape</th></tr>
+<tr><td><strong>Protective put</strong></td><td>Long share + long put</td><td>Own the share but want insurance</td><td>Loss floored; upside kept (looks like a long call)</td></tr>
+<tr><td><strong>Covered call</strong></td><td>Long share + short call</td><td>Own the share; willing to sell if it rises</td><td>Gain capped at \(K\) plus premium; downside kept</td></tr>
+<tr><td><strong>Straddle</strong></td><td>Long call + long put, <em>same</em> \(K\) and expiry</td><td>Big move, direction unknown</td><td>V-shape, two break-evens</td></tr>
+<tr><td><strong>Strangle</strong></td><td>Long call (high \(K\)) + long put (low \(K\))</td><td>Same, cheaper, needs a bigger move</td><td>Flat bottom, two break-evens</td></tr>
+<tr><td><strong>Bull call spread</strong></td><td>Long call at \(K_1\) + short call at \(K_2 &gt; K_1\)</td><td>Moderately bullish; cheaper than one call</td><td>Both gain and loss capped</td></tr>
+<tr><td><strong>Bear spread</strong></td><td>Opposite of the bull spread (or built from puts)</td><td>Moderately bearish</td><td>Both gain and loss capped</td></tr>
+</table></div>
+
+<div class="box">
+<p><strong>Example: a straddle.</strong> Buy a call (\(c = 3\)) and a put (\(p = 2.50\)), both \(K = 50\). Total cost \(5.50\), which is the most you can lose, at \(S_T = 50\) exactly. Profit \(= |S_T - 50| - 5.50\). Break-evens: \(50 \pm 5.50\) = 44.50 and 55.50. You need a move of more than $5.50 in either direction, which is why the buyer is "long volatility".</p>
+<p><strong>Example: a bull call spread.</strong> Buy a \(K_1 = 40\) call for 3.20 and sell a \(K_2 = 45\) call for 1.10: net cost 2.10. If \(S_T \ge 45\) the legs give \(+5\) in total: profit \(5 - 2.10 = +2.90\) (the maximum). If \(S_T \le 40\) both lapse: \(-2.10\) (the maximum loss). Break-even \(40 + 2.10 = 42.10\). Selling the 45 call gave up the upside above 45 and paid you 1.10 for it.</p>
+</div>
+
+<p>Directional check: a covered call adds a short call to a share. If the share rockets, the short call's loss offsets the share's gain above \(K\), so the combined position is capped, which is why the covered call writer is bearish-to-neutral on the upside. If the share collapses, the call premium gives only a small cushion. A protective put does the opposite: pay a premium, never lose more than \((S_0 - K) + p\) per share.</p>
+
+<div class="trap"><strong>Straddle vs strangle, bull vs bear</strong><br>
+Straddle: <em>same</em> strike. Strangle: <em>different</em> strikes (call strike above put strike). Bull call spread: <em>buy the lower</em> strike call, sell the higher; reverse it for a bear. Typical distractors swap buy/sell, mix up "two calls and a put", or say "different strikes" for a straddle.</div>
+
+<h2>7 · Practice</h2>
+<p>Calculations are numeric (type the number; ignore interest unless told); the rest are one-mark concept checks. Say your answer to yourself first. Where a question has a sign, check it.</p>
+
+<div class="quiz num" data-answer="3.2" data-tol="0.005">
+  <p class="q"><strong>1.</strong> A call has strike $45 and cost $2.80. At maturity the share is $51. What is the holder's profit per share?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Payoff \(= 51 - 45 = 6\). Profit \(= 6 - 2.80 = \$3.20\). Forgetting the premium gives 6.00.</div>
+</div>
+
+<div class="quiz num" data-answer="-4.9" data-tol="0.005">
+  <p class="q"><strong>2.</strong> An investor <em>writes</em> a put with strike $60 and receives $3.10. At maturity the share is $52. What is the writer's profit per share (negative for a loss)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">The holder exercises: the writer must buy at 60 a share worth 52, payoff \(\min(52 - 60, 0) = -8\). Profit \(= -8 + 3.10 = -\$4.90\).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>3.</strong> A put has strike $38 and costs $1.60. At what maturity share price does the <em>holder</em> break even (ignore interest)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$39.60, strike plus the premium</button>
+    <button class="opt" data-key="b">$36.40, strike minus the premium</button>
+    <button class="opt" data-key="c">$38.00, exactly at the strike price</button>
+    <button class="opt" data-key="d">$34.80, strike minus twice the premium</button>
+  </div>
+  <div class="why">The put pays \(K - S_T\), which has to cover the 1.60 premium: \(38 - S_T = 1.60 \Rightarrow S_T = 36.40\). (a) is the call break-even; (c) forgets the premium.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>4.</strong> Which position has a potential loss with no upper limit?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">long call, since the share can rise without limit</button>
+    <button class="opt" data-key="b">short call, since the share can rise without limit</button>
+    <button class="opt" data-key="c">long put, since the share can fall without limit</button>
+    <button class="opt" data-key="d">short put, since the share can fall without limit</button>
+  </div>
+  <div class="why">The writer of a call must deliver a share worth \(S_T\) for only \(K\), and \(S_T\) has no ceiling. A short put's loss is large but bounded by \(K - p\) (the share can't go below 0). A long option's loss is bounded by the premium.</div>
+</div>
+
+<div class="quiz num" data-answer="1.3" data-tol="0.005">
+  <p class="q"><strong>5.</strong> A put with strike $40 trades at $5.30 when the share price is $36. What is its time value?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">In the money (\(S &lt; K\)), intrinsic \(= 40 - 36 = 4.00\). Time value \(= 5.30 - 4.00 = \$1.30\).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>6.</strong> A trader expects a large fall in a share and wants the most she can lose fixed at the amount paid on day one. Which position fits?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">short call: collect premium if the price falls</button>
+    <button class="opt" data-key="b">long call: pay premium if the price falls</button>
+    <button class="opt" data-key="c">long put: pay premium, gain as the price falls</button>
+    <button class="opt" data-key="d">short put: collect premium if the price falls</button>
+  </div>
+  <div class="why">Bearish plus capped loss means buying the right to sell: a long put. A short call is bearish too, but its loss is unlimited if she is wrong. A short put is <em>bullish</em>.</div>
+</div>
+
+<div class="quiz num" data-answer="-1.5" data-tol="0.005">
+  <p class="q"><strong>7.</strong> A writer sold a call (strike $80) for $3.50. At maturity the share is $85. What is the writer's profit per share?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">The holder exercises: writer pays \(85 - 80 = 5\) out. Profit \(= -5 + 3.50 = -\$1.50\). The writer is already losing money even though the option's payoff to the holder is "only" 5: the premium cushions the first 3.50.</div>
+</div>
+
+<div class="quiz num" data-answer="4" data-tol="0.005">
+  <p class="q"><strong>8.</strong> Trader A buys a futures at $50; trader B buys a call (strike $50) for $2. The share finishes at $44. How many dollars per share better off is B than A?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">A: \(44 - 50 = -6\). B: call lapses, \(-2\). B is \(\$4\) better off. If the share had ended at $56, A would make +6 and B only \(+4\): the difference is the insurance premium.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>9.</strong> A share is at $80. Three European calls have the same maturity: A has \(K = 80\), B has \(K = 40\), C has \(K = 130\). Which is likely to have the <em>most time value</em>?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A, because it is close to the money</button>
+    <button class="opt" data-key="b">B, because it is deep in the money</button>
+    <button class="opt" data-key="c">C, because it is deep out of the money</button>
+    <button class="opt" data-key="d">They tie, because maturity is the same</button>
+  </div>
+  <div class="why">Time value peaks near the money, where the uncertainty over finishing ITM or OTM is greatest. B is almost like owning the share (price \(\approx\) intrinsic 40, little left over); C is a long shot, cheap and mostly time value but a tiny amount.</div>
+</div>
+
+<div class="quiz num" data-answer="55.5" data-tol="0.005">
+  <p class="q"><strong>10.</strong> A trader buys a call (\(K = 50\), \(c = 3\)) and a put (\(K = 50\), \(p = 2.50\)). What is the <em>upper</em> break-even share price?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Straddle costing \(5.50\). Above \(K\) the put is dead and the call pays \(S_T - 50\): need \(S_T - 50 = 5.50\), so \(55.50\). (Lower break-even \(44.50\).)</div>
+</div>
+
+<div class="quiz num" data-answer="2.9" data-tol="0.005">
+  <p class="q"><strong>11.</strong> A bull call spread: buy a \(K = 40\) call for $3.20 and sell a \(K = 45\) call for $1.10. What is the maximum profit per share?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Net cost \(3.20 - 1.10 = 2.10\). Maximum legs payoff is the strike gap \(5\) (when \(S_T \ge 45\)). Max profit \(= 5 - 2.10 = \$2.90\).</div>
+</div>
+
+<div class="quiz num" data-answer="4.2" data-tol="0.005">
+  <p class="q"><strong>12.</strong> An investor buys a share at $70 and a put (\(K = 68\)) for $2.20. What is the most she can lose per share (ignore interest)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Protective put. Worst case: the share falls below 68, she sells at 68: loss on the share \(70 - 68 = 2\), plus the premium 2.20: \(\$4.20\). Below 68 the put gains what the share loses.</div>
+</div>
+
+<div class="quiz num" data-answer="1480" data-tol="0.5">
+  <p class="q"><strong>13.</strong> Each call contract covers 100 shares. The quoted premium is $1.85 per share. What is the cost of buying 8 contracts?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(1.85 \times 100 \times 8 = \$1{,}480\). Forgetting the contract size gives 14.80.</div>
+</div>
+
+<div class="quiz num" data-answer="4.91" data-tol="0.01">
+  <p class="q"><strong>14.</strong> A 6-month call (\(K = 40\)) costs $3.00 and \(r = 6\%\) p.a. continuously compounded. The share finishes at $48. Treating the premium as paid at \(t = 0\) and compounding it to maturity, what is the holder's profit per share?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Payoff \(= 8\). Premium at \(T\): \(3e^{0.06\times0.5} = 3.0914\). Profit \(= 8 - 3.0914 = \$4.91\). Without interest, 5.00.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>15.</strong> Everything about a long call is unchanged (same \(K\), same expiry), but the premium paid is higher. Compared with before, its break-even and its maximum loss are:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">break-even lower, maximum loss higher</button>
+    <button class="opt" data-key="b">break-even lower, maximum loss unchanged</button>
+    <button class="opt" data-key="c">break-even unchanged, maximum loss higher</button>
+    <button class="opt" data-key="d">break-even higher, maximum loss higher</button>
+  </div>
+  <div class="why">Break-even \(= K + c\) and max loss \(= c\): both rise one-for-one with the premium. The payoff diagram stays put; the profit line shifts down.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>16.</strong> Which statement comparing options and futures is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">an option buyer posts margin; a futures long does not</button>
+    <button class="opt" data-key="b">a long futures can never lose more than the margin</button>
+    <button class="opt" data-key="c">a long call's loss is capped at the premium paid</button>
+    <button class="opt" data-key="d">an option writer has the right to choose to exercise</button>
+  </div>
+  <div class="why">(a) is reversed: the option buyer pays the premium in full and posts no margin; futures longs post margin. (b) The margin is a deposit, not a loss limit. (d) The <em>holder</em> chooses; the writer is obliged.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>17.</strong> A share trades at $47. Which pair of options is <em>both</em> in the money?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">call with \(K = 45\) and put with \(K = 50\)</button>
+    <button class="opt" data-key="b">call with \(K = 50\) and put with \(K = 45\)</button>
+    <button class="opt" data-key="c">call with \(K = 45\) and put with \(K = 45\)</button>
+    <button class="opt" data-key="d">call with \(K = 50\) and put with \(K = 50\)</button>
+  </div>
+  <div class="why">Call ITM needs \(S &gt; K\): 47 &gt; 45 ✓. Put ITM needs \(S &lt; K\): 47 &lt; 50 ✓. In (b) both are OTM; in (c) only the call is ITM; in (d) only the put.</div>
+</div>
+
+<h2>8 · Exam-level challenge</h2>
+
+<p>A share trades at $62. A trader believes the company is about to announce either a major contract win or a major accounting problem, and can't predict which, but expects the share to move sharply. Six-month European options on the share: a call with \(K = 60\) priced at $5.40 and a put with \(K = 60\) priced at $2.10. She buys one of each. (a) Name the strategy and its total cost. (b) Complete the profit table for \(S_T\) = 45, 55, 60, 65, 75 (ignore interest). (c) Find the break-evens and the maximum loss, and say where it occurs. (d) Today, classify each option's moneyness and split its premium into intrinsic and time value. (e) She is also asked whether a plain long call alone would suit her view; answer in one line.</p>
+
+<details><summary>Step 1: (a) strategy and cost</summary><div>
+<p>Long call plus long put, same strike and expiry: a <strong>straddle</strong>. Cost \(5.40 + 2.10 = \$7.50\) per share, paid today.</p></div></details>
+<details><summary>Step 2: (b) the profit table</summary><div>
+<p>Payoff of the pair \(= |S_T - 60|\); profit \(=\) payoff \(- 7.50\).</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>\(S_T\)</th><th>45</th><th>55</th><th>60</th><th>65</th><th>75</th></tr>
+<tr><td>Call payoff</td><td>0</td><td>0</td><td>0</td><td>5</td><td>15</td></tr>
+<tr><td>Put payoff</td><td>15</td><td>5</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>Profit</td><td>+7.50</td><td>−2.50</td><td>−7.50</td><td>−2.50</td><td>+7.50</td></tr>
+</table></div></div></details>
+<details><summary>Step 3: (c) break-evens and maximum loss</summary><div>
+<p>Break-evens \(60 \pm 7.50\): $52.50 and $67.50. Maximum loss $7.50 at \(S_T = 60\) exactly (both lapse). Symmetric because the strike is shared and the loss is a single combined premium; she needs a move of more than $7.50 either way <em>from the strike</em> (note: from 60, not from today's 62).</p></div></details>
+<details><summary>Step 4: (d) moneyness and time value today (\(S = 62\))</summary><div>
+<p>Call: \(S &gt; K\), in the money, intrinsic \(62 - 60 = 2.00\), time value \(5.40 - 2.00 = 3.40\). Put: \(S &gt; K\), out of the money, intrinsic 0, time value \(2.10\) (the entire price). Note that in a straddle one leg is always ITM and the other OTM unless exactly ATM.</p></div></details>
+<details><summary>Step 5: (e) why not just a call?</summary><div>
+<p>A call only profits if the share rises. Her view is "big move, either direction", so the call would lose its 5.40 on a bad-news fall, while the straddle makes money on either side, at the price of a dearer total premium (7.50) and a wider break-even. If she were certain of good news, the long call would be cheaper and the right choice.</p></div></details>
+
+<p><strong>Tutorial 4, Q7.1 (GameStop, late 2020):</strong> believes the turnaround will lift the price substantially, but doesn't want to risk the full cost of buying the shares. Of long call / long put / short put / short call, the <strong>long call</strong> fits: it gains if the price rises, and the most lost is the premium, far less than a share purchase. A short put is also bullish but exposes you to \(K - p\) if the story fails; a short call is bearish; a long put is bearish. Write your own reasoning in 4 lines before checking it against the <a href="../tutes/Tutorial%204%20solutions.pdf">official solution</a>.</p>
+
+<h2>9 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, write the payoff, profit, break-even, max gain and max loss of all four positions. Then check</summary><div>
+<p>Long call: \(\max(S_T-K,0)-c\); BE \(K+c\); loss \(\le c\); gain unlimited. Short call: negative of that; gain \(\le c\); loss unlimited. Long put: \(\max(K-S_T,0)-p\); BE \(K-p\); loss \(\le p\); gain \(\le K-p\). Short put: negative; gain \(\le p\); loss \(\le K-p\). ITM call \(S&gt;K\), ITM put \(S&lt;K\). Intrinsic = max(exercise value, 0); price = intrinsic + time value; time value 0 at maturity. Options = right (premium up front, no margin for the buyer); futures = obligation (margin, linear).</p></div></details>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, the chapter "Mechanics of options markets" (the Lecture 4 reading lists Chs. 9 and 10; numbering differs between editions) for contract specifications, positions and profit diagrams, and the following "Trading strategies involving options" chapter for protective puts, spreads and straddles. Slides: <a href="../lectures/Lecture%204_Options%20intro.pdf">Lecture 4</a>, slides 3–13.</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%204.pdf">Tutorial 4</a>, Q7.1 (<a href="../tutes/Tutorial%204%20solutions.pdf">solutions</a>). Q1–Q3 are bounds and parity (<a href="0013-bounds-on-option-prices.html">Lesson 13</a>, <a href="0014-put-call-parity.html">Lesson 14</a>); Q6 is early exercise (<a href="0015-early-exercise-of-american-options.html">Lesson 15</a>).</p>
+<p><strong>Spacing:</strong> tomorrow redo practice Q2, Q7, Q10 and Q11 cold and sketch all four profit diagrams on paper with \(K = 50\), \(c = 3\), \(p = 2\) without looking. In three days, re-sketch the straddle and bull spread from the legs.</p>
+
+<div class="ask">💬 Unsure whether a position gains or loses in a scenario? Not sure whether to add or subtract the premium? Paste your working in the terminal and ask me. I'm your teacher for this. Ask me for more "what happens if…" scenarios, strategy profit tables, or moneyness drills.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0010-valuing-forward-and-futures-contracts.html">Lesson 10, valuing forwards and futures</a></span>
+  <span>Reference: <a href="../reference/futures-cheatsheet.html">Cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0012-factors-affecting-option-prices.html">Lesson 12, what drives option prices</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const XMAX = 100, YMAX = 30, W = 260, H = 150, X0 = 28, X1 = 250;
+  const fx = (s) => X0 + (s / XMAX) * (X1 - X0);
+  const fy = (v) => 75 - (v / YMAX) * 62;
+  const fmt = (x) => (x < 0 ? '−' : '') + Math.abs(x).toFixed(2);
+  const cls = (x) => (x > 0.0049 ? 'pos' : x < -0.0049 ? 'neg' : '');
+
+  function draw() {
+    const ST = +$('wST').value, K = +$('wK').value, c = +$('wc').value, p = +$('wp').value;
+    $('vST').textContent = ST.toFixed(1); $('vK').textContent = K;
+    $('vc').textContent = c.toFixed(1); $('vp').textContent = p.toFixed(1);
+    const pos = [
+      { n: 'Long call', pay: (s) => Math.max(s - K, 0), prem: -c, be: K + c, gain: 'unlimited', loss: c.toFixed(2) },
+      { n: 'Short call', pay: (s) => -Math.max(s - K, 0), prem: c, be: K + c, gain: c.toFixed(2), loss: 'unlimited' },
+      { n: 'Long put', pay: (s) => Math.max(K - s, 0), prem: -p, be: K - p, gain: (K - p).toFixed(2), loss: p.toFixed(2) },
+      { n: 'Short put', pay: (s) => -Math.max(K - s, 0), prem: p, be: K - p, gain: p.toFixed(2), loss: (K - p).toFixed(2) },
+    ];
+    let svgs = '', rows = '<tr><th>Position</th><th>Payoff</th><th>Profit</th><th>Break-even</th><th>Max gain</th><th>Max loss</th></tr>';
+    pos.forEach((o) => {
+      const prof = (s) => o.pay(s) + o.prem;
+      const pts = [0, K, XMAX].map((s) => fx(s).toFixed(1) + ',' + fy(prof(s)).toFixed(1)).join(' ');
+      const cx = fx(ST).toFixed(1), cy = fy(prof(ST)).toFixed(1);
+      svgs += '<div class="panel"><div class="t">' + o.n + '</div>' +
+        '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + o.n + ' profit diagram">' +
+        '<line x1="' + X0 + '" y1="75" x2="' + X1 + '" y2="75" style="stroke:var(--muted)" stroke-width="1"/>' +
+        '<line x1="' + X0 + '" y1="8" x2="' + X0 + '" y2="142" style="stroke:var(--muted)" stroke-width="1"/>' +
+        '<line x1="' + fx(K) + '" y1="8" x2="' + fx(K) + '" y2="142" style="stroke:var(--rule)" stroke-dasharray="3 3"/>' +
+        '<polyline points="' + pts + '" fill="none" style="stroke:var(--accent)" stroke-width="2"/>' +
+        '<line x1="' + cx + '" y1="8" x2="' + cx + '" y2="142" style="stroke:var(--fg)" stroke-width=".6" stroke-dasharray="1 3"/>' +
+        '<circle cx="' + cx + '" cy="' + Math.max(8, Math.min(142, cy)) + '" r="4" style="fill:var(--fg)"/>' +
+        '<text x="' + (X1 - 2) + '" y="88" text-anchor="end" font-size="9" style="fill:var(--muted)">S_T</text>' +
+        '<text x="' + (fx(K) + 3) + '" y="18" font-size="9" style="fill:var(--muted)">K</text>' +
+        '</svg></div>';
+      const pf = prof(ST);
+      rows += '<tr><td>' + o.n + '</td><td>' + fmt(o.pay(ST)) + '</td><td class="' + cls(pf) + '">' + fmt(pf) +
+        '</td><td>' + o.be.toFixed(2) + '</td><td>' + o.gain + '</td><td>' + o.loss + '</td></tr>';
+    });
+    $('panels').innerHTML = svgs;
+    $('wtab').innerHTML = rows;
+  }
+  ['wST', 'wK', 'wc', 'wp'].forEach((id) => $(id).addEventListener('input', draw));
+  draw();
+})();
+</script>
+</body>
+</html>

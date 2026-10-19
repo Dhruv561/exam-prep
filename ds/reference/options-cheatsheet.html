@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Options Cheat Sheet</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body class="ref" data-money>
+<main>
+<div class="kicker">FNCE30007 · Reference</div>
+<h1>Options (Topic 4)</h1>
+<p class="lede">The short version of each lesson. New sections get added as you finish each lesson.</p>
+
+<h2>Payoffs and profits <span class="kicker">· <a href="../lessons/0011-options-payoffs-profits-and-moneyness.html">Lesson 11</a></span></h2>
+<div class="box">
+$$\text{Long call } \max(S_T-K,0) \qquad \text{Long put } \max(K-S_T,0) \qquad \text{Short} = -\text{long}$$
+</div>
+<table>
+<tr><th>Position</th><th>Break-even</th><th>Max loss</th><th>Max gain</th></tr>
+<tr><td>Long call</td><td>\(K+c\)</td><td>\(c\)</td><td>unlimited</td></tr>
+<tr><td>Short call</td><td>\(K+c\)</td><td>unlimited</td><td>\(c\)</td></tr>
+<tr><td>Long put</td><td>\(K-p\)</td><td>\(p\)</td><td>\(K-p\)</td></tr>
+<tr><td>Short put</td><td>\(K-p\)</td><td>\(K-p\)</td><td>\(p\)</td></tr>
+</table>
+<p>Profit = payoff − premium paid (long) or + premium received (short). Bullish: long call, short put. Bearish: long put, short call. Intrinsic: \(\max(S-K,0)\) call, \(\max(K-S,0)\) put. Price = intrinsic + time value (peaks ATM, 0 at expiry). Quote is per share: cost = quote × 100 × contracts.</p>
+<p>Straddle: break-evens \(K\pm(c+p)\), max loss \(c+p\) at \(S_T=K\). Bull call spread: break-even \(K_1+\text{debit}\), max loss = debit, max gain \((K_2-K_1)-\text{debit}\).</p>
+<div class="trap"><strong>Traps</strong><br>Payoff vs profit · time value always ≥ 0 only for American · forgetting contract size · wrong break-even sign for puts</div>
+
+<h2>Factors affecting prices <span class="kicker">· <a href="../lessons/0012-factors-affecting-option-prices.html">Lesson 12</a></span></h2>
+<table>
+<tr><th>↑ in</th><th>Euro call</th><th>Euro put</th><th>Amer call</th><th>Amer put</th></tr>
+<tr><td>\(S_0\)</td><td>+</td><td>−</td><td>+</td><td>−</td></tr>
+<tr><td>\(K\)</td><td>−</td><td>+</td><td>−</td><td>+</td></tr>
+<tr><td>\(T\)</td><td>?</td><td>?</td><td>+</td><td>+</td></tr>
+<tr><td>\(\sigma\)</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<tr><td>\(r\)</td><td>+</td><td>−</td><td>+</td><td>−</td></tr>
+<tr><td>Dividends</td><td>−</td><td>+</td><td>−</td><td>+</td></tr>
+</table>
+<p>Higher expected end-price (\(S_0\uparrow\), \(r\uparrow\), div↓) helps calls, hurts puts. Only \(\sigma\) (and American \(T\)) helps both. Options see \(S_0-D\), i.e. the forward \(F_0\). If \(\sigma\) changes, \(\Delta c=\Delta p\). Same-direction changes give a certain effect, opposed changes are ambiguous.</p>
+
+<h2>Bounds <span class="kicker">· <a href="../lessons/0013-bounds-on-option-prices.html">Lesson 13</a></span></h2>
+<div class="box">
+$$\max(S_0-D-Ke^{-rT},0)\le c\le S_0 \qquad \max(D+Ke^{-rT}-S_0,0)\le p\le Ke^{-rT}$$
+$$C\ge\max(S_0-K,0),\quad \max(K-S_0,0)\le P\le K,\quad C\ge c,\ P\ge p$$
+</div>
+<p>Proofs: call + \(Ke^{-rT}\) cash and put + share both pay \(\max(S_T,K)\). Recipes: call too cheap → buy call, short stock, lend \(Ke^{-rT}\). Put too cheap → buy put and stock, borrow \(Ke^{-rT}\). Call above \(S\) → sell call, buy stock. Euro put above \(Ke^{-rT}\) → sell put, lend. Amer put below \(K-S\) → buy put and stock, exercise. Profit at \(t=0\) = gap to the bound.</p>
+<div class="trap"><strong>Traps</strong><br>Using \(S-K\) instead of \(S-Ke^{-rT}\) · forgetting the zero floor · undiscounted dividends · counting dividends after \(T\)</div>
+
+<h2>Put-call parity <span class="kicker">· <a href="../lessons/0014-put-call-parity.html">Lesson 14</a></span></h2>
+<div class="box">
+$$c+Ke^{-rT}=p+S_0 \qquad c+D+Ke^{-rT}=p+S_0 \qquad c+Ke^{-rT}=p+S_0e^{-qT}$$
+$$c-p=S_0-D-Ke^{-rT}=(F_0-K)e^{-rT}$$
+</div>
+<p>Fair put \(p=c+D+Ke^{-rT}-S_0\). Synthetic put = long call + short stock + lend \(Ke^{-rT}\); synthetic stock = call − put + bond. \(c-p\) rises with \(S,r,T\), falls with \(K,D,q\), unaffected by \(\sigma\). \(c=p\) at \(K=F_0\). If market \(c-p\) is above fair: sell call, buy put, buy stock, borrow. Below: reverse. Profit at \(T\) = mispricing × \(e^{rT}\).</p>
+<p>American (no dividends): \(S_0-K\le C-P\le S_0-Ke^{-rT}\); with dividends the lower end is \(S_0-D-K\). Given \(C\): \(C+Ke^{-rT}-S_0\le P\le C+K-S_0\).</p>
+<div class="trap"><strong>Traps</strong><br>Wrong dividend sign · undiscounted \(K\) or \(D\) · discounting \(S\) · trading the wrong side</div>
+
+<h2>Early exercise <span class="kicker">· <a href="../lessons/0015-early-exercise-of-american-options.html">Lesson 15</a></span></h2>
+<p>No dividends: \(C=c\), never exercise an American call early (\(C\ge S-Ke^{-rT}&gt;S-K\); selling beats exercising). With dividends: only just before an ex-date, and not if \(D\le K(1-e^{-r\tau})\). American put: exercise early when deep ITM; more likely with \(r\uparrow\), \(\sigma\downarrow\), deeper ITM; less likely with \(\sigma\uparrow\), \(T\uparrow\). Exercise beats selling only when time value ≈ 0. \(P>p\) is possible because \(p\le Ke^{-rT}\) but \(P\) can reach \(K\).</p>
+</main>
+</body>
+</html>

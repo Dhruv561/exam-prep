@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Factors Affecting Option Prices</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.widget { border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.2rem; margin: 1.4rem 0; font-family: Inter, system-ui, sans-serif; font-size: .85rem; }
+.widget .controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem 1.2rem; }
+.widget label { display: flex; flex-direction: column; }
+.widget input[type=range] { width: 100%; accent-color: var(--accent); }
+.widget .out { margin-top: .8rem; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .3rem 1.2rem; font-variant-numeric: tabular-nums; }
+.widget .out b { font-size: 1rem; }
+.widget .note { color: var(--muted); margin-top: .5rem; }
+.widget button { font: 500 .85rem Inter, system-ui, sans-serif; padding: .4rem .9rem; border-radius: 6px; border: 1px solid var(--rule); background: var(--card); color: var(--fg); cursor: pointer; margin-top: .6rem; }
+.widget button:hover { border-color: var(--accent); }
+.up { color: var(--ok); } .dn { color: var(--bad); }
+table.sign td, table.sign th { text-align: center; }
+table.sign td:first-child, table.sign th:first-child { text-align: left; }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 12 · Topic 4: Options intro</div>
+<h1>What moves an option's price? Six inputs, two kinds of option, and the reason behind every sign</h1>
+<p class="lede">The goal: given any change in the stock price, strike, time, volatility, interest rate or dividends, say whether a European or American call and put get dearer or cheaper, and give the one-line reason. No heavy formulas yet. This is the lesson that turns "I memorised a table" into "I can answer any what-happens-if question".</p>
+
+<div class="mission">Why this matters for 5 Nov: the option questions in past finals mix calculation with short "what happens to the call/put if X rises, everything else fixed" parts (for example an unexpected dividend announcement and the put premium, or news that raises volatility and what that does to the put when the call is known). They also reward knowing the odd cases: a European put with a longer life can be <em>cheaper</em>, and a call on a high-dividend stock can fall as \(T\) grows. Every later topic (bounds, binomial trees, Black-Scholes, the Greeks) is these same directions with numbers attached.</div>
+
+<p>This lesson builds on <a href="0011-options-payoffs-profits-and-moneyness.html">Lesson 11</a> (payoffs and moneyness) and on the futures pricing from Lessons 6–7 (cost of carry, \(F_0 = S_0e^{(r-q)T}\)). Later lessons use it: <a href="0013-bounds-on-option-prices.html">13 (bounds)</a>, <a href="0014-put-call-parity.html">14 (put-call parity)</a> and <a href="0015-early-exercise-of-american-options.html">15 (early exercise)</a>.</p>
+
+<div class="box">
+<p><strong>Terms used here</strong> (all in the <a href="../reference/glossary.html">glossary</a>).</p>
+<ul>
+<li><strong>Call</strong> = right to buy at the <strong>strike</strong> \(K\); <strong>put</strong> = right to sell at \(K\). <strong>European</strong> = exercise only at maturity \(T\); <strong>American</strong> = exercise any time up to \(T\).</li>
+<li>Lecture notation: \(c, p\) = European call, put prices; \(C, P\) = American call, put prices; \(S_0\) = stock price today; \(T\) = life of the option in years.</li>
+<li><strong>Volatility \(\sigma\)</strong> = the typical size of the stock's yearly percentage swings (a stock with \(\sigma = 40\%\) wanders about twice as widely as one with \(20\%\)).</li>
+<li><strong>Risk-free rate \(r\)</strong> = continuously compounded rate on a safe deposit, so $1 at \(T\) is worth \(e^{-rT}\) today. <strong>PV of the strike</strong> = \(Ke^{-rT}\).</li>
+<li><strong>Dividend</strong> = cash the company pays shareholders. On the <em>ex-dividend date</em> the stock price drops by about the dividend. An option holder does <em>not</em> receive it.</li>
+<li><strong>Intrinsic value</strong> = what you'd get exercising now: \(\max(S_0-K,0)\) for a call, \(\max(K-S_0,0)\) for a put. <strong>Time value</strong> = option price \(-\) intrinsic value.</li>
+</ul>
+</div>
+
+<h2>1 · The table, and why you shouldn't just memorise it</h2>
+
+<p><strong>Predict first.</strong> Before opening the table, say for a European call and then a put: if the stock price \(S_0\) rises and everything else stays fixed, which one gets dearer? Now the strike \(K\) rises? Now the volatility \(\sigma\) rises? Now interest rates rise? Write six guesses of "up", "down" or "can't tell" for each option, then compare.</p>
+
+<details><summary>Reveal: the lecture's table (Hull Table 10.1)</summary><div>
+<div class="tablewrap">
+<table class="sign">
+<tr><th>Variable, increased</th><th>European call \(c\)</th><th>European put \(p\)</th><th>American call \(C\)</th><th>American put \(P\)</th></tr>
+<tr><td>Stock price \(S_0\)</td><td class="up">+</td><td class="dn">−</td><td class="up">+</td><td class="dn">−</td></tr>
+<tr><td>Strike \(K\)</td><td class="dn">−</td><td class="up">+</td><td class="dn">−</td><td class="up">+</td></tr>
+<tr><td>Time to expiry \(T\)</td><td>?</td><td>?</td><td class="up">+</td><td class="up">+</td></tr>
+<tr><td>Volatility \(\sigma\)</td><td class="up">+</td><td class="up">+</td><td class="up">+</td><td class="up">+</td></tr>
+<tr><td>Risk-free rate \(r\)</td><td class="up">+</td><td class="dn">−</td><td class="up">+</td><td class="dn">−</td></tr>
+<tr><td>Dividends during life \(D\)</td><td class="dn">−</td><td class="up">+</td><td class="dn">−</td><td class="up">+</td></tr>
+</table>
+</div>
+<p>"+" means the price goes up when the variable goes up (all else fixed); "?" means it depends. Look at the pattern: calls and puts mirror each other on \(S_0\), \(K\), \(r\), \(D\), and agree on only two: \(\sigma\) and (American) \(T\). If you only remember those two exceptions, you can rebuild the rest.</p>
+</div></details>
+
+<div class="box"><p><strong>Rule of thumb.</strong> A call profits when the stock ends <em>high</em>; a put profits when it ends <em>low</em>. Anything that pushes the stock's likely end value up (higher \(S_0\), higher \(r\), lower \(D\)) helps the call and hurts the put. A higher \(K\) helps the put (you sell higher) and hurts the call (you buy higher). Only <em>spread</em> (\(\sigma\)) and extra <em>time</em> to use the choice (American) help both.</p></div>
+
+<h2>2 · The one idea behind all of it: options care about the forward price</h2>
+
+<p>From Lessons 6–7 you know what the market expects the stock to be worth at \(T\), once financing and income are accounted for, because it must satisfy no-arbitrage:</p>
+$$F_0 = S_0\,e^{(r-q)T} \quad\text{or}\quad (S_0 - I)\,e^{rT} \text{ with known dividends of present value } I.$$
+<p>Holding the stock costs you interest \(r\) (money tied up) but pays you dividends \(q\). That cost of carry is exactly what an option holder <em>avoids</em>. A call lets you control the stock for a small premium, keeping your cash in the bank earning \(r\). So:</p>
+<ul>
+  <li><strong>\(r\) up</strong> → carrying the stock costs more → forward price \(F_0\) up → the right to <em>buy</em> at a fixed \(K\) is worth more (call up), the right to <em>sell</em> at a fixed \(K\) is worth less (put down).</li>
+  <li><strong>Dividends up</strong> → stock pays out value that the option holder never sees → \(F_0\) down → call down, put up.</li>
+  <li><strong>\(S_0\) up</strong> → \(F_0\) up → call up, put down.</li>
+</ul>
+<p>Same futures machinery, new product: <strong>an option on the stock is mostly a bet on the forward price, with a fixed strike.</strong> This is also why it's the <em>difference</em> \(r - q\) that matters. If \(r\) and \(q\) both rise by the same amount, \(F_0\) doesn't move and neither do option prices much (we'll see this in section 6).</p>
+
+<div class="box"><p><strong>The second idea: limited liability.</strong> The holder of an option can never lose more than the premium paid: if the bet goes wrong, they just don't exercise. The <em>writer</em> (seller) can lose a lot. That asymmetry is the whole reason volatility helps both calls and puts.</p></div>
+
+<h2>3 · Factor by factor, with the why</h2>
+
+<h3>3.1 Stock price \(S_0\) and strike \(K\): the payoff logic</h3>
+<p>Call payoff \(\max(S_T-K,0)\): rises with \(S_T\), falls with \(K\). Put payoff \(\max(K-S_T,0)\): the reverse. A higher \(S_0\) today makes a high \(S_T\) more likely, and a lower strike makes a call's payoff bigger at every outcome. Nothing subtle here, but note two things the lecture bounds later: a call is never worth more than the stock (\(c\le S_0\)), and a put is never worth more than its strike (\(p \le Ke^{-rT}\)). Also, an option on a stock at $50 with \(K=55\) is not simply "five dollars out of the money": the price depends on the whole spread of outcomes, which is where \(\sigma\) comes in.</p>
+
+<h3>3.2 Volatility \(\sigma\): both go up, because the holder is protected</h3>
+<p><strong>Predict first.</strong> A stock at $50 ends the year at either $40 or $60 with equal chance (low volatility), or at either $30 or $70 (high volatility). \(K = 50\). Ignoring discounting, what is the average payoff of the call and of the put in each case?</p>
+<details><summary>Reveal</summary><div>
+<div class="tablewrap"><table class="ledger">
+<tr><th></th><th>Low vol ($40 / $60)</th><th>High vol ($30 / $70)</th></tr>
+<tr><td>Call payoff, bad / good outcome</td><td>0 / 10</td><td>0 / 20</td></tr>
+<tr><td><strong>Call average</strong></td><td>5</td><td>10</td></tr>
+<tr><td>Put payoff, bad / good outcome</td><td>10 / 0</td><td>20 / 0</td></tr>
+<tr><td><strong>Put average</strong></td><td>5</td><td>10</td></tr>
+</table></div>
+<p>The extra swing to the <em>favourable</em> side adds payoff, and the extra swing to the <em>unfavourable</em> side costs the holder nothing, because the payoff is floored at zero. A stock holder would be indifferent to the spread (the average stock price is still $50); an option holder gains from it. That is why volatility is "good" for the buyer of every option, and why higher volatility makes protection and hedging dearer (a theme of the exam's current-affairs article questions: higher implied volatility makes option hedges more expensive).</p>
+</div></details>
+<div class="trap"><strong>Volatility is not direction</strong><br>
+Higher \(\sigma\) does <em>not</em> mean "stock will go up". It means the stock could go much further either way. That's why the call and the put both rise. A call is not a bet on volatility alone, but if volatility jumps and nothing else changes, a long call <em>and</em> a long put both gain.</div>
+
+<h3>3.3 The risk-free rate \(r\): pay later, receive later</h3>
+<p>A call buyer pays \(K\) at \(T\), so what they'll pay is worth \(Ke^{-rT}\) today, and a higher \(r\) shrinks that, making the call better. A put buyer <em>receives</em> \(K\) at \(T\); a higher \(r\) shrinks the value of what they'll get, making the put worse. The lecture's wording: a higher \(r\) means "you pay less for the asset in today's dollars" (call) and "receive less for the asset in today's dollars" (put). This is the same effect as higher \(r\) pushing \(F_0\) up in section 2. For scale: with \(K = 80\) and \(T = 2\), moving \(r\) from 3% to 7% cuts the PV of the strike from 75.34 to 69.55, a drop of 5.79.</p>
+
+<h3>3.4 Dividends: the stock drops, the option holder isn't paid</h3>
+<p>When the stock goes ex-dividend its price falls by about the dividend, and call and put holders get no cash. So expected dividends act like a <em>lower</em> stock price: call down, put up. For options, what matters is not \(S_0\) but the stock price <em>minus the PV of dividends</em> in the option's life, \(S_0 - I\). Example: \(S_0 = 60\), a $3 dividend in 3 months, \(r = 8\%\): \(I = 3e^{-0.08\times 0.25} = 2.94\), so options behave as though the stock is worth \(60 - 2.94 = 57.06\).</p>
+<div class="trap"><strong>Dividends move the market, not the strike</strong><br>
+Contracts on individual shares are <em>not</em> adjusted for ordinary cash dividends (they are for splits). So an <em>unexpected</em> dividend announcement, with \(S_0\) unchanged today, lowers expected \(S_T\): the call falls and the put rises. In the practice exam style: "the company unexpectedly announces a dividend; what happens to the put premium?" → it increases.</div>
+
+<h3>3.5 Time to expiry \(T\): the only factor with a genuinely messy answer</h3>
+<p><strong>American options: always up.</strong> A longer-dated American option does everything a shorter one can (exercise on any date up to the shorter expiry) <em>and</em> more. It can't be worth less. So \(C\) and \(P\) never fall with \(T\).</p>
+<p><strong>European options can't be exercised early</strong>, so a longer one is a different contract, not a superset. Three forces compete (the lecture lists them):</p>
+<ol class="steps">
+  <li><strong>Spread grows:</strong> the stock's possible range scales with \(\sigma\sqrt T\). More dispersion → both call and put up.</li>
+  <li><strong>PV of \(K\) shrinks</strong> (\(Ke^{-rT}\) falls as \(T\) grows). Call up, put down.</li>
+  <li><strong>More dividends</strong> are paid (if the stock pays them): stock drops. Call down, put up.</li>
+</ol>
+<p>For a <strong>call on a non-dividend stock</strong>, forces 1 and 2 both push up: <em>always increasing in \(T\)</em>. For a <strong>call on a dividend payer</strong>, force 3 fights them: the sign is ambiguous. For a <strong>European put</strong>, forces 1 and 3 push up and force 2 pushes down: ambiguous. Numbers below show each case happening. (Prices in this section come from the Black-Scholes preview calculator in section 5; the formula arrives in Topic 7, so treat the numbers as illustrations, and the signs as the lesson.)</p>
+
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>\(T\) (years)</th><th>0.25</th><th>0.5</th><th>1</th><th>2</th><th>3</th><th>5</th><th>10</th></tr>
+<tr><td style="text-align:left">Deep-ITM European <strong>put</strong>, \(S_0=40, K=50\), \(\sigma=25\%, r=5\%\)</td><td>9.48</td><td>9.28</td><td>9.13</td><td>8.96</td><td>8.73</td><td>8.17</td><td>6.59</td></tr>
+<tr><td style="text-align:left">European <strong>call</strong> on a 8%-yield stock, \(S_0=K=50\), \(\sigma=20\%, r=3\%\)</td><td>1.67</td><td>2.18</td><td>2.70</td><td>3.11</td><td>3.20</td><td>3.02</td><td>2.17</td></tr>
+</table>
+</div>
+<p>Row 1: the put <em>falls</em> as \(T\) grows (from 9.48 to 6.59), because the PV-of-\(K\) effect dominates when the option is deep in the money. Row 2: the call <em>rises, then falls</em>, because eventually the dividend leakage beats the extra spread. (I used a continuous yield \(q\) as a stand-in for dividends; Topic 8 covers dividends properly.)</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>\(T\) (years)</th><th>0.25</th><th>1</th><th>5</th><th>15</th></tr>
+<tr><td style="text-align:left">At-the-money, no dividends, \(S_0=K=50\), \(\sigma=20\%, r=5\%\): <strong>call</strong></td><td>2.31</td><td>5.23</td><td>14.57</td><td>28.63</td></tr>
+<tr><td style="text-align:left">Same, <strong>put</strong></td><td>1.69</td><td>2.79</td><td>3.51</td><td>2.25</td></tr>
+</table>
+</div>
+<p>Even at the money, a very long European put eventually loses value: its maximum payoff \(K\) arrives so far away that it's worth little today. The European call, by contrast, only gets more valuable.</p>
+
+<div class="box"><p><strong>Why the American put doesn't fall</strong>: an American holder of the 10-year deep-ITM put could simply exercise now for 10 and collect interest on it. The European holder has to wait for the money. This is the whole motivation for early exercise (<a href="0015-early-exercise-of-american-options.html">Lesson 15</a>), and it's the tutorial's Q6: early exercise of an American put becomes more attractive when \(r\) is higher (interest earned on the strike) and \(\sigma\) is lower (less time value to give up).</p></div>
+
+<h2>4 · Same setup, many what-ifs</h2>
+<p>Base case: European options, \(S_0 = K = 50\), \(T = 1\), \(\sigma = 25\%\), \(r = 5\%\), no dividends. The preview calculator gives \(c = 6.17\) and \(p = 3.73\). Now change <em>one</em> thing at a time.</p>
+<p><strong>Predict first</strong>: for each row, write "call up/down, put up/down", then open the table.</p>
+<ol>
+  <li>\(S_0\) rises to 55.</li>
+  <li>\(S_0\) falls to 45.</li>
+  <li>\(K\) rises to 55.</li>
+  <li>\(T\) doubles to 2 years.</li>
+  <li>\(\sigma\) rises to 40%.</li>
+  <li>\(\sigma\) falls to 10%.</li>
+  <li>\(r\) rises to 9%.</li>
+  <li>The stock starts paying a continuous 4% dividend yield.</li>
+</ol>
+<details><summary>Reveal the scenario table</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Scenario</th><th>Call \(c\)</th><th>Put \(p\)</th><th>Why</th></tr>
+<tr><td style="text-align:left">Base</td><td>6.17</td><td>3.73</td><td></td></tr>
+<tr><td style="text-align:left">1. \(S_0\to55\)</td><td class="up">9.65</td><td class="dn">2.21</td><td style="text-align:left">Higher end stock price helps call, hurts put</td></tr>
+<tr><td style="text-align:left">2. \(S_0\to45\)</td><td class="dn">3.43</td><td class="up">6.00</td><td style="text-align:left">Mirror</td></tr>
+<tr><td style="text-align:left">3. \(K\to55\)</td><td class="dn">4.01</td><td class="up">6.33</td><td style="text-align:left">Buy dearer / sell higher</td></tr>
+<tr><td style="text-align:left">4. \(T\to2\)</td><td class="up">9.32</td><td class="up">4.57</td><td style="text-align:left">Here spread beats PV-of-\(K\) for the put; not always</td></tr>
+<tr><td style="text-align:left">5. \(\sigma\to40\%\)</td><td class="up">9.01</td><td class="up">6.57</td><td style="text-align:left">Both up by the same 2.84</td></tr>
+<tr><td style="text-align:left">6. \(\sigma\to10\%\)</td><td class="dn">3.40</td><td class="dn">0.96</td><td style="text-align:left">Both down by 2.77</td></tr>
+<tr><td style="text-align:left">7. \(r\to9\%\)</td><td class="up">7.21</td><td class="dn">2.91</td><td style="text-align:left">PV of \(K\) falls: call up, put down</td></tr>
+<tr><td style="text-align:left">8. \(q\to4\%\)</td><td class="dn">5.00</td><td class="up">4.52</td><td style="text-align:left">Dividends leak value to the stockholder</td></tr>
+</table>
+</div>
+<p>Row 5 and 6: the call and put changed by the <em>same amount</em>. That's not a coincidence: put-call parity (Lesson 14) says \(c - p = S_0 - Ke^{-rT}\), and volatility isn't in that equation, so if \(\sigma\) moves, \(c\) and \(p\) must move together. Row 4 (\(T\) up): a long time doesn't always raise the put, but at these numbers it does.</p>
+</div></details>
+
+<h2>5 · Try it: sliders (Black-Scholes preview)</h2>
+<p>Move any slider and watch call and put. The numbers come from the Black-Scholes formula, which we haven't derived yet: <strong>preview, formula comes in Topic 7</strong>. You are not asked to compute with it here; use it only to see directions and sizes. It prices <em>European</em> options. The "Pin" button saves the current prices so arrows show the change from there.</p>
+<div class="widget" id="bs">
+  <div class="controls">
+    <label>Stock \(S_0\): <span id="vS"></span><input type="range" id="S" min="20" max="80" step="1" value="50"></label>
+    <label>Strike \(K\): <span id="vK"></span><input type="range" id="K" min="20" max="80" step="1" value="50"></label>
+    <label>Time \(T\) (years): <span id="vT"></span><input type="range" id="T" min="0.05" max="10" step="0.05" value="1"></label>
+    <label>Volatility \(\sigma\): <span id="vs"></span><input type="range" id="s" min="0.05" max="0.80" step="0.01" value="0.25"></label>
+    <label>Rate \(r\): <span id="vr"></span><input type="range" id="r" min="0" max="0.15" step="0.0025" value="0.05"></label>
+    <label>Dividend yield \(q\): <span id="vq"></span><input type="range" id="q" min="0" max="0.12" step="0.0025" value="0"></label>
+  </div>
+  <div class="out">
+    <div>European call: <b id="oc"></b> <span id="dc"></span></div>
+    <div>European put: <b id="op"></b> <span id="dp"></span></div>
+    <div>Call time value: <b id="tc"></b></div>
+    <div>Put time value: <b id="tp"></b></div>
+    <div>Forward price \(F_0\): <b id="oF"></b></div>
+    <div>PV of strike \(Ke^{-rT}\): <b id="oK"></b></div>
+  </div>
+  <button id="pin">Pin current prices as base</button> <button id="reset">Reset sliders</button>
+  <div class="note">Things to try (predict first): (1) raise \(\sigma\): do both move the same amount? (2) put \(S_0=40, K=50\), then drag \(T\) up to 10: watch the put. (3) set \(q=8\%\), \(S_0=K=50\), drag \(T\): the call rises then falls. (4) raise \(r\) and \(q\) by the same amount. (5) drag \(T\) to 0.05: both prices collapse to intrinsic value. A negative time value means the European option is below its exercise value, which an American holder would never allow.</div>
+</div>
+<script>
+(function () {
+  const el = id => document.getElementById(id);
+  function N(x) { // standard normal CDF (Abramowitz-Stegun 7.1.26 via erf)
+    const t = 1 / (1 + 0.3275911 * Math.abs(x) / Math.SQRT2);
+    const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x / 2);
+    return 0.5 * (1 + (x >= 0 ? y : -y));
+  }
+  function bs(S, K, T, s, r, q) {
+    const d1 = (Math.log(S / K) + (r - q + s * s / 2) * T) / (s * Math.sqrt(T)), d2 = d1 - s * Math.sqrt(T);
+    return {
+      c: S * Math.exp(-q * T) * N(d1) - K * Math.exp(-r * T) * N(d2),
+      p: K * Math.exp(-r * T) * N(-d2) - S * Math.exp(-q * T) * N(-d1)
+    };
+  }
+  window.__bs = bs;
+  const defs = { S: 50, K: 50, T: 1, s: 0.25, r: 0.05, q: 0 };
+  let base = null;
+  function get() { return { S: +el('S').value, K: +el('K').value, T: +el('T').value, s: +el('s').value, r: +el('r').value, q: +el('q').value }; }
+  function arrow(now, was) {
+    if (was === null) return '';
+    const d = now - was;
+    if (Math.abs(d) < 0.005) return '<span>(no change)</span>';
+    return d > 0 ? '<span class="up">▲ ' + d.toFixed(2) + '</span>' : '<span class="dn">▼ ' + (-d).toFixed(2) + '</span>';
+  }
+  function upd() {
+    const v = get(), o = bs(v.S, v.K, v.T, v.s, v.r, v.q);
+    el('vS').textContent = v.S; el('vK').textContent = v.K; el('vT').textContent = v.T.toFixed(2);
+    el('vs').textContent = (v.s * 100).toFixed(0) + '%'; el('vr').textContent = (v.r * 100).toFixed(2) + '%'; el('vq').textContent = (v.q * 100).toFixed(2) + '%';
+    el('oc').textContent = o.c.toFixed(2); el('op').textContent = o.p.toFixed(2);
+    el('dc').innerHTML = arrow(o.c, base && base.c); el('dp').innerHTML = arrow(o.p, base && base.p);
+    el('tc').textContent = (o.c - Math.max(v.S - v.K, 0)).toFixed(2);
+    el('tp').textContent = (o.p - Math.max(v.K - v.S, 0)).toFixed(2);
+    el('oF').textContent = (v.S * Math.exp((v.r - v.q) * v.T)).toFixed(2);
+    el('oK').textContent = (v.K * Math.exp(-v.r * v.T)).toFixed(2);
+  }
+  ['S', 'K', 'T', 's', 'r', 'q'].forEach(id => el(id).addEventListener('input', upd));
+  el('pin').addEventListener('click', () => { const v = get(); base = bs(v.S, v.K, v.T, v.s, v.r, v.q); upd(); });
+  el('reset').addEventListener('click', () => { Object.keys(defs).forEach(k => el(k).value = defs[k]); base = null; upd(); });
+  upd();
+})();
+</script>
+
+<h2>6 · Two things change at once</h2>
+<p>Exam parts often change two inputs and ask for the effect. Rule: if both inputs push the same way, the answer is certain. If they push opposite ways, say "ambiguous without numbers" and name which force would win under what conditions. Base: \(c = 6.17\), \(p = 3.73\).</p>
+<p><strong>Predict first</strong> for each: certain up, certain down, or ambiguous, for call and for put?</p>
+<ol type="A">
+  <li>Volatility jumps 25% → 40% <em>and</em> the central bank hikes \(r\) from 5% to 9%.</li>
+  <li>Volatility jumps 25% → 40% <em>and</em> the central bank cuts \(r\) from 5% to 1%. (High vol + low rates.)</li>
+  <li>\(S_0\) rises to 55 <em>and</em> volatility rises to 40%.</li>
+  <li>\(r\) rises 5% → 9% <em>and</em> the dividend yield rises 0% → 4% (same gap \(r-q\)).</li>
+  <li>Half the life elapses (\(T\to0.5\)) <em>and</em> volatility drops to 15%.</li>
+</ol>
+<details><summary>Reveal</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Case</th><th>Call</th><th>Put</th><th style="text-align:left">Verdict</th></tr>
+<tr><td style="text-align:left">A. \(\sigma\uparrow, r\uparrow\)</td><td class="up">9.93</td><td class="up">5.62</td><td style="text-align:left">Call: both push up, <strong>certain up</strong>. Put: \(\sigma\) up, \(r\) up pushes down, <strong>ambiguous</strong> (vol won here)</td></tr>
+<tr><td style="text-align:left">B. \(\sigma\uparrow, r\downarrow\)</td><td class="up">8.14</td><td class="up">7.64</td><td style="text-align:left">Put: both push up, <strong>certain up</strong> (nearly doubled). Call: ambiguous (vol won)</td></tr>
+<tr><td style="text-align:left">C. \(S_0\uparrow,\sigma\uparrow\)</td><td class="up">12.37</td><td class="up">4.93</td><td style="text-align:left">Call: certain up. Put: ambiguous; a 10% stock rise was outweighed by the jump in vol</td></tr>
+<tr><td style="text-align:left">D. \(r\uparrow, q\uparrow\)</td><td>5.93</td><td>3.58</td><td style="text-align:left">Nearly unchanged: \(F_0\) same. Small drop from heavier discounting of the payoff</td></tr>
+<tr><td style="text-align:left">E. \(T\downarrow,\sigma\downarrow\)</td><td class="dn">2.76</td><td class="dn">1.53</td><td style="text-align:left">Less time and less spread: both down (here, since this put is near the money and not deep ITM)</td></tr>
+</table>
+</div>
+<p>Lessons: (1) In B the "low rates hurt calls" effect was swamped by volatility; \(\sigma\) is often the heavyweight factor. (2) In D the pair \(r, q\) acts through \(r-q\), the same cost-of-carry combination as in futures. (3) For an exam: the safest phrasing is "certain" when both factors agree and "ambiguous, depends on the relative size" otherwise.</p>
+</div></details>
+
+<h2>7 · Traps</h2>
+<div class="trap"><strong>Time always helps</strong><br>
+True for American options only. A European put can be worth <em>less</em> with a longer life (deep ITM, high \(r\)), and a European call on a high-dividend stock can be worth less too.</div>
+<div class="trap"><strong>Higher volatility hurts the put</strong><br>
+Wrong. The put also has a floor at zero. Higher \(\sigma\) raises <em>both</em> by the same amount (for European options with the same \(K, T\)).</div>
+<div class="trap"><strong>A higher growth forecast for the stock raises the call</strong><br>
+Given today's \(S_0\), the stock's <em>expected return</em> is not an input. What matters is \(S_0\), \(r\), \(\sigma\), \(D\). (Topic 7 shows why: the price is set by hedging, not by forecasting.) Be careful to separate "\(S_0\) goes up today" (call up) from "analysts expect higher growth" (no direct effect).</div>
+<div class="trap"><strong>"Interest rates up, so everything gets cheaper"</strong><br>
+Higher \(r\) raises calls and lowers puts. Don't generalise from bonds.</div>
+<div class="trap"><strong>"Dividends only matter on the ex-dividend date"</strong><br>
+Expected dividends already lower the call and raise the put today, because they lower the forward price. An <em>unexpected</em> announcement moves prices on the announcement.</div>
+
+<h2>8 · Practice</h2>
+<p>Do the conceptual ones first; say the reason aloud before clicking.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q1.</strong> Nothing changes except that the stock price \(S_0\) rises. The prices of a European call and a European put with the same \(K\) and \(T\)...</p>
+  <div class="opts">
+    <button class="opt" data-key="a">both rise: more value in the stock helps both</button>
+    <button class="opt" data-key="b">both fall: the stock is dearer to hold now</button>
+    <button class="opt" data-key="c">call rises and the put falls: payoffs mirror</button>
+    <button class="opt" data-key="d">call falls and the put rises: it's overvalued</button>
+  </div>
+  <div class="why">Call pays \(\max(S_T-K,0)\), put pays \(\max(K-S_T,0)\). A higher \(S_0\) raises the likely \(S_T\): call up, put down.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q2.</strong> News raises the stock's volatility; \(S_0\), \(r\) and dividends are unchanged. A European call goes from $3.00 to $4.50. A European put with the same \(K\) and \(T\) was $4.00. The put is now about:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$4.00, since volatility doesn't affect puts</button>
+    <button class="opt" data-key="b">$5.50, as the put rises by the same amount</button>
+    <button class="opt" data-key="c">$2.50, since the put moves opposite to the call</button>
+    <button class="opt" data-key="d">$6.00, as the put rises by 50% like the call</button>
+  </div>
+  <div class="why">Put-call parity \(c - p = S_0 - Ke^{-rT}\) has no \(\sigma\), and \(S_0, r, K, T\) didn't change, so \(c - p\) is constant: \(\Delta p = \Delta c = +1.50\). (The numeric "by how much" version is Q11. Percentage change is not preserved, only the dollar change.)</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q3.</strong> Why does higher volatility raise the value of a <em>put</em>, not just a call?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">higher volatility makes a lower stock price likelier</button>
+    <button class="opt" data-key="b">higher volatility raises the drift of the stock price</button>
+    <button class="opt" data-key="c">higher volatility cuts the PV of the strike we receive</button>
+    <button class="opt" data-key="d">bigger drops add payoff, bigger rises cost nothing</button>
+  </div>
+  <div class="why">Limited liability: the put holder's payoff is floored at zero, so larger downward moves add to the payoff while larger upward moves cost nothing. (a) is incomplete: it also makes higher prices likelier, which the put holder doesn't mind. (b) and (c) are wrong: volatility doesn't change drift, and the PV of the strike depends on \(r\), not \(\sigma\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q4.</strong> The risk-free rate rises, everything else fixed. For European options the call price and put price...</p>
+  <div class="opts">
+    <button class="opt" data-key="a">call up, put down: PV of the strike shrinks</button>
+    <button class="opt" data-key="b">call down, put up: the strike is worth more</button>
+    <button class="opt" data-key="c">both up: more interest earned for holders</button>
+    <button class="opt" data-key="d">both down: the discounted payoffs shrink</button>
+  </div>
+  <div class="why">Call buyer pays \(K\) later: cheaper in today's dollars → call up. Put buyer receives \(K\) later: worth less today → put down. Same direction as in the forward price \(F_0 = S_0e^{rT}\).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q5.</strong> A company unexpectedly announces a dividend for next month. Today's stock price is unchanged. Which is the best statement on the effect on options on its stock?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">calls and puts both rise as the company is paying out cash</button>
+    <button class="opt" data-key="b">calls rise and puts fall since shareholders gain the cash</button>
+    <button class="opt" data-key="c">calls fall and puts rise since the share price will drop</button>
+    <button class="opt" data-key="d">no effect, because option holders don't receive dividends</button>
+  </div>
+  <div class="why">The share price will fall by about the dividend on the ex-dividend date and option holders get no cash, so it acts like a lower \(S_0\): call down, put up. (d) is the trap: <em>because</em> holders aren't paid, the stock's drop hurts calls.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q6.</strong> Which of the following will <em>not</em> increase the value of a European call on a non-dividend-paying stock, all else fixed?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">a rise in the stock price today</button>
+    <button class="opt" data-key="b">a rise in the risk-free interest rate</button>
+    <button class="opt" data-key="c">a rise in the stock's volatility</button>
+    <button class="opt" data-key="d">a rise in the option's strike price</button>
+  </div>
+  <div class="why">A higher strike means you pay more to buy: call down. The other three raise the call (and \(T\) up would too, since there are no dividends).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q7.</strong> You compare two American puts, identical except one expires in 6 months and the other in 9 months. The 9-month put is worth:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">less, because the PV of the strike falls</button>
+    <button class="opt" data-key="b">at least as much, since it has more choices</button>
+    <button class="opt" data-key="c">the same, as it can be exercised early anyway</button>
+    <button class="opt" data-key="d">either way: the same ambiguity as European puts</button>
+  </div>
+  <div class="why">The 9-month American put can be exercised on every date that the 6-month one can, plus more. So \(P_{9m}\ge P_{6m}\). The ambiguity only applies to European options, which can't be exercised early.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q8.</strong> A European put is deep in the money, \(r\) is high. Which of these best explains why a longer-dated version can be <em>cheaper</em>?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">strike arrives later, so its present value shrinks</button>
+    <button class="opt" data-key="b">longer life shrinks the volatility of the stock</button>
+    <button class="opt" data-key="c">longer life makes the stock less likely to rise</button>
+    <button class="opt" data-key="d">longer life brings more dividends than the put needs</button>
+  </div>
+  <div class="why">The put pays at most \(K\), at \(T\). Waiting longer for that cash lowers its PV \(Ke^{-rT}\), and a deep-ITM put has little extra spread value to offset it. (d) is the call-on-dividend-stock story, and for a put, dividends help.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q9.</strong> An analyst notes that markets are nervous (implied volatility spikes) while the central bank <em>cuts</em> rates. For European options on an index, what can you say for sure?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">calls will definitely rise, and puts are unclear</button>
+    <button class="opt" data-key="b">calls and puts will both definitely fall in price</button>
+    <button class="opt" data-key="c">puts will definitely rise, and calls are unclear</button>
+    <button class="opt" data-key="d">calls and puts will both definitely rise in price</button>
+  </div>
+  <div class="why">\(\sigma\) up raises both. \(r\) down raises puts but lowers calls. Put: both effects agree → certain rise. Call: opposed → ambiguous (volatility usually wins, as in section 6, case B, but you can't be certain without numbers).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q10.</strong> Which two inputs raise <em>both</em> a call and a put (European or American, all else fixed)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">stock price and interest rate</button>
+    <button class="opt" data-key="b">volatility, and (American only) time to expiry</button>
+    <button class="opt" data-key="c">strike price and dividends together</button>
+    <button class="opt" data-key="d">volatility and the dividend payments</button>
+  </div>
+  <div class="why">Calls and puts mirror on \(S_0\), \(K\), \(r\), \(D\). They agree on \(\sigma\) always and on \(T\) for American options.</div>
+</div>
+
+<div class="quiz num" data-answer="6.57" data-tol="0.02">
+  <p class="q"><strong>Q11.</strong> European options, \(S_0=K=50\), \(T=1\), \(r=5\%\), no dividends. At \(\sigma=25\%\): \(c = 6.17\), \(p = 3.73\). When volatility rises to 40% (nothing else changes) the call becomes 9.01. What's the new put price? (Use \(c - p = S_0 - Ke^{-rT}\), unaffected by \(\sigma\).)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(c-p\) is constant at \(6.17-3.73=2.44\) (check \(50-50e^{-0.05}=2.44\) ✓). New put \(=9.01-2.44=\mathbf{6.57}\). The put rose by the same $2.84 as the call.</div>
+</div>
+
+<div class="quiz num" data-answer="4.45" data-tol="0.02">
+  <p class="q"><strong>Q12.</strong> \(S_0=K=50\), \(T=1\), \(\sigma=30\%\), no dividends. At \(r=4\%\): \(c=6.88\), \(p=4.92\). When \(r\) rises to 6% the call becomes 7.36. What is the new put price?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(c-p=S_0-Ke^{-rT}\). At 4%: \(50-50e^{-0.04}=1.96\) (= 6.88 − 4.92 ✓). At 6%: \(50-50e^{-0.06}=2.91\). The gap widened by \(50(e^{-0.04}-e^{-0.06})=0.95\). So the put \(=7.36-2.91=\mathbf{4.45}\), a fall of 0.47: call up, put down, as predicted.</div>
+</div>
+
+<div class="quiz num" data-answer="-1.04" data-tol="0.03">
+  <p class="q"><strong>Q13.</strong> A European put has \(S_0=40\), \(K=50\), \(T=2\), \(r=5\%\), \(\sigma=25\%\) and is priced at $8.96. What is its time value (price minus intrinsic value)? Note the sign.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Intrinsic \(=\max(50-40,0)=10\). Time value \(=8.96-10=\mathbf{-1.04}\). Negative: a <em>European</em> put can trade below intrinsic value, because exercise now isn't allowed and the strike is received only in 2 years (lower bound \(Ke^{-rT}-S_0=45.24-40=5.24\), which 8.96 clears). An <em>American</em> put could never trade below 10 (you'd buy it and exercise). Time value for American options is never negative.</div>
+</div>
+
+<div class="quiz num" data-answer="57.06" data-tol="0.02">
+  <p class="q"><strong>Q14.</strong> \(S_0=60\). The stock will pay a $3 dividend in 3 months; \(r=8\%\) continuously compounded. Options with 6 months to run behave as if the stock price were what, \(S_0 - I\)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(I=3e^{-0.08\times0.25}=3\times0.9802=2.9406\). \(S_0-I=60-2.94=\mathbf{57.06}\). Same adjustment as for the forward price in Lesson 7: \(F_0=(S_0-I)e^{rT}\).</div>
+</div>
+
+<div class="quiz num" data-answer="2.15" data-tol="0.02">
+  <p class="q"><strong>Q15.</strong> Link to futures. A 1-year forward on a $50 non-dividend stock: by how much does the fair forward price rise when \(r\) goes from 5% to 9%? (This is the force that lifts calls and lowers puts.)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(50e^{0.09}-50e^{0.05}=54.71-52.56=\mathbf{2.15}\).</div>
+</div>
+
+<div class="quiz num" data-answer="2.90" data-tol="0.02">
+  <p class="q"><strong>Q16.</strong> A European call on a non-dividend stock: \(S_0=61\), \(K=55\), \(T=1\), \(r=5\%\), price $8.90. What is its time value?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Intrinsic \(=61-55=6\). Time value \(=8.90-6=\mathbf{2.90}\). (Sanity: it clears the lower bound \(S_0-Ke^{-rT}=61-52.32=8.68\).) Positive: spread value + the benefit of paying \(K\) late.</div>
+</div>
+
+<h2>9 · Challenge: exam-style, in parts</h2>
+<div class="box">
+<p>European options on a stock: \(S_0=K=50\), \(T=1\), \(r=5\%\), \(\sigma=25\%\), no dividends. A model prices them at \(c=6.17\), \(p=3.73\). A geopolitical shock lifts volatility to 40% and the central bank responds by cutting \(r\) to 1%. The new call price is \(c = 8.14\).</p>
+<p>(a) Direction of the European put. (b) Direction of the European call: can you tell without the number? (c) Find the new put. (d) What happens to an American put, given its European counterpart? (e) A colleague says "falling rates always make calls cheaper". Reply in one sentence.</p>
+</div>
+<details><summary>Step 1: (a) and (b) by signs</summary><div>
+<p>Put: \(\sigma\) up (+), \(r\) down (+) → both agree, <strong>increases</strong>. Call: \(\sigma\) up (+), \(r\) down (−) → opposed, <strong>ambiguous</strong> from signs alone. The given \(c=8.14\) shows volatility won: the call rose from 6.17.</p></div></details>
+<details><summary>Step 2: (c) the put by parity</summary><div>
+<p>\(p=c-S_0+Ke^{-rT}=8.14-50+50e^{-0.01}=8.14-50+49.5025=\mathbf{7.64}\). Nearly doubled from 3.73.</p></div></details>
+<details><summary>Step 3: (d) and (e)</summary><div>
+<p>(d) An American put is worth at least its European counterpart, so \(P\ge7.64\) and it also rises. Lower rates reduce the benefit of early exercise (less interest on the strike) and higher volatility raises the time value, so early exercise is <em>less</em> attractive, but its value rises anyway. (e) "Falling rates lower a call's value <em>if nothing else changes</em>, but here volatility rose and more than offset it."</p></div></details>
+
+<h2>10 · Before you close this tab</h2>
+<details><summary>Retrieval: from memory, redraw the 6 × 4 table and give the one-line reason for each row; list the two oddities about time; give the forward-price link. Then check</summary><div>
+<p>\(S_0\): c+, p−. \(K\): c−, p+. \(r\): c+, p− (PV of \(K\) falls; same as \(F_0\) up). \(D\): c−, p+ (stock drops). \(\sigma\): all +, limited liability. \(T\): American both +; European ambiguous: spread (+), PV of \(K\) (call +, put −), dividends (call −, put +). Oddities: European put can fall with \(T\) (deep ITM, high \(r\)); European call on a high-dividend stock can fall with \(T\). Link: options are bets on \(F_0=S_0e^{(r-q)T}\): \(r\)↑, \(q\)↓, \(S_0\)↑ all raise \(F_0\) → call ↑, put ↓. Two moves in the same direction on a given option: certain; opposed: ambiguous.</p></div></details>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, Ch. 10 ("Properties of Stock Options"), section "Factors affecting option prices" and Table 10.1; the reading for <a href="../lectures/Lecture%204_Options%20intro.pdf">Lecture 4</a>, slides 15–17.</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%204.pdf">Tutorial 4</a>, Q6 (<a href="../tutes/Tutorial%204%20solutions.pdf">solutions</a>): the early-exercise intuition for \(r\) and \(\sigma\). Write your own four-sentence answer before reading the solution. Q1, Q2 (bounds) follow in Lesson 13; Q3–Q5 (parity) in Lesson 14.</p>
+<p><strong>Spacing:</strong> tomorrow, redraw the table cold and re-do Q2, Q9 and Q12; in three days, run section 4's eight scenarios on a put with \(S_0=40\), \(K=50\).</p>
+<p><strong>Reminder:</strong> ask your teacher for more "what happens if..." chains (three or four changes at once) and for the American vs European contrasts. Paste any prediction you got wrong and say why you thought it.</p>
+
+<div class="ask">💬 Unsure whether a two-factor change is "certain" or "ambiguous"? Paste the scenario in the terminal and ask me. I'm your teacher for this. Ask me to quiz you on random inputs, or to explain any row of the table again with a fresh example.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0011-options-payoffs-profits-and-moneyness.html">Lesson 11, payoffs, profits and moneyness</a></span>
+  <span>Reference: <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/futures-cheatsheet.html">Futures cheat sheet</a></span>
+  <span>Next: <a href="0013-bounds-on-option-prices.html">Lesson 13, bounds on option prices</a> · then <a href="0014-put-call-parity.html">14</a>, <a href="0015-early-exercise-of-american-options.html">15</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

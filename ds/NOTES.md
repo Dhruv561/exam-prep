@@ -53,3 +53,12 @@
 9. 0009 Commodities, storage, convenience yield, contango/backwardation (L3)
 10. 0010 Valuing forward and futures contracts, forward vs futures (L3, T3 Q1, Q5, Q6)
 11. then options (L4 onward). Futures options (L6) deferred until after options basics.
+12. Topic 4 (options intro) built 20 Oct by 5 parallel subagents: 0011 payoffs/profits/moneyness (+ brief strategies, which past papers test), 0012 factors affecting prices, 0013 bounds, 0014 put-call parity, 0015 early exercise + mixed retrieval quiz. Reference: reference/options-cheatsheet.html. Not browser-checked; numbers recomputed in Python.
+
+## Exam patterns, topic 4 (patterns only, 20 Oct)
+- 1-mark MCQs: intrinsic vs time value from S, K, premium (distractor: intrinsic = premium); ATM has most time value; straddle / bull spread definitions; which statement is true of a European call (distractors: value ≥ K, bound exactly 0, can exceed S).
+- Short question: time value of an American put (S=30, K=32 style), sign of the put premium after a dividend announcement (rises), zero time value means exercise now.
+- Parity: put from call with discrete dividends (PV(D) added), FX/index put with r_f or q; sample exam repeated Tute 4 Q4 numbers verbatim, so tutes do reappear. Vol change: Δc = Δp.
+- American call, no dividends: never exercise early (distractors "deep ITM", "low vol", "r = 0"). Early put exercise: r up, vol down.
+- Arbitrage MCQ: American put below K − S → buy put and stock, exercise.
+- Open: 'Black's pseudo-American' appeared in a 2021 practice final (check syllabus). Tute 4 Q7.2 GameStop xlsx not in workspace. Lesson 14's claim that same-K/T European options share implied vol is unverified. Hull chapter numbers in lessons are approximate.
