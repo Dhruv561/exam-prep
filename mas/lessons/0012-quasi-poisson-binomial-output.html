@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quasi-Poisson R output</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 12 · Topic 3: Overdispersion &amp; quasi-likelihood</div>
+<h1>Reading quasi-Poisson and quasi-binomial R output: SEs, the F test, and which model to prefer</h1>
+<p class="lede">The goal: handed a Poisson printout, a Pearson \(\hat\phi\) line and the <code>quasipoisson</code> refit, you can give any SE "allowing for overdispersion", run (or explain) the F test for nested quasi models with its df, and say which model you'd keep and why. That's the same with <code>quasibinomial</code>.</p>
+
+<div class="mission">Why this matters for 10 Nov: every paper from 2016 to 2022 has this inside the 7–22 mark GLM R-output question, as a run of 1–3 mark sub-parts. The marks go to the person who picks the right \(\hat\phi\), divides by \(s\), and gives the df.</div>
+
+<p>You already know <em>what</em> overdispersion is and how to spot it (<a href="0010-overdispersion.html">Lesson 10</a>), and why the quasi-score gives the same \(\hat\beta\) with \(\operatorname{Var}\hat\beta\) scaled by \(\phi\) (<a href="0011-quasi-likelihood-theory.html">Lesson 11</a>). You've also met the F test with an estimated \(\phi\) for the gamma (<a href="0007-poisson-gamma-glms.html">Lesson 7</a>), and \(\hat\ell\) from AIC plus the χ² LRT (<a href="0003-deviance-lrt-aic.html">Lesson 3</a>). This lesson is pure printout reading.</p>
+
+<h2>1 · The printout skeleton</h2>
+<p>Running example: days absent from school for 146 children in rural New South Wales (<code>MASS::quine</code>). Predictors are all factors: <code>Eth</code> (A = Aboriginal, N = not), <code>Sex</code> (F, M), <code>Age</code> (school year F0–F3) and <code>Lrn</code> (AL average, SL slow learner). The exam's order is exactly this: two Poisson fits, a χ² test, \(\hat\phi\), then the same formulas refitted as quasi-Poisson and an F test.</p>
+
+<pre class="rout"><span class="cmd">&gt; library(MASS); data(quine)
+&gt; modelA &lt;- glm(Days ~ Eth + Age + Lrn, family = poisson, data = quine)
+&gt; summary(modelA)</span>
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  2.83517    0.05576  50.845  &lt; 2e-16 ***
+EthN        -0.53306    0.04187 -12.731  &lt; 2e-16 ***
+AgeF1       -0.37669    0.06927  -5.438 5.40e-08 ***
+AgeF2        0.24434    0.06265   3.900 9.62e-05 ***
+AgeF3        0.38002    0.06631   5.731 1.00e-08 ***
+LrnSL        0.31232    0.05136   6.081 1.19e-09 ***
+---
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 2073.5  on 145  degrees of freedom
+Residual deviance: 1711.1  on 140  degrees of freedom
+AIC: 2311.6
+
+<span class="cmd">&gt; modelB &lt;- glm(Days ~ Eth + Sex + Age + Lrn, family = poisson, data = quine)
+&gt; summary(modelB)</span>
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  2.71538    0.06468  41.980  &lt; 2e-16 ***
+EthN        -0.53360    0.04188 -12.740  &lt; 2e-16 ***
+SexM         <b>0.16160    0.04253</b>   3.799 0.000145 ***
+AgeF1       -0.33390    0.07009  -4.764 1.90e-06 ***
+AgeF2        0.25783    0.06242   4.131 3.62e-05 ***
+AgeF3        0.42769    0.06769   6.319 2.64e-10 ***
+LrnSL        0.34894    0.05204   6.705 2.02e-11 ***
+---
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 2073.5  on 145  degrees of freedom
+Residual deviance: <b>1696.7</b>  on <b>139</b>  degrees of freedom
+AIC: 2299.2
+
+<span class="cmd">&gt; anova(modelA, modelB, test = "Chisq")</span>
+  Resid. Df Resid. Dev Df Deviance  Pr(&gt;Chi)
+1       140     1711.1
+2       139     1696.7  1   14.404 0.0001475 ***
+<span class="cmd">&gt; (phiA &lt;- sum(residuals(modelA, type = "pearson")^2/modelA$df.residual))</span>
+[1] 13.14285
+<span class="cmd">&gt; (phiB &lt;- sum(residuals(modelB, type = "pearson")^2/modelB$df.residual))</span>
+[1] <b>13.16684</b>
+<span class="cmd">&gt; modelC &lt;- glm(Days ~ Eth + Age + Lrn, family = quasipoisson, data = quine)
+&gt; modelD &lt;- glm(Days ~ Eth + Sex + Age + Lrn, family = quasipoisson, data = quine)
+&gt; summary(modelD)</span>
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)   2.7154     0.2347  11.569  &lt; 2e-16 ***
+EthN         -0.5336     0.1520  -3.511 0.000602 ***
+SexM          0.1616     0.1543   1.047 0.296914
+AgeF1        -0.3339     0.2543  -1.313 0.191413
+AgeF2         0.2578     0.2265   1.138 0.256938
+AgeF3         0.4277     0.2456   1.741 0.083831 .
+LrnSL         0.3489     0.1888   1.848 0.066760 .
+---
+(Dispersion parameter for quasipoisson family taken to be 13.16691)
+
+    Null deviance: 2073.5  on 145  degrees of freedom
+Residual deviance: 1696.7  on 139  degrees of freedom
+AIC: NA
+
+<span class="cmd">&gt; anova(modelC, modelD, test = "F")</span>
+  Resid. Df Resid. Dev Df Deviance     F Pr(&gt;F)
+1       140     1711.1
+2       139     1696.7  1   14.404 1.094 0.2974
+<span class="cmd">&gt; qchisq(0.95, 1); qf(0.95, 1, 139); qt(0.975, 139)</span>
+[1] 3.841459
+[1] 3.909232
+[1] 1.977178</pre>
+
+<p>Line by line, what changes from <code>modelB</code> (Poisson) to <code>modelD</code> (quasi-Poisson, same formula):</p>
+<div class="tablewrap"><table>
+<tr><th>Line</th><th><code>family = poisson</code></th><th><code>family = quasipoisson</code></th></tr>
+<tr><td>Estimate</td><td>\(\hat\beta\)</td><td>same \(\hat\beta\) (printed to fewer digits)</td></tr>
+<tr><td>Std. Error</td><td>\(\mathrm{SE}\)</td><td>\(\sqrt{\hat\phi}\times\mathrm{SE}\)</td></tr>
+<tr><td>Test column</td><td><code>z value</code>, <code>Pr(&gt;|z|)</code></td><td><code>t value</code> \(= z/\sqrt{\hat\phi}\), <code>Pr(&gt;|t|)</code> on \(n-p\) df</td></tr>
+<tr><td>Dispersion line</td><td><code>taken to be 1</code></td><td><code>taken to be</code> \(\hat\phi = X^2/(n-p)\)</td></tr>
+<tr><td>Null / residual deviance</td><td>\(D\) with df</td><td>identical (the quasideviance equals the Poisson deviance)</td></tr>
+<tr><td>AIC</td><td>\(2p-2\hat\ell\)</td><td><code>NA</code>: no likelihood, so no AIC</td></tr>
+</table></div>
+<p>All of this is slides 10–13 of the lecture (<a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=10">quasi-Poisson, slide 10</a>; <a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=12">slide 12</a>). The \(1/\phi\) in \(Q\) cancels from the IWLS update, so \(\hat\beta\) can't move. \(\widehat{\operatorname{Var}}(\hat\beta) = \hat\phi\,(X^TWX)^{-1}\) does move (<a href="../annotated-slides/Overdispersion_Quasilikelihood_annotated.pdf#page=21">annotated slide 13</a>). The quasi dispersion 13.16691 differs from <code>phiB</code> = 13.16684 in the 6th figure only because <code>summary</code> uses the last IWLS weights. Treat them as equal.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> Compare <code>modelB</code> (poisson) with <code>modelD</code> (quasipoisson, same formula). Which statement is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Estimates shrink towards zero by √φ̂; deviances and standard errors are unchanged</button>
+    <button class="opt" data-key="b">Identical estimates; deviance divided by φ̂, so standard errors stay the same</button>
+    <button class="opt" data-key="c">Identical estimates and deviances; standard errors larger by a factor of √φ̂</button>
+    <button class="opt" data-key="d">Identical estimates and standard errors; only the printed AIC changes, becoming NA</button>
+  </div>
+  <div class="why">Both print \(D = 1696.7\) on 139 df and SexM = 0.1616, but the SE goes from 0.04253 to 0.1543 (\(\times3.63 = \sqrt{13.17}\)). AIC does become NA, but that isn't the <em>only</em> change, so (d) is wrong. The <em>scaled</em> deviance is \(D/\phi\), but R prints the unscaled \(D\), so (b) is wrong too.</div>
+</div>
+
+<h2>2 · SE allowing for overdispersion, both directions</h2>
+<div class="box">
+$$\mathrm{SE}_{\text{quasi}}(\hat\beta_j) = \sqrt{\hat\phi}\;\mathrm{SE}_{\text{Pois}}(\hat\beta_j),\qquad \mathrm{SE}_{\text{Pois}} = \mathrm{SE}_{\text{quasi}}\big/\sqrt{\hat\phi},\qquad t_j = z_j\big/\sqrt{\hat\phi}.$$
+<p>The estimate itself is never rescaled. Use the \(\hat\phi\) of <strong>the model the coefficient belongs to</strong>.</p>
+</div>
+<p>Trout-egg demo (<a href="../extra-notes/Trout%20egg%20survival_%20overdispersion%20and%20quasilikelihood.pdf#page=10">lecturer's notes, p. 10</a>): <code>0.2461*sqrt(phihat)</code> gives the quasibinomial SE 0.5682. That one line is the whole skill.</p>
+
+<div class="quiz num" data-answer="0.1543" data-tol="0.0003">
+  <p class="q"><strong>2.</strong> Using only <code>summary(modelB)</code> and the \(\hat\phi\) lines, give the SE of the <code>SexM</code> coefficient allowing for overdispersion (4 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(0.04253\times\sqrt{13.16684} = 0.04253\times3.6286 = \)<strong>0.1543</strong>, matching modelD's printout. It's modelB's \(\hat\phi\) (13.17), since SexM is in modelB. With modelA's 13.14 you'd be using the wrong model's dispersion. Here the difference is invisible, but in the challenge below it isn't.</div>
+</div>
+
+<div class="quiz num" data-answer="0.0520" data-tol="0.0003">
+  <p class="q"><strong>3.</strong> Suppose you'd been given <code>summary(modelD)</code> only. What would the plain Poisson fit print as the SE of <code>LrnSL</code> (4 d.p.)? (Newer papers ask this way round.)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(0.1888/\sqrt{13.16691} = 0.1888/3.6286 = \)<strong>0.0520</strong> (modelB prints 0.05204, and the gap is just rounding of 0.1888). The estimate stays 0.3489. Likewise \(z = t\sqrt{\hat\phi} = 1.848\times3.6286 = 6.71\), matching 6.705.</div>
+</div>
+
+<p>Check the test column the same way: AgeF3 has \(z = 6.319\) under Poisson, so \(t = 6.319/3.6286 = 1.741\), as printed. A "highly significant" \(z\) turns into \(p = 0.084\). That's the slide-13 message: <em>ignore overdispersion and you get spurious significance</em> (<a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=13">slide 13</a>).</p>
+
+<h2>3 · The F test for nested quasi models</h2>
+<div class="box">
+$$F = \frac{(D_A - D_B)/s}{\hat\phi_B}\;\approx\;F_{s,\;n-p_B}\quad\text{under }H_0\text{: model A (smaller) is adequate},$$
+<p>\(s = \text{df}_A - \text{df}_B\) (extra parameters in B); \(\hat\phi_B = X^2_B/(n-p_B)\), the Pearson statistic of the <strong>bigger</strong> model over its residual df (<a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=9">slide 9</a>; <a href="../annotated-slides/Overdispersion_Quasilikelihood_annotated.pdf#page=15">annotated</a>). The second df is B's residual df.</p>
+</div>
+<p>Why F and not χ²? \(\phi\) is unknown, and the slide-12 point is that the scaled deviance \(D/\phi\) is no longer \(D\). Divide \(\Delta D\) by \(\hat\phi\) to get back to the χ² scale, and the noise in \(\hat\phi\) turns χ²/s into an F (same argument as for the gamma in Lesson 7). The lecturer's demo does it by hand: <code>(913.56 - 64.5)/4/phihat</code> (<a href="../extra-notes/Trout%20egg%20survival_%20overdispersion%20and%20quasilikelihood.pdf#page=13">p. 13</a>).</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>4.</strong> What does <code>(phiB &lt;- sum(residuals(modelB, type = "pearson")^2/modelB$df.residual))</code> compute? (It printed 13.16684.)</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Residual deviance of the bigger Poisson fit divided by its residual df</button>
+    <button class="opt" data-key="b">Pearson X² of the bigger Poisson fit divided by its residual df</button>
+    <button class="opt" data-key="c">Pearson X² of the smaller Poisson fit divided by its residual df</button>
+    <button class="opt" data-key="d">Sum of squared raw residuals of the bigger fit divided by n</button>
+  </div>
+  <div class="why">Pearson residuals are \((y_i-\hat\mu_i)/\sqrt{v(\hat\mu_i)}\), so the sum of squares is \(X^2\), and <code>df.residual</code> is \(n-p = 139\). So \(\hat\phi = X^2/(n-p)\) for modelB, the one the F test needs. (a) would be \(1696.7/139 = 12.21\), a different (deviance-based) estimate. (c) is <code>phiA</code>, which is 13.14 here.</div>
+</div>
+
+<div class="quiz num" data-answer="1.094" data-tol="0.003">
+  <p class="q"><strong>5.</strong> Suppose the <code>anova(modelC, modelD, test = "F")</code> row were hidden. Compute F from the rest of the printout (3 d.p.). (Also note the df for yourself.)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(F = \dfrac{(1711.1 - 1696.7)/1}{13.16684} = \dfrac{14.404}{13.16684} = \)<strong>1.094</strong> on \((s,\ n-p_B) = (1,\ 146-7) = (1,\ 139)\) df. Since \(1.094 &lt; F_{1,139}(0.95) = 3.91\), don't reject \(H_0\) (R: p = 0.297). If the row is <em>shown</em> and you're asked "what formula has been used", this line plus the df is the full-marks answer.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>6.</strong> Allowing for overdispersion, which model do you prefer?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">modelC, because the F test allowing for overdispersion gives p = 0.30</button>
+    <button class="opt" data-key="b">modelD, because the χ² test on the deviance gives p = 0.0001</button>
+    <button class="opt" data-key="c">modelD, because its residual deviance, 1696.7, is lower than that of modelC</button>
+    <button class="opt" data-key="d">Neither, because quasi models have no AIC, so they cannot be compared</button>
+  </div>
+  <div class="why">The χ² LRT compares \(\Delta D = 14.40\) with 3.84 as if \(\phi = 1\), but the variance is about 13 times that. Rescaled, the evidence for <code>Sex</code> is \(F = 1.09\), well below 3.91, so drop <code>Sex</code>: the simpler modelC. (c): a bigger model always has the lower deviance. (d): nested quasi models are compared with F, not AIC.</div>
+</div>
+
+<div class="trap"><strong>Traps</strong><br>(1) Two \(\hat\phi\) lines are printed. The F test uses the <em>bigger</em> model's. A's \(\hat\phi\) is inflated by the lack of fit you're testing for. (2) Divide by \(s\) as well as \(\hat\phi\). With \(s = 1\) it's invisible, but for a factor with 4 levels \(s = 3\). (3) Second df \(= n - p_B\), not \(n - p_A\), and not \(n\). (4) Don't run a goodness-of-fit test on the quasi deviance: \(\phi\) is estimated from the same residuals (slide 12).</div>
+
+<details><summary>Explain why (2–3 sentences): χ² says keep <code>Sex</code>, F says drop it. Which do you believe?</summary><div>
+<p><strong>Model answer.</strong> The χ² test assumes \(\operatorname{Var}Y_i = \mu_i\) (\(\phi = 1\)), but \(\hat\phi = 13.2\) shows the counts vary about 13 times more than that. So \(\Delta D = 14.4\) is mostly noise, and the χ² p-value (0.00015) is far too small. The F test divides \(\Delta D/s\) by \(\hat\phi\) and gives \(F = 1.09\) on (1, 139) df, p = 0.30. Allowing for overdispersion, <code>Sex</code> isn't needed, so prefer modelC.</p></div></details>
+
+<h2>4 · Wald CIs and predictions under quasi</h2>
+<p>Same recipe as Lesson 7: build on the \(\eta\) scale with the <em>quasi</em> SE, then exponentiate. Use \(z_{0.975} = 1.96\). (\(t_{n-p}\) is also acceptable since \(\phi\) is estimated, and here it's 1.98, which barely matters.) The point prediction \(e^{\hat\eta}\) is identical under both fits. Only its CI widens.</p>
+<p>SexM: \(0.1616 \pm 1.96(0.1543) = (-0.141,\ 0.464)\), so the ratio of mean days absent (boys/girls) is \(e^{0.1616} = 1.18\) with CI \((0.87,\ 1.59)\). That contains 1, which agrees with the F test. Under Poisson it was \((1.08,\ 1.28)\), falsely precise.</p>
+
+<pre class="rout"><span class="cmd">&gt; nd &lt;- data.frame(Eth = "N", Sex = "M", Age = "F2", Lrn = "AL")
+&gt; predict(modelB, newdata = nd, type = "link", se.fit = TRUE)</span>
+$fit
+       1
+2.601201
+$se.fit
+[1] 0.056811
+<span class="cmd">&gt; predict(modelD, newdata = nd, type = "link", se.fit = TRUE)</span>
+$fit
+       1
+2.601201
+$se.fit
+[1] 0.2061458
+$residual.scale
+[1] 3.628624</pre>
+
+<div class="quiz num" data-answer="9.00" data-tol="0.05">
+  <p class="q"><strong>7.</strong> Give the lower end of a 95% CI for the mean days absent of a non-Aboriginal boy in F2, average learner, allowing for overdispersion (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Check \(\hat\eta = 2.71538 - 0.53360 + 0.16160 + 0.25783 = 2.60121\) ✓, so \(\hat\mu = e^{2.6012} = 13.48\) days. Quasi SE \(= 0.056811\times3.6286 = 0.2061\) (R's <code>residual.scale</code> is \(\sqrt{\hat\phi}\)). CI: \(e^{2.6012 \pm 1.96(0.2061)} = (\)<strong>9.00</strong>\(,\ 20.19)\) days. The Poisson CI \((12.06,\ 15.07)\) is about a quarter as wide.</div>
+</div>
+
+<p><strong>Rate models.</strong> With an exposure \(t_i\), \(\log\mu_i = \log t_i + x_i^T\beta\) (offset coefficient fixed at 1, <a href="0007-poisson-gamma-glms.html">Lesson 7 §3</a>). Quasi changes nothing here: same offset, same \(\hat\beta\), SEs \(\times\sqrt{\hat\phi}\). Example (simulated): patient falls in a year on 40 hospital wards. <code>bedk</code> = thousands of occupied bed-days (the exposure), <code>type</code> = surgical (baseline) or medical, <code>age</code> = mean patient age on the ward.</p>
+<pre class="rout"><span class="cmd">&gt; f1 &lt;- glm(falls ~ offset(log(bedk)) + type + age, family = quasipoisson, data = falls.df)
+&gt; summary(f1)</span>
+            Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept) -1.01866    0.91979  -1.108   0.2752
+typemedical  0.41242    0.21660   1.904   0.0647 .
+age          0.01197    0.01217   0.983   0.3319
+---
+(Dispersion parameter for quasipoisson family taken to be 4.321619)
+
+    Null deviance: 172.08  on 39  degrees of freedom
+Residual deviance: 154.90  on 37  degrees of freedom
+AIC: NA</pre>
+
+<div class="quiz num" data-answer="17.05" data-tol="0.06">
+  <p class="q"><strong>8.</strong> Under <code>f1</code>, what is the expected number of falls in a year on a medical ward with 12 thousand bed-days and mean patient age 80 (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\hat\eta = \log 12 - 1.01866 + 0.41242 + 0.01197(80) = 2.48491 + 0.35136 = 2.83627\), so \(\hat\mu = e^{2.8363} = \)<strong>17.05</strong> falls. Forget the \(\log 12\) and you get the rate <em>per thousand bed-days</em>, 1.42. \(\hat\phi = 4.32\) changes nothing here: it only matters for the CI.</div>
+</div>
+
+<h2>5 · Still asked alongside: ℓ̂ and saturated ℓ from the Poisson AIC</h2>
+<p>The quasi fit prints <code>AIC: NA</code>, so likelihood questions always use the <em>Poisson</em> printout (<a href="0003-deviance-lrt-aic.html">Lesson 3</a>):</p>
+$$\hat\ell = -\tfrac12(\text{AIC} - 2p) = p - \tfrac{\text{AIC}}{2},\qquad \ell_{\text{sat}} = \hat\ell + \tfrac{D}{2}\quad(\text{since } D = 2(\ell_{\text{sat}} - \hat\ell),\ \phi = 1).$$
+<p>\(p\) counts every coefficient row including the intercept (modelB: \(p = 146 - 139 = 7\)).</p>
+
+<div class="quiz num" data-answer="-294.25" data-tol="0.06">
+  <p class="q"><strong>9.</strong> From <code>summary(modelB)</code>, find the maximised log-likelihood of the saturated Poisson model (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\hat\ell_B = 7 - 2299.2/2 = -1142.60\). Then \(\ell_{\text{sat}} = -1142.60 + 1696.7/2 = \)<strong>−294.25</strong>. Check with modelA: \(6 - 2311.6/2 = -1149.80\), \(+1711.1/2 = -294.25\) ✓. The saturated model doesn't depend on which model you fitted. The same holds for any "which Poisson model is better" part: AIC \(2299.2 &lt; 2311.6\) and LRT p = 0.00015 both favour modelB, <em>before</em> allowing for overdispersion.</div>
+</div>
+
+<h2>6 · Quasi-binomial: identical reading, \(\operatorname{Var}Y_i = \phi\,m_ip_i(1-p_i)\)</h2>
+<p><a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=11">Slide 11</a>: \(v(\mu) = \mu(m-\mu)/m\), so \(\operatorname{Var}Y_i = \phi\, m_ip_i(1-p_i)\), with \(\phi\) free. Everything above carries over: same \(\hat\beta\) and \(D\), SEs \(\times\sqrt{\hat\phi}\), F test with the big model's \(\hat\phi\). Data: Crowder's (1978) seed-germination experiment, 21 plates. Each plate has \(n\) seeds of one <em>Orobanche</em> variety (O75 or O73) on one root extract (bean or cucumber), and <code>germ</code> of them germinated. Plate-to-plate variation is the natural overdispersion source.</p>
+
+<pre class="rout"><span class="cmd">&gt; b1 &lt;- glm(cbind(germ, n - germ) ~ variety + extract, family = binomial, data = oro)
+&gt; b2 &lt;- glm(cbind(germ, n - germ) ~ variety * extract, family = binomial, data = oro)
+&gt; summary(b2)</span>
+                           Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)                 -0.5582     0.1260  -4.429 9.46e-06 ***
+varietyO73                   0.1459     0.2232   0.654   0.5132
+extractcucumber              1.3182     0.1775   7.428 1.10e-13 ***
+varietyO73:extractcucumber  -0.7781     0.3064  -2.539   0.0111 *
+---
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 98.719  on 20  degrees of freedom
+Residual deviance: 33.278  on 17  degrees of freedom
+AIC: 117.87
+
+<span class="cmd">&gt; anova(b1, b2, test = "Chisq")</span>
+  Resid. Df Resid. Dev Df Deviance Pr(&gt;Chi)
+1        18     39.686
+2        17     33.278  1   6.4081  0.01136 *
+<span class="cmd">&gt; (phi2 &lt;- sum(residuals(b2, type = "pearson")^2/b2$df.residual))</span>
+[1] 1.861832
+<span class="cmd">&gt; q2 &lt;- glm(cbind(germ, n - germ) ~ variety * extract, family = quasibinomial, data = oro)
+&gt; summary(q2)</span>
+                           Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)                 -0.5582     0.1720  -3.246  0.00475 **
+varietyO73                   0.1459     0.3045   0.479  0.63789
+extractcucumber              1.3182     0.2422   5.444 4.38e-05 ***
+varietyO73:extractcucumber  -0.7781     0.4181  -1.861  0.08014 .
+---
+(Dispersion parameter for quasibinomial family taken to be 1.861832)
+
+    Null deviance: 98.719  on 20  degrees of freedom
+Residual deviance: 33.278  on 17  degrees of freedom
+AIC: NA
+<span class="cmd">&gt; fitted(b2)[1]; qf(0.95, 1, 17)</span>
+        1
+0.3639706
+[1] 4.451322</pre>
+<p>(<code>oro</code> is typed in from Crowder's table; <code>fitted()</code> on a binomial fit returns \(\hat p_i\), not \(\hat\mu_i\).)</p>
+
+<div class="quiz num" data-answer="3.44" data-tol="0.01">
+  <p class="q"><strong>10.</strong> The <code>anova(q1, q2, test = "F")</code> row is hidden. Give F for the interaction (2 d.p.), then decide: keep it?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(F = (39.686 - 33.278)/1 \,/\, 1.861832 = 6.4081/1.8618 = \)<strong>3.44</strong> on \((1,\ 21-4) = (1,\ 17)\) df. \(3.44 &lt; F_{1,17}(0.95) = 4.45\) (R: p = 0.081), so drop the interaction and prefer the additive model. χ² said keep it (\(6.41 &gt; 3.84\), p = 0.011). Same twist, binomial version: here even a modest \(\hat\phi = 1.86\) flips the decision. Also: plate 1 (\(n = 39\), \(\hat p = 0.364\)) has binomial variance \(39(0.364)(0.636) = 9.03\), but the quasi-binomial variance is \(1.8618\times9.03 = 16.8\).</div>
+</div>
+
+<h2>7 · The R lines you may be shown</h2>
+<ul>
+  <li><code>anova(C, D, test = "F")</code> on two quasi fits uses the bigger model's \(\hat\phi\) and \(F_{s,n-p_B}\): the formula in §3.</li>
+  <li><code>anova(A, B, dispersion = phiB, test = "F")</code> on the <em>Poisson/binomial</em> fits gives the same F (1.094 here). R then treats the supplied \(\hat\phi\) as known, so the denominator df is \(\infty\) and p is 0.2956 rather than 0.2974. Same conclusion (<a href="../extra-notes/Trout%20egg%20survival_%20overdispersion%20and%20quasilikelihood.pdf#page=13">trout-egg notes, p. 13</a>).</li>
+  <li><code>drop1</code> and <code>step</code> "do not work" for quasi fits (<a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=12">slide 12</a>): there's no AIC for <code>step</code>. Faraway (§7.4) does use <code>drop1(modq, test = "F")</code>. It runs, but it divides by the deviance-based \(D/(n-p)\), not Pearson's \(\hat\phi\): for <code>Sex</code> it prints \(F = 14.404/(1696.7/139) = 1.18\), not 1.094. In the exam, quote the anova/Pearson version.</li>
+</ul>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>11.</strong> <code>anova(modelA, modelB, test = "F")</code> on the two <em>Poisson</em> fits prints F = 14.404, p = 0.0001475, plus the warning <code>using F test with a 'poisson' family is inappropriate</code>. What happened?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">R estimated φ̂ from the bigger model, exactly as the lecture recommends</button>
+    <button class="opt" data-key="b">R used the deviance-based estimate D/(n−p) of φ, just as drop1 does</button>
+    <button class="opt" data-key="c">R averaged both φ̂ values and divided the deviance change by it</button>
+    <button class="opt" data-key="d">R used φ = 1, so F equals ΔD and ignores overdispersion</button>
+  </div>
+  <div class="why">A Poisson family's dispersion is fixed at 1, so \(F = 14.404/1/1 = \Delta D\). That's just the χ² test in disguise. To allow for overdispersion, either refit with <code>quasipoisson</code> or pass <code>dispersion = phiB</code>.</div>
+</div>
+
+<h2>8 · Exam-level challenge</h2>
+<p>Do this on paper in about 25 minutes (20 marks), then open the steps one at a time. Write sentences: the exam has no MCQ.</p>
+<div class="box">
+<p>A weaving mill counts warp breaks on 54 looms, each weaving the same fixed length of yarn. Nine looms are run for each combination of <code>wool</code> type (A, B; baseline A) and <code>tension</code> (L, M, H; baseline L). <code>breaks</code> = number of warp breaks on the loom. (R's built-in <code>warpbreaks</code>.)</p>
+<pre class="rout"><span class="cmd">&gt; modelA &lt;- glm(breaks ~ tension, family = poisson, data = warpbreaks)
+&gt; summary(modelA)</span>
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  3.59426    0.03907  91.988  &lt; 2e-16 ***
+tensionM    -0.32132    0.06027  -5.332 9.73e-08 ***
+tensionH    -0.51849    0.06396  -8.107 5.21e-16 ***
+---
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 297.37  on 53  degrees of freedom
+Residual deviance: 226.43  on 51  degrees of freedom
+AIC: 507.09
+
+<span class="cmd">&gt; modelB &lt;- glm(breaks ~ wool + tension, family = poisson, data = warpbreaks)
+&gt; summary(modelB)</span>
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  3.69196    0.04541  81.302  &lt; 2e-16 ***
+woolB       -0.20599    0.05157  -3.994 6.49e-05 ***
+tensionM    -0.32132    0.06027  -5.332 9.73e-08 ***
+tensionH    -0.51849    0.06396  -8.107 5.21e-16 ***
+---
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 297.37  on 53  degrees of freedom
+Residual deviance: 210.39  on 50  degrees of freedom
+AIC: 493.06
+
+<span class="cmd">&gt; anova(modelA, modelB, test = "Chisq")</span>
+  Resid. Df Resid. Dev Df Deviance  Pr(&gt;Chi)
+1        51     226.43
+2        50     210.39  1   16.039 6.206e-05 ***
+<span class="cmd">&gt; (phiA &lt;- sum(residuals(modelA, type = "pearson")^2/modelA$df.residual))</span>
+[1] 4.601903
+<span class="cmd">&gt; (phiB &lt;- sum(residuals(modelB, type = "pearson")^2/modelB$df.residual))</span>
+[1] 4.261522
+<span class="cmd">&gt; summary(fitted(modelB))</span>
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  19.44   23.68   26.49   28.15   32.65   40.12
+<span class="cmd">&gt; modelC &lt;- glm(breaks ~ tension, family = quasipoisson, data = warpbreaks)
+&gt; modelD &lt;- glm(breaks ~ wool + tension, family = quasipoisson, data = warpbreaks)
+&gt; anova(modelC, modelD, test = "F")</span>
+  Resid. Df Resid. Dev Df Deviance      F  Pr(&gt;F)
+1        51     226.43
+2        50     210.39  1   16.039   <i>[F and Pr(&gt;F) removed]</i>
+<span class="cmd">&gt; predict(modelB, newdata = data.frame(wool = "B", tension = "M"),
++         type = "link", se.fit = TRUE)</span>
+$fit
+       1
+3.164654
+$se.fit
+[1] 0.05397811
+<span class="cmd">&gt; qchisq(0.95, c(1, 50)); qf(0.95, 1, 50)</span>
+[1]  3.841459 67.504807
+[1] 4.03431</pre>
+<p>(a) Find the maximised log-likelihood of modelB and of the saturated model. <strong>[3]</strong><br>
+(b) Ignoring overdispersion, which Poisson model is better? Give two quantitative reasons. <strong>[2]</strong><br>
+(c) Give two quantitative reasons to suspect modelB is overdispersed. <strong>[2]</strong><br>
+(d) In two or three sentences, explain how modelD differs from modelB. <strong>[2]</strong><br>
+(e) Give the standard error of the <code>woolB</code> coefficient allowing for overdispersion, and the <code>t value</code> R prints for it in <code>summary(modelD)</code>. <strong>[2]</strong><br>
+(f) Compute the F statistic hidden in the last anova. Give its df, state the formula used, and say which model you prefer allowing for overdispersion, and why. <strong>[4]</strong><br>
+(g) Give a 95% CI for the ratio of mean breaks at high vs low tension (same wool), allowing for overdispersion. Interpret it. <strong>[2]</strong><br>
+(h) Using modelB, predict the mean number of breaks for wool B at medium tension, with a 95% CI allowing for overdispersion. <strong>[3]</strong></p>
+</div>
+
+<details><summary>Step 1: part (a) [3]</summary><div>
+<p>\(n = 53 + 1 = 54\); \(p_B = 54 - 50 = 4\). \(\hat\ell_B = 4 - 493.06/2 = \boxed{-242.53}\) [1]. \(\ell_{\text{sat}} = \hat\ell_B + D_B/2 = -242.53 + 210.39/2 = \boxed{-137.34}\) [1]. Check from modelA: \(3 - 507.09/2 + 226.43/2 = -137.33\) ✓ [1 for method/working].</p></div></details>
+<details><summary>Step 2: part (b) [2]</summary><div>
+<p>modelB. (i) AIC \(493.06 &lt; 507.09\). (ii) LRT: \(\Delta D = 226.43 - 210.39 = 16.04\) on 1 df \(&gt; 3.84\), p = 0.00006, so reject \(H_0\colon \beta_{\text{woolB}} = 0\). One mark each.</p></div></details>
+<details><summary>Step 3: part (c) [2]</summary><div>
+<p>(i) Residual deviance 210.39 on 50 df is far above \(\chi^2_{50}(0.95) = 67.50\). This goodness-of-fit test is trustworthy here because every fitted mean is at least 19.4 (well above 5), so modelB fits badly. With no obvious missing term, extra variance is the likely cause. (ii) Pearson \(\hat\phi_B = 4.26 \gg 1\): the variance is about 4 times the Poisson \(\operatorname{Var}Y = \mu\). Plausible cause: loom-to-loom differences (machine, operator, yarn batch) that aren't in the model (Lesson 10).</p></div></details>
+<details><summary>Step 4: part (d) [2]</summary><div>
+<p>modelB assumes \(\operatorname{Var}Y_i = \mu_i\) (\(\phi = 1\)). modelD only assumes \(E Y_i = \mu_i\), \(\operatorname{Var}Y_i = \phi\mu_i\) with \(\phi\) estimated by \(X^2/(n-p) = 4.26\), fitted by quasi-likelihood (no distribution, so no AIC). The coefficient estimates and deviances are identical, but modelD's SEs are \(\sqrt{4.26} = 2.06\) times larger and nested models are compared with an F test, not χ².</p></div></details>
+<details><summary>Step 5: part (e) [2]</summary><div>
+<p>\(\mathrm{SE} = 0.05157\times\sqrt{4.261522} = 0.05157\times2.0643 = \boxed{0.1065}\) (R prints 0.10646). Use modelB's \(\hat\phi\): <code>woolB</code> is a modelD coefficient and modelD has modelB's formula. Using 4.602 gives 0.1106, losing the mark. \(t = -3.994/2.0643 = \boxed{-1.93}\) on 50 df (R: p = 0.059), no longer significant at 5%.</p></div></details>
+<details><summary>Step 6: part (f) [4]</summary><div>
+$$F = \frac{(D_C - D_D)/s}{\hat\phi_B} = \frac{(226.43 - 210.39)/1}{4.261522} = \frac{16.039}{4.2615} = \boxed{3.76}\;\sim F_{1,\;50}\text{ under }H_0.$$
+<p>[1 formula, 1 value.] df: \(s = 51 - 50 = 1\), and \(n - p_B = 54 - 4 = 50\) [1]. Since \(3.76 &lt; F_{1,50}(0.95) = 4.03\), there's no significant evidence at 5% for a wool effect once overdispersion is allowed for (R: p = 0.058). Prefer modelC, the smaller model [1]. This reverses (b): the χ² test treated \(\phi = 1\) and overstated the evidence about 4.3-fold. \(\hat\phi\) comes from the bigger model (\(\hat\phi_B\), not 4.602) because it's valid whether or not \(H_0\) holds. (With \(\hat\phi_A\) you'd get 3.49: wrong, though the conclusion is the same.)</p></div></details>
+<details><summary>Step 7: part (g) [2]</summary><div>
+<p>Quasi SE \(= 0.06396\times2.0643 = 0.13204\). CI for \(\beta_{\text{H}}\): \(-0.51849 \pm 1.96(0.13204) = (-0.7773,\ -0.2597)\). Ratio: \(e^{-0.51849} = 0.60\) with CI \(\boxed{(0.46,\ 0.77)}\). For the same wool, high tension is estimated to cut mean breaks by about 40% compared with low tension. The CI excludes 1, so the tension effect survives allowing for overdispersion.</p></div></details>
+<details><summary>Step 8: part (h) [3]</summary><div>
+<p>Check: \(\hat\eta = 3.69196 - 0.20599 - 0.32132 = 3.16465\) ✓. \(\hat\mu = e^{3.164654} = \boxed{23.7}\) breaks [1]. The printed SE is Poisson: \(0.05397811\times2.0643 = 0.11143\) [1]. CI: \(e^{3.164654 \pm 1.96(0.11143)} = e^{(2.9463,\ 3.3831)} = \boxed{(19.0,\ 29.5)}\) [1]. Ignoring overdispersion would give \((21.3,\ 26.3)\), too narrow.</p></div></details>
+
+<h2>9 · Before you close this tab</h2>
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) Poisson → quasi-Poisson: same \(\hat\beta\), same \(D\), SE \(\times\sqrt{\hat\phi}\), \(z\to t = z/\sqrt{\hat\phi}\), dispersion line shows \(\hat\phi\), <code>AIC: NA</code>. (2) Reverse: Poisson SE = quasi SE \(/\sqrt{\hat\phi}\). (3) \(F = \frac{(D_A - D_B)/s}{\hat\phi_B} \sim F_{s,\,n-p_B}\), with \(\hat\phi_B = X^2_B/(n-p_B)\) from the bigger model. (4) χ² significant but F not → prefer the smaller model allowing for overdispersion. (5) CI: \(\hat\beta \pm 1.96\sqrt{\hat\phi}\,\mathrm{SE}\); prediction \(e^{\hat\eta}\) unchanged (plus \(\log t\) offset). (6) \(\hat\ell = p - \text{AIC}/2\) from the Poisson fit; \(\ell_{\text{sat}} = \hat\ell + D/2\). (7) Quasi-binomial: \(\operatorname{Var}Y = \phi\,mp(1-p)\), same reading.</p>
+<p><em>Quick one:</em> a factor with 4 levels is dropped; \(\Delta D = 30\), \(\hat\phi_B = 6\), \(n - p_B = 60\). F and df? (\(30/3/6 = 1.67\) on (3, 60); \(F_{3,60}(0.95) \approx 2.76\), so drop it. χ² would say \(30 &gt; 7.81\), keep.)</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=9">Overdispersion &amp; quasi-likelihood, slides 9–13</a> (F test with the big model's \(\hat\phi\); quasi-Poisson/binomial; "drop1 and step do not work"; consequences). Use the <a href="../annotated-slides/Overdispersion_Quasilikelihood_annotated.pdf#page=20">annotated slides 12–13</a> for the \(\Sigma\phi\) note. Then the lecturer's <a href="../extra-notes/Trout%20egg%20survival_%20overdispersion%20and%20quasilikelihood.pdf#page=8">trout-egg demo, pp. 8–14</a>: \(\hat\phi\), SE rescaling, the F test by hand and with <code>dispersion=</code>. It's the closest thing to an exam printout you're allowed to study. Second explanation: <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=71">Faraway §3.4 Overdispersion</a> and <a href="../extra-notes/Faraway%20-%20Quasi-likelihood-1.pdf#page=1">Faraway §7.4 Quasi-likelihood</a>. (Faraway's quasi-Poisson example uses an exam dataset, so read the method and skip the numbers.) One-page summary: <a href="../reference/quasi-cheatsheet.html">quasi cheat sheet</a>.</p>
+
+<p><strong>Homework</strong> (by hand, about 15 min):</p>
+<ol>
+  <li>Swedish speed-limit trial (<code>MASS::Traffic</code>): daily accident counts on 92 days in each of 1961 and 1962, with a speed limit on some days (<code>limit</code>), <code>day</code> of the trial (1–92), and <code>year</code> as a factor.
+<pre class="rout"><span class="cmd">&gt; t2 &lt;- glm(y ~ limit + day + year, family = poisson, data = Traffic)
+&gt; summary(t2)</span>
+              Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  3.0467406  0.0372985  81.685  &lt; 2e-16 ***
+limityes    -0.1749337  0.0355784  -4.917 8.79e-07 ***
+day          0.0024164  0.0005964   4.052 5.09e-05 ***
+year1962    -0.0605503  0.0334364  -1.811   0.0702 .
+---
+    Null deviance: 625.25  on 183  degrees of freedom
+Residual deviance: 569.25  on 180  degrees of freedom
+AIC: 1467.2
+<span class="cmd">&gt; t1 &lt;- glm(y ~ limit + day, family = poisson, data = Traffic); deviance(t1)</span>
+[1] 572.5323
+<span class="cmd">&gt; (phi2 &lt;- sum(residuals(t2, type = "pearson")^2/t2$df.residual)); qf(0.95, 1, 180)</span>
+[1] 3.308482
+[1] 3.89364</pre>
+(a) \(\hat\ell\) and \(\ell_{\text{sat}}\) for t2. (b) One quantitative sign of overdispersion. (c) The SE of <code>limityes</code> and of <code>day</code> allowing for overdispersion, and a 95% CI for the accident-rate ratio with vs without a limit. (d) The F statistic and df for dropping <code>year</code> from the quasi-Poisson version, and your decision. Does the χ² test agree here?</li>
+  <li>For the seed data in §6, write the 2–3 sentence answer to "why does the quasi-binomial fit give the same estimates but a different conclusion about the interaction?" Use the numbers 0.3064, 0.4181 and 1.8618.</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1(a). \(p = 4\): \(\hat\ell = 4 - 1467.2/2 = -729.6\); \(\ell_{\text{sat}} = -729.6 + 569.25/2 = -444.98\). (b) \(D = 569.25\) on 180 df (ratio 3.2), or \(\hat\phi = 3.31 \gg 1\). (c) \(\sqrt{3.308482} = 1.8189\): SE(limityes) \(= 0.0355784\times1.8189 = 0.0647\); SE(day) \(= 0.0005964\times1.8189 = 0.00108\). CI: \(e^{-0.17493 \pm 1.96(0.0647)} = (0.74,\ 0.95)\), point estimate 0.84. A limit cuts the accident rate by about 16%, still significant. (d) \(F = (572.5323 - 569.25)/1/3.308482 = 3.2823/3.3085 = 0.99\) on (1, 180) \(&lt; 3.89\), so drop <code>year</code> (R: 0.9925, p = 0.32). χ² agrees here: \(3.28 &lt; 3.84\). Overdispersion only ever makes a term <em>less</em> significant.</p>
+<p>2. Quasi-binomial keeps the binomial mean model and only adds \(\phi\) to the variance. \(\phi\) cancels from the estimating equations, so \(\hat\beta\) (e.g. −0.7781) is unchanged. But \(\widehat{\operatorname{Var}}\hat\beta\) is scaled by \(\hat\phi = 1.8618\), so the interaction SE grows from 0.3064 to \(0.3064\sqrt{1.8618} = 0.4181\). Its \(|t| = 1.86\) (p = 0.08), and \(F = 3.44 &lt; 4.45\), so the interaction is no longer significant.</p></div></details>
+<p><strong>Spacing:</strong> tomorrow, without looking, redo Q5, Q10 and Step 6 of the challenge.</p>
+
+<div class="ask">💬 Ask me in the terminal if any line of these printouts is still a mystery (which \(\hat\phi\), why \(n - p_B\), why <code>AIC: NA</code>), or if you want another quasi printout to practise on. I'm your teacher for this. Paste your challenge answers and I'll mark them the way an exam marker would.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0011-quasi-likelihood-theory.html">Lesson 11, Quasi-likelihood theory</a> · Reference: <a href="../reference/quasi-cheatsheet.html">Quasi cheat sheet</a> · <a href="../reference/glm-cheatsheet.html">GLM cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0013-topic3-review.html">Lesson 13, Topic 3 review</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

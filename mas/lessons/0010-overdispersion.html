@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overdispersion</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  figure.plot { margin: 1.2rem 0; }
+  figure.plot img { display: block; width: 100%; height: auto; margin: 0 auto; background: #fff; border: 1px solid var(--rule); border-radius: 6px; }
+  figure.plot figcaption { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); margin-top: .4rem; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 10 · Topic 3: Overdispersion &amp; quasi-likelihood</div>
+<h1>Overdispersion: spot it in a printout, and say what goes wrong if you ignore it</h1>
+<p class="lede">The goal: handed a Poisson or binomial <code>summary()</code> plus a \(\hat\phi\) line, you can give two <em>quantitative</em> reasons the model is overdispersed, and explain in 2–3 sentences why ignoring it leads to spurious "significant" predictors.</p>
+
+<div class="mission">Why this matters for 10 Nov: overdispersion turns up inside the Poisson R-output question in every past paper, usually as a 1–2 mark "give a quantitative reason why this model may suffer from overdispersion". Once it was a stand-alone 4 marks: "what misleading results can you get by ignoring it, and why?" Both are cheap marks if you have the phrases ready, and you'll have them by the end of this page.</div>
+
+<p>You need from earlier lessons: the deviance goodness-of-fit test and its "fitted counts ≥ 5" condition (<a href="0003-deviance-lrt-aic.html">Lesson 3</a>, <a href="0007-poisson-gamma-glms.html">Lesson 7</a>), Pearson's \(X^2\) and \(\hat\phi = X^2/(n-p)\) (Lesson 7), and residuals against \(\hat\eta\) (<a href="0008-glm-diagnostics.html">Lesson 8</a>).</p>
+
+<h2>1 · What overdispersion is</h2>
+<p><strong>Overdispersion:</strong> the actual \(\operatorname{Var}Y_i\) is larger than the model says it should be (<a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=3">Overdispersion slides, slide 3</a>). The Poisson and binomial have no free dispersion parameter (\(\phi = 1\)), so the mean pins down the variance:</p>
+<div class="tablewrap"><table>
+<tr><th>Model</th><th>Model variance</th><th>Overdispersed if</th></tr>
+<tr><td>Poisson\((\mu_i)\)</td><td>\(\operatorname{Var}Y_i = \mu_i\)</td><td>\(\operatorname{Var}Y_i &gt; \mu_i\)</td></tr>
+<tr><td>Binomial\((m_i, p_i)\)</td><td>\(\operatorname{Var}Y_i = m_ip_i(1-p_i)\)</td><td>\(\operatorname{Var}Y_i &gt; m_ip_i(1-p_i)\)</td></tr>
+</table></div>
+<p>The lecturer's picture (<a href="../annotated-slides/Overdispersion_Quasilikelihood_annotated.pdf#page=4">annotated p. 4</a>): Poisson counts with \(\bar y = 100\) but \(s^2 = 400\). Poisson says these should be about equal, so the variance assumption is in doubt.</p>
+
+<p><strong>Why it happens</strong> (slide 3; <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=72">Faraway §3.4, p. 56</a>):</p>
+<ul>
+  <li><strong>Rate or \(p\) not constant</strong> (unobserved heterogeneity): a predictor that matters wasn't recorded, so units with the same \(x_i\) really have different means.</li>
+  <li><strong>Dependence</strong> between trials or events: one event triggers others, so they arrive in bunches.</li>
+  <li><strong>Clustering:</strong> you sample clusters (litters, schools, plates), and units within a cluster share a \(p\). Faraway: with clusters of size \(k\) and \(\operatorname{Var}p_i = \tau^2p(1-p)\), \(\operatorname{Var}Y = \big(1+(k-1)\tau^2\big)\,mp(1-p) \ge mp(1-p)\).</li>
+</ul>
+<p>Varying \(p\) or rate always <em>adds</em> variance, by the law of total variance: \(\operatorname{Var}Y = E[\operatorname{Var}(Y\mid\lambda)] + \operatorname{Var}(E[Y\mid\lambda]) = E\lambda + \operatorname{Var}\lambda &gt; E\lambda\) for a Poisson with random rate \(\lambda\).</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>1.</strong> A Poisson GLM models daily hospital admissions with weekday as a factor. Which of these would cause overdispersion?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Admissions arrive in clusters, such as after road crashes</button>
+    <button class="opt" data-key="b">The mean admission count differs between the seven weekdays</button>
+    <button class="opt" data-key="c">The hospital records every single admission without any error</button>
+    <button class="opt" data-key="d">Daily counts are large, averaging about forty admissions each</button>
+  </div>
+  <div class="why">Clustered events are dependent: one crash brings several admissions at once, so the day-to-day variance exceeds the mean. Option (b) is a mean difference, and the weekday factor already models it. Option (d): large counts make the GOF test <em>usable</em>, but they don't make Var exceed the mean.</div>
+</div>
+
+<h2>2 · Big deviance ≠ automatically overdispersion</h2>
+<p>A residual deviance far above its df says the model doesn't fit. It doesn't say <em>why</em> (<a href="../extra-notes/Trout%20egg%20survival_%20overdispersion%20and%20quasilikelihood.pdf#page=6">troutegg notes, p. 6</a>; <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=71">Faraway §3.4, pp. 55–56</a>). Rule out these first:</p>
+<ol class="steps">
+  <li><strong>Wrong mean structure:</strong> a missing predictor, interaction or transformation. Check: plot deviance residuals against \(\hat\eta\). A trend or curve means fix the mean, not the variance.</li>
+  <li><strong>A few outliers:</strong> a handful of huge residuals. Check the same plot or a half-normal plot.</li>
+  <li><strong>Sparse data:</strong> small fitted counts make \(D\not\approx\chi^2_{n-p}\), so "\(D\) is big" means little.</li>
+</ol>
+<p>Only when the residuals show no pattern and are big <em>everywhere</em> do you blame the variance. The troutegg notes put it as: "the model for the mean may be appropriate even when the model for the variance is not."</p>
+
+<div class="trap"><strong>Trap: binary data</strong><br>With Bernoulli responses (\(m_i = 1\)) overdispersion can't be detected this way. \(\operatorname{Var}Y = p(1-p)\) is forced for a 0/1 variable, a varying \(p\) just gives another Bernoulli, and \(D\) isn't close to \(\chi^2_{n-p}\) anyway (Faraway p. 56). You need grouped data, \(m_i &gt; 1\).</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> A logistic regression on 400 individual 0/1 outcomes has \(D = 410\) on 395 df. What does this tell you about overdispersion?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Nothing: for 0/1 responses, overdispersion cannot show up this way</button>
+    <button class="opt" data-key="b">No overdispersion: residual deviance over its df is near one</button>
+    <button class="opt" data-key="c">Mild overdispersion: phi-hat is about 1.04, so inflate SEs slightly</button>
+    <button class="opt" data-key="d">Lack of fit: the goodness-of-fit p-value falls below 0.05 here</button>
+  </div>
+  <div class="why">With \(m_i = 1\), \(D\) depends only on the fitted \(\hat p_i\) and has no \(\chi^2\) reference, and a 0/1 variable can't have variance above \(p(1-p)\). Options (b) and (c) read meaning into a ratio that has none here. Option (d) is also wrong arithmetic: \(\chi^2_{395}\) has SD \(\sqrt{790}\approx28\), so 410 is unremarkable.</div>
+</div>
+
+<h2>3 · Detecting it quantitatively from R output</h2>
+<p>Data: days absent from school in a year for 146 children in rural New South Wales (<code>quine</code> in MASS). Factors: <code>Eth</code> (A = Aboriginal, N = not), <code>Sex</code>, <code>Age</code> (school year F0–F3) and <code>Lrn</code> (AL = average learner, SL = slow learner). Baselines A, F, F0, AL.</p>
+
+<pre class="rout"><span class="cmd">&gt; m &lt;- glm(Days ~ Eth + Sex + Age + Lrn, family = poisson, data = quine)
+&gt; summary(m)</span>
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  2.71538    0.06468  41.980  &lt; 2e-16 ***
+EthN        -0.53360    0.04188 -12.740  &lt; 2e-16 ***
+SexM         <b>0.16160    0.04253   3.799</b> 0.000145 ***
+AgeF1       -0.33390    0.07009  -4.764 1.90e-06 ***
+AgeF2        0.25783    0.06242   4.131 3.62e-05 ***
+AgeF3        0.42769    0.06769   6.319 2.64e-10 ***
+LrnSL        0.34894    0.05204   6.705 2.02e-11 ***
+---
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 2073.5  on 145  degrees of freedom
+Residual deviance: <b>1696.7</b>  on <b>139</b>  degrees of freedom
+AIC: 2299.2
+
+<span class="cmd">&gt; pchisq(deviance(m), df.residual(m), lower.tail = FALSE)</span>
+[1] <b>7.866464e-266</b>
+<span class="cmd">&gt; range(fitted(m))</span>
+[1]  6.346316 32.581613
+<span class="cmd">&gt; (phi &lt;- sum(residuals(m, type = "pearson")^2/m$df.residual))</span>
+[1] <b>13.16684</b>
+<span class="cmd">&gt; m0 &lt;- glm(Days ~ Eth + Age + Lrn, family = poisson, data = quine)
+&gt; anova(m0, m, test = "Chisq")</span>
+Model 1: Days ~ Eth + Age + Lrn
+Model 2: Days ~ Eth + Sex + Age + Lrn
+  Resid. Df Resid. Dev Df Deviance  Pr(&gt;Chi)
+1       140     1711.1
+2       139     1696.7  1   <b>14.404</b> 0.0001475 ***</pre>
+
+<p>Three quantitative signals. Any one is "a quantitative reason"; give two when asked for two.</p>
+<ol class="steps">
+  <li><strong>Residual deviance ≫ residual df.</strong> If the model is right, \(D\approx\chi^2_{n-p}\), whose mean is \(n-p\). Here \(D/(n-p) = 1696.7/139 = 12.2\), not about 1.</li>
+  <li><strong>Deviance GOF p-value is tiny.</strong> \(P(\chi^2_{139}\ge1696.7) = 7.9\times10^{-266}\), so reject "model adequate". Valid only if the fitted counts are not small: here they run 6.3–32.6, all ≥ 5, so the test is trustworthy (<a href="../extra-notes/Trout%20egg%20survival_%20overdispersion%20and%20quasilikelihood.pdf#page=5">troutegg notes, pp. 5–6</a>).</li>
+  <li><strong>\(\hat\phi \gg 1\).</strong> The <code>phi</code> line is Pearson's \(\hat\phi = X^2/(n-p) = \sum_i r_{P,i}^2/(n-p) = 13.17\). A Poisson model says \(\phi = 1\); the data say the variance is about 13 times the mean (<a href="../extra-notes/Trout%20egg%20survival_%20overdispersion%20and%20quasilikelihood.pdf#page=7">troutegg notes, p. 7</a>). There's no formal cut-off: "appreciably larger than 1".</li>
+</ol>
+
+<figure class="plot">
+<img src="../assets/img/0010-quine-panel.png" alt="Two panels for the quine Poisson model. Left: log-log plot of cell variance against cell mean of Days for 22 cells with at least 3 children. Means run from about 5 to 37 and variances from about 17 to 1057. Every point lies well above the dashed line Var = mean, and the points scatter around a solid line Var = 13.2 times mean. Right: deviance residuals against eta-hat, from about -7 to 10, spread evenly across eta-hat 1.8 to 3.5. The smoothed trend line is flat just below zero, and many points lie outside plus or minus 2.">
+<figcaption>(a) Within groups of children with identical predictors, the variance is far above the mean (dashed line) and close to \(13\times\) the mean. (b) Residuals against \(\hat\eta\): no trend, so the mean structure looks fine, but 82 of 146 lie outside ±2. That's the "big everywhere" pattern of overdispersion.</figcaption>
+</figure>
+
+<div class="quiz num" data-answer="12.21" data-tol="0.02">
+  <p class="q"><strong>3.</strong> Using only the summary, compute the residual deviance per residual degree of freedom for <code>m</code> (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(1696.7/139 = \)<strong>12.21</strong>. Under the model \(E\,\chi^2_{139} = 139\), so this should be near 1. It's close to \(\hat\phi = 13.17\) but not equal: \(D/(n-p)\) uses deviance residuals, \(\hat\phi\) uses Pearson residuals. Quote \(\hat\phi\) as the dispersion estimate.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>4.</strong> What does <code>pchisq(deviance(m), df.residual(m), lower.tail = FALSE)</code> compute?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Probability a chi-squared on 139 df is at least 1696.7</button>
+    <button class="opt" data-key="b">Probability the model is correct, given the observed deviance 1696.7</button>
+    <button class="opt" data-key="c">P-value of the LRT comparing this model with the null</button>
+    <button class="opt" data-key="d">Probability a chi-squared on 139 df is at most 1696.7</button>
+  </div>
+  <div class="why">It's the deviance goodness-of-fit p-value, \(P(\chi^2_{n-p}\ge D)\): the upper tail because <code>lower.tail = FALSE</code>. Option (b) is the classic p-value misreading. Option (c) would use \(2073.5 - 1696.7\) on 6 df. Option (d) is the lower tail, which would be essentially 1.</div>
+</div>
+
+<h2>4 · What goes wrong if you ignore it</h2>
+<p>Slide 13 (<a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=13">lecture</a>, <a href="../annotated-slides/Overdispersion_Quasilikelihood_annotated.pdf#page=21">annotated p. 21</a>): "your estimation is unaffected, but your inference changes." Suppose \(\operatorname{Var}Y_i = \phi\,v(\mu_i)\) with \(\phi &gt; 1\).</p>
+<ul>
+  <li><strong>\(\hat\beta\) unchanged.</strong> The score equations are \(\sum_i \frac{(y_i-\mu_i)\,x_{ij}}{\phi\,v(\mu_i)\,g'(\mu_i)} = 0\); \(\phi\) is a common factor and cancels. Same IWLS, same estimates.</li>
+  <li><strong>\(\operatorname{Var}\hat\beta\) scales with \(\phi\).</strong> The IWLS weights carry \(1/\phi\), so \(\operatorname{Var}\hat\beta = (X^TWX)^{-1}\propto\phi\). A Poisson fit sets \(\phi = 1\), so it understates \(\operatorname{Var}\hat\beta\) by the factor \(\phi\).</li>
+</ul>
+<p>The knock-on chain (fill in the factors):</p>
+$$\text{SE}_{\text{true}} \approx \sqrt{\hat\phi}\;\text{SE}_{\text{Pois}},\qquad z_{\text{true}} \approx \frac{z_{\text{Pois}}}{\sqrt{\hat\phi}},\qquad \text{LR statistic}_{\text{true}} \approx \frac{D_A - D_B}{\hat\phi}.$$
+<p>So ignoring it gives SEs too small, \(|z|\) too large, p-values too small, CIs too narrow, and \(\chi^2\) LRTs too significant. The upshot: you <strong>keep predictors that don't really matter</strong>.</p>
+
+<div class="quiz num" data-answer="1.05" data-tol="0.01">
+  <p class="q"><strong>5.</strong> <code>SexM</code> looks highly significant in <code>m</code> (\(z = 3.799\)). Using \(\hat\phi = 13.16684\), what is its Wald statistic once overdispersion is allowed for (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\sqrt{13.16684} = 3.6286\). SE: \(0.04253\times3.6286 = 0.15432\). Statistic: \(0.16160/0.15432 = \)<strong>1.05</strong> (same as \(3.799/3.6286\)). Below 1.96: no evidence boys and girls differ. The \(\chi^2\) LRT tells the same story: \(14.404/13.167 = 1.09\), not 14.4. The "***" on <code>SexM</code> was an artefact of the Poisson variance.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>6.</strong> If you fit a Poisson model to overdispersed counts and ignore it, which statement is right?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Coefficients unchanged; standard errors too small, so p-values too small</button>
+    <button class="opt" data-key="b">Coefficients biased upward; standard errors correct, so p-values still valid</button>
+    <button class="opt" data-key="c">Coefficients unchanged; standard errors too large, so p-values too large</button>
+    <button class="opt" data-key="d">Coefficients biased toward zero; standard errors too small, CIs narrow</button>
+  </div>
+  <div class="why">\(\phi\) cancels from the estimating equations, so \(\hat\beta\) is the same. \(\operatorname{Var}\hat\beta\) is proportional to \(\phi\), and Poisson sets it to 1, so with \(\phi &gt; 1\) the SEs are too small. Option (c) is the direction for <em>under</em>dispersion (\(\phi &lt; 1\)).</div>
+</div>
+
+<details><summary>Explain why (write 2–3 sentences, then compare): by ignoring overdispersion, what misleading results can you get, and why?</summary><div>
+<p><strong>Model answer.</strong> The coefficient estimates are unaffected, because \(\phi\) cancels from the estimating equations. But the true \(\operatorname{Var}\hat\beta\) is \(\phi\) times what the Poisson/binomial model reports, so with \(\phi &gt; 1\) the standard errors are too small, the \(z\) statistics too large and the p-values too small; CIs are too narrow, and \(\chi^2\) LRTs too significant (the deviance difference should be divided by \(\hat\phi\)). We may therefore declare predictors significant, and keep them in the model, when they are not.</p></div></details>
+
+<details><summary>Explain why (2 sentences): why can't you diagnose overdispersion from a large deviance alone?</summary><div>
+<p><strong>Model answer.</strong> A large \(D\) only says the model fails somewhere: a wrong mean structure (missing predictor, interaction, transformation) or a few outliers inflate \(D\) just as a too-small variance does. So check the deviance residuals against \(\hat\eta\) first; only if there's no systematic pattern and no few extreme points do we attribute the lack of fit to overdispersion.</p></div></details>
+
+<h2>5 · The fix, in one line</h2>
+<p>Keep the Poisson/binomial mean and variance <em>shape</em>, but free the scale: \(\operatorname{Var}Y_i = \phi\,v(\mu_i)\) with \(\phi\) estimated by \(\hat\phi = X^2/(n-p)\) (<a href="../annotated-slides/Overdispersion_Quasilikelihood_annotated.pdf#page=19">annotated p. 19</a>). That's quasi-Poisson / quasi-binomial: same \(\hat\beta\), SEs \(\times\sqrt{\hat\phi}\), \(t\) instead of \(z\), and F tests instead of \(\chi^2\). Why it's legitimate without a full distribution is <a href="0011-quasi-likelihood-theory.html">Lesson 11</a>; reading its R output is <a href="0012-quasi-poisson-binomial-output.html">Lesson 12</a>. (Alternative: a different distribution, e.g. negative binomial with \(\operatorname{Var}Y = \mu + \alpha\mu^2\), <a href="../annotated-slides/Overdispersion_Quasilikelihood_annotated.pdf#page=5">annotated p. 5</a>.)</p>
+
+<h2>6 · Exam-level challenge</h2>
+<p>Do this on paper in about 12 minutes, then open the steps one at a time.</p>
+<div class="box">
+<p>A council ecologist counts weeds in 60 one-square-metre quadrats along a creek. Predictors: <code>treat</code> (control, mulch, spray; baseline control), <code>shade</code> (% canopy cover) and <code>slope</code> (ground slope, degrees). (Simulated data.)</p>
+<pre class="rout"><span class="cmd">&gt; modelA &lt;- glm(weeds ~ treat + shade, family = poisson, data = quadrats)
+&gt; summary(modelA)</span>
+Coefficients:
+             Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  3.015060   0.079966  37.704  &lt; 2e-16 ***
+treatmulch  -0.463880   0.088716  -5.229 1.71e-07 ***
+treatspray  -0.568833   0.095836  -5.935 2.93e-09 ***
+shade       -0.007025   0.001964  -3.577 0.000347 ***
+---
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 257.45  on 59  degrees of freedom
+Residual deviance: 189.71  on 56  degrees of freedom
+AIC: 444.8
+
+<span class="cmd">&gt; modelB &lt;- glm(weeds ~ treat + shade + slope, family = poisson, data = quadrats)
+&gt; summary(modelB)</span>
+Coefficients:
+             Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  3.192695   0.102822  31.051  &lt; 2e-16 ***
+treatmulch  -0.523400   0.091366  -5.729 1.01e-08 ***
+treatspray  -0.607791   0.097173  -6.255 3.98e-10 ***
+shade       -0.006649   0.001977  -3.364 0.000769 ***
+slope       -0.024270   0.009071  -2.676 0.007458 **
+---
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 257.45  on 59  degrees of freedom
+Residual deviance: 182.55  on 55  degrees of freedom
+AIC: 439.64
+
+<span class="cmd">&gt; (phi &lt;- sum(residuals(modelA, type = "pearson")^2/modelA$df.residual))</span>
+[1] 3.546302
+<span class="cmd">&gt; (phi &lt;- sum(residuals(modelB, type = "pearson")^2/modelB$df.residual))</span>
+[1] 3.402144
+<span class="cmd">&gt; pchisq(deviance(modelB), df.residual(modelB), lower.tail = FALSE)</span>
+[1] 1.369541e-15
+<span class="cmd">&gt; range(fitted(modelB))</span>
+[1]  5.997661 23.555251
+<span class="cmd">&gt; qchisq(0.95, df = 1)</span>
+[1] 3.841459</pre>
+<p>(a) Give two quantitative reasons why modelB may suffer from overdispersion. <em>(2 marks)</em><br>
+(b) What does the <code>pchisq</code> line compute? Is the approximation behind it reasonable here? <em>(1 mark)</em><br>
+(c) Before concluding the problem is overdispersion, what else could explain the large deviance, and how would you check? <em>(1 mark)</em><br>
+(d) Ignoring overdispersion, test whether <code>slope</code> is needed given <code>treat</code> and <code>shade</code>. Then recompute the Wald statistic for <code>slope</code> allowing for overdispersion. Does the conclusion change? <em>(2 marks)</em><br>
+(e) By ignoring overdispersion, what misleading results can you get here, and why? <em>(2 marks)</em></p>
+</div>
+
+<details><summary>Step 1: part (a)</summary><div>
+<p>Any two of: (i) residual deviance 182.55 is much larger than its df 55 (\(D/\text{df} = 3.32\), should be near 1); (ii) \(\hat\phi = 3.402 \gg 1\) (modelB's line, the <em>second</em> one: the first is modelA's); (iii) GOF p-value \(1.4\times10^{-15}\), strong evidence of lack of fit. One mark each; a bare "the deviance is big" without the comparison to df earns nothing.</p></div></details>
+<details><summary>Step 2: part (b)</summary><div>
+<p>\(P(\chi^2_{55}\ge182.55)\), the deviance goodness-of-fit p-value for modelB. The \(\chi^2_{n-p}\) approximation needs fitted counts that aren't small; they run 6.0–23.6, all ≥ 5, so it's reasonable, and the tiny p-value is real evidence of lack of fit.</p></div></details>
+<details><summary>Step 3: part (c)</summary><div>
+<p>A wrong mean structure (missing predictor or interaction, e.g. treat × shade, or a needed transformation) or a few outliers. Plot deviance residuals against \(\hat\eta\): a trend or curve points to the mean; a handful of extreme points to outliers; residuals large but patternless across the range point to overdispersion.</p></div></details>
+<details><summary>Step 4: part (d)</summary><div>
+<p>Ignoring it: \(189.71 - 182.55 = 7.16\) on \(56 - 55 = 1\) df, above 3.84 (p = 0.0074), so keep <code>slope</code> (the Wald \(z = -2.676\) agrees).</p>
+<p>Allowing for it, with \(\hat\phi\) from modelB: \(\sqrt{3.402144} = 1.8445\), so \(\text{SE} = 0.009071\times1.8445 = 0.01673\) and \(z = -0.024270/0.01673 = -1.45\). \(|z| &lt; 1.96\): <code>slope</code> is not significant, and the conclusion flips. (The F test of Lesson 12 agrees: \(F = 7.1659/3.402144 = 2.11\) on (1, 55) df, p = 0.15.)</p></div></details>
+<details><summary>Step 5: part (e)</summary><div>
+<p>The estimates are fine (\(\phi\) cancels from the estimating equations), but the Poisson model assumes Var = \(\mu\) while the data have Var \(\approx 3.4\mu\). So \(\operatorname{Var}\hat\beta\) is understated by a factor of about 3.4, the SEs by \(\sqrt{3.4}\approx1.84\): \(z\) values too big, p-values too small, CIs too narrow, and the \(\chi^2\) LRT too significant. Here that makes <code>slope</code> look important (p = 0.007) when, allowing for overdispersion, it isn't (and even <code>shade</code> drops to \(|z| = 3.364/1.8445 = 1.82\)).</p></div></details>
+
+<h2>7 · Before you close this tab</h2>
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) Definition: actual \(\operatorname{Var}Y_i\) &gt; model variance (\(\mu_i\) Poisson; \(m_ip_i(1-p_i)\) binomial). (2) Causes: non-constant rate/\(p\) (missing covariates), dependence between trials/events, clustering. (3) Three quantitative signals: \(D \gg n-p\); GOF p-value \(P(\chi^2_{n-p}\ge D)\) tiny (fitted counts ≥ 5); \(\hat\phi = X^2/(n-p)\gg1\). (4) Rule out wrong mean / outliers first: residuals vs \(\hat\eta\). Binary data: can't detect. (5) Ignoring it: \(\hat\beta\) fine; SEs \(\div\sqrt\phi\) too small → \(|z|\) too big, p too small, CIs narrow, LRT too significant → spurious predictors.</p>
+<p><em>Quick one:</em> a binomial model on 30 groups of 50 seeds has \(D = 31.2\) on 26 df and \(\hat\phi = 1.15\). Overdispersed? (No: \(D/\text{df} = 1.2\) and \(\hat\phi\approx1\); \(P(\chi^2_{26}\ge31.2)\approx0.22\).)</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=3">Overdispersion slides</a>, slides 3 and 13 (plus the handwritten <a href="../annotated-slides/Overdispersion_Quasilikelihood_annotated.pdf#page=4">annotated pp. 4–5, 19, 21</a>). Then the lecturer's QMD demo, <a href="../extra-notes/Trout%20egg%20survival_%20overdispersion%20and%20quasilikelihood.pdf#page=5">trout egg notes pp. 5–7</a>: GOF test, residual check, \(\hat\phi\). That's the exact workflow above on a binomial example. For a second explanation, read Faraway, <em>Extending the Linear Model with R</em>: <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=71">§3.4 overdispersion (binomial), pp. 55–57</a> and the <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=103">dispersed Poisson, pp. 87–89</a> (that one's example uses an exam dataset, so read for method only).</p>
+
+<p><strong>Homework</strong> (by hand, no R needed):</p>
+<ol>
+  <li><strong>Faraway <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=115">Ch. 5 Ex. 2</a>(b)–(c)</strong> (<code>salmonella</code>: revertant colonies on 3 replicate plates at each of 6 doses of quinoline), printout version:
+<pre class="rout"><span class="cmd">&gt; with(salmonella, cbind(mean = tapply(colonies, dose, mean),
++                        var  = tapply(colonies, dose, var)))</span>
+         mean        var
+0    21.66667  49.333333
+10   18.33333   6.333333
+33   25.00000  73.000000
+100  42.66667 274.333333
+333  37.33333  16.333333
+1000 29.66667 126.333333
+<span class="cmd">&gt; ms &lt;- glm(colonies ~ factor(dose), family = poisson, data = salmonella)
+&gt; c(deviance(ms), df.residual(ms))</span>
+[1] 33.49596 12.00000
+<span class="cmd">&gt; pchisq(deviance(ms), df.residual(ms), lower.tail = FALSE)</span>
+[1] 0.0008096273
+<span class="cmd">&gt; (phi &lt;- sum(residuals(ms, type = "pearson")^2/ms$df.residual))</span>
+[1] 2.777999
+<span class="cmd">&gt; range(fitted(ms))</span>
+[1] 18.33333 42.66667</pre>
+(a) What does the mean/variance table suggest, and why is it only a rough guide? (b) Give two quantitative reasons <code>ms</code> is overdispersed; is the GOF test valid? (c) Dose is a 6-level factor here. Why does that rule out "wrong mean structure" as the cause of the large deviance? (d) Could any transformation of dose make a Poisson model fit?</li>
+  <li><strong>Faraway <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=116">Ch. 5 Ex. 4</a>(c)</strong> (<code>africa</code>: military coups in 47 sub-Saharan countries), printout version:
+<pre class="rout"><span class="cmd">&gt; ma &lt;- glm(miltcoup ~ oligarchy + pollib + parties, family = poisson, data = africa)</span>
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  0.27416    0.36432   0.753  0.45172
+oligarchy    0.09892    0.02012   4.916 8.82e-07 ***
+pollib      -0.51592    0.19511  -2.644  0.00819 **
+parties      0.01641    0.00865   1.897  0.05778 .
+
+    Null deviance: 79.124  on 41  degrees of freedom
+Residual deviance: 42.242  on 38  degrees of freedom
+  (5 observations deleted due to missingness)
+AIC: 123.92
+<span class="cmd">&gt; (phi &lt;- sum(residuals(ma, type = "pearson")^2/ma$df.residual))</span>
+[1] 1.041739
+<span class="cmd">&gt; pchisq(deviance(ma), df.residual(ma), lower.tail = FALSE)</span>
+[1] 0.2927126
+<span class="cmd">&gt; sum(fitted(ma) &lt; 5)</span>
+[1] 41</pre>
+(a) Is there evidence of overdispersion? Use \(\hat\phi\) and \(D/\text{df}\). (b) Can you use the GOF p-value 0.29 to say the model fits? (c) Would the SE of <code>oligarchy</code> change much under quasi-Poisson?</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1(a). Variances exceed means at 4 of 6 doses, some by far (274 vs 42.7). But each is from only 3 plates, so very noisy (dose 10: 6.3 vs 18.3). (b) \(D/\text{df} = 33.50/12 = 2.79\); \(\hat\phi = 2.78\); GOF p = 0.0008. Valid: fitted counts 18–43, all ≥ 5. (c) With one free mean per dose, the fitted mean at each dose is the sample mean of its 3 plates: no mean structure in dose can do better. All remaining lack of fit is plate-to-plate variation within a dose, i.e. overdispersion. (d) No: any function of dose has at most 6 distinct means, which the factor model already achieves, and its deviance is already too big.</p>
+<p>2(a). No: \(\hat\phi = 1.04\) and \(D/\text{df} = 42.24/38 = 1.11\), both near 1. (b) No: 41 of 42 fitted counts are below 5, so \(D\not\approx\chi^2_{38}\); the GOF test is unreliable either way. \(\hat\phi\) is the safer guide. (c) Barely: \(\times\sqrt{1.04} = 1.02\), so 0.02012 → 0.0205.</p></div></details>
+<p><strong>Spacing:</strong> tomorrow, without looking, write the model answer to "by ignoring overdispersion what misleading results can you get, and why?", then redo Q5 and Step 4 of the challenge.</p>
+
+<div class="ask">💬 Ask me in the terminal if any line of these printouts is still unclear (which \(\hat\phi\) line to use, why the GOF test needs fitted counts ≥ 5, why \(\hat\beta\) doesn't change), or if you want another overdispersion printout to practise on. Paste your challenge answers and I'll mark them the way an exam marker would.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0009-topic2-review.html">Lesson 9, Topic 2 review</a> · Reference: <a href="../reference/quasi-cheatsheet.html">Quasi-likelihood cheat sheet</a> · <a href="../reference/glm-cheatsheet.html">GLM cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0011-quasi-likelihood-theory.html">Lesson 11, quasi-likelihood theory</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

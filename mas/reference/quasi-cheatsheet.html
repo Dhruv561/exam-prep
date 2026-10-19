@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quasi-likelihood Cheat Sheet</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  body.ref table { font-size: .84rem; margin: .6rem 0; }
+  body.ref th, body.ref td { padding: .28rem .45rem; }
+  body.ref p, body.ref li { margin: .35rem 0; }
+  body.ref .box { padding: .6rem .9rem; margin: .7rem 0; }
+  body.ref .trap { padding: .5rem .8rem; margin: .7rem 0; }
+  .src { font-family: Inter, system-ui, sans-serif; font-size: .72rem; color: var(--muted); }
+  @page { size: A4; margin: 9mm 10mm; }
+  @media print {
+    html { font-size: 7.6pt; }
+    body.ref main { max-width: none; }
+    body.ref ul { padding-left: 1.2rem; margin: .2rem 0; }
+    body.ref p, body.ref li { margin: .15rem 0; line-height: 1.4; }
+    body.ref .box { padding: .3rem .6rem; margin: .4rem 0; }
+    body.ref .trap { padding: .3rem .6rem; margin: .4rem 0; }
+    body.ref th, body.ref td { padding: .15rem .35rem; }
+    body.ref h1 { font-size: 1.5rem; margin: 0 0 .2rem; }
+    body.ref .lede { font-size: .95rem; margin: 0 0 .4rem; }
+    body.ref h2 { margin-top: .7rem; padding-top: .3rem; font-size: 1.05rem; }
+    body.ref table { font-size: .8rem; }
+    .katex-display { margin: .3rem 0; }
+  }
+</style>
+</head>
+<body class="ref">
+<main>
+<div class="kicker">MAST30027 · Reference</div>
+<h1>Overdispersion and quasi-likelihood</h1>
+<p class="lede">Topic 3 on one printed page. Every past paper's GLM R-output question uses the bottom half. Each heading links to the lesson that teaches it.</p>
+
+<h2>Overdispersion <span class="kicker">· <a href="../lessons/0010-overdispersion.html">Lesson 10</a></span></h2>
+<p><strong>Definition:</strong> the actual \(\operatorname{Var}Y_i\) is larger than the model says (Poisson \(\mu_i\); binomial \(m_ip_i(1-p_i)\)). <strong>Causes:</strong> dependent trials or events (clustering), a \(p\) or rate that varies between units (missing covariates). Lack of fit can also come from a wrong mean structure or outliers, so check residuals vs \(\hat\eta\) for a trend first. <span class="src"><a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=3">slide 3</a>; <a href="../extra-notes/Trout%20egg%20survival_%20overdispersion%20and%20quasilikelihood.pdf">troutegg notes</a></span></p>
+<table>
+<tr><th>Quantitative evidence (exam: "give a quantitative reason")</th><th>Overdispersed if</th></tr>
+<tr><td>Residual deviance vs residual df</td><td>\(D \gg n-p\) (e.g. 506 on 42 df); \(D\approx\chi^2_{n-p}\) needs large counts, and Bernoulli data (\(m_i=1\)) can't show it</td></tr>
+<tr><td>Fit test <code>pchisq(D, df, lower.tail=FALSE)</code></td><td>p-value tiny</td></tr>
+<tr><td>\(\hat\phi=X^2/(n-p)\), \(X^2=\sum(y_i-\hat\mu_i)^2/v(\hat\mu_i)\) <code>sum(residuals(m,"pearson")^2)/m$df.residual</code></td><td>\(\hat\phi\gg1\)</td></tr>
+</table>
+<div class="box"><strong>Ignoring it (model answer):</strong> \(\hat\beta\) is unaffected, but \(\operatorname{Var}\hat\beta\) is underestimated by the factor \(\phi\). SEs are too small, so z-values are too large, p-values too small, CIs too narrow and χ² LRTs too significant. You end up keeping predictors that aren't important. <span class="src"><a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=13">slide 13</a></span></div>
+
+<h2>Quasi-likelihood <span class="kicker">· <a href="../lessons/0011-quasi-likelihood-theory.html">Lesson 11</a></span></h2>
+<p>Specify only \(g(\mu_i)=x_i^T\beta\), \(\mathbb EY_i=\mu_i\), \(\operatorname{Var}Y_i=\phi\,v(\mu_i)\). IWLS needs only \(g\) and \(v\). <span class="src"><a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=4">slides 4–8</a></span></p>
+<div class="box">
+$$u_i=\frac{Y_i-\mu_i}{\phi v(\mu_i)}:\quad \mathbb Eu_i=0,\quad \operatorname{Var}u_i=\frac1{\phi v(\mu_i)},\quad -\mathbb E\frac{\partial u_i}{\partial\mu_i}=\frac1{\phi v(\mu_i)}=\mathbb Eu_i^2$$
+$$Q_i=\int_{y_i}^{\mu_i}\frac{y_i-t}{\phi\,v(t)}\,dt\ \le 0,\qquad Q=\sum_i Q_i,\qquad \frac{D_Q}{\phi}=-2\sum_iQ_i\ \text{(scaled; saturated }Q=0),\qquad D_Q=-2\sum_i\int_{y_i}^{\mu_i}\frac{y_i-t}{v(t)}\,dt$$
+</div>
+<table>
+<tr><th>\(v(\mu)\)</th><th>\(\phi\,Q_i\)</th><th>\(D_Q\) equals</th></tr>
+<tr><td>\(\mu\) (quasi-Poisson)</td><td>\(y\log(\mu/y)-(\mu-y)\)</td><td>Poisson deviance</td></tr>
+<tr><td>\(\mu(m-\mu)/m\) (quasi-binomial)</td><td>\(y\log(\mu/y)+(m-y)\log\frac{m-\mu}{m-y}\)</td><td>binomial deviance</td></tr>
+<tr><td>\(\mu^2\)</td><td>\(-\frac{y}{\mu}+1-\log\frac{\mu}{y}\)</td><td>gamma deviance</td></tr>
+</table>
+<p class="src">Slides 10–11 write \(Q_i\) up to terms free of \(\mu\): quasi-Poisson \(\frac1\phi[y\log\mu-\mu]\). Use the definite integral (as above) for numeric \(Q\) and \(D_Q\). Use \(0\log0=0\).</p>
+<ul>
+  <li>\(1/\phi\) factors out of the quasi-score equations, so \(\hat\beta_{\text{quasi}}=\hat\beta_{\text{MLE}}\) and the deviances match. \(\phi\) is estimated by \(X^2/(n-p)\), not by maximising \(Q\). Asymptotics are as for the MLE, but less efficient when the true distribution is known. <span class="src"><a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=7">slide 7</a>, <a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=12">12</a></span></li>
+  <li><strong>"Can you fit [non-standard] responses with quasi-likelihood? How?"</strong> Yes: write the variance as \(\phi\,v(\mu)\) using the known mean–variance relation, pick a link \(g\), fit by IWLS (<code>family=quasi(link=…, variance=…)</code>), set \(\hat\phi=X^2/(n-p)\), and compare models with F tests.</li>
+</ul>
+
+<h2>Quasi-Poisson / quasi-binomial R output <span class="kicker">· <a href="../lessons/0012-quasi-poisson-binomial-output.html">Lesson 12</a></span></h2>
+<div class="box">
+$$\text{Poisson vs quasi-Poisson: } \operatorname{Var}Y=\mu \text{ vs } \phi\mu;\qquad \text{quasi-binomial: } \operatorname{Var}Y=\phi\,m p(1-p)$$
+$$\mathrm{SE}_{\text{quasi}}=\sqrt{\hat\phi}\;\mathrm{SE}_{\phi=1},\qquad t=z/\sqrt{\hat\phi},\qquad F=\frac{(D_A-D_B)/s}{\hat\phi_B}\approx F_{s,\;n-p_B}\quad(A\subset B,\ s=p_B-p_A)$$
+</div>
+<ul>
+  <li>Same \(\hat\beta\), fitted values, predictions and deviances in both fits. Quasi output shows <code>t value</code>, <code>Pr(&gt;|t|)</code>, <code>(Dispersion parameter for quasipoisson family taken to be φ̂)</code>, and <code>AIC: NA</code> because there's no likelihood.</li>
+  <li>The reverse direction: Poisson SE \(=\) quasi SE \(\div\sqrt{\hat\phi}\).</li>
+  <li>The F test uses \(\hat\phi\) from the <strong>bigger</strong> model. R: <code>anova(A, B, test="F")</code> on quasi fits, or <code>anova(A, B, dispersion=phihat, test="F")</code> on Poisson/binomial fits (same F, but the p-value uses ∞ denominator df, so it differs slightly). <code>drop1</code>/<code>step</code> don't work for quasi fits (slide 12). <span class="src"><a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=9">slide 9</a></span></li>
+  <li>The deviance can't test fit for a quasi model, so don't use χ² on the raw \(\Delta D\). Allowing for \(\phi\), F is smaller than \(\Delta D/s\) and terms often stop being significant.</li>
+  <li>Still asked on the same question: Poisson \(\hat\ell=p-\text{AIC}/2\), saturated \(\ell_s=\hat\ell+D/2\), prediction \(\exp(\hat\eta)\) (plus offset), Wald CI \(\hat\beta\pm1.96\,\mathrm{SE}\).</li>
+</ul>
+<div class="trap"><strong>Traps</strong><br>The printout gives two \(\hat\phi\) lines: use the big model's for F and the model in question's for its SEs · the F df are \((s,\,n-p_B)\), not \((s,\,n-p_A)\) · don't divide the estimate by anything: only SEs and test statistics change · \(\hat\phi=X^2/(n-p)\) (Pearson), not \(D/(n-p)\) · for a quasi fit R doesn't print an AIC, so get \(\hat\ell\) from the Poisson fit.</div>
+
+<div class="box"><strong>"Difference between Poisson and quasi-Poisson" (2–3 sentences):</strong> Poisson assumes \(\operatorname{Var}Y_i=\mu_i\) (\(\phi=1\)); quasi-Poisson assumes \(\operatorname{Var}Y_i=\phi\mu_i\) with \(\phi\) estimated by \(X^2/(n-p)\), and only the mean and variance are specified, not a distribution. The estimates are identical, but quasi SEs are \(\sqrt{\hat\phi}\) times larger and nested models are compared with an F test instead of χ².</div>
+</main>
+</body>
+</html>

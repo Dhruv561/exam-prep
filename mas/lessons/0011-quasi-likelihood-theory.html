@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quasi-likelihood Theory</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 11 · Topic 3: Overdispersion &amp; quasi-likelihood</div>
+<h1>Quasi-likelihood: a likelihood substitute built from a mean and a variance</h1>
+<p class="lede">The goal: from \(\mathbb EY=\mu\) and \(\operatorname{Var}Y=\phi v(\mu)\) alone, write the quasi-score, integrate it to the quasi log-likelihood \(Q\), and compute \(Q\), the scaled quasideviance and the quasideviance by hand. Then see why quasi-Poisson and quasi-binomial give exactly the Poisson and binomial \(\hat\beta\).</p>
+
+<div class="mission">Why this matters for 10 Nov: past papers ask the quasi theory in words ("difference between Poisson and quasi-Poisson in 2–3 sentences"; "could you fit [unusual responses] with quasi-likelihood? How?"). The derivations and computations here haven't been examined yet, but they are three of the six learning goals on <a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=2">slide 2</a>, and the lecturer says anything not excluded is assessable. Expect them pitched like the yearly Q1: write it down, differentiate, take an expectation.</div>
+
+<p>You need: \(v(\mu)=b''(\theta)\) written in \(\mu\) (<a href="0005-exponential-families.html">Lesson 5</a>), the GLM score equations and IWLS (<a href="0006-glm-likelihood-iwls.html">Lesson 6</a>), the deviance \(D=2(\ell_{\text{sat}}-\ell)\) (<a href="0003-deviance-lrt-aic.html">Lesson 3</a>), and why we want a dispersion \(\phi&gt;1\) (<a href="0010-overdispersion.html">Lesson 10</a>).</p>
+
+<h2>1 · What IWLS actually needs</h2>
+<p>Look back at IWLS (<a href="0006-glm-likelihood-iwls.html">Lesson 6</a>): \(z_i=\eta_i+(y_i-\mu_i)g'(\mu_i)\), \(W_{ii}=1/(g'(\mu_i)^2v(\mu_i))\). Only \(g\) and \(v\) appear. So the fit works from three assumptions (<a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=4">slide 4</a>):</p>
+$$g(\mu_i)=x_i^T\beta,\qquad \mathbb EY_i=\mu_i,\qquad \operatorname{Var}Y_i=\phi\,v(\mu_i),\qquad Y_i\text{ independent}.$$
+<p>No density. But deviances, LRTs and AIC need a likelihood, and you have none. Quasi-likelihood builds a substitute from the mean and variance only (<a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=5">slide 5</a>). The price: in general it's <strong>less efficient</strong> than the MLE (larger variance), so if you know the distribution, use it.</p>
+
+<h2>2 · The quasi-score behaves like a score</h2>
+<p>Recall the log-likelihood facts behind every MLE result (<a href="0001-mle-fisher-information.html">Lesson 1</a>; the lecturer's recap, <a href="../annotated-slides/Overdispersion_Quasilikelihood_annotated.pdf#page=10">annotated p. 10</a>): the score \(U(\mu)=\partial\ell/\partial\mu\) has \(\mathbb EU=0\) and \(-\mathbb E[\partial U/\partial\mu]=\mathbb E[U^2]\). Define the <strong>quasi-score</strong> (<a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=6">slide 6</a>):</p>
+$$u_i=\frac{Y_i-\mu_i}{\phi\,v(\mu_i)}.$$
+<p>It has the same three properties. The missing lines:</p>
+$$\mathbb Eu_i=\frac{\mathbb EY_i-\mu_i}{\phi v(\mu_i)}=0,\qquad \operatorname{Var}u_i=\frac{\operatorname{Var}Y_i}{(\phi v(\mu_i))^2}=\frac{\phi v(\mu_i)}{(\phi v(\mu_i))^2}=\frac{1}{\phi v(\mu_i)}.$$
+<p>Quotient rule (\(v'\) is the derivative of \(v\); \(\phi\) is constant), then use \(\mathbb E(Y_i-\mu_i)=0\):</p>
+$$\frac{\partial u_i}{\partial\mu_i}=\frac{-\phi v(\mu_i)-(Y_i-\mu_i)\,\phi v'(\mu_i)}{(\phi v(\mu_i))^2}
+\;\Rightarrow\;
+-\mathbb E\frac{\partial u_i}{\partial\mu_i}=\frac{\phi v(\mu_i)-0}{(\phi v(\mu_i))^2}=\frac{1}{\phi v(\mu_i)}=\operatorname{Var}u_i+(\mathbb Eu_i)^2=\mathbb Eu_i^2.$$
+<p>So \(u_i\) plays the role of \(\partial\ell_i/\partial\mu_i\), and \(\int u_i\,d\mu_i\) should play the role of \(\ell_i\) (<a href="../annotated-slides/Overdispersion_Quasilikelihood_annotated.pdf#page=12">annotated p. 12</a>: "play the role of a log-likelihood").</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> What must be true for \(\mathbb Eu_i=0\) and \(\operatorname{Var}u_i=1/(\phi v(\mu_i))\) to both hold?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The mean model is right; the variance can be anything.</button>
+    <button class="opt" data-key="b">The mean and variance models are right; nothing else is.</button>
+    <button class="opt" data-key="c">The response follows an exponential family with a known dispersion.</button>
+    <button class="opt" data-key="d">The response is normal, with the stated mean and variance.</button>
+  </div>
+  <div class="why">\(\mathbb Eu_i=0\) uses only \(\mathbb EY_i=\mu_i\); \(\operatorname{Var}u_i\) uses \(\operatorname{Var}Y_i=\phi v(\mu_i)\). No density appears anywhere, which is the whole point. Option (a) is enough for \(\mathbb Eu_i=0\) (and for \(-\mathbb E\,\partial u/\partial\mu=1/(\phi v)\)) but not for the variance.</div>
+</div>
+
+<h2>3 · Quasi log-likelihood, scaled quasideviance, quasideviance</h2>
+<p>Integrate the score from the data point up to the mean (<a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=7">slide 7</a>):</p>
+<div class="box">
+$$Q_i=\int_{y_i}^{\mu_i}\frac{y_i-t}{\phi\,v(t)}\,dt\ \ (\le0),\qquad \frac{\partial Q_i}{\partial\mu_i}=\frac{y_i-\mu_i}{\phi v(\mu_i)}=u_i,\qquad Q=\sum_{i=1}^nQ_i.$$
+</div>
+<p>\(\partial Q_i/\partial\mu_i=u_i\) is the fundamental theorem of calculus (only the upper limit depends on \(\mu_i\)). <strong>Why \(Q_i\le0\):</strong> \(v&gt;0\). If \(\mu_i&gt;y_i\), every \(t\in(y_i,\mu_i)\) has \(y_i-t&lt;0\), integrated upwards: negative. If \(\mu_i&lt;y_i\), the integrand is positive but you integrate downwards: negative again. \(Q_i=0\) only when \(\mu_i=y_i\).</p>
+<p>The <strong>saturated</strong> model has \(\hat\mu_i=y_i\), so every \(Q_i^s=\int_{y_i}^{y_i}=0\) (<a href="../annotated-slides/Overdispersion_Quasilikelihood_annotated.pdf#page=14">annotated p. 14</a>). Copy the deviance \(2(\ell_{\text{sat}}-\ell)\) (<a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=8">slide 8</a>):</p>
+$$\underbrace{\frac{D_Q}{\phi}=-2\Big[\sum_iQ_i-\sum_iQ_i^s\Big]=-2\sum_iQ_i}_{\text{scaled quasideviance}},\qquad
+\underbrace{D_Q=-2\sum_i\int_{y_i}^{\mu_i}\frac{y_i-t}{v(t)}\,dt}_{\text{quasideviance (no }\phi)}.$$
+<p>Order of work for any \(v\): compute \(\phi Q_i\) (the integral without \(\phi\)); sum; \(D_Q=-2\sum\phi Q_i\); then \(Q=\sum\phi Q_i/\phi\) and \(D_Q/\phi\) with the given \(\phi\) (or \(\hat\phi\)).</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> Why is \(Q_i\le0\) whatever the value of \(\mu_i\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The integrand's sign always opposes the direction of the integration.</button>
+    <button class="opt" data-key="b">The variance function is negative between the data and fit.</button>
+    <button class="opt" data-key="c">Each term is the log of a probability below one.</button>
+    <button class="opt" data-key="d">Pearson's statistic is always at least as big as deviance.</button>
+  </div>
+  <div class="why">\(v(t)&gt;0\), so the integrand has the sign of \(y_i-t\): negative when integrating up from \(y_i\) to \(\mu_i&gt;y_i\), positive when integrating down to \(\mu_i&lt;y_i\). Either way the integral is \(\le0\). Option (c) is the trap: \(Q_i\) is <em>not</em> a log-probability. There is no density, and for continuous data a true log-likelihood can be positive anyway.</div>
+</div>
+
+<h2>4 · Quasi-Poisson and quasi-binomial: same \(\hat\beta\), same deviance</h2>
+<h3>Quasi-Poisson, \(v(\mu)=\mu\)</h3>
+<p>The lecturer's working (<a href="../annotated-slides/Overdispersion_Quasilikelihood_annotated.pdf#page=17">annotated p. 17</a>), with the lower limit kept:</p>
+$$Q_i=\frac1\phi\int_{y_i}^{\mu_i}\Big(\frac{y_i}{t}-1\Big)dt=\frac1\phi\Big[y_i\log t-t\Big]_{y_i}^{\mu_i}=\frac1\phi\Big[\underbrace{y_i\log\mu_i-\mu_i}_{\text{slide 10}}-\underbrace{(y_i\log y_i-y_i)}_{\text{free of }\mu}\Big].$$
+$$D_Q=-2\sum_i\phi Q_i=2\sum_i\Big[y_i\log\frac{y_i}{\mu_i}-(y_i-\mu_i)\Big]=\text{the Poisson deviance}.$$
+
+<div class="trap"><strong>Trap: which \(Q_i\)?</strong><br><a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=10">Slide 10</a> writes \(Q_i=\frac1\phi[y_i\log\mu_i-\mu_i]\), dropping \(y_i\log y_i-y_i\). That's fine for maximising over \(\beta\) and for <em>differences</em> between nested models (the constant cancels). It is not \(\le0\), and \(-2\sum\) of it is not \(D_Q\). For numeric \(Q\), \(D_Q/\phi\) and \(D_Q\), use the definite integral. Example \(y=3,\mu=5\): full \(\phi Q_i=-0.4675\); slide form \(3\log5-5=-0.1717\). Use \(0\log0=0\) when \(y_i=0\).</div>
+
+<h3>Quasi-binomial, \(v(\mu)=\mu(m-\mu)/m\)</h3>
+<p>Partial fractions: \(\dfrac{m(y-t)}{t(m-t)}=\dfrac{y}{t}-\dfrac{m-y}{m-t}\). So</p>
+$$\phi Q_i=\Big[y_i\log t+(m_i-y_i)\log(m_i-t)\Big]_{y_i}^{\mu_i}=y_i\log\frac{\mu_i}{y_i}+(m_i-y_i)\log\frac{m_i-\mu_i}{m_i-y_i}.$$
+<p>The \(\mu\)-part \(y_i\log\mu_i+(m_i-y_i)\log(m_i-\mu_i)=y_i\log\frac{\mu_i}{m_i-\mu_i}+m_i\log(m_i-\mu_i)\) is <a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=11">slide 11</a>'s form, and \(D_Q\) is the binomial deviance. In both cases \(Q\) is the log-likelihood (up to a constant) times \(1/\phi\).</p>
+
+<h3>Why \(\hat\beta_{\text{quasi}}=\hat\beta_{\text{MLE}}\)</h3>
+<p>Chain rule, as in Lesson 6 (\(\partial\mu_i/\partial\beta_j=x_{ij}/g'(\mu_i)\)):</p>
+$$\frac{\partial Q}{\partial\beta_j}=\sum_i\frac{\partial Q_i}{\partial\mu_i}\frac{\partial\mu_i}{\partial\beta_j}=\frac1\phi\sum_i\frac{(y_i-\mu_i)\,x_{ij}}{v(\mu_i)\,g'(\mu_i)}=0
+\;\Longleftrightarrow\;\sum_i\frac{(y_i-\hat\mu_i)\,x_{ij}}{v(\hat\mu_i)\,g'(\hat\mu_i)}=0.$$
+<p>These are the GLM score equations with \(1/\phi\) factored out, so IWLS solves them and \(\phi\) doesn't matter (<a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=10">slide 10</a>: "pretend it is a regular Poisson regression"). Same \(\hat\beta\), same \(\hat\mu\), so the same \(D_Q\): R prints identical residual deviances for <code>poisson</code> and <code>quasipoisson</code>. What differs is the scaled quasideviance \(D_Q/\hat\phi\) and the SEs (\(\times\sqrt{\hat\phi}\), next lesson) (<a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=12">slide 12</a>).</p>
+<p><strong>\(\phi\) is estimated by Pearson</strong>, \(\hat\phi=X^2/(n-p)\), \(X^2=\sum(y_i-\hat\mu_i)^2/v(\hat\mu_i)\) (slide 7). Not by maximising \(Q\): \(Q=\frac1\phi\times(\text{something}\le0)\) increases towards 0 as \(\phi\to\infty\), since \(Q\) has no \(c(y,\phi)\)-type term to penalise large \(\phi\). The usual MLE asymptotics (consistency, approximate normality, \(\operatorname{Var}\hat\beta\approx\phi(X^TWX)^{-1}\)) still hold (slide 7). When \(v\) matches the true family, quasi = MLE for \(\beta\); otherwise it's less efficient.</p>
+
+<h2>5 · By hand: \(Q\), scaled quasideviance, quasideviance</h2>
+<p>Pothole reports on four road segments in two council zones (simulated). Quasi-Poisson, log link, one indicator for zone B. Fitted means are the zone means:</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>segment</th><th>zone</th><th>\(y_i\)</th><th>\(\hat\mu_i\)</th></tr>
+<tr><td>1</td><td>A</td><td>3</td><td>5</td></tr>
+<tr><td>2</td><td>A</td><td>7</td><td>5</td></tr>
+<tr><td>3</td><td>B</td><td>12</td><td>8</td></tr>
+<tr><td>4</td><td>B</td><td>4</td><td>8</td></tr>
+</table></div>
+<p>\(\hat\phi=X^2/(n-p)=\frac12\Big[\frac{4+4}{5}+\frac{16+16}{8}\Big]=\frac{1.6+4}{2}=2.8\). Use \(\phi Q_i=y_i\log(\hat\mu_i/y_i)-(\hat\mu_i-y_i)\).</p>
+
+<div class="quiz num" data-answer="-0.1670" data-tol="0.0015">
+  <p class="q"><strong>3.</strong> Compute \(Q_1\) (segment 1) using \(\hat\phi=2.8\) (4 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\phi Q_1=3\log(5/3)-2=3(0.5108)-2=-0.4675\), so \(Q_1=-0.4675/2.8=\)<strong>−0.1670</strong>. Negative, as it must be. The other three: \(\phi Q_2=7\log(5/7)+2=-0.3553\), \(\phi Q_3=12\log(8/12)+4=-0.8656\), \(\phi Q_4=4\log2-4=-1.2274\).</div>
+</div>
+
+<div class="quiz num" data-answer="5.832" data-tol="0.006">
+  <p class="q"><strong>4.</strong> Compute the quasideviance \(D_Q\) (3 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\sum\phi Q_i=-0.4675-0.3553-0.8656-1.2274=-2.9158\), so \(D_Q=-2(-2.9158)=\)<strong>5.832</strong>. R's <code>deviance()</code> of either the <code>poisson</code> or the <code>quasipoisson</code> fit gives 5.831643: \(D_Q\) for \(v(\mu)=\mu\) is the Poisson deviance.</div>
+</div>
+
+<div class="quiz num" data-answer="2.083" data-tol="0.004">
+  <p class="q"><strong>5.</strong> Compute the scaled quasideviance \(D_Q/\hat\phi=-2Q\) (3 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(5.8316/2.8=\)<strong>2.083</strong> (equivalently \(Q=-2.9158/2.8=-1.0414\), times \(-2\)). Compare with \(n-p=2\): with \(\hat\phi\) from Pearson, \(D_Q/\hat\phi\) lands near \(n-p\) more or less by construction, so it can't test fit (<a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=12">slide 12</a>).</div>
+</div>
+
+<h2>6 · A variance with no standard family: \(v(\mu)=\mu^3\)</h2>
+<p>Quasi-likelihood lets you pick any sensible \(v\) (Faraway <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=202">§9.4, pp. 186–188</a> uses <code>quasi(link=log, variance="mu^2")</code>; Faraway's mammal-sleep example in the <a href="../extra-notes/Faraway%20-%20Quasi-likelihood-1.pdf#page=3">course notes</a> uses \(\mu(1-\mu)\) for proportions that aren't binomial). Take \(v(\mu)=\mu^3\), where the SD grows like \(\mu^{3/2}\):</p>
+$$\phi Q_i=\int_{y_i}^{\mu_i}\big(y_it^{-3}-t^{-2}\big)dt=\Big[-\frac{y_i}{2t^2}+\frac1t\Big]_{y_i}^{\mu_i}=-\frac{y_i}{2\mu_i^2}+\frac1{\mu_i}-\frac{1}{2y_i}=-\frac{(y_i-\mu_i)^2}{2y_i\mu_i^2}.$$
+<p>(Last step: common denominator \(2y_i\mu_i^2\), numerator \(-y_i^2+2y_i\mu_i-\mu_i^2\).) So \(D_Q=\sum_i(y_i-\mu_i)^2/(y_i\mu_i^2)\), which is the inverse Gaussian deviance. Similarly \(v=\mu^2\) gives \(\phi Q_i=1-\frac{y_i}{\mu_i}+\log\frac{y_i}{\mu_i}\), the gamma deviance (see the <a href="../reference/quasi-cheatsheet.html">quasi cheatsheet</a> table). Simulated reaction times (s) at four sedative doses:</p>
+<pre class="rout"><span class="cmd">&gt; rbind(dose, time)</span>
+     [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12]
+dose 1.00 1.00 1.00 2.00 2.00 2.00 3.00 3.00 3.00  4.00  4.00  4.00
+time 3.06 2.84 1.54 2.54 2.18 5.19 2.14 1.31 3.44  7.01  6.25  4.63
+<span class="cmd">&gt; fq &lt;- glm(time ~ dose, family = quasi(link = "log", variance = "mu^3"))
+&gt; summary(fq)</span>
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)   0.6563     0.2760   2.378   0.0387 *
+dose          0.2222     0.1112   1.998   0.0737 .
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for quasi family taken to be 0.05465336)
+
+    Null deviance: 0.99535  on 11  degrees of freedom
+Residual deviance: 0.73025  on 10  degrees of freedom
+AIC: NA
+
+Number of Fisher Scoring iterations: 8
+
+<span class="cmd">&gt; mu &lt;- fitted(fq)
+&gt; sum((time - mu)^2/(time * mu^2))</span>
+[1] 0.7302472
+<span class="cmd">&gt; coef(glm(time ~ dose, family = inverse.gaussian(link = "log")))</span>
+(Intercept)        dose
+  0.6562539   0.2222204
+<span class="cmd">&gt; logLik(fq)</span>
+'log Lik.' NA (df=3)</pre>
+<p>Same \(\hat\beta\) as the inverse Gaussian MLE (same \(v\), same \(g\)). <code>AIC: NA</code> and <code>logLik</code> NA: there is no likelihood, only \(Q\).</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>6.</strong> What does the line <code>sum((time - mu)^2/(time * mu^2))</code> compute?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Pearson's chi-squared statistic, summed over all twelve observations.</button>
+    <button class="opt" data-key="b">The quasideviance, minus twice the unscaled quasi log-likelihood.</button>
+    <button class="opt" data-key="c">The scaled quasideviance, divided by the dispersion estimate.</button>
+    <button class="opt" data-key="d">The quasi log-likelihood, with dispersion fixed at one.</button>
+  </div>
+  <div class="why">Each term is \(-2\phi Q_i=(y_i-\mu_i)^2/(y_i\mu_i^2)\) for \(v=\mu^3\), so the sum is \(D_Q\), matching <code>Residual deviance: 0.73025</code>. Pearson's \(X^2\) would divide by \(v(\hat\mu_i)=\hat\mu_i^3\), not \(y_i\hat\mu_i^2\): \(X^2=0.05465\times10=0.5465\). (d) is wrong on sign: \(Q\le0\) but this sum is positive.</div>
+</div>
+
+<div class="quiz num" data-answer="13.36" data-tol="0.02">
+  <p class="q"><strong>7.</strong> From the printout, compute the scaled quasideviance \(D_Q/\hat\phi\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(0.73025/0.05465336=\)<strong>13.36</strong>, so \(Q=-6.68\). Compare with the residual df 10: same ballpark, as expected when \(\hat\phi\) comes from the same residuals (Pearson and deviance measure misfit slightly differently, so they don't match exactly).</div>
+</div>
+
+<h3>Explain why (write 2–3 sentences, then check)</h3>
+<div class="box">
+<p><strong>E1.</strong> State the difference between a Poisson and a quasi-Poisson model.</p>
+<details><summary>Model answer</summary><div><p>Poisson assumes \(\operatorname{Var}Y_i=\mu_i\) (\(\phi=1\)) and a full distribution; quasi-Poisson assumes only \(\mathbb EY_i=\mu_i\), \(\operatorname{Var}Y_i=\phi\mu_i\) with \(\phi\) free, estimated by \(X^2/(n-p)\). The quasi-score equations are the Poisson ones times \(1/\phi\), so \(\hat\beta\) and the deviance are identical. SEs are multiplied by \(\sqrt{\hat\phi}\), model comparisons use F instead of \(\chi^2\), and there is no likelihood, so no AIC.</p></div></details>
+<p><strong>E2.</strong> Why is \(\phi\) estimated by Pearson's \(X^2/(n-p)\) rather than by maximising \(Q\)?</p>
+<details><summary>Model answer</summary><div><p>\(\phi\) enters \(Q\) only as an overall factor \(1/\phi\) on a quantity \(\le0\), so \(Q\) increases towards 0 as \(\phi\to\infty\) and has no finite maximiser. A real log-likelihood has a \(c(y,\phi)\) term that stops this; \(Q\) doesn't. \(\operatorname{Var}Y_i=\phi v(\mu_i)\) gives \(\mathbb E\sum(Y_i-\mu_i)^2/v(\mu_i)=n\phi\), so \(X^2/(n-p)\) (moment estimator, \(p\) df used up by \(\hat\beta\)) is the natural choice.</p></div></details>
+<p><strong>E3.</strong> When is the quasi-likelihood estimator of \(\beta\) as efficient as the MLE, and when is it worse?</p>
+<details><summary>Model answer</summary><div><p>If the true distribution is the exponential family whose variance function is the \(v\) you chose, \(Q\) is that log-likelihood up to a constant and a factor \(1/\phi\), so \(\hat\beta\) is the MLE. If the true distribution is something else with the same mean and variance, \(\hat\beta\) is still consistent and approximately normal, but the MLE under the true distribution uses more information and has smaller variance.</p></div></details>
+</div>
+
+<h2>7 · Exam-level challenge (11 marks, about 20 minutes)</h2>
+<div class="box">
+<p>A lab measures lead concentration \(Y_i\) (μg/L) in tap-water samples. Concentrations are lognormal: \(\log Y_i\sim N(m_i,\sigma^2)\) independently, where \(\sigma=0.4\) is known from the lab's repeat-measurement studies. You want to model \(\mu_i=\mathbb EY_i\) by pipe type, \(\log\mu_i=\beta_0+\beta_1x_i\) (\(x_i=1\) for old solder joints). You may use: if \(\log Y\sim N(m,\sigma^2)\) then \(\mathbb E(Y^k)=e^{km+k^2\sigma^2/2}\).</p>
+<p>(a) Show that \(\operatorname{Var}Y_i=\phi\,v(\mu_i)\) and identify \(v\) and \(\phi\) (give \(\phi\) numerically). <em>[2]</em><br>
+(b) Could you fit this regression using quasi-likelihood? If so, describe how (link, variance function, fitting, \(\phi\), testing). <em>[2]</em><br>
+(c) Derive \(Q_i\) for your \(v\), and hence the quasideviance \(D_Q\). <em>[2]</em><br>
+(d) Four samples: \(y=(2,\,6)\) for new pipes and \(y=(5,\,15)\) for old, with fitted means \(\hat\mu=(4,\,4,\,10,\,10)\). Compute \(\hat\phi\) (Pearson), \(D_Q\), \(Q\) and the scaled quasideviance using \(\hat\phi\). <em>[3]</em><br>
+(e) Is the quasi-likelihood \(\hat\beta\) the MLE under the lognormal model? Comment on its efficiency, and on \(\hat\phi\) versus the \(\phi\) in (a). <em>[2]</em></p>
+</div>
+
+<details><summary>Step 1: part (a)</summary><div>
+<p>\(\mu_i=\mathbb EY_i=e^{m_i+\sigma^2/2}\); \(\mathbb EY_i^2=e^{2m_i+2\sigma^2}\). So \(\operatorname{Var}Y_i=e^{2m_i+2\sigma^2}-e^{2m_i+\sigma^2}=e^{2m_i+\sigma^2}(e^{\sigma^2}-1)=(e^{\sigma^2}-1)\,\mu_i^2\). <em>[1]</em></p>
+<p>\(v(\mu)=\mu^2\), \(\phi=e^{\sigma^2}-1=e^{0.16}-1=0.1735\). <em>[1]</em></p></div></details>
+<details><summary>Step 2: part (b)</summary><div>
+<p>Yes: quasi-likelihood needs only the mean and the variance as a function of the mean, and (a) gives both. Use link \(g(\mu)=\log\mu\) (positive mean) and \(v(\mu)=\mu^2\); fit by IWLS, which uses only \(g\) and \(v\) (in R, <code>quasi(link="log", variance="mu^2")</code>). <em>[1]</em> Estimate \(\phi\) by \(X^2/(n-p)\) with \(X^2=\sum(y_i-\hat\mu_i)^2/\hat\mu_i^2\), use SEs from \(\hat\phi(X^TWX)^{-1}\), and compare nested models with \(F=\frac{(D_Q^A-D_Q^B)/s}{\hat\phi}\sim F_{s,n-p}\). <em>[1]</em></p></div></details>
+<details><summary>Step 3: part (c)</summary><div>
+$$Q_i=\frac1\phi\int_{y_i}^{\mu_i}\Big(\frac{y_i}{t^2}-\frac1t\Big)dt=\frac1\phi\Big[-\frac{y_i}{t}-\log t\Big]_{y_i}^{\mu_i}=\frac1\phi\Big[-\frac{y_i}{\mu_i}+1-\log\frac{\mu_i}{y_i}\Big].$$
+<p><em>[1]</em> \(D_Q=-2\sum\phi Q_i=2\sum_i\Big[-\log\frac{y_i}{\mu_i}+\frac{y_i-\mu_i}{\mu_i}\Big]\), the gamma deviance. <em>[1]</em></p></div></details>
+<details><summary>Step 4: part (d)</summary><div>
+<p>\(X^2=\frac{4+4}{16}+\frac{25+25}{100}=1\), \(n-p=4-2=2\), so \(\hat\phi=\boxed{0.5}\). <em>[1]</em></p>
+<p>\(\phi Q_i=1-\frac{y_i}{\mu_i}+\log\frac{y_i}{\mu_i}\): \(y/\mu=0.5\) gives \(0.5-0.6931=-0.1931\) (samples 1 and 3); \(y/\mu=1.5\) gives \(-0.5+0.4055=-0.0945\) (samples 2 and 4). Sum \(=-0.5754\), so \(D_Q=\boxed{1.151}\). <em>[1]</em></p>
+<p>\(Q=-0.5754/0.5=\boxed{-1.151}\), scaled quasideviance \(D_Q/\hat\phi=-2Q=\boxed{2.301}\). <em>[1]</em> (R's <code>deviance()</code> for this fit: 1.150728.)</p></div></details>
+<details><summary>Step 5: part (e)</summary><div>
+<p>No. The quasi \(\hat\beta\) is the gamma MLE (same \(v\), same link). Under the lognormal model the MLE comes from least squares on \(\log y_i\) (here, group geometric means \(\times e^{\sigma^2/2}\): 3.75 and 9.38, not 4 and 10). The quasi estimator is consistent but less efficient, so with the distribution known you should use it. <em>[1]</em></p>
+<p>\(\hat\phi=0.5\) is far from the true \(0.1735\): it rests on only \(n-p=2\) df, so it's very noisy. Since \(\phi\) is known here, you could fix it; the quasi approach estimates it because in general you don't know it. <em>[1]</em></p></div></details>
+
+<h2>8 · Before you close this tab</h2>
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) Assumptions: \(g(\mu_i)=x_i^T\beta\), \(\mathbb EY_i=\mu_i\), \(\operatorname{Var}Y_i=\phi v(\mu_i)\), independence. (2) \(u_i=(Y_i-\mu_i)/(\phi v(\mu_i))\): \(\mathbb Eu=0\), \(\operatorname{Var}u=-\mathbb E\,\partial u/\partial\mu=1/(\phi v)\). (3) \(Q_i=\int_{y_i}^{\mu_i}\frac{y_i-t}{\phi v(t)}dt\le0\); saturated \(Q=0\); \(D_Q/\phi=-2\sum Q_i\); \(D_Q=-2\sum\int\frac{y-t}{v(t)}dt\). (4) \(v=\mu\to\) Poisson deviance, \(\mu(m-\mu)/m\to\) binomial, \(\mu^2\to\) gamma, \(\mu^3\to\) inverse Gaussian. (5) \(1/\phi\) factors out of \(\partial Q/\partial\beta\), so \(\hat\beta_{\text{quasi}}=\hat\beta_{\text{MLE}}\); \(\hat\phi=X^2/(n-p)\), not from \(Q\); less efficient if the true family is known.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../annotated-slides/Overdispersion_Quasilikelihood_annotated.pdf#page=8">Overdispersion &amp; quasi-likelihood (annotated)</a>, pp. 8–20 (slides 4–12 with the lecturer's handwritten working, including the quasi-Poisson integral on p. 17). Then Faraway's quasi-likelihood section in the <a href="../extra-notes/Faraway%20-%20Quasi-likelihood-1.pdf#page=1">course notes</a> (1st ed. §7.4, mammal sleep) and the 2nd ed. <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=202">§9.4</a> (pp. 186–188: quasi vs gamma, same deviance, <code>logLik</code> NA). The <a href="../extra-notes/Trout%20egg%20survival_%20overdispersion%20and%20quasilikelihood.pdf#page=1">trout egg notes</a> are the lecturer's worked quasi-binomial example (next lesson uses its output style). Faraway writes \(V(\mu)\) for the course's \(v(\mu)\).</p>
+
+<p>Reference: <a href="../reference/quasi-cheatsheet.html">quasi cheatsheet</a> · <a href="../reference/glm-cheatsheet.html">GLM cheatsheet</a> · <a href="../reference/glossary.html">glossary</a>.</p>
+
+<p><strong>Homework</strong> (by hand):</p>
+<ol>
+  <li><strong>Constant variance.</strong> Take \(v(\mu)=1\). Find \(Q_i\) and \(D_Q\). What familiar quantity is \(D_Q\), and what is \(\hat\phi\)?</li>
+  <li><strong>Power variance.</strong> For \(v(\mu)=\mu^p\), \(p\ne1,2\), show \(\phi Q_i=\dfrac{y_i(\mu_i^{1-p}-y_i^{1-p})}{1-p}-\dfrac{\mu_i^{2-p}-y_i^{2-p}}{2-p}\). Check that \(p=3\) gives section 6's result.</li>
+  <li><strong>Proportions that aren't binomial.</strong> Daily fraction of time \(y_i\in(0,1)\) a machine is idle, \(v(\mu)=\mu(1-\mu)\), logit link. For \(y=(0.2,\,0.5)\), \(\hat\mu=(0.3,\,0.4)\) and \(\hat\phi=0.05\), compute each \(\phi Q_i\), \(D_Q\) and \(D_Q/\hat\phi\).</li>
+  <li><em>Optional:</em> Faraway <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=208">Ch. 9 Ex. 5</a> (leafblotch), parts (c) and (e), on paper only: (c) how could the quasi-binomial \(\hat\phi\) be derived from the binomial fit? (e) What prior weights \(w_i(\mu)\) turn \(v=\mu(1-\mu)\) into an effective \(\mu^2(1-\mu)^2\)?</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1. \(\phi Q_i=\int_{y_i}^{\mu_i}(y_i-t)\,dt=-\frac12(y_i-\mu_i)^2\), so \(D_Q=\sum(y_i-\mu_i)^2\), the residual sum of squares; \(\hat\phi=\text{RSS}/(n-p)=\hat\sigma^2\). Quasi-likelihood with identity link and \(v=1\) is least squares.</p>
+<p>2. Integrand \(y_it^{-p}-t^{1-p}\); antiderivative \(y_i\frac{t^{1-p}}{1-p}-\frac{t^{2-p}}{2-p}\); evaluate between \(y_i\) and \(\mu_i\). For \(p=3\): \(\frac{y(\mu^{-2}-y^{-2})}{-2}+(\mu^{-1}-y^{-1})=-\frac{y}{2\mu^2}+\frac1{2y}+\frac1\mu-\frac1y=-\frac{(y-\mu)^2}{2y\mu^2}\) ✓.</p>
+<p>3. Quasi-binomial with \(m=1\): \(\phi Q_i=y\log\frac{\mu}{y}+(1-y)\log\frac{1-\mu}{1-y}\). \(i=1\): \(0.2\log1.5+0.8\log0.875=0.0811-0.1068=-0.0257\). \(i=2\): \(0.5\log0.8+0.5\log1.2=-0.1116+0.0912=-0.0204\). \(D_Q=-2(-0.0461)=0.0923\), \(D_Q/\hat\phi=1.846\).</p>
+<p>4(c). \(\hat\phi=X^2/(n-p)\) with \(X^2\) the sum of squared Pearson residuals of the binomial fit (same \(\hat\mu\)). (e) \(\operatorname{Var}=\phi\mu(1-\mu)/w\); set \(w=1/(\mu(1-\mu))\) (iterated, using current \(\hat\mu\)) to get \(\phi\mu^2(1-\mu)^2\).</p></div></details>
+<p><strong>Spacing:</strong> tomorrow, without looking, derive \(Q_i\) and \(D_Q\) for \(v=\mu\) and \(v=\mu^2\). In a week, redo challenge (b) and E2.</p>
+
+<div class="ask">💬 Ask me in the terminal if the sign argument for \(Q_i\le0\), the dropped \(y\log y-y\) constant or the "why the same \(\hat\beta\)" step doesn't click. I'm your teacher for this. Paste or photograph your challenge answers and I'll mark them out of 11 like an exam marker.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0010-overdispersion.html">Lesson 10, overdispersion</a> · Reference: <a href="../reference/quasi-cheatsheet.html">Quasi cheatsheet</a></span>
+  <span>Next: <a href="0012-quasi-poisson-binomial-output.html">Lesson 12, quasi-Poisson/binomial output</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

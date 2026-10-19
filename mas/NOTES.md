@@ -40,6 +40,14 @@
 - Topic 2 coverage gaps in past papers (checked 14 Oct): no paper has IWLS, a gamma GLM in R output, or GLM diagnostics. The 2018 paper had a Poisson offset (rate) model.
 - No past paper tests things she taught this year: MCMC diagnostics (trace plots, burn-in, autocorrelation), GLM diagnostics (residuals, leverage), and the QMD examples. Treat these as possible new material and cover them from tutes and QMDs.
 
+## Topic 3 exam patterns (overdispersion / quasi-likelihood; patterns only, mined 19 Oct)
+- Appears in every paper 2016–2022 inside the Poisson/binomial R-output question (4–22 marks). Skeleton: Poisson fit(s) → `(phi <- sum(residuals(m, type="pearson")^2/m$df.residual))` printed → same models refit `family=quasipoisson` → `anova(small, big, test="F")`.
+- Recurring sub-parts: (1) "give one/two *quantitative* reasons the model may suffer overdispersion" (resid. dev ≫ df, φ̂ ≫ 1, deviance GOF p-value); (2) "difference between Poisson and quasi-Poisson in 2–3 sentences" (Var = μ vs φμ, same β̂, SEs ×√φ̂, F not χ², no likelihood so AIC NA); (3) SE allowing for overdispersion = Poisson SE × √φ̂, φ̂ printed for the right model; reverse direction too (quasi output given → Poisson SE = quasi SE ÷ √φ̂; estimate unchanged); (4) F = (ΔD/s)/φ̂ with φ̂ from the BIG model, df (s, n−p_big); sometimes the F row is hidden and must be computed, sometimes shown and must be explained; (5) which model to prefer allowing for overdispersion (F p-value vs χ² p-value disagree: χ² says keep term, F says drop); (6) consequences of ignoring overdispersion (estimates fine, SEs/p-values too small → spurious significant predictors; 4-mark stand-alone Q in 2021); (7) Poisson ℓ̂ from AIC and saturated ℓ alongside.
+- Trap: two φ̂ values printed (one per model) → pick the larger model's. Rate models with offset also used.
+- Rarer: "could you fit a model with [non-standard] responses using quasi-likelihood? how?" (specify link + variance function from mean/var, fit by IWLS, φ̂ from Pearson); "how would you change a Bayesian model for overdispersion?" (random effect / negative binomial). Outlier removal as an alternative cause of large deviance.
+- Lecture learning goals also list: define quasi log-likelihood Q_i = ∫_y^μ (y−t)/(φv(t)) dt, compute Q, scaled quasideviance and quasideviance; quasi-binomial. Not yet seen in past papers → cover as "possible new" items.
+- Past datasets to avoid: as above + troutegg is the lecture demo (fine to show, but practise on other data).
+
 ## Plan
 Conventions: `BinReg_1` PDF page = slide number (slide 41 = LR confidence region). In R output, convert ordered factors (e.g. `esoph`) to unordered ones to avoid the off-syllabus .L/.Q contrasts.
 
@@ -50,4 +58,7 @@ Conventions: `BinReg_1` PDF page = slide number (slide 41 = LR confidence region
 5. Topic 2 (exponential families & GLMs, lectures Exponential_families, GLM_intro, GLM_1, GLM_2; tutes wk 3–5) ← built 14 Oct, one subagent per lesson:
    0005 exponential families (form, b'/b'', v(μ), canonical link) · 0006 GLM likelihood + IWLS · 0007 Poisson & gamma GLMs in R output (offsets, φ̂ from Pearson, F test) · 0008 GLM diagnostics (residuals, leverage, Cook's) · 0009 Topic 2 mixed review · reference/glm-cheatsheet.html
    Week 5 tute Q2 (rate model) uses Purott & Reeder = `dicentric`, a past-exam dataset: don't assign it.
-then Topic 3 overdispersion/quasi-likelihood → EM → Bayesian/MCMC → VI
+6. Topic 3 (overdispersion & quasi-likelihood; lecture Overdispersion_Quasilikelihood, troutegg notes, Faraway §7.4, tute wk 6 Q1) ← built 19 Oct, one subagent per lesson:
+   0010 overdispersion: what, why, detect, consequences · 0011 quasi-likelihood theory (score, Q, quasideviance) · 0012 quasi-Poisson/binomial R output (SE ×√φ̂, F test) · 0013 Topic 3 mixed review · reference/quasi-cheatsheet.html
+   Tute wk 6 Q1 uses `dicentric` (past-exam dataset): don't assign.
+then EM → Bayesian/MCMC → VI
