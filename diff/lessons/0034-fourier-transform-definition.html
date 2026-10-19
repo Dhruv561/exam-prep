@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fourier Transform Definition</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/ft-pair-plot.js"></script>
+<style>
+  .katex-display { overflow-x: auto; overflow-y: hidden; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 34 · Topic 6: Fourier transforms · Definition, first principles</div>
+<h1>The Fourier transform from the definition</h1>
+<p class="lede">The one win: compute the FT of any step function written with $H_a$'s, any (one- or two-sided) exponential and any even/odd extension straight from the definition, in a few clean lines, and say what $\mathcal F^{-1}\mathcal F f$ gives at a jump.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topic 6 is the last question on every paper (7–15 marks; masked 2026 Q7 = 14 marks, parts (a)–(c)). Its part (a) is usually "use the definition to compute…": $\mathcal F\{\delta_a\}$, a combination of shifted Heavisides, or a one-sided exponential. These are the cheapest marks on the paper. The formula sheet gives the definition but <strong>no table</strong>, so every pair in this lesson must be derived in under a minute.</div>
+
+<h2>0 · Warm-up from Lessons 15–16 and 24</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> For $a&gt;0$, $\mathcal L\{H_a(t)\}=\displaystyle\int_0^\infty H(t-a)e^{-st}dt=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{e^{as}}{s}$, valid for $s&gt;0$</button>
+    <button class="opt" data-key="b">$e^{-as}$, valid for $s&gt;0$</button>
+    <button class="opt" data-key="c">$\dfrac{e^{-as}}{s}$, valid for $s&gt;0$</button>
+    <button class="opt" data-key="d">$\dfrac{1}{s-a}$, valid for $s&gt;a$</button>
+  </div>
+  <div class="why">$\int_a^\infty e^{-st}dt=\big[-\frac{e^{-st}}s\big]_a^\infty=\frac{e^{-as}}s$; the upper limit vanishes only because $s&gt;0$. Today the same integral appears with $s$ replaced by $ik$, and then the upper limit does <em>not</em> vanish.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W2.</strong> $\mathcal L\{\delta(t-a)\}$ for $a&gt;0$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{-as}$, by the sifting property</button>
+    <button class="opt" data-key="b">$e^{as}$, by the sifting property</button>
+    <button class="opt" data-key="c">$\dfrac{e^{-as}}s$, by the sifting property</button>
+    <button class="opt" data-key="d">$1$, by the sifting property</button>
+  </div>
+  <div class="why">$\int\delta(t-a)g(t)\,dt=g(a)$ with $g=e^{-st}$. Same move today with $g=e^{-ikx}$.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W3.</strong> The complex Fourier series of $f$ on $(-L,L]$ is $\sum c_ne^{ik_nx}$, $k_n=\frac{n\pi}L$, with $c_n=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\displaystyle\frac1L\int_{-L}^{L}f(x)e^{-ik_nx}dx$</button>
+    <button class="opt" data-key="b">$\displaystyle\frac1{2L}\int_{-L}^{L}f(x)e^{-ik_nx}dx$</button>
+    <button class="opt" data-key="c">$\displaystyle\frac1{2L}\int_{-L}^{L}f(x)e^{+ik_nx}dx$</button>
+    <button class="opt" data-key="d">$\displaystyle\frac1{2\pi}\int_{-L}^{L}f(x)e^{-ik_nx}dx$</button>
+  </div>
+  <div class="why">Lesson 24. Note the minus sign in the coefficient integral and the plus sign in the series: the FT copies exactly this pattern.</div>
+</div>
+
+<h2>1 · Definition, and how it differs from Laplace</h2>
+<div class="box">
+$$\boxed{\hat f(k)=\mathcal F\{f\}=\int_{-\infty}^{\infty}f(x)\,e^{-ikx}\,dx}\qquad\boxed{f(x)=\frac1{2\pi}\int_{-\infty}^{\infty}\hat f(k)\,e^{ikx}\,dk}$$
+<p>Both are on the formula sheet. $\mathcal F$ is linear. $k$ is <strong>real</strong>.</p>
+</div>
+<p><strong>Where it comes from</strong> (L28 s13–14): write the complex FS as $f=\frac1{2\pi}\sum\Delta k\,\hat f_n e^{ik_nx}$ with $\hat f_n=2Lc_n=\int_{-L}^Lfe^{-ik_nx}dx$ and $\Delta k=\frac\pi L$. Let $L\to\infty$: the sum becomes the integral above.</p>
+<table>
+<tr><th></th><th>Laplace</th><th>Fourier</th></tr>
+<tr><td>domain</td><td>$t\in[0,\infty)$</td><td>$x\in(-\infty,\infty)$</td></tr>
+<tr><td>kernel</td><td>$e^{-st}$, take $s$ large to kill growth</td><td>$e^{-ikx}$, $|e^{-ikx}|=1$: no help at $\pm\infty$</td></tr>
+<tr><td>exists for</td><td>$e^{2t}$, $1$, $t^n$, $\sin t$ (exponential order)</td><td>only if $\int|f|\,dx&lt;\infty$: $f$ must decay at <em>both</em> ends</td></tr>
+<tr><td>inverse</td><td>by table only (no formula in this course)</td><td>explicit formula, with $\frac1{2\pi}$ and $e^{+ikx}$</td></tr>
+</table>
+
+<div class="trap"><strong>Convention warning</strong> (L28 s15)<br>
+Books differ: $\frac1{2\pi}$ or $\frac1{\sqrt{2\pi}}$ in front of $\hat f$, $e^{+ikx}$ instead of $e^{-ikx}$, $e^{-2\pi ikx}$… Herman's LibreTexts book, for instance, uses $e^{+ikx}$, so its answers are ours with $k\to-k$. The booklet writes $\omega$ for $k$. On the exam use <strong>only</strong> the formula-sheet version above.</div>
+
+<h2>2 · The three integrals you will ever need</h2>
+<div class="box">
+<ol class="steps">
+<li><strong>Delta (sifting).</strong> $\displaystyle\int_{-\infty}^{\infty}\delta(x-a)e^{-ikx}dx=e^{-ika}.$ So $\boxed{\mathcal F\{\delta_a\}=e^{-iak}}$; $\mathcal F\{\delta\}=1$.</li>
+<li><strong>Constant on a finite interval</strong> ($k\ne0$):
+$$\int_a^b e^{-ikx}dx=\Big[\frac{e^{-ikx}}{-ik}\Big]_a^b=\frac{e^{-ika}-e^{-ikb}}{ik}.$$
+Box $f=H_{-a}-H_a$ (1 on $|x|&lt;a$): $\hat f=\dfrac{e^{ika}-e^{-ika}}{ik}=\dfrac{2\sin ak}{k}=2a\,\mathrm{sinc}(ak)$ (L28 Ex 6.1 with $a=1$).</li>
+<li><strong>Exponential on a half-line</strong> ($a&gt;0$):
+$$\int_0^\infty e^{-ax}e^{-ikx}dx=\Big[\frac{e^{-(a+ik)x}}{-(a+ik)}\Big]_0^\infty=\frac1{a+ik},$$
+because $|e^{-(a+ik)x}|=e^{-ax}\to0$. <strong>Write that reason</strong>: it is the mark for "justify the limit".</li>
+</ol>
+</div>
+<p>Two-sided: split at $0$. $\mathcal F\{e^{-a|x|}\}=\int_{-\infty}^0e^{(a-ik)x}dx+\int_0^\infty e^{-(a+ik)x}dx=\frac1{a-ik}+\frac1{a+ik}=\boxed{\frac{2a}{a^2+k^2}}$ (L28 Ex 6.2).</p>
+
+<div class="trap"><strong>Always check $k=0$</strong><br>
+$\hat f(0)=\int_{-\infty}^\infty f\,dx$ (set $k=0$ in the definition). A formula like $\frac{2\sin ak}{k}$ is "undefined" at $0$, but its limit is $2a$ = area of the box ✓. Use this to catch sign/coefficient slips in 10 seconds.</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q1.</strong> $\mathcal F\{\,2\delta_{-3}(x)\,\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$2e^{-3ik}$</button>
+    <button class="opt" data-key="b">$-6ik$</button>
+    <button class="opt" data-key="c">$2e^{-3k}$</button>
+    <button class="opt" data-key="d">$2e^{3ik}$</button>
+  </div>
+  <div class="why">$\delta_{-3}(x)=\delta(x+3)$ sifts out $x=-3$: $2e^{-ik(-3)}=2e^{3ik}$.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q2.</strong> $f(x)=3e^{-2x}$ for $x&gt;0$, $f(x)=0$ for $x&lt;0$. Then $\hat f(k)=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{3}{2-ik}$</button>
+    <button class="opt" data-key="b">$\dfrac{3}{2+ik}$</button>
+    <button class="opt" data-key="c">$\dfrac{6}{4+k^2}$</button>
+    <button class="opt" data-key="d">$\dfrac{12}{4+k^2}$</button>
+  </div>
+  <div class="why">Integral 3 with $a=2$, times 3. Check: $\hat f(0)=\frac32=\int_0^\infty3e^{-2x}dx$ ✓. (c) is the two-sided $3e^{-2|x|}$ halved; (d) is two-sided.</div>
+</div>
+
+<p><strong>See the width trade-off.</strong> Pick a family and slide $a$. A narrow $f$ has a wide $\hat f$ and vice versa; the height $\hat f(0)$ is always the area under $f$. For the one-sided exponential $\hat f$ is complex (Re solid, Im dashed). Dots on the left mark the value the inverse FT returns at a jump (section 5).</p>
+<div id="ft-a"></div>
+
+<h2>3 · Step functions written with $H_a$</h2>
+<p>Exam style: "Compute the FT of $f=c_1H_{a_1}+c_2H_{a_2}+c_3H_{a_3}$." A single $H_a$ has <em>no</em> FT (it is $1$ out to $+\infty$), but the coefficients will sum to $0$, so $f$ vanishes for large $x$ and is a finite staircase.</p>
+<div class="box">
+<ol class="steps">
+<li><strong>Tabulate</strong> the value on each interval: left of every step, $f=0$; after each $a_j$, add $c_j$. Sketch it.</li>
+<li><strong>Split the integral</strong> over the intervals where $f\ne0$ and use integral 2 on each.</li>
+<li><strong>Collect</strong> the exponentials over the common $ik$.</li>
+<li><strong>Check</strong> $\hat f(0)=\int f$ (expand the numerator to first order in $k$).</li>
+</ol>
+</div>
+<p><strong>Worked.</strong> $f(x)=3H_{-1}(x)-H_2(x)-2H_4(x)$.</p>
+<details><summary>Solution</summary><div>
+<p>Values: $x&lt;-1$: $0$. $-1&lt;x&lt;2$: $3$. $2&lt;x&lt;4$: $3-1=2$. $x&gt;4$: $2-2=0$ ✓.</p>
+$$\hat f(k)=3\int_{-1}^{2}e^{-ikx}dx+2\int_{2}^{4}e^{-ikx}dx=\frac{3(e^{ik}-e^{-2ik})+2(e^{-2ik}-e^{-4ik})}{ik}$$
+$$=\frac{3e^{ik}-e^{-2ik}-2e^{-4ik}}{ik}.$$
+<p>Check: numerator $\approx(3-1-2)+ik(3+2+8)=13ik$, so $\hat f(0)=13=3\cdot3+2\cdot2$ ✓.</p>
+</div></details>
+
+<div class="box">
+<p><strong>Shortcut (check only).</strong> When $\sum c_j=0$: $\;\mathcal F\Big\{\sum_j c_jH_{a_j}\Big\}=\dfrac1{ik}\sum_j c_je^{-ika_j}$. Each step $c_jH_{a_j}$ contributes $\frac{c_j e^{-ika_j}}{ik}$; compare the worked answer. On the exam the question says "from the definition", so write the interval integrals, then use this to check.</p>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q3.</strong> $\mathcal F\{H_1(x)-H_4(x)\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{e^{ik}-e^{4ik}}{ik}$</button>
+    <button class="opt" data-key="b">$\dfrac{e^{-4ik}-e^{-ik}}{ik}$</button>
+    <button class="opt" data-key="c">$\dfrac{e^{-ik}-e^{-4ik}}{ik}$</button>
+    <button class="opt" data-key="d">$\dfrac{e^{-ik}-e^{-4ik}}{k}$</button>
+  </div>
+  <div class="why">$f=1$ on $(1,4)$: integral 2 with $a=1,b=4$. Check: numerator $\approx(-ik)-(-4ik)=3ik$, so $\hat f(0)=3$ = length ✓. (b) has the sign flipped ($\hat f(0)=-3$).</div>
+</div>
+
+<h2>4 · Even and odd extensions</h2>
+<p>Booklet style: "$f$ is given for $x&gt;0$; find the FT of its even (odd) extension." Let $F(x)=f(x)$ for $x&gt;0$ and $0$ for $x&lt;0$. Then $f_e(x)=F(x)+F(-x)$ and $f_o(x)=F(x)-F(-x)$ (except at $0$, which doesn't affect integrals).</p>
+<div class="box">
+<p><strong>Flip rule:</strong> $\mathcal F\{F(-x)\}(k)=\int F(-x)e^{-ikx}dx\overset{u=-x}{=}\int F(u)e^{iku}du=\hat F(-k)$. Hence</p>
+$$\hat f_e(k)=\hat F(k)+\hat F(-k)=2\int_0^\infty f(x)\cos kx\,dx,$$
+$$\hat f_o(k)=\hat F(k)-\hat F(-k)=-2i\int_0^\infty f(x)\sin kx\,dx.$$
+<p>Real even $f$ ⇒ $\hat f$ real and even. Real odd $f$ ⇒ $\hat f$ purely imaginary and odd. (Same as Lesson 24: even $f$ ⇒ real $c_n$.)</p>
+</div>
+<p><strong>Example.</strong> $F=e^{-ax}H(x)$, $\hat F=\frac1{a+ik}$. Even extension $=e^{-a|x|}$: $\frac1{a+ik}+\frac1{a-ik}=\frac{2a}{a^2+k^2}$ ✓ (matches section 2). Odd extension $=\mathrm{sgn}(x)e^{-a|x|}$: $\frac1{a+ik}-\frac1{a-ik}=\frac{-2ik}{a^2+k^2}$.</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q4.</strong> $f$ is real and odd, with $\int|f|&lt;\infty$. Without computing, $\hat f(k)$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">purely imaginary and odd in $k$</button>
+    <button class="opt" data-key="b">purely imaginary and even in $k$</button>
+    <button class="opt" data-key="c">real-valued and odd in $k$</button>
+    <button class="opt" data-key="d">real-valued and even in $k$</button>
+  </div>
+  <div class="why">$e^{-ikx}=\cos kx-i\sin kx$; the $\cos$ part integrates an odd function to $0$, leaving $-i\int f\sin kx\,dx$: imaginary, and odd because $\sin(-kx)=-\sin kx$. Use this to check every extension answer.</div>
+</div>
+
+<h2>5 · Inverse, existence, and the value at a jump</h2>
+<div class="box">
+<p><strong>Theorem</strong> (L28 s12). If $f$ is piecewise continuous (finitely many jumps/critical points on each closed interval) and absolutely integrable, $\int_{-\infty}^\infty|f|\,dx&lt;\infty$, then $\hat f$ exists and</p>
+$$\mathcal F^{-1}\mathcal F\{f\}(x)=\begin{cases}f(x),&amp;f\text{ continuous at }x,\\[2pt] \tfrac12\big(f(x^-)+f(x^+)\big),&amp;f\text{ jumps at }x.\end{cases}$$
+<p>Same midpoint rule as Fourier series (Lesson 23). The value $f$ is <em>assigned</em> at the jump is irrelevant. This is why Booklet 6 Q1 sets $f(0)=\frac\pi2$: it is the midpoint of $0$ and $\pi$, so $\mathcal F^{-1}\mathcal F f=f$ everywhere.</p>
+<p><strong>No FT</strong> (integral diverges): $1$, $H(x)$, $x^n$, $e^{\pm x}$, $\sin x$, $\cos x$. Lesson 35 gives $1$ and $e^{iax}$ generalised transforms via $\delta$; Lesson 37 uses "no FT" to discard $e^{\pm x}$ solutions of ODEs.</p>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q5.</strong> $f=4$ on $-1&lt;x&lt;2$, $f=1$ on $2&lt;x&lt;5$, $f=0$ elsewhere. Then $\mathcal F^{-1}\mathcal F f$ at $x=2$ and $x=5$ equals…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$4$ and $1$</button>
+    <button class="opt" data-key="b">$\tfrac52$ and $\tfrac12$</button>
+    <button class="opt" data-key="c">$\tfrac52$ and $0$</button>
+    <button class="opt" data-key="d">$1$ and $\tfrac12$</button>
+  </div>
+  <div class="why">Midpoints: $\frac{4+1}2$ at $x=2$; $\frac{1+0}2$ at $x=5$.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q6.</strong> Which function has a Fourier transform in the sense of the theorem?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{-x}$ for all $x\in\mathbb R$</button>
+    <button class="opt" data-key="b">$\cos(2x)$ for all $x\in\mathbb R$</button>
+    <button class="opt" data-key="c">$x\,e^{-|x|}$ for all $x\in\mathbb R$</button>
+    <button class="opt" data-key="d">$H(x)$ for all $x\in\mathbb R$</button>
+  </div>
+  <div class="why">$\int|x|e^{-|x|}dx=2&lt;\infty$. $e^{-x}$ blows up as $x\to-\infty$ (it has a Laplace transform, not an FT); $\cos2x$ and $H$ don't decay.</div>
+</div>
+
+<h2>6 · Practice (exam level)</h2>
+<div class="box">
+<p><strong>P1.</strong> $f(x)=H_{-1}(x)+2H_1(x)-3H_3(x)$. (a) Sketch $f$. (b) Use the definition to find $\hat f(k)$. (c) What is $\mathcal F^{-1}\mathcal F f$ at $x=-1,\,1,\,3$?</p>
+<p><strong>P2.</strong> $f(x)=e^{2x}$ for $x&lt;0$ and $f(x)=2e^{-x}$ for $x&gt;0$. (a) Find $\hat f(k)$, justifying the limits. (b) State $\mathcal F^{-1}\mathcal F f(0)$.</p>
+<p><strong>P3.</strong> $f(x)=2$ for $0&lt;x&lt;1$, $f(x)=1$ for $1&lt;x&lt;3$, $f(x)=0$ for $x&gt;3$. Find the FT of (a) the even extension, (b) the odd extension. Simplify to real trig functions.</p>
+</div>
+<details><summary>P1 solution</summary><div>
+<p>(a) $0$ for $x&lt;-1$; $1$ on $(-1,1)$; $3$ on $(1,3)$; $0$ for $x&gt;3$.</p>
+<p>(b) $\displaystyle\hat f=\int_{-1}^1e^{-ikx}dx+3\int_1^3e^{-ikx}dx=\frac{(e^{ik}-e^{-ik})+3(e^{-ik}-e^{-3ik})}{ik}=\frac{e^{ik}+2e^{-ik}-3e^{-3ik}}{ik}.$<br>
+Check: numerator $\approx ik(1-2+9)=8ik$ ⇒ $\hat f(0)=8=2+6$ ✓.</p>
+<p>(c) $\frac{0+1}2=\frac12$, $\;\frac{1+3}2=2$, $\;\frac{3+0}2=\frac32$.</p>
+</div></details>
+<details><summary>P2 solution</summary><div>
+$$\hat f=\int_{-\infty}^0e^{(2-ik)x}dx+2\int_0^\infty e^{-(1+ik)x}dx=\frac1{2-ik}+\frac2{1+ik},$$
+<p>since $|e^{(2-ik)x}|=e^{2x}\to0$ as $x\to-\infty$ and $|e^{-(1+ik)x}|=e^{-x}\to0$ as $x\to\infty$. Check $\hat f(0)=\frac12+2=\int f$ ✓.<br>
+(b) Jump from $1$ to $2$ at $0$: $\frac32$.</p>
+</div></details>
+<details><summary>P3 solution</summary><div>
+<p>One-sided $F$: $\hat F=\frac{2(1-e^{-ik})+(e^{-ik}-e^{-3ik})}{ik}=\frac{2-e^{-ik}-e^{-3ik}}{ik}$.</p>
+<p>(a) $\hat F(k)+\hat F(-k)=\dfrac{(2-e^{-ik}-e^{-3ik})-(2-e^{ik}-e^{3ik})}{ik}=\dfrac{2i\sin k+2i\sin3k}{ik}=\boxed{\dfrac{2(\sin k+\sin3k)}k}$. Real, even, value $8$ at $k=0$ = area ✓.</p>
+<p>(b) $\hat F(k)-\hat F(-k)=\dfrac{4-2\cos k-2\cos3k}{ik}=\boxed{-\dfrac{2i(2-\cos k-\cos3k)}{k}}$. Imaginary, odd, $0$ at $k=0$ ✓.</p>
+<p>Or directly: $2\int_0^\infty f\cos kx\,dx$ and $-2i\int_0^\infty f\sin kx\,dx$.</p>
+</div></details>
+
+<h2>7 · Exam-level challenge (13 marks, about 20 minutes)</h2>
+<div class="box">
+<p>(a) Use the definition of the Fourier transform to evaluate $\mathcal F\{\delta_a(x)\}$, $a\in\mathbb R$. <em>[1]</em><br>
+(b) Let $f(x)=4e^{-x}$ for $x&gt;0$ and $f(x)=0$ for $x&lt;0$. Use the definition to find $\hat f(k)$, justifying any limits. What value does $\mathcal F^{-1}\mathcal F f$ take at $x=0$? <em>[3]</em><br>
+(c) Using (b) and a substitution, find the Fourier transform of the odd extension $f_o$ of $4e^{-x}$, $x&gt;0$. Comment on its parity. <em>[2]</em><br>
+(d) Let $g(x)=2H_{-2}(x)-3H_0(x)+H_3(x)$. Sketch $g$ and use the definition to compute $\hat g(k)$. Check your answer at $k=0$. <em>[5]</em><br>
+(e) Give $\mathcal F^{-1}\mathcal F g$ at $x=-2,\,0,\,3,\,4$. <em>[2]</em></p>
+</div>
+<p>Full marking-style solution: <a href="../worked/0034-challenge-full-solution.html">worked/0034-challenge-full-solution.html</a>. Attempt every part first.</p>
+<details><summary>Answer key (quick check)</summary><div>
+<p>(a) $e^{-iak}$. (b) $\frac4{1+ik}$; value $2$. (c) $\frac4{1+ik}-\frac4{1-ik}=-\frac{8ik}{1+k^2}$, imaginary and odd.<br>
+(d) $\hat g=\dfrac{2e^{2ik}-3+e^{-3ik}}{ik}$, $\hat g(0)=1$. (e) $1,\ \frac12,\ -\frac12,\ 0$.</p>
+</div></details>
+
+<h2>8 · Before you close this tab</h2>
+<details><summary>Retrieval: write from memory, then check</summary><div>
+<ol>
+<li>The FT and inverse FT definitions (signs, $2\pi$).</li>
+<li>$\int_a^be^{-ikx}dx$.</li>
+<li>$\mathcal F\{e^{-ax}H(x)\}$ and the reason the upper limit vanishes.</li>
+<li>$\hat f_e$ and $\hat f_o$ in terms of the one-sided $\hat F$.</li>
+<li>What $\mathcal F^{-1}\mathcal Ff$ gives at a jump; the one-line check at $k=0$.</li>
+</ol>
+<p><strong>Answers:</strong> (1) $\int fe^{-ikx}dx$; $\frac1{2\pi}\int\hat fe^{ikx}dk$. (2) $\frac{e^{-ika}-e^{-ikb}}{ik}$. (3) $\frac1{a+ik}$; $|e^{-(a+ik)x}|=e^{-ax}\to0$. (4) $\hat F(k)\pm\hat F(-k)$. (5) midpoint $\frac12(f(x^-)+f(x^+))$; $\hat f(0)=\int f$.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/28_MAST20030_Lecture_Notes_Topic6_Fourier_transforms_handout.pdf">Lecture 28</a> (s6: definition; s7–8: Ex 6.1 box, Ex 6.2 $e^{-|x|}$; s10–11: inverse; s12: existence + midpoint; s13–14: FS → FT; s15: other conventions). Then Herman, <a href="https://math.libretexts.org/Bookshelves/Differential_Equations/Introduction_to_Partial_Differential_Equations_(Herman)/09%3A_Transform_Techniques_in_Physics/9.05%3A_Properties_of_the_Fourier_Transform">Properties of the Fourier Transform</a> (LibreTexts), Examples 2–3 (box, one-sided exponential). He uses $e^{+ikx}$: replace his $k$ by $-k$ (his $\frac1{a-ik}$ is our $\frac1{a+ik}$). Pair checks: <a href="https://en.wikipedia.org/wiki/Fourier_transform#Tables_of_important_Fourier_transforms">Wikipedia FT tables</a>, "angular frequency, non-unitary" column = our convention.</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic6.pdf">Booklet 6</a>, Q1: sketch + FT; say why $f(0)=\frac\pi2$ was chosen.</li>
+  <li>Booklet 6, Q2 (b), (c): use the flip rule from section 4, then check against the back-of-booklet answer (written with $\omega$).</li>
+  <li>Booklet 6, Q4: odd extension of $-e^{-2t}$; check parity.</li>
+  <li>Optional: Booklet 6 Q3 (even extension of a cosine piece: product-to-sum, more algebra than exams ask).</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo Q3, Q5 and challenge (d) cold.</p>
+
+<div class="ask">💬 Got a different-looking answer (e.g. sines vs exponentials, or the booklet's $\omega$)? Ask me (Claude) in the terminal and paste your working; I'll check whether it's the same function.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0033-pde-mixed-exam-set.html">Lesson 33, PDE mixed exam set</a></span>
+  <span>Next: <a href="0035-ft-table-shift-inverse.html">Lesson 35, table, shifts, inverses</a></span>
+  <span>Reference: <a href="../reference/topic6-cheatsheet.html">Topic 6 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+<script>
+  FTPair.mount(document.getElementById('ft-a'), {
+    families: ['box', 'exp', 'gauss', 'onesided'], start: 'box',
+    a: 1, aMin: 0.25, aMax: 4, xRange: [-5, 5], kRange: [-15, 15],
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topic 6 Cheat Sheet</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+@page { size: A4; margin: 8mm; }
+body.ref main { max-width: 64rem; }
+.cols { column-count: 2; column-gap: 1.4rem; }
+body.ref .cols h2 { margin: .7rem 0 .25rem; padding-top: .3rem; font-size: 1rem; break-after: avoid; }
+.cols p, .cols li { margin: .2rem 0; }
+.cols table { margin: .25rem 0; font-size: .92em; }
+.cols td, .cols th { padding: .1rem .4rem; }
+.cols .box { margin: .3rem 0; padding: .3rem .6rem; }
+.cols ul, .cols ol { margin: .2rem 0; padding-left: 1.1rem; }
+.cols .katex-display { margin: .2em 0; }
+.cols ol.steps > li { margin: .2rem 0; padding-left: 1.6rem; }
+.cols ol.steps > li::before { width: 1.2rem; height: 1.2rem; font-size: .7rem; line-height: 1.2rem; }
+.mem { font-size: .72em; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border: 1px solid currentColor; border-radius: 3px; padding: 0 .25em; white-space: nowrap; vertical-align: .1em; }
+.tblwrap { overflow-x: auto; }
+.hint30 { font-size: .85em; color: var(--muted); }
+@media (max-width: 720px) { .cols { column-count: 1; } }
+@media print {
+  html { font-size: 6.9pt; }
+  h1 { font-size: 13pt; margin: 0; } .lede { margin: .1rem 0; }
+  .cols { column-gap: 1rem; }
+  body.ref .cols h2 { margin: .3rem 0 .1rem; padding-top: .1rem; }
+  .cols p, .cols li { margin: .12rem 0; }
+  .cols table, .cols .box { break-inside: avoid; }
+  .nav { display: none; }
+  body.ref main { padding: 0; }
+}
+</style>
+</head>
+<body class="ref">
+<main>
+<div class="kicker">MAST20030 · Reference</div>
+<h1>Topic 6: Fourier transforms</h1>
+<p class="lede">Lessons 34–38, lectures 28–30. <strong>[S]</strong> = on the formula sheet (definition, inverse, derivative rule, $x^n$ rule, convolution theorem). <span class="mem">memorise</span> = not on the sheet: the table, shifts, midpoint rule, heat kernel. Booklet writes $\omega$ for $k$.</p>
+
+<div class="cols">
+
+<h2>Convention [S]</h2>
+<div class="box">$$\hat f(k)=\mathcal F\{f\}=\int_{-\infty}^{\infty}f(x)e^{-ikx}dx$$ $$f(x)=\mathcal F^{-1}\{\hat f\}=\frac1{2\pi}\int_{-\infty}^{\infty}\hat f(k)e^{ikx}dk$$</div>
+<p>$\delta_a(x)=\delta(x-a)$, $H_a(x)=H(x-a)$ (step <em>at</em> $a$), $\operatorname{sinc}y=\frac{\sin y}y$, $\operatorname{sinc}0=1$. Exists if $f$ absolutely integrable + piecewise continuous.</p>
+<p><strong>Jumps</strong> <span class="mem">memorise</span>: $\mathcal F^{-1}\mathcal F f=\tfrac12\big(f(x^-)+f(x^+)\big)$ at a jump, $f(x)$ elsewhere. A value at one point (e.g. $f(0)=\pi/2$) doesn't change $\hat f$.</p>
+
+<h2>Table <span class="mem">memorise</span> (L29 s3)</h2>
+<div class="tblwrap"><table>
+<tr><th>$f(x)$</th><th>$\hat f(k)$</th><th>derive in 30 s</th></tr>
+<tr><td>$\delta_a(x)$</td><td>$e^{-iak}$</td><td class="hint30">sifting</td></tr>
+<tr><td>$e^{iax}$</td><td>$2\pi\delta_a(k)$</td><td class="hint30">inverse of $\delta_a(k)$ is $\frac{e^{iax}}{2\pi}$</td></tr>
+<tr><td>$e^{-a|x|}$, $a\gt0$</td><td>$\frac{2a}{a^2+k^2}$</td><td class="hint30">split at 0: $\frac1{a+ik}+\frac1{a-ik}$</td></tr>
+<tr><td>$\frac1{a^2+x^2}$, $a\gt0$</td><td>$\frac\pi ae^{-a|k|}$</td><td class="hint30">duality on previous</td></tr>
+<tr><td>$H_{-a}-H_a$ (box $|x|\lt a$)</td><td>$2a\operatorname{sinc}ak=\frac{2\sin ak}k$</td><td class="hint30">$\int_{-a}^ae^{-ikx}dx$</td></tr>
+<tr><td>$\operatorname{sinc}(ax)$, $a\gt0$</td><td>$\frac\pi a(H_{-a}-H_a)(k)$</td><td class="hint30">duality on box</td></tr>
+<tr><td>$e^{-ax^2}$, $a\gt0$</td><td>$\sqrt{\frac\pi a}\,e^{-k^2/4a}$</td><td class="hint30">$f'=-2axf\Rightarrow\hat f'=-\frac k{2a}\hat f$, $\hat f(0)=\sqrt{\pi/a}$</td></tr>
+<tr><td>$\operatorname{sech}(ax)$, $a\gt0$</td><td>$\frac\pi a\operatorname{sech}\frac{\pi k}{2a}$</td><td class="hint30">pure memory</td></tr>
+</table></div>
+<p><strong>Duality</strong> <span class="mem">memorise</span>: $\mathcal F\{\hat f(x)\}=2\pi f(-k)$.</p>
+<p><strong>From the definition</strong> (exam favourites):</p>
+<ul>
+<li>$e^{-ax}H(x)\leftrightarrow\frac1{a+ik}$; $\;e^{ax}H(-x)\leftrightarrow\frac1{a-ik}$ ($a\gt0$).</li>
+<li>$H_a-H_b$ ($a\lt b$, 1 on $(a,b)$) $\leftrightarrow\frac{e^{-iak}-e^{-ibk}}{ik}$; value at $k=0$ is $b-a$. Step functions $\sum c_jH_{a_j}$: sum of these.</li>
+<li>Even ext: $\hat f=2\int_0^\infty f\cos kx\,dx$ (real, even). Odd ext: $\hat f=-2i\int_0^\infty f\sin kx\,dx$ (imaginary, odd).</li>
+</ul>
+
+<h2>Rules</h2>
+<table>
+<tr><td>linearity</td><td>$\mathcal F\{\alpha f+\beta g\}=\alpha\hat f+\beta\hat g$</td></tr>
+<tr><td>$x$-shift <span class="mem">memorise</span></td><td>$\mathcal F\{f(x-y)\}=e^{-iky}\hat f(k)$</td></tr>
+<tr><td>$k$-shift <span class="mem">memorise</span></td><td>$\mathcal F\{e^{iqx}f(x)\}=\hat f(k-q)$</td></tr>
+<tr><td>derivative [S]</td><td>$\mathcal F\{f^{(n)}\}=(ik)^n\hat f$</td></tr>
+<tr><td>times $x$ [S]</td><td>$\mathcal F\{x^nf\}=i^n\frac{d^n\hat f}{dk^n}$</td></tr>
+<tr><td>convolution [S]</td><td>$\mathcal F\{f*g\}=\hat f\hat g$, $(f*g)(x)=\int f(x-\xi)g(\xi)d\xi$</td></tr>
+<tr><td>product <span class="mem">memorise</span></td><td>$\mathcal F\{fg\}=\frac1{2\pi}(\hat f*\hat g)(k)$</td></tr>
+</table>
+<p>Shift proofs: substitute $u=x-y$ (one line); $e^{iqx}e^{-ikx}=e^{-i(k-q)x}$. Combined: $xf'$ ↦ $i\frac d{dk}(ik\hat f)=-\hat f-k\hat f'$.</p>
+
+<h2>Proofs ("show that")</h2>
+<p><strong>Derivative</strong> (by parts): $\int f'e^{-ikx}dx=\big[fe^{-ikx}\big]_{-\infty}^{\infty}+ik\int fe^{-ikx}dx=ik\hat f$; boundary term $=0$ since $f\to0$ at $\pm\infty$ (say so).</p>
+<p><strong>Times $x$</strong>: $xe^{-ikx}=i\frac{\partial}{\partial k}e^{-ikx}$, pull $\frac d{dk}$ outside.</p>
+<div class="box"><strong>Convolution theorem</strong> (4 lines):
+$$\mathcal F\{f*g\}=\int_{-\infty}^{\infty}\!\Big(\int_{-\infty}^{\infty} f(x-\xi)g(\xi)\,d\xi\Big)e^{-ikx}dx$$
+$$=\int g(\xi)e^{-ik\xi}\Big(\int f(x-\xi)e^{-ik(x-\xi)}dx\Big)d\xi\ \text{(swap)}$$
+$$=\int g(\xi)e^{-ik\xi}\Big(\int f(u)e^{-iku}du\Big)d\xi\quad (u=x-\xi)$$
+$$=\hat f(k)\,\hat g(k).$$</div>
+<p><strong>Use it</strong>: $\mathcal F\{\frac1{(1+x^2)^2}\}=\frac1{2\pi}\pi^2\!\int e^{-|k-q|}e^{-|q|}dq=\frac\pi2(1+|k|)e^{-|k|}$ (split $q\lt0$, $0\lt q\lt k$, $q\gt k$ for $k\gt0$; even in $k$). Box∗box: $(2a-|x|)_+\leftrightarrow4a^2\operatorname{sinc}^2ak$. $\frac1{x^2+4}*\frac1{x^2+9}=\frac{5\pi}6\frac1{x^2+25}$ (L29 Ex 6.5).</p>
+
+<h2>Inverses by recognition</h2>
+<ul>
+<li>$\cos ak=\frac12(e^{iak}+e^{-iak})\ \Rightarrow\ \mathcal F^{-1}=\frac12\big[\delta(x+a)+\delta(x-a)\big]$</li>
+<li>$\sin ak=\frac1{2i}(e^{iak}-e^{-iak})\ \Rightarrow\ \mathcal F^{-1}=\frac i2\big[\delta(x-a)-\delta(x+a)\big]$</li>
+<li>$e^{-iak}\hat g(k)\Rightarrow g(x-a)$; $\hat g(k-q)\Rightarrow e^{iqx}g(x)$. E.g. $\frac{2e^{-2ik}}{1+k^2}\Rightarrow e^{-|x-2|}$.</li>
+<li>Derivatives of table entries: $\frac{d\hat g}{dk}\Rightarrow -ix\,g$. E.g. $\frac{x}{x^2+a^2}\leftrightarrow-i\pi\operatorname{sgn}(k)e^{-a|k|}$.</li>
+</ul>
+
+<h2>Real integrals from a pair</h2>
+<p>$\int f\,dx=\hat f(0)$; $\ f(0)=\frac1{2\pi}\int\hat f\,dk$; $\ \int f(x)\cos bx\,dx=\frac12[\hat f(b)+\hat f(-b)]$ ($=\hat f(b)$ if $f$ even).</p>
+<p>$\int e^{-ax^2}\cos bx\,dx=\sqrt{\frac\pi a}e^{-b^2/4a}$; $\int\frac{\cos bx}{x^2+a^2}dx=\frac\pi ae^{-a|b|}$; $\int\frac{\sin ax}{x}dx=\pi$ ($a\gt0$, sinc pair at $k=0$).</p>
+
+<h2>ODE recipe (L29–30)</h2>
+<p><strong>Constant coeff</strong> $P(D)y=f$: $P(ik)\hat y=\hat f\Rightarrow\hat y=\hat f/P(ik)$; partial fractions in $k$ → table, or write as convolution, or leave $y=\frac1{2\pi}\int\frac{\hat f}{P(ik)}e^{ikx}dk$.</p>
+<div class="box">$y''-a^2y=f\ \Rightarrow\ \hat y=-\frac{\hat f}{a^2+k^2}\ \Rightarrow\ y=-\frac1{2a}e^{-a|x|}*f$. $\ f=\delta$: $y=-\frac1{2a}e^{-a|x|}$.</div>
+<p>"Subject to its FT existing" = keep only the decaying solution; $e^{\pm ax}$ homogeneous pieces have no FT and vanish.</p>
+<p><strong>Variable coeff</strong> (coeffs linear in $x$):</p>
+<ol class="steps">
+<li>Transform: $\mathcal F\{xy\}=i\hat y'$, $\mathcal F\{xy^{(n)}\}=i\frac{d}{dk}[(ik)^n\hat y]$</li>
+<li>Simplify to 1st-order linear: $\hat y'=g(k)\hat y$</li>
+<li>Integrating factor / separate: $\hat y=Ae^{\int g\,dk}$</li>
+<li>Invert: $y=\frac A{2\pi}\int e^{\int g\,dk}e^{ikx}dk$ (leave as integral)</li>
+<li>Say: "most general solution with a FT" (one constant; the other solution, e.g. Bi, has none)</li>
+</ol>
+<p>Airy $y''-xy=0$: $-k^2\hat y-i\hat y'=0\Rightarrow\hat y=Ae^{ik^3/3}$. $\ y'+xy=0$: $\hat y'=-k\hat y\Rightarrow\hat y=Ae^{-k^2/2}$ (check: $y\propto e^{-x^2/2}$).</p>
+
+<h2>PDE recipe on $\mathbb R$ (L30)</h2>
+<p>FT in $x$: $u_x\mapsto ik\hat u$, $u_{xx}\mapsto-k^2\hat u$, $t$ (or $y$) is a parameter ⇒ ODE in $t$ with "constants" $A(k)$. IC: $\hat u(k,0)=\hat f(k)$.</p>
+<ul>
+<li><strong>Heat</strong> $u_t=\alpha u_{xx}$: $\hat u=\hat f(k)e^{-\alpha k^2t}$, $u=\frac1{2\pi}\int\hat fe^{-\alpha k^2t}e^{ikx}dk=G_t*f$.<br><span class="mem">memorise</span> kernel ($f=\delta$): $G_t(x)=\frac1{2\sqrt{\pi\alpha t}}e^{-x^2/4\alpha t}$. $f=e^{-x^2}$: $u=\frac1{\sqrt{1+4\alpha t}}e^{-x^2/(1+4\alpha t)}$.</li>
+<li><strong>Wave</strong> $u_{tt}=c^2u_{xx}$, $u=f$, $u_t=g$: IVP $\hat u_{tt}+c^2k^2\hat u=0$, $\hat u(k,0)=\hat f$, $\hat u_t(k,0)=\hat g$ ⇒ $\hat u=\hat f\cos ckt+\hat g\frac{\sin ckt}{ck}$ ⇒ d'Alembert $u=\frac12[f(x-ct)+f(x+ct)]+\frac1{2c}\int_{x-ct}^{x+ct}g$ (cos → two shifts).</li>
+<li><strong>Advection</strong> $u_t=cu_x$: $\hat u=\hat fe^{ickt}$ ⇒ $u=f(x+ct)$ (shift by $-ct$); $f=\delta$: $\delta(x+ct)$.</li>
+<li><strong>Laplace strip</strong> $0\lt y\lt1$, $u(x,0)=0$, $u(x,1)=g$: $\hat u_{yy}=k^2\hat u$ ⇒ $A\cosh ky+B\sinh ky$ ⇒ $\hat u=\hat g\frac{\sinh ky}{\sinh k}$. $g$ even ⇒ $\hat g$ real even ⇒ $\sin kx$ part odd, integrates to 0: $u=\frac1\pi\int_0^\infty\hat g\frac{\sinh ky}{\sinh k}\cos kx\,dk$.</li>
+</ul>
+
+<h2>Exam traps</h2>
+<ul>
+<li>$\mathcal F\{xf\}=+i\hat f'$ (not $-i$). Derivative: $(ik)^n$, so $f''\mapsto-k^2\hat f$.</li>
+<li>$\frac1{2\pi}$ on the inverse only; $e^{iax}\leftrightarrow2\pi\delta_a$ carries the $2\pi$.</li>
+<li>Shift signs: $f(x-y)\mapsto e^{-iky}$; $e^{iqx}f\mapsto\hat f(k-q)$.</li>
+<li>FT only finds solutions that <em>have</em> a FT: $e^{\pm x}$, Bi, growing solutions are lost.</li>
+<li>$H_a=H(x-a)$ is a step at $a$; $H_{-a}-H_a$ is the box on $(-a,a)$, not $H_a-H_{-a}$.</li>
+<li>Value at a jump: midpoint (booklet Q1 defines $f(0)=\pi/2$ to match).</li>
+<li>Check: real even $f$ ⇒ $\hat f$ real even; real odd ⇒ $\hat f$ imaginary odd; $\hat f(0)=\int f$.</li>
+<li>Other books: $\frac1{\sqrt{2\pi}}$ or $e^{+ikx}$. Convert before copying a table.</li>
+</ul>
+
+</div>
+
+<div class="nav">
+  <span>Lessons: <a href="../lessons/0034-fourier-transform-definition.html">34</a> · <a href="../lessons/0035-ft-table-shift-inverse.html">35</a> · <a href="../lessons/0036-convolution-derivative-rules-proofs.html">36</a> · <a href="../lessons/0037-ft-odes.html">37</a> · <a href="../lessons/0038-ft-pdes-and-mixed-exam-set.html">38</a></span>
+  <span>Also: <a href="topic1-cheatsheet.html">Topic 1</a> · <a href="topic2-cheatsheet.html">Topic 2</a> · <a href="topic3-cheatsheet.html">Topic 3</a> · <a href="topic4-cheatsheet.html">Topic 4</a> · <a href="topic5-cheatsheet.html">Topic 5</a> · <a href="ode-method-map.html">Decision map</a></span>
+</div>
+</main>
+</body>
+</html>

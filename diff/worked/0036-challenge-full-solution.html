@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Convolution Challenge Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/ft-conv-slide.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 36 · Exam-level challenge · Full written solution</div>
+<h1>Convolution theorem and a product of Lorentzians, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>(a) Define $(f*g)(x)$ and prove $\mathcal F\{f*g\}=\hat f\hat g$. <em>[4]</em> (b) Show $\mathcal F\{fg\}=\frac1{2\pi}\int\hat f(q)\hat g(k-q)\,dq$. <em>[2]</em> (c) Given $\mathcal F\{\frac1{a^2+x^2}\}=\frac\pi ae^{-a|k|}$, show $\mathcal F\{\frac1{(1+x^2)(9+x^2)}\}=\frac\pi{24}(3e^{-|k|}-e^{-3|k|})$. <em>[5]</em> (d) Verify by partial fractions. <em>[1]</em> (e) Evaluate $\int_{-\infty}^\infty\frac{\cos2x}{(1+x^2)(9+x^2)}dx$. <em>[2]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · Convolution theorem</h2>
+<div class="script">
+<p>$\displaystyle (f*g)(x)=\int_{-\infty}^{\infty}f(x-\xi)\,g(\xi)\,d\xi.$ For $f,g$ absolutely integrable,
+$$\begin{aligned}\mathcal F\{f*g\}&=\int_{-\infty}^{\infty}\left[\int_{-\infty}^{\infty}f(x-\xi)g(\xi)\,d\xi\right]e^{-ikx}dx\\&=\int_{-\infty}^{\infty}g(\xi)\left[\int_{-\infty}^{\infty}f(x-\xi)e^{-ikx}dx\right]d\xi,\end{aligned}$$
+swapping the order of integration. In the inner integral ($\xi$ fixed) let $u=x-\xi$, $du=dx$:
+$$\int_{-\infty}^{\infty}f(u)e^{-ik(u+\xi)}du=e^{-ik\xi}\int_{-\infty}^{\infty}f(u)e^{-iku}du=e^{-ik\xi}\hat f(k).$$
+Hence
+$$\mathcal F\{f*g\}=\hat f(k)\int_{-\infty}^{\infty}g(\xi)e^{-ik\xi}d\xi=\hat f(k)\,\hat g(k).\qquad\blacksquare$$</p>
+</div>
+<p class="note">Four marks ≈ definition, swap, substitution (with $x=u+\xi$ in the exponential), recognising both transforms. "Absolutely integrable" justifies the swap (Fubini); one phrase is enough.</p>
+
+<h2>(b) · Product ⇒ convolution of transforms</h2>
+<div class="script">
+<p>By the inverse transform, $f(x)=\dfrac1{2\pi}\displaystyle\int_{-\infty}^{\infty}\hat f(q)e^{iqx}dq$. So
+$$\begin{aligned}\mathcal F\{fg\}&=\int_{-\infty}^{\infty}\left[\frac1{2\pi}\int_{-\infty}^{\infty}\hat f(q)e^{iqx}dq\right]g(x)e^{-ikx}dx\\&=\frac1{2\pi}\int_{-\infty}^{\infty}\hat f(q)\left[\int_{-\infty}^{\infty}g(x)e^{-i(k-q)x}dx\right]dq\\&=\frac1{2\pi}\int_{-\infty}^{\infty}\hat f(q)\,\hat g(k-q)\,dq.\end{aligned}$$</p>
+</div>
+<p class="note">The bracket is the definition of $\hat g$ evaluated at $k-q$. The $\frac1{2\pi}$ is the inverse transform's; this is where students lose it.</p>
+
+<h2>(c) · The transform of the product</h2>
+<div class="script">
+<p>Let $f=\dfrac1{1+x^2}$, $g=\dfrac1{9+x^2}$, so $\hat f(q)=\pi e^{-|q|}$, $\hat g(q)=\dfrac\pi3e^{-3|q|}$. By (b),
+$$\mathcal F\{fg\}=\frac1{2\pi}\cdot\pi\cdot\frac\pi3\,I(k)=\frac\pi6\,I(k),\qquad I(k)=\int_{-\infty}^{\infty}e^{-|q|}e^{-3|k-q|}dq.$$
+$I(-k)=I(k)$ (substitute $q\to-q$), so take $k\ge0$ and split at $q=0$ and $q=k$:</p>
+<p>$q&lt;0$: $\;|q|=-q$, $|k-q|=k-q$: $\displaystyle\int_{-\infty}^0e^{q}e^{-3k+3q}dq=e^{-3k}\int_{-\infty}^0e^{4q}dq=\tfrac14e^{-3k}.$</p>
+<p>$0&lt;q&lt;k$: $\;|q|=q$, $|k-q|=k-q$: $\displaystyle\int_0^ke^{-q}e^{-3k+3q}dq=e^{-3k}\int_0^ke^{2q}dq=\tfrac12e^{-3k}(e^{2k}-1)=\tfrac12\big(e^{-k}-e^{-3k}\big).$</p>
+<p>$q&gt;k$: $\;|q|=q$, $|k-q|=q-k$: $\displaystyle\int_k^\infty e^{-q}e^{3k-3q}dq=e^{3k}\int_k^\infty e^{-4q}dq=\tfrac14e^{3k}e^{-4k}=\tfrac14e^{-k}.$</p>
+<p>Adding: $I(k)=\tfrac34e^{-k}-\tfrac14e^{-3k}$ for $k\ge0$, so for all $k$, $I(k)=\tfrac14\big(3e^{-|k|}-e^{-3|k|}\big)$ and
+$$\mathcal F\Big\{\frac1{(1+x^2)(9+x^2)}\Big\}=\frac\pi6\cdot\frac14\big(3e^{-|k|}-e^{-3|k|}\big)=\frac{\pi}{24}\big(3e^{-|k|}-e^{-3|k|}\big).\qquad\blacksquare$$</p>
+</div>
+<p class="note">Write the signs of $q$ and $k-q$ on each piece: that's what the marker checks. Unlike the equal-width case ($a=b$), the middle piece doesn't collapse to a bare length $k$; it gives two exponentials. Sanity at $k=0$: $\frac\pi{24}\cdot2=\frac\pi{12}=\int\frac{dx}{(1+x^2)(9+x^2)}$ (and the answer is smooth at $k=0$, $\frac{d}{dk}\to\frac\pi{24}(-3+3)=0$, as it must be for a function decaying like $x^{-4}$).</p>
+
+<p>The integrand of $I(k)$, with its kinks at $q=0$ and $q=k$ (slide $k$):</p>
+<div id="slide-c"></div>
+
+<h2>(d) · Partial fractions check</h2>
+<div class="script">
+<p>$\dfrac1{(1+x^2)(9+x^2)}=\dfrac18\Big(\dfrac1{1+x^2}-\dfrac1{9+x^2}\Big)$, so the transform is $\dfrac18\Big(\pi e^{-|k|}-\dfrac\pi3e^{-3|k|}\Big)=\dfrac\pi{24}\big(3e^{-|k|}-e^{-3|k|}\big)$ ✓.</p>
+</div>
+<p class="note">Treat $x^2$ as one variable: $\frac1{(1+y)(9+y)}=\frac{1}{8}\big(\frac1{1+y}-\frac1{9+y}\big)$. In an exam where (c) goes wrong, this is how you know.</p>
+
+<h2>(e) · A real integral from the transform</h2>
+<div class="script">
+<p>Let $h(x)=\dfrac1{(1+x^2)(9+x^2)}$ (even). Then $\hat h(2)=\displaystyle\int h(x)\cos2x\,dx-i\int h(x)\sin2x\,dx$, and the second integral is $0$ (odd integrand). So
+$$\int_{-\infty}^{\infty}\frac{\cos2x}{(1+x^2)(9+x^2)}\,dx=\hat h(2)=\frac{\pi}{24}\big(3e^{-2}-e^{-6}\big).$$</p>
+</div>
+<p class="note">Checked numerically: $\approx0.052822$. Same move as the Gaussian $\int\cos(bx)e^{-ax^2}dx$ pattern: an even $h$ means $\int h\cos bx\,dx=\hat h(b)$.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+definition of $f*g$ · double integral and swap · $u=x-\xi$, $e^{-ik(u+\xi)}$ split · $\hat f\hat g$ · inverse transform substituted, $\frac1{2\pi}$ kept · $\frac1{2\pi}\cdot\pi\cdot\frac\pi3$ · evenness ⇒ $k\ge0$ · three pieces with correct $|q|$, $|k-q|$ · $|k|$ in the final answer · partial fractions $\frac18$ · odd part vanishes, evaluate at $k=2$.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0036-convolution-derivative-rules-proofs.html">Lesson 36, challenge</a></span>
+  <span>Reference: <a href="../reference/topic6-cheatsheet.html">Topic 6 cheat sheet</a></span>
+</div>
+
+</main>
+<script>
+  FtConvSlide.mount(document.getElementById('slide-c'), {
+    f: (x) => Math.exp(-3 * Math.abs(x)), g: (x) => Math.exp(-Math.abs(x)),
+    t: [-3, 3], y: [-0.1, 1.15], yc: [-0.05, 0.6], s0: 1,
+    vars: ['q', 'k'], labels: ['e^(−|q|)', 'e^(−3|k−q|)', 'I(k)'],
+    breaks: (s) => [{ v: 0, label: '0' }, { v: s, label: 'k' }],
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FT Mixed Set Solutions</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; }
+  .mk { font-family: Inter, system-ui, sans-serif; font-size: .78rem; font-weight: 600; color: var(--accent); }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 38 · Fourier transform mixed set · Full written solutions</div>
+<h1>Q1–Q4 written out as exam answers</h1>
+<p class="lede">Inside the red rule is what goes on your paper; <span class="mk">[n]</span> marks where each mark is earned. Grey notes are reasoning you don't write. The questions are in <a href="../lessons/0038-ft-pdes-and-mixed-exam-set.html">Lesson 38</a>; only read these after attempting them.</p>
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>Q1 [10]</h2>
+<p>$f(x)=3H_{-1}(x)-2H_{2}(x)-H_{4}(x)$.</p>
+<div class="script">
+<p>(a) For $x\lt -1$ all three steps are off: $f=0$. On $-1\lt x\lt 2$: $f=3$. On $2\lt x\lt 4$: $f=3-2=1$. For $x>4$: $f=3-2-1=0$. <span class="mk">[1]</span></p>
+<p>(Sketch: $0$, step up to $3$ at $x=-1$, down to $1$ at $x=2$, down to $0$ at $x=4$.)</p>
+<p>For $k\ne0$,
+$$\hat f(k)=\int_{-\infty}^\infty f(x)e^{-ikx}dx=\int_{-1}^{2}3e^{-ikx}dx+\int_{2}^{4}e^{-ikx}dx\quad\text{[1]}$$
+$$=3\Big[\frac{e^{-ikx}}{-ik}\Big]_{-1}^{2}+\Big[\frac{e^{-ikx}}{-ik}\Big]_{2}^{4}=\frac{3}{ik}\big(e^{ik}-e^{-2ik}\big)+\frac{1}{ik}\big(e^{-2ik}-e^{-4ik}\big)\quad\text{[1]}$$
+$$\boxed{\hat f(k)=\frac{3e^{ik}-2e^{-2ik}-e^{-4ik}}{ik}},\qquad \hat f(0)=\int f\,dx=3(3)+1(2)=11.\ \text{[1]}$$</p>
+</div>
+<p class="note">Check: as $k\to0$ the numerator is $3(1+ik)-2(1-2ik)-(1-4ik)+O(k^2)=11ik+O(k^2)$, so the limit is $11$ ✓. Also checked numerically at three values of $k$.</p>
+<div class="script">
+<p>(b) $f$ is piecewise continuous and absolutely integrable, so $\mathcal F^{-1}\{\hat f\}$ equals $f$ at points of continuity and $\frac12\big(f(x^-)+f(x^+)\big)$ at jumps. <span class="mk">[1]</span></p>
+<p>$x=-1$: $\frac{0+3}{2}=\frac32$. $\quad x=2$: $\frac{3+1}{2}=2$. $\quad x=4$: $\frac{1+0}{2}=\frac12$. <span class="mk">[1]</span></p>
+</div>
+<div class="script">
+<p>(c) $4\sin3k\cos k=2\big[\sin4k+\sin2k\big]$. <span class="mk">[1]</span></p>
+<p>From the definition, $\mathcal F\{\delta_a\}=\int\delta(x-a)e^{-ikx}dx=e^{-iak}$. So
+$$\begin{aligned}\sin ak&=\frac{e^{iak}-e^{-iak}}{2i}=\frac{\mathcal F\{\delta_{-a}\}-\mathcal F\{\delta_a\}}{2i}\\ \Rightarrow\ \mathcal F^{-1}\{\sin ak\}&=\frac{i}{2}\big(\delta_a-\delta_{-a}\big).\quad\text{[1]}\end{aligned}$$
+By linearity,
+$$\mathcal F^{-1}\{h\}=i\big[\delta(x-4)-\delta(x+4)+\delta(x-2)-\delta(x+2)\big].\quad\text{[1]}$$</p>
+</div>
+<p class="note">$\frac{1}{2i}=-\frac i2$, so $\frac{\delta_{-a}-\delta_a}{2i}=\frac i2(\delta_a-\delta_{-a})$. Odd real $h$ ↔ odd, purely imaginary inverse: consistent.</p>
+<div class="script">
+<p>(d) $H_a'=\delta_a$, so $f'=3\delta_{-1}-2\delta_2-\delta_4$, and $\mathcal F\{f'\}=3e^{ik}-2e^{-2ik}-e^{-4ik}=ik\hat f(k)$ ✓. <span class="mk">[1]</span></p>
+</div>
+
+<h2>Q2 [11]</h2>
+<div class="script">
+<p>(a) With $(f*g)(x)=\int_{-\infty}^\infty f(x-\xi)g(\xi)\,d\xi$,
+$$\mathcal F\{f*g\}(k)=\int_{-\infty}^\infty\Big(\int_{-\infty}^\infty f(x-\xi)g(\xi)\,d\xi\Big)e^{-ikx}\,dx.\quad\text{[1]}$$
+Since $f,g$ are absolutely integrable we may swap the order:
+$$=\int_{-\infty}^\infty g(\xi)\Big(\int_{-\infty}^\infty f(x-\xi)e^{-ikx}\,dx\Big)d\xi.\quad\text{[1]}$$
+In the inner integral put $s=x-\xi$ ($\xi$ fixed, $ds=dx$, limits unchanged), so $e^{-ikx}=e^{-iks}e^{-ik\xi}$:
+$$\int_{-\infty}^\infty f(x-\xi)e^{-ikx}dx=e^{-ik\xi}\int_{-\infty}^\infty f(s)e^{-iks}ds=e^{-ik\xi}\hat f(k).\quad\text{[1]}$$
+Hence
+$$\mathcal F\{f*g\}(k)=\hat f(k)\int_{-\infty}^\infty g(\xi)e^{-ik\xi}d\xi=\hat f(k)\,\hat g(k).\ \blacksquare\quad\text{[1]}$$</p>
+</div>
+<div class="script">
+<p>(b) $$\hat f(k)=\int_0^\infty e^{-x}e^{-ikx}dx=\int_0^\infty e^{-(1+ik)x}dx=\Big[\frac{-e^{-(1+ik)x}}{1+ik}\Big]_0^\infty.\quad\text{[1]}$$
+Since $|e^{-(1+ik)x}|=e^{-x}\to0$ as $x\to\infty$, $\;\hat f(k)=\dfrac{1}{1+ik}.$ <span class="mk">[1]</span></p>
+</div>
+<div class="script">
+<p>(c) $$(f*f)(x)=\int_{-\infty}^\infty e^{-(x-\xi)}H(x-\xi)\,e^{-\xi}H(\xi)\,d\xi.$$
+The integrand is non-zero only when $\xi>0$ and $\xi\lt x$. <span class="mk">[1]</span></p>
+<p>If $x\le0$ there is no such $\xi$, so $(f*f)(x)=0$. <span class="mk">[1]</span></p>
+<p>If $x>0$: $(f*f)(x)=\int_0^xe^{-x+\xi-\xi}\,d\xi=e^{-x}\int_0^xd\xi=xe^{-x}$. So $(f*f)(x)=xe^{-x}H(x)$. <span class="mk">[1]</span></p>
+</div>
+<div class="script">
+<p>(d) By the convolution theorem, $\mathcal F\{xe^{-x}H(x)\}=\mathcal F\{f*f\}=\hat f^2=\dfrac{1}{(1+ik)^2}.$ <span class="mk">[1]</span></p>
+<p>Check with $\mathcal F\{xf\}=i\dfrac{d\hat f}{dk}$: $\;i\dfrac{d}{dk}(1+ik)^{-1}=i\cdot(-1)(1+ik)^{-2}\cdot i=\dfrac{1}{(1+ik)^2}$ ✓. <span class="mk">[1]</span></p>
+</div>
+
+<h2>Q3 [8]</h2>
+<div class="script">
+<p>(a) Using $\mathcal F\{y''\}=(ik)^2\hat y=-k^2\hat y$, $\mathcal F\{y'\}=ik\hat y$ and $\mathcal F\{xy\}=i\hat y'$: <span class="mk">[1]</span>
+$$-k^2\hat y-2ik\hat y-i\hat y'=0\ \Rightarrow\ \hat y'=\frac{-k^2-2ik}{i}\,\hat y=(ik^2-2k)\,\hat y.\quad\text{[1]}$$</p>
+</div>
+<p class="note">$\frac{-k^2}{i}=ik^2$ and $\frac{-2ik}{i}=-2k$.</p>
+<div class="script">
+<p>(b) $\hat y'-(ik^2-2k)\hat y=0$. Integrating factor
+$$\mu(k)=\exp\Big(-\int(ik^2-2k)\,dk\Big)=e^{-ik^3/3+k^2}.\quad\text{[1]}$$
+Then $\dfrac{d}{dk}\big(\mu\hat y\big)=0$, so $\mu\hat y=A$ (constant): <span class="mk">[1]</span>
+$$\hat y(k)=A\,e^{ik^3/3-k^2}.\quad\text{[1]}$$</p>
+</div>
+<p class="note">$|\hat y|=|A|e^{-k^2}$ decays fast, so the inverse integral converges. Compare $y''+2y'-xy=0$, which gives $e^{+k^2}$ and no FT solution at all.</p>
+<div class="script">
+<p>(c) $$y(x)=\frac{1}{2\pi}\int_{-\infty}^\infty\hat y(k)e^{ikx}dk=\frac{A}{2\pi}\int_{-\infty}^\infty e^{-k^2}e^{i(k^3/3+kx)}\,dk.\quad\text{[1]}$$
+Write $e^{i\theta}=\cos\theta+i\sin\theta$ with $\theta(k)=\frac{k^3}{3}+kx$, which is odd in $k$. Then $e^{-k^2}\sin\theta$ is odd and integrates to $0$, while $e^{-k^2}\cos\theta$ is even. So for real $A$
+$$y(x)=\frac{A}{\pi}\int_0^\infty e^{-k^2}\cos\Big(\frac{k^3}{3}+kx\Big)dk,\qquad A\in\mathbb R.\quad\text{[1]}$$</p>
+</div>
+<div class="script">
+<p>(d) The FT method only produces solutions that have a Fourier transform. The second, linearly independent solution grows as $x\to\infty$, so it is not absolutely integrable and has no FT. Hence only a one-parameter family appears. <span class="mk">[1]</span></p>
+</div>
+<p class="note">Substituting $y=e^xw$ gives $w''=(x+1)w$, so $y=e^x\mathrm{Ai}(x+1)$ or $e^x\mathrm{Bi}(x+1)$. Using the $k$-shift theorem, $\mathcal F\{e^x\mathrm{Ai}(x+1)\}=e^{-2/3}e^{ik^3/3-k^2}$, so the answer is $y=Ae^{2/3}e^x\mathrm{Ai}(x+1)$. Checked numerically, including the ODE residual of the integral. Not needed on the exam.</p>
+
+<h2>Q4 [14]</h2>
+<div class="script">
+<p>(a) Integrating by parts in $x$,
+$$\mathcal F\{u_x\}=\int_{-\infty}^\infty u_x\,e^{-ikx}dx=\Big[u\,e^{-ikx}\Big]_{-\infty}^{\infty}-\int_{-\infty}^\infty u\,(-ik)e^{-ikx}dx.\quad\text{[1]}$$
+Since $|u\,e^{-ikx}|=|u|\to0$ as $x\to\pm\infty$, the boundary term is $0$, <span class="mk">[1]</span> so
+$$\mathcal F\{u_x\}=ik\int_{-\infty}^\infty u\,e^{-ikx}dx=ik\,\hat u(k,t).\quad\text{[1]}$$
+(Applying this to $u_x$, using $u_x\to0$, gives $\mathcal F\{u_{xx}\}=-k^2\hat u$.)</p>
+</div>
+<div class="script">
+<p>(b) Transform the PDE in $x$ ($\partial_t$ commutes with $\mathcal F$) and the IC, with $\mathcal F\{\delta\}=1$:
+$$\frac{\partial\hat u}{\partial t}+2ik\hat u=-k^2\hat u,\qquad \hat u(k,0)=1.\quad\text{[1]}$$
+This is a first-order linear ODE in $t$: $\hat u=A(k)e^{-(k^2+2ik)t}$. <span class="mk">[1]</span> At $t=0$, $A(k)=1$:
+$$\hat u(k,t)=e^{-k^2t}\,e^{-2ikt}.\quad\text{[1]}$$</p>
+</div>
+<div class="script">
+<p>(c) Shift theorem: for $s\in\mathbb R$, with $z=x-s$,
+$$\begin{aligned}\mathcal F\{g(x-s)\}&=\int_{-\infty}^\infty g(x-s)e^{-ikx}dx=\int_{-\infty}^\infty g(z)e^{-ik(z+s)}dz\\&=e^{-iks}\hat g(k).\quad\text{[1]}\end{aligned}$$
+From the given pair with $a=\frac{1}{4t}$: $\mathcal F\{e^{-x^2/4t}\}=\sqrt{4\pi t}\,e^{-k^2t}$, so
+$$e^{-k^2t}=\hat G(k,t),\qquad G(x,t)=\frac{1}{\sqrt{4\pi t}}e^{-x^2/4t}.\quad\text{[1]}$$
+Then $\hat u=e^{-ik(2t)}\hat G$, the shift theorem with $s=2t$, <span class="mk">[1]</span> so
+$$u(x,t)=G(x-2t,t)=\frac{1}{\sqrt{4\pi t}}\exp\Big(-\frac{(x-2t)^2}{4t}\Big).\quad\text{[1]}$$</p>
+</div>
+<p class="note">Check: substituting into $u_t+2u_x-u_{xx}$ gives $0$ (done symbolically). As $t\to0^+$ it is a spike of area 1 at $x=0$.</p>
+<div class="script">
+<p>(d) $\displaystyle\int_{-\infty}^\infty u(x,t)\,dx=\hat u(0,t)=e^0=1$ for all $t>0$. <span class="mk">[1]</span></p>
+<p>The dye forms a Gaussian pulse. Its centre moves downstream (in $+x$) at speed $2$, at $x=2t$, while it spreads with width $\propto\sqrt t$ and peak height $\frac1{\sqrt{4\pi t}}$ falling. The total amount of dye is conserved. <span class="mk">[1]</span></p>
+</div>
+<div class="script">
+<p>(e) Now $\hat u(k,0)=\hat f(k)$, so $\hat u=\hat f(k)\,e^{-k^2t-2ikt}=\hat f(k)\,\hat h(k,t)$ with $h(x,t)=G(x-2t,t)$ from (c). <span class="mk">[1]</span> By the convolution theorem, $u=h*f$:
+$$\begin{aligned}u(x,t)&=\int_{-\infty}^\infty h(x-\xi,t)f(\xi)\,d\xi\\&=\frac{1}{\sqrt{4\pi t}}\int_{-\infty}^\infty\exp\Big(-\frac{(x-\xi-2t)^2}{4t}\Big)f(\xi)\,d\xi.\quad\text{[1]}\end{aligned}$$</p>
+</div>
+<p class="note">For $f=e^{-x^2}$ this evaluates to $\frac{1}{\sqrt{1+4t}}e^{-(x-2t)^2/(1+4t)}$ (verified): the Lesson 38 §2(ii) answer, slid along by $2t$.</p>
+
+<div class="nav">
+  <span>Back to <a href="../lessons/0038-ft-pdes-and-mixed-exam-set.html">Lesson 38</a></span>
+  <span>Next: <a href="../reference/topic6-cheatsheet.html">Topic 6 cheat sheet</a></span>
+</div>
+</main>
+</body>
+</html>

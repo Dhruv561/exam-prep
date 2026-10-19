@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FT: PDEs on the Line</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/ft-heat-line.js"></script>
+<style>
+  /* Lesson 38 only */
+  table.flow td, table.flow th { text-align: left; vertical-align: top; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-weight: 600; }
+  .box .katex-display, details .katex-display { overflow-x: auto; overflow-y: hidden; }
+  .timer { font-family: Inter, system-ui, sans-serif; font-size: .9rem; display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; background: var(--card); border-radius: 6px; padding: .6rem 1rem; margin: 1rem 0; }
+  .timer output { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 1.1rem; min-width: 4.5em; }
+  .timer output.over { color: var(--bad); }
+  .timer button { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--rule); border-radius: 999px; padding: .25rem .9rem; cursor: pointer; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 38 · Topic 6: Fourier transforms · PDEs on ℝ + timed mixed set</div>
+<h1>PDEs on the whole line, then the Topic 6 exam set</h1>
+<p class="lede">The one win: turn a PDE on $x\in\mathbb R$ into an ODE for $\hat u(k,\cdot)$, solve it with "constants" $A(k)$, $B(k)$, and get back to $u$ by table + shift theorem, or leave it as an integral. Part 2 is a 43-mark timed set covering all of Topic 6.</p>
+
+<div class="mission">Why this matters for 5 Nov: the FT question is last on the paper (masked 2026: Q7, 14 marks, parts (a)–(c)). A PDE on ℝ has appeared in most years: advection with a δ IC, "find the IVP for $\hat u$ and describe the remaining steps" for a wave, Laplace on an infinite strip with "show the imaginary part vanishes". The formula sheet gives $\mathcal F\{\partial_x^n u\}=(ik)^n\hat u$ but <strong>not</strong> the Gaussian pair, the shift theorem or the heat kernel.</div>
+
+<h2>0 · Warm-up from Lessons 34–37</h2>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W1.</strong> From the definition, $\mathcal F\{\delta(x-3)\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{-3ik}$</button>
+    <button class="opt" data-key="b">$e^{3ik}$</button>
+    <button class="opt" data-key="c">$e^{-3k}$</button>
+    <button class="opt" data-key="d">$2\pi\delta(k-3)$</button>
+  </div>
+  <div class="why">$\int\delta(x-3)e^{-ikx}dx=e^{-ik\cdot3}$ (sifting). (d) is $\mathcal F\{e^{3ix}\}$ (<a href="0034-fourier-transform-definition.html">Lesson 34</a>).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W2.</strong> $\mathcal F^{-1}\{\cos 2k\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac12\big(\delta(x-2)-\delta(x+2)\big)$</button>
+    <button class="opt" data-key="b">$\tfrac i2\big(\delta(x-2)-\delta(x+2)\big)$</button>
+    <button class="opt" data-key="c">$\tfrac12\big(\delta(x-2)+\delta(x+2)\big)$</button>
+    <button class="opt" data-key="d">$\big(\delta(x-2)+\delta(x+2)\big)$</button>
+  </div>
+  <div class="why">$\cos2k=\frac12(e^{-2ik}+e^{2ik})$ and $e^{-iak}\leftrightarrow\delta_a$ (<a href="0035-ft-table-shift-inverse.html">Lesson 35</a>).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W3.</strong> The formula-sheet rule for $\mathcal F\{x\,f(x)\}$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$ik\,\hat f(k)$</button>
+    <button class="opt" data-key="b">$-i\,\hat f'(k)$</button>
+    <button class="opt" data-key="c">$\hat f'(k)/(ik)$</button>
+    <button class="opt" data-key="d">$i\,\hat f'(k)$</button>
+  </div>
+  <div class="why">$\mathcal F\{x^nf\}=i^n\frac{d^n\hat f}{dk^n}$ with $n=1$ (<a href="0036-convolution-derivative-rules-proofs.html">Lesson 36</a>).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W4.</strong> $y''-4y=-4\delta(x)$, with the condition that $\hat y$ exists. Then $y=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac12e^{-2|x|}$</button>
+    <button class="opt" data-key="b">$e^{-2|x|}$</button>
+    <button class="opt" data-key="c">$2e^{-2|x|}$</button>
+    <button class="opt" data-key="d">$e^{2|x|}$</button>
+  </div>
+  <div class="why">$(-k^2-4)\hat y=-4\Rightarrow\hat y=\frac{4}{4+k^2}=\mathcal F\{e^{-2|x|}\}$ by $e^{-a|x|}\leftrightarrow\frac{2a}{a^2+k^2}$ (<a href="0037-ft-odes.html">Lesson 37</a>).</div>
+</div>
+
+<h1 style="margin-top:2.5rem">Part 1 · PDEs on ℝ</h1>
+
+<h2>1 · The 4-step recipe</h2>
+<div class="box">
+<ol class="steps">
+<li><strong>Transform in $x$.</strong> $\hat u(k,t)=\int u(x,t)e^{-ikx}dx$. Then $u_x\to ik\hat u$, $u_{xx}\to-k^2\hat u$, and $u_t\to\partial_t\hat u$ ($t$ is just a parameter). Transform the ICs too: $\hat u(k,0)=\hat f(k)$.</li>
+<li><strong>Write the ODE IVP for $\hat u$.</strong> An ODE in $t$ (or $y$) with $k$ as a parameter.</li>
+<li><strong>Solve it.</strong> The constants of integration are functions $A(k)$, $B(k)$. Fix them with the transformed ICs/BCs.</li>
+<li><strong>Invert.</strong> By table + shift theorem + convolution if possible. Otherwise $u=\frac1{2\pi}\int_{-\infty}^\infty\hat u(k,t)e^{ikx}dk$, left as an integral.</li>
+</ol>
+<p>Why FT is allowed: "$u\to0$ as $x\to\pm\infty$" (or "$\hat u$ exists") kills the boundary terms in $\mathcal F\{u_x\}=ik\hat u$. Say this in one line on the exam.</p>
+</div>
+<table>
+<tr><th>Domain in $x$</th><th>Method</th><th>Answer looks like</th></tr>
+<tr><td>$0\lt x\lt L$ with BCs (Topic 5)</td><td>separation, eigenvalues $k_n$</td><td>series $\sum_n c_n T_n(t)X_n(x)$</td></tr>
+<tr><td>$-\infty\lt x\lt\infty$, decay (Topic 6)</td><td>FT in $x$, every $k\in\mathbb R$ allowed</td><td>integral $\frac1{2\pi}\int\hat f(k)T(k,t)e^{ikx}dk$</td></tr>
+</table>
+<p>Same idea: $e^{ikx}$ is the "eigenfunction" of $\partial_x^2$. A bounded interval only allows discrete $k_n$; the line allows all $k$, so the sum becomes an integral.</p>
+
+<p><strong>Two facts you must carry in (not on the sheet).</strong></p>
+<div class="box">
+$$\mathcal F\{e^{-ax^2}\}=\sqrt{\tfrac{\pi}{a}}\,e^{-k^2/4a},\qquad \mathcal F\{f(x-s)\}=e^{-iks}\hat f(k).$$
+<p>Proof of the shift, one line: $\int f(x-s)e^{-ikx}dx\overset{z=x-s}{=}e^{-iks}\int f(z)e^{-ikz}dz$.</p>
+</div>
+
+<h2>2 · Heat equation $u_t=\alpha u_{xx}$ on ℝ</h2>
+<p>Steps 1–3 (<a href="../lectures/30_MAST20030_Lecture_Notes_Topic6_Fourier_transforms_handout.pdf">L30 s9–10</a>): $\partial_t\hat u=-\alpha k^2\hat u$, so $\hat u=A(k)e^{-\alpha k^2t}$, and $\hat u(k,0)=\hat f(k)$ gives
+$$\boxed{\hat u(k,t)=\hat f(k)\,e^{-\alpha k^2t}}$$
+Three ways the inversion goes:</p>
+
+<h4>(i) δ initial condition → heat kernel (L30 s11)</h4>
+<p>$\hat f=1$, so $\hat u=e^{-\alpha k^2t}$. In the Gaussian pair, $\frac1{4a}=\alpha t\Rightarrow a=\frac1{4\alpha t}$: $\mathcal F\{e^{-x^2/4\alpha t}\}=\sqrt{4\pi\alpha t}\,e^{-\alpha k^2t}$. Divide:
+$$G(x,t)=\frac{1}{\sqrt{4\pi\alpha t}}\,e^{-x^2/4\alpha t}.$$
+Area $=\hat G(0,t)=1$ for all $t$ (heat is conserved); width $\sim\sqrt{\alpha t}$.</p>
+
+<h4>(ii) Gaussian IC → exact answer</h4>
+<p><strong>Worked.</strong> $u(x,0)=e^{-x^2}$. $\hat f=\sqrt\pi\,e^{-k^2/4}$, so $\hat u=\sqrt\pi\,e^{-k^2(1+4\alpha t)/4}$. Match to the pair with $\frac1{4b}=\frac{1+4\alpha t}{4}$, i.e. $b=\frac1{1+4\alpha t}$: $\hat u=\sqrt b\cdot\sqrt{\pi/b}\,e^{-k^2/4b}$, so
+$$u(x,t)=\frac{1}{\sqrt{1+4\alpha t}}\;e^{-x^2/(1+4\alpha t)}.$$
+Check: $t=0$ gives $e^{-x^2}$ ✓; area $\sqrt\pi$ for all $t$ ✓.</p>
+
+<h4>(iii) General IC → convolution with the kernel</h4>
+<p>$\hat u=\hat f\cdot\hat G$, so by the convolution theorem (on the sheet)
+$$u(x,t)=(G*f)(x)=\frac{1}{\sqrt{4\pi\alpha t}}\int_{-\infty}^\infty e^{-(x-\xi)^2/4\alpha t}f(\xi)\,d\xi.$$
+That is a complete answer when $f$ is, e.g., $\frac1{1+x^2}$ (booklet 6 Q9(e)).</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>C1.</strong> $u_t=u_{xx}$ on ℝ, $u(x,0)=e^{-x^2/2}$. Then $u=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\frac{1}{\sqrt{1+4t}}\,e^{-x^2/(2+4t)}$</button>
+    <button class="opt" data-key="b">$\frac{1}{\sqrt{1+2t}}\,e^{-x^2/(2+2t)}$</button>
+    <button class="opt" data-key="c">$\frac{1}{\sqrt{1+2t}}\,e^{-x^2/(2+4t)}$</button>
+    <button class="opt" data-key="d">$\frac{1}{\sqrt{1+t}}\,e^{-x^2/(2+4t)}$</button>
+  </div>
+  <div class="why">$a=\frac12$: $\hat f=\sqrt{2\pi}e^{-k^2/2}$, $\hat u=\sqrt{2\pi}e^{-k^2(2+4t)/4}$, so $b=\frac1{2+4t}$ and $u=\sqrt{2b}\,e^{-bx^2}=\frac{1}{\sqrt{1+2t}}e^{-x^2/(2+4t)}$. Shortcut: $e^{-x^2/(4s)}$ evolves to $\sqrt{\frac{s}{s+t}}\,e^{-x^2/4(s+t)}$ (here $s=\frac12$).</div>
+</div>
+
+<h2>3 · Wave equation $u_{tt}=c^2u_{xx}$ on ℝ</h2>
+<div class="box">
+<p>IVP for $\hat u$ (this alone is often 2–3 marks):
+$$\frac{\partial^2\hat u}{\partial t^2}+c^2k^2\hat u=0,\qquad \hat u(k,0)=\hat f(k),\quad \partial_t\hat u(k,0)=\hat g(k).$$
+Solve: $\hat u=A(k)\cos ckt+B(k)\sin ckt$, with $A=\hat f$, $ckB=\hat g$:
+$$\hat u=\hat f(k)\cos ckt+\hat g(k)\,\frac{\sin ckt}{ck}.$$</p>
+</div>
+<p><strong>Recovering d'Alembert ($g=0$).</strong> $\hat f\cos ckt=\frac12\hat f\,e^{-ik(ct)}+\frac12\hat f\,e^{-ik(-ct)}$. By the shift theorem, each term is a translate:
+$$u(x,t)=\tfrac12\big[f(x-ct)+f(x+ct)\big].$$
+The bump splits into two half-height copies moving apart at speed $c$. Corners are kept (contrast heat).</p>
+
+<p><strong>Worked: velocity δ.</strong> $u(x,0)=0$, $u_t(x,0)=\delta(x)$. Then $\hat u=\frac{\sin ckt}{ck}$. The box pair $H_{-a}-H_a\leftrightarrow\frac{2\sin ak}{k}$ with $a=ct$ gives
+$$u=\frac1{2c}\big[H(x+ct)-H(x-ct)\big]:\ \text{height }\tfrac1{2c}\text{ on }|x|\lt ct,\ 0\text{ outside}.$$
+(Same as d'Alembert's $\frac1{2c}\int_{x-ct}^{x+ct}g$.)</p>
+
+<div class="box">
+<p><strong>"Describe in words the remaining steps"</strong> (model answer, 2 marks):</p>
+<ol>
+<li>Solve the ODE in $t$: $\hat u=A(k)\cos ckt+B(k)\sin ckt$.</li>
+<li>Use the two transformed ICs to fix $A(k)$ and $B(k)$.</li>
+<li>Write $\cos ckt$, $\sin ckt$ as complex exponentials, and invert term by term with the shift theorem (or the table). If no pair fits, leave $u=\frac1{2\pi}\int\hat u\,e^{ikx}dk$.</li>
+</ol>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>C2.</strong> $u_{tt}=9u_{xx}$, $u(x,0)=0$, $u_t(x,0)=e^{-|x|}$. The IVP for $\hat u$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\hat u_{tt}+9k^2\hat u=0,\ \hat u(k,0)=0,\ \hat u_t(k,0)=\frac{2}{1+k^2}$</button>
+    <button class="opt" data-key="b">$\hat u_{tt}-9k^2\hat u=0,\ \hat u(k,0)=0,\ \hat u_t(k,0)=\frac{2}{1+k^2}$</button>
+    <button class="opt" data-key="c">$\hat u_{tt}+9k^2\hat u=0,\ \hat u(k,0)=0,\ \hat u_t(k,0)=\frac{1}{1+k^2}$</button>
+    <button class="opt" data-key="d">$\hat u_{tt}+3k^2\hat u=0,\ \hat u(k,0)=0,\ \hat u_t(k,0)=\frac{2}{1+k^2}$</button>
+  </div>
+  <div class="why">$u_{xx}\to(ik)^2\hat u=-k^2\hat u$, so $\hat u_{tt}=-9k^2\hat u$. And $e^{-a|x|}\leftrightarrow\frac{2a}{a^2+k^2}$ with $a=1$.</div>
+</div>
+
+<h2>4 · Advection (transport): first order in $t$</h2>
+<p>$u_t+cu_x=0$: $\partial_t\hat u=-ick\hat u\Rightarrow\hat u=\hat f(k)e^{-ikct}\Rightarrow u=f(x-ct)$ by the shift theorem (moves <strong>right</strong>).<br>
+$u_t=cu_x$: $\hat u=\hat f\,e^{+ikct}\Rightarrow u=f(x+ct)$ (moves <strong>left</strong>). With $f=\delta$: $u=\delta(x+ct)$.</p>
+<p>Add a diffusion term and the two effects multiply in $k$-space: drift ($e^{-ikct}$) times spreading ($e^{-\alpha k^2t}$). That combination is Q4 of the set below.</p>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>C3.</strong> $u_t+3u_x=0$ on ℝ, $u(x,0)=e^{-x^2}$. Then $u=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{-(x+3t)^2}$</button>
+    <button class="opt" data-key="b">$e^{-x^2-3t}$</button>
+    <button class="opt" data-key="c">$e^{-(x-3t)^2}/\sqrt{1+3t}$</button>
+    <button class="opt" data-key="d">$e^{-(x-3t)^2}$</button>
+  </div>
+  <div class="why">$\hat u=\hat f e^{-3ikt}=\hat f e^{-ik(3t)}\leftrightarrow f(x-3t)$. Pure transport: no spreading, no prefactor. Check: $u_t=6(x-3t)u$, $u_x=-2(x-3t)u$, so $u_t+3u_x=0$ ✓.</div>
+</div>
+
+<p>Below: the box $f=H_{-1}-H_1$ under <span style="white-space:nowrap">heat ($\alpha=1$)</span>, <span style="white-space:nowrap">wave ($c=1$)</span> and <span style="white-space:nowrap">advection ($c=1$).</span> Heat rounds the corners instantly and spreads; wave splits and keeps corners; advection just slides.</p>
+<div id="fl-demo"></div>
+
+<h2>5 · Laplace's equation on an infinite strip</h2>
+<p><strong>Worked.</strong> $u_{xx}+u_{yy}=0$, $x\in\mathbb R$, $0\lt y\lt 2$, $u(x,0)=e^{-|x|}$, $u(x,2)=0$, $u\to0$ as $|x|\to\infty$.</p>
+<div class="box">
+<ol class="steps">
+<li><strong>Transform in $x$</strong> ($y$ is the parameter): $-k^2\hat u+\hat u_{yy}=0$, i.e. $\hat u_{yy}=k^2\hat u$.</li>
+<li><strong>General solution, two unknown functions:</strong> $\hat u=A(k)\cosh ky+B(k)\sinh ky$. Smarter basis for a zero at $y=2$: $\hat u=C(k)\sinh k(2-y)+D(k)\sinh ky$.</li>
+<li><strong>BCs:</strong> $\hat u(k,2)=0\Rightarrow D\sinh2k=0\Rightarrow D=0$. $\hat u(k,0)=\frac{2}{1+k^2}\Rightarrow C\sinh2k=\frac2{1+k^2}$:
+$$\hat u(k,y)=\frac{2}{1+k^2}\,\frac{\sinh k(2-y)}{\sinh 2k}\qquad(\text{at }k=0\text{: limit }1-\tfrac y2).$$</li>
+<li><strong>Invert as an integral:</strong> $u=\frac1{2\pi}\int_{-\infty}^\infty\frac{2\sinh k(2-y)}{(1+k^2)\sinh2k}\,e^{ikx}dk.$</li>
+</ol>
+<p><strong>"Show $u$ is real"</strong>: $\hat u(k,y)$ is real and even in $k$ (ratio of two odd sinh's is even). Write $e^{ikx}=\cos kx+i\sin kx$: $\hat u\sin kx$ is odd in $k$, so its integral over ℝ is $0$. Hence
+$$u(x,y)=\frac1\pi\int_0^\infty\frac{2\sinh k(2-y)}{(1+k^2)\sinh 2k}\cos kx\,dk\in\mathbb R.$$</p>
+</div>
+<p>General strip $0\lt y\lt b$ with $u(x,0)=f$, $u(x,b)=g$: $\hat u=\dfrac{\hat f\sinh k(b-y)+\hat g\sinh ky}{\sinh kb}$. On the half-plane $y>0$ (bounded $u$) only $e^{-|k|y}$ survives instead.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>C4.</strong> Laplace on the half-plane $y>0$, $u(x,0)=f(x)$, $u$ bounded as $y\to\infty$. After the FT in $x$, $\hat u(k,y)=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\hat f(k)\cosh ky$</button>
+    <button class="opt" data-key="b">$\hat f(k)\,e^{-|k|y}$</button>
+    <button class="opt" data-key="c">$\hat f(k)\,e^{-ky}$</button>
+    <button class="opt" data-key="d">$\hat f(k)\,e^{-k^2y}$</button>
+  </div>
+  <div class="why">$\hat u=Ae^{ky}+Be^{-ky}$. For $k>0$ drop $e^{ky}$; for $k\lt0$ drop $e^{-ky}$. Both cases: $e^{-|k|y}$. (c) blows up for $k\lt 0$; (d) is heat.</div>
+</div>
+
+<h2>6 · Exam-style practice</h2>
+<p><strong>P1 [6].</strong> $u_{xx}+u_{yy}=0$ on $x\in\mathbb R$, $0\lt y\lt1$, with $u_y(x,0)=0$ (insulated edge), $u(x,1)=e^{-2|x|}$, $u\to0$ as $|x|\to\infty$. (a) Find the ODE and general solution for $\hat u(k,y)$, with two unknown functions [2]. (b) Fix them [2]. (c) Write $u$ as a real integral, justifying that it is real [2].</p>
+<details><summary>P1 solution</summary><div>
+<p>(a) $\hat u_{yy}=k^2\hat u$, $\hat u=A(k)\cosh ky+B(k)\sinh ky$.</p>
+<p>(b) $\hat u_y(k,0)=kB=0\Rightarrow B=0$ (for $k\ne0$; $k=0$ is measure zero). $\hat u(k,1)=A\cosh k=\mathcal F\{e^{-2|x|}\}=\frac{4}{4+k^2}$. So $\hat u=\frac{4\cosh ky}{(4+k^2)\cosh k}$.</p>
+<p>(c) $u=\frac1{2\pi}\int\hat u\,e^{ikx}dk$. $\hat u$ is real and even in $k$, so the $i\sin kx$ part is odd and integrates to $0$:
+$$u(x,y)=\frac1\pi\int_0^\infty\frac{4\cosh ky}{(4+k^2)\cosh k}\cos kx\,dk.$$
+(Numerically checked: $u$ is harmonic, $u_y(x,0)=0$, and $u(x,1^-)\to e^{-2|x|}$.)</p>
+</div></details>
+
+<p><strong>P2 [5].</strong> $u_{tt}=4u_{xx}$ on ℝ, $u(x,0)=e^{-x^2}$, $u_t(x,0)=0$, $u\to0$ as $|x|\to\infty$. (a) Write down the IVP for $\hat u(k,t)$ [2]. (b) Describe in words the remaining steps [1]. (c) Carry them out [2].</p>
+<details><summary>P2 solution</summary><div>
+<p>(a) $\hat u_{tt}+4k^2\hat u=0$, $\hat u(k,0)=\sqrt\pi e^{-k^2/4}$, $\hat u_t(k,0)=0$.</p>
+<p>(b) Solve the constant-coefficient ODE in $t$ ($A\cos2kt+B\sin2kt$), fix $A$, $B$ from the two ICs, write cos as exponentials and invert with the shift theorem.</p>
+<p>(c) $\hat u=\sqrt\pi e^{-k^2/4}\cos2kt=\frac12\hat f\,(e^{-ik(2t)}+e^{ik(2t)})$, so $u=\frac12\big[e^{-(x-2t)^2}+e^{-(x+2t)^2}\big]$.</p>
+</div></details>
+
+<div class="trap"><strong>Traps on PDE-on-ℝ questions</strong><br>
+(1) Writing $\hat u=Ae^{-\alpha k^2t}$ with a constant $A$: it is $A(k)$. (2) $\mathcal F\{u_{xx}\}=+k^2\hat u$: it is $(ik)^2=-k^2$. (3) Shift direction: $e^{-iks}\hat f\leftrightarrow f(x-s)$; $u_t=cu_x$ moves <em>left</em>. (4) Forgetting to transform the ICs (or forgetting the second one for the wave equation). (5) "Show it's real": state <em>which</em> part is odd in $k$ and why.</div>
+
+<h1 style="margin-top:2.5rem">Part 2 · Timed mixed set (all of Topic 6)</h1>
+<p>Four new questions, 43 marks, at exam pace (2 min/mark ≈ 86 min). Use paper and <a href="../exams/MAST20030_S2_2026_Formula_Sheet.pdf">the 2026 formula sheet</a> only. Open each marking scheme only after you have written the whole question.</p>
+
+<div class="timer" id="timer">
+  <span>Time left</span><output id="tm-out">86:00</output>
+  <button type="button" id="tm-go">Start</button>
+  <button type="button" id="tm-reset">Reset</button>
+  <label>minutes <input type="number" id="tm-min" value="86" min="1" max="180" style="width:4em"></label>
+</div>
+
+<h3>Question 1 <span class="marks">[10 marks]</span></h3>
+<div class="box">
+<p>Let $f(x)=3H_{-1}(x)-2H_{2}(x)-H_{4}(x)$, where $H_a(x)=H(x-a)$.</p>
+<p>(a) Sketch $f$, and find its Fourier transform $\hat f(k)$ from the definition. Give $\hat f(0)$. <em>[4]</em></p>
+<p>(b) $\mathcal F^{-1}\{\hat f\}$ returns a function equal to $f$ except possibly at finitely many points. Give its value at $x=-1$, $x=2$ and $x=4$. <em>[2]</em></p>
+<p>(c) Find the inverse Fourier transform of $h(k)=4\sin(3k)\cos(k)$. <em>[3]</em></p>
+<p>(d) Write $f'(x)$ in terms of delta functions, and check that $\mathcal F\{f'\}=ik\hat f$ holds for your answer to (a). <em>[1]</em></p>
+</div>
+<details><summary>Q1 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> $f=3$ on $(-1,2)$, $1$ on $(2,4)$, $0$ elsewhere (sketch: two steps down). <strong>[1]</strong> $\hat f=\int_{-1}^{2}3e^{-ikx}dx+\int_2^4e^{-ikx}dx$. <strong>[1]</strong> $=\frac{3}{ik}(e^{ik}-e^{-2ik})+\frac1{ik}(e^{-2ik}-e^{-4ik})$, <strong>[1]</strong>
+$$\hat f(k)=\frac{3e^{ik}-2e^{-2ik}-e^{-4ik}}{ik},\ k\ne0;\qquad \hat f(0)=\int f=3\cdot3+1\cdot2=11.$$</p>
+<p>(b) <strong>[2]</strong> Midpoints of the jumps: $x=-1$: $\frac{0+3}2=\frac32$; $x=2$: $\frac{3+1}{2}=2$; $x=4$: $\frac{1+0}{2}=\frac12$. (1 mark for the midpoint rule, 1 for all three values.)</p>
+<p>(c) <strong>[1]</strong> $4\sin3k\cos k=2\sin4k+2\sin2k$. <strong>[1]</strong> $\sin ak=\frac{e^{iak}-e^{-iak}}{2i}$, and $\mathcal F\{\delta_a\}=e^{-iak}$, so $\mathcal F^{-1}\{\sin ak\}=\frac{\delta_{-a}-\delta_a}{2i}=\frac i2(\delta_a-\delta_{-a})$. <strong>[1]</strong>
+$$\mathcal F^{-1}\{h\}=i\big[\delta(x-4)-\delta(x+4)+\delta(x-2)-\delta(x+2)\big].$$</p>
+<p>(d) <strong>[1]</strong> $f'=3\delta_{-1}-2\delta_2-\delta_4$, whose FT is $3e^{ik}-2e^{-2ik}-e^{-4ik}=ik\hat f$ ✓.</p>
+</div></details>
+
+<h3>Question 2 <span class="marks">[11 marks]</span></h3>
+<div class="box">
+<p>(a) Using the definition of convolution on the formula sheet, prove that $\mathcal F\{f*g\}=\hat f\,\hat g$. You may assume $f$, $g$ are absolutely integrable, so the order of integration can be swapped. <em>[4]</em></p>
+<p>(b) Let $f(x)=e^{-x}H(x)$. Find $\hat f(k)$ from the definition. <em>[2]</em></p>
+<p>(c) Compute $(f*f)(x)$ directly for all $x\in\mathbb R$. <em>[3]</em></p>
+<p>(d) Hence find $\mathcal F\{x\,e^{-x}H(x)\}$, and confirm it using the formula-sheet rule for $\mathcal F\{x f(x)\}$. <em>[2]</em></p>
+</div>
+<details><summary>Q2 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> $\mathcal F\{f*g\}=\int_{-\infty}^\infty\Big(\int_{-\infty}^\infty f(x-\xi)g(\xi)\,d\xi\Big)e^{-ikx}dx$. <strong>[1]</strong> Swap: $=\int g(\xi)\Big(\int f(x-\xi)e^{-ikx}dx\Big)d\xi$. <strong>[1]</strong> Inner: $s=x-\xi$, $e^{-ikx}=e^{-iks}e^{-ik\xi}$, giving $e^{-ik\xi}\hat f(k)$. <strong>[1]</strong> So $=\hat f(k)\int g(\xi)e^{-ik\xi}d\xi=\hat f(k)\hat g(k)$. ∎</p>
+<p>(b) <strong>[1]</strong> $\hat f=\int_0^\infty e^{-(1+ik)x}dx=\Big[\frac{-e^{-(1+ik)x}}{1+ik}\Big]_0^\infty$. <strong>[1]</strong> $|e^{-(1+ik)x}|=e^{-x}\to0$, so $\hat f=\frac1{1+ik}$.</p>
+<p>(c) <strong>[1]</strong> $(f*f)(x)=\int e^{-(x-\xi)}H(x-\xi)\,e^{-\xi}H(\xi)\,d\xi$; integrand is non-zero only for $0\lt\xi\lt x$. <strong>[1]</strong> If $x\le0$ that interval is empty: $0$. <strong>[1]</strong> If $x>0$: $e^{-x}\int_0^xd\xi=xe^{-x}$. So $f*f=xe^{-x}H(x)$.</p>
+<p>(d) <strong>[1]</strong> Convolution theorem: $\mathcal F\{xe^{-x}H(x)\}=\hat f^2=\frac1{(1+ik)^2}$. <strong>[1]</strong> Check: $i\frac{d}{dk}(1+ik)^{-1}=i\cdot(-i)(1+ik)^{-2}=\frac{1}{(1+ik)^2}$ ✓.</p>
+</div></details>
+
+<h3>Question 3 <span class="marks">[8 marks]</span></h3>
+<div class="box">
+<p>Consider $\;y''-2y'-xy=0,\quad x\in\mathbb R.$</p>
+<p>(a) Show that the Fourier transform $\hat y(k)$ satisfies $\hat y'(k)=(ik^2-2k)\,\hat y(k)$. <em>[2]</em></p>
+<p>(b) Solve for $\hat y$ using an integrating factor. <em>[3]</em></p>
+<p>(c) Hence find the most general solution of the ODE that has a Fourier transform, as a definite integral. Show that, for real $y$, this can be written as an integral over $0\lt k\lt\infty$ of a real function. <em>[2]</em></p>
+<p>(d) The ODE is second order but your answer has one arbitrary constant. Explain. <em>[1]</em></p>
+</div>
+<details><summary>Q3 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> $\mathcal F\{y''\}=-k^2\hat y$, $\mathcal F\{y'\}=ik\hat y$, $\mathcal F\{xy\}=i\hat y'$. <strong>[1]</strong> $-k^2\hat y-2ik\hat y-i\hat y'=0\Rightarrow\hat y'=\frac{-k^2-2ik}{i}\hat y=(ik^2-2k)\hat y$.</p>
+<p>(b) <strong>[1]</strong> $\hat y'-(ik^2-2k)\hat y=0$; IF $=e^{-\int(ik^2-2k)dk}=e^{-ik^3/3+k^2}$. <strong>[1]</strong> $\frac{d}{dk}\big(\hat y\,e^{-ik^3/3+k^2}\big)=0$. <strong>[1]</strong> $\hat y=A\,e^{ik^3/3-k^2}$.</p>
+<p>(c) <strong>[1]</strong> $y(x)=\frac{A}{2\pi}\int_{-\infty}^\infty e^{-k^2}e^{i(k^3/3+kx)}dk$. <strong>[1]</strong> $e^{-k^2}\sin(k^3/3+kx)$ is odd in $k$, so it integrates to $0$; $e^{-k^2}\cos(\cdot)$ is even. With $A$ real:
+$$y(x)=\frac{A}{\pi}\int_0^\infty e^{-k^2}\cos\!\Big(\frac{k^3}3+kx\Big)dk.$$</p>
+<p>(d) <strong>[1]</strong> The second independent solution grows as $x\to\infty$ (not absolutely integrable), so it has no FT; the method only finds solutions that have one. (Aside, not required: $y\propto e^{x}\,\mathrm{Ai}(x+1)$; the lost one is $e^x\mathrm{Bi}(x+1)$.)</p>
+</div></details>
+
+<h3>Question 4 <span class="marks">[14 marks]</span></h3>
+<div class="box">
+<p>A dye is released at $x=0$ into a long channel of moving water. Its concentration $u(x,t)$ satisfies
+$$\frac{\partial u}{\partial t}+2\frac{\partial u}{\partial x}=\frac{\partial^2u}{\partial x^2},\qquad x\in\mathbb R,\ t>0,$$
+with $u(x,0)=\delta(x)$ and $u,\ u_x\to0$ as $x\to\pm\infty$. You may use $\mathcal F\{e^{-ax^2}\}=\sqrt{\pi/a}\,e^{-k^2/4a}$ for $a>0$.</p>
+<p>(a) Starting from the definition, show that $\mathcal F\{\partial u/\partial x\}=ik\,\hat u(k,t)$, stating where the conditions at $\pm\infty$ are used. <em>[3]</em></p>
+<p>(b) Write down the IVP satisfied by $\hat u(k,t)$, and solve it. <em>[3]</em></p>
+<p>(c) State and prove the shift theorem $\mathcal F\{g(x-s)\}=e^{-iks}\hat g(k)$, and hence find $u(x,t)$. <em>[4]</em></p>
+<p>(d) Show that $\int_{-\infty}^\infty u\,dx=1$ for all $t>0$, and describe in words how the dye moves. <em>[2]</em></p>
+<p>(e) If instead $u(x,0)=f(x)$, write $u(x,t)$ as a single integral involving $f$. <em>[2]</em></p>
+</div>
+<details><summary>Q4 marking scheme</summary><div>
+<p>(a) <strong>[1]</strong> $\mathcal F\{u_x\}=\int u_xe^{-ikx}dx=\big[u\,e^{-ikx}\big]_{-\infty}^{\infty}+ik\int ue^{-ikx}dx$ (by parts). <strong>[1]</strong> $|ue^{-ikx}|=|u|\to0$ at $\pm\infty$, so the boundary term vanishes. <strong>[1]</strong> Hence $ik\hat u$.</p>
+<p>(b) <strong>[1]</strong> $\partial_t\hat u+2ik\hat u=-k^2\hat u$, $\hat u(k,0)=\mathcal F\{\delta\}=1$. <strong>[1]</strong> $\hat u=A(k)e^{-(k^2+2ik)t}$. <strong>[1]</strong> $A=1$: $\hat u=e^{-k^2t}e^{-2ikt}$.</p>
+<p>(c) <strong>[1]</strong> $\int g(x-s)e^{-ikx}dx\overset{z=x-s}=\int g(z)e^{-ik(z+s)}dz=e^{-iks}\hat g(k)$. <strong>[1]</strong> Given pair with $a=\frac1{4t}$: $\mathcal F\{e^{-x^2/4t}\}=\sqrt{4\pi t}\,e^{-k^2t}$, so $e^{-k^2t}=\mathcal F\{G\}$, $G(x,t)=\frac{e^{-x^2/4t}}{\sqrt{4\pi t}}$. <strong>[1]</strong> $\hat u=e^{-ik(2t)}\hat G$, a shift by $s=2t$. <strong>[1]</strong>
+$$u(x,t)=\frac{1}{\sqrt{4\pi t}}\,e^{-(x-2t)^2/4t}.$$</p>
+<p>(d) <strong>[1]</strong> $\int u\,dx=\hat u(0,t)=1$ (or substitute in the Gaussian integral). <strong>[1]</strong> A Gaussian pulse whose centre moves right at speed $2$ ($x=2t$) while spreading (width $\propto\sqrt t$, peak $\frac1{\sqrt{4\pi t}}$ falling); total dye conserved.</p>
+<p>(e) <strong>[1]</strong> $\hat u=\hat f(k)\cdot e^{-k^2t-2ikt}=\hat f\cdot\hat h$ with $h(x,t)=G(x-2t,t)$. <strong>[1]</strong> Convolution theorem:
+$$u(x,t)=\frac{1}{\sqrt{4\pi t}}\int_{-\infty}^\infty e^{-(x-\xi-2t)^2/4t}f(\xi)\,d\xi.$$</p>
+</div></details>
+
+<div class="trap"><strong>Where marks leak in this set</strong><br>
+(1) Q1(a): $\int_a^be^{-ikx}dx=\frac{e^{-ika}-e^{-ikb}}{ik}$; flipping the order flips the sign. (2) Q1(b): giving $f$'s value instead of the midpoint. (3) Q1(c): $\sin ak\leftrightarrow$ needs the $\frac1{2i}$; $\frac1{2i}=-\frac i2$. (4) Q2(c): not treating $x\le0$ separately. (5) Q3(a): $\mathcal F\{xy\}=i\hat y'$, not $-i\hat y'$. (6) Q4(b): writing a constant $A$, or forgetting $\hat u(k,0)=1$. (7) Q4(c): shift sign; $e^{-2ikt}$ means $x-2t$ (moves right, with the flow).</div>
+
+<h2>7 · Score and diagnose</h2>
+<ul>
+  <li>Q1 under 7/10: <a href="0034-fourier-transform-definition.html">Lesson 34</a> (definition, midpoints) and <a href="0035-ft-table-shift-inverse.html">Lesson 35</a> (δ pairs).</li>
+  <li>Q2 under 8/11: <a href="0036-convolution-derivative-rules-proofs.html">Lesson 36</a>. Q3 under 6/8: <a href="0037-ft-odes.html">Lesson 37</a>.</li>
+  <li>Q4 under 10/14: §2–§4 above, then booklet 6 Q9.</li>
+</ul>
+<p>Written-out answers (what your paper should look like): <a href="../worked/0038-mixed-set-full-solutions.html">full solutions to Q1–Q4</a>.</p>
+
+<h2>8 · Before you close this tab</h2>
+<details><summary>Retrieval: write the three $\hat u$'s (heat, wave, advection) and their inverses</summary><div>
+<p>Heat: $\hat u=\hat fe^{-\alpha k^2t}$, $u=G*f$, $G=\frac{e^{-x^2/4\alpha t}}{\sqrt{4\pi\alpha t}}$. Wave: $\hat u=\hat f\cos ckt+\hat g\frac{\sin ckt}{ck}$; $g=0$ gives $\frac12[f(x-ct)+f(x+ct)]$. Advection $u_t+cu_x=0$: $\hat u=\hat fe^{-ikct}$, $u=f(x-ct)$.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/30_MAST20030_Lecture_Notes_Topic6_Fourier_transforms_handout.pdf">Lecture 30</a> (s6–7 Airy via FT, s8 transforms on PDEs, s9–11 heat equation on ℝ and the heat kernel). Then <a href="https://math.libretexts.org/Bookshelves/Differential_Equations/Introduction_to_Partial_Differential_Equations_(Herman)/09%3A_Transform_Techniques_in_Physics/9.11%3A_Transforms_and_Partial_Differential_Equations">Herman, §9.11 Transforms and PDEs</a> (heat on ℝ, Laplace on the half-plane). Herman puts $e^{+ikx}$ in the forward transform, so his signs differ from ours.</p>
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic6.pdf">Problem Booklet 6</a>, Q9 (a): heat with a Gaussian IC. Get the closed form as in §2(ii), not only the convolution.</li>
+  <li>Booklet Q9 (d): wave with $2\,\mathrm{sech}^2x$, via the IVP for $\hat u$ and the shift theorem.</li>
+  <li>Booklet Q9 (e): heat with $\frac1{1+x^2}$, answer as a convolution integral.</li>
+  <li>Optional: Q9 (b), (c), (f); Q6 (beam, answer as an integral).</li>
+</ul>
+<p><strong>Spacing:</strong> in three days, redo Q4 cold from a blank page in 28 minutes. Then Q3.</p>
+
+<div class="ask">💬 Unsure whether your "describe in words" answer or your "show it's real" argument would get the marks? Ask me in the terminal. Paste or photograph your attempt and I'll mark it line by line.</div>
+
+<div class="nav">
+  <span>Builds on: <a href="0034-fourier-transform-definition.html">34</a> to <a href="0037-ft-odes.html">37</a></span>
+  <span>Previous: <a href="0037-ft-odes.html">Lesson 37</a></span>
+  <span>Next: <a href="../reference/topic6-cheatsheet.html">Topic 6 cheat sheet</a>, then <a href="../reference/exam-2026-prediction.html">2026 exam prediction</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+
+<script>
+(function () {
+  // Box f = H_{-1} - H_1 under heat (alpha = 1), wave (c = 1), advection (c = 1).
+  const box = (x) => (Math.abs(x) < 1 ? 1 : (Math.abs(x) === 1 ? 0.5 : 0));
+  const erf = FtLine.erf;
+  FtLine.mount(document.getElementById('fl-demo'), {
+    curves: [
+      { u: (x, t) => 0.5 * (erf((x + 1) / Math.sqrt(4 * t)) - erf((x - 1) / Math.sqrt(4 * t))), label: 'heat u_t = u_xx' },
+      { u: (x, t) => 0.5 * (box(x - t) + box(x + t)), label: 'wave u_tt = u_xx', dashed: true },
+      { u: (x, t) => box(x - t), label: 'advection u_t + u_x = 0' },
+    ],
+    L: 6, tMax: 4, speed: 0.5, y: [-0.1, 1.15], xTicks: [-4, -1, 0, 1, 4],
+  });
+
+  // Countdown timer for Part 2.
+  const out = document.getElementById('tm-out'), go = document.getElementById('tm-go');
+  const reset = document.getElementById('tm-reset'), minIn = document.getElementById('tm-min');
+  let left = 86 * 60, running = false, id = null;
+  const show = () => {
+    const a = Math.abs(left), s = (left < 0 ? '−' : '') + Math.floor(a / 60) + ':' + String(a % 60).padStart(2, '0');
+    out.textContent = s; out.classList.toggle('over', left < 0);
+  };
+  go.addEventListener('click', () => {
+    running = !running; go.textContent = running ? 'Pause' : 'Start';
+    if (running) id = setInterval(() => { left--; show(); }, 1000); else clearInterval(id);
+  });
+  reset.addEventListener('click', () => {
+    clearInterval(id); running = false; go.textContent = 'Start';
+    left = Math.max(1, parseInt(minIn.value, 10) || 86) * 60; show();
+  });
+  minIn.addEventListener('change', () => { if (!running) { left = Math.max(1, parseInt(minIn.value, 10) || 86) * 60; show(); } });
+  show();
+})();
+</script>
+</body>
+</html>

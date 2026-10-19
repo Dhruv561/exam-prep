@@ -38,3 +38,9 @@
 - [Paul's Notes: Laplace Transforms](https://tutorial.math.lamar.edu/Classes/DE/LaplaceIntro.aspx), [Convolution Integrals](https://tutorial.math.lamar.edu/Classes/DE/ConvolutionIntegrals.aspx), [Dirac Delta](https://tutorial.math.lamar.edu/Classes/DE/DiracDeltaFunction.aspx). Extra worked examples. (IVPWithStepFcns and Convolutions URLs 404; don't cite.)
 - Formula sheet: `exams/MAST20030_S2_2026_Formula_Sheet.pdf` (Laplace table = 8 pairs only).
 - Booklet Topic 3 (`problem-booklet/MAST20030ProblemBooklet_Topic3-2.pdf`), tutes weeks 5–6.
+
+## Topic 6 additions
+- Lecture notes Topic 6: `lectures/28–30_*Fourier_transforms*.pdf`. Formula sheet has FT/inverse definitions, derivative + x^n rules, convolution theorem; NOT the table or shift theorems.
+- [Herman, Intro to PDEs (LibreTexts) §9.5 Properties of the FT](https://math.libretexts.org/Bookshelves/Differential_Equations/Introduction_to_Partial_Differential_Equations_(Herman)/09%3A_Transform_Techniques_in_Physics/9.05%3A_Properties_of_the_Fourier_Transform), [§9.6 Convolution](https://math.libretexts.org/Bookshelves/Differential_Equations/Introduction_to_Partial_Differential_Equations_(Herman)/09%3A_Transform_Techniques_in_Physics/9.06%3A_The_Convolution_Operation), [§9.11 Transforms and PDEs](https://math.libretexts.org/Bookshelves/Differential_Equations/Introduction_to_Partial_Differential_Equations_(Herman)/09%3A_Transform_Techniques_in_Physics/9.11%3A_Transforms_and_Partial_Differential_Equations). Uses e^{+ikx} forward: flip k → −k.
+- [Wikipedia FT tables](https://en.wikipedia.org/wiki/Fourier_transform#Tables_of_important_Fourier_transforms): "non-unitary, angular frequency" column = course convention.
+- Booklet Topic 6 Q1–Q9 (answers at back, ω for k). No Topic 6 tute.

@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FT Convolution and Proofs</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/ft-conv-slide.js"></script>
+<style>
+  .katex-display { overflow-x: auto; overflow-y: hidden; }
+  .order { border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.2rem; margin: 1.4rem 0; }
+  .order .pool { display: grid; gap: .45rem; }
+  .order .pool button { font: inherit; text-align: left; color: var(--fg); background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: .45rem .8rem; cursor: pointer; }
+  .order .pool button:hover:not([disabled]) { border-color: var(--accent); }
+  .order .pool button.shake { background: var(--bad-bg); border-color: var(--bad); }
+  .order .pool button[disabled] { display: none; }
+  .order ol.built { margin: .2rem 0 .8rem; }
+  .order ol.built li { background: var(--ok-bg); border-radius: 4px; padding: .15rem .5rem; margin: .2rem 0; }
+  .order .status { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin-top: .5rem; }
+  .order .src { display: none; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 36 · Topic 6: Fourier transforms · Convolution and the derivative rules</div>
+<h1>Convolution, and the three proofs worth memorising</h1>
+<p class="lede">The one win: write the convolution-theorem proof in exam form (four lines), and use the theorem to get a transform you can't look up: $\mathcal F\{1/(a^2+x^2)^2\}$, a triangle, or the convolution of two Lorentzians.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topic 6 is the last question (7–15 marks). "Prove the convolution theorem", "show $\mathcal F\{f'\}=ik\hat f$" and "use convolution with a given pair to find a new transform" have each appeared. The formula sheet gives you the <em>statements</em> (convolution theorem, $\mathcal F\{f^{(n)}\}=(ik)^n\hat f$, $\mathcal F\{x^nf\}=i^n\hat f^{(n)}$) but not the proofs, and not the $\frac1{2\pi}$ "product in $x$" version.</div>
+
+<h2>0 · Warm-up from Lessons 34–35 and 17</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> From the definition, $\mathcal F\{e^{-3|x|}\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{3}{9+k^2}$</button>
+    <button class="opt" data-key="b">$\dfrac{6}{3+k^2}$</button>
+    <button class="opt" data-key="c">$\dfrac{6}{9+k^2}$</button>
+    <button class="opt" data-key="d">$\dfrac{6}{9-k^2}$</button>
+  </div>
+  <div class="why">$\int_{-\infty}^0e^{(3-ik)x}dx+\int_0^\infty e^{-(3+ik)x}dx=\frac1{3-ik}+\frac1{3+ik}=\frac{6}{9+k^2}$. Pattern $\frac{2a}{a^2+k^2}$.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W2.</strong> Using the $x$-shift theorem, $\mathcal F\{e^{-2|x-1|}\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{4e^{-ik}}{4+k^2}$</button>
+    <button class="opt" data-key="b">$\dfrac{4e^{ik}}{4+k^2}$</button>
+    <button class="opt" data-key="c">$\dfrac{4}{4+(k-1)^2}$</button>
+    <button class="opt" data-key="d">$\dfrac{4e^{-2ik}}{4+k^2}$</button>
+  </div>
+  <div class="why">$\mathcal F\{f(x-y)\}=e^{-iky}\hat f(k)$ with $y=1$. (c) is the $k$-shift, which comes from multiplying by $e^{ix}$.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W3.</strong> $\mathcal F^{-1}\{\cos 3k\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac12\big(\delta(x+3)-\delta(x-3)\big)$</button>
+    <button class="opt" data-key="b">$\tfrac{1}{2i}\big(\delta(x+3)+\delta(x-3)\big)$</button>
+    <button class="opt" data-key="c">$\tfrac{1}{4\pi}\big(\delta(x+3)+\delta(x-3)\big)$</button>
+    <button class="opt" data-key="d">$\tfrac12\big(\delta(x+3)+\delta(x-3)\big)$</button>
+  </div>
+  <div class="why">$\cos3k=\frac12(e^{3ik}+e^{-3ik})$ and $\mathcal F\{\delta_a\}=e^{-iak}$, so $e^{3ik}=\mathcal F\{\delta_{-3}\}$, $e^{-3ik}=\mathcal F\{\delta_3\}$. No $2\pi$: the pair is used, not the inverse integral.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W4 (Lesson 17, Laplace).</strong> With $(f*g)(t)=\int_0^tf(t-\tau)g(\tau)\,d\tau$, the convolution $1*e^{2t}$ is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac12e^{2t}$</button>
+    <button class="opt" data-key="b">$\tfrac12(e^{2t}-1)$</button>
+    <button class="opt" data-key="c">$te^{2t}$</button>
+    <button class="opt" data-key="d">$\tfrac12(e^{2t}+1)$</button>
+  </div>
+  <div class="why">$\int_0^te^{2\tau}d\tau=\frac12(e^{2t}-1)$. Check: $\mathcal L=\frac1s\cdot\frac1{s-2}$ ✓. The Fourier version below is the same idea with limits $-\infty$ to $\infty$.</div>
+</div>
+
+<h2>1 · Convolution on ℝ and the theorem</h2>
+<div class="box">
+<p><strong>Definition</strong> (on the sheet, L29 s5): $\displaystyle (f*g)(x)=\int_{-\infty}^{\infty}f(x-\xi)\,g(\xi)\,d\xi.$ Commutative ($f*g=g*f$, sub $u=x-\xi$).</p>
+<p><strong>Theorem</strong> (on the sheet): $\mathcal F\{f*g\}=\hat f(k)\,\hat g(k)$.</p>
+<p>Laplace link (Booklet Q8): if $f,g$ vanish for $x&lt;0$, the integrand is zero unless $0&lt;\xi&lt;x$, so the integral collapses to $\int_0^xf(x-\xi)g(\xi)d\xi$, the Lesson 17 convolution.</p>
+</div>
+
+<p><strong>The proof, in exam form.</strong> Lecture 29 states the theorem without proof; past papers ask for it. Write exactly these lines:</p>
+<div class="box">
+<ol class="steps">
+<li>$\displaystyle\mathcal F\{f*g\}=\int_{-\infty}^{\infty}\left[\int_{-\infty}^{\infty}f(x-\xi)g(\xi)\,d\xi\right]e^{-ikx}\,dx$ <em>(definitions)</em></li>
+<li>$\displaystyle\phantom{\mathcal F\{f*g\}}=\int_{-\infty}^{\infty}g(\xi)\left[\int_{-\infty}^{\infty}f(x-\xi)\,e^{-ikx}\,dx\right]d\xi$ <em>(swap order of integration)</em></li>
+<li>Inner integral, $\xi$ fixed: put $u=x-\xi$, $du=dx$, $x=u+\xi$, limits unchanged:
+$$\int_{-\infty}^{\infty}f(u)\,e^{-ik(u+\xi)}\,du=e^{-ik\xi}\int_{-\infty}^{\infty}f(u)e^{-iku}\,du=e^{-ik\xi}\hat f(k).$$</li>
+<li>$\displaystyle\mathcal F\{f*g\}=\int_{-\infty}^{\infty}g(\xi)\,e^{-ik\xi}\hat f(k)\,d\xi=\hat f(k)\int_{-\infty}^{\infty}g(\xi)e^{-ik\xi}d\xi=\hat f(k)\,\hat g(k).\qquad\blacksquare$</li>
+</ol>
+<p>Marks sit on: the double integral, the swap, the substitution with $e^{-ik(u+\xi)}$ split, pulling $\hat f$ out. The swap is allowed because $f,g$ are absolutely integrable (one phrase is enough).</p>
+</div>
+
+<p><strong>Drill:</strong> click the lines in proof order.</p>
+<div class="order">
+  <ol class="src">
+    <li data-i="1">Write $\mathcal F\{f*g\}$ as $\iint f(x-\xi)g(\xi)e^{-ikx}\,d\xi\,dx$</li>
+    <li data-i="2">Swap the order: $\xi$ outside, $x$ inside</li>
+    <li data-i="3">In the inner integral substitute $u=x-\xi$ ($\xi$ fixed)</li>
+    <li data-i="4">Split $e^{-ik(u+\xi)}=e^{-iku}e^{-ik\xi}$, recognise $\hat f(k)$</li>
+    <li data-i="5">Pull $\hat f(k)$ out; the remaining $\int g(\xi)e^{-ik\xi}d\xi$ is $\hat g(k)$</li>
+  </ol>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q1. Spot the faulty line.</strong> A student writes:<br>
+  (1) $\mathcal F\{f*g\}=\int\!\big[\int f(x-\xi)g(\xi)d\xi\big]e^{-ikx}dx$<br>
+  (2) $=\int g(\xi)\big[\int f(x-\xi)e^{-ikx}dx\big]d\xi$<br>
+  (3) inner, $u=x-\xi$: $\int f(u)e^{-ik(u-\xi)}du=e^{ik\xi}\hat f(k)$<br>
+  (4) so $\mathcal F\{f*g\}=\hat f(k)\int g(\xi)e^{ik\xi}d\xi=\hat f(k)\hat g(-k)$.<br>
+  The first wrong line is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">line (1)</button>
+    <button class="opt" data-key="b">line (2)</button>
+    <button class="opt" data-key="c">line (3)</button>
+    <button class="opt" data-key="d">line (4)</button>
+  </div>
+  <div class="why">$u=x-\xi$ gives $x=u+\xi$, so $e^{-ikx}=e^{-ik(u+\xi)}$. The sign slip propagates into (4). Sanity check: the answer must be symmetric in $f,g$, and $\hat f(k)\hat g(-k)$ isn't.</div>
+</div>
+
+<h2>2 · The other direction: product in $x$ ⇒ convolution in $k$</h2>
+<div class="box">
+<p>$$\boxed{\mathcal F\{f(x)g(x)\}=\frac1{2\pi}\,(\hat f*\hat g)(k)=\frac1{2\pi}\int_{-\infty}^{\infty}\hat f(q)\,\hat g(k-q)\,dq}$$</p>
+<p><strong>Not on the sheet; 2-line proof.</strong> Replace $f$ by its inverse transform, $f(x)=\frac1{2\pi}\int\hat f(q)e^{iqx}dq$, and swap:
+$$\begin{aligned}\mathcal F\{fg\}&=\int g(x)\Big[\frac1{2\pi}\int\hat f(q)e^{iqx}dq\Big]e^{-ikx}dx\\&=\frac1{2\pi}\int\hat f(q)\Big[\int g(x)e^{-i(k-q)x}dx\Big]dq=\frac1{2\pi}\int\hat f(q)\,\hat g(k-q)\,dq.\end{aligned}$$</p>
+</div>
+<div class="trap"><strong>The $2\pi$ trap</strong><br>
+Convolution in $x$ ⇒ plain product $\hat f\hat g$. Product in $x$ ⇒ convolution in $k$ <em>with</em> $\frac1{2\pi}$ (it comes from the inverse transform). Check any answer at $k=0$: $\hat h(0)=\int h\,dx$.</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q2.</strong> $\hat f(k)=\pi e^{-|k|}$ is $\mathcal F\{\frac1{1+x^2}\}$. Then $\mathcal F\{\frac1{(1+x^2)^2}\}(k)$ equals…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\displaystyle\frac{\pi}{2}\int_{-\infty}^{\infty}e^{-|q|}e^{-|k-q|}\,dq$</button>
+    <button class="opt" data-key="b">$\displaystyle\pi^2\int_{-\infty}^{\infty}e^{-|q|}e^{-|k-q|}\,dq$</button>
+    <button class="opt" data-key="c">$\displaystyle\pi^2e^{-2|k|}$</button>
+    <button class="opt" data-key="d">$\displaystyle\frac{1}{2\pi}\int_{-\infty}^{\infty}e^{-|q|}e^{-|k-q|}\,dq$</button>
+  </div>
+  <div class="why">$\frac1{2\pi}\cdot\pi\cdot\pi=\frac\pi2$. (c) squares the transform, which is the rule for $\mathcal F\{f*f\}$, not $\mathcal F\{f^2\}$. (The integral is $(1+|k|)e^{-|k|}$, see §4.)</div>
+</div>
+
+<h2>3 · Derivative and $x$-multiplication rules (L29 s9–11)</h2>
+<div class="box">
+<p><strong>$\mathcal F\{f'\}=ik\hat f$</strong> (Ex 6.7). By parts with $u=e^{-ikx}$, $dv=f'dx$:
+$$\begin{aligned}\mathcal F\{f'\}&=\int_{-\infty}^{\infty}f'(x)e^{-ikx}dx=\Big[f(x)e^{-ikx}\Big]_{-\infty}^{\infty}-\int_{-\infty}^{\infty}f(x)(-ik)e^{-ikx}dx\\&=0+ik\hat f(k).\end{aligned}$$
+The boundary term vanishes because $|f(x)e^{-ikx}|=|f(x)|\to0$ as $x\to\pm\infty$ <em>(say this: it's the mark)</em>. Repeat: $\mathcal F\{f''\}=(ik)^2\hat f=-k^2\hat f$ (needs $f'\to0$ too).</p>
+<p><strong>$\mathcal F\{xf\}=i\,\dfrac{d\hat f}{dk}$</strong> (Ex 6.8). Since $\frac{d}{dk}e^{-ikx}=-ix\,e^{-ikx}$, $\;x\,e^{-ikx}=i\frac{d}{dk}e^{-ikx}$:
+$$\begin{aligned}\mathcal F\{xf\}&=\int f(x)\,x\,e^{-ikx}dx=\int f(x)\,i\frac{d}{dk}e^{-ikx}dx\\&=i\frac{d}{dk}\int f(x)e^{-ikx}dx=i\,\hat f'(k).\end{aligned}$$
+(Differentiating under the integral needs $xf$ absolutely integrable.)</p>
+</div>
+
+<p><strong>Worked.</strong> $\mathcal F\{x e^{-2|x|}\}=i\dfrac{d}{dk}\dfrac{4}{4+k^2}=i\cdot\dfrac{-8k}{(4+k^2)^2}=-\dfrac{8ik}{(4+k^2)^2}$. Odd function ⇒ purely imaginary, odd transform ✓.</p>
+<p><strong>Consistency check with a jump</strong> (Booklet Q7's last question). Box $b=H_{-a}-H_a$: $b'=\delta_{-a}-\delta_a$, so $\mathcal F\{b'\}=e^{iak}-e^{-iak}=2i\sin ak$, and $ik\cdot\hat b=ik\cdot\frac{2\sin ak}{k}=2i\sin ak$ ✓. Jumps in $f$ become deltas in $f'$.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q3.</strong> Given $\mathcal F\{e^{-x^2}\}=\sqrt\pi\,e^{-k^2/4}$, $\;\mathcal F\{x e^{-x^2}\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac{\sqrt\pi}{2}\,k\,e^{-k^2/4}$</button>
+    <button class="opt" data-key="b">$-\tfrac{i\sqrt\pi}{2}\,k\,e^{-k^2/4}$</button>
+    <button class="opt" data-key="c">$\tfrac{i\sqrt\pi}{2}\,k\,e^{-k^2/4}$</button>
+    <button class="opt" data-key="d">$-2i\sqrt\pi\,k\,e^{-k^2/4}$</button>
+  </div>
+  <div class="why">$i\frac{d}{dk}\big(\sqrt\pi e^{-k^2/4}\big)=i\sqrt\pi\cdot(-\frac k2)e^{-k^2/4}$. Cross-check: $xe^{-x^2}=-\frac12(e^{-x^2})'$, so $\mathcal F=-\frac12\,ik\sqrt\pi e^{-k^2/4}$ ✓.</div>
+</div>
+
+<div class="order">
+  <ol class="src">
+    <li data-i="1">$\mathcal F\{f'\}=\int_{-\infty}^\infty f'(x)e^{-ikx}dx$</li>
+    <li data-i="2">Integrate by parts: $\big[f e^{-ikx}\big]_{-\infty}^{\infty}+ik\int f e^{-ikx}dx$</li>
+    <li data-i="3">$f\to0$ as $x\to\pm\infty$ and $|e^{-ikx}|=1$, so the boundary term is $0$</li>
+    <li data-i="4">The remaining integral is $\hat f(k)$, so $\mathcal F\{f'\}=ik\hat f(k)$</li>
+  </ol>
+</div>
+
+<h2>4 · Using convolution to get new transforms</h2>
+<p><strong>Recipe.</strong> Spot that the new function is $f*g$ (multiply the transforms) or $f\cdot g$ (convolve the transforms, $\frac1{2\pi}$). For $e^{-a|\cdot|}$-type integrands, split the line at every kink: at $0$ and at $k$.</p>
+
+<h3>(a) Triangle = box $*$ box</h3>
+<p>$b(x)=H_{-1}(x)-H_1(x)$ (height 1 on $|x|&lt;1$). $(b*b)(x)=$ length of the overlap of $(-1,1)$ and $(x-1,x+1)$ $=2-|x|$ for $|x|\le2$, else $0$: a triangle. So
+$$\mathcal F\{(2-|x|)_+\}=\big(2\,\mathrm{sinc}\,k\big)^2=\frac{4\sin^2k}{k^2}.$$
+Slide the flipped box across: the overlap length grows linearly, then shrinks.</p>
+<div id="slide-box"></div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q4.</strong> $T(x)=6-|x|$ for $|x|\le6$, $0$ otherwise. $\hat T(k)=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$6\,\mathrm{sinc}^2(3k)$</button>
+    <button class="opt" data-key="b">$36\,\mathrm{sinc}^2(6k)$</button>
+    <button class="opt" data-key="c">$12\,\mathrm{sinc}(3k)$</button>
+    <button class="opt" data-key="d">$36\,\mathrm{sinc}^2(3k)$</button>
+  </div>
+  <div class="why">$T=b*b$ with $b=H_{-3}-H_3$ (overlap length $6-|x|$), $\hat b=6\,\mathrm{sinc}\,3k$, so $\hat T=36\,\mathrm{sinc}^2 3k$. Check $k=0$: area of triangle $=\frac12\cdot12\cdot6=36$ ✓.</div>
+</div>
+
+<h3>(b) $\mathcal F\{1/(4+x^2)^2\}$ by splitting the line</h3>
+<p>$f=\frac1{4+x^2}$, $\hat f=\frac\pi2e^{-2|k|}$. By §2,
+$$\mathcal F\{f^2\}=\frac1{2\pi}\cdot\frac{\pi^2}{4}\,I(k),\qquad I(k)=\int_{-\infty}^{\infty}e^{-2|k-q|}e^{-2|q|}\,dq.$$
+$I$ is even in $k$ (sub $q\to-q$), so take $k\ge0$; kinks at $q=0$ and $q=k$:</p>
+<table class="th-math">
+<tr><th>piece</th><th>$|q|$, $|k-q|$</th><th>integral</th></tr>
+<tr><td>$q&lt;0$</td><td>$-q$, $k-q$</td><td>$e^{-2k}\int_{-\infty}^0e^{4q}dq=\frac14e^{-2k}$</td></tr>
+<tr><td>$0&lt;q&lt;k$</td><td>$q$, $k-q$</td><td>$\int_0^ke^{-2k}dq=k\,e^{-2k}$</td></tr>
+<tr><td>$q&gt;k$</td><td>$q$, $q-k$</td><td>$e^{2k}\int_k^\infty e^{-4q}dq=\frac14e^{-2k}$</td></tr>
+</table>
+<p>$I(k)=\big(|k|+\frac12\big)e^{-2|k|}$, so
+$$\boxed{\mathcal F\Big\{\frac{1}{(4+x^2)^2}\Big\}=\frac{\pi}{8}\Big(|k|+\frac12\Big)e^{-2|k|}=\frac{\pi}{16}(1+2|k|)e^{-2|k|}}$$
+Check $k=0$: $\int\frac{dx}{(4+x^2)^2}=\frac{\pi}{16}$ ✓ (general: $\frac{\pi}{2a^3}(1+a|k|)e^{-a|k|}$). Middle piece: the exponents cancel, so you get a bare length $k$; this is where the $|k|e^{-2|k|}$ term comes from.</p>
+<div id="slide-exp"></div>
+
+<div class="trap"><strong>Splitting traps</strong><br>
+(1) Writing $e^{-2|k-q|}e^{-2|q|}=e^{-2|k|}$: false, $|k-q|+|q|\ne|k|$ outside $0&lt;q&lt;k$. (2) Doing only $k&gt;0$ and forgetting to write $|k|$ in the final answer. (3) Dropping the $\frac1{2\pi}$.</div>
+
+<h3>(c) Computing a convolution via the transform</h3>
+<p>Lorentzians: $\frac1{1+x^2}*\frac1{4+x^2}$. Transform: $\pi e^{-|k|}\cdot\frac\pi2e^{-2|k|}=\frac{\pi^2}{2}e^{-3|k|}$. Since $e^{-3|k|}=\frac3\pi\mathcal F\{\frac1{9+x^2}\}$:
+$$\frac{1}{1+x^2}*\frac{1}{4+x^2}=\frac{\pi^2}{2}\cdot\frac{3}{\pi}\cdot\frac{1}{9+x^2}=\frac{3\pi}{2(9+x^2)}.$$
+Rule of thumb: Lorentzian widths add ($1+2=3$); Gaussian $\frac1a$'s add.</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q5.</strong> Using $\mathcal F\{e^{-ax^2}\}=\sqrt{\pi/a}\,e^{-k^2/4a}$, $\;e^{-2x^2}*e^{-2x^2}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac{\sqrt\pi}{2}\,e^{-x^2}$</button>
+    <button class="opt" data-key="b">$\tfrac{\pi}{2}\,e^{-4x^2}$</button>
+    <button class="opt" data-key="c">$\tfrac{\sqrt\pi}{2}\,e^{-4x^2}$</button>
+    <button class="opt" data-key="d">$\sqrt{\tfrac\pi2}\,e^{-x^2}$</button>
+  </div>
+  <div class="why">Product: $\frac\pi2e^{-k^2/4}$. Match $e^{-k^2/4a}$: $a=1$, $\mathcal F\{e^{-x^2}\}=\sqrt\pi e^{-k^2/4}$. So $f*g=\frac{\pi/2}{\sqrt\pi}e^{-x^2}=\frac{\sqrt\pi}2e^{-x^2}$. Convolution spreads: width grows.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q6.</strong> $\dfrac{1}{x^2+1}*\dfrac{1}{x^2+9}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{\pi^2}{3(x^2+16)}$</button>
+    <button class="opt" data-key="b">$\dfrac{4\pi}{3(x^2+10)}$</button>
+    <button class="opt" data-key="c">$\dfrac{4\pi}{3(x^2+16)}$</button>
+    <button class="opt" data-key="d">$\dfrac{\pi}{3(x^2+16)}$</button>
+  </div>
+  <div class="why">$\pi e^{-|k|}\cdot\frac\pi3e^{-3|k|}=\frac{\pi^2}3e^{-4|k|}=\frac{\pi^2}{3}\cdot\frac4\pi\mathcal F\{\frac1{x^2+16}\}$. Widths add: $1+3=4$, so $16$ not $10$.</div>
+</div>
+
+<h2>5 · Practice (exam style)</h2>
+<div class="box">
+<p><strong>P1</strong> [3]. State a condition on $f$ and prove $\mathcal F\{f''\}=-k^2\hat f(k)$ directly from the definition.</p>
+<p><strong>P2</strong> [4]. (a) Show that $T(x)=(4-|x|)_+$ is $b*b$ for a box $b$, and find $\hat T$. (b) Hence, using the inverse transform at $x=0$, evaluate $\displaystyle\int_{-\infty}^{\infty}\frac{\sin^2 2k}{k^2}dk$.</p>
+<p><strong>P3</strong> [4]. Use the convolution theorem and partial fractions in $k$ to compute $e^{-|x|}*e^{-2|x|}$. Check your answer at $x=0$ directly.</p>
+<p><strong>P4</strong> [2]. Find $\mathcal F\{x^2e^{-|x|}\}$ using the sheet's $\mathcal F\{x^nf\}$ rule.</p>
+</div>
+<details><summary>P1 solution</summary><div>
+<p>Need $f,f'\to0$ as $x\to\pm\infty$ (and $f,f',f''$ absolutely integrable). By parts twice:
+$$\begin{aligned}\int f''e^{-ikx}dx&=\big[f'e^{-ikx}\big]_{-\infty}^{\infty}+ik\int f'e^{-ikx}dx\\&=ik\Big(\big[fe^{-ikx}\big]_{-\infty}^{\infty}+ik\int fe^{-ikx}dx\Big)=(ik)^2\hat f=-k^2\hat f,\end{aligned}$$
+both boundary terms $0$ by decay.</p>
+</div></details>
+<details><summary>P2 solution</summary><div>
+<p>(a) $b=H_{-2}-H_2$: overlap of $(-2,2)$ and $(x-2,x+2)$ has length $4-|x|$ for $|x|\le4$. $\hat b=4\,\mathrm{sinc}\,2k=\frac{2\sin2k}{k}$, so $\hat T=\frac{4\sin^22k}{k^2}$.<br>
+(b) $T(0)=4=\frac1{2\pi}\int\frac{4\sin^22k}{k^2}dk$ ⇒ $\displaystyle\int_{-\infty}^\infty\frac{\sin^22k}{k^2}dk=2\pi$.</p>
+</div></details>
+<details><summary>P3 solution</summary><div>
+<p>$\frac2{1+k^2}\cdot\frac4{4+k^2}=\frac{8}{(1+k^2)(4+k^2)}=\frac83\Big(\frac1{1+k^2}-\frac1{4+k^2}\Big)=\frac43\cdot\frac2{1+k^2}-\frac23\cdot\frac4{4+k^2}$.
+$$e^{-|x|}*e^{-2|x|}=\tfrac43e^{-|x|}-\tfrac23e^{-2|x|}.$$
+$x=0$: $\int e^{-3|\xi|}d\xi=\frac23$, and $\frac43-\frac23=\frac23$ ✓.</p>
+</div></details>
+<details><summary>P4 solution</summary><div>
+<p>$\mathcal F\{x^2f\}=i^2\hat f''=-\frac{d^2}{dk^2}\frac{2}{1+k^2}$. $\frac{d}{dk}=-\frac{4k}{(1+k^2)^2}$, $\frac{d^2}{dk^2}=\frac{-4(1+k^2)+16k^2}{(1+k^2)^3}=\frac{12k^2-4}{(1+k^2)^3}$. So $\mathcal F\{x^2e^{-|x|}\}=\dfrac{4-12k^2}{(1+k^2)^3}$. Check $k=0$: $\int x^2e^{-|x|}dx=4$ ✓.</p>
+</div></details>
+
+<h2>6 · Exam-level challenge (14 marks, about 22 minutes)</h2>
+<div class="box">
+<p>(a) Define $(f*g)(x)$ and prove that $\mathcal F\{f*g\}=\hat f(k)\hat g(k)$. <em>[4]</em><br>
+(b) Using the inverse Fourier transform, show that $\mathcal F\{f(x)g(x)\}=\dfrac1{2\pi}\displaystyle\int_{-\infty}^{\infty}\hat f(q)\,\hat g(k-q)\,dq$. <em>[2]</em><br>
+(c) You may use $\mathcal F\Big\{\dfrac1{a^2+x^2}\Big\}=\dfrac\pi a e^{-a|k|}$ ($a&gt;0$). Use part (b) to show that
+$$\mathcal F\Big\{\frac1{(1+x^2)(9+x^2)}\Big\}=\frac{\pi}{24}\big(3e^{-|k|}-e^{-3|k|}\big).$$ <em>[5]</em><br>
+(d) Verify (c) using partial fractions. <em>[1]</em><br>
+(e) Hence evaluate $\displaystyle\int_{-\infty}^{\infty}\frac{\cos 2x}{(1+x^2)(9+x^2)}\,dx$. <em>[2]</em></p>
+</div>
+<p>Full marking-style solution: <a href="../worked/0036-challenge-full-solution.html">worked/0036-challenge-full-solution.html</a>. Attempt every part first.</p>
+<details><summary>Answer key (quick check)</summary><div>
+<p>(c) For $k\ge0$: $\int e^{-3|k-q|}e^{-|q|}dq=\frac14e^{-3k}+\frac12(e^{-k}-e^{-3k})+\frac14e^{-k}=\frac34e^{-k}-\frac14e^{-3k}$; times $\frac1{2\pi}\cdot\frac\pi3\cdot\pi=\frac\pi6$.<br>
+(d) $\frac1{(1+x^2)(9+x^2)}=\frac18\big(\frac1{1+x^2}-\frac1{9+x^2}\big)$. (e) $\frac{\pi}{24}\big(3e^{-2}-e^{-6}\big)\approx0.0528$.</p>
+</div></details>
+
+<h2>7 · Before you close this tab</h2>
+<details><summary>Retrieval: write from memory, then check</summary><div>
+<ol>
+<li>The four lines of the convolution-theorem proof.</li>
+<li>$\mathcal F\{fg\}$ in terms of $\hat f,\hat g$.</li>
+<li>The condition that kills the boundary term in $\mathcal F\{f'\}$.</li>
+<li>$\int e^{-a|k-q|}e^{-a|q|}dq$ for $k\ge0$: where do you split, and what does the middle piece give?</li>
+</ol>
+<p><strong>Answers:</strong> (1) double integral; swap; $u=x-\xi$ gives $e^{-ik\xi}\hat f$; pull out, $\hat g$. (2) $\frac1{2\pi}\hat f*\hat g$. (3) $f(x)\to0$ as $x\to\pm\infty$. (4) at $q=0$, $q=k$; middle piece $ke^{-ak}$ (total $(k+\frac1{2a})e^{-ak}$).</p>
+</div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/29_MAST20030_Lecture_Notes_Topic6_Fourier_transforms_handout.pdf">Lecture 29</a> (s5: convolution definition + theorem; s6: Ex 6.5, Lorentzian $*$ Lorentzian; s9–11: derivative and $x$-multiplication rules, Ex 6.7–6.8). For the proof and more examples: Herman, <a href="https://math.libretexts.org/Bookshelves/Differential_Equations/Introduction_to_Partial_Differential_Equations_(Herman)/09%3A_Transform_Techniques_in_Physics/9.06%3A_The_Convolution_Operation">The Convolution Operation</a> (LibreTexts: box $*$ box, Gaussian $*$ Gaussian; careful, he uses $e^{+ikx}$ in the forward transform, so signs in $i$ flip) and Wikipedia's <a href="https://en.wikipedia.org/wiki/Convolution_theorem">Convolution theorem</a> (Fubini argument).</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic6.pdf">Booklet 6</a>, Q8: FT convolution of $f(t)H(t)$, $g(t)H(t)$ reproduces the Laplace one (3 lines).</li>
+  <li>Booklet Q7, $c(x)$ only: truncated $\cos\alpha x$ as $\cos(\alpha x)\cdot$box, via §2 with $\mathcal F\{\cos\alpha x\}=\pi(\delta_\alpha+\delta_{-\alpha})$ (deltas make the convolution trivial). Answer: $\frac{\sin b(k-\alpha)}{k-\alpha}+\frac{\sin b(k+\alpha)}{k+\alpha}$.</li>
+  <li>Write the convolution-theorem proof and the $\mathcal F\{xf\}$ proof on blank paper, timed: under 4 minutes total.</li>
+  <li>Optional: Booklet Q7 $s(x)$ and the derivative-rule consistency check ($s=-c'/\alpha$ inside the box, plus delta terms at $\pm b$).</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo Q1, Q2, Q6 cold and the challenge's (c) without looking.</p>
+
+<div class="ask">💬 Stuck on a split integral, or not sure whether your proof would get full marks? Ask me (Claude) in the terminal and paste your working.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0035-ft-table-shift-inverse.html">Lesson 35, table, shifts, inverses</a></span>
+  <span>Next: <a href="0037-ft-odes.html">Lesson 37, ODEs by Fourier transform</a></span>
+  <span>Reference: <a href="../reference/topic6-cheatsheet.html">Topic 6 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+<script>
+  // "Click the lines in order" drills. Runs after quiz.js has rendered the maths.
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.order').forEach((box) => {
+      const items = Array.from(box.querySelectorAll('.src li'));
+      const n = items.length;
+      const built = document.createElement('ol'); built.className = 'built';
+      const pool = document.createElement('div'); pool.className = 'pool';
+      const status = document.createElement('div'); status.className = 'status';
+      let next = 1, misses = 0;
+      const btns = items.map((li) => {
+        const b = document.createElement('button'); b.type = 'button';
+        while (li.firstChild) b.appendChild(li.firstChild);
+        b.dataset.i = li.dataset.i; return b;
+      });
+      for (let i = btns.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [btns[i], btns[j]] = [btns[j], btns[i]]; }
+      btns.forEach((b) => {
+        pool.appendChild(b);
+        b.addEventListener('click', () => {
+          if (+b.dataset.i === next) {
+            const li = document.createElement('li');
+            while (b.firstChild) li.appendChild(b.firstChild);
+            built.appendChild(li); b.disabled = true; next++;
+          } else { misses++; b.classList.add('shake'); setTimeout(() => b.classList.remove('shake'), 500); }
+          status.textContent = next > n ? `Done, ${misses} wrong click${misses === 1 ? '' : 's'}.` : `Line ${next} of ${n}: which comes next?`;
+        });
+      });
+      status.textContent = `Line 1 of ${n}: which comes first?`;
+      box.querySelector('.src').remove();
+      box.append(built, pool, status);
+    });
+  });
+
+  (function () {
+    const box = (x) => (Math.abs(x) < 1 ? 1 : 0);
+    FtConvSlide.mount(document.getElementById('slide-box'), {
+      f: box, g: box, t: [-3.5, 3.5], y: [-0.15, 1.3], yc: [-0.15, 2.3], s0: 0.7,
+      vars: ['ξ', 'x'], labels: ['b(ξ)', 'b(x−ξ)', '(b*b)(x)'],
+      breaks: (s) => [{ v: -1, label: '−1' }, { v: 1, label: '1' }, { v: s - 1, label: 'x−1' }, { v: s + 1, label: 'x+1' }],
+    });
+    const e2 = (x) => Math.exp(-2 * Math.abs(x));
+    FtConvSlide.mount(document.getElementById('slide-exp'), {
+      f: e2, g: e2, t: [-3, 3], y: [-0.1, 1.15], yc: [-0.05, 0.6], s0: 1.2,
+      vars: ['q', 'k'], labels: ['e^(−2|q|)', 'e^(−2|k−q|)', 'I(k)'],
+      breaks: (s) => [{ v: 0, label: '0' }, { v: s, label: 'k' }],
+    });
+  })();
+</script>
+</body>
+</html>

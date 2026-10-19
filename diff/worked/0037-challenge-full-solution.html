@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FT ODE Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .mk { font-family: Inter, system-ui, sans-serif; font-size: .75rem; color: var(--accent); font-weight: 600; white-space: nowrap; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 37 · Exam-level challenge · Full written solution</div>
+<h1>Two Fourier-transform ODEs, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper; the bracketed tags show where marks land. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>You may use $\mathcal F\{e^{-a|x|}\}=\dfrac{2a}{a^2+k^2}$, $a&gt;0$.</p>
+<p>(a) Solve $y''-4y=6e^{-|x-1|}$ on $\mathbb R$, subject to the FT of $y$ existing. <em>[5]</em> (b) Why no $e^{\pm2x}$? <em>[1]</em> (c) Most general solution of $y''-y'-xy=0$ that has a FT, as a definite integral. <em>[6]</em> (d) Show it is real (real constant) and write it over $(0,\infty)$. <em>[2]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · Constant coefficients, shifted forcing</h2>
+<div class="script">
+<p>Let $\hat y=\mathcal F\{y\}$. Using $\mathcal F\{y''\}=(ik)^2\hat y=-k^2\hat y$ and the shift theorem $\mathcal F\{f(x-1)\}=e^{-ik}\hat f(k)$: <span class="mk">[1]</span>
+$$-k^2\hat y-4\hat y=6e^{-ik}\cdot\frac{2}{1+k^2}\quad\Rightarrow\quad\hat y=-\frac{12\,e^{-ik}}{(k^2+1)(k^2+4)}.\ \ \text{[1]}$$
+Partial fractions: $\dfrac{12}{(k^2+1)(k^2+4)}=\dfrac{4}{k^2+1}-\dfrac{4}{k^2+4}$, so <span class="mk">[1]</span>
+$$\hat y=e^{-ik}\Big[-\frac{4}{k^2+1}+\frac{4}{k^2+4}\Big]=e^{-ik}\Big[-2\cdot\frac{2}{1+k^2}+\frac{4}{2^2+k^2}\Big].$$
+The bracket is $\mathcal F\{-2e^{-|x|}+e^{-2|x|}\}$ (given pair with $a=1,2$), and $e^{-ik}$ shifts by $1$: <span class="mk">[1]</span>
+$$\boxed{y(x)=-2e^{-|x-1|}+e^{-2|x-1|}}\ \ \text{[1]}$$</p>
+</div>
+<p class="note">Write the bracket so each term is visibly "constant × given pair": $\frac{4}{4+k^2}=\frac{2a}{a^2+k^2}$ with $a=2$ exactly. Check ($x&gt;1$, $s=x-1$): $y''-4y=(-2e^{-s}+4e^{-2s})-4(-2e^{-s}+e^{-2s})=6e^{-s}$ ✓; $y'(1^\pm)=\pm(2-2)=0$, so $y'$ is continuous, as it must be with no $\delta$ on the right ✓. Also checked: the numerical FT of this $y$ matches $\hat y$ at sample $k$.</p>
+
+<h2>(b) · The lost homogeneous solutions</h2>
+<div class="script">
+<p>The general solution is the above plus $C_1e^{2x}+C_2e^{-2x}$. These grow without bound as $x\to+\infty$ or $x\to-\infty$, so they are not absolutely integrable and have no Fourier transform; requiring $\hat y$ to exist forces $C_1=C_2=0$. <span class="mk">[1]</span></p>
+</div>
+
+<h2>(c) · Variable coefficients</h2>
+<div class="script">
+<p>Take the FT, using $\mathcal F\{y^{(n)}\}=(ik)^n\hat y$ and $\mathcal F\{xy\}=i\dfrac{d\hat y}{dk}$: <span class="mk">[1]</span>
+$$-k^2\hat y-ik\hat y-i\frac{d\hat y}{dk}=0.$$
+Multiply by $i$ ($i\cdot(-i)=1$): <span class="mk">[1]</span>
+$$\frac{d\hat y}{dk}+(k-ik^2)\hat y=0.$$
+Integrating factor: <span class="mk">[1]</span>
+$$\mu(k)=\exp\!\Big(\int(k-ik^2)\,dk\Big)=e^{k^2/2-ik^3/3}.$$
+Then $\dfrac{d}{dk}\big(\mu\hat y\big)=0$, so $\mu\hat y=A$ and <span class="mk">[1]</span>
+$$\hat y(k)=A\,e^{ik^3/3-k^2/2}.\ \ \text{[1]}$$
+This decays as $k\to\pm\infty$ ($|\hat y|=|A|e^{-k^2/2}$), so the inverse FT exists:
+$$\boxed{y(x)=\frac{A}{2\pi}\int_{-\infty}^{\infty}e^{-k^2/2}\,e^{i(k^3/3+kx)}\,dk,\quad A\in\mathbb R\ (\text{or }\mathbb C).}\ \ \text{[1]}$$</p>
+</div>
+<p class="note">Multiplying by $i$ is the cleanest simplify: $i(-k^2)=-ik^2$, $i(-ik)=k$, $i(-i)=1$. A common slip is $\mathcal F\{y'\}=k\hat y$ (drops the $i$), which makes the exponent $e^{+k^2/2}$ and wrongly kills every solution. Why only one constant: $y''-y'-xy=0$ has a 2-dimensional solution space; with $y=e^{x/2}z$ it becomes $z''=(x+\frac14)z$, so the solutions are $e^{x/2}\mathrm{Ai}(x+\frac14)$ (decays both ways) and $e^{x/2}\mathrm{Bi}(x+\frac14)$ (grows, no FT). Checked numerically: the integral with $A=1$ equals $e^{1/12}e^{x/2}\mathrm{Ai}(x+\frac14)$ and satisfies the ODE to $10^{-11}$ at $x=-3,-1,0,1,2.5$.</p>
+
+<h2>(d) · Reality, real form</h2>
+<div class="script">
+<p>Write $\phi(k)=\frac{k^3}3+kx$, odd in $k$, and $e^{-k^2/2}$ even. Then
+$$e^{-k^2/2}e^{i\phi}=e^{-k^2/2}\cos\phi(k)+i\,e^{-k^2/2}\sin\phi(k),$$
+where the first term is even and the second odd in $k$. The odd part integrates to $0$ over $\mathbb R$, so for real $A$, $y$ is real, and <span class="mk">[1]</span>
+$$\boxed{y(x)=\frac{A}{\pi}\int_0^{\infty}e^{-k^2/2}\cos\!\Big(\frac{k^3}{3}+kx\Big)dk.}\ \ \text{[1]}$$</p>
+</div>
+<p class="note">"Even ⇒ $\int_{-\infty}^\infty=2\int_0^\infty$" turns $\frac1{2\pi}$ into $\frac1\pi$. Compare $\mathrm{Ai}(x)=\frac1\pi\int_0^\infty\cos(\frac{t^3}3+xt)\,dt$: the $e^{-k^2/2}$ is the only difference.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+(a) $-k^2\hat y-4\hat y$ · forcing with $e^{-ik}$ from the shift · $\hat y$ with $(k^2+1)(k^2+4)$ · partial fractions · invert both pairs and shift · (b) "$e^{\pm2x}$ have no FT" · (c) FT of each term, $xy\to i\hat y'$ · first-order ODE in $k$ · IF $e^{k^2/2-ik^3/3}$ · $\hat y=Ae^{ik^3/3-k^2/2}$ · $y=\frac1{2\pi}\int\hat ye^{ikx}dk$ · (d) odd part vanishes, $\frac1\pi\int_0^\infty\cos$.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0037-ft-odes.html">Lesson 37, challenge</a></span>
+  <span>Reference: <a href="../reference/topic6-cheatsheet.html">Topic 6 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

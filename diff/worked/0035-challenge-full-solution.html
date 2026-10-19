@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shifts and Gaussians Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .katex-display { overflow-x: auto; overflow-y: hidden; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 35 · Exam-level challenge · Full written solution</div>
+<h1>Shifts, Gaussians and a real integral, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>You may use $\mathcal F\{e^{-ax^2}\}=\sqrt{\pi/a}\;e^{-k^2/4a}$ ($a&gt;0$). Any other transform you use must be derived. Convention: $\hat f(k)=\int_{-\infty}^\infty f(x)e^{-ikx}dx$.</p>
+<p>(a) Prove $\mathcal F\{e^{iqx}f\}=\hat f(k-q)$ ($q\in\mathbb R$) and deduce $\mathcal F\{\cos(qx)f\}$. <em>[3]</em> (b) $\mathcal F^{-1}\{e^{-k^2+2k}\}$. <em>[3]</em> (c) $\mathcal F^{-1}\big\{\frac{\cos2k}{k^2+1}\big\}$. <em>[4]</em> (d) $\int_{-\infty}^\infty\cos(4x)e^{-2x^2}dx$. <em>[2]</em> (e) Using $\mathcal F\{xf\}=i\hat f'$, evaluate $\int_{-\infty}^\infty x\sin(2x)e^{-2x^2}dx$. <em>[3]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · The $k$-shift theorem</h2>
+<div class="script">
+$$\mathcal F\{e^{iqx}f(x)\}=\int_{-\infty}^{\infty}e^{iqx}f(x)\,e^{-ikx}\,dx=\int_{-\infty}^{\infty}f(x)\,e^{-i(k-q)x}\,dx=\hat f(k-q),$$
+<p>since the last integral is the definition of $\hat f$ evaluated at $k-q$.</p>
+<p>Since $\cos(qx)=\frac12\big(e^{iqx}+e^{-iqx}\big)$, linearity and the result above (with $q$ and with $-q$) give
+$$\mathcal F\{\cos(qx)f(x)\}=\tfrac12\big[\hat f(k-q)+\hat f(k+q)\big].$$</p>
+</div>
+<p class="note">Two marks for the proof (combining exponents, then naming the definition at $k-q$), one for the deduction. Say "linearity" explicitly.</p>
+
+<h2>(b) · Inverse of $e^{-k^2+2k}$</h2>
+<div class="script">
+<p>Complete the square: $-k^2+2k=-(k-1)^2+1$, so $\hat g(k)=e\,e^{-(k-1)^2}$.</p>
+<p>Take $a=\frac14$ in the given pair: $\mathcal F\{e^{-x^2/4}\}=\sqrt{4\pi}\,e^{-k^2}=2\sqrt\pi\,e^{-k^2}$. Hence, writing $\varphi(x)=\dfrac{e^{-x^2/4}}{2\sqrt\pi}$, we have $\hat\varphi(k)=e^{-k^2}$.</p>
+<p>By (a) with $q=1$: $\mathcal F\{e^{ix}\varphi(x)\}=\hat\varphi(k-1)=e^{-(k-1)^2}$. By linearity,
+$$g(x)=\mathcal F^{-1}\{\hat g\}=e\cdot e^{ix}\varphi(x)=\frac{e^{\,1+ix-x^2/4}}{2\sqrt\pi}.$$</p>
+</div>
+<p class="note">Marks: completing the square, choosing $a=\frac14$ (from $\frac1{4a}=1$), the $k$-shift giving $e^{ix}$. A common slip is $a=1$, which gives $e^{-x^2}$ in place of $e^{-x^2/4}$. Sanity check: $\hat g$ is real but not even, so $g$ must be complex. ✓ (Verified numerically against the definition.)</p>
+
+<h2>(c) · Inverse of $\frac{\cos 2k}{k^2+1}$</h2>
+<div class="script">
+<p><strong>Pair.</strong></p>
+$$\mathcal F\{e^{-|x|}\}=\int_{-\infty}^0e^{x(1-ik)}dx+\int_0^\infty e^{-x(1+ik)}dx=\frac1{1-ik}+\frac1{1+ik}=\frac{2}{1+k^2},$$
+<p>so $\dfrac1{k^2+1}=\mathcal F\{\tfrac12e^{-|x|}\}$.</p>
+<p><strong>$x$-shift.</strong> $\mathcal F\{f(x-y)\}=\int f(x-y)e^{-ikx}dx\overset{u=x-y}{=}e^{-iky}\hat f(k)$.</p>
+<p><strong>Split.</strong> $\cos2k=\frac12(e^{2ik}+e^{-2ik})$, so</p>
+$$\hat h(k)=\tfrac12e^{2ik}\,\mathcal F\{\tfrac12e^{-|x|}\}+\tfrac12e^{-2ik}\,\mathcal F\{\tfrac12e^{-|x|}\}=\tfrac12\mathcal F\{\tfrac12e^{-|x+2|}\}+\tfrac12\mathcal F\{\tfrac12e^{-|x-2|}\}$$
+<p>(shifts $y=-2$ and $y=2$). By linearity,</p>
+$$h(x)=\tfrac14\big(e^{-|x+2|}+e^{-|x-2|}\big).$$
+</div>
+<p class="note">One mark each: the pair, the shift theorem, the exponential split, the answer. Check: $\hat h$ is real and even, and so is $h$ ✓. Equivalently, multiplying by $\cos2k$ in $k$ averages the shifts $x\pm2$. (Verified numerically.)</p>
+
+<h2>(d) · $\int\cos(4x)e^{-2x^2}dx$</h2>
+<div class="script">
+<p>Let $g=e^{-2x^2}$. With $a=2$, $\hat g(k)=\sqrt{\pi/2}\,e^{-k^2/8}$. Because $g$ is even, $\int g(x)\sin(4x)\,dx=0$ (odd integrand), so
+$$\hat g(4)=\int g\,(\cos4x-i\sin4x)\,dx=\int_{-\infty}^\infty\cos(4x)e^{-2x^2}dx.$$
+$$\int_{-\infty}^\infty\cos(4x)e^{-2x^2}dx=\hat g(4)=\sqrt{\tfrac{\pi}{2}}\,e^{-16/8}=\sqrt{\tfrac{\pi}{2}}\,e^{-2}.$$</p>
+</div>
+<p class="note">The reason "the sine part vanishes because it is odd" is what earns the first mark. Numerically $0.16962$ ✓.</p>
+
+<h2>(e) · $\int x\sin(2x)e^{-2x^2}dx$</h2>
+<div class="script">
+<p>Let $\varphi(x)=xe^{-2x^2}$. By the given rule,
+$$\hat\varphi(k)=i\frac{d}{dk}\Big[\sqrt{\tfrac\pi2}\,e^{-k^2/8}\Big]=-\frac{ik}{4}\sqrt{\tfrac\pi2}\,e^{-k^2/8}.$$
+$\varphi$ is odd, so $\int\varphi\cos(kx)\,dx=0$ and
+$$\hat\varphi(k)=-i\int_{-\infty}^\infty\varphi(x)\sin(kx)\,dx,\quad\text{so}$$
+$$\int_{-\infty}^\infty\varphi(x)\sin(kx)\,dx=i\,\hat\varphi(k)=\frac{k}{4}\sqrt{\tfrac\pi2}\,e^{-k^2/8}.$$
+At $k=2$:
+$$\int_{-\infty}^\infty x\sin(2x)e^{-2x^2}dx=\frac12\sqrt{\frac\pi2}\,e^{-1/2}=\frac{\sqrt{2\pi}}{4}\,e^{-1/2}.$$</p>
+</div>
+<p class="note">Sign check: the integrand $x\sin2x\,e^{-2x^2}\ge0$ near $0$ and dominates, so the answer must be positive ✓. Numerically $0.38009$ ✓. The parity argument (odd $\varphi$ kills the cosine part) is the step markers look for. Without it, $i\hat\varphi$ looks like it came from nowhere.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+(a) exponents combined to $e^{-i(k-q)x}$ and "definition at $k-q$"; $\cos=\frac12(e^{iqx}+e^{-iqx})$ + linearity · (b) $-(k-1)^2+1$; $a=\frac14$; factor $e^{ix}$ from the $k$-shift; the constant $e$ kept · (c) $\frac{2}{1+k^2}$ derived; $\frac1{k^2+1}\leftrightarrow\frac12e^{-|x|}$; $e^{\pm2ik}$ ↔ shifts by $\mp2$; $\frac14$ · (d) parity reason; $a=2$; $\hat g(4)$ · (e) $\hat\varphi=-\frac{ik}4\sqrt{\pi/2}e^{-k^2/8}$; odd ⇒ cosine part $0$; $\int\varphi\sin=i\hat\varphi$.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0035-ft-table-shift-inverse.html">Lesson 35, challenge</a></span>
+  <span>Reference: <a href="../reference/topic6-cheatsheet.html">Topic 6 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

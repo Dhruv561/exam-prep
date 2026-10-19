@@ -117,11 +117,12 @@
 const R = String.raw;
 
 const META = {
-  covered: 'Topic 1, Lessons 0–7; Topic 2, Lessons 8–12 (power series); Topic 3, Lessons 13–20 (Laplace); Topic 4, Lessons 21–26 (Fourier series); Topic 5, Lessons 27–33 (BVPs & PDEs)',
+  covered: 'Topic 1, Lessons 0–7; Topic 2, Lessons 8–12 (power series); Topic 3, Lessons 13–20 (Laplace); Topic 4, Lessons 21–26 (Fourier series); Topic 5, Lessons 27–33 (BVPs & PDEs); Topic 6, Lessons 34–38 (Fourier transforms)',
   updated: '19 Oct 2026',
 };
 
 const LOG = [
+  ['19 Oct 2026', 'Unlocked Fourier transform (Topic 6): definition/table/shifts, inverse via deltas, convolution + proofs, constant- and variable-coeff ODEs, heat/wave/advection/Laplace-strip PDEs on ℝ.'],
   ['19 Oct 2026', 'Unlocked separation of variables (Topic 5): eigen-table, heat (homog + steady/transient), Laplace rectangle/polar, wave, radial Bessel, genuine.'],
   ['18 Oct 2026', 'Unlocked Fourier series (Topic 4): extensions, product-to-sum, convergence/Gibbs/uniform, sums via plug-in or Parseval, complex form, term-by-term, periodic ODE cases.'],
   ['17 Oct 2026', 'Unlocked Laplace (Topic 3): IVP steps; repeated/resonant, Heaviside, delta, convolution, integro-differential, variable-coeff cases.'],
@@ -129,7 +130,7 @@ const LOG = [
   ['13 Oct 2026', 'Created. Topic 1 fully mapped; Topics 2–6 stubbed as later-topic boxes.'],
 ];
 
-const L = n => ({ n, href: `../lessons/${{0:'0000-assumed-knowledge',1:'0001-integrating-factors',2:'0002-reduction-of-order',3:'0003-wronskian-abel-euler',4:'0004-systems-eigenvalues',5:'0005-phase-portraits',6:'0006-inhomogeneous-matrix-exp',7:'0007-particular-solutions',8:'0008-taylor-series-radius',9:'0009-series-method-constant-coeff',10:'0010-series-variable-coeff',11:'0011-singular-points-bessel',12:'0012-uniform-convergence-genuine',14:'0014-laplace-solving-ivps',21:'0021-fourier-coefficients',28:'0028-heat-equation-separation'}[n]}.html` });
+const L = n => ({ n, href: `../lessons/${{0:'0000-assumed-knowledge',1:'0001-integrating-factors',2:'0002-reduction-of-order',3:'0003-wronskian-abel-euler',4:'0004-systems-eigenvalues',5:'0005-phase-portraits',6:'0006-inhomogeneous-matrix-exp',7:'0007-particular-solutions',8:'0008-taylor-series-radius',9:'0009-series-method-constant-coeff',10:'0010-series-variable-coeff',11:'0011-singular-points-bessel',12:'0012-uniform-convergence-genuine',14:'0014-laplace-solving-ivps',21:'0021-fourier-coefficients',28:'0028-heat-equation-separation',34:'0034-fourier-transform-definition'}[n]}.html` });
 
 const METHODS = {
   intfactor: {
@@ -458,7 +459,26 @@ const METHODS = {
     ],
     traps: R`Skipping a case (markers want all three). Forgetting the $\lambda=0$ constant mode for Neumann. Applying the IC before subtracting $u_S$. Putting the eigenproblem in the variable with inhomogeneous BCs. Wave: forgetting the $\omega_n$ factor in $b_n$.`,
   },
-  ftrans:  { future: true, title: 'Fourier transform', topic: 'Topic 6', lectures: '28', use: R`PDEs on an infinite domain. Formula sheet provided.` },
+  ftrans: {
+    title: 'Fourier transform', lesson: L(34),
+    use: R`Problems on the whole line $x\in\mathbb R$ with decay at $\pm\infty$: transforms from the definition, ODEs "subject to the FT existing" (δ/box forcing, or coefficients linear in $x$), heat/wave/advection on $\mathbb R$, Laplace on an infinite strip. Sheet gives definition, inverse, $(ik)^n$, $x^n$ and convolution rules; table and shifts are memorised.`,
+    form: R`$$\hat f(k)=\int_{-\infty}^{\infty}f(x)e^{-ikx}dx,\quad f=\frac1{2\pi}\int\hat f e^{ikx}dk,\quad \mathcal F\{f'\}=ik\hat f,\ \ \mathcal F\{xf\}=i\hat f'$$`,
+    steps: [
+      R`Transform every term in $x$: $y^{(n)}\mapsto(ik)^n\hat y$, $xy\mapsto i\hat y'$, forcing $\mapsto$ its FT (table, definition, or shifts).`,
+      R`Solve in $k$: algebra (constant coeff), a 1st-order ODE in $k$ (variable coeff), or an ODE in $t$/$y$ with constants $A(k)$ (PDE; IC $\hat u(k,0)=\hat f$).`,
+      R`Recognise the result: table + linearity + shifts $e^{-iky}\leftrightarrow f(x-y)$, $\hat f(k-q)\leftrightarrow e^{iqx}f$; products ⇒ convolution.`,
+      R`Invert, or leave $\frac1{2\pi}\int\cdots e^{ikx}dk$ if no closed form. State it is the (only) solution with a FT.`,
+    ],
+    cases: [
+      { name: 'From the definition', body: R`$\delta_a\mapsto e^{-iak}$; $e^{-ax}H\mapsto\frac1{a+ik}$; $H_a-H_b\mapsto\frac{e^{-iak}-e^{-ibk}}{ik}$; even ext $2\int_0^\infty f\cos kx$, odd ext $-2i\int_0^\infty f\sin kx$. Inverse at a jump gives the midpoint. <a href="../lessons/0034-fourier-transform-definition.html">Lesson 34</a>` },
+      { name: 'Table, shifts, inverses', body: R`$\cos ak\mapsto\frac12[\delta(x+a)+\delta(x-a)]$, $\sin ak\mapsto\frac i2[\delta(x-a)-\delta(x+a)]$. Real integrals: $\int f=\hat f(0)$, $\int f\cos bx=\hat f(b)$ for even $f$. <a href="../lessons/0035-ft-table-shift-inverse.html">Lesson 35</a>` },
+      { name: 'Convolution / proofs', body: R`Prove $\mathcal F\{f*g\}=\hat f\hat g$: swap integrals, sub $u=x-\xi$. $\mathcal F\{f'\}$: by parts, boundary term dies by decay. $\mathcal F\{fg\}=\frac1{2\pi}\hat f*\hat g$ gives e.g. $\mathcal F\{(1+x^2)^{-2}\}=\frac\pi2(1+|k|)e^{-|k|}$. <a href="../lessons/0036-convolution-derivative-rules-proofs.html">Lesson 36</a>` },
+      { name: 'Constant-coeff ODE', body: R`$\hat y=\hat f/P(ik)$; e.g. $y''-a^2y=\delta\Rightarrow y=-\frac1{2a}e^{-a|x|}$. Homogeneous $e^{\pm ax}$ have no FT, so FT picks the decaying solution. <a href="../lessons/0037-ft-odes.html">Lesson 37</a>` },
+      { name: 'Variable-coeff ODE', body: R`Coefficients linear in $x$ ⇒ 1st-order linear ODE in $k$ ⇒ integrating factor. Airy $y''-xy=0$: $\hat y=Ae^{ik^3/3}$, $y=\frac A{2\pi}\int e^{i(k^3/3+kx)}dk$ (Ai; Bi has no FT). <a href="../lessons/0037-ft-odes.html">Lesson 37</a>` },
+      { name: 'PDE on ℝ', body: R`Heat: $\hat u=\hat fe^{-\alpha k^2t}$, kernel $\frac1{2\sqrt{\pi\alpha t}}e^{-x^2/4\alpha t}$. Wave: $\hat u=\hat f\cos ckt+\hat g\frac{\sin ckt}{ck}$ ⇒ d'Alembert. Advection $u_t=cu_x$: $u=f(x+ct)$. Strip $0\lt y\lt1$: $\hat u=\hat g\frac{\sinh ky}{\sinh k}$. <a href="../lessons/0038-ft-pdes-and-mixed-exam-set.html">Lesson 38</a>` },
+    ],
+    traps: R`Sign in $\mathcal F\{xf\}=+i\hat f'$. Forgetting $\frac1{2\pi}$ on the inverse (and the $2\pi$ in $e^{iax}\leftrightarrow2\pi\delta_a$). $H_a=H(x-a)$ is a step <em>at</em> $a$. Claiming the FT gives the general solution: it only finds solutions that have a FT. Using another book's $\frac1{\sqrt{2\pi}}$ convention.`,
+  },
 };
 
 /* Tree nodes: { q } question, { s, n } numbered step, { m } method, { note }.
@@ -476,6 +496,7 @@ const TREE = { q: 'What are you solving?', kids: [
           [R`Euler: t²y″, ty′, y`, { m: 'euler' }],
           [R`Variable, one solution known/guessable`, { m: 'redorder' }],
           [R`Variable, nothing guessable`, { m: 'series' }],
+          [R`Coeffs linear in x, on all of ℝ`, { m: 'ftrans' }],
           [R`Want it as a system`, { m: 'convert' }],
         ]}],
         [null, { s: R`Inhomogeneous ($g \ne 0$)? Find $y_p$`, n: 2, kids: [
@@ -484,6 +505,7 @@ const TREE = { q: 'What are you solving?', kids: [
           ['Const./Euler, forcing e^kt, poly, trig, t^k', { m: 'undet' }],
           ['Step, impulse, or piecewise forcing', { m: 'laplace' }],
           ['Periodic forcing', { m: 'fourier' }],
+          ['On all of ℝ, δ/box forcing, "FT exists"', { m: 'ftrans' }],
         ]}],
         [null, { s: 'Conditions given?', n: 3, kids: [
           ['All at one point t₀ (IVP)', { m: 'ivp' }],
@@ -503,7 +525,7 @@ const TREE = { q: 'What are you solving?', kids: [
   ]}],
   ['A PDE for u(x, t)', { q: 'What is the domain?', kids: [
     ['Finite interval', { m: 'sepvars' }],
-    ['Infinite line', { m: 'ftrans' }],
+    ['Infinite line (or strip infinite in x)', { m: 'ftrans' }],
   ]}],
 ]};
 

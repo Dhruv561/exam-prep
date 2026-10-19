@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FT First Principles Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .katex-display { overflow-x: auto; overflow-y: hidden; }
+  .fig svg { max-width: 420px; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 34 · Exam-level challenge · Full written solution</div>
+<h1>Fourier transforms from first principles, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes.</p>
+
+<div class="box">
+<p>(a) Use the definition to evaluate $\mathcal F\{\delta_a\}$, $a\in\mathbb R$. <em>[1]</em> (b) $f(x)=4e^{-x}$ for $x&gt;0$, $0$ for $x&lt;0$: find $\hat f$ from the definition, justifying limits; value of $\mathcal F^{-1}\mathcal Ff$ at $0$. <em>[3]</em> (c) Using (b) and a substitution, FT of the odd extension $f_o$; parity. <em>[2]</em> (d) $g=2H_{-2}-3H_0+H_3$: sketch, $\hat g$ from the definition, check at $k=0$. <em>[5]</em> (e) $\mathcal F^{-1}\mathcal Fg$ at $x=-2,0,3,4$. <em>[2]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+
+<h2>(a) · Delta</h2>
+<div class="script">
+$$\mathcal F\{\delta_a\}=\int_{-\infty}^{\infty}\delta(x-a)\,e^{-ikx}\,dx=e^{-ika},$$
+<p>by the sifting property $\int\delta(x-a)\varphi(x)\,dx=\varphi(a)$ with $\varphi(x)=e^{-ikx}$.</p>
+</div>
+<p class="note">Name the sifting property: that's the whole mark.</p>
+
+<h2>(b) · One-sided exponential</h2>
+<div class="script">
+$$\hat f(k)=\int_0^\infty4e^{-x}e^{-ikx}\,dx=4\int_0^\infty e^{-(1+ik)x}dx=4\Big[\frac{e^{-(1+ik)x}}{-(1+ik)}\Big]_0^\infty=\frac{4}{1+ik},$$
+<p>since $\big|e^{-(1+ik)x}\big|=e^{-x}\,|e^{-ikx}|=e^{-x}\to0$ as $x\to\infty$.</p>
+<p>$f$ is piecewise continuous and $\int|f|\,dx=4&lt;\infty$, so at the jump $x=0$:
+$\mathcal F^{-1}\mathcal Ff(0)=\tfrac12\big(f(0^-)+f(0^+)\big)=\tfrac12(0+4)=2.$</p>
+</div>
+<p class="note">Check: $\hat f(0)=4=\int f$ ✓. The bar $|e^{-ikx}|=1$ is the line markers look for; "$e^{-\infty}=0$" with a complex exponent is not a justification.</p>
+
+<h2>(c) · Odd extension</h2>
+<div class="script">
+<p>$f_o(x)=f(x)-f(-x)$ for $x\ne0$ ($=4e^{-x}$ for $x&gt;0$, $-4e^{x}$ for $x&lt;0$). With $u=-x$:
+$$\mathcal F\{f(-x)\}=\int_{-\infty}^\infty f(-x)e^{-ikx}dx=\int_{-\infty}^\infty f(u)e^{iku}du=\hat f(-k).$$
+Hence
+$$\hat f_o(k)=\hat f(k)-\hat f(-k)=\frac4{1+ik}-\frac4{1-ik}$$
+$$=\frac{4(1-ik)-4(1+ik)}{1+k^2}=-\frac{8ik}{1+k^2}.$$
+$f_o$ is real and odd, so $\hat f_o$ is purely imaginary and odd in $k$ ✓.</p>
+</div>
+<p class="note">The value of $f_o$ at the single point $x=0$ doesn't change any integral. Direct route also fine: $-2i\int_0^\infty4e^{-x}\sin kx\,dx=-2i\cdot\frac{4k}{1+k^2}$.</p>
+
+<h2>(d) · Heaviside combination</h2>
+<div class="script">
+<p>Values: $g=0$ for $x&lt;-2$; $g=2$ on $(-2,0)$; $g=2-3=-1$ on $(0,3)$; $g=-1+1=0$ for $x&gt;3$.</p>
+<figure class="fig">
+<svg viewBox="0 0 420 170" role="img" aria-label="sketch of g">
+  <line class="s-ax" x1="10" y1="100" x2="410" y2="100"/>
+  <line class="s-ax" x1="190" y1="10" x2="190" y2="160"/>
+  <line class="s-eig" x1="10" y1="100" x2="110" y2="100"/>
+  <line class="s-eig" x1="110" y1="40" x2="190" y2="40"/>
+  <line class="s-eig" x1="190" y1="130" x2="310" y2="130"/>
+  <line class="s-eig" x1="310" y1="100" x2="410" y2="100"/>
+  <line class="s-guide-m" x1="110" y1="40" x2="110" y2="100"/>
+  <line class="s-guide-m" x1="190" y1="40" x2="190" y2="130"/>
+  <line class="s-guide-m" x1="310" y1="100" x2="310" y2="130"/>
+  <text class="lbl lbl-m" x="110" y="116" text-anchor="middle">−2</text>
+  <text class="lbl lbl-m" x="198" y="116">0</text>
+  <text class="lbl lbl-m" x="310" y="92" text-anchor="middle">3</text>
+  <text class="lbl lbl-a" x="150" y="32" text-anchor="middle">2</text>
+  <text class="lbl lbl-a" x="250" y="148" text-anchor="middle">−1</text>
+  <text class="lbl lbl-m" x="402" y="92" text-anchor="end">x</text>
+</svg>
+<figcaption>$g$: height $2$ on $(-2,0)$, $-1$ on $(0,3)$, zero elsewhere.</figcaption>
+</figure>
+$$\hat g(k)=2\int_{-2}^{0}e^{-ikx}dx-\int_0^3e^{-ikx}dx=2\Big[\frac{e^{-ikx}}{-ik}\Big]_{-2}^{0}-\Big[\frac{e^{-ikx}}{-ik}\Big]_0^3$$
+$$=\frac{2(e^{2ik}-1)-(1-e^{-3ik})}{ik}=\boxed{\frac{2e^{2ik}-3+e^{-3ik}}{ik}}\qquad(k\ne0).$$
+<p>Check at $k=0$: $2e^{2ik}-3+e^{-3ik}=(2-3+1)+ik(4-3)+O(k^2)=ik+O(k^2)$, so $\hat g(k)\to1$; and $\int g\,dx=2\cdot2-1\cdot3=1$ ✓.</p>
+</div>
+<p class="note">The coefficients sum to $0$ ($2-3+1$), which is why $g$ vanishes for large $x$ and has an FT. Shortcut check: $\frac1{ik}\sum c_je^{-ika_j}=\frac{2e^{2ik}-3e^{0}+e^{-3ik}}{ik}$ ✓. Equivalent real/imaginary form: $\frac{2\sin2k-\sin3k}{k}-i\,\frac{2\cos2k-3+\cos3k}{k}$ (either form earns full marks).</p>
+
+<h2>(e) · Values of the inverse</h2>
+<div class="script">
+<p>$g$ is piecewise continuous and absolutely integrable, so $\mathcal F^{-1}\mathcal Fg$ equals $g$ where $g$ is continuous and the average of the one-sided limits at a jump:</p>
+$$x=-2:\ \tfrac12(0+2)=1,\qquad x=0:\ \tfrac12(2-1)=\tfrac12,$$
+$$x=3:\ \tfrac12(-1+0)=-\tfrac12,\qquad x=4:\ g(4)=0\ \text{(continuous there)}.$$
+</div>
+<p class="note">All values checked numerically (truncated inverse integral of $\hat g$ gives $1.000,\ 0.500,\ -0.500,\ 0.000$). $H(0)$'s convention never matters here.</p>
+
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+sifting property named · $|e^{-(1+ik)x}|=e^{-x}\to0$ · $\frac4{1+ik}$ · midpoint $2$ at $x=0$ · substitution $u=-x$ giving $\hat f(-k)$ · $-\frac{8ik}{1+k^2}$, imaginary + odd · table of values of $g$ + sketch · interval integrals written out · $\frac{2e^{2ik}-3+e^{-3ik}}{ik}$ · $\hat g(0)=1=\int g$ · four midpoint/continuity values.</div>
+
+<div class="nav">
+  <span>Back to: <a href="../lessons/0034-fourier-transform-definition.html">Lesson 34, challenge</a></span>
+  <span>Reference: <a href="../reference/topic6-cheatsheet.html">Topic 6 cheat sheet</a></span>
+</div>
+
+</main>
+</body>
+</html>

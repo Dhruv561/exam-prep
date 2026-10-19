@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fourier Transform ODEs</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .katex-display { overflow-x: auto; overflow-y: hidden; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 37 · Topic 6: Fourier transforms · ODEs on ℝ</div>
+<h1>Solving ODEs on the whole line with the Fourier transform</h1>
+<p class="lede">The one win: one 5-step recipe that handles both exam types. Constant coefficients with $\delta$/box/$e^{-|x|}$ forcing (answer by table and shift), and $y^{(n)}\pm xy=0$-type equations (a first-order ODE in $k$, answer left as an integral).</p>
+
+<div class="mission">Why this matters for 5 Nov: the "most general solution that has a Fourier transform, leave it as a definite integral" question has been a whole 7-mark question, marked line by line: <em>move to Fourier space · simplify · integrating factor · solve for $\hat y$ · invert · final answer</em>. Booklet Q5/Q6 are the constant-coefficient version. The formula sheet gives $\mathcal F\{f^{(n)}\}=(ik)^n\hat f$ and $\mathcal F\{x^nf\}=i^n\frac{d^n\hat f}{dk^n}$, but <strong>not</strong> the table or the shift theorem.</div>
+
+<h2>0 · Warm-up from Lessons 34–36 (and Lesson 1)</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> $\mathcal F^{-1}\Big\{\dfrac{e^{-2ik}}{k^2+9}\Big\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac16e^{-3|x+2|}$</button>
+    <button class="opt" data-key="b">$\tfrac13e^{-3|x-2|}$</button>
+    <button class="opt" data-key="c">$\tfrac16e^{-3|x-2|}$</button>
+    <button class="opt" data-key="d">$\tfrac16e^{-9|x-2|}$</button>
+  </div>
+  <div class="why">$e^{-3|x|}\leftrightarrow\frac{6}{9+k^2}$, so $\frac1{k^2+9}\leftrightarrow\frac16e^{-3|x|}$. Multiplying by $e^{-iyk}$ shifts $x\to x-y$, here $y=2$.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W2.</strong> Using the formula sheet rules, $\mathcal F\{y'''\}$ and $\mathcal F\{xy\}$ are…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$-ik^3\hat y$ and $i\,\hat y'$</button>
+    <button class="opt" data-key="b">$ik^3\hat y$ and $i\,\hat y'$</button>
+    <button class="opt" data-key="c">$-ik^3\hat y$ and $-i\,\hat y'$</button>
+    <button class="opt" data-key="d">$-k^3\hat y$ and $i\,\hat y'$</button>
+  </div>
+  <div class="why">$(ik)^3=i^3k^3=-ik^3$. $\mathcal F\{xf\}=i\frac{d\hat f}{dk}$ (one power of $i$ per power of $x$). Keep the powers: $(ik)^1=ik$, $(ik)^2=-k^2$, $(ik)^3=-ik^3$, $(ik)^4=k^4$, $(ik)^5=ik^5$.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W3.</strong> $\mathcal F\{f\}=\frac{2}{1+k^2}$ and $\mathcal F\{g\}=\frac{2\sin k}{k}$. Then $\mathcal F^{-1}\Big\{\dfrac{4\sin k}{k(1+k^2)}\Big\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$f(x)\,g(x)$</button>
+    <button class="opt" data-key="b">$2\,(f*g)(x)$</button>
+    <button class="opt" data-key="c">$\tfrac1{2\pi}(f*g)(x)$</button>
+    <button class="opt" data-key="d">$(f*g)(x)$</button>
+  </div>
+  <div class="why">$\hat f\hat g=\frac{4\sin k}{k(1+k^2)}$, and the convolution theorem says $\mathcal F\{f*g\}=\hat f\hat g$ (no $2\pi$ in this direction). Here $f=e^{-|x|}$, $g$ = box on $|x|&lt;1$.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W4 (Lesson 1).</strong> $\hat y'+2k\,\hat y=0$. Integrating factor and solution:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\mu=e^{2k}$, $\;\hat y=Ae^{-2k}$</button>
+    <button class="opt" data-key="b">$\mu=e^{k^2}$, $\;\hat y=Ae^{-k^2}$</button>
+    <button class="opt" data-key="c">$\mu=e^{-k^2}$, $\;\hat y=Ae^{k^2}$</button>
+    <button class="opt" data-key="d">$\mu=e^{k^2}$, $\;\hat y=Ae^{k^2}$</button>
+  </div>
+  <div class="why">$\hat y'+p\hat y=0$: $\mu=e^{\int p\,dk}=e^{k^2}$; $(\mu\hat y)'=0\Rightarrow\hat y=A/\mu=Ae^{-k^2}$. Same as Lesson 1 with $t\to k$.</div>
+</div>
+
+<h2>1 · The recipe</h2>
+<div class="box">
+<ol class="steps">
+<li><strong>Move to Fourier space.</strong> Transform every term: $y^{(n)}\to(ik)^n\hat y$, $\;xy\to i\hat y'$, $\;\delta_a\to e^{-iak}$, forcing $f\to\hat f$.</li>
+<li><strong>Simplify.</strong> Constant coefficients: algebra, $\hat y=\hat f/P(ik)$. With an $x$: a first-order linear ODE $\hat y'+p(k)\hat y=0$.</li>
+<li><strong>Integrating factor</strong> (variable coefficients only): $\mu=e^{\int p\,dk}$.</li>
+<li><strong>Solve for $\hat y$.</strong> Partial fractions in $k^2$ if needed; or $\hat y=A/\mu$.</li>
+<li><strong>Invert.</strong> Table + shift (+ convolution) if it fits; otherwise write $y=\frac1{2\pi}\int_{-\infty}^\infty\hat y\,e^{ikx}\,dk$ and simplify with parity.</li>
+</ol>
+</div>
+
+<h2>2 · Constant coefficients: the decaying solution</h2>
+<p><strong>Worked A1.</strong> Solve $y''-9y=\delta(x-2)$ subject to the condition that the FT of $y$ exists.</p>
+<details><summary>Solution</summary><div>
+<p>FT: $(ik)^2\hat y-9\hat y=e^{-2ik}\Rightarrow\hat y=-\dfrac{e^{-2ik}}{k^2+9}$.</p>
+<p>$\frac1{k^2+9}\leftrightarrow\frac16e^{-3|x|}$ (from $e^{-a|x|}\leftrightarrow\frac{2a}{a^2+k^2}$, $a=3$), then shift by $2$:
+$$y(x)=-\tfrac16e^{-3|x-2|}.$$
+Check: $y''-9y=0$ away from $x=2$ ✓; $y'$ jumps from $-\frac12$ to $+\frac12$ at $x=2$, a jump of $1$, which is exactly what $\delta(x-2)$ demands ✓.</p>
+</div></details>
+
+<div class="box">
+<p><strong>Where did $C_1e^{3x}+C_2e^{-3x}$ go?</strong> The general solution is $y=-\frac16e^{-3|x-2|}+C_1e^{3x}+C_2e^{-3x}$. But $e^{3x}$ blows up at $+\infty$ and $e^{-3x}$ at $-\infty$, so neither has a FT. Transforming the ODE <em>assumes</em> $\hat y$ exists, so the method only returns solutions that decay: $C_1=C_2=0$. That is what "subject to the condition that the FT exists" means, and it makes the answer unique (L30 s3).</p>
+</div>
+
+<p><strong>Worked A2 (partial fractions in $k^2$).</strong> Solve $y''-y=e^{-2|x|}$ subject to the FT of $y$ existing.</p>
+<details><summary>Solution</summary><div>
+<p>FT: $-(k^2+1)\hat y=\dfrac{4}{k^2+4}\Rightarrow\hat y=-\dfrac{4}{(k^2+1)(k^2+4)}$.</p>
+<p>Partial fractions with $u=k^2$: $\frac{1}{(u+1)(u+4)}=\frac13\Big(\frac1{u+1}-\frac1{u+4}\Big)$, so
+$$\hat y=-\frac43\cdot\frac1{k^2+1}+\frac43\cdot\frac1{k^2+4}.$$
+Table: $\frac1{k^2+1}\leftrightarrow\frac12e^{-|x|}$, $\;\frac1{k^2+4}\leftrightarrow\frac14e^{-2|x|}$:
+$$y=-\tfrac23e^{-|x|}+\tfrac13e^{-2|x|}.$$
+Check ($x&gt;0$): $y''-y=\big(-\frac23e^{-x}+\frac43e^{-2x}\big)-\big(-\frac23e^{-x}+\frac13e^{-2x}\big)=e^{-2x}$ ✓, and $y'(0^+)=\frac23-\frac23=0$, so $y'$ is continuous (no $\delta$ on the right) ✓.</p>
+</div></details>
+
+<div class="box">
+<p><strong>When no pair fits, stop at the integral</strong> (booklet Q5/Q6 style). E.g. $y''-y=$ box ($1$ on $|x|&lt;1$): $\hat y=-\dfrac{2\sin k}{k(1+k^2)}$, so
+$$y=-\frac1{\pi}\int_{-\infty}^{\infty}\frac{\sin k}{k(1+k^2)}e^{ikx}\,dk=-\frac2\pi\int_0^\infty\frac{\sin k\,\cos kx}{k(1+k^2)}\,dk.$$
+Parity: $\hat y$ is even, so $e^{ikx}=\cos kx+i\sin kx$ keeps only the even part, doubled over $(0,\infty)$. (Or get a closed form by convolution: Practice P2.)</p>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q1.</strong> $y''-16y=\delta(x+3)$, FT of $y$ exists. $y=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$-\tfrac18e^{-4|x-3|}$</button>
+    <button class="opt" data-key="b">$-\tfrac18e^{-4|x+3|}$</button>
+    <button class="opt" data-key="c">$-\tfrac14e^{-4|x+3|}$</button>
+    <button class="opt" data-key="d">$\phantom{-}\tfrac18e^{-4|x+3|}$</button>
+  </div>
+  <div class="why">$\hat y=-\frac{e^{3ik}}{k^2+16}$; $\frac1{k^2+16}\leftrightarrow\frac18e^{-4|x|}$; $e^{3ik}=e^{-i(-3)k}$ shifts to $x+3$. Sign: $(ik)^2-16=-(k^2+16)$.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q2.</strong> The beam equation $u''''+4u=\delta(x)$, FT of $u$ exists. Which is $u$?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac1{2\pi}\displaystyle\int_0^\infty\frac{\cos kx}{k^4+4}\,dk$</button>
+    <button class="opt" data-key="b">$\dfrac1{\pi}\displaystyle\int_0^\infty\frac{\cos kx}{4-k^4}\,dk$</button>
+    <button class="opt" data-key="c">$\dfrac1{\pi}\displaystyle\int_0^\infty\frac{\sin kx}{k^4+4}\,dk$</button>
+    <button class="opt" data-key="d">$\dfrac1{\pi}\displaystyle\int_0^\infty\frac{\cos kx}{k^4+4}\,dk$</button>
+  </div>
+  <div class="why">$(ik)^4=k^4$, so $\hat u=\frac1{k^4+4}$, even in $k$. $\frac1{2\pi}\int_{-\infty}^\infty=\frac1\pi\int_0^\infty$ with $\cos kx$. (It equals $\frac18e^{-|x|}(\cos x+\sin|x|)$, but you'd never be asked to evaluate it.)</div>
+</div>
+
+<h2>3 · Variable coefficients: a first-order ODE in $k$</h2>
+<p>An $x$ multiplying $y$ turns into a $k$-derivative, so the ODE in $x$ becomes an ODE in $k$. With only $xy$ (no $xy'$) it is <strong>first order</strong>, whatever the order in $x$.</p>
+<table>
+<tr><th>term</th><th>FT</th><th>how</th></tr>
+<tr><td>$xy$</td><td>$i\,\hat y'$</td><td>sheet, $n=1$</td></tr>
+<tr><td>$xy'$</td><td>$i\frac{d}{dk}(ik\hat y)=-\hat y-k\hat y'$</td><td>apply $x$-rule to $f=y'$</td></tr>
+<tr><td>$x^2y$</td><td>$-\hat y''$</td><td>sheet, $n=2$ (second order: avoid)</td></tr>
+</table>
+
+<p><strong>Sanity example.</strong> $y'+xy=0$: $ik\hat y+i\hat y'=0\Rightarrow\hat y'=-k\hat y\Rightarrow\hat y=Ae^{-k^2/2}$, a Gaussian, so $y=Ce^{-x^2/2}$. Separation in $x$ gives the same ✓.</p>
+
+<p><strong>Worked B1.</strong> $y'''-xy=0$ on $x\in\mathbb R$. Find the most general solution that has a FT, as a definite integral.</p>
+<details><summary>Solution (one line per mark)</summary><div>
+<p><strong>Fourier space:</strong> $(ik)^3\hat y-i\hat y'=0$, i.e. $-ik^3\hat y-i\hat y'=0$.</p>
+<p><strong>Simplify</strong> (divide by $-i$): $\hat y'+k^3\hat y=0$.</p>
+<p><strong>IF:</strong> $\mu=e^{\int k^3dk}=e^{k^4/4}$.</p>
+<p><strong>Solve:</strong> $(e^{k^4/4}\hat y)'=0\Rightarrow\hat y=Ae^{-k^4/4}$.</p>
+<p><strong>Invert:</strong>
+$$y(x)=\frac{A}{2\pi}\int_{-\infty}^{\infty}e^{-k^4/4}e^{ikx}\,dk=\frac{A}{\pi}\int_0^\infty e^{-k^4/4}\cos(kx)\,dk.$$
+(Last step: $e^{-k^4/4}$ even, $\sin kx$ odd, so the imaginary part integrates to zero.) Checked numerically: $y'''-xy=0$ to $10^{-12}$ at several $x$.</p>
+</div></details>
+
+<div class="box">
+<p><strong>"Most general" = one constant.</strong> $y'''-xy=0$ has a 3-dimensional solution space, but the FT returns a 1-parameter family: the other solutions blow up and have no FT. Same story as Airy (L30 s6–7): $y''-xy=0\to\hat y=Ae^{ik^3/3}$ gives $\mathrm{Ai}$, while $\mathrm{Bi}$ grows and is lost.</p>
+<p><strong>Can $\hat y$ be inverted?</strong> Look at the real part of the exponent:</p>
+<ul>
+<li>$\to-\infty$ both ways (e.g. $e^{-k^4/4}$): fine, absolutely convergent.</li>
+<li>purely imaginary (e.g. $e^{ik^3/3}$): fine, oscillatory, as in the lecture's Airy example.</li>
+<li>$\to+\infty$ (e.g. $e^{+k^4/4}$): no inverse FT exists, so <strong>only $y\equiv0$</strong> has a FT. Say so.</li>
+</ul>
+</div>
+
+<div class="trap"><strong>Sign traps</strong><br>
+(1) $(ik)^3=-ik^3$, not $ik^3$. (2) $\mathcal F\{xy\}=+i\hat y'$; with $-xy$ in the ODE the term is $-i\hat y'$. (3) Divide by $i$ carefully: $\frac{1}{i}=-i$. One sign slip turns $e^{-k^4/4}$ into $e^{+k^4/4}$ and "no solution". Check the final $\hat y$ by substituting back.</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q3.</strong> $\mathcal F\{x\,y'\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$-k\,\hat y'$</button>
+    <button class="opt" data-key="b">$i\hat y+k\,\hat y'$</button>
+    <button class="opt" data-key="c">$-\hat y-k\,\hat y'$</button>
+    <button class="opt" data-key="d">$\hat y-k\,\hat y'$</button>
+  </div>
+  <div class="why">$\mathcal F\{xf\}=i\hat f'$ with $\hat f=ik\hat y$: $i(i\hat y+ik\hat y')=-\hat y-k\hat y'$. (a) forgot the product rule. An $xy'$ term puts $k\hat y'$ in the ODE (a singular point at $k=0$), so exam questions use $xy$ only.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q4.</strong> $y''+4xy=0$. The FT method gives $\hat y=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$Ae^{-ik^3/12}$</button>
+    <button class="opt" data-key="b">$Ae^{+ik^3/12}$</button>
+    <button class="opt" data-key="c">$Ae^{-k^3/12}$</button>
+    <button class="opt" data-key="d">$Ae^{-ik^3/4}$</button>
+  </div>
+  <div class="why">$-k^2\hat y+4i\hat y'=0\Rightarrow\hat y'=\frac{k^2}{4i}\hat y=-\frac{ik^2}{4}\hat y\Rightarrow\hat y=Ae^{-ik^3/12}$. Purely imaginary exponent: Airy-type, invertible.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q5.</strong> $y''+2y'-xy=0$. What does the FT method give?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\hat y=Ae^{-ik^3/3-k^2}$; one-parameter family</button>
+    <button class="opt" data-key="b">$\hat y=Ae^{ik^3/3-k^2}$; one-parameter family</button>
+    <button class="opt" data-key="c">$\hat y=Ae^{ik^3/3+k^2}$; one-parameter family</button>
+    <button class="opt" data-key="d">$\hat y=Ae^{ik^3/3+k^2}$; only $y\equiv0$ has a FT</button>
+  </div>
+  <div class="why">$(-k^2+2ik)\hat y-i\hat y'=0\Rightarrow\hat y'=\frac{-k^2+2ik}{i}\hat y=(ik^2+2k)\hat y\Rightarrow\hat y=Ae^{ik^3/3+k^2}$. $|\hat y|=|A|e^{k^2}\to\infty$: no inverse FT unless $A=0$.</div>
+</div>
+
+<h2>4 · Practice (exam level)</h2>
+<div class="box">
+<p><strong>P1.</strong> Solve $y''-4y=\delta(x-1)+\delta(x+1)$, subject to the FT of $y$ existing.</p>
+<p><strong>P2.</strong> $y''-y=g(x)$, $g=1$ on $|x|&lt;1$, $0$ otherwise. (a) Find $\hat y$ and write $y$ as a real integral. (b) Using W3 and Worked A1's idea ($\mathcal F^{-1}\{\frac{-1}{1+k^2}\}=-\frac12e^{-|x|}$), find $y$ in closed form for $|x|&lt;1$.</p>
+<p><strong>P3.</strong> $y''+2y'+xy=0$, $x\in\mathbb R$. Find the most general solution that has a FT; write it as a real definite integral.</p>
+<p><strong>P4.</strong> Solve $y'+3xy=0$ by FT (Gaussian pair $e^{-ax^2}\leftrightarrow\sqrt{\pi/a}\,e^{-k^2/4a}$ given), then check by separation.</p>
+</div>
+<details><summary>P1 solution</summary><div>
+<p>$-(k^2+4)\hat y=e^{-ik}+e^{ik}\Rightarrow\hat y=-\frac{e^{-ik}+e^{ik}}{k^2+4}$. $\frac1{k^2+4}\leftrightarrow\frac14e^{-2|x|}$, shift each:
+$$y=-\tfrac14\big(e^{-2|x-1|}+e^{-2|x+1|}\big).$$</p>
+</div></details>
+<details><summary>P2 solution</summary><div>
+<p>(a) $\hat g=\frac{2\sin k}{k}$, $\hat y=-\frac{2\sin k}{k(1+k^2)}$, $\;y=-\frac2\pi\int_0^\infty\frac{\sin k\cos kx}{k(1+k^2)}dk$.</p>
+<p>(b) $\hat y=\hat g\cdot\big(-\frac1{1+k^2}\big)$, so $y=g*\big(-\frac12e^{-|x|}\big)=-\frac12\int_{-1}^{1}e^{-|x-s|}ds$. For $|x|&lt;1$ split at $s=x$:
+$$\begin{aligned}-\tfrac12\Big[\int_{-1}^xe^{-(x-s)}ds+\int_x^1e^{-(s-x)}ds\Big]&=-\tfrac12\big[(1-e^{-(x+1)})+(1-e^{-(1-x)})\big]\\&=-1+e^{-1}\cosh x.\end{aligned}$$
+(For $|x|&gt;1$: $-\sinh(1)\,e^{-|x|}$.) Check: $y''-y=1$ inside ✓; matches the integral numerically ✓.</p>
+</div></details>
+<details><summary>P3 solution</summary><div>
+<p>$(-k^2+2ik)\hat y+i\hat y'=0\Rightarrow\hat y'=\frac{k^2-2ik}{i}\hat y=(-ik^2-2k)\hat y$. IF $\mu=e^{ik^3/3+k^2}$, $\hat y=Ae^{-ik^3/3-k^2}$ (decays ✓).
+$$y=\frac{A}{2\pi}\int_{-\infty}^\infty e^{-k^2}e^{i(kx-k^3/3)}dk=\frac{A}{\pi}\int_0^\infty e^{-k^2}\cos\!\big(kx-\tfrac{k^3}3\big)dk,$$
+since $kx-\frac{k^3}{3}$ is odd (its sine is odd, its cosine even). Verified numerically.</p>
+</div></details>
+<details><summary>P4 solution</summary><div>
+<p>$ik\hat y+3i\hat y'=0\Rightarrow\hat y'=-\frac k3\hat y\Rightarrow\hat y=Ae^{-k^2/6}$. Match $\frac1{4a}=\frac16$: $a=\frac32$, so $y=Ce^{-3x^2/2}$. Separation: $\frac{y'}y=-3x\Rightarrow y=Ce^{-3x^2/2}$ ✓.</p>
+</div></details>
+
+<h2>5 · Exam-level challenge (14 marks, about 25 minutes)</h2>
+<div class="box">
+<p>You may use $\mathcal F\{e^{-a|x|}\}=\dfrac{2a}{a^2+k^2}$ for $a&gt;0$.</p>
+<p>(a) Find the solution of $y''-4y=6e^{-|x-1|}$, $x\in\mathbb R$, subject to the condition that the Fourier transform of $y$ exists. <em>[5]</em><br>
+(b) Explain briefly why no multiple of $e^{2x}$ or $e^{-2x}$ appears in your answer. <em>[1]</em><br>
+(c) Use the method of Fourier transforms to find the most general solution of $y''-y'-xy=0$, $x\in\mathbb R$, that has a Fourier transform. You may leave it as a definite integral. <em>[6]</em><br>
+(d) Show that your answer to (c) with a real constant is real, and write it as an integral over $(0,\infty)$ of a real function. <em>[2]</em></p>
+</div>
+<p>Full marking-style solution: <a href="../worked/0037-challenge-full-solution.html">worked/0037-challenge-full-solution.html</a>. Attempt every part first.</p>
+<details><summary>Answer key (quick check)</summary><div>
+<p>(a) $y=-2e^{-|x-1|}+e^{-2|x-1|}$. (b) They have no FT (grow at $\pm\infty$).<br>
+(c) $\hat y=Ae^{ik^3/3-k^2/2}$, $\;y=\frac{A}{2\pi}\int_{-\infty}^\infty e^{-k^2/2}e^{i(k^3/3+kx)}dk$. (d) $y=\frac A\pi\int_0^\infty e^{-k^2/2}\cos\big(\frac{k^3}3+kx\big)dk$.</p>
+</div></details>
+
+<h2>6 · Before you close this tab</h2>
+<details><summary>Retrieval: write from memory, then check</summary><div>
+<ol>
+<li>The five steps (as mark lines).</li>
+<li>$(ik)^n$ for $n=1,\dots,5$.</li>
+<li>Why the FT method gives a unique answer for $y''-a^2y=f$.</li>
+<li>When does a $\hat y=Ae^{\phi(k)}$ give "only $y\equiv0$"?</li>
+</ol>
+<p><strong>Answers:</strong> (1) Fourier space · simplify · IF · solve for $\hat y$ · invert. (2) $ik,-k^2,-ik^3,k^4,ik^5$. (3) $e^{\pm ax}$ have no FT, so the transformed equation can't see them. (4) When $\operatorname{Re}\phi\to+\infty$ as $k\to\pm\infty$.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/29_MAST20030_Lecture_Notes_Topic6_Fourier_transforms_handout.pdf">Lecture 29</a> (s9: derivative and $x^n$ rules; s10–11: their proofs; s12: Ex 6.9, $y''-y=-2\delta$) and <a href="../lectures/30_MAST20030_Lecture_Notes_Topic6_Fourier_transforms_handout.pdf">Lecture 30</a> (s3: why $e^{\pm x}$ are lost; s6–7: Airy by FT, Ai kept, Bi lost). Then Herman, <a href="https://math.libretexts.org/Bookshelves/Differential_Equations/Introduction_to_Partial_Differential_Equations_(Herman)/09%3A_Transform_Techniques_in_Physics/9.05%3A_Properties_of_the_Fourier_Transform">Properties of the Fourier Transform</a> (LibreTexts; <em>opposite sign convention</em> $e^{+ikx}$, so his rules read $-ik$ and $-i\frac{d}{dk}$), and Wikipedia, <a href="https://en.wikipedia.org/wiki/Airy_function">Airy function</a> ($\mathrm{Ai}(x)=\frac1\pi\int_0^\infty\cos(\frac{t^3}3+xt)\,dt$: the real-integral form of L30's answer).</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic6.pdf">Booklet 6</a>, Q6 (a), (b): beam with box load, leave as integral.</li>
+  <li>Booklet Q5 (a) and the setup of (b) (write $\hat y$ and the integral; don't try to evaluate it).</li>
+  <li>Own variant: $y''''-xy=0$ by the recipe (check: $\hat y=Ae^{-ik^5/5}$, Airy-type).</li>
+  <li>Optional: re-derive $\mathcal F\{xf\}=i\hat f'$ from the definition (L29 s11).</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, redo Q2, Q5 cold and part (c) of the challenge without looking.</p>
+
+<div class="ask">💬 Unsure about a sign in the $k$-ODE, or whether your $\hat y$ can be inverted? Ask me (Claude) in the terminal and paste your working.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0036-convolution-derivative-rules-proofs.html">Lesson 36, convolution and derivative rules</a></span>
+  <span>Next: <a href="0038-ft-pdes-and-mixed-exam-set.html">Lesson 38, PDEs on ℝ and mixed set</a></span>
+  <span>Reference: <a href="../reference/topic6-cheatsheet.html">Topic 6 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

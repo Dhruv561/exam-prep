@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FT Table, Shifts, Inverses</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/ft-tbl-drill.js"></script>
+<style>
+  .katex-display { overflow-x: auto; overflow-y: hidden; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 35 · Topic 6: Fourier transforms · Table, shifts, inverses</div>
+<h1>Transforms without integrating: the table, two shifts, and recognition</h1>
+<p class="lede">The one win: find a forward or inverse FT by matching it to a table pair plus at most one shift, with no integration, and evaluate a real integral like $\int\cos(bx)e^{-ax^2}dx$ straight from a given pair.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topic 6 is the last question on the paper (7–15 marks; masked 2026 Q7 = 14). Past papers have had an inverse of $\sin(ak)$ or $\cos(ak)$ (answer: deltas), and "use the given transform $\mathcal F\{e^{-ax^2}\}$ to evaluate $\int\cos(\cdot)e^{-(\cdot)x^2}dx$". The formula sheet has the definitions, the derivative/$x^n$ rules and convolution, but <strong>no table and no shift theorems</strong>. So you need to memorise them or be able to rederive them in a few lines.</div>
+
+<h2>0 · Warm-up from Lessons 34 and 15</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W1.</strong> From the definition, $\mathcal F\{\delta(x+2)\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$e^{-2ik}$</button>
+    <button class="opt" data-key="b">$2\pi e^{2ik}$</button>
+    <button class="opt" data-key="c">$e^{2ik}$</button>
+    <button class="opt" data-key="d">$2\pi e^{-2ik}$</button>
+  </div>
+  <div class="why">$\int\delta(x+2)e^{-ikx}dx=e^{-ik(-2)}=e^{2ik}$ (sifting at $x=-2$). The $2\pi$ belongs to the inverse transform.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W2.</strong> $\mathcal F\{H_{-3}(x)-H_3(x)\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{2\sin 3k}{k}$</button>
+    <button class="opt" data-key="b">$\dfrac{2\sin 6k}{k}$</button>
+    <button class="opt" data-key="c">$\dfrac{\sin 3k}{k}$</button>
+    <button class="opt" data-key="d">$\dfrac{2\cos 3k}{k}$</button>
+  </div>
+  <div class="why">$\int_{-3}^3e^{-ikx}dx=\frac{e^{3ik}-e^{-3ik}}{ik}=\frac{2\sin3k}{k}=6\,\mathrm{sinc}(3k)$. Use the half-width $3$, not the width $6$.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W3.</strong> $\mathcal F\{e^{-4|x|}\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\dfrac{4}{16+k^2}$</button>
+    <button class="opt" data-key="b">$\dfrac{8}{4+k^2}$</button>
+    <button class="opt" data-key="c">$\dfrac{2}{16+k^2}$</button>
+    <button class="opt" data-key="d">$\dfrac{8}{16+k^2}$</button>
+  </div>
+  <div class="why">$\frac1{4+ik}+\frac1{4-ik}=\frac{8}{16+k^2}$, i.e. $\frac{2a}{a^2+k^2}$ with $a=4$.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W4.</strong> $f=H_0-H_2$ (so $f=1$ on $(0,2)$, else $0$). The inverse FT of $\hat f$, evaluated at $x=2$, equals…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$1$</button>
+    <button class="opt" data-key="b">$\tfrac12$</button>
+    <button class="opt" data-key="c">$0$</button>
+    <button class="opt" data-key="d">$\tfrac{1}{2\pi}$</button>
+  </div>
+  <div class="why">At a jump, $\mathcal F^{-1}\mathcal F f$ gives the midpoint $\frac12\big(f(2^-)+f(2^+)\big)=\frac12(1+0)$, whatever value $f(2)$ was given (L28).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>W5 (spaced, Lesson 15).</strong> $\mathcal L^{-1}\Big\{\dfrac{e^{-3s}}{s^2+4}\Big\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac12\sin\big(2(t-3)\big)H(t-3)$</button>
+    <button class="opt" data-key="b">$\tfrac12\sin(2t)\,H(t-3)$</button>
+    <button class="opt" data-key="c">$\sin\big(2(t-3)\big)H(t-3)$</button>
+    <button class="opt" data-key="d">$\tfrac12\sin\big(2(t+3)\big)H(t+3)$</button>
+  </div>
+  <div class="why">Strip $e^{-3s}$, invert $\frac{1}{s^2+4}=\frac12\cdot\frac{2}{s^2+4}\to\frac12\sin2t$, then shift $t\to t-3$ and attach $H(t-3)$. The FT version below is the same idea, but the FT needs no $H$ because $x$ runs over all of $\mathbb R$.</div>
+</div>
+
+<h2>1 · The table: what to memorise, how to rederive</h2>
+<p>Convention (on the sheet): $\hat f(k)=\int_{-\infty}^\infty f(x)e^{-ikx}dx$, $\;f(x)=\frac1{2\pi}\int_{-\infty}^\infty\hat f(k)e^{ikx}dk$. The table is L29 s3. <strong>None of it is on the formula sheet.</strong></p>
+<table>
+<tr><th>$f(x)$</th><th>$\hat f(k)$</th><th>Fastest rederivation</th></tr>
+<tr><td>$\delta_a(x)=\delta(x-a)$</td><td>$e^{-iak}$</td><td>sifting, 1 line</td></tr>
+<tr><td>$e^{iax}$</td><td>$2\pi\,\delta_a(k)$</td><td>inverse of $\delta(k-a)$ is $\frac1{2\pi}e^{iax}$, 1 line</td></tr>
+<tr><td>$e^{-a|x|}$ $(a&gt;0)$</td><td>$\dfrac{2a}{a^2+k^2}$</td><td>split at $0$: $\frac1{a+ik}+\frac1{a-ik}$, 2 lines</td></tr>
+<tr><td>$\dfrac1{a^2+x^2}$ $(a&gt;0)$</td><td>$\dfrac{\pi}{a}e^{-a|k|}$</td><td>duality from the row above</td></tr>
+<tr><td>$H_{-a}(x)-H_a(x)$ (box, $|x|&lt;a$)</td><td>$2a\,\mathrm{sinc}(ak)=\dfrac{2\sin ak}{k}$</td><td>$\int_{-a}^ae^{-ikx}dx$, 1 line</td></tr>
+<tr><td>$\mathrm{sinc}(ax)$</td><td>$\dfrac{\pi}{a}\big(H_{-a}(k)-H_a(k)\big)$</td><td>duality from the box</td></tr>
+<tr><td>$e^{-ax^2}$ $(a&gt;0)$</td><td>$\sqrt{\dfrac\pi a}\,e^{-k^2/4a}$</td><td>memorise (exams usually give it); 3-line ODE proof below</td></tr>
+<tr><td>$\mathrm{sech}(ax)$</td><td>$\dfrac{\pi}{a}\,\mathrm{sech}\dfrac{\pi k}{2a}$</td><td>recognise only (booklet Q9(d))</td></tr>
+</table>
+
+<div class="box">
+<p><strong>Duality</strong> (not named in the slides, but it is how the right-hand column follows from the left). If $\mathcal F\{f\}=g$ then
+$$\mathcal F\{g(x)\}(k)=2\pi f(-k).$$
+<em>Proof.</em> $f(x)=\frac1{2\pi}\int g(q)e^{iqx}dq$. Put $x=-k$: $2\pi f(-k)=\int g(q)e^{-ikq}dq=\mathcal F\{g\}(k)$. ∎<br>
+<em>Use.</em> $\mathcal F\{\frac{2a}{a^2+x^2}\}=2\pi e^{-a|k|}$ ⇒ $\mathcal F\{\frac1{a^2+x^2}\}=\frac\pi ae^{-a|k|}$. Box: $\mathcal F\{2a\,\mathrm{sinc}(ax)\}=2\pi\cdot\mathbb 1_{|k|&lt;a}$ ⇒ the sinc row.</p>
+</div>
+
+<div class="box">
+<p><strong>Gaussian in 3 lines, using only sheet rules.</strong> $f=e^{-ax^2}$ satisfies $f'=-2ax\,f$. Transform with $\mathcal F\{f'\}=ik\hat f$ and $\mathcal F\{xf\}=i\hat f'$:
+$$ik\hat f=-2a\,i\hat f'\;\Rightarrow\;\hat f'=-\frac{k}{2a}\hat f\;\Rightarrow\;\hat f=\hat f(0)\,e^{-k^2/4a},$$
+$$\hat f(0)=\int e^{-ax^2}dx=\sqrt{\pi/a}.$$</p>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q1.</strong> $\mathcal F\Big\{\dfrac{\sin 2x}{x}\Big\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac{\pi}{2}\big(H_{-2}(k)-H_2(k)\big)$</button>
+    <button class="opt" data-key="b">$2\pi\big(H_{-2}(k)-H_2(k)\big)$</button>
+    <button class="opt" data-key="c">$\pi\big(H_{-2}(k)-H_2(k)\big)$</button>
+    <button class="opt" data-key="d">$\pi\big(H_{-1}(k)-H_1(k)\big)$</button>
+  </div>
+  <div class="why">$\frac{\sin2x}{x}=2\,\mathrm{sinc}(2x)\leftrightarrow2\cdot\frac\pi2(H_{-2}-H_2)$. The box in $k$ has half-width $a=2$, the frequency of the sine.</div>
+</div>
+
+<h2>2 · Two shift theorems, with 2-line proofs</h2>
+<div class="box">
+<p><strong>$x$-shift.</strong> $\;\mathcal F\{f(x-y)\}=e^{-iky}\hat f(k)$, $\;y\in\mathbb R$.<br>
+<em>Proof.</em> $\int f(x-y)e^{-ikx}dx\overset{u=x-y}{=}\int f(u)e^{-ik(u+y)}du=e^{-iky}\hat f(k)$. ∎</p>
+<p><strong>$k$-shift (modulation).</strong> $\;\mathcal F\{e^{iqx}f(x)\}=\hat f(k-q)$, $\;q\in\mathbb R$.<br>
+<em>Proof.</em> $\int f(x)e^{iqx}e^{-ikx}dx=\int f(x)e^{-i(k-q)x}dx=\hat f(k-q)$. ∎</p>
+<p><strong>Consequences</strong> (write $\cos,\sin$ as exponentials, then use the $k$-shift):
+$$\mathcal F\{\cos(qx)f\}=\tfrac12\big[\hat f(k-q)+\hat f(k+q)\big],$$
+$$\mathcal F\{\sin(qx)f\}=\tfrac1{2i}\big[\hat f(k-q)-\hat f(k+q)\big].$$
+In $k$-space, multiplying by $\cos(ky)$ means averaging two $x$-shifts: $\cos(ky)\hat f\leftrightarrow\frac12[f(x+y)+f(x-y)]$.</p>
+</div>
+
+<div class="trap"><strong>Sign check with $\delta$</strong><br>
+Unsure of the sign? $\delta(x-y)$ is $\delta$ shifted by $y$, and $\mathcal F\{\delta(x-y)\}=e^{-iky}$. So a shift to the <em>right</em> gives a <em>minus</em> in the exponent. Also: $\mathcal F\{f(x-y)\}$ is <em>not</em> $\hat f(k-y)$. A shift in one variable becomes a phase factor in the other. Unlike Laplace there is no $H$ to attach.</div>
+
+<p><strong>Worked (L29 s8 style).</strong> (a) $\mathcal F\{e^{-2|x+1|}\}$. (b) $\mathcal F\{\frac{\cos3x}{1+x^2}\}$. (c) $\mathcal F\{\frac{1}{x^2-4x+5}\}$.</p>
+<details><summary>Solutions</summary><div>
+<p>(a) $e^{-2|x|}\leftrightarrow\frac4{4+k^2}$; shift $y=-1$: $\;\dfrac{4e^{ik}}{4+k^2}$.</p>
+<p>(b) $\frac1{1+x^2}\leftrightarrow\pi e^{-|k|}$; cosine rule with $q=3$: $\;\dfrac\pi2\big(e^{-|k-3|}+e^{-|k+3|}\big)$.</p>
+<p>(c) Complete the square: $x^2-4x+5=(x-2)^2+1$. So $f=g(x-2)$ with $g=\frac1{1+x^2}$: $\;\pi e^{-2ik}e^{-|k|}$.</p>
+<p>(All three checked numerically against the definition.)</p>
+</div></details>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Q2.</strong> $\mathcal F\Big\{\dfrac{1}{x^2+2x+10}\Big\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac{\pi}{3}\,e^{-ik}e^{-3|k|}$</button>
+    <button class="opt" data-key="b">$\tfrac{\pi}{3}\,e^{ik}e^{-3|k|}$</button>
+    <button class="opt" data-key="c">$\tfrac{\pi}{3}\,e^{-3|k+1|}$</button>
+    <button class="opt" data-key="d">$\tfrac{\pi}{9}\,e^{ik}e^{-9|k|}$</button>
+  </div>
+  <div class="why">$(x+1)^2+9$: this is $\frac1{x^2+9}$ shifted by $y=-1$, so the factor is $e^{-ik(-1)}=e^{ik}$. Here $a=3$, not $9$. (c) uses a $k$-shift, but the shift is in $x$.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Q3.</strong> $\mathcal F\{\sin(2x)\,e^{-|x|}\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$i\Big[\frac{1}{1+(k-2)^2}-\frac{1}{1+(k+2)^2}\Big]$</button>
+    <button class="opt" data-key="b">$-i\Big[\frac{1}{1+(k-2)^2}+\frac{1}{1+(k+2)^2}\Big]$</button>
+    <button class="opt" data-key="c">$\phantom{-i}\Big[\frac{1}{1+(k-2)^2}-\frac{1}{1+(k+2)^2}\Big]$</button>
+    <button class="opt" data-key="d">$-i\Big[\frac{1}{1+(k-2)^2}-\frac{1}{1+(k+2)^2}\Big]$</button>
+  </div>
+  <div class="why">$\hat f=\frac2{1+k^2}$. Sine rule: $\frac1{2i}\big[\frac2{1+(k-2)^2}-\frac2{1+(k+2)^2}\big]$, and $\frac{2}{2i}=-i$. Check: $f$ is real and odd, so $\hat f$ must be purely imaginary and odd ✓.</div>
+</div>
+
+<h2>3 · Inverse transforms by recognition</h2>
+<div class="box">
+<ol class="steps">
+<li><strong>Rewrite.</strong> Trig in $k$ → complex exponentials. Quadratics in $k$ → complete the square.</li>
+<li><strong>Peel off factors $e^{-iyk}$</strong>: each one is an $x$-shift by $y$ in the answer.</li>
+<li><strong>Argument $k-q$</strong> instead of $k$: a $k$-shift, so multiply the answer by $e^{iqx}$.</li>
+<li><strong>Match the core to a table pair</strong> and fix the constant (e.g. $\frac1{k^2+a^2}=\frac1{2a}\cdot\frac{2a}{k^2+a^2}$).</li>
+<li><strong>Check</strong> one property: real/even $f$ ⇔ real/even $\hat f$; real/odd $f$ ⇔ imaginary/odd $\hat f$.</li>
+</ol>
+</div>
+
+<p><strong>Trig in $k$ → deltas</strong> (L29 s4, a past-exam favourite). From $\delta_{\mp a}\leftrightarrow e^{\pm iak}$:
+$$\cos(ak)=\tfrac12\big(e^{iak}+e^{-iak}\big)\;\Rightarrow\;\mathcal F^{-1}\{\cos ak\}=\tfrac12\big[\delta(x+a)+\delta(x-a)\big],$$
+$$\sin(ak)=\tfrac1{2i}\big(e^{iak}-e^{-iak}\big)\;\Rightarrow\;\mathcal F^{-1}\{\sin ak\}=\tfrac{i}2\big[\delta(x-a)-\delta(x+a)\big].$$
+In an exam, write the line "$=\frac1{2i}\mathcal F\{\delta(x+a)-\delta(x-a)\}$" and cite linearity. That line earns the method mark.</p>
+
+<p><strong>Worked.</strong> Find $\mathcal F^{-1}$ of (a) $\dfrac{e^{-3ik}}{k^2+4}$, (b) $\dfrac1{k^2+2k+5}$, (c) $e^{-(k-2)^2}$, (d) $\dfrac{\sin 2k}{k}$, (e) $\cos(k)\,e^{-|k|}$.</p>
+<details><summary>Solutions</summary><div>
+<p>(a) $\frac1{k^2+4}=\frac14\cdot\frac{4}{4+k^2}=\mathcal F\{\frac14e^{-2|x|}\}$; the factor $e^{-3ik}$ shifts by $3$: $\;\frac14e^{-2|x-3|}$.</p>
+<p>(b) $(k+1)^2+4$ is $\hat g(k-q)$ with $q=-1$, $\hat g=\frac1{k^2+4}$: $\;\frac14e^{-ix}e^{-2|x|}$.</p>
+<p>(c) Gaussian with $\frac1{4a}=1$, so $a=\frac14$: $\mathcal F\{e^{-x^2/4}\}=\sqrt{4\pi}\,e^{-k^2}$, so $\mathcal F^{-1}\{e^{-k^2}\}=\frac{e^{-x^2/4}}{2\sqrt\pi}$. Then the $k$-shift with $q=2$: $\;\dfrac{e^{2ix}e^{-x^2/4}}{2\sqrt\pi}$.</p>
+<p>(d) $\frac{2\sin2k}{k}\leftrightarrow$ box on $|x|&lt;2$, so $\frac{\sin2k}{k}\leftrightarrow\frac12\big(H_{-2}(x)-H_2(x)\big)$.</p>
+<p>(e) $\mathcal F^{-1}\{e^{-|k|}\}=\frac1{\pi(1+x^2)}$ (duality). $\cos k$ averages the shifts by $\pm1$: $\;\dfrac1{2\pi}\Big[\dfrac1{1+(x+1)^2}+\dfrac1{1+(x-1)^2}\Big]$.</p>
+</div></details>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Q4.</strong> $\mathcal F^{-1}\{\cos(2k)\,e^{-k^2}\}=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\frac{1}{4\sqrt\pi}\big[e^{-(x+2)^2/4}+e^{-(x-2)^2/4}\big]$</button>
+    <button class="opt" data-key="b">$\frac{1}{2\sqrt\pi}\big[e^{-(x+2)^2/4}+e^{-(x-2)^2/4}\big]$</button>
+    <button class="opt" data-key="c">$\frac{1}{4\sqrt\pi}\big[e^{-(x+2)^2/4}-e^{-(x-2)^2/4}\big]$</button>
+    <button class="opt" data-key="d">$\frac{1}{4\sqrt\pi}\big[e^{-(x+2)^2}+e^{-(x-2)^2}\big]$</button>
+  </div>
+  <div class="why">$e^{-k^2}\leftrightarrow\frac{1}{2\sqrt\pi}e^{-x^2/4}$, and $\cos2k$ gives $\frac12[\,\cdot\,(x+2)+\cdot\,(x-2)]$. (b) forgot the $\frac12$, and (d) used $e^{-x^2}$ instead of $e^{-x^2/4}$.</div>
+</div>
+
+<h3>Recognition drill</h3>
+<p>Random parameters, so every set is different. Each item is one table pair plus at most one shift. Aim for 7/8 at about 20 s per item.</p>
+<div class="ft-tbl-drill" data-rounds="8"></div>
+
+<h2>4 · Real integrals from a known pair</h2>
+<div class="box">
+<p>Set $k$ to a number in the definition. For real $g$:
+$$\int_{-\infty}^\infty g\,dx=\hat g(0),\qquad \int g\cos(bx)\,dx=\tfrac12\big[\hat g(b)+\hat g(-b)\big],$$
+$$\int g\sin(bx)\,dx=\tfrac{i}{2}\big[\hat g(b)-\hat g(-b)\big].$$
+For <strong>even</strong> $g$ the cosine integral is just $\hat g(b)$. Going the other way, $f(0)=\frac1{2\pi}\int\hat f(k)\,dk$.<br>
+<em>Why:</em> $\hat g(\pm b)=\int g\cos bx\,dx\mp i\int g\sin bx\,dx$. Add or subtract.</p>
+</div>
+
+<p><strong>Worked A.</strong> Given $\mathcal F\{e^{-ax^2}\}=\sqrt{\pi/a}\,e^{-k^2/4a}$, evaluate $\displaystyle\int_{-\infty}^\infty\cos(3x)e^{-2x^2}dx$.</p>
+<details><summary>Solution</summary><div>
+<p>$g=e^{-2x^2}$ is even and real, so $\int g\cos3x\,dx=\int g\,(\cos3x-i\sin3x)\,dx=\hat g(3)$, because the $\sin$ part integrates an odd function to $0$. With $a=2$: $\hat g(3)=\sqrt{\pi/2}\,e^{-9/8}$.</p>
+</div></details>
+
+<p><strong>Worked B.</strong> Show $\displaystyle\int_{-\infty}^\infty\frac{\sin k}{k}dk=\pi$.</p>
+<details><summary>Solution</summary><div>
+<p>$f=H_{-1}-H_1$ has $\hat f=\frac{2\sin k}{k}$. $f$ is continuous at $0$ with $f(0)=1$, so $1=f(0)=\frac1{2\pi}\int\frac{2\sin k}{k}dk$, which gives $\int\frac{\sin k}k\,dk=\pi$. (At $x=1$ the same integral returns the midpoint $\frac12$, as in Lesson 34.)</p>
+</div></details>
+
+<div class="trap"><strong>Matching the given pair</strong><br>
+For $e^{-x^2/3}$ the parameter is $a=\frac13$, so $\sqrt{\pi/a}=\sqrt{3\pi}$ and $e^{-k^2/4a}=e^{-3k^2/4}$. Write "$a=\dots$" explicitly before substituting. Most lost marks here are slips in reading off $a$.</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Q5.</strong> $\displaystyle\int_{-\infty}^{\infty}\frac{\cos 2x}{x^2+4}\,dx=$…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$\tfrac{\pi}{2}e^{-2}$</button>
+    <button class="opt" data-key="b">$\pi e^{-4}$</button>
+    <button class="opt" data-key="c">$\tfrac{\pi}{2}e^{-4}$</button>
+    <button class="opt" data-key="d">$\tfrac{\pi}{4}e^{-4}$</button>
+  </div>
+  <div class="why">$\frac1{x^2+4}\leftrightarrow\frac\pi2e^{-2|k|}$, even, so the integral is $\hat g(2)=\frac\pi2e^{-4}$.</div>
+</div>
+
+<h2>5 · Practice (exam level)</h2>
+<div class="box">
+<p><strong>P1.</strong> Find $\mathcal F\{e^{-|x-1|}+e^{-|x+1|}\}$ and simplify it to a real expression.</p>
+<p><strong>P2.</strong> Find $\mathcal F^{-1}$ of (a) $\hat f(k)=4\sin k\cos k$, (b) $\hat g(k)=\dfrac{2i\sin k}{1+k^2}$.</p>
+<p><strong>P3.</strong> Using $\mathcal F\{e^{-ax^2}\}=\sqrt{\pi/a}\,e^{-k^2/4a}$, evaluate $\int_{-\infty}^\infty e^{-x^2/3}dx$ and $\int_{-\infty}^\infty\cos(2x)e^{-x^2/3}dx$.</p>
+<p><strong>P4.</strong> Using $\mathcal F\{\frac1{1+x^2}\}=\pi e^{-|k|}$, evaluate $\displaystyle\int_{-\infty}^\infty\frac{\cos 3x}{x^2+2x+2}\,dx$.</p>
+</div>
+<details><summary>P1 solution</summary><div>
+<p>$e^{-|x|}\leftrightarrow\frac2{1+k^2}$; shifts by $\pm1$ give $e^{\mp ik}$: $\;\frac{2}{1+k^2}(e^{-ik}+e^{ik})=\dfrac{4\cos k}{1+k^2}$. Real and even, as it must be: $f$ is real and even.</p>
+</div></details>
+<details><summary>P2 solution</summary><div>
+<p>(a) $4\sin k\cos k=2\sin2k$, so $f=2\cdot\frac i2[\delta(x-2)-\delta(x+2)]=i\big[\delta(x-2)-\delta(x+2)\big]$.</p>
+<p>(b) $2i\sin k=e^{ik}-e^{-ik}$, so $\hat g=\frac{e^{ik}}{1+k^2}-\frac{e^{-ik}}{1+k^2}$. Since $\frac1{1+k^2}\leftrightarrow\frac12e^{-|x|}$, the shifts give $\;g=\frac12\big(e^{-|x+1|}-e^{-|x-1|}\big)$. Check: $g$ is real and odd, and $\hat g$ is imaginary and odd ✓.</p>
+</div></details>
+<details><summary>P3 solution</summary><div>
+<p>$a=\frac13$: $\hat g(k)=\sqrt{3\pi}\,e^{-3k^2/4}$. $\int g=\hat g(0)=\sqrt{3\pi}$. $g$ is even, so $\int g\cos2x=\hat g(2)=\sqrt{3\pi}\,e^{-3}$.</p>
+</div></details>
+<details><summary>P4 solution</summary><div>
+<p>$g=\frac1{(x+1)^2+1}$ is $\frac1{1+x^2}$ shifted by $-1$: $\hat g=\pi e^{ik}e^{-|k|}$. $g$ is not even, so use the general rule:
+$$\int g\cos3x\,dx=\tfrac12[\hat g(3)+\hat g(-3)]=\tfrac\pi2e^{-3}(e^{3i}+e^{-3i})=\pi e^{-3}\cos3.$$
+(Check by substituting $u=x+1$: $\cos(3u-3)=\cos3u\cos3+\sin3u\sin3$, and the $\sin$ term integrates to $0$. Numerically $\approx-0.1548$ ✓.)</p>
+</div></details>
+
+<h2>6 · Exam-level challenge (15 marks, about 22 minutes)</h2>
+<div class="box">
+<p>You may use $\mathcal F\{e^{-ax^2}\}=\sqrt{\pi/a}\;e^{-k^2/4a}$ for $a&gt;0$. Any other transform you use must be derived.</p>
+<p>(a) Prove that for real $q$, $\mathcal F\{e^{iqx}f(x)\}=\hat f(k-q)$, and deduce a formula for $\mathcal F\{\cos(qx)f(x)\}$. <em>[3]</em><br>
+(b) Find the inverse Fourier transform of $\hat g(k)=e^{-k^2+2k}$. <em>[3]</em><br>
+(c) Find the inverse Fourier transform of $\hat h(k)=\dfrac{\cos 2k}{k^2+1}$. <em>[4]</em><br>
+(d) Evaluate $\displaystyle\int_{-\infty}^{\infty}\cos(4x)\,e^{-2x^2}\,dx$. <em>[2]</em><br>
+(e) Using $\mathcal F\{xf\}=i\,\dfrac{d\hat f}{dk}$, evaluate $\displaystyle\int_{-\infty}^{\infty}x\sin(2x)\,e^{-2x^2}\,dx$. <em>[3]</em></p>
+</div>
+<p>Full marking-style solution: <a href="../worked/0035-challenge-full-solution.html">worked/0035-challenge-full-solution.html</a>. Attempt every part first.</p>
+<details><summary>Answer key (quick check)</summary><div>
+<p>(a) $\mathcal F\{\cos(qx)f\}=\frac12[\hat f(k-q)+\hat f(k+q)]$. (b) $g(x)=\dfrac{e^{1+ix-x^2/4}}{2\sqrt\pi}$. (c) $h(x)=\frac14\big(e^{-|x+2|}+e^{-|x-2|}\big)$.<br>
+(d) $\sqrt{\pi/2}\,e^{-2}$. (e) $\frac12\sqrt{\pi/2}\,e^{-1/2}=\frac{\sqrt{2\pi}}{4}e^{-1/2}$.</p>
+</div></details>
+
+<h2>7 · Before you close this tab</h2>
+<details><summary>Retrieval: write from memory, then check</summary><div>
+<ol>
+<li>The 6 main table pairs (δ, $e^{iax}$, $e^{-a|x|}$, Lorentzian, box, Gaussian).</li>
+<li>Both shift theorems, each with its 1-line proof.</li>
+<li>$\mathcal F^{-1}\{\sin ak\}$.</li>
+<li>$\int g\cos bx\,dx$ in terms of $\hat g$.</li>
+<li>Duality.</li>
+</ol>
+<p><strong>Answers:</strong> (1) table in §1. (2) $f(x-y)\leftrightarrow e^{-iky}\hat f$ (sub $u=x-y$); $e^{iqx}f\leftrightarrow\hat f(k-q)$ (combine the exponents). (3) $\frac i2[\delta(x-a)-\delta(x+a)]$. (4) $\frac12[\hat g(b)+\hat g(-b)]$, or $\hat g(b)$ if $g$ is even. (5) $\mathcal F\{\hat f(x)\}=2\pi f(-k)$.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/29_MAST20030_Lecture_Notes_Topic6_Fourier_transforms_handout.pdf">Lecture 29</a> (s3: the table; s4: Ex 6.4, inverse of $\sin2k$; s8: shift theorems, Ex 6.6). Then the Wikipedia <a href="https://en.wikipedia.org/wiki/Fourier_transform#Tables_of_important_Fourier_transforms">Fourier transform tables</a>: use the "non-unitary, angular frequency" column, which matches our convention with $\omega=k$. For a second explanation of the shifts, Herman's <a href="https://math.libretexts.org/Bookshelves/Differential_Equations/Introduction_to_Partial_Differential_Equations_(Herman)/09%3A_Transform_Techniques_in_Physics/9.05%3A_Properties_of_the_Fourier_Transform">Properties of the Fourier Transform</a> (LibreTexts §9.5). <strong>Warning:</strong> Herman puts $e^{+ikx}$ in the forward transform, so his shift signs are flipped relative to ours.</p>
+
+<p><strong>Homework (trimmed):</strong></p>
+<ul>
+  <li><a href="../problem-booklet/MAST20030ProblemBooklet_Topic6.pdf">Booklet 6</a>, Q7, the "via shifts" route only: write $c(x)=\cos(\alpha x)\,[H_{-b}-H_b]$ and use the cosine rule on $2b\,\mathrm{sinc}(bk)$. Compare with the answer at the back.</li>
+  <li>Booklet Q5(a): $\sin t$ on $|t|\le\pi$ by the sine rule. Simplify to $\frac{2i\sin\pi k}{k^2-1}$ (the booklet's form, with $\omega$ for $k$).</li>
+  <li>Make your own: pick a pair, evaluate $\int\cos(bx)g\,dx$ for $g=e^{-3|x|}$, $b=1$ (answer $\frac35$).</li>
+  <li>Optional: Booklet Q7 by the definition (slower, but a good check); Q7's $s(x)$ by the sine rule.</li>
+</ul>
+<p><strong>Spacing:</strong> tomorrow, do one drill set cold, then redo Q3 and challenge (c).</p>
+
+<div class="ask">💬 Unsure whether a factor is an $x$-shift or a $k$-shift, or how to read off $a$ from a given pair? Ask me (Claude) in the terminal and paste your working.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0034-fourier-transform-definition.html">Lesson 34, the Fourier transform</a></span>
+  <span>Next: <a href="0036-convolution-derivative-rules-proofs.html">Lesson 36, convolution and derivative rules</a></span>
+  <span>Reference: <a href="../reference/topic6-cheatsheet.html">Topic 6 cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>
