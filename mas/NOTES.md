@@ -29,6 +29,14 @@
 - **All questions are exercises: no MCQ.** Show calculations *and* explanations.
 - Prep advice from her: tute + lab content (code *and* theory), in-class exercises, and **her QMD demo files** (`extra-notes/*.qmd`, Challenger, Bliss, EM-updated).
 - She'll release the exam's first page and the formula sheet later. When it's out, note it here and check it against the 2022 distribution list.
+
+## Official 2026 exam logistics (LMS page + cover sheet + formula sheet, released 20 Oct) — apply to ALL new lessons/quizzes/worked solutions
+- In person, supervised, **3 h writing + 15 min reading**, **9 questions, 78 marks** (~2.3 min/mark). No MCQ.
+- **Answers to 2 decimal places.** Worked solutions and quiz keys should round to 2 dp and show the arithmetic.
+- **Calculator: Casio FX-82 (non-programmable) only; full working always shown.** Keep arithmetic FX-82-doable: no matrix inverses beyond 2x2, no numerical optimisation/integration; exp/ln/powers/factorials fine. No R on paper, so R-based items are interpret-only.
+- **Notes: 1 x double-sided A4 page** (handwritten or typed). Cheatsheets should be built toward this; the provided formula sheet content can be left off it.
+- Cover sheet and formula sheet saved in `exams/official exams/` (`MAST30027_26_SM2_Coversheet.pdf`, `formulas provided in the exam.pdf`).
+- **Formula sheet = "Useful distributions" only** (pdf/pmf + E[X]): Normal(mean, variance), Exponential(rate), Gamma(shape, rate; E=a/b), Inverse-Gamma(shape, scale; E=b/(a-1)), Poisson, Categorical(π1,π2) (E=2−π1), Categorical(π1,π2,π3). **Not provided** (memorise / put on A4): Binomial, Bernoulli, Beta, Multinomial, Dirichlet, Neg-Binomial, variances (incl. Gamma/Poisson Var), exponential-family forms, GLM/EM/MH/Gibbs/CAVI formulas, MGFs. Questions likely use the provided families (Gamma/InvGamma conjugacy for Normal variance, Poisson, Categorical mixtures/EM), so favour those in new lessons; use Gamma(rate) and Inv-Gamma(scale) parametrisations exactly as on the sheet.
 - How this changes lessons: each quiz needs an "explain why" part (2–3 sentences), not just a number. Include "what does this R line compute?" items (2017 had a `while` loop simulating a discrete r.v.).
 
 ## Past papers vs her comments (checked 14 Oct)
