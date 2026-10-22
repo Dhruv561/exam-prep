@@ -41,6 +41,22 @@
 - **Valuation:** value of a short forward agreed earlier (sign-flip and undiscounted distractors); futures vs forward price under ± correlation; 2025 final asked forward delta 1 vs futures delta e^{rT} (formula sheet has it).
 - Notation: Lesson 3 uses Hull/MST F1 + b2; lecture slides and Lesson 4 use F0 + b1. Same formula.
 
+## Official 2026 final exam info (lecturer's PDF, user shared 22 Oct; source exams/Final exam information.pdf)
+- **Coverage:** Topics 1–10. Guest lecture excluded. **Case studies examinable** (cases/: Hershey, Oil futures, GameStop, Binomial on futures options, BSM). 30% Topics 1–4, 70% Topics 5–10 (binomial, BSM, dividends, Greeks, swaps): lessons/practice should weight the back half. Past paper doesn't mirror this split.
+- **Format:** 8 short-answer questions, **no MCQ**. 65 marks (≈8 per question), 65% of grade. ~85% calculation, ~15% theory. **Derivations examinable**; the question gives the initial portfolio setup (e.g. replicating/hedge portfolio, arbitrage table) and you derive the result. Final answer to the dp stated in each question; write in answer boxes, overflow to last page with the sentence "My answer continues on the last page".
+- **Tools:** Casio fx-82 only. Formula sheet on LMS (exams/Final Exam Formula Sheet.pdf); all lecture content examinable even if not on the sheet (concept-only items have no formula).
+- **Clarifications:** traditional binomial valuation approach (expected payoff at risk-adjusted rate; lesson 17 §2) NOT examined. Binomial up to 3 steps. BSM: round d1, d2 to 2 dp, no interpolation. Swap design: same floating rate for ALL floating payments, as in the lecture.
+- **Design rules this implies for lessons/quizzes (apply to everything not yet built, and to new mixed-practice sets):**
+  - No MCQ-style exam practice: use `.quiz.num` typed answers with the dp stated, and short written answers (2–4 sentences, model answer revealed) for the 15% theory. MCQ only for quick concept checks inside a lesson.
+  - Include "derive it from this setup" items (given portfolio → show the result), e.g. delta-hedge/replication portfolio, p formula, forward arbitrage table, h*, BSM-delta intuition, swap valuation as bonds/FRAs.
+  - Case-study items per case (what happened, why, which concept it illustrates), in written-answer form.
+  - Question sizes ≈ 8 marks, multi-part; mark allocations shown; count of working steps matches marks.
+  - Trees max 3 steps; BSM d to 2 dp via table (no interpolation); calculator is fx-82, so avoid anything needing more than basic functions (e^x, ln, √ fine).
+  - Swap lessons: build/design a swap with one floating rate (reference rate) for all floating legs; cover the lecture's method only.
+  - Do not teach the traditional binomial approach beyond a "not examined" flag.
+- Done 22 Oct: MISSION.md updated; lesson 17 §2 flagged "not examined".
+- TODO: Topics 8 (dividends), 9 (Greeks/delta hedging), 10 (swaps) lessons per above; case-study lessons (5 cases); written-answer + derivation practice set; mixed 8-question mock exam in the official format (65 marks).
+
 ## Plan
 1. 0001 Futures mechanics and margin accounts ← drafted 12 Oct
 2. 0002 Forwards vs futures, clearing house, delivery, open interest, trader types ← drafted 12 Oct
