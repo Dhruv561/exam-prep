@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Computing BSM Call and Put Prices</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 24 · Topic 7: Black-Scholes-Merton</div>
+<h1>Computing BSM call and put prices</h1>
+<p class="lede">The goal: take \(S_0, K, r, \sigma, T\) and produce \(d_1, d_2\), the four normal-table values, and the call and put prices to 2 dp, with a parity cross-check and a sanity check that catches the usual slips before the marker does.</p>
+
+<div class="mission">Why this matters for 5 Nov: every final has a "price this option with Black-Scholes" part worth about 4–5 marks, and it is pure procedure. Marks go on \(d_1\), \(d_2\), the table values and the final formula, so one wrong sign or a missing \(e^{-rT}\) costs most of them. Recent papers asked for the put (including a futures put) and told you how to round \(d\). Speed and error-checking are the skill here, not new theory.</div>
+
+<p>This lesson assumes <a href="0023-what-bsm-assumes-and-why-it-works.html">Lesson 23</a> (what BSM assumes), <a href="0014-put-call-parity.html">Lesson 14</a> (put-call parity) and <a href="0013-bounds-on-option-prices.html">Lesson 13</a> (bounds). Terms: \(S_0\) = stock price today, \(K\) = strike, \(r\) = continuously compounded risk-free rate, \(\sigma\) = volatility (the standard deviation of the stock's continuously compounded return per year), \(T\) = years to expiry, \(c\) and \(p\) = European call and put prices. \(N(x)\) = the standard normal cumulative distribution function: the probability that a standard normal variable (mean 0, standard deviation 1) is below \(x\).</p>
+
+<h2>1 · What the formula says in words</h2>
+$$c = S_0N(d_1) - Ke^{-rT}N(d_2), \qquad p = Ke^{-rT}N(-d_2) - S_0N(-d_1)$$
+<p>A call gives you the stock but makes you pay \(K\) at expiry. So the call is "what you receive" minus "what you pay", each scaled by a probability-like weight. \(Ke^{-rT}\) is the present value of what you pay. \(N(d_2)\) is the risk-neutral probability that the call finishes in the money (Lecture 7, slide 18), so \(Ke^{-rT}N(d_2)\) is the present value of the expected payment. \(N(d_1)\) is the weight on the stock you receive; it is also the hedge ratio (delta), which comes in Topic 9.</p>
+
+<p><strong>Predict first:</strong> the stock is far above the strike and expiry is near. What should \(N(d_1)\) and \(N(d_2)\) be, and what price should the formula collapse to?</p>
+<details><summary>Reveal</summary><div>
+<p>The call is almost sure to be exercised, so both weights go to 1 and \(c \to S_0 - Ke^{-rT}\): the value of a forward that you are certain to take up (Lecture 7, slide 20). If the stock is far below the strike, both weights go to 0 and \(c \to 0\). For the put it mirrors: far in the money, \(N(-d_1), N(-d_2) \to 1\) and \(p \to Ke^{-rT} - S_0\); far out, \(p \to 0\).</p>
+</div></details>
+
+<h2>2 · The workflow</h2>
+<ol class="steps">
+<li><strong>Years.</strong> Put \(T\) in years: 8 months is \(8/12 = 0.6667\), not 8. Put \(r\) and \(\sigma\) in decimals (6% = 0.06).</li>
+<li><strong>Three pieces.</strong> \(\ln(S_0/K)\), then \((r + \sigma^2/2)T\), then \(\sigma\sqrt{T}\).</li>
+<li><strong>\(d_1\)</strong> \(= \dfrac{\ln(S_0/K) + (r + \sigma^2/2)T}{\sigma\sqrt{T}}\), then <strong>\(d_2 = d_1 - \sigma\sqrt{T}\)</strong>. Subtract, always: \(d_2 < d_1\).</li>
+<li><strong>Round \(d_1, d_2\) to 2 dp</strong> (with \(d_2\) taken from the unrounded \(d_1\)) and read \(N(\cdot)\) from the table (4 dp). Full rule below.</li>
+<li><strong>Negatives:</strong> the formula sheet (pp. 5-6) has separate tables for \(x \le 0\) and \(x \ge 0\), so read \(N(-x)\) straight off the \(x \le 0\) table. It equals \(1 - N(x)\) by symmetry of the bell curve.</li>
+<li><strong>Combine:</strong> \(Ke^{-rT}\) once (reuse it), then the call or the put. Put via parity as a check: \(p = c - S_0 + Ke^{-rT}\).</li>
+</ol>
+
+<h3>Table or calculator? The exam rounding rule</h3>
+<p>The exam is table-based. The Casio FX-82 has no normal-cdf function, so you look \(N\) up in the normal tables on <strong>formula sheet pp. 5-6</strong> (\(x \le 0\) on p. 5, \(x \ge 0\) on p. 6; \(x\) from 0.00 to 4.00 in steps of 0.01; \(N\) to 4 dp; headed "No interpolation is required for the calculation of \(N(d_1)\) and \(N(d_2)\)"). The sheet also gives the \(d_1, d_2\) formulas. Use this rule (if a paper's cover page says otherwise, obey the paper):</p>
+<ol class="steps">
+<li><strong>\(d_2 = d_1 - \sigma\sqrt{T}\) from the <em>unrounded</em> \(d_1\)</strong>, then round \(d_1\) and \(d_2\) each to 2 dp. (Tutorial 7 Q4: \(d_1 = 0.4950\), \(d_2 = -0.0707 \to -0.07\). Subtracting from the rounded 0.49 would give \(-0.08\) and a different table value.)</li>
+<li><strong>Look up \(N\) at the 2 dp value; the table gives 4 dp.</strong> No interpolation. Negative \(z\): read the \(x \le 0\) table directly (same as \(1 - N(x)\)). The tables run to \(|z| = 4.00\), so there is no range issue: \(N(2.44) = 0.9927\), \(N(-2.44) = 0.0073\).</li>
+<li><strong>Carry 4 dp</strong> in every step after that (\(e^{-rT}\), products). With a contract size, multiply \(K\) and \(F_0\) by it inside the formula and round once at the end (the 2025 solution did this).</li>
+<li><strong>Final answer: the dp the question asks for.</strong> "Keep four decimal places" means 4 dp (2025 final: 3.9263, 0.0326). If it is silent, 2 dp for a dollar price (Tutorial 7 Q4: 2.69, 1.56); a tiny currency price like 0.0293 stays at 4 dp.</li>
+<li><strong>Show \(d_1, d_2\) and the four \(N\) values</strong> so a marker can follow a cents-level difference.</li>
+</ol>
+<p><strong>Evidence.</strong> Lecture 7 Woodside call: \(d_1 = 1.0598 \approx 1.06\), \(d_2 = 0.85\), \(N\) to 4 dp; futures example \(0.3479 \approx 0.35\). Tutorial 7 solutions Q4, Q6, Q7: \(d\) to 2 dp every time, \(N\) 4 dp, answers 2.69/1.56, 2.2678/1.2854, 0.0293. 2025 final solutions: \(N(0.38)\), \(N(0.42)\), \(N(0.26)\)-style 2 dp lookups, answers to 4 dp. Exception: the 2022 final's cover page said 4 dp and interpolation; <strong>if a paper's cover page says so, obey it</strong>. Otherwise use the rule above. A computer's exact answer differs by up to about 6 cents, so write the table answer.</p>
+
+<h2>3 · Worked example 1: a call (lecture style)</h2>
+<p>A non-dividend stock trades at \(S_0 = \$52\). A 6-month European call has \(K = \$50\). The risk-free rate is 6% and \(\sigma = 25\%\). Price the call.</p>
+<p><strong>Predict first:</strong> the call is in the money by $2. Is \(c\) below $2, around $2, or well above $2? (Hint: the floor is \(S_0 - Ke^{-rT}\), and there is still time value.)</p>
+<details><summary>Reveal the working</summary><div>
+<p>\(T = 0.5\). \(\ln(52/50) = 0.0392\). \((0.06 + 0.25^2/2)(0.5) = (0.06 + 0.03125)(0.5) = 0.0456\). \(\sigma\sqrt{T} = 0.25\sqrt{0.5} = 0.1768\).</p>
+<p>\(d_1 = \dfrac{0.0392 + 0.0456}{0.1768} = 0.4800 \approx 0.48\), \(\quad d_2 = 0.4800 - 0.1768 = 0.3032 \approx 0.30\).</p>
+<p>Table: \(N(0.48) = 0.6844\), \(N(0.30) = 0.6179\). \(Ke^{-rT} = 50e^{-0.03} = 48.5223\).</p>
+<p>\(c = 52(0.6844) - 48.5223(0.6179) = 35.5888 - 29.9819 = \$5.61\).</p>
+<p>Unrounded \(d\) and exact \(N\) give \$5.55: the rounding of \(d\) is worth 6 cents here. The floor was \(52 - 48.52 = 3.48\), so $5.61 is $3.48 of intrinsic-style value plus $2.13 of time value.</p>
+</div></details>
+
+<p>Now play with it. The widget shows every step; it is preloaded with this example. Change one input at a time and watch which rows move. Try the T box in months.</p>
+<div class="bsmx" data-s="52" data-k="50" data-r="0.06" data-sigma="0.25" data-t="0.5"></div>
+<script src="../assets/bsm-price-explorer.js"></script>
+
+<h2>4 · Worked example 2: a put with the time in months</h2>
+<p>\(S_0 = \$36\), \(K = \$40\), \(r = 4\%\), \(\sigma = 35\%\), expiry in <strong>8 months</strong>. Price the European put, then cross-check with parity.</p>
+<p><strong>Predict first:</strong> the put is in the money by $4. Will \(p\) be above or below $4? Is the call worth more or less than $1?</p>
+<details><summary>Reveal the working</summary><div>
+<p>\(T = 8/12 = 0.6667\). \(\ln(36/40) = -0.1054\). \((0.04 + 0.35^2/2)(0.6667) = (0.04 + 0.06125)(0.6667) = 0.0675\). \(\sigma\sqrt{T} = 0.35\sqrt{0.6667} = 0.2858\).</p>
+<p>\(d_1 = \dfrac{-0.1054 + 0.0675}{0.2858} = -0.1325 \approx -0.13\), \(\quad d_2 = -0.1325 - 0.2858 = -0.4183 \approx -0.42\).</p>
+<p>The put needs \(N(-d_1)\) and \(N(-d_2)\), i.e. \(N(0.13) = 0.5517\) and \(N(0.42) = 0.6628\). \(Ke^{-rT} = 40e^{-0.02667} = 38.9474\).</p>
+<p>\(p = 38.9474(0.6628) - 36(0.5517) = 25.8143 - 19.8612 = \$5.95\) (the unrounded answer is \$5.89).</p>
+<p><strong>Cross-check by parity.</strong> The call needs \(N(d_1) = N(-0.13) = 1 - 0.5517 = 0.4483\) and \(N(d_2) = 1 - 0.6628 = 0.3372\): \(c = 36(0.4483) - 38.9474(0.3372) = 16.1388 - 13.1335 = \$3.01\). Then \(p = c - S_0 + Ke^{-rT} = 3.0057 - 36 + 38.9474 = 5.9531\), i.e. \$5.95. Same answer. With table values and \(N(-x) = 1 - N(x)\), parity holds exactly, so a mismatch means an arithmetic slip.</p>
+</div></details>
+
+<div class="quiz num" data-answer="3.01" data-tol="0.02">
+  <p class="q"><strong>Check 2.</strong> Using the table answers above (\(N(-0.13) = 0.4483\), \(N(-0.42) = 0.3372\)), what is the call price in example 2?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(36(0.4483) - 38.9474(0.3372) = 3.01\). Parity: \(3.01 - 36 + 38.95 = 5.95 = p\).</div>
+</div>
+
+<h3>Tutorial 7 Q4 (used directly)</h3>
+<p>Non-dividend stock, \(S_0 = 10\), \(r = 6\%\), \(\sigma = 40\%\). Price the 2-year European call and put with \(K = 10\). (The tute asks you to check in the simulator: the widget above does that job, so enter the numbers.)</p>
+<div class="quiz num" data-answer="2.69" data-tol="0.02">
+  <p class="q"><strong>T7 Q4(a).</strong> The call?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(d_1 = \frac{0 + (0.06 + 0.08)(2)}{0.4\sqrt{2}} = 0.4950 \approx 0.49\), \(d_2 = 0.4950 - 0.5657 = -0.0707 \approx -0.07\). \(N(0.49) = 0.6879\), \(N(-0.07) = 0.4721\), \(Ke^{-rT} = 10e^{-0.12} = 8.8692\). \(c = 10(0.6879) - 8.8692(0.4721) = 2.69\). Exact: 2.71.</div>
+</div>
+<div class="quiz num" data-answer="1.56" data-tol="0.02">
+  <p class="q"><strong>T7 Q4(b).</strong> The put?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(N(-d_1) = 0.3121\), \(N(-d_2) = 0.5279\): \(p = 8.8692(0.5279) - 10(0.3121) = 1.56\). Parity: \(2.69 - 10 + 8.87 = 1.56\). Exact: 1.58. The official solution matches the table method.</div>
+</div>
+
+<h2>5 · Calculator keystrokes (Casio FX-82)</h2>
+<div class="box"><strong>One paragraph.</strong> The FX-82 has \(\ln\), \(e^x\) (SHIFT then \(\ln\)) and \(\sqrt{}\) keys but no normal-cdf, so \(N(d)\) always comes from the table. Work in this order: key \(\sigma\sqrt{T}\) first and store it (e.g. <code>0.25 × √ 0.5</code>, then STO into A); then the numerator in one go, <code>ln( 52 ÷ 50 ) + ( 0.06 + 0.25 x² ÷ 2 ) × 0.5</code>, closing every bracket; divide by A to get \(d_1\); \(d_2\) is \(d_1\) minus A. Use \(e^x\) for the discount factor: <code>50 × e^( −0.06 × 0.5 )</code>. Check the sign with the minus key before you subtract. Exact key labels vary by FX-82 model, so rehearse once on the paper's numbers; if the display style shows fractions, press S⇔D for decimals.</div>
+
+<h2>6 · Common errors (and how to see them)</h2>
+<div class="trap"><strong>Five classic slips</strong><br>
+(1) Forgetting \(e^{-rT}\) on \(K\): example 1 becomes \(52(0.6844) - 50(0.6179) = 4.69\), too low by about $0.92. (2) \(d_2 = d_1 + \sigma\sqrt{T}\): \(d_2 = 0.66\), \(N = 0.7454\), and \(c = 35.59 - 48.52(0.7454) = -0.58\), a negative call, which is impossible. (3) \(\sigma^2\) instead of \(\sigma\) in the denominator: \(0.25^2\sqrt{0.5}\) gives \(d_1 = 1.92\), nonsense. (4) Months as years: \(T = 6\) instead of 0.5 in example 1 gives \(d_1 = 0.96\), \(c = 21.02\), about 40% of the stock price. (5) Using \(N(d)\) instead of \(N(-d)\) in a put: example 2 becomes \(38.9474(0.3372) - 36(0.4483) = -3.01\), a negative put. <strong>A negative price, a price above \(S_0\), or a parity mismatch is a slip.</strong></div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>E1.</strong> A student prices a put as \(Ke^{-rT}N(d_2) - S_0N(d_1)\) (no minus signs inside \(N\)). What goes wrong?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It prices a call with a too-high discount factor</button>
+    <button class="opt" data-key="b">It is right whenever the put is out of the money</button>
+    <button class="opt" data-key="c">The weights are for the call, so the put goes negative</button>
+    <button class="opt" data-key="d">It only changes the answer by the rounding of d</button>
+  </div>
+  <div class="why">\(N(d_2)\) and \(N(d_1)\) are the <em>call</em> weights. A put needs \(N(-d_2)\) and \(N(-d_1)\) (the chances of the opposite outcome). With example 2's numbers it goes negative (\(-3.01\)), which is impossible.</div>
+</div>
+
+<div class="quiz num" data-answer="4.69" data-tol="0.02">
+  <p class="q"><strong>E2.</strong> Example 1 with \(e^{-rT}\) forgotten on \(K\): what does the student get?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(52(0.6844) - 50(0.6179) = 35.5888 - 30.895 = 4.69\). Right answer 5.61. A call must be at least \(S_0 - Ke^{-rT} = 3.48\); 4.69 passes that test, so only checking <em>against the correct formula</em> (or parity with a trusted \(p\)) catches this slip.</div>
+</div>
+
+<h2>7 · Sanity checks (30 seconds)</h2>
+<div class="tablewrap"><table>
+<tr><th>Check</th><th>Rule</th><th>Catches</th></tr>
+<tr><td>Call floor</td><td>\(c \ge \max(S_0 - Ke^{-rT}, 0)\)</td><td>\(d_2\) sign, \(N\) misreads (like -0.58 above)</td></tr>
+<tr><td>Call cap</td><td>\(c \le S_0\)</td><td>months-as-years, \(\sigma^2\) slips</td></tr>
+<tr><td>Put floor</td><td>\(p \ge \max(Ke^{-rT} - S_0, 0)\)</td><td>using \(N(d)\) for \(N(-d)\)</td></tr>
+<tr><td>Put cap</td><td>\(p \le Ke^{-rT}\)</td><td>missing discount, \(K\) vs \(S_0\) swapped</td></tr>
+<tr><td>Parity</td><td>\(c - p = S_0 - Ke^{-rT}\)</td><td>any arithmetic slip, if you compute both</td></tr>
+<tr><td>Direction</td><td>ITM call \(c > S_0 - Ke^{-rT}\) by a time-value margin</td><td>a price that "feels" too cheap or dear</td></tr>
+</table></div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>S1.</strong> \(S_0 = 40\), \(K = 35\), \(r = 5\%\), \(T = 1\). Which call price cannot be right?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$6.20, below the lower bound of about $6.71</button>
+    <button class="opt" data-key="b">$7.50, above the lower bound and below $40</button>
+    <button class="opt" data-key="c">$9.80, above the lower bound and below $40</button>
+    <button class="opt" data-key="d">$7.93, above the lower bound and below $40</button>
+  </div>
+  <div class="why">\(S_0 - Ke^{-rT} = 40 - 33.29 = 6.71\). Anything below it allows arbitrage (buy the call, short the stock, lend \(Ke^{-rT}\)). The other three satisfy both bounds (the BSM value with \(\sigma = 25\%\) is 7.93).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>S2.</strong> \(S_0 = 30\), \(K = 32\), \(r = 4\%\), \(T = 0.5\). A put is quoted at $0.90. What does that violate?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The cap: \(p \le S_0\), since 0.90 is far under 30</button>
+    <button class="opt" data-key="b">The floor: \(p \ge Ke^{-rT} - S_0\), which is about 1.37</button>
+    <button class="opt" data-key="c">The cap: \(p \le Ke^{-rT}\), which is about 31.37</button>
+    <button class="opt" data-key="d">Nothing: an out-of-the-money put can be that cheap</button>
+  </div>
+  <div class="why">The put is in the money (\(S_0 < K\)). \(32e^{-0.02} - 30 = 31.37 - 30 = 1.37 > 0.90\), so the European put is below its floor.</div>
+</div>
+
+<h2>8 · Scenarios: what happens to \(c\) and \(p\)?</h2>
+<p>Base case: \(S_0 = 50\), \(K = 50\), \(r = 5\%\), \(\sigma = 30\%\), \(T = 0.5\): \(d_1 = 0.2239 \approx 0.22\), \(d_2 = 0.0118 \approx 0.01\), \(c = 4.78\), \(p = 3.54\) (table method throughout; exact values are 4.82 and 3.58). Predict the direction of each row before reading across.</p>
+<div class="tablewrap"><table>
+<tr><th>Change</th><th>\(d_1\)</th><th>\(N(d_2)\)</th><th>\(c\)</th><th>\(p\)</th><th>Why</th></tr>
+<tr><td>Base</td><td>0.22</td><td>0.5040</td><td>4.78</td><td>3.54</td><td>at the money: \(d_2 \approx 0\), so \(N(d_2) \approx 0.5\)</td></tr>
+<tr><td>\(S_0\) 50 → 55</td><td>0.67</td><td>0.6772</td><td>8.15</td><td>1.91</td><td>stock up: call up, put down</td></tr>
+<tr><td>\(S_0\) 50 → 45</td><td>-0.27</td><td>0.3156</td><td>2.32</td><td>6.09</td><td>stock down: call down, put up</td></tr>
+<tr><td>\(K\) 50 → 55</td><td>-0.23</td><td>0.3300</td><td>2.75</td><td>6.39</td><td>higher strike: call down, put up</td></tr>
+<tr><td>\(\sigma\) 30% → 40%</td><td>0.23</td><td>0.4801</td><td>6.14</td><td>4.90</td><td>both options gain from wider spread</td></tr>
+<tr><td>\(T\) 0.5 → 1</td><td>0.32</td><td>0.5080</td><td>7.11</td><td>4.68</td><td>more time: both up here</td></tr>
+<tr><td>\(r\) 5% → 8%</td><td>0.29</td><td>0.5319</td><td>5.15</td><td>3.19</td><td>higher \(r\): \(Ke^{-rT}\) falls, call up, put down</td></tr>
+<tr><td>Deep ITM: \(S_0 = 80\)</td><td>2.44</td><td>0.9871</td><td>31.28</td><td>0.05</td><td>\(N \approx 1\): \(c \approx S_0 - Ke^{-rT} = 31.23\)</td></tr>
+<tr><td>Deep OTM: \(S_0 = 30\)</td><td>-2.18</td><td>0.0082</td><td>0.04</td><td>18.80</td><td>\(N \approx 0\): \(c \approx 0\), \(p \approx Ke^{-rT} - S_0 = 18.77\)</td></tr>
+</table></div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>W1.</strong> Volatility rises with everything else fixed. What happens to the call price and the put price?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The call rises and the put falls, like a rise in the stock</button>
+    <button class="opt" data-key="b">The call falls and the put rises, like a fall in the stock</button>
+    <button class="opt" data-key="c">Neither moves, because the stock's drift is unchanged</button>
+    <button class="opt" data-key="d">Both rise, because the option's downside is capped at zero</button>
+  </div>
+  <div class="why">The payoff is \(\max(\cdot, 0)\): big moves in your favour pay, big moves against cost nothing extra. Both options gain (base: \(c\) 4.78 → 6.14, \(p\) 3.54 → 4.90). This is the call/put "vega" effect from Lesson 12.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>W2.</strong> The risk-free rate rises, everything else fixed (non-dividend stock). What happens to the call and put?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The call falls and the put rises, as bond prices fall</button>
+    <button class="opt" data-key="b">The call rises and the put falls, as \(Ke^{-rT}\) shrinks</button>
+    <button class="opt" data-key="c">Both rise, as higher rates make all assets worth more</button>
+    <button class="opt" data-key="d">Both fall, as the discounted payoff is smaller</button>
+  </div>
+  <div class="why">Calls gain from a smaller present value of the strike you pay; puts lose from a smaller present value of the strike you receive (4.78 → 5.15 and 3.54 → 3.19 at \(r = 8\%\)).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>W3.</strong> Deep in the money (\(S_0 = 80\), \(K = 50\)), the call is worth about…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(S_0 - K = 30\), as discounting is ignored for a call</button>
+    <button class="opt" data-key="b">\(S_0 = 80\), as both weights go to 1 for the stock</button>
+    <button class="opt" data-key="c">\(S_0 - Ke^{-rT}\), as both weights go to 1</button>
+    <button class="opt" data-key="d">\(0.4S_0\sigma\sqrt{T}\), the at-the-money rule of thumb</button>
+  </div>
+  <div class="why">\(N(d_1), N(d_2) \to 1\) gives \(c \to S_0 - Ke^{-rT}\) = 31.23 (and 31.28 with the small time value left).</div>
+</div>
+
+<h3>At-the-money rule of thumb: \(c \approx 0.4\,S_0\,\sigma\sqrt{T}\)</h3>
+<p>Why: at the forward price (\(K = S_0e^{rT}\)) the formula reduces exactly to \(c = S_0\,[2N(\sigma\sqrt{T}/2) - 1]\), and for small \(x\) the bell curve near zero is flat with height \(1/\sqrt{2\pi} = 0.3989\), so \(2N(x/2) - 1 \approx 0.4x\). I checked it numerically.</p>
+<div class="tablewrap"><table>
+<tr><th>\(\sigma\sqrt{T}\)</th><th>0.2</th><th>0.3</th><th>0.5</th><th>0.8</th><th>1.0</th></tr>
+<tr><td>Exact \(c/S_0\) (at the forward)</td><td>0.0797</td><td>0.1192</td><td>0.1974</td><td>0.3108</td><td>0.3829</td></tr>
+<tr><td>Rule \(0.4\sigma\sqrt{T}\)</td><td>0.0800</td><td>0.1200</td><td>0.2000</td><td>0.3200</td><td>0.4000</td></tr>
+<tr><td>Error</td><td>0.4%</td><td>0.6%</td><td>1.3%</td><td>3.0%</td><td>4.5%</td></tr>
+</table></div>
+<p><strong>Accuracy:</strong> within about 1% when \(\sigma\sqrt{T} \le 0.4\), within 5% up to \(\sigma\sqrt{T} = 1\), and always slightly too high. Example: \(S_0 = 80\), \(\sigma = 25\%\), \(T = 0.25\), \(r = 4\%\): the forward is 80.80; rule gives \(0.4 \times 80 \times 0.125 = 4.00\), exact 3.99. If \(K = S_0\) exactly and \(r > 0\), the call is dearer than the rule (the strike is below the forward): add about \(S_0rT/2\); here \(4.00 + 0.40 = 4.40\) against exact 4.38. Use it to <em>check</em> an at-the-money answer, never as the answer.</p>
+
+<div class="quiz num" data-answer="8" data-tol="0.2">
+  <p class="q"><strong>R1.</strong> \(S_0 = 100\), \(K = 100\), \(r \approx 0\), \(\sigma = 20\%\), \(T = 1\). By the rule of thumb, the at-the-money call is worth about…</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(0.4 \times 100 \times 0.2 \times 1 = 8.00\). Exact (with \(r = 0\)): 7.97.</div>
+</div>
+
+<h2>9 · Exam-style practice</h2>
+<p>Use the table method (\(d\) to 2 dp, \(N\) to 4 dp). Answers to 2 dp. Both of these are about the length and step count of a final's 4–5 mark BSM part.</p>
+
+<h3>Question A (call and put, about 5 marks)</h3>
+<p>A non-dividend stock is $48. A 3-month European option has \(K = \$50\). \(r = 5\%\) and \(\sigma = 30\%\).</p>
+<div class="quiz num" data-answer="-0.11" data-tol="0.006">
+  <p class="q"><strong>A1.</strong> \(d_1\) (2 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(T = 0.25\). \(\ln(48/50) = -0.0408\); \((0.05 + 0.045)(0.25) = 0.0238\); \(\sigma\sqrt{T} = 0.15\). \(d_1 = (-0.0408 + 0.0238)/0.15 = -0.1138 \approx -0.11\).</div>
+</div>
+<div class="quiz num" data-answer="-0.26" data-tol="0.006">
+  <p class="q"><strong>A2.</strong> \(d_2\) (2 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(-0.1138 - 0.15 = -0.2638 \approx -0.26\).</div>
+</div>
+<div class="quiz num" data-answer="2.27" data-tol="0.02">
+  <p class="q"><strong>A3.</strong> The call price?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(N(-0.11) = 1 - 0.5438 = 0.4562\), \(N(-0.26) = 1 - 0.6026 = 0.3974\). \(Ke^{-rT} = 50e^{-0.0125} = 49.3789\). \(c = 48(0.4562) - 49.3789(0.3974) = 21.8976 - 19.6232 = 2.27\).</div>
+</div>
+<div class="quiz num" data-answer="3.65" data-tol="0.02">
+  <p class="q"><strong>A4.</strong> The put price, by the put formula?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(p = 49.3789(0.6026) - 48(0.5438) = 29.7557 - 26.1024 = 3.65\). Parity check: \(2.27 - 48 + 49.38 = 3.65\). The put is in the money by $2 (\(K > S_0\)) so being above $1.38 (its floor) is sensible.</div>
+</div>
+
+<h3>Question B (a different set, rounding check)</h3>
+<p>\(S_0 = \$22\), \(K = \$20\), \(r = 4\%\), \(\sigma = 35\%\), 6 months.</p>
+<div class="quiz num" data-answer="3.48" data-tol="0.02">
+  <p class="q"><strong>B1.</strong> The call (table method)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(d_1 = (0.0953 + 0.0506)/0.2475 = 0.5897 \approx 0.59\); \(d_2 = 0.3422 \approx 0.34\). \(N(0.59) = 0.7224\), \(N(0.34) = 0.6331\), \(Ke^{-rT} = 19.6040\). \(c = 22(0.7224) - 19.6040(0.6331) = 15.8928 - 12.4113 = 3.48\). (Exact: 3.46.)</div>
+</div>
+<div class="quiz num" data-answer="1.09" data-tol="0.02">
+  <p class="q"><strong>B2.</strong> The put, using parity from B1 (not the put formula)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(p = c - S_0 + Ke^{-rT} = 3.4815 - 22 + 19.6040 = 1.09\). The put formula gives the same with \(N(-0.59) = 0.2776\), \(N(-0.34) = 0.3669\): \(19.6040(0.3669) - 22(0.2776) = 1.09\). Exact 1.07.</div>
+</div>
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>B3.</strong> Using the exact (unrounded) \(d\) and \(N\) instead of the table, the call would be \$3.46. Which answer should you write in the exam, if the paper says to use the tables?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$3.46, since unrounded values are always more accurate</button>
+    <button class="opt" data-key="b">$3.48, from \(d\) rounded to 2 dp and the table values</button>
+    <button class="opt" data-key="c">$3.47, the average of the two to split the difference</button>
+    <button class="opt" data-key="d">Either, as markers accept a range of 10 cents</button>
+  </div>
+  <div class="why">Marks follow the method the paper prescribes. With the formula-sheet tables, round \(d\) to 2 dp and do not interpolate (unless the paper's cover page says otherwise). Show the \(d\) and \(N\) values so a marker can follow a small difference.</div>
+</div>
+
+<h2>10 · Mixed scenarios (non-dividend stock, European)</h2>
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>M1.</strong> An at-the-money option has \(d_2 \approx 0\). What is the chance (risk-neutral) it finishes in the money, and what is \(d_1\) relative to \(d_2\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">About 50%, with \(d_1\) a bit above \(d_2\) by \(\sigma\sqrt{T}\)</button>
+    <button class="opt" data-key="b">About 50%, with \(d_1\) a bit below \(d_2\) by \(\sigma\sqrt{T}\)</button>
+    <button class="opt" data-key="c">About 100%, with \(d_1\) a bit above \(d_2\) by \(\sigma\sqrt{T}\)</button>
+    <button class="opt" data-key="d">About 0%, with \(d_1\) a bit below \(d_2\) by \(\sigma\sqrt{T}\)</button>
+  </div>
+  <div class="why">\(N(d_2) \approx N(0) = 0.5\). \(d_2 = d_1 - \sigma\sqrt{T}\), so \(d_1\) is bigger.</div>
+</div>
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>M2.</strong> You compute \(c = \$5.61\) and \(S_0 = 52\), \(K = 50\), \(r = 6\%\), \(T = 0.5\). Which is the correct put price from parity?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(5.61 - 52 + 50 = 3.61\), ignoring discounting on \(K\)</button>
+    <button class="opt" data-key="b">\(5.61 + 52 - 48.52 = 9.09\), with the sign of \(S_0\) wrong</button>
+    <button class="opt" data-key="c">\(5.61 - 52 - 48.52 = -94.91\), with the strike subtracted</button>
+    <button class="opt" data-key="d">\(5.61 - 52 + 48.52 = 2.13\), with \(K\) discounted</button>
+  </div>
+  <div class="why">\(p = c - S_0 + Ke^{-rT}\). The put is worth $2.13 (and 5.61 - 52 + 50 would be wrong because \(K\) must be discounted).</div>
+</div>
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>M3.</strong> A call is deep out of the money (\(S_0\) far below \(K\)). Which statement holds?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(N(d_1), N(d_2) \to 1\) and the put is almost worthless</button>
+    <button class="opt" data-key="b">\(N(d_1), N(d_2) \to 0\) and the put is almost worthless</button>
+    <button class="opt" data-key="c">\(N(d_1), N(d_2) \to 0\) and the put is about \(Ke^{-rT} - S_0\)</button>
+    <button class="opt" data-key="d">\(N(d_1), N(d_2) \to 1\) and the put is about \(Ke^{-rT} - S_0\)</button>
+  </div>
+  <div class="why">Lecture 7 slide 20/21: \(S_0 \to 0\) makes \(d_1, d_2\) large negative, so \(N \to 0\), \(c \to 0\), and \(p \to Ke^{-rT} - S_0\) (a short forward's value).</div>
+</div>
+
+<h2>11 · Rule of thumb</h2>
+<div class="box">
+<strong>Years, then \(\ln\), then \(\sigma\sqrt{T}\), then \(d_1\), then \(d_2 = d_1 - \sigma\sqrt{T}\); round \(d\) to 2 dp; \(N(-x) = 1 - N(x)\); discount \(K\) once.</strong> Call = \(S_0N(d_1) - Ke^{-rT}N(d_2)\); put = \(Ke^{-rT}N(-d_2) - S_0N(-d_1)\); check with \(p = c - S_0 + Ke^{-rT}\) and the floor/cap bounds. At the money \(N(d_2) \approx 0.5\) and \(c \approx 0.4S_0\sigma\sqrt{T}\) (at the forward). Deep in the money, \(c \to S_0 - Ke^{-rT}\).
+</div>
+
+<details><summary>Retrieval: from memory, write the put formula and the three bounds. Then check</summary><div>
+<p>\(p = Ke^{-rT}N(-d_2) - S_0N(-d_1)\). Call: \(\max(S_0 - Ke^{-rT}, 0) \le c \le S_0\). Put: \(\max(Ke^{-rT} - S_0, 0) \le p \le Ke^{-rT}\). Parity: \(c - p = S_0 - Ke^{-rT}\).</p>
+</div></details>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, the BSM chapter (Lecture 7 readings: Ch. 13, 19.1 and 19.2) and the normal table, which is on the exam formula sheet pp. 5-6 (the slides cite Hull pp. 600-601). Course: Lecture 7 slides 17-29 (formula, Woodside call and Telstra put examples, and the tables). Those two lecture examples are the lecture's own: reread them after this lesson as a check.</p>
+
+<p><strong>Homework:</strong></p>
+<ol>
+<li><a href="../tutes/Tutorial%207%20QUESTIONS_21stSept.pdf">Tutorial 7</a> Q4, parts (a)-(c), with the widget as the simulator: (a) the call, (b) the put, (c) check in the widget and note why it differs by 2 cents (rounding of \(d\)).
+<details><summary>Answers</summary><div>(a) 2.69 (exact 2.71); (b) 1.56 (exact 1.58); (c) rows 10 and 12 of the widget differ only by the 2 dp rounding of \(d_1 = 0.4950, d_2 = -0.0707\).</div></details></li>
+<li>\(S_0 = 95\), \(K = 100\), \(r = 3\%\), \(\sigma = 22\%\), \(T = 1\) year. (a) \(d_1, d_2\) (2 dp). (b) The call. (c) The put by parity, then by the put formula, and the two sanity bounds.
+<details><summary>Answers</summary><div>(a) 0.01, -0.21. (b) \(N(0.01) = 0.5040\), \(N(-0.21) = 0.4168\), \(Ke^{-rT} = 97.0446\): \(c = 7.43\) (exact 7.43). (c) \(p = 7.4318 - 95 + 97.0446 = 9.48\); formula \(97.0446(0.5832) - 95(0.4960) = 9.48\). Floors: \(c \ge 0\), \(p \ge 2.04\); caps \(c \le 95\), \(p \le 97.04\).</div></details></li>
+<li>\(S_0 = 120\), \(K = 110\), \(r = 6\%\), \(\sigma = 25\%\), 6 months. (a) The call. (b) The put by parity. (c) By how much does \(c\) exceed its floor \(S_0 - Ke^{-rT}\), and what other number does that excess equal?
+<details><summary>Answers</summary><div>(a) \(d_1 = 0.7503 \approx 0.75\), \(d_2 = 0.5735 \approx 0.57\); \(N = 0.7734, 0.7157\); \(Ke^{-rT} = 106.7490\): \(c = 16.41\) (exact 16.29). (b) \(p = 16.4077 - 120 + 106.7490 = 3.16\). (c) Floor 13.25, so the excess is 3.16, which equals \(p\): parity says \(c - (S_0 - Ke^{-rT}) = p\).</div></details></li>
+</ol>
+
+<div class="ask">💬 Unsure whether to round \(d\), which \(N\) goes where, or a sign? Paste your working in the terminal and ask me. I'm your teacher for this. Ask for another set of numbers any time.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0023-what-bsm-assumes-and-why-it-works.html">Lesson 23, what BSM assumes</a></span>
+  <span>Topic 7: <a href="0022-normal-and-lognormal-stock-prices.html">L22</a> · <a href="0023-what-bsm-assumes-and-why-it-works.html">L23</a> · <a href="0025-bsm-as-the-limit-of-the-binomial-tree.html">L25</a> · <a href="../reference/options-cheatsheet.html">Options cheat sheet</a></span>
+  <span>Next: <a href="0025-bsm-as-the-limit-of-the-binomial-tree.html">Lesson 25, BSM as the limit of the binomial tree</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

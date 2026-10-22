@@ -54,6 +54,14 @@
 10. 0010 Valuing forward and futures contracts, forward vs futures (L3, T3 Q1, Q5, Q6)
 11. then options (L4 onward). Futures options (L6) deferred until after options basics.
 12. Topic 4 (options intro) built 20 Oct by 5 parallel subagents: 0011 payoffs/profits/moneyness (+ brief strategies, which past papers test), 0012 factors affecting prices, 0013 bounds, 0014 put-call parity, 0015 early exercise + mixed retrieval quiz. Reference: reference/options-cheatsheet.html. Not browser-checked; numbers recomputed in Python.
+13. Topics 5–6 (binomial) built 22 Oct by 6 parallel subagents, one per lesson: 0016 one-period replication, 0017 risk-neutral valuation, 0018 two-step trees + u/d from σ, 0019 American options on trees, 0020 futures options basics + parity, 0021 futures-option trees + mixed quiz. KaTeX strict-checked (0 failures) and headless-Chrome rendered. Reference: binomial section appended to reference/options-cheatsheet.html; glossary rows added. Assets: three tree widgets (binomial-tree.js, binomial-tree-widget.js, american-tree.js) plus futures-option-tree-explorer.js, overlapping; could consolidate.
+14. Topic 7 (BSM) built 22 Oct by 7 parallel subagents: 0022 normal/lognormal prices, 0023 BSM assumptions + delta-hedge intuition + N(d1)/N(d2), 0024 computing c/p (tables), 0025 BSM as limit of tree (convergence), 0026 implied vol/smile/VIX, 0027 Black's model + FX/yield/dividend preview (L8 overlap), 0028 capstone exam-style. New widgets: bsm-lognormal-explorer, bsm-limits-explorer, bsm-price-explorer, bsm-convergence-plot, bsm-implied-vol-solver, bsm-blacks-calculator.
+
+## Exam patterns, topics 5–6 (patterns only, 22 Oct)
+- Final binomial Q ≈ 10–12 marks, 2–3 steps, u = e^{σ√Δt}, d = 1/u, "4 dp at each step". Parts: price European/American tree; market-maker Δ hedge (long put → long |Δ| shares); "does Δ0 still hedge at t=1?" (no, rebalance); arbitrage if quoted price ≠ tree value; 2-mark "risk preferences play no role" (disagree: they act through S0); link binomial↔BSM.
+- Variants: odd payoffs (squared, digital), percentage up/down moves, 3-step American put/FX/index options, dividends on trees (not yet covered; belongs with Topic 8).
+- Futures options: only Black's model (BSM lesson) in the 2025 final; formula sheet has futures parity, bounds, p = (1−d)/(u−d). MSTs had no binomial questions.
+- Open: Tute 6 Q6 day-count (lesson 21 uses T=83/365); Hull chapter numbers approximate; lesson 19 widget controls not click-tested.
 
 ## Exam patterns, topic 4 (patterns only, 20 Oct)
 - 1-mark MCQs: intrinsic vs time value from S, K, premium (distractor: intrinsic = premium); ATM has most time value; straddle / bull spread definitions; which statement is true of a European call (distractors: value ≥ K, bound exactly 0, can exceed S).
@@ -62,3 +70,14 @@
 - American call, no dividends: never exercise early (distractors "deep ITM", "low vol", "r = 0"). Early put exercise: r up, vol down.
 - Arbitrage MCQ: American put below K − S → buy put and stock, exercise.
 - Open: 'Black's pseudo-American' appeared in a 2021 practice final (check syllabus). Tute 4 Q7.2 GameStop xlsx not in workspace. Lesson 14's claim that same-K/T European options share implied vol is unverified. Hull chapter numbers in lessons are approximate.
+
+## Exam patterns, topic 7 BSM (patterns only, 22 Oct)
+- 2025 final BSM slot: ~10 marks: P(call exercised) 5 marks (lognormal, μ given, use μ not r), P(put exercised) 1, binomial vs BSM assumptions 1, convergence condition 1, link 2. 4-dp working common.
+- BSM pricing: stock with 2 dividends (one after expiry, ignore it), FX option, 5,000 lb copper futures put (Black, 6 marks: exercise-now/margin credit 2 + price 4; contract multiplier). 2022 final: d to 4dp with table interpolation; 2025: 2dp d.
+- Delta hedge: units of stock to hedge, then re-hedge after move (5+5). Call N(d1), put N(d1)−1.
+- MCQ 2 marks: implied vol definition; delta of ITM put near maturity → −1. 6-mark short answer: explain implied vol + VIX. MSTs had no BSM.
+- BSM rounding rule (settled 22 Oct from Lecture 7, Tute 7 solutions, 2025 final solutions): d2 = unrounded d1 − σ√T, then round d1, d2 to 2dp; N at 4dp from table, no interpolation, N(−x)=1−N(x); contract size inside formula, round once at end; answer to dp asked, else 2dp dollars. Exception: 2022 final said 4dp d + interpolation, so obey the paper. Table answer differs from exact by up to ~6c; write the table answer. N table is in exams/Final Exam Formula Sheet.pdf pp.5–6 (x≤0 and x≥0 tables, 0.00–4.00, 4dp, 'no interpolation required'); formula sheet also has delta formulas, Black, yield/FX/dividend BSM.
+- Brent (Tute 7 Q6 / solutions Q8): tute 6.82/7.23/7.45/7.57 are AMERICAN-tree values (futures call early exercise), T=84/365; European 6.80/7.21/7.43/7.55 (limit 7.667 = Black); American limit ~7.68.
+- VIX: only slide content used (30-day S&P 500 implied vol, 15 = 15% pa, futures x1000, buy 18.5 close 19.3 = +$800). No 1-s.d. move rule on slides; removed.
+- Handwritten L7 notes read in full (sparse): option vs futures expiry table, hedge rule, N(x) shaded area, φ(3.2,1.6) example, S→0 / S→∞ limits. All covered now.
+- Open: slide 8 mixes variance/s.d. in φ(3.990,0.045) (trap box in 0022); slide 34 prices illustrative not exact BSM (stated in 0026); Tute 7 Q5(c) solution says "increasing time step" (should be shorten; noted in 0025); Lesson 14 same-K/T implied-vol claim holds at BSM prices only; 0027 previews L8 (yield, currency, dividends), overlap accepted; Hull chapter numbers approximate; d2 rule being applied across 0022–0028 (22 Oct, second pass).

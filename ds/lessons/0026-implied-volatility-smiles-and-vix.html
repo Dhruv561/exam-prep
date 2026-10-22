@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Implied Volatility, Smiles and the VIX</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/bsm-implied-vol-solver.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 26 · Topic 7: Black-Scholes-Merton</div>
+<h1>Implied volatility, smiles and the VIX</h1>
+<p class="lede">The goal: run the BSM formula backwards. From a market option price, find the volatility the market is using (bracket it, then interpolate), say which way implied volatility moves when a price moves, use it to call an option rich or cheap against your own view, explain why real markets show a smile or smirk, and and read the VIX (a 30-day S&amp;P 500 implied volatility) and its futures P&amp;L.</p>
+
+<div class="mission">Why this matters for 5 Nov: BSM is a price calculator with five inputs, and four of them you can look up. The fifth, \(\sigma\), you cannot. Past papers ask for it in three ways: a 2-mark MCQ ("implied volatility is the \(\sigma\) that gives the current market price", with distractors such as historical standard deviation or delta 0.5), a 6-mark "explain implied volatility and illustrate the VIX" short answer, and article-style parts where implied volatility rises with market stress. The lecture's own VIX futures example is a one-line calculation. Numbers here are new; the method is the lecture's.</div>
+
+<p>Assumes <a href="0024-computing-bsm-call-and-put-prices.html">Lesson 24</a> (computing BSM prices with \(d_1\), \(d_2\), \(N(\cdot)\)) and <a href="0025-bsm-as-the-limit-of-the-binomial-tree.html">Lesson 25</a>. <strong>Terms.</strong> <strong>Volatility</strong> \(\sigma\): the standard deviation per year of the stock's continuously compounded return. <strong>Market price</strong>: what the option last traded at. <strong>Rich</strong> (dear) = priced above what you think it is worth; <strong>cheap</strong> = below.</p>
+
+<h2>1 · Why \(\sigma\) can't be observed</h2>
+
+<p>BSM takes \(S_0\), \(K\), \(T\), \(r\) and \(\sigma\). The first four are quoted or contracted. \(\sigma\) is a statement about the <em>future</em> spread of the stock's returns over the option's life, and nobody can read that off a screen. There are two ways to get a number.</p>
+<div class="tablewrap">
+<table>
+<tr><th></th><th>Historical volatility</th><th>Implied volatility</th></tr>
+<tr><td>Source</td><td>Standard deviation of past returns</td><td>Backed out of today's option price</td></tr>
+<tr><td>Looks</td><td>Backwards</td><td>Forwards (the market's view of the option's life)</td></tr>
+<tr><td>Problem</td><td>The past window is a choice; the future may differ</td><td>Needs a model (BSM) and a traded option price</td></tr>
+</table>
+</div>
+<p><strong>Predict first:</strong> the option market trades the call at $2.00. You have a BSM calculator but no \(\sigma\). What could you do with the $2.00?</p>
+<details><summary>Reveal: treat the price as the answer and search for the \(\sigma\) that produces it</summary><div>
+<p>You know \(c = 2.00\), so find the \(\sigma\) that makes the formula output 2.00. That \(\sigma\) is the <strong>implied volatility</strong> (Lecture 7, slide 33): "the value of \(\sigma\) which, substituted in the BSM formula, gives theoretical option price = current market price". The lecture adds that it reflects the market's assessment of future volatility over the option's life.</p>
+</div></details>
+
+<div class="trap"><strong>Not historical, not a delta</strong><br>
+Implied volatility is not the stock's past standard deviation, not a forecast made by you, and has nothing to do with \(\Delta = 0.5\) or with intrinsic value. It is a <em>price</em> restated in volatility units, like quoting a bond by its yield.</div>
+
+<h2>2 · Why it can be found, and why only by search</h2>
+<p>A higher \(\sigma\) means a wider spread of end prices. The call's payoff has no ceiling above \(K\) and a floor of zero below it, so the extra upside adds value and the extra downside costs nothing (<a href="0012-factors-affecting-option-prices.html">Lesson 12</a>). Both calls and puts rise with \(\sigma\). So <strong>option price is strictly increasing in \(\sigma\)</strong>: each market price matches exactly one \(\sigma\) (for given \(S_0\), \(K\), \(T\), \(r\)).</p>
+<p>The formula has \(\sigma\) inside \(\ln\), inside \(N(\cdot)\), and multiplied by \(\sqrt T\), so it cannot be rearranged to give \(\sigma\) (slide 33: "solved iteratively as the BSM formula cannot be inverted"). The search uses monotonicity:</p>
+<ol class="steps">
+  <li><strong>Bracket.</strong> Pick a low \(\sigma\) whose price is below the market price and a high \(\sigma\) whose price is above it.</li>
+  <li><strong>Try a point in between.</strong> Bisection: the midpoint. Interpolation: the point on a straight line between the two (price, \(\sigma\)) pairs, \(\sigma = \sigma_{lo} + \dfrac{c_{mkt} - c_{lo}}{c_{hi} - c_{lo}}(\sigma_{hi} - \sigma_{lo})\).</li>
+  <li><strong>Compare.</strong> BSM price at the trial \(\sigma\) above the market price: trial too high, it becomes the new high end. Below: it becomes the new low end.</li>
+  <li><strong>Repeat</strong> until the price matches to the accuracy asked.</li>
+</ol>
+
+<h3>Worked example: a 3-month call</h3>
+<div class="box">
+<p>\(S_0 = 48\), \(K = 50\), \(r = 4\%\), \(T = 3\) months, no dividends. The call trades at <strong>$2.00</strong>. Find the implied volatility.</p>
+<p><strong>Predict first:</strong> the BSM price at \(\sigma = 20\%\) is 1.28 and at 40% is 3.18. Is the answer nearer 20% or 40%? Above or below 30%?</p>
+</div>
+<details><summary>Reveal: bisection, four iterations (BSM prices computed exactly, i.e. exact \(N(\cdot)\), not table-rounded)</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>#</th><th>Low</th><th>High</th><th>Trial \(\sigma\)</th><th>BSM price</th><th>vs $2.00</th></tr>
+<tr><td>1</td><td>20%</td><td>40%</td><td>30.00%</td><td>2.2246</td><td>too high: new high</td></tr>
+<tr><td>2</td><td>20%</td><td>30%</td><td>25.00%</td><td>1.7517</td><td>too low: new low</td></tr>
+<tr><td>3</td><td>25%</td><td>30%</td><td>27.50%</td><td>1.9876</td><td>too low: new low</td></tr>
+<tr><td>4</td><td>27.5%</td><td>30%</td><td>28.75%</td><td>2.1060</td><td>too high: new high</td></tr>
+</table>
+</div>
+<p>After 4 steps the answer is trapped in 27.5% to 28.75%. Each step halves the bracket. The true value is <strong>27.63%</strong> (after six steps the trial is 27.81% at 2.0172).</p>
+<p><strong>Interpolation is faster</strong> (this is linear interpolation of \(\sigma\) between two price points; it is unrelated to the \(N\) table, which needs no interpolation): From 20% (1.2844) and 40% (3.1779): \(\sigma = 0.20 + \dfrac{2.00 - 1.2844}{3.1779 - 1.2844}\times0.20 = 0.2756\). BSM at 27.56% is 1.9932, already within a cent. A second interpolation gives 27.63%. Using the tighter bracket 25% to 30% (1.7517, 2.2246) in one step: 27.63%. Narrower bracket, better answer, because price is nearly a straight line in \(\sigma\) over a small range.</p>
+</div></details>
+
+<p>Try the same example (and your own) in the stepper below. Choose bisection or interpolation, press Step and watch the bracket shrink. Change the market price and see where the answer goes.</p>
+<div class="ivsolver" data-s="48" data-k="50" data-r="4" data-t="0.25" data-type="call" data-price="2.00" data-lo="20" data-hi="40" data-method="bisection"></div>
+
+<div class="trap"><strong>Hand-calculation noise</strong><br>
+By hand you round \(d_1\), \(d_2\) to 2 dp and read \(N\) from the formula sheet (pp. 5-6, 4 dp, no interpolation in the \(N\) table), and near the money this moves the price by a few cents, sometimes about 10 (Lesson 24). The only interpolation in this lesson is of the <em>volatility</em> between two (\(\sigma\), price) pairs, not of \(N\). That is bigger than the price gap between neighbouring trial volatilities, so a table-based search cannot pin implied volatility closer than about a percentage point. This is why exam questions give you a short table of (\(\sigma\), BSM price) pairs and ask you to <em>bracket and interpolate</em>, or ask the direction. The lecture's own slide 34 example (3-month call, \(S_0 = 21\), \(K = 20\), \(r = 10\%\), price 2.10) shows prices of $1, $4 and $2.50 at \(\sigma = 20\%\), 40% and 30% as an illustration of the method; exact BSM gives 1.76, 2.47 and 2.10, so that example's true answer is about 30%.</div>
+
+<div class="quiz num" data-answer="25" data-tol="0.05">
+  <p class="q"><strong>1.</strong> Same data: price 1.60 at 20%, 2.40 at 30%, market price 2.00. Implied volatility by interpolation (% p.a.)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(0.20 + \dfrac{2.00 - 1.60}{2.40 - 1.60}\times0.10 = 0.20 + 0.5\times0.10 = 25\%\). Interpolation assumes a straight line, which is slightly off (the true curve bends) but fine over a short bracket.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> At \(\sigma = 25\%\) the BSM call price is below the market price. The implied volatility is:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Below 25%, so you should try a lower trial volatility next</button>
+    <button class="opt" data-key="b">Exactly 25%, because the model is close enough to the market</button>
+    <button class="opt" data-key="c">Above 25%, so you should try a higher trial volatility next</button>
+    <button class="opt" data-key="d">Unknown, because the price does not tell you which direction</button>
+  </div>
+  <div class="why">Price rises with \(\sigma\). If 25% gives too low a price, the market is using more volatility than that. Raise the trial value.</div>
+</div>
+
+<h2>3 · Price up, implied volatility up</h2>
+<p>Since price and \(\sigma\) move together, a move in the <em>market price</em> (holding \(S_0\), \(K\), \(T\), \(r\) fixed) is a move in the implied volatility in the same direction. Running the worked example's option at other market prices:</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Market call price</th><th>1.80</th><th>2.00</th><th>2.20</th><th>2.50</th></tr>
+<tr><td>Implied volatility</td><td>25.51%</td><td>27.63%</td><td>29.74%</td><td>32.90%</td></tr>
+</table>
+</div>
+<p>About 1 volatility point per 10 cents here. Read it both ways: buyers bid the call up (they expect a bigger move, or worry about one) \(\Rightarrow\) implied volatility up; sellers dump it \(\Rightarrow\) down. A call and put with the same strike and expiry move together, since parity ties them (their \(c - p\) does not depend on \(\sigma\)): at 27.63% the put is $3.50, and inverting <em>that</em> price gives 27.63% again. Quote one number per strike and expiry.</p>
+
+<p><strong>Predict first:</strong> price a deep in-the-money call (\(K = 40\), \(S_0 = 50\)) and an at-the-money call (\(K = 50\)). Raise \(\sigma\) from 25% to 30% in each. Which price moves more? If each price then jumps by 10 cents, which implied volatility moves more?</p>
+<details><summary>Reveal: ITM prices barely respond to volatility, so price noise there means big volatility swings</summary><div>
+<p>\(S_0 = 50\), \(r = 4\%\), \(T = 3\) months:</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Strike \(K\)</th><th>40 (deep ITM)</th><th>45</th><th>50 (ATM)</th><th>55</th><th>60 (OTM)</th></tr>
+<tr><td>Price change, \(\sigma\) 25%\(\to\)30%</td><td>+0.11</td><td>+0.33</td><td>+0.49</td><td>+0.43</td><td>+0.25</td></tr>
+<tr><td>Implied vol rise for a +0.10 price</td><td>4.81 pts</td><td>1.59</td><td>1.01</td><td>1.20</td><td>2.21</td></tr>
+</table>
+</div>
+<p><strong>Intuition:</strong> a deep ITM call is almost the stock minus a bond. It will pay off nearly regardless of volatility, so volatility adds little value. The option most sensitive to \(\sigma\) (largest price change per volatility point) is the one near the money. (Hull calls this sensitivity <em>vega</em>; it is always positive for plain options, which is exactly "price rises with \(\sigma\)", and it is the Greeks lesson's job to quantify it.) Because a 10-cent bid-ask wobble is a 5-point volatility swing for the deep ITM option but 1 point for the ATM one, traders read implied volatility from near-the-money and out-of-the-money options.</p>
+</div></details>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>3.</strong> The stock price and everything else are unchanged. After a news item, the market price of a call with the same strike rises from $2.00 to $2.30. Its implied volatility:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Falls, since a higher price shows buyers expect smaller moves</button>
+    <button class="opt" data-key="b">Stays put, since only the stock price changes implied volatility</button>
+    <button class="opt" data-key="c">Rises only if the option is out of the money; ITM options ignore it</button>
+    <button class="opt" data-key="d">Rises, since only a higher \(\sigma\) can justify the higher price</button>
+  </div>
+  <div class="why">With \(S_0\), \(K\), \(T\), \(r\) fixed, price is increasing in \(\sigma\), so a higher price needs a higher \(\sigma\). (c) is wrong: every strike obeys this; ITM ones just need a bigger \(\sigma\) move per cent of price.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>4.</strong> Market price of a put is unchanged but the stock rises and the put's \(S_0\) input is higher. Holding \(K\), \(T\), \(r\) fixed, the implied volatility of that put:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Rises, as the model price at old \(\sigma\) is now lower than the market</button>
+    <button class="opt" data-key="b">Falls, as the model price at old \(\sigma\) is now higher than market</button>
+    <button class="opt" data-key="c">Is unchanged, as implied volatility is a property of the option only</button>
+    <button class="opt" data-key="d">Becomes undefined, as the put has moved further out of the money</button>
+  </div>
+  <div class="why">A higher \(S_0\) cuts the put's BSM value at any given \(\sigma\). To reach the unchanged market price the model needs a <em>higher</em> \(\sigma\). Implied volatility depends on all five inputs, not on the price alone.</div>
+</div>
+
+<h2>4 · Using it: rich or cheap against your view</h2>
+<p>Implied volatility lets you compare options that have different strikes, expiries and underlyings on one scale, and compare the market to <em>your own</em> forecast of volatility.</p>
+<p>Base case again: the call trades at $2.00 (implied 27.63%). BSM gives <strong>$1.47</strong> at 22% and <strong>$2.41</strong> at 32%.</p>
+<ul>
+  <li><strong>You expect only 22%</strong> volatility. Your fair value is $1.47; the market charges $2.00. The option is <strong>rich</strong> (implied 27.63% \(\gt\) your 22%). You would not buy it; a trader with this view would <strong>write</strong> it (and delta hedge, Lesson 9, so the profit comes from volatility and not from the stock's direction).</li>
+  <li><strong>You expect 32%.</strong> Your fair value is $2.41. Market $2.00 is <strong>cheap</strong> (implied \(\lt\) your view): <strong>buy</strong> it.</li>
+</ul>
+<div class="box"><p><strong>Rule.</strong> Implied volatility \(\gt\) your forecast: option rich (sell or avoid). Implied \(\lt\) forecast: cheap (buy). It is a view on <em>how much the stock will move</em>, not which way. A straddle (long a call and a put at the same strike) is the clean way to bet on bigger moves.</p></div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>5.</strong> An analyst forecasts the stock's volatility over the next 3 months at 35%. A call on it has implied volatility 28%. All else equal, the analyst should consider:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Selling the call, since it costs less than its true value</button>
+    <button class="opt" data-key="b">Buying the call, since it costs less than its value at 35%</button>
+    <button class="opt" data-key="c">Selling the call, since implied volatility is above the risk-free rate</button>
+    <button class="opt" data-key="d">Buying the call, since the analyst expects the stock to rise</button>
+  </div>
+  <div class="why">The option is priced at 28% but worth the 35% price to this analyst: cheap, so buy (and delta hedge to isolate the volatility view). (d) mixes up direction with volatility: a forecast of big moves does not say up.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>6.</strong> You are short a call and hedged. Implied volatility jumps while the stock price does not move. You (before any re-hedging):</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Gain, since the option you owe is now worth less than before</button>
+    <button class="opt" data-key="b">Neither gain nor lose, since a hedged position ignores all inputs</button>
+    <button class="opt" data-key="c">Lose, since the call you owe is now more expensive to buy back</button>
+    <button class="opt" data-key="d">Gain, since you can now sell new calls at a better price</button>
+  </div>
+  <div class="why">Higher implied volatility means a higher call price. A delta hedge removes stock-price risk, not volatility risk, so the written call's liability rises. That is why option sellers care about vega (Greeks lesson).</div>
+</div>
+
+<h2>5 · "BSM is wrong": smiles and smirks</h2>
+<p>If BSM were exactly right, all options on the same stock and expiry would give <em>the same</em> implied volatility, whatever the strike (slide 36). In practice, holding everything else constant, implied volatility depends on the strike.</p>
+<p><strong>Predict first:</strong> BSM treats log returns as normal. Suppose real stock returns have fatter tails than normal (extreme moves are more likely than BSM says). For a far OTM put, is the true chance of paying off higher or lower than BSM thinks? So is the market price above or below the BSM price at ATM volatility? What does that do to its implied volatility?</p>
+<details><summary>Reveal</summary><div>
+<p>Higher chance \(\Rightarrow\) the market charges more than the flat-\(\sigma\) BSM price \(\Rightarrow\) you need a higher \(\sigma\) to get BSM up to that price \(\Rightarrow\) <strong>higher implied volatility</strong>. This is the lecture's explanation (slide 36): options with a higher chance of a large move than the normal distribution allows have higher prices and higher implied volatility.</p>
+<p>Example (illustrative, 3-month options, \(S_0 = 100\), \(r = 4\%\)): a 90-strike put at a flat 22% would cost $0.79. The market quotes about 26%, which is $1.26: <strong>60% more</strong>. An 80-strike put at 22% is $0.06; at 31% it is $0.40.</p>
+</div></details>
+
+<div class="tablewrap">
+<table>
+<tr><th></th><th>Currency: smile</th><th>Equity: smirk (skew)</th></tr>
+<tr><td>Shape of implied vol vs \(K\)</td><td>U-shape, lowest at the money (point A)</td><td>Downward sloping: high for low \(K\), low for high \(K\)</td></tr>
+<tr><td>Tails (Lecture 7)</td><td>Both: OTM calls (B) and OTM puts (C) have a higher chance of a big move than normal</td><td>Negative skewness: a higher chance of a large price <em>decrease</em></td></tr>
+<tr><td>What is dear</td><td>Both OTM calls and OTM puts</td><td>OTM puts (low \(K\)); OTM calls are comparatively cheap</td></tr>
+</table>
+</div>
+<p><em>Illustrative equity smirk</em> (3 months, \(S_0 = 100\); numbers invented to show the shape, not a data table): implied volatility 31% at \(K = 80\), 26% at 90, 22% at 100, 19% at 110, 18% at 120. A 110-strike call at a flat 22% would cost $1.44; at 19% it is $1.00 (exact \(N\), not table-rounded).</p>
+<p><strong>Why negative skew in equities?</strong> The lecture's reason is negative skewness in returns: crashes are more likely than equally large rallies. (Common supporting stories, not on the slides: investors buy index puts as crash insurance, and stocks tend to become more volatile when they fall. Currencies can jump either way, hence the symmetric smile.)</p>
+<p><strong>What assumptions are broken?</strong> (1) <strong>Constant \(\sigma\)</strong>: the market uses a different \(\sigma\) for each strike (and expiry), where BSM has one. (2) <strong>Lognormal prices</strong> (normal returns): real returns have fatter tails, and for equities a skew, which is what the smile and smirk reveal. The smile is a <em>symptom</em>, not a reason to throw BSM away: traders still quote prices in BSM volatility terms, with a different volatility for each strike.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>7.</strong> Implied volatilities of equity-index options at different strikes slope downward as \(K\) rises. The lecture's explanation is that:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Returns are positively skewed, so OTM calls are the dearest options</button>
+    <button class="opt" data-key="b">Returns are negatively skewed, so OTM puts are priced above BSM</button>
+    <button class="opt" data-key="c">Returns are perfectly normal, so volatility depends only on the strike</button>
+    <button class="opt" data-key="d">Returns are symmetric but fat-tailed, so both wings are equally dear</button>
+  </div>
+  <div class="why">Slide 36: equities show negative skewness (a higher chance of large price falls), so low-strike OTM puts are dear and have high implied volatility. (d) describes the currency smile.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>8.</strong> Currency options show a smile: implied volatility is lowest at the money and higher in both wings. Which BSM assumption does this contradict most directly?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">That returns are normal with one constant \(\sigma\) for every strike</button>
+    <button class="opt" data-key="b">That the risk-free rate is constant and the same for every strike</button>
+    <button class="opt" data-key="c">That the option is European and can only be exercised at expiry</button>
+    <button class="opt" data-key="d">That no arbitrage exists between the option and the underlying</button>
+  </div>
+  <div class="why">If \(\sigma\) were one constant, every strike would give the same implied volatility. A smile means the market is pricing fatter tails than a lognormal distribution with one \(\sigma\) allows.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>9.</strong> For the same equity, expiry and underlying, a 3-month 85-strike put has implied volatility 29% and a 3-month 115-strike call has 20%. If the market's skew became steeper (more fear of crashes), which is most likely?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The 115-strike call's implied volatility rises the most</button>
+    <button class="opt" data-key="b">Both implied volatilities fall equally at every strike</button>
+    <button class="opt" data-key="c">The smile turns into a flat line across the strikes</button>
+    <button class="opt" data-key="d">The 85-strike put's implied volatility rises the most</button>
+  </div>
+  <div class="why">A steeper smirk means the low-strike wing gets dearer relative to the rest: the OTM put's implied volatility rises most. A flat line would be the BSM-consistent world, the opposite of steeper.</div>
+</div>
+
+<h2>6 · The VIX: the market's fear gauge</h2>
+<p>The <strong>VIX</strong> is an index of the implied volatility of <strong>30-day options on the S&P 500</strong>, calculated from a wide range of calls and puts (slide 37). Its units are % p.a.: <strong>a VIX of 15 means 30-day S&P 500 implied volatility of 15% p.a.</strong> Because it is built from option prices and not from past returns, it is an implied (market-view) volatility, not a historical one.</p>
+<p><em>Common reading, not on the slides:</em> when option buyers pay up for protection (market stress, falls) option prices and so the VIX rise; the VIX is often called the market's "fear gauge". It measures how much the market expects prices to move, not the direction.</p>
+
+<h3>VIX futures</h3>
+<p>There are futures on the VIX (and options on the VIX). One contract is on <strong>1,000 times the index</strong>, so a one-point change in the futures price is $1,000. The lecture's example: buy April VIX futures at 18.5, close at 19.3, gain \((19.3 - 18.5)\times1000 = \$800\). Same method as any futures P&L (<a href="0001-futures-and-margin-accounts.html">Lesson 1</a>): long gains when the price rises, short gains when it falls.</p>
+<ul>
+  <li>Long 1 contract, buy at 16.40, close at 17.85: \((17.85 - 16.40)\times1000 = \) <strong>+$1,450</strong>.</li>
+  <li>Short 1 contract, sell at 22.10, close at 19.60: \((22.10 - 19.60)\times1000 = \) <strong>+$2,500</strong> (short gains as volatility falls).</li>
+  <li>Long 3 contracts, buy 20.00, close 18.50: \((18.50 - 20.00)\times1000\times3 = \) <strong>\(-\)$4,500</strong>.</li>
+</ul>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>10.</strong> The slide's VIX futures price rises from 18.5 to 19.3. What does 19.3 correspond to?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A 30-day S&amp;P 500 implied volatility of 19.3% per year, one point above 18.5</button>
+    <button class="opt" data-key="b">A 30-day S&amp;P 500 implied volatility of 19.3% per year, 0.8 above 18.5</button>
+    <button class="opt" data-key="c">A 30-day S&amp;P 500 index level of 19.3 points, 0.8 above the old level</button>
+    <button class="opt" data-key="d">A 30-day S&amp;P 500 historical volatility of 19.3% per year, as measured</button>
+  </div>
+  <div class="why">Slide 38: futures price 19.3 corresponds to 30-day S&amp;P 500 volatility of 19.3% pa; the rise is 19.3 \(-\) 18.5 = 0.8, worth 0.8 \(\times\) 1000 = $800 to the long. (a) miscounts the rise; (c) and (d) misread what the index is.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>11.</strong> The S&P 500 falls 4% in a week and the VIX jumps from 14 to 21. Which is the best reading (the fear-gauge link is a common reading, not on the slides)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Past volatility has been measured at 21%, so future volatility is fixed there</button>
+    <button class="opt" data-key="b">Investors expect a calmer market ahead, so they have sold index options</button>
+    <button class="opt" data-key="c">Investors now pay more for index options, so 30-day implied volatility rose</button>
+    <button class="opt" data-key="d">The VIX measures the price of the S&P 500, so its level rose with the index</button>
+  </div>
+  <div class="why">The VIX is an implied volatility: option prices went up. Typically (not always) it moves opposite to the index. (a) is historical; (b) is the reverse; (d) confuses the VIX with the index level.</div>
+</div>
+
+<h2>7 · Exam-style questions</h2>
+<p>Match past papers' length and rounding. About 2 minutes a mark. No Tutorial 7 question covers implied volatility, so these are original.</p>
+
+<h3>Question A (7 marks): find and use an implied volatility</h3>
+<div class="box">
+<p>A non-dividend-paying stock is $64. A 3-month European call has strike $65. \(r = 3.5\%\) p.a. continuously compounded. The call's market price is <strong>$3.30</strong>. A model gives these call values (to 2 dp):</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>\(\sigma\)</th><th>20%</th><th>22%</th><th>25%</th><th>30%</th><th>32%</th><th>35%</th></tr>
+<tr><td>Call value</td><td>2.35</td><td>2.61</td><td>2.99</td><td>3.63</td><td>3.88</td><td>4.26</td></tr>
+</table></div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>A(a).</strong> (1 mark) Between which two tabulated volatilities does the implied volatility lie?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Between 20% and 25%, where the call is worth less than $3.30</button>
+    <button class="opt" data-key="b">Between 30% and 35%, where the call is worth more than $3.30</button>
+    <button class="opt" data-key="c">Between 25% and 30%, where the call straddles the $3.30 price</button>
+    <button class="opt" data-key="d">Below 20%, because the strike is above the stock price</button>
+  </div>
+  <div class="why">2.99 (25%) is below 3.30 and 3.63 (30%) is above it.</div>
+</div>
+
+<div class="quiz num" data-answer="27.42" data-tol="0.05">
+  <p class="q"><strong>A(b).</strong> (2 marks) Linearly interpolate to estimate the implied volatility (% to 2 dp).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(25\% + \dfrac{3.30 - 2.99}{3.63 - 2.99}\times5\% = 25\% + 0.4844\times5\% = 27.42\%\). (Exact: 27.44%.)</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>A(c).</strong> (1 mark) Next day, with \(S_0\), \(K\), \(T\), \(r\) unchanged, the call's market price is $3.60. The implied volatility is now:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">About 29.8%, higher than before, as the price is higher at equal inputs</button>
+    <button class="opt" data-key="b">About 25.0%, lower than before, as the price is closer to 3.63</button>
+    <button class="opt" data-key="c">Still 27.4%, as implied volatility is fixed by the option contract</button>
+    <button class="opt" data-key="d">About 29.8%, since 3.60 is the model price at 30% exactly</button>
+  </div>
+  <div class="why">Price is increasing in \(\sigma\): 3.60 is just under the 3.63 at 30%, so about 29.8% (exact 29.79%). (d) is nearly right numerically but 3.63, not 3.60, belongs to 30%.</div>
+</div>
+
+<div class="quiz num" data-answer="0.69" data-tol="0.005">
+  <p class="q"><strong>A(d).</strong> (1 mark) An analyst forecasts volatility of 22% over the option's life. How much dearer than her fair value is the market price ($)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Her value is 2.61 (table, 22%). \(3.30 - 2.61 = \$0.69\).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>A(e).</strong> (2 marks) What position follows from her view, and what does it bet on?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Buy the call, betting the stock price will rise over the next 3 months</button>
+    <button class="opt" data-key="b">Write the call and delta hedge it, betting volatility will be lower than priced</button>
+    <button class="opt" data-key="c">Write the call and stay unhedged, betting volatility is higher than priced</button>
+    <button class="opt" data-key="d">Buy the call and delta hedge it, betting volatility will be lower than priced</button>
+  </div>
+  <div class="why">Implied 27.4% \(\gt\) her 22%: the call is rich, so sell it. Hedging with shares strips out the stock's direction, leaving a bet on volatility (it pays if realised volatility falls short of what the option priced). (d) pairs the wrong side with the right bet.</div>
+</div>
+
+<h3>Question B (6 marks): the VIX and its futures</h3>
+<div class="box"><p>The VIX stands at 24.0. One VIX futures contract is on 1,000 times the index.</p></div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>B(a).</strong> (1 mark) What does a VIX of 24.0 mean?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Implied volatility of 30-day S&amp;P 500 options is 24% per year</button>
+    <button class="opt" data-key="b">Historical volatility of the S&amp;P 500 over 30 days was 24% per year</button>
+    <button class="opt" data-key="c">The S&amp;P 500 is expected to rise 24% over the next 30 days</button>
+    <button class="opt" data-key="d">The S&amp;P 500 is expected to move 24 points over the next 30 days</button>
+  </div>
+  <div class="why">Slide 37: an index value of 15 means the calculated implied volatility of 30-day S&amp;P 500 options is 15% pa; so 24 means 24% pa. It is a volatility, not a return forecast or a point move.</div>
+</div>
+
+<div class="quiz num" data-answer="2700" data-tol="1">
+  <p class="q"><strong>B(b).</strong> (2 marks) A trader buys 2 VIX futures at 24.00 and closes them at 25.35. Profit ($)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\((25.35 - 24.00)\times1000\times2 = 1.35\times2000 = \$2{,}700\). Forgetting the 2 gives $1,350.</div>
+</div>
+
+<div class="quiz num" data-answer="-14000" data-tol="1">
+  <p class="q"><strong>B(c).</strong> (2 marks) A speculator buys 4 VIX futures at 21.70 and closes them at 18.20. Profit or loss ($, negative for a loss)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\((18.20 - 21.70)\times1000\times4 = -3.50\times4000 = -\$14{,}000\). She lost because she was long volatility and it fell. Forgetting the 4 gives \(-\$3{,}500\).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>B(d).</strong> (1 mark) Which investor profits from a rise in the VIX?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A short VIX futures holder, as a short gains when the price rises</button>
+    <button class="opt" data-key="b">A holder of a stock portfolio with no hedge, as shares rise with fear</button>
+    <button class="opt" data-key="c">A writer of S&P 500 puts, as put premiums received rise with fear</button>
+    <button class="opt" data-key="d">A long VIX futures holder, as a long gains when the price rises</button>
+  </div>
+  <div class="why">Long futures gain when the futures price rises. A put writer is hurt (the puts become dearer to buy back, and the index usually falls).</div>
+</div>
+
+<h3>Question C (6 marks): a put, parity and the smirk</h3>
+<div class="box"><p>A stock is $40, pays no dividends, \(r = 5\%\), and a 6-month European put with strike $38 trades at <strong>$1.10</strong>. Model put values: \(\sigma = 18\%\): 0.83; 22%: 1.20; 26%: 1.59.</p></div>
+
+<div class="quiz num" data-answer="20.92" data-tol="0.05">
+  <p class="q"><strong>C(a).</strong> (2 marks) Interpolate for the put's implied volatility (% to 2 dp).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">1.10 lies between 0.83 (18%) and 1.20 (22%): \(18\% + \dfrac{1.10 - 0.83}{1.20 - 0.83}\times4\% = 18\% + 0.7297\times4\% = 20.92\%\). (Exact 20.95%.)</div>
+</div>
+
+<div class="quiz num" data-answer="4.04" data-tol="0.01">
+  <p class="q"><strong>C(b).</strong> (2 marks) What is the market price of the European call with the same strike and expiry, if parity holds? And will its implied volatility differ from the put's? (Enter the call price, $.)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(c = p + S_0 - Ke^{-rT} = 1.10 + 40 - 38e^{-0.025} = 1.10 + 40 - 37.0612 = \$4.04\). Parity involves prices, not volatilities, so at BSM prices the call and put have the <strong>same</strong> implied volatility (20.95%, checked numerically).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>C(c).</strong> (2 marks) A colleague says "this put is out of the money, so for an equity its implied volatility is likely to be above that of the at-the-money option". The best reason is:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Positive skew in returns makes OTM puts less likely to pay off than BSM says</button>
+    <button class="opt" data-key="b">Negative skew in returns makes OTM puts more likely to pay off than BSM says</button>
+    <button class="opt" data-key="c">Lower strikes imply higher interest rates, which lifts the BSM put price</button>
+    <button class="opt" data-key="d">Lower strikes imply longer maturities, which lifts the BSM put price</button>
+  </div>
+  <div class="why">Equity smirk: more chance of large falls than normal, so OTM puts cost more than flat-volatility BSM and their implied volatility is higher.</div>
+</div>
+
+<h3>Question D (6 marks, short answer, the sample-exam style)</h3>
+<p>"Explain implied volatility and why it matters. Illustrate with the VIX." Write it before opening the model answer.</p>
+<details><summary>Model answer and mark checklist</summary><div>
+<ul>
+  <li><strong>Definition (1 to 2):</strong> the \(\sigma\) that makes the BSM price equal the market price; found iteratively (monotone: price increases with \(\sigma\)) because BSM cannot be inverted.</li>
+  <li><strong>Meaning (1 to 2):</strong> forward-looking market view of future volatility over the option's life, unlike historical volatility; lets you compare options across strikes and expiries; rich/cheap against your view.</li>
+  <li><strong>Smile/smirk (1):</strong> implied volatility varies with strike (smile in currencies, smirk in equities), so BSM's constant \(\sigma\) and lognormality do not hold exactly.</li>
+  <li><strong>VIX (1 to 2):</strong> implied volatility of 30-day S&P 500 options; VIX 15 = 15% p.a.; barometer of fear that rises in stress; there are VIX futures (1,000 times the index).</li>
+</ul>
+</div></details>
+
+<h2>8 · Before you close this tab</h2>
+<div class="box"><p><strong>Rule of thumb.</strong> <em>Implied volatility is the option price in volatility units.</em> Find it by bracketing (price rises with \(\sigma\)) then interpolating. Price up \(\Rightarrow\) implied volatility up (same strike, \(S_0\), \(T\), \(r\)). Implied \(\gt\) your forecast: dear, sell; \(\lt\): cheap, buy; a bet on how much, not which way. Equity smirk (OTM puts dear) and currency smile = fat tails and skew, so BSM's one constant \(\sigma\) is wrong. VIX 15 = 30-day S&amp;P 500 implied volatility of 15% p.a.; VIX futures P&amp;L = change \(\times\) 1,000 \(\times\) contracts.</p></div>
+
+<details><summary>Retrieval: define implied volatility; why price is monotone in it; give the interpolation formula; say which strikes are dear in an equity smirk and why; state what the VIX 15 means; give the VIX futures P&amp;L formula. Then check</summary><div>
+<p>The \(\sigma\) that sets BSM price = market price. Price increases with \(\sigma\) (bigger spread, floor at zero), so bracket and search. \(\sigma = \sigma_{lo} + \frac{c_{mkt} - c_{lo}}{c_{hi} - c_{lo}}(\sigma_{hi} - \sigma_{lo})\). Equity: OTM puts, because returns have negative skew (bigger chance of large falls than normal). VIX 15: 30-day S&P 500 implied volatility 15% p.a. P&amp;L = (close \(-\) open for a long) \(\times1000\times\) contracts.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/Lecture%207_BSM.pdf">Lecture 7</a>, slides 33 to 38 (implied volatility, the 3-month call example, where option prices come from, smiles and smirks, the VIX and the VIX futures example). Textbook: Hull, <em>Options, Futures and Other Derivatives</em>, the volatility smile chapter and the VIX section (chapter numbers vary by edition).</p>
+
+<p><strong>Homework (about 3 parts):</strong> Tutorial 7 has no implied-volatility question, so use this lesson: Question A (b), (d) and (e); Question B (a), (b) and (c); Question C (a) and (b), then write Question D from a blank page in 8 minutes. <em>Optional:</em> redo the lecture slide-34 example (\(S_0 = 21\), \(K = 20\), \(r = 10\%\), 3 months, price 2.10) in the stepper above and confirm about 30%; invent a market price for the lesson's worked option and predict whether the implied volatility is above or below 27.6% before running it.</p>
+<details><summary>Homework answers (hidden)</summary><div>
+<p>A(b) 27.42%; A(d) $0.69; A(e) write and delta hedge. B(a) 30-day S&amp;P 500 implied volatility 24% pa; B(b) $2,700; B(c) \(-\$14{,}000\). C(a) 20.92%; C(b) $4.04, same implied volatility as the put. Slide-34 example: 29.97%.</p>
+</div></details>
+<p><strong>Spacing:</strong> tomorrow redo A and C from blank pages; in three days, B(a) to (c) and Question D cold.</p>
+
+<div class="ask">💬 Stuck on bracketing or interpolating, or on which way a position goes when volatility moves? Paste your working in the terminal and ask me: I'm your teacher for this. Ask for fresh implied-volatility tables or VIX questions at exam length.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0025-bsm-as-the-limit-of-the-binomial-tree.html">Lesson 25, BSM as the limit of the tree</a></span>
+  <span>Reference: <a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0027-blacks-model-futures-options-and-fx.html">Lesson 27, Black's model, futures options and FX</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

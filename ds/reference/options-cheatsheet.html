@@ -62,6 +62,39 @@ $$c-p=S_0-D-Ke^{-rT}=(F_0-K)e^{-rT}$$
 
 <h2>Early exercise <span class="kicker">· <a href="../lessons/0015-early-exercise-of-american-options.html">Lesson 15</a></span></h2>
 <p>No dividends: \(C=c\), never exercise an American call early (\(C\ge S-Ke^{-rT}&gt;S-K\); selling beats exercising). With dividends: only just before an ex-date, and not if \(D\le K(1-e^{-r\tau})\). American put: exercise early when deep ITM; more likely with \(r\uparrow\), \(\sigma\downarrow\), deeper ITM; less likely with \(\sigma\uparrow\), \(T\uparrow\). Exercise beats selling only when time value ≈ 0. \(P>p\) is possible because \(p\le Ke^{-rT}\) but \(P\) can reach \(K\).</p>
+
+<h2>Binomial trees <span class="kicker">· Lessons <a href="../lessons/0016-one-period-binomial-replication.html">16</a>–<a href="../lessons/0021-binomial-trees-for-futures-options.html">21</a></span></h2>
+<div class="box">
+$$u=e^{\sigma\sqrt{\Delta t}},\; d=\tfrac1u,\; p=\frac{e^{r\Delta t}-d}{u-d},\; f=e^{-r\Delta t}[pf_u+(1-p)f_d],\; \Delta=\frac{f_u-f_d}{S_u-S_d}$$
+</div>
+<table>
+<tr><th>Case</th><th>\(p\)</th><th>Node value</th></tr>
+<tr><td>Stock, European</td><td>\((e^{r\Delta t}-d)/(u-d)\)</td><td>discounted expectation</td></tr>
+<tr><td>Stock, American</td><td>same</td><td>max(hold, exercise)</td></tr>
+<tr><td>Stock, yield \(q\) / currency</td><td>\((e^{(r-q)\Delta t}-d)/(u-d)\)</td><td>as above</td></tr>
+<tr><td>Futures underlying</td><td>\((1-d)/(u-d)\)</td><td>as above, discount at \(r\)</td></tr>
+</table>
+<p>Steps: (1) \(\Delta t\) in years, \(u,d,p\) to 4 dp; (2) stock tree; (3) option values at the end; (4) backward, American: max with exercise at every node; (5) \(\Delta\) at each node. Hedge: long put or short call needs long shares; the hedge changes at each node (rebalance). Arbitrage: option dearer than tree value, sell it and hold \(\Delta\) shares; cheaper, buy it and short \(\Delta\) shares. American call, no dividends: never exercised early.</p>
+<div class="trap"><strong>Traps</strong><br>\(\Delta t\) not in years · real-world probability used for \(p\) · only taking the max at \(t=0\) on an American put · stock \(p\) used on a futures tree · \(2p(1-p)\) shortcut on an American option</div>
+
+<h2>Black-Scholes-Merton <span class="kicker">· Lessons <a href="../lessons/0022-normal-and-lognormal-stock-prices.html">22</a>–<a href="../lessons/0028-bsm-capstone-exam-style-practice.html">28</a></span></h2>
+<div class="box">
+$$c=S_0N(d_1)-Ke^{-rT}N(d_2),\; p=Ke^{-rT}N(-d_2)-S_0N(-d_1)$$
+$$d_1=\frac{\ln(S_0/K)+(r+\sigma^2/2)T}{\sigma\sqrt T},\; d_2=d_1-\sigma\sqrt T,\; N(-x)=1-N(x)$$
+</div>
+<table>
+<tr><th>Underlying</th><th>Replace \(S_0\) by</th><th>\(d_1\) uses</th></tr>
+<tr><td>Stock, dividends in life</td><td>\(S_0-PV(D)\) (only dividends before expiry)</td><td>\(r\)</td></tr>
+<tr><td>Index / currency</td><td>\(S_0e^{-qT}\) (\(q=r_f\))</td><td>\(r-q\)</td></tr>
+<tr><td>Futures (Black)</td><td>\(F_0e^{-rT}\): \(c=e^{-rT}[F_0N(d_1)-KN(d_2)]\)</td><td>\(\ln(F_0/K)+\sigma^2T/2\), no \(r\)</td></tr>
+</table>
+<p><strong>Lognormal (L22):</strong> \(\ln S_T\sim\varphi(\ln S_0+(\mu-\sigma^2/2)T,\ \sigma^2T)\), second slot a variance. \(E[S_T]=S_0e^{\mu T}\), median \(S_0e^{(\mu-\sigma^2/2)T}\). 95% interval: logs \(\pm1.96\) s.d., then exponentiate (asymmetric). Real-world exercise probability uses \(\mu\); risk-neutral is \(N(d_2)\).</p>
+<p><strong>Hedge (L23):</strong> call \(\Delta=N(d_1)\), put \(N(d_1)-1\); shares \(=|\Delta|\times\) options. Written call / bought put: long shares. \(\mu\) absent from the formula. Limits: \(S\to\infty\), \(c\to S-Ke^{-rT}\); \(S\to0\), \(p\to Ke^{-rT}-S\).</p>
+<p><strong>Computing (L24):</strong> \(d_2=d_1-\sigma\sqrt T\) from unrounded \(d_1\), then round both to 2dp; \(N\) to 4dp from the formula-sheet tables (pp.5–6, both \(x\le0\) and \(x\ge0\), no interpolation; obey the paper if it says otherwise); contract size inside, round once at the end; years not months. Check with parity \(c-p=S_0-Ke^{-rT}\) and bounds. At the forward \(c\approx0.4S_0\sigma\sqrt T\).</p>
+<p><strong>Tree link (L25):</strong> BSM \(=\) tree as \(N\to\infty\) (\(u=e^{\sigma\sqrt{\Delta t}}\)), same risk-neutral logic, European only. Error ~\(1/N\); ATM odd \(N\) high, even low. 2-mark answer: more steps, converges, risk-neutral both, European.</p>
+<p><strong>Implied vol (L26):</strong> price increasing in \(\sigma\): bracket, interpolate \(\sigma_{lo}+\frac{c_{mkt}-c_{lo}}{c_{hi}-c_{lo}}(\sigma_{hi}-\sigma_{lo})\). Above your forecast: rich (sell). Equity smirk, currency smile. VIX 15 = 15% p.a.; futures \(\times1000\) (buy 18.5, close 19.3, 1 contract: +$800).</p>
+<p><strong>Black (L27):</strong> \(c-p=e^{-rT}(F_0-K)\); \(F_0=K\Rightarrow c=p\). Higher \(r\) lowers both \(c\) and \(p\) (discounting only). Multiply by contract size last.</p>
+<div class="trap"><strong>Traps</strong><br>\(\sigma^2T\) read as s.d. · months for \(T\) · \(d_2\) in place of \(d_1\) in the stock term · \(N(-d)\) read off as \(N(d)\) · \(r\) put inside Black's \(d_1\) · spot instead of \(F_0\) · missing contract multiplier · dividend after expiry subtracted · \(\mu\) vs \(r\) in exercise probability</div>
 </main>
 </body>
 </html>

@@ -144,7 +144,7 @@ Deep ITM alone isn't the condition for a put either. The condition is: interest 
 <h2>5 · Early exercise versus selling, and "other possible reasons"</h2>
 <p><strong>Selling beats exercising whenever the option still has time value.</strong> A put at $19.10 with intrinsic $18 is worth more sold than exercised ($1.10 of time value). Exercise is the better exit only when the market price has collapsed onto intrinsic value (time value \(\approx 0\)). Then selling and exercising pay the same, and exercising earns the interest (puts) or captures the dividend (calls).</p>
 <p>Lecture 4 slide 22 lists "other possible reasons" for early put exercise: <strong>volatility decreases</strong> and <strong>interest rates increase</strong>. Those are exactly the two forces above (less insurance value, more interest on the strike). Practical reasons also exist (the holder needs cash, or cannot sell the option because the market is illiquid), but exam answers use the economic ones.</p>
-<p>In the binomial tree (Lessons 16–17, coming) you apply this mechanically: at each node compare the continuation value (hold) with the intrinsic value (exercise now) and take the larger. For a non-dividend call that never picks "exercise"; for a put it sometimes does at the low-price nodes.</p>
+<p>In the binomial tree (Lessons 16–19) you apply this mechanically: at each node compare the continuation value (hold) with the intrinsic value (exercise now) and take the larger. For a non-dividend call that never picks "exercise"; for a put it sometimes does at the low-price nodes.</p>
 
 <h2>6 · Try it: would exercising now beat holding?</h2>
 <p>This widget uses <strong>bound-style logic, not a pricing model</strong>. It compares what exercising gains (call: the dividend \(D\), put: interest earned on the intrinsic \(K-S\) over \(T\)) with what holding offers (interest saved on the strike, the dividend that the put holder gets free, and a rough "insurance value" placeholder that peaks when \(S\approx K\), grows with \(\sigma\sqrt{T}\), and fades when deep in or out of the money). The placeholder is illustrative only. \(\sigma\) is chosen as a qualitative level (low 15%, medium 30%, high 50%). The dividend is assumed to go ex essentially immediately.</p>
@@ -480,7 +480,7 @@ Deep ITM alone isn't the condition for a put either. The condition is: interest 
 <div class="nav" id="next">
   <span>Previous: <a href="0014-put-call-parity.html">Lesson 14, put-call parity</a></span>
   <span>Topic 4: <a href="0011-options-payoffs-profits-and-moneyness.html">L11</a> · <a href="0012-factors-affecting-option-prices.html">L12</a> · <a href="0013-bounds-on-option-prices.html">L13</a> · <a href="0014-put-call-parity.html">L14</a> · <a href="../reference/glossary.html">Glossary</a></span>
-  <span>Next: Lesson 16, binomial trees (coming)</span>
+  <a href="0016-one-period-binomial-replication.html">Next: Lesson 16, one-period binomial trees</a>
 </div>
 
 <div class="score" data-score></div>

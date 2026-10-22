@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two-Step Binomial Trees</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/binomial-tree.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 18 · Topic 5: Binomial trees</div>
+<h1>Two-step trees: chain the one-step idea, get u and d from volatility</h1>
+<p class="lede">The goal: from \(S_0\), \(K\), \(r\), \(\sigma\) and \(T\), build a two-step (or three-step) tree, value a European call or put by working backwards, check it with the direct formula and with put-call parity, and give the hedge (\(\Delta\)) at every node, including how it must be rebalanced after the first move.</p>
+
+<div class="mission">Why this matters for 5 Nov: a binomial tree has been in every final seen. The 2025 final opened with a 10-mark question built exactly like this lesson: a two-step European put with \(u\) from \(\sigma\), then the hedge at \(t=0\), then "does that \(\Delta\) still hedge at \(t=1\)?", then a conceptual statement on risk-neutral valuation. Other papers give the moves as percentages ("up 10%, down 15% each month") or use three steps (often American, which is <a href="0019-american-options-on-trees.html">Lesson 19</a>). Expect 4-decimal working and about 2 minutes per mark.</div>
+
+<p>This lesson assumes <a href="0016-one-period-binomial-replication.html">Lesson 16</a> (one step, the riskless hedge \(\Delta\)) and <a href="0017-risk-neutral-valuation.html">Lesson 17</a> (risk-neutral \(p\) and \(f = e^{-r\Delta t}[pf_u + (1-p)f_d]\)). Here nothing new is priced: we just repeat that one-step formula at every node.</p>
+
+<p><strong>Notation (Lecture 5, Hull Ch. 13).</strong> \(\Delta t\) (delta-t) is the length of <em>one step</em> in years: \(\Delta t = T/n\) for \(n\) steps. A <strong>node</strong> is one possible (time, price) point on the tree. \(f_u\), \(f_d\) are option values after one up or down move; \(f_{uu}\), \(f_{ud}\), \(f_{dd}\) after two moves. \(\sigma\) (sigma) is the stock's <strong>volatility</strong>: the standard deviation of its continuously compounded annual return. The lecture labels the two-step nodes A (today), B (up), C (down), D, E, F (expiry, top to bottom).</p>
+
+<h2>1 · Why more steps?</h2>
+
+<p>A one-step tree lets the stock end at only two prices. Real stocks can end almost anywhere, so one step is crude. The fix is to cut the option's life into several short steps, each one a small one-step tree. After two steps there are more possible end prices; after many steps the spread of end prices looks realistic.</p>
+
+<p><strong>Predict first:</strong> after two steps (up then down, or down then up, or two ups, or two downs), how many <em>different</em> stock prices are there at expiry? Four paths, but how many prices?</p>
+<details><summary>Reveal: three, because up-then-down = down-then-up</summary><div>
+<p>\(S_0ud = S_0du\), so the two middle paths land on the same node. The tree <strong>recombines</strong>: after \(n\) steps there are \(n+1\) end prices, \(S_0u^jd^{\,n-j}\) for \(j = 0, \dots, n\) up moves (Lecture 6, slide 10). With \(d = 1/u\) the middle node after two steps is exactly \(S_0\) again.</p>
+<p>That middle node is reached by <strong>two</strong> paths. Remember that: it is where the "2" in the direct formula (section 4) comes from.</p>
+</div></details>
+
+<h2>2 · Building the tree: u, d and p</h2>
+
+<p>The exam gives the moves one of two ways.</p>
+<ol>
+  <li><strong>As percentages</strong> ("rises 6% or falls 5% each 3 months"): \(u = 1.06\), \(d = 0.95\). Tutorial 5 Q2 and the 2022 final did this.</li>
+  <li><strong>From volatility</strong> (the usual way, Lecture 5 slide 28):
+  $$u = e^{\sigma\sqrt{\Delta t}}, \qquad d = \frac{1}{u} = e^{-\sigma\sqrt{\Delta t}}.$$</li>
+</ol>
+<p><strong>Intuition.</strong> A stock's spread of returns grows with the <em>square root</em> of time: over one step it is \(\sigma\sqrt{\Delta t}\). So \(\sigma\sqrt{\Delta t}\) is "one typical move" over a step, and \(u\) is that move up, \(d\) the same move down. Higher \(\sigma\) means a wider tree; more (shorter) steps means smaller moves per step.</p>
+
+<p>Then the risk-neutral probability of an up move, exactly as in Lesson 17 but with the step length:</p>
+$$p = \frac{e^{r\Delta t} - d}{u - d}, \qquad 1 - p = \frac{u - e^{r\Delta t}}{u - d}.$$
+<p>It is the same at every node (same \(u\), \(d\), \(r\), \(\Delta t\)), so you compute it once.</p>
+
+<div class="trap"><strong>Step-length slips</strong><br>
+(1) Using \(T\) instead of \(\Delta t\) in \(u\), in \(p\) or in the discount factor. Six months in two steps means \(\Delta t = 0.25\) everywhere. (2) \(\sigma\) and \(r\) are <em>per annum</em>; months must become years (1 month \(= 1/12\)). (3) \(\sqrt{\Delta t}\), not \(\Delta t\). (4) If \(p\) comes out below 0 or above 1, you have made an error (a valid tree needs \(d \lt e^{r\Delta t} \lt u\)).</div>
+
+<div class="quiz num" data-answer="1.1275" data-tol="0.0005">
+  <p class="q"><strong>1.</strong> A stock has \(\sigma = 24\%\). A 6-month option is valued with a two-step tree. What is \(u\) (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\Delta t = 0.5/2 = 0.25\), \(\sigma\sqrt{\Delta t} = 0.24 \times 0.5 = 0.12\), \(u = e^{0.12} = 1.1275\) and \(d = e^{-0.12} = 0.8869\). Using \(\Delta t\) without the square root gives \(e^{0.06} = 1.0618\); using \(T = 0.5\) gives \(e^{0.1697} = 1.1850\).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> Same option, same \(\sigma\), but you switch from a two-step to a four-step tree. What happens to \(u\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It doubles, as there are now twice as many steps</button>
+    <button class="opt" data-key="b">It is unchanged, as volatility has not changed at all</button>
+    <button class="opt" data-key="c">It moves closer to 1, as each step is now shorter in time</button>
+    <button class="opt" data-key="d">It rises, as the tree now covers a wider range of prices</button>
+  </div>
+  <div class="why">\(\Delta t\) halves to 0.125, so \(\sigma\sqrt{\Delta t} = 0.24\times0.3536 = 0.0849\) and \(u = 1.0886\), closer to 1. Each step is smaller, but there are more of them, so the range of end prices is similar (it actually widens slightly, as \(u^4 = e^{0.34} \gt u^2 = e^{0.24}\)).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>3.</strong> Analysts revise the real-world chance of an up move from 50% to 70%. Nothing else in the tree changes (\(S_0\), \(u\), \(d\), \(r\), \(\Delta t\)). The risk-neutral \(p\):</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Rises to 0.70, as it must match the real-world chance</button>
+    <button class="opt" data-key="b">Is unchanged, as it depends only on \(u\), \(d\), \(r\), \(\Delta t\)</button>
+    <button class="opt" data-key="c">Rises, though by less than the real-world chance does</button>
+    <button class="opt" data-key="d">Falls, as investors now demand a higher expected return</button>
+  </div>
+  <div class="why">\(p = (e^{r\Delta t} - d)/(u - d)\) has no real-world probability in it (Tutorial 5 Q4). The option price is therefore unchanged too, <em>given</em> \(S_0\). The real-world view can still matter indirectly by moving \(S_0\) itself; section 6, part (f) of the exam-style question returns to this.</div>
+</div>
+
+<h2>3 · Working backwards: the worked example</h2>
+
+<p>The method is called <strong>backward induction</strong>: you know the option's value at expiry (it is just the payoff), so you start there and step back one column at a time, applying the one-step formula at every node.</p>
+<ol class="steps">
+  <li><strong>Parameters.</strong> \(\Delta t = T/n\); \(u\), \(d\); \(e^{r\Delta t}\); \(p\) and \(1 - p\); the one-step discount factor \(e^{-r\Delta t}\).</li>
+  <li><strong>Stock tree</strong> forward: multiply by \(u\) going up and \(d\) going down.</li>
+  <li><strong>Payoffs</strong> at the last column: \(\max(S - K, 0)\) for a call, \(\max(K - S, 0)\) for a put.</li>
+  <li><strong>Roll back</strong> each earlier node: \(f = e^{-r\Delta t}\,[\,p\,f_{\text{up}} + (1-p)\,f_{\text{down}}\,]\), using the two nodes it branches to.</li>
+  <li><strong>Check</strong> with the direct formula (section 4) or put-call parity.</li>
+</ol>
+
+<div class="box">
+<p><strong>Worked base case (used all through this lesson).</strong> \(S_0 = \$40\), \(K = \$42\), \(r = 5\%\), \(\sigma = 20\%\), \(T = 6\) months, two steps. Value the European call.</p>
+<p><strong>Predict first:</strong> the call is out of the money today (\(40 \lt 42\)). Is it worth more or less than $2? Which of the three end nodes pay off?</p>
+</div>
+
+<details><summary>Step 1–2: parameters and stock tree</summary><div>
+<p>\(\Delta t = 0.25\). \(\sigma\sqrt{\Delta t} = 0.2\times0.5 = 0.1\), so \(u = e^{0.1} = 1.1052\), \(d = e^{-0.1} = 0.9048\).<br>
+\(e^{r\Delta t} = e^{0.0125} = 1.0126\), so \(p = \dfrac{1.0126 - 0.9048}{1.1052 - 0.9048} = 0.5378\), \(1 - p = 0.4622\).</p>
+<p>Stock: \(S_u = 44.2068\), \(S_d = 36.1935\); \(S_{uu} = 48.8561\), \(S_{ud} = 40.0000\), \(S_{dd} = 32.7492\).</p>
+<p><em>Calculator tip:</em> with \(d = 1/u\), the middle node is exactly \(S_0\). If you get 39.9994 you multiplied rounded \(u\) and \(d\); write 40.</p>
+</div></details>
+
+<details><summary>Step 3–4: payoffs and roll back</summary><div>
+<p>Call payoffs: \(f_{uu} = 48.8561 - 42 = 6.8561\), \(f_{ud} = 0\) (40 is below 42), \(f_{dd} = 0\). Only <em>one</em> end node pays.</p>
+<p>Node B (up): \(f_u = e^{-0.0125}(0.5378\times6.8561 + 0.4622\times0) = 3.6415\).<br>
+Node C (down): \(f_d = 0\) (both branches pay nothing).<br>
+Node A (today): \(f = e^{-0.0125}(0.5378\times3.6415 + 0.4622\times0) = \mathbf{1.9341}\), so \(c = \mathbf{\$1.93}\).</p>
+</div></details>
+
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Node</th><th>Time</th><th>\(S\)</th><th>Call \(f\)</th><th>Put \(f\) (\(K = 42\))</th></tr>
+<tr><td>A</td><td>0</td><td>40.0000</td><td>1.9341</td><td>2.8971</td></tr>
+<tr><td>B (up)</td><td>0.25</td><td>44.2068</td><td>3.6415</td><td>0.9129</td></tr>
+<tr><td>C (down)</td><td>0.25</td><td>36.1935</td><td>0</td><td>5.2848</td></tr>
+<tr><td>D (uu)</td><td>0.5</td><td>48.8561</td><td>6.8561</td><td>0</td></tr>
+<tr><td>E (ud)</td><td>0.5</td><td>40.0000</td><td>0</td><td>2.0000</td></tr>
+<tr><td>F (dd)</td><td>0.5</td><td>32.7492</td><td>0</td><td>9.2508</td></tr>
+</table>
+</div>
+
+<h3>The put on the same tree, and the parity check</h3>
+<p><strong>Predict first:</strong> the put with \(K = 42\) is in the money today. Which end nodes pay now? Will the put be worth more or less than the call?</p>
+<details><summary>Reveal: the put, by tree and by parity</summary><div>
+<p>Payoffs: \(f_{uu} = 0\), \(f_{ud} = 42 - 40 = 2\), \(f_{dd} = 42 - 32.7492 = 9.2508\). Two end nodes pay.</p>
+<p>B: \(e^{-0.0125}(0.5378\times0 + 0.4622\times2) = 0.9129\).<br>
+C: \(e^{-0.0125}(0.5378\times2 + 0.4622\times9.2508) = 5.2848\).<br>
+A: \(e^{-0.0125}(0.5378\times0.9129 + 0.4622\times5.2848) = \mathbf{2.8971}\), so \(p_{\text{put}} = \mathbf{\$2.90}\).</p>
+<p><strong>Parity</strong> (<a href="0014-put-call-parity.html">Lesson 14</a>): \(p = c + Ke^{-rT} - S_0 = 1.9341 + 42e^{-0.025} - 40 = 1.9341 + 40.9630 - 40 = 2.8971\) ✓. Exact agreement: a European tree always satisfies parity (Tutorial 5 Q3 asks you to verify this). So in an exam, value one option on the tree and get the other from parity, or use parity as your check.</p>
+</div></details>
+
+<div class="trap"><strong>Two names for p</strong><br>
+In this topic \(p\) is the risk-neutral probability; in Lesson 14 \(p\) was a put price. Write "put" or \(P_E\) for the put in a tree question to avoid mixing them up. Also: the discount factor in the roll-back is <em>one step</em>, \(e^{-r\Delta t}\), never \(e^{-rT}\).</div>
+
+<h3>Scenarios: what moves the price?</h3>
+<p>Same base tree. <strong>Predict first</strong> for each change: does the call rise or fall? The put?</p>
+<ol>
+  <li>\(\sigma\) rises to 30%.</li>
+  <li>\(r\) rises to 10%.</li>
+  <li>\(K\) falls to 38.</li>
+  <li>\(S_0\) rises to 44.</li>
+  <li>\(T\) becomes 1 year (still two steps, so \(\Delta t = 0.5\)).</li>
+  <li>The real-world chance of an up move rises to 80%.</li>
+</ol>
+<details><summary>Reveal the scenario table (all two-step, recomputed)</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Scenario</th><th>\(u\)</th><th>\(p\)</th><th>Call</th><th>Put</th><th style="text-align:left">Why</th></tr>
+<tr><td>Base</td><td>1.1052</td><td>0.5378</td><td>1.93</td><td>2.90</td><td style="text-align:left">—</td></tr>
+<tr><td>1. \(\sigma = 30\%\)</td><td>1.1618</td><td>0.5043</td><td>2.98</td><td>3.94</td><td style="text-align:left">Wider tree: bigger best-case payoffs; both up by the same 1.04 (parity)</td></tr>
+<tr><td>2. \(r = 10\%\)</td><td>1.1052</td><td>0.6014</td><td>2.36</td><td>2.31</td><td style="text-align:left">\(p\) rises (stock must grow faster on average): call up, put down</td></tr>
+<tr><td>3. \(K = 38\)</td><td>1.1052</td><td>0.5378</td><td>4.03</td><td>1.09</td><td style="text-align:left">Same tree, new payoffs: two call nodes pay now</td></tr>
+<tr><td>4. \(S_0 = 44\)</td><td>1.1052</td><td>0.5378</td><td>4.28</td><td>1.25</td><td style="text-align:left">Every stock price scales up by 1.1</td></tr>
+<tr><td>5. \(T = 1\)</td><td>1.1519</td><td>0.5539</td><td>3.23</td><td>3.18</td><td style="text-align:left">Longer steps: wider tree and more interest</td></tr>
+<tr><td>6. Real-world 80% up</td><td>1.1052</td><td>0.5378</td><td>1.93</td><td>2.90</td><td style="text-align:left">Not an input: no change (given \(S_0\))</td></tr>
+</table>
+</div>
+<p>Patterns, the same as Lesson 12's factor table: \(\sigma\) raises both; \(r\) and \(S_0\) help calls and hurt puts; \(K\) does the reverse; \(p\) moves only with \(r\), \(\sigma\), \(\Delta t\) (never with \(K\) or \(S_0\)).</p>
+</div></details>
+
+<h2>4 · The shortcut: one formula for a European option</h2>
+
+<p>Substitute the node-B and node-C formulas into node A and the algebra collapses (Tutorial 6 Q2 asks you to show this):</p>
+$$f = e^{-2r\Delta t}\left[\,p^2 f_{uu} + 2p(1-p)\,f_{ud} + (1-p)^2 f_{dd}\,\right].$$
+<p><strong>Read it as an expected payoff</strong> under risk-neutral probabilities, discounted over the whole life \(T = 2\Delta t\). Two ups have probability \(p^2\); the middle node is reached by up-down <em>or</em> down-up, so \(2p(1-p)\); two downs \((1-p)^2\).</p>
+<p>Base call: only \(f_{uu}\) is non-zero, so \(c = e^{-0.025}\times0.5378^2\times6.8561 = 0.97531\times0.28924\times6.8561 = 1.9341\) ✓. One line on the calculator.</p>
+<p><strong>Three steps</strong>: same idea, with the counts of paths 1, 3, 3, 1:</p>
+$$f = e^{-3r\Delta t}\left[\,p^3 f_{uuu} + 3p^2(1-p)\,f_{uud} + 3p(1-p)^2 f_{udd} + (1-p)^3 f_{ddd}\,\right].$$
+
+<div class="trap"><strong>When the shortcut is not enough</strong><br>
+(1) It gives only today's value: questions asking for \(\Delta\) at \(t = 0\) or at \(t = 1\) need \(f_u\) and \(f_d\), so roll back anyway. (2) It is for European options only. American options need the node-by-node check for early exercise (<a href="0019-american-options-on-trees.html">Lesson 19</a>). (3) Forgetting the 2 (or the 3s) is the classic slip: there are two routes to the middle.</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>4.</strong> In a two-step tree, why does \(f_{ud}\) carry the weight \(2p(1-p)\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Two different paths, up-down and down-up, end at that node</button>
+    <button class="opt" data-key="b">The middle node is twice as likely as the top one in real life</button>
+    <button class="opt" data-key="c">It has to be discounted over two steps instead of over one step</button>
+    <button class="opt" data-key="d">The weights must add to 2 because there are two time steps</button>
+  </div>
+  <div class="why">Each path to \(S_0ud\) has risk-neutral probability \(p(1-p)\), and there are two of them. The three weights add to \(p^2 + 2p(1-p) + (1-p)^2 = (p + 1 - p)^2 = 1\), not 2. Discounting is the separate factor \(e^{-2r\Delta t}\).</div>
+</div>
+
+<div class="quiz num" data-answer="4.49" data-tol="0.01">
+  <p class="q"><strong>5.</strong> A stock is $100 and moves up 5% or down 5% each month. \(r = 6\%\). Use a three-step tree and the direct formula to value a 3-month European call with \(K = \$100\).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(u = 1.05\), \(d = 0.95\), \(\Delta t = 1/12\), \(e^{0.005} = 1.0050\), \(p = (1.0050 - 0.95)/0.10 = 0.5501\).<br>
+  End prices: 115.7625, 104.7375, 94.7625, 85.7375 (here \(ud = 0.9975 \ne 1\), so the middle nodes are not 100). Call payoffs 15.7625, 4.7375, 0, 0.<br>
+  \(c = e^{-0.015}[\,0.5501^3\times15.7625 + 3\times0.5501^2\times0.4499\times4.7375\,] = 0.98511\times[0.16649\times15.7625 + 0.40845\times4.7375] = \$4.49\). Dropping the 3 gives 3.22.</div>
+</div>
+
+<h2>5 · Delta at every node, and why the hedge must be rebalanced</h2>
+
+<p>From Lesson 16: <strong>delta</strong> \(\Delta\) is the number of shares that, held against one written option, makes the position riskless over the next step. In a tree it is computed <em>separately at each node</em> from the two nodes that follow it:</p>
+$$\Delta = \frac{f_u - f_d}{S_u - S_d}.$$
+<p><strong>Delta hedging</strong> means holding \(\Delta\) shares per option so the option's gains and losses are offset. <strong>Rebalancing</strong> means changing the share holding as \(\Delta\) changes.</p>
+
+<p><strong>Predict first:</strong> at node A the base call's \(\Delta\) is 0.4544. If the stock moves up to 44.21, the call is now much closer to paying off. Should the hedge need more shares or fewer?</p>
+<details><summary>Reveal: delta at each node (base case)</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Node</th><th>Call \(\Delta\)</th><th>Put \(\Delta\)</th><th>Working (call)</th></tr>
+<tr><td>A</td><td>0.4544</td><td>−0.5456</td><td>\((3.6415 - 0)/(44.2068 - 36.1935)\)</td></tr>
+<tr><td>B (after up)</td><td>0.7742</td><td>−0.2258</td><td>\((6.8561 - 0)/(48.8561 - 40)\)</td></tr>
+<tr><td>C (after down)</td><td>0</td><td>−1.0000</td><td>\((0 - 0)/(40 - 32.7492)\)</td></tr>
+</table>
+</div>
+<p>Up move → call delta rises (more likely to finish in the money); down move → it falls, here to 0 (the call can't pay any more). The put's delta is negative and moves the same way: from −0.55 to −0.23 after an up move, and to −1 after a down move, where the put is sure to pay off (both end nodes are below 42).</p>
+<p><strong>Check that it works.</strong> At A, hold 0.4544 shares and write one call. After an up move: \(0.4544\times44.2068 - 3.6415 = 16.4473\). After a down move: \(0.4544\times36.1935 - 0 = 16.4473\). The same, so riskless; discount one step: \(16.4473e^{-0.0125} = 16.2430 = 0.4544\times40 - c\), giving \(c = 1.9340\) ✓, matching the tree (Lesson 16's method).</p>
+<p><strong>Neat check:</strong> call \(\Delta\) − put \(\Delta\) = 1 at every node (0.4544 + 0.5456; 0.7742 + 0.2258; 0 + 1). That is parity again: \(c - p = S - Ke^{-r(\cdot)}\), and that changes one-for-one with \(S\).</p>
+</div></details>
+
+<div class="box"><p><strong>Who holds what.</strong> One option, hedged with shares (Lecture 5 slide 31; 2025 final):</p>
+<div class="tablewrap">
+<table>
+<tr><th>Your option position</th><th>Shares to hold</th><th>Base case at A</th></tr>
+<tr><td>Written (short) call</td><td>Long \(\Delta\)</td><td>buy 0.4544</td></tr>
+<tr><td>Bought (long) call</td><td>Short \(\Delta\)</td><td>short 0.4544</td></tr>
+<tr><td>Bought (long) put (\(\Delta \lt 0\))</td><td>Long \(|\Delta|\)</td><td>buy 0.5456</td></tr>
+<tr><td>Written (short) put</td><td>Short \(|\Delta|\)</td><td>short 0.5456</td></tr>
+</table>
+</div>
+<p>Rule: the shares must move <em>against</em> your option. A long put gains when the stock falls, so pair it with long shares, which lose when the stock falls.</p></div>
+
+<div class="box"><p><strong>Rebalancing in numbers.</strong> A bank writes 1,000 of the base calls. At A it buys \(1000\times0.4544 \approx 454\) shares. If the stock goes up, \(\Delta = 0.7742\): it must hold 774, so it <strong>buys 320 more</strong>. If the stock goes down, \(\Delta = 0\): it <strong>sells all 454</strong>. The \(t = 0\) hedge only covers the first step; the answer to "does the original \(\Delta\) still hedge at \(t = 1\)?" is always <strong>no</strong>, because \(\Delta\) depends on where the stock has moved. (Continuous rebalancing is Lecture 9's delta hedging.)</p></div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>6.</strong> You have written calls and are delta hedged. The stock then falls for one step. To stay hedged you should:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Buy more shares, as the calls' delta has risen after the fall</button>
+    <button class="opt" data-key="b">Do nothing, as delta was fixed when the calls were written</button>
+    <button class="opt" data-key="c">Short more calls, as the calls are now further out of the money</button>
+    <button class="opt" data-key="d">Sell some shares, as the calls' delta has fallen after the fall</button>
+  </div>
+  <div class="why">A call's delta falls when the stock falls (base case: 0.4544 → 0). The writer holds \(\Delta\) shares per call, so sells the excess. (b) is the "one \(\Delta\) forever" error the exams test. Note this is "buy high, sell low": the cost of hedging a written option is what the premium pays for.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>7.</strong> A market maker has just <em>bought</em> one European put with \(\Delta = -0.62\) at \(t = 0\). The hedge for the first step is to:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Short 0.62 shares, as the put's delta is negative</button>
+    <button class="opt" data-key="b">Buy 0.62 shares, as the put gains when the stock falls</button>
+    <button class="opt" data-key="c">Buy 0.38 shares, which is one minus the put's delta</button>
+    <button class="opt" data-key="d">Short 0.38 shares, which is the delta of the call</button>
+  </div>
+  <div class="why">Long put + \(|\Delta|\) shares: if the stock falls, the put gains and the shares lose by about the same. Shorting (a) would double the exposure. 0.38 is the matching call's delta (put \(\Delta\) + 1), which is irrelevant here.</div>
+</div>
+
+<h2>6 · Try it: the tree calculator</h2>
+<p>Preloaded with the base case. Like the course's LMS simulator (Tutorials 5–6 say "check your answer using the simulator"), it shows every node. Use it to check your hand working, not instead of it. Try: switch to a put; raise \(\sigma\) and watch the tree widen; set the moves as up 10% / down 8%; go to three steps; set \(r\) so high that \(p \gt 1\).</p>
+<div class="bintree" data-s="40" data-k="42" data-r="5" data-t="0.5" data-n="2" data-sigma="20" data-type="call" data-style="european" data-up="10" data-down="8"></div>
+
+<h2>7 · Exam-style questions</h2>
+<p>These match the past papers' length, number of steps and rounding (keep 4 dp through the working; answers to 2 dp). Write each part out in full before checking. Allow about 2 minutes per mark.</p>
+
+<h3>Question A (8 marks): moves given as percentages</h3>
+<div class="box">
+<p>A non-dividend-paying stock is $60. Over each of the next two 3-month periods it will either rise by 10% or fall by 8%. The risk-free rate is 6% p.a., continuously compounded. A 6-month European call and a 6-month European put both have a strike of $62.</p>
+</div>
+
+<div class="quiz num" data-answer="0.5284" data-tol="0.0005">
+  <p class="q"><strong>A(a).</strong> (1 mark) What is the risk-neutral probability of an up move (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(u = 1.10\), \(d = 0.92\), \(\Delta t = 0.25\), \(e^{0.015} = 1.0151\). \(p = (1.0151 - 0.92)/(1.10 - 0.92) = 0.0951/0.18 = 0.5284\). Using \(e^{0.06}\) (a whole year) gives 0.7880.</div>
+</div>
+
+<div class="quiz num" data-answer="2.87" data-tol="0.01">
+  <p class="q"><strong>A(b).</strong> (3 marks) Value the European call.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Stock: 66, 55.20; then 72.60, 60.72, 50.784. Note \(ud = 1.012\), so the middle is 60.72, not 60. Call payoffs: 10.60, 0, 0.<br>
+  \(c = e^{-0.03}\times0.5284^2\times10.60 = 0.97045\times0.27921\times10.60 = \$2.87\) (or by roll-back: \(f_u = 5.5177\), \(f_d = 0\)).</div>
+</div>
+
+<div class="quiz num" data-answer="3.04" data-tol="0.01">
+  <p class="q"><strong>A(c).</strong> (2 marks) Value the European put on the tree, then confirm with put-call parity.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Put payoffs: 0, \(62 - 60.72 = 1.28\), \(62 - 50.784 = 11.216\).<br>
+  Put \(= e^{-0.03}[\,2(0.5284)(0.4716)(1.28) + 0.4716^2(11.216)\,] = 0.97045\times[0.6379 + 2.4944] = \$3.04\).<br>
+  Parity: \(2.8722 + 62e^{-0.03} - 60 = 2.8722 + 60.1676 - 60 = 3.0398\) ✓. If the middle node is wrongly taken as 60 (so the payoff is 2), you get about 3.39.</div>
+</div>
+
+<div class="quiz num" data-answer="1022" data-tol="1">
+  <p class="q"><strong>A(d).</strong> (2 marks) A dealer writes 2,000 of the calls. How many shares must it buy today to be delta hedged over the first 3 months (nearest whole share)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">\(\Delta_0 = (f_u - f_d)/(S_u - S_d) = (5.5177 - 0)/(66 - 55.20) = 0.5109\). \(2000\times0.5109 = 1021.8 \approx 1{,}022\) shares, bought (written calls are hedged with long stock).<br>
+  <em>Follow-up:</em> after an up move \(\Delta_u = 10.60/(72.60 - 60.72) = 0.8923\), so it must hold 1,785 and buys 763 more; after a down move \(\Delta_d = 0\) and it sells all 1,022.</div>
+</div>
+
+<h3>Question B (10 marks): volatility given, the 2025-final shape</h3>
+<div class="box">
+<p>A non-dividend-paying stock is $36 with volatility 28% p.a. The risk-free rate is 3% p.a., continuously compounded. A European put has strike $37 and expires in 6 months. Use a two-period binomial model. Keep 4 dp in your working.</p>
+<p>(a) Find \(u\), \(d\) and \(p\). (b) Value the put. (c) An options market maker has just bought one put. What position in the stock hedges it until the end of the first period? (d) Does that position still hedge from \(t = 1\) to \(t = 2\)? (e) Value the matching call. (f) Comment on a statement about risk-neutral valuation.</p>
+</div>
+
+<details><summary>Part (a): u, d, p</summary><div>
+<p>\(\Delta t = 0.25\); \(\sigma\sqrt{\Delta t} = 0.28\times0.5 = 0.14\). \(u = e^{0.14} = 1.1503\), \(d = 0.8694\). \(e^{0.0075} = 1.0075\); \(p = (1.0075 - 0.8694)/(1.1503 - 0.8694) = 0.4919\), \(1 - p = 0.5081\).</p>
+</div></details>
+
+<div class="quiz num" data-answer="2.98" data-tol="0.01">
+  <p class="q"><strong>B(b).</strong> (4 marks) Value the European put.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Stock: \(S_u = 41.4099\), \(S_d = 31.2969\); \(S_{uu} = 47.6327\), \(S_{ud} = 36\), \(S_{dd} = 27.2082\). Put payoffs: 0, 1, 9.7918.<br>
+  Direct: \(e^{-0.015}[\,2(0.4919)(0.5081)(1) + 0.5081^2(9.7918)\,] = 0.98511\times[0.4999 + 2.5283] = \$2.98\) (2.9831).<br>
+  Roll-back (needed for part c): \(f_u = e^{-0.0075}(0.5081\times1) = 0.5043\); \(f_d = e^{-0.0075}(0.4919\times1 + 0.5081\times9.7918) = 5.4266\).</div>
+</div>
+
+<div class="quiz num" data-answer="0.4867" data-tol="0.0005">
+  <p class="q"><strong>B(c).</strong> (2 marks) How many shares (4 dp) should the market maker hold per put bought? Give a positive number for a long position, negative for short.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">\(\Delta_0 = (0.5043 - 5.4266)/(41.4099 - 31.2969) = -4.9223/10.1130 = -0.4867\). The put's value falls as the stock rises, so a <strong>long</strong> put is hedged with a <strong>long</strong> position of 0.4867 shares. Answering −0.4867 (short) is the sign trap: that's the hedge for a <em>written</em> put.</div>
+</div>
+
+<details><summary>Part (d): does \(\Delta_0\) still hedge from t = 1 to t = 2? (2 marks)</summary><div>
+<p>No. Delta depends on where the stock is. After an up move: \(\Delta_u = (0 - 1)/(47.6327 - 36) = -0.0860\), so the market maker should hold only 0.0860 shares and <strong>sells 0.4007</strong>. After a down move: \(\Delta_d = (1 - 9.7918)/(36 - 27.2082) = -1.0000\) (the put pays in both end states, so it moves one-for-one with the stock): hold 1 share, <strong>buy 0.5133</strong>. The hedge must be rebalanced at every node.</p>
+</div></details>
+
+<div class="quiz num" data-answer="2.53" data-tol="0.01">
+  <p class="q"><strong>B(e).</strong> (1 mark) Using put-call parity, value the European call with the same strike and expiry.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(c = \text{put} + S_0 - Ke^{-rT} = 2.9831 + 36 - 37e^{-0.015} = 2.9831 + 36 - 36.4491 = \$2.53\). On the tree: only \(f_{uu} = 10.6327\) pays, \(e^{-0.015}\times0.4919^2\times10.6327 = 2.5340\) ✓.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>B(f).</strong> (1 mark) A colleague says: "The tree never uses the stock's expected return or investors' risk aversion, so neither has any effect on option prices." Best response:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Agree, since option prices depend only on \(\sigma\), \(r\), \(K\) and \(T\)</button>
+    <button class="opt" data-key="b">Disagree, since \(p\) is chosen to match the real chance of an up move</button>
+    <button class="opt" data-key="c">Disagree, since they help set \(S_0\), which the option price depends on</button>
+    <button class="opt" data-key="d">Agree, since investors are assumed to be risk-neutral in the real world</button>
+  </div>
+  <div class="why">Given \(S_0\), the expected return and risk attitudes drop out: that's risk-neutral valuation. But they are what set \(S_0\) (and \(\sigma\)), so they act <em>through</em> today's price (Tutorial 5 Q4's comment). (a) forgets \(S_0\). (b) \(p\) is not the real-world chance. (d) the world isn't risk-neutral; we only price <em>as if</em> it were, which gives the right answer for derivatives.</div>
+</div>
+
+<h3>Question C (6 marks): three steps from volatility</h3>
+<div class="box">
+<p>A non-dividend-paying stock is $50 with volatility 30% p.a.; \(r = 5\%\) p.a., continuously compounded. Use a three-step tree (one step per month) to value a 3-month European call with strike $50. Then find the put by parity and the call's delta today.</p>
+</div>
+
+<div class="quiz num" data-answer="3.54" data-tol="0.01">
+  <p class="q"><strong>C(a).</strong> (4 marks) Value the call.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(\Delta t = 1/12\), \(\sigma\sqrt{\Delta t} = 0.0866\), \(u = 1.0905\), \(d = 0.9170\), \(e^{0.05/12} = 1.0042\), \(p = 0.5024\).<br>
+  End prices: 64.8340, 54.5232, 45.8521, 38.5600 (\(S_0u^3\), \(S_0u\), \(S_0d\), \(S_0d^3\): with \(d = 1/u\), \(u^2d = u\)). Payoffs 14.8340, 4.5232, 0, 0.<br>
+  \(c = e^{-0.0125}[\,0.5024^3(14.8340) + 3(0.5024)^2(0.4976)(4.5232)\,] = 0.98758\times[0.12684\times14.8340 + 0.37682\times4.5232] = \$3.54\).</div>
+</div>
+
+<div class="quiz num" data-answer="2.92" data-tol="0.01">
+  <p class="q"><strong>C(b).</strong> (1 mark) The European put, same strike and expiry, by put-call parity.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(3.5414 + 50e^{-0.0125} - 50 = 3.5414 + 49.3789 - 50 = \$2.92\). (The tree gives 2.9203 too.)</div>
+</div>
+
+<div class="quiz num" data-answer="0.5563" data-tol="0.001">
+  <p class="q"><strong>C(c).</strong> (1 mark) The call's delta at \(t = 0\) (4 dp). You need \(f_u\) and \(f_d\) from a full roll-back.</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Roll back: at \(t = 2\): 9.6634, 2.2632, 0; at \(t = 1\): \(f_u = 5.9565\), \(f_d = 1.1324\). \(\Delta_0 = (5.9565 - 1.1324)/(54.5232 - 45.8521) = 4.8241/8.6711 = 0.5563\). This is why the shortcut alone isn't enough when a hedge is asked for.</div>
+</div>
+
+<h3>Question D (5 marks): an unusual payoff, is the price fair?</h3>
+<div class="box">
+<p>A token trades at $800 and pays nothing. A broker offers a 2-month contract: "Pay $650 today; in 2 months I'll pay you $1,000 if the token is then <em>above</em> $800, otherwise nothing." Your analyst says the token can rise 12% or fall 10% in each month. \(r = 3\%\) p.a., continuously compounded. Use a two-step tree.</p>
+</div>
+
+<div class="quiz num" data-answer="711.20" data-tol="0.1">
+  <p class="q"><strong>D(a).</strong> (4 marks) What is the contract's fair value today?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(u = 1.12\), \(d = 0.90\), \(\Delta t = 1/12\), \(e^{0.0025} = 1.0025\), \(p = (1.0025 - 0.90)/0.22 = 0.4659\).<br>
+  End prices: 1003.52, <strong>806.40</strong>, 648.00. Because \(ud = 1.008 \ne 1\), the middle node is <em>above</em> 800 and pays. Payoffs 1000, 1000, 0.<br>
+  Value \(= e^{-0.005}\times1000\times[\,p^2 + 2p(1-p)\,] = 0.99501\times1000\times0.71476 = \$711.20\). If you assumed the middle node equals $800 (no payoff), you'd get only 216.00.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>D(b).</strong> (1 mark) Should you accept the broker's offer at $650?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Yes: it costs less than its no-arbitrage value of about $711</button>
+    <button class="opt" data-key="b">No: the token is more likely to fall 10% than to rise 12%</button>
+    <button class="opt" data-key="c">No: the risk-neutral chance of the payoff is under one half</button>
+    <button class="opt" data-key="d">Yes: the token is expected to rise, so the payoff is likely</button>
+  </div>
+  <div class="why">Value \(711.20 \gt 650\): the buyer gets a $61.20 bargain (in principle a dealer could buy it and hedge with the token to lock in that gap). The real-world chances in (b) and (d) don't enter. (c) is false: the risk-neutral chance of being paid is \(1 - (1-p)^2 = 0.71\).</div>
+</div>
+
+<h2>8 · Before you close this tab</h2>
+
+<div class="box"><p><strong>Rule of thumb.</strong> <em>Set up once, then repeat one formula.</em> \(\Delta t = T/n\) → \(u = e^{\sigma\sqrt{\Delta t}}\), \(d = 1/u\) (or the given %) → \(p = (e^{r\Delta t} - d)/(u - d)\) → stock tree forward → payoffs at the end → \(f = e^{-r\Delta t}[pf_u + (1-p)f_d]\) backwards at each node. Check with \(e^{-2r\Delta t}[p^2f_{uu} + 2p(1-p)f_{ud} + (1-p)^2f_{dd}]\) and parity. \(\Delta = (f_u - f_d)/(S_u - S_d)\) is different at every node, so a hedge set at \(t = 0\) has to be rebalanced.</p></div>
+
+<details><summary>Retrieval: from memory, write \(u\), \(d\), \(p\), the roll-back formula, the two- and three-step direct formulas, \(\Delta\), the hedge direction for each of the four option positions, and the result of call \(\Delta\) − put \(\Delta\). Then check</summary><div>
+<p>\(u = e^{\sigma\sqrt{\Delta t}}\), \(d = 1/u\), \(p = (e^{r\Delta t} - d)/(u - d)\). \(f = e^{-r\Delta t}[pf_u + (1-p)f_d]\). Two-step: \(e^{-2r\Delta t}[p^2f_{uu} + 2p(1-p)f_{ud} + (1-p)^2f_{dd}]\); three-step weights \(p^3, 3p^2(1-p), 3p(1-p)^2, (1-p)^3\) with \(e^{-3r\Delta t}\). \(\Delta = (f_u - f_d)/(S_u - S_d)\). Written call: long \(\Delta\); long call: short \(\Delta\); long put: long \(|\Delta|\); written put: short \(|\Delta|\). Call \(\Delta\) − put \(\Delta\) = 1.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/Lecture%205_Binomial%20I.pdf">Lecture 5</a>, slides 28–33 (u and d from \(\sigma\), the two-step call with node deltas, the two-step put and the direct formula) and <a href="../lectures/Lecture%206_Binomial%20II.pdf">Lecture 6</a>, slides 3–4 and 9–10 (recap, the general \(S_0u^jd^{\,i-j}\) tree). Textbook: Hull, <em>Options, Futures and Other Derivatives</em>, the "Binomial trees" chapter (the lecture cites Ch. 12; it is Ch. 13 in recent editions), sections on two-step trees, delta and matching volatility with \(u\) and \(d\).</p>
+
+<p><strong>Homework (official practice, about 3 parts):</strong> <a href="../tutes/Tutorial%205.pdf">Tutorial 5</a> Q2 (two-step call from percentage moves), Q3 (the put, and verify parity) and Q4 (does the real-world probability matter?); <a href="../tutes/Tutorial%205%20Solutions.pdf">solutions</a>. Then <a href="../tutes/Tutorial%206.pdf">Tutorial 6</a> Q2 (derive the two-step formula; <a href="../tutes/Tutorial%206%20solutions.pdf">solutions</a>). <em>Optional:</em> Tutorial 5 Q1 (derive \(p\) from the hedge); for each of T5 Q2–Q3, also find \(\Delta\) at all three non-final nodes and check call \(\Delta\) − put \(\Delta\) = 1. Tutorial 6 Q1 (American put, three steps) belongs with Lesson 19.</p>
+<p><strong>Spacing:</strong> tomorrow, redo Question B from a blank page in under 20 minutes. In three days, redo A(c), C(a) and D(a) cold.</p>
+
+<div class="ask">💬 Stuck on a node, a sign of \(\Delta\), or which way to rebalance? Paste your tree in the terminal and ask me: I'm your teacher for this. Ask for more fresh two- or three-step questions at exam length, or for a "which way does the hedge move?" drill.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0017-risk-neutral-valuation.html">Lesson 17, risk-neutral valuation</a></span>
+  <span>Reference: <a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0019-american-options-on-trees.html">Lesson 19, American options on trees</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

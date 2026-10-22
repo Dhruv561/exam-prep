@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Futures Options Basics</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.widget { border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.2rem; margin: 1.4rem 0; font-family: Inter, system-ui, sans-serif; font-size: .85rem; }
+.widget .controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem 1.2rem; }
+.widget label { display: flex; flex-direction: column; }
+.widget input[type=range] { width: 100%; accent-color: var(--accent); }
+.widget .out { margin-top: .8rem; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .3rem 1.2rem; font-variant-numeric: tabular-nums; }
+.widget .out b { font-size: 1rem; }
+.widget .note { color: var(--muted); margin-top: .5rem; }
+.widget .verdict2 { margin-top: .8rem; padding: .6rem .8rem; border-radius: 6px; font-size: .9rem; background: var(--card); border-left: 4px solid var(--accent); }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 20 · Topic 5–6: Options on futures</div>
+<h1>Futures options: what exercising gives you, put-call parity, bounds, and when they beat spot options</h1>
+<p class="lede">The goal: say exactly what lands in your account when a call or put on a futures contract is exercised; price a European futures put from the call (or the reverse) with \(c + Ke^{-rT} = p + F_0e^{-rT}\); write the European and American lower bounds and the American \(C - P\) range; trade an arbitrage when a price breaks them; and say whether a futures option is worth more or less than the matching spot option in a normal or an inverted market.</p>
+
+<div class="mission">Why this matters for 5 Nov: the formula sheet carries the whole of this lecture (futures parity, the four lower bounds and the American range), so the marks are in <em>using</em> them. The 2025 final opened a 6-mark question with a 2-mark "describe what happens to the position if exercised now, and is it in, at or out of the money? Show your calculations" on a futures option, then priced it with Black's model (Lecture 7, later). Tutorial 6 Q3–Q5 are the same three moves as sections 1, 3 and 4 below: a two-portfolio bound proof, an exercise description, and American bounds.</div>
+
+<p>Builds on <a href="0001-futures-and-margin-accounts.html">Lesson 1</a> (marking to market, margin account), <a href="0009-commodities-storage-and-convenience-yield.html">Lesson 9</a> (the futures curve), <a href="0011-options-payoffs-profits-and-moneyness.html">Lesson 11</a> (payoffs, moneyness), <a href="0013-bounds-on-option-prices.html">Lesson 13</a> (bounds) and <a href="0014-put-call-parity.html">Lesson 14</a> (parity). Notation as before: lowercase \(c, p\) European, capitals \(C, P\) American; \(K\) strike; \(r\) continuously compounded; \(T\) the option's life in years.</p>
+
+<h2>1 · What you actually get when you exercise</h2>
+
+<p>A <strong>futures option</strong> (an <em>option on futures</em>) is an option whose underlying is a <em>futures contract</em>, not the commodity itself. A <strong>call futures option</strong> is the right to enter a <strong>long</strong> futures position at the strike \(K\); a <strong>put futures option</strong> is the right to enter a <strong>short</strong> futures position at \(K\). Most are <strong>American</strong>, so they can be exercised any day before expiry. The relevant price is the futures price \(F\) (the most recent <strong>settlement price</strong> of that futures contract), not the spot price.</p>
+
+<p><strong>Predict first.</strong> You hold a December call futures option on greasy wool, strike $1,200 per bale, one contract = 100 bales. Today's December futures settlement price is $1,400. You exercise. A futures contract never changes hands for cash at its price, so what do you actually receive?</p>
+
+<details><summary>Reveal: a futures position at today's price, plus the difference in cash</summary><div>
+<p>You get two things (<a href="../lectures/Lecture%206_Future%20Options.pdf">Lecture 6</a>, slides 5–6):</p>
+<ol class="steps">
+  <li><strong>A long December futures position at \(F = 1{,}400\)</strong> (today's settlement price, not \(K\)).</li>
+  <li><strong>Cash of \((F - K)\times\) size</strong> paid into your margin account: \((1{,}400 - 1{,}200)\times100 = \$20{,}000\).</li>
+</ol>
+<p>Why that split? A long futures "at 1,200" would be marked to market at the next settlement to 1,400, crediting you $20,000 at once. The exchange just does that step immediately: <em>long futures at \(K\) = long futures at \(F\) + cash \(F - K\)</em>.</p>
+<p>From then on it is an ordinary futures position, marked to market daily. If you later close it out at $1,500, the futures adds \((1{,}500 - 1{,}400)\times100 = \$10{,}000\). Total \(20{,}000 + 10{,}000 = \$30{,}000 = (1{,}500 - 1{,}200)\times100\): the total is (closing futures price − strike) × size, whenever you exercise. (Ignoring interest on the margin account, as the lecture does.)</p>
+</div></details>
+
+<div class="tablewrap">
+<table>
+<tr><th>On exercise</th><th>\(F \gt K\)</th><th>\(F \lt K\)</th></tr>
+<tr><td><strong>Call</strong> futures option</td><td>In the money. Long futures at \(F\) + cash \((F - K)\times\) size</td><td>Out of the money. Exercising would <em>cost</em> \((K - F)\times\) size: don't</td></tr>
+<tr><td><strong>Put</strong> futures option</td><td>Out of the money. Exercising would cost \((F - K)\times\) size: don't</td><td>In the money. Short futures at \(F\) + cash \((K - F)\times\) size</td></tr>
+</table>
+</div>
+
+<div class="trap"><strong>Exercise slips</strong><br>
+(1) Saying the futures position is entered at \(K\). It's entered at the current settlement price \(F\); the cash makes up the difference. (2) Using the spot price instead of the futures price for moneyness. (3) Forgetting the contract size. (4) For a put: the cash is \(K - F\) and the position is <em>short</em>; the writer (the other side) gets the opposite position and pays the cash.</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> You exercise an American <em>put</em> futures option when the futures price is below the strike. What happens?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">You get a long futures position at \(F\) plus cash of \(K - F\) per unit</button>
+    <button class="opt" data-key="b">You get a short futures position at \(K\) and no cash changes hands</button>
+    <button class="opt" data-key="c">You get a short futures position at \(F\) plus cash of \(K - F\) per unit</button>
+    <button class="opt" data-key="d">You sell the commodity at \(K\) and receive \(K - F\) per unit in cash</button>
+  </div>
+  <div class="why">A put futures option delivers a <strong>short</strong> futures position, entered at today's settlement price \(F\), plus \(K - F\) into the margin account. (b) is economically the same thing before marking to market, but it isn't what the exchange does; exam answers want "short futures at \(F\) + cash \(K - F\)". (d) confuses it with a spot put: no commodity changes hands on exercise.</div>
+</div>
+
+<div class="quiz num" data-answer="1100" data-tol="1">
+  <p class="q"><strong>2.</strong> A call futures option on wheat has strike $380 per tonne; one contract covers 50 tonnes. The holder exercises when the futures settlement price is $402. How much cash is added to the holder's margin account?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\((F - K)\times\text{size} = (402 - 380)\times50 = \$1{,}100\), plus a long futures position at $402.</div>
+</div>
+
+<div class="quiz num" data-answer="900" data-tol="1">
+  <p class="q"><strong>3.</strong> Continue Q2. The holder keeps the long futures for two days and closes it out at $398. What is the total gain from exercising and closing, in dollars?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Exercise cash $1,100; futures \((398 - 402)\times50 = -\$200\). Total $900, which is \((398 - 380)\times50\): closing futures price minus strike. Exercising locks in \(F - K\) only if you close the futures at once.</div>
+</div>
+
+<div class="quiz num" data-answer="4600" data-tol="1">
+  <p class="q"><strong>4.</strong> A trader holds a put futures option on crude oil, strike $78 per barrel, 1,000 barrels per contract. She exercises when the futures price is $73.40. By how much does her margin account change on exercise?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\((K - F)\times\text{size} = (78 - 73.40)\times1{,}000 = +\$4{,}600\), and she is now short one futures at $73.40. If oil futures then rise to $75.10 before she closes, the short loses $1,700 and the total is $2,900, which is \((78 - 75.10)\times1{,}000\).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>5.</strong> An investor holds an American put on a cocoa futures contract (10 tonnes), strike $7,800 per tonne. The futures price is $8,150. Which describes the option right now?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">In the money: exercise adds $3,500 and gives a short futures at $8,150</button>
+    <button class="opt" data-key="b">Out of the money: exercise would take $3,500 out of the margin account</button>
+    <button class="opt" data-key="c">In the money: exercise adds $3,500 and gives a long futures at $8,150</button>
+    <button class="opt" data-key="d">At the money: exercise gives a short futures at $7,800 and no cash flow</button>
+  </div>
+  <div class="why">A put pays \(K - F = 7{,}800 - 8{,}150 = -350\) per tonne, so exercising would cost \(350\times10 = \$3{,}500\). It's out of the money, and nobody would exercise it. The exam's "ITM, ATM or OTM? Show calculations" wants exactly this \(K - F\) (not \(K - S\)).</div>
+</div>
+
+<h2>2 · Payoffs at expiry</h2>
+<p>Write \(F_T\) for the futures price <em>when the option expires</em> (the futures itself may run longer). Then exactly as in Lesson 11, with \(F_T\) in place of \(S_T\):</p>
+$$\text{call: } \max(F_T - K,\,0) \qquad\qquad \text{put: } \max(K - F_T,\,0)$$
+<p>Profit = payoff − premium, times the contract size. <strong>Predict first:</strong> \(K = 50\); what do the call and the put pay if \(F_T = 44\), 50, 57? (Call 0, 0, 7; put 6, 0, 0.)</p>
+
+<div class="quiz num" data-answer="4900" data-tol="1">
+  <p class="q"><strong>6.</strong> You buy one call futures option (1,000 units) with \(K = 50\) for $2.10 per unit. At expiry \(F_T = 57\). What is your profit on the contract (ignore interest on the premium)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\((57 - 50 - 2.10)\times1{,}000 = \$4{,}900\). The payoff alone is $7,000.</div>
+</div>
+
+<h2>3 · Put-call parity for European futures options</h2>
+
+<p>Same trick as Lesson 14: two portfolios that pay the same thing at \(T\).</p>
+<ul>
+  <li><strong>Portfolio A:</strong> one European call futures option + cash \(Ke^{-rT}\) (grows to \(K\)).</li>
+  <li><strong>Portfolio B:</strong> one European put futures option + one long futures contract + cash \(F_0e^{-rT}\) (grows to \(F_0\)).</li>
+</ul>
+<p><strong>Predict first:</strong> what is each worth at \(T\) if \(F_T \gt K\)? If \(F_T \lt K\)? And why does B hold cash \(F_0e^{-rT}\) where Lesson 14 held a share \(S_0\)?</p>
+
+<details><summary>Reveal: the payoff table and the formula</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th></th><th>Today</th><th>\(F_T \gt K\)</th><th>\(F_T \lt K\)</th></tr>
+<tr><td>A: call</td><td>\(c\)</td><td>\(F_T - K\)</td><td>0</td></tr>
+<tr><td>A: cash</td><td>\(Ke^{-rT}\)</td><td>\(K\)</td><td>\(K\)</td></tr>
+<tr><td><strong>A total</strong></td><td>\(c + Ke^{-rT}\)</td><td>\(F_T\)</td><td>\(K\)</td></tr>
+<tr><td>B: put</td><td>\(p\)</td><td>0</td><td>\(K - F_T\)</td></tr>
+<tr><td>B: long futures</td><td>0</td><td>\(F_T - F_0\)</td><td>\(F_T - F_0\)</td></tr>
+<tr><td>B: cash</td><td>\(F_0e^{-rT}\)</td><td>\(F_0\)</td><td>\(F_0\)</td></tr>
+<tr><td><strong>B total</strong></td><td>\(p + F_0e^{-rT}\)</td><td>\(F_T\)</td><td>\(K\)</td></tr>
+</table>
+</div>
+<p>Both pay \(\max(F_T, K)\). The futures costs <strong>nothing</strong> to enter (it is marked to market, so its value today is 0), which is why it adds nothing to B's cost; the cash \(F_0e^{-rT}\) is what turns its payoff \(F_T - F_0\) into \(F_T\). Same payoff, same price (<a href="../lectures/Lecture%206_Future%20Options.pdf">Lecture 6</a>, slides 7–9):</p>
+$$\boxed{\,c + Ke^{-rT} = p + F_0e^{-rT}\,} \qquad\Longleftrightarrow\qquad c - p = (F_0 - K)e^{-rT}.$$
+<p>(The lecture treats the futures' daily settlements as if they all arrived at \(T\), i.e. like a forward. Fine for exam purposes.)</p>
+</div></details>
+
+<div class="box"><p><strong>Mental model.</strong> Long call + short put at the same \(K\) pays \(F_T - K\): a <em>synthetic long futures at price \(K\)</em>. A real futures at \(F_0\) costs nothing, so the synthetic one at \(K\) is worth the PV of the price gap, \((F_0 - K)e^{-rT}\). Exactly Lesson 14 section 5 and the formula-sheet value of a forward, \(f = (F - K)e^{-rT}\). Corollary: <strong>\(c = p\) when \(K = F_0\)</strong>. Compare stocks, where the at-the-money call beats the put: here the "stock" is a futures that ties up no cash, so there is no interest advantage.</p></div>
+
+<div class="box">
+<p><strong>Lecture example (slides 10–11).</strong> A 6-month European call on greasy wool futures, \(K = \$1{,}000\), costs $100. \(F_0 = \$900\), \(r = 5\%\).<br>
+\(p = c + (K - F_0)e^{-rT} = 100 + 100e^{-0.025} = 100 + 97.53 = \mathbf{\$197.53}\) (slide: "$198").</p>
+<p>Out-of-the-money call (\(F_0 \lt K\)), so the put is dearer, by the PV of \(K - F_0\).</p>
+</div>
+
+<div class="trap"><strong>Parity slips</strong><br>
+(1) Copying stock parity with \(F_0\) for \(S_0\) and forgetting to discount it: \(c + Ke^{-rT} = p + F_0\) is wrong. (2) Discounting only one of \(F_0\), \(K\). (3) Sign: when \(F_0 \gt K\) the call is the dearer one. (4) Using spot prices. Spot doesn't appear anywhere in futures-option parity.</div>
+
+<h3>When parity fails: trade the synthetic futures against the real one</h3>
+<p>Compare the market gap \(c - p\) with the fair gap \((F_0 - K)e^{-rT}\).</p>
+<ul>
+  <li><strong>Market gap too big</strong> (call dear / put cheap): <strong>sell the call, buy the put, go long futures</strong>, and invest the leftover. Options + futures pay \(K - F_0\) for sure at \(T\).</li>
+  <li><strong>Market gap too small</strong> (put dear / call cheap): <strong>buy the call, sell the put, go short futures</strong>. Options + futures pay \(F_0 - K\) for sure at \(T\).</li>
+</ul>
+<p>Profit today = |market gap − fair gap|; at \(T\) it's that times \(e^{rT}\).</p>
+
+<p><strong>Predict first:</strong> \(F_0 = 50\), \(K = 52\), \(r = 5\%\), \(T = 0.5\). Market: \(c = 2.80\), \(p = 5.10\). Which is dear, and what's the trade?</p>
+<details><summary>Reveal: put dear, so buy call, sell put, short futures</summary><div>
+<p>Fair gap \((50 - 52)e^{-0.025} = -1.9506\). Market gap \(2.80 - 5.10 = -2.30\), too small, so the put is dear by 0.3494.</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>\(t = 0\)</th><th>\(T,\ F_T \gt 52\)</th><th>\(T,\ F_T \lt 52\)</th></tr>
+<tr><td>Buy call</td><td>−2.80</td><td>\(F_T - 52\)</td><td>0</td></tr>
+<tr><td>Sell put</td><td>+5.10</td><td>0</td><td>\(-(52 - F_T)\)</td></tr>
+<tr><td>Short futures at 50</td><td>0</td><td>\(50 - F_T\)</td><td>\(50 - F_T\)</td></tr>
+<tr><td>Lend \(2e^{-0.025} = 1.9506\)</td><td>−1.9506</td><td>+2</td><td>+2</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>+0.3494</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+</table>
+</div>
+<p>Options + short futures pay \(50 - 52 = -2\) in every state; the loan covers it. You keep $0.35 per unit today (or \(0.3494e^{0.025} = 0.36\) at \(T\) if you lend it too).</p>
+</div></details>
+
+<div class="quiz num" data-answer="127.21" data-tol="0.02">
+  <p class="q"><strong>7.</strong> A 6-month European call on gold futures with strike $2,400 per ounce costs $78.20. The 6-month gold futures price is $2,350 and \(r = 4\%\). What is the price of the European put with the same strike and expiry?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(p = c + (K - F_0)e^{-rT} = 78.20 + 50e^{-0.02} = 78.20 + 49.01 = \$127.21\). Not discounting gives 128.20.</div>
+</div>
+
+<div class="quiz num" data-answer="7.28" data-tol="0.01">
+  <p class="q"><strong>8.</strong> A 3-month European put futures option with \(K = 80\) costs $2.35. The futures price is 85 and \(r = 6\%\). Price the matching European call.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(c = p + (F_0 - K)e^{-rT} = 2.35 + 5e^{-0.015} = 2.35 + 4.93 = \$7.28\).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>9.</strong> A 3-month European call on crude oil futures (\(K = 65\)) is $7.90. The futures price is $71.20 and \(r = 5\%\). The European put with the same strike and expiry should cost:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$0.89</button>
+    <button class="opt" data-key="b">$1.70</button>
+    <button class="opt" data-key="c">$1.78</button>
+    <button class="opt" data-key="d">$14.02</button>
+  </div>
+  <div class="why">\(p = 7.90 - (71.20 - 65)e^{-0.0125} = 7.90 - 6.12 = \$1.78\). (a) uses stock parity with \(F_0\) as the stock (\(c + Ke^{-rT} - F_0\)), (b) forgets to discount the gap, (d) has the sign backwards.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>10.</strong> For European futures options with the same expiry, at which strike are the call and put prices equal?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(K = F_0\), today's futures price</button>
+    <button class="opt" data-key="b">\(K = S_0\), today's spot price</button>
+    <button class="opt" data-key="c">\(K = F_0e^{-rT}\), PV of the futures price</button>
+    <button class="opt" data-key="d">\(K = F_0e^{rT}\), futures price grown at \(r\)</button>
+  </div>
+  <div class="why">\(c - p = (F_0 - K)e^{-rT} = 0\) only if \(K = F_0\). Contrast stock options, where \(c = p\) at \(K = S_0e^{rT}\), the forward price: the same idea, since \(F_0\) <em>is</em> the forward price.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>11.</strong> Holding \(K\), \(r\), \(T\) and volatility fixed, the futures price rises by $1. For European futures options, \(c - p\):</p>
+  <div class="opts">
+    <button class="opt" data-key="a">rises by exactly $1, one-for-one with \(F_0\)</button>
+    <button class="opt" data-key="b">is unchanged, as both options rise together</button>
+    <button class="opt" data-key="c">rises by \(e^{rT}\), a little more than $1</button>
+    <button class="opt" data-key="d">rises by \(e^{-rT}\), a little less than $1</button>
+  </div>
+  <div class="why">\(c - p = (F_0 - K)e^{-rT}\), so \(\partial(c - p)/\partial F_0 = e^{-rT} \lt 1\). With stock options \(c - p = S_0 - Ke^{-rT}\) moves one-for-one with \(S_0\); here the gain on the futures arrives at \(T\), so it's discounted. (Volatility still doesn't appear.)</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>12.</strong> \(F_0 = 120\), \(K = 115\), \(r = 6\%\), \(T = 0.5\). European futures options trade at \(c = 9.20\) and \(p = 3.10\). Which strategy locks in a riskless profit?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Buy the call, sell the put, short one futures contract, borrow</button>
+    <button class="opt" data-key="b">Sell the call, buy the put, go long one futures contract, lend</button>
+    <button class="opt" data-key="c">Sell the call, sell the put, go long one futures contract, lend</button>
+    <button class="opt" data-key="d">Buy the call, buy the put, short one futures contract, borrow</button>
+  </div>
+  <div class="why">Fair gap \(5e^{-0.03} = 4.8522\); market gap \(9.20 - 3.10 = 6.10\), too big, so the call is dear. Sell the synthetic long futures (sell call, buy put) and buy the real one (long futures). Options + futures pay \(115 - 120 = -5\) at \(T\), so lend \(4.8522\) now to cover it. (a) is the trade for the opposite mispricing; (c) and (d) leave \(F_T\) uncancelled.</div>
+</div>
+
+<div class="quiz num" data-answer="1.29" data-tol="0.01">
+  <p class="q"><strong>13.</strong> Run the Q12 trade on one unit and invest everything left over at \(r\). What is the riskless profit at the options' expiry?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Today: \(+9.20 - 3.10 = 6.10\); lend 4.8522 to cover the \(-5\) at \(T\); 1.2478 left (the mispricing). At \(T\): \(1.2478e^{0.03} = \$1.29\). The PV is 1.25.</div>
+</div>
+
+<h2>4 · Bounds: European and American</h2>
+
+<p>Parity gives the European lower bounds free: a put can't be worth less than 0, so \(c + Ke^{-rT} \ge F_0e^{-rT}\); and vice versa (lecture slide 12).</p>
+$$c \ge \max\big((F_0 - K)e^{-rT},\,0\big) \qquad\qquad p \ge \max\big((K - F_0)e^{-rT},\,0\big)$$
+<p>An American option can be exercised <em>now</em> for \(F_0 - K\) in cash (section 1), so it is worth at least that, undiscounted (slide 13):</p>
+$$C \ge F_0 - K \qquad\qquad P \ge K - F_0 \qquad\qquad F_0e^{-rT} - K \lt C - P \lt F_0 - Ke^{-rT}.$$
+
+<p><strong>Predict first:</strong> the lecture asks, "What happens if \(C \lt F_0 - K\)?"</p>
+<details><summary>Reveal: buy it, exercise it, close the futures</summary><div>
+<p>Buy the call for \(C\), exercise at once: receive \(F_0 - K\) cash and a long futures at \(F_0\). Close the futures straight away by shorting one at \(F_0\) (gain 0). Profit \(F_0 - K - C \gt 0\), with no risk and no waiting. Buying pushes \(C\) back up to the bound.</p>
+<p>Notice the contrast with Lesson 15: an American call on a non-dividend <em>stock</em> is never exercised early, so \(C = c\). A futures price behaves like a stock paying a yield \(q = r\) (Lecture 6, slide 22: it costs nothing to hold, so it is expected to grow at 0 in a risk-neutral world), and deep-in-the-money American futures calls <em>can</em> be worth exercising early: you get \(F - K\) in cash now and earn interest on it. Lesson 21 shows this on a tree.</p>
+</div></details>
+
+<details><summary>Tutorial 6 Q3: prove \(p \ge (K - F_0)e^{-rT}\) with two portfolios</summary><div>
+<p>A: cash \(Ke^{-rT}\). B: long put + long futures + cash \(F_0e^{-rT}\).</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th></th><th>\(t = 0\)</th><th>\(F_T \gt K\)</th><th>\(F_T \le K\)</th></tr>
+<tr><td>A: cash</td><td>\(Ke^{-rT}\)</td><td>\(K\)</td><td>\(K\)</td></tr>
+<tr><td>B: put</td><td>\(p\)</td><td>0</td><td>\(K - F_T\)</td></tr>
+<tr><td>B: futures</td><td>0</td><td>\(F_T - F_0\)</td><td>\(F_T - F_0\)</td></tr>
+<tr><td>B: cash</td><td>\(F_0e^{-rT}\)</td><td>\(F_0\)</td><td>\(F_0\)</td></tr>
+<tr><td><strong>B total</strong></td><td>\(p + F_0e^{-rT}\)</td><td>\(F_T\ (\gt K)\)</td><td>\(K\)</td></tr>
+</table>
+</div>
+<p>B ≥ A in every state, so \(p + F_0e^{-rT} \ge Ke^{-rT}\), i.e. \(p \ge (K - F_0)e^{-rT}\); and \(p \ge 0\). (The call version swaps roles: A = call + \(Ke^{-rT}\), B = long futures + \(F_0e^{-rT}\).)</p>
+</div></details>
+
+<div class="box">
+<p><strong>Tutorial 6 Q5 (bounds on an American put).</strong> \(F_0 = 30\), \(r = 5\%\), \(T = 0.25\), \(K = 28\), American call \(C = 4\).</p>
+<p>\(F_0e^{-rT} - K = 30e^{-0.0125} - 28 = 1.63\); \(F_0 - Ke^{-rT} = 30 - 28e^{-0.0125} = 2.35\). So \(1.63 \lt 4 - P \lt 2.35\), giving \(\mathbf{1.65 \lt P \lt 2.37}\). Flip carefully: the <em>upper</em> bound on \(C - P\) gives the <em>lower</em> bound on \(P\).</p>
+</div>
+
+<div class="quiz num" data-answer="4.78" data-tol="0.01">
+  <p class="q"><strong>14.</strong> A 9-month European call futures option has \(K = 40\); the futures price is 45 and \(r = 6\%\). What is its lower bound?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\((F_0 - K)e^{-rT} = 5e^{-0.045} = \$4.78\). The American version's bound is 5.00.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>15.</strong> Same futures (\(F_0 = 45\), \(r = 6\%\), 9 months). What is the lower bound for a European put futures option with \(K = 40\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">0, as the bound \((K - F_0)e^{-rT}\) is negative</button>
+    <button class="opt" data-key="b">−4.78, the bound \((K - F_0)e^{-rT}\) itself</button>
+    <button class="opt" data-key="c">4.78, the call bound with its sign flipped</button>
+    <button class="opt" data-key="d">−5.00, the American bound \(K - F_0\) itself</button>
+  </div>
+  <div class="why">\(p \ge \max((K - F_0)e^{-rT}, 0) = \max(-4.78, 0) = 0\). A price can't be negative; an out-of-the-money option's lower bound is just zero.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>16.</strong> \(F_0 = 45\), \(K = 40\). An American call futures option trades at $4.60. What should an arbitrageur do?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Nothing: $4.60 is below 5 but above the bound \(5e^{-rT}\)</button>
+    <button class="opt" data-key="b">Sell the call and go long futures, earning $0.40 per unit</button>
+    <button class="opt" data-key="c">Buy the call, hold it to expiry and short futures today</button>
+    <button class="opt" data-key="d">Buy the call, exercise now, close the futures: $0.40 per unit</button>
+  </div>
+  <div class="why">\(C \ge F_0 - K = 5\) for an American option. Buy at 4.60, exercise for 5.00 cash plus a long futures at 45, close it at 45: profit 0.40 at once. (a) applies the European bound to an American option.</div>
+</div>
+
+<div class="quiz num" data-answer="0.87" data-tol="0.01">
+  <p class="q"><strong>17.</strong> \(F_0 = 62\), \(r = 4\%\), \(T = 0.5\). A 6-month American put futures option with \(K = 65\) costs $5.10. What is the lower bound for the American call with the same strike and expiry?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(F_0e^{-rT} - K = 62e^{-0.02} - 65 = -4.2277\); \(F_0 - Ke^{-rT} = 62 - 65e^{-0.02} = -1.7129\). So \(-4.2277 \lt C - 5.10 \lt -1.7129\): \(\mathbf{0.87} \lt C \lt 3.39\).</div>
+</div>
+
+<div class="quiz num" data-answer="3.39" data-tol="0.01">
+  <p class="q"><strong>18.</strong> Same data as Q17. What is the upper bound for that American call?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(C \lt P + F_0 - Ke^{-rT} = 5.10 - 1.7129 = \$3.39\). The range is \(0.87 \lt C \lt 3.39\). Note it's consistent with \(C \ge F_0 - K\): that bound is negative here (the call is out of the money).</div>
+</div>
+
+<h2>5 · Futures option or spot option: which is worth more?</h2>
+
+<p>A <strong>spot option</strong> is the ordinary option on the asset itself (payoff from \(S_T\)). Same strike, same expiry \(T\), compare \(\max(F_T - K, 0)\) with \(\max(S_T - K, 0)\). Everything depends on how \(F_T\) and \(S_T\) compare <em>on the option's expiry date</em>.</p>
+<ul>
+  <li><strong>The futures matures when the option expires.</strong> Convergence (Lesson 1): \(F_T = S_T\), so the payoffs and the European prices are identical.</li>
+  <li><strong>The futures matures later.</strong> At \(T\) the futures is still a price for later delivery, so \(F_T \ne S_T\). The lecture's two pictures (slide 15): a <strong>normal market</strong> has futures prices <em>above</em> spot (upward-sloping curve: \(F \gt S\)); an <strong>inverted market</strong> has futures prices <em>below</em> spot (\(F \lt S\)).</li>
+</ul>
+<p><strong>Predict first:</strong> \(K = 80\), and at the option's expiry \(S_T = 82\). Fill in the four payoffs if the futures (maturing later) is at 85 (normal) or at 79 (inverted).</p>
+
+<details><summary>Reveal: the 2 × 2 grid</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th></th><th>Spot call</th><th>Futures call</th><th>Spot put</th><th>Futures put</th></tr>
+<tr><td>Normal: \(F_T = 85\)</td><td>2</td><td><strong>5</strong></td><td>0</td><td>0</td></tr>
+<tr><td>Inverted: \(F_T = 79\)</td><td>2</td><td>0</td><td>0</td><td><strong>1</strong></td></tr>
+</table>
+</div>
+<p>A higher underlying price is good for calls and bad for puts. In a normal market the futures call is on a <em>higher</em> number, so it is worth more; the futures put is worth less. Inverted: the reverse. That's the lecture's rule (slides 14 and 16):</p>
+</div></details>
+
+<div class="tablewrap">
+<table>
+<tr><th>European, futures matures after the option</th><th>Normal market \(F \gt S\)</th><th>Inverted market \(F \lt S\)</th></tr>
+<tr><td>Futures <strong>call</strong> vs spot call</td><td>worth <strong>more</strong></td><td>worth <strong>less</strong></td></tr>
+<tr><td>Futures <strong>put</strong> vs spot put</td><td>worth <strong>less</strong></td><td>worth <strong>more</strong></td></tr>
+<tr><td colspan="3">Futures matures with the option: <strong>same value</strong> (\(F_T = S_T\)).</td></tr>
+</table>
+</div>
+
+<div class="trap"><strong>"Normal" means two things in this course</strong><br>
+A <em>normal market</em> (this lecture) is \(F \gt S\): Lesson 9's <strong>industry contango</strong>. It has nothing to do with <em>normal</em> contango/backwardation, which compare \(F_0\) with the <em>expected</em> spot \(E[S_T]\). An inverted market is industry backwardation (\(F \lt S\), e.g. oil with a high convenience yield). Also: for an investment asset with no income, \(F = Se^{r(\cdot)} \gt S\), so the market is always normal and futures calls beat spot calls. (Hull adds that for <em>American</em> options the ranking holds even when the futures and the option expire together, because early exercise uses \(F_t\) vs \(S_t\) before maturity. The lecture only states the European case.)</div>
+
+<h3>Try it: payoffs on the option's expiry date</h3>
+<div class="widget" id="fs">
+  <div class="controls">
+    <label>Strike \(K\): <span id="vK"></span><input type="range" id="K" min="60" max="100" step="1" value="80"></label>
+    <label>Spot at expiry \(S_T\): <span id="vS"></span><input type="range" id="S" min="60" max="100" step="1" value="82"></label>
+    <label>Futures minus spot \(F_T - S_T\): <span id="vB"></span><input type="range" id="B" min="-8" max="8" step="1" value="3"></label>
+  </div>
+  <div class="out">
+    <div>Spot call \(\max(S_T - K, 0)\): <b id="oSC"></b></div>
+    <div>Futures call \(\max(F_T - K, 0)\): <b id="oFC"></b></div>
+    <div>Spot put \(\max(K - S_T, 0)\): <b id="oSP"></b></div>
+    <div>Futures put \(\max(K - F_T, 0)\): <b id="oFP"></b></div>
+  </div>
+  <div class="verdict2" id="oV"></div>
+  <div class="note">Set \(F_T - S_T = 0\) (futures matures with the option): every pair matches. Push it positive (normal) and negative (inverted) and watch which side wins. Across all \(S_T\) the futures call is never below the spot call when \(F_T \ge S_T\).</div>
+</div>
+<script>
+(function () {
+  const el = id => document.getElementById(id);
+  function upd() {
+    const K = +el('K').value, S = +el('S').value, B = +el('B').value, F = S + B;
+    el('vK').textContent = K; el('vS').textContent = S; el('vB').textContent = (B > 0 ? '+' : '') + B + ' (F = ' + F + ')';
+    const sc = Math.max(S - K, 0), fc = Math.max(F - K, 0), sp = Math.max(K - S, 0), fp = Math.max(K - F, 0);
+    el('oSC').textContent = sc.toFixed(2); el('oFC').textContent = fc.toFixed(2);
+    el('oSP').textContent = sp.toFixed(2); el('oFP').textContent = fp.toFixed(2);
+    const v = el('oV');
+    if (B === 0) v.textContent = 'Futures matures with the option: F = S at expiry, so the futures and spot options pay the same.';
+    else if (B > 0) v.textContent = 'Normal market (F above S): futures call pays ' + (fc - sc).toFixed(2) + ' more than the spot call; futures put pays ' + (sp - fp).toFixed(2) + ' less than the spot put.';
+    else v.textContent = 'Inverted market (F below S): futures call pays ' + (sc - fc).toFixed(2) + ' less than the spot call; futures put pays ' + (fp - sp).toFixed(2) + ' more than the spot put.';
+  }
+  ['K', 'S', 'B'].forEach(id => el(id).addEventListener('input', upd));
+  upd();
+})();
+</script>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>19.</strong> A European call on March cattle futures expires in January. The cattle market is normal (futures above spot). Compared with a European call on spot cattle with the same strike and January expiry, the futures call is:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">worth the same, as both are calls on the same commodity</button>
+    <button class="opt" data-key="b">worth less, as the futures price must converge down to spot</button>
+    <button class="opt" data-key="c">worth more, as at expiry the futures price will exceed spot</button>
+    <button class="opt" data-key="d">worth more only if the futures matures before the option</button>
+  </div>
+  <div class="why">In January the March futures still has two months to run; in a normal market it sits above spot, so the call is on a higher number. (b): convergence only happens at the futures' maturity in March, after the option has gone. (d): a futures can't mature before the option on it.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>20.</strong> Crude oil is in an inverted market (prompt futures well above deferred ones, spot highest). A European put on a later-dated oil futures, compared with the spot put with the same strike and expiry, is:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">worth less, as futures puts are always cheaper than spot puts</button>
+    <button class="opt" data-key="b">worth more, as at expiry the futures price will be below spot</button>
+    <button class="opt" data-key="c">worth the same, as put-call parity fixes both put prices</button>
+    <button class="opt" data-key="d">worth more, as the futures price will be above spot at expiry</button>
+  </div>
+  <div class="why">Inverted: \(F_T \lt S_T\). A put gains from a lower underlying, so the futures put is worth more. (c): the two parities use different underlyings (\(F_0e^{-rT}\) vs \(S_0\)), so they don't make the puts equal. (d) has the inverted market backwards.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>21.</strong> A European call futures option expires on the same day as its underlying futures contract. Compared with the European spot call with the same strike and expiry:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">same value, as \(F_T = S_T\) on that day</button>
+    <button class="opt" data-key="b">more value, as futures are more liquid</button>
+    <button class="opt" data-key="c">less value, as the futures needs margin</button>
+    <button class="opt" data-key="d">depends on whether the market is normal</button>
+  </div>
+  <div class="why">Convergence: at the futures' maturity \(F_T = S_T\), so the payoffs are identical and so are the European prices. The normal/inverted question only matters when the futures runs past the option.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>22.</strong> Spot wool is $1,180 per bale, 6-month wool futures are $1,240 and the market expects spot in six months to be $1,260. In the lecture's terms, and for a futures call that expires before its futures matures:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Inverted market, as \(F_0\) is below \(E[S_T]\); futures call worth less</button>
+    <button class="opt" data-key="b">Normal market, as \(F_0\) is below \(E[S_T]\); futures call worth less</button>
+    <button class="opt" data-key="c">Inverted market, as \(F_0\) is above \(S_0\); futures call worth more</button>
+    <button class="opt" data-key="d">Normal market, as \(F_0\) is above \(S_0\); futures call worth more</button>
+  </div>
+  <div class="why">"Normal market" compares futures with <em>spot</em>: \(1{,}240 \gt 1{,}180\), normal, so the futures call is worth more. \(E[S_T]\) is the Lesson 9 normal-backwardation comparison (here \(F_0 \lt E[S_T]\): normal backwardation), a different idea that doesn't decide the ranking.</div>
+</div>
+
+<h2>6 · Why trade options on futures at all?</h2>
+<p>The lecture doesn't list reasons; Hull's (futures options chapter) are worth one exam sentence each:</p>
+<ol>
+  <li><strong>Liquidity and convenience:</strong> the futures is often more liquid and easier to trade than the physical commodity (no storage, grades or transport).</li>
+  <li><strong>Price transparency:</strong> the futures price is known at once from the exchange; a spot price for a commodity can be harder to pin down.</li>
+  <li><strong>No physical delivery:</strong> exercise gives a futures position, usually closed out for cash, so the holder never handles the asset.</li>
+  <li><strong>Same exchange, lower costs:</strong> options and futures trade side by side, which makes hedging, arbitrage and speculation cheap and keeps the markets efficient.</li>
+</ol>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>23.</strong> Which is a reason Hull gives for options on futures being more popular than options on the physical commodity?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Futures options can never be exercised before their expiry</button>
+    <button class="opt" data-key="b">Exercise usually ends in cash, with no delivery of the asset</button>
+    <button class="opt" data-key="c">Futures options are worth more than spot options in all markets</button>
+    <button class="opt" data-key="d">Put-call parity does not apply to options written on futures</button>
+  </div>
+  <div class="why">Exercise gives a futures position, which is normally closed out, so no commodity changes hands. (a): most futures options are American. (c): only in a normal market, and only for calls. (d): section 3 is put-call parity for futures options.</div>
+</div>
+
+<h2>7 · Exam-style question</h2>
+<p>About 11 marks, the length and steps of a final-exam question. Write it out, then open one step at a time.</p>
+<div class="box">
+<p>It is now August. A grain merchant holds an <strong>American call option on a December wheat futures</strong> contract covering <strong>100 tonnes</strong>. The strike is <strong>$315 per tonne</strong>. The option and the futures both expire in four months (December). The December futures price is <strong>$328 per tonne</strong>, and the risk-free rate for four months is <strong>4.5% p.a.</strong>, continuously compounded.</p>
+<p>(a) Describe the change in the merchant's position if she exercises now. Is the option in, at or out of the money? Show your calculations. (2 marks)<br>
+(b) A European call on the same futures with the same strike and expiry costs $21.40 per tonne. Use put-call parity to find the price of one European put <em>contract</em>. (2 marks)<br>
+(c) State the lower bound per tonne for the European call and for the American call. If the American call were quoted at $12.50 per tonne, what would you do, and what is the profit per contract? (3 marks)<br>
+(d) The American call is in fact $21.60 per tonne. Find the bounds on the American put with the same strike. (2 marks)<br>
+(e) Is the European futures call worth more, less or the same as a European call on spot wheat with the same strike and expiry? What if the option instead were on the March futures, with spot wheat at $335 and the curve downward-sloping? (2 marks)</p>
+</div>
+
+<details><summary>(a) Exercise now</summary><div>
+<p>She receives a <strong>long December wheat futures position</strong> (100 tonnes) at the current futures price of $328, plus \((328 - 315)\times100 = \mathbf{\$1{,}300}\) into her margin account. \(F \gt K\), so the call is <strong>in the money</strong>. The futures is then marked to market daily until she closes it out.</p></div></details>
+
+<div class="quiz num" data-answer="859.35" data-tol="0.6">
+  <p class="q"><strong>24.</strong> Part (b): price of one European put contract (100 tonnes), in dollars.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(T = 4/12\). \(p = c + (K - F_0)e^{-rT} = 21.40 + (315 - 328)e^{-0.015} = 21.40 - 12.8065 = 8.5935\) per tonne, \(\times100 = \$859.35\) per contract. Forgetting the contract size gives 8.59; using the sign the other way gives 34.21 per tonne.</div>
+</div>
+
+<details><summary>(c) Lower bounds and the arbitrage</summary><div>
+<p>European: \(c \ge (F_0 - K)e^{-rT} = 13e^{-0.015} = \mathbf{\$12.81}\). American: \(C \ge F_0 - K = \mathbf{\$13.00}\).</p>
+<p>At $12.50 the American call breaks its bound. <strong>Buy the call, exercise immediately</strong> (receive $1,300 cash plus a long futures at $328), and <strong>close the futures at once</strong> by shorting one at $328. Profit \((13 - 12.50)\times100 = \mathbf{\$50}\) per contract, riskless and immediate. (A $12.50 European call would also be below its bound of 12.81; that arbitrage needs the parity trade and pays at expiry.)</p></div></details>
+
+<div class="quiz num" data-answer="3.91" data-tol="0.01">
+  <p class="q"><strong>25.</strong> Part (d): the <em>lower</em> bound on the American put, per tonne.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(F_0e^{-rT} - K = 328e^{-0.015} - 315 = 8.1167\); \(F_0 - Ke^{-rT} = 328 - 315e^{-0.015} = 17.6897\). \(8.1167 \lt 21.60 - P \lt 17.6897\) gives \(\mathbf{3.91} \lt P \lt 13.48\). The upper bound on \(C - P\) gives the lower bound on \(P\).</div>
+</div>
+
+<div class="quiz num" data-answer="13.48" data-tol="0.01">
+  <p class="q"><strong>26.</strong> Part (d): the <em>upper</em> bound on the American put, per tonne.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(P \lt C - (F_0e^{-rT} - K) = 21.60 - 8.1167 = \$13.48\).</div>
+</div>
+
+<details><summary>(e) Futures call vs spot call</summary><div>
+<p>The December option expires with the December futures, so \(F_T = S_T\) at expiry: the European futures call is worth <strong>the same</strong> as the spot call. On the March futures it expires three months before the futures matures; with spot (335) above futures (328) and a downward-sloping curve, the market is <strong>inverted</strong>, so in December the March futures is expected to sit below spot and the futures call is worth <strong>less</strong> than the spot call (a futures put would be worth more).</p></div></details>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>27.</strong> (Spacing, Lesson 14.) For a non-dividend stock with a futures maturing when the options expire, \(F_0 = S_0e^{rT}\). Substituting into \(c + Ke^{-rT} = p + F_0e^{-rT}\) gives:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(c + Ke^{-rT} = p + S_0e^{rT}\), dearer calls than stock parity</button>
+    <button class="opt" data-key="b">\(c + K = p + S_0\), parity without any discounting</button>
+    <button class="opt" data-key="c">\(c + Ke^{-rT} = p + S_0\), exactly stock put-call parity</button>
+    <button class="opt" data-key="d">\(c + Ke^{-rT} = p + S_0e^{-2rT}\), cheaper calls than stock</button>
+  </div>
+  <div class="why">\(F_0e^{-rT} = S_0e^{rT}e^{-rT} = S_0\). Futures parity is stock parity with the stock replaced by the PV of the futures price, and when futures and option expire together they're the same thing (as section 5 said).</div>
+</div>
+
+<h2>8 · Before you close this tab</h2>
+
+<div class="box"><p><strong>Rule of thumb.</strong> A futures option is an option on \(F\). <em>Exercise = futures position at today's \(F\) + cash \(F - K\) (call) or \(K - F\) (put).</em> In every formula swap \(S_0\) for \(F_0e^{-rT}\) (the futures costs nothing, so its price arrives only at \(T\)): \(c - p = (F_0 - K)e^{-rT}\), \(c = p\) at \(K = F_0\). American bounds drop the discount: \(C \ge F_0 - K\), \(P \ge K - F_0\). Futures beats spot for calls when \(F \gt S\) (normal), for puts when \(F \lt S\) (inverted), and ties when the futures expires with the option.</p></div>
+
+<details><summary>Retrieval: from memory, write what call and put exercise gives, futures parity, the four lower bounds, the American range, and the normal/inverted grid. Then check</summary><div>
+<p>Call: long futures at \(F\) + \((F - K)\times\) size cash; put: short futures at \(F\) + \((K - F)\times\) size. \(c + Ke^{-rT} = p + F_0e^{-rT}\). \(c \ge (F_0 - K)e^{-rT}\), \(p \ge (K - F_0)e^{-rT}\) (each also ≥ 0); \(C \ge F_0 - K\), \(P \ge K - F_0\). \(F_0e^{-rT} - K \lt C - P \lt F_0 - Ke^{-rT}\). Futures maturing later: normal (\(F \gt S\)) call more / put less; inverted the reverse; same maturity: equal.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/Lecture%206_Future%20Options.pdf">Lecture 6, Options on futures</a> (slides 3–16), then Hull, <em>Options, Futures and Other Derivatives</em>, the futures options chapter (the lecture cites Ch. 16; it's Ch. 18 "Futures options and Black's model" in recent editions; chapter numbers vary). Hull problem 16.19 (the American \(C - P\) range) is the one the lecture names.</p>
+
+<p><strong>Homework:</strong> <a href="../tutes/Tutorial%206.pdf">Tutorial 6</a> Q3 (the two-portfolio proof: cover section 4's table and rebuild it, then do the <em>call</em> version), Q4 (exercise description, one line plus the cash) and Q5 (American bounds); <a href="../tutes/Tutorial%206%20solutions.pdf">solutions</a>. Optional: Q6 (Brent futures call on a binomial tree) belongs with Lesson 21.</p>
+<p><strong>Spacing:</strong> tomorrow, redo the exam-style question (a)–(e) cold. In three days, redo quizzes 9, 12, 17 and 22.</p>
+
+<div class="ask">💬 Unsure whether a futures option is in the money, which way the parity arbitrage goes, or how to flip the American range into bounds on \(P\)? Paste your working in the terminal and ask me. I'm your teacher for this, and I can generate more futures-option drills in the exam's format.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0019-american-options-on-trees.html">Lesson 19, American options on trees</a></span>
+  <span>Related: <a href="0014-put-call-parity.html">L14 parity</a> · <a href="0013-bounds-on-option-prices.html">L13 bounds</a> · <a href="0009-commodities-storage-and-convenience-yield.html">L9 futures curve</a></span>
+  <span>Reference: <a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/futures-cheatsheet.html">Futures cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0021-binomial-trees-for-futures-options.html">Lesson 21, binomial trees for futures options</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

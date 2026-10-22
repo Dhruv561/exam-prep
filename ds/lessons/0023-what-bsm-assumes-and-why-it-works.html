@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What BSM Assumes and Why It Works</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/bsm-limits-explorer.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 23 · Topic 7: Black-Scholes-Merton</div>
+<h1>What BSM assumes, and why the hedge makes it work</h1>
+<p class="lede">The goal: list the seven BSM assumptions and say which ones fail in practice; explain, with the 40-shares-against-100-calls example, why a stock-and-option portfolio is riskless and why that makes the stock's expected return disappear from the price; know the four limiting cases; and read \(N(d_2)\) and \(N(d_1)\) in plain words. No heavy computing yet: that is <a href="0024-computing-bsm-call-and-put-prices.html">Lesson 24</a>.</p>
+
+<div class="mission">Why this matters for 5 Nov: the final mixes conceptual marks into every option question: "main difference between the binomial and BSM assumptions" (discrete vs continuous trading, 1 mark), "link between the two" (both are risk-neutral valuation, 2 marks), "risk preferences play no role: comment" (2 marks), a 5-mark "probability the call is exercised" (which is \(N(d_2)\) with the right drift), and hedge-count questions ("how many shares?", then "what rebalancing?") using \(N(d_1)\). This lesson covers all of them.</div>
+
+<p>This lesson assumes <a href="0022-normal-and-lognormal-stock-prices.html">Lesson 22</a> (stock prices are lognormal, \(\mu\) and \(\sigma\)), <a href="0017-risk-neutral-valuation.html">Lesson 17</a> (risk-neutral valuation), <a href="0012-factors-affecting-option-prices.html">Lesson 12</a> (factors table) and <a href="0013-bounds-on-option-prices.html">Lesson 13</a> (bounds).</p>
+
+<p><strong>Notation.</strong> \(S_0\) stock price today; \(K\) strike; \(T\) years to expiry; \(r\) continuously compounded risk-free rate; \(\sigma\) volatility (standard deviation of the stock's annual continuously compounded return); \(\mu\) the stock's <em>expected</em> annual return; \(c\), \(p\) European call and put values; \(N(x)\) the standard normal cumulative probability, i.e. the area to the left of \(x\) under the bell curve (read it from the table; \(N(0)=0.5\)).</p>
+
+<h2>1 · The formula, shown once</h2>
+<p>For a European option on a stock paying no dividends (Lecture 7, slide 17):</p>
+$$c = S_0N(d_1) - Ke^{-rT}N(d_2), \qquad p = Ke^{-rT}N(-d_2) - S_0N(-d_1),$$
+$$d_1 = \frac{\ln(S_0/K) + (r + \sigma^2/2)T}{\sigma\sqrt{T}}, \qquad d_2 = d_1 - \sigma\sqrt{T}.$$
+<p>Five inputs: \(S_0, K, T, r, \sigma\). Lesson 24 teaches how to compute it. Here we ask <em>why it has this shape</em>. <strong>Predict first:</strong> the stock's expected return \(\mu\) was the headline of Lesson 22. Is it an input?</p>
+<details><summary>Reveal: no, and that is the surprise</summary><div>
+<p>\(\mu\) is nowhere in the formula. A stock expected to return 25% has the same option price as an otherwise identical one expected to return 5%. Sections 3 and 4 explain why.</p>
+</div></details>
+
+<h2>2 · The seven assumptions, and which ones are false</h2>
+<p>A model is a simplified world. Each assumption below makes the maths work; the "reality" column shows where it leaks (Lecture 7, slide 12).</p>
+<div class="tablewrap">
+<table>
+<tr><th>#</th><th>Assumption</th><th>In plain words</th><th>Reality</th></tr>
+<tr><td>1</td><td>Lognormal prices, \(\mu\) and \(\sigma\) constant</td><td>Short-period returns are normal; price never below 0; same \(\sigma\) all the way to expiry</td><td>\(\sigma\) changes (spikes in a crash); jumps on news and overnight gaps. Source of the volatility smile (<a href="0026-implied-volatility-smiles-and-vix.html">Lesson 26</a>)</td></tr>
+<tr><td>2</td><td>No transaction costs or taxes</td><td>Trading the hedge is free</td><td>Bid-ask spreads and commissions on every rebalance</td></tr>
+<tr><td>3</td><td>No dividends during the option's life</td><td>The stock never drops on an ex-dividend date</td><td>Many stocks pay. Fix (Topic 8): subtract the PV of dividends from \(S_0\)</td></tr>
+<tr><td>4</td><td>No riskless arbitrage</td><td>Any riskless profit would be traded away at once</td><td>Roughly true; this is the one assumption the whole method needs</td></tr>
+<tr><td>5</td><td>Continuous trading</td><td>You can adjust the hedge at every instant</td><td>You trade at discrete times; markets close; prices gap</td></tr>
+<tr><td>6</td><td>Borrow and lend at the same risk-free rate</td><td>One rate \(r\) for both</td><td>Borrowing costs more than lending</td></tr>
+<tr><td>7</td><td>\(r\) is constant</td><td>The riskless rate does not move</td><td>Rates change over time</td></tr>
+</table>
+</div>
+<p><strong>Which matter most?</strong> Constant \(\sigma\) (1) and no dividends (3) are the two the course returns to. The model is also <em>for European options</em> (exercise only at expiry); that is its scope, not one of the seven. Notice what is <strong>not</strong> on the list: investors being risk-neutral. The maths looks risk-neutral, but it is a trick that works because of assumption 4 (section 4).</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> Traders find that options with different strikes on the same stock and expiry imply different volatilities. Which assumption is that evidence against?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Trading takes place continuously with no gaps at all</button>
+    <button class="opt" data-key="b">Volatility is constant and returns follow one lognormal law</button>
+    <button class="opt" data-key="c">Borrowing and lending use the same risk-free rate</button>
+    <button class="opt" data-key="d">Transaction costs and taxes are zero on all trades</button>
+  </div>
+  <div class="why">If one \(\sigma\) were true, every strike would imply the same \(\sigma\). Different implied \(\sigma\) means the market prices a return distribution that is not the model's single lognormal one (Lecture 7 slide 36; Lesson 26).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> BSM (no dividends) is applied to a stock that will pay a large dividend before expiry. Compared with a version that allows for the dividend, BSM will:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Underprice both the call and the put by a small margin</button>
+    <button class="opt" data-key="b">Overprice both the call and the put by a small margin</button>
+    <button class="opt" data-key="c">Overprice the call and underprice the put by some amount</button>
+    <button class="opt" data-key="d">Underprice the call and overprice the put by some amount</button>
+  </div>
+  <div class="why">The stock falls by about the dividend when it goes ex, but the option holder is not paid it. Ignoring that treats the stock as worth more at expiry than it will be: too high a call, too low a put (Lesson 12, section 3.4).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>3.</strong> Which of these is <em>not</em> one of the BSM assumptions?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">There are no riskless arbitrage opportunities in the market</button>
+    <button class="opt" data-key="b">The risk-free rate is constant for the life of the option</button>
+    <button class="opt" data-key="c">The stock pays no dividends during the life of the option</button>
+    <button class="opt" data-key="d">Investors are risk-neutral and require only the riskless return</button>
+  </div>
+  <div class="why">No arbitrage is what is assumed; investors need not be risk-neutral. Pricing <em>as if</em> they were is a shortcut that gives the same answer (section 4).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>4.</strong> The main difference between the assumptions of the binomial model and BSM is that BSM assumes:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Continuous time and price movement, rather than discrete steps</button>
+    <button class="opt" data-key="b">Risk-neutral investors, rather than investors who dislike risk</button>
+    <button class="opt" data-key="c">No arbitrage opportunities, rather than allowing arbitrage</button>
+    <button class="opt" data-key="d">A known real-world chance of up and down price moves</button>
+  </div>
+  <div class="why">Both rely on no arbitrage and risk-neutral pricing. The difference is time: steps of length \(\Delta t\) versus continuous trading, with the binomial price converging to BSM as the number of steps grows (<a href="0025-bsm-as-the-limit-of-the-binomial-tree.html">Lesson 25</a>).</div>
+</div>
+
+<h2>3 · The riskless portfolio: why a hedge exists</h2>
+<p>The stock and its option are driven by <strong>one and the same source of uncertainty</strong>: the stock's moves. So over a very short time the option's price change is tied to the stock's. If \(\Delta c\) and \(\Delta S\) are small changes in the call and stock prices, suppose today</p>
+$$\Delta c = 0.4\,\Delta S.$$
+<p>(The 0.4 is the call's <strong>delta</strong>, \(\Delta\): how many dollars the option moves per dollar the stock moves.) A call rises with the stock, so its slope is positive; a put falls, so its slope is negative (Lecture 7, slide 14).</p>
+<p><strong>Predict first:</strong> you want a portfolio whose value does not change when the stock moves. You will write (sell) 100 calls. How many shares should you hold, long or short?</p>
+<details><summary>Reveal: long 40 shares</summary><div>
+<p>Short 100 calls, long \(0.4\times100 = 40\) shares. Offsetting moves:</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Stock move \(\Delta S\)</th><th>Each call moves</th><th>40 shares gain</th><th>100 short calls gain</th><th>Net</th></tr>
+<tr><td>+$0.10</td><td>+$0.04</td><td>+$4.00</td><td>−$4.00</td><td>$0</td></tr>
+<tr><td>−$0.10</td><td>−$0.04</td><td>−$4.00</td><td>+$4.00</td><td>$0</td></tr>
+<tr><td>+$0.50</td><td>+$0.20</td><td>+$20.00</td><td>−$20.00</td><td>$0</td></tr>
+</table>
+</div>
+<p>Rule: <strong>shares = \(\Delta\) × number of options</strong>. A written call is hedged with long shares; a bought put (\(\Delta \lt 0\)) with long \(|\Delta|\) shares, since the put gains when the stock falls and the shares lose (the handwritten notes: "long \(\Delta\) shares, short 1 call" and "long \(\Delta\) shares, long 1 put").</p>
+</div></details>
+
+<h3>Why the portfolio must earn exactly \(r\)</h3>
+<p>The gains and losses cancel, so the portfolio's value at the end of the tiny period is known for certain. A certain outcome has to earn the <strong>risk-free rate</strong>. If it earned more, you would borrow at \(r\), buy it, and pocket a sure profit (arbitrage); if less, do the reverse. That is assumption 4 doing the work. Setting "the hedged portfolio earns \(r\)" and following the maths through gives the BSM formula; the course skips that derivation (Lecture 7: "we will not cover a complete derivation"). It is exactly the binomial argument of <a href="0016-one-period-binomial-replication.html">Lesson 16</a> with the steps shrunk to nothing.</p>
+
+<h3>The catch: the hedge lasts only an instant</h3>
+<p>The slope 0.4 is for tiny moves only. As the stock moves, the slope changes (say to 0.5 tomorrow), so the hedge must be <strong>rebalanced</strong> (the share count adjusted). For 100 written calls: at \(\Delta = 0.4\) hold 40 shares; at 0.5 hold 50, so buy 10 more.</p>
+<p>How bad is a "big" move? Take a call with \(S_0=K=50\), \(r=5\%\), \(\sigma=30\%\), \(T=1\) (BSM value $7.12, \(\Delta = 0.6243\)). Write 100 calls, hold 62.43 shares, then let the stock jump at once (recomputed with the full formula):</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Jump \(\Delta S\)</th><th>Shares gain</th><th>Calls (short) gain</th><th>Net</th><th>New \(\Delta\)</th></tr>
+<tr><td>+$0.10</td><td>+$6.24</td><td>−$6.26</td><td>−$0.01</td><td>0.6268</td></tr>
+<tr><td>+$1.00</td><td>+$62.43</td><td>−$63.67</td><td>−$1.25</td><td>0.6490</td></tr>
+<tr><td>+$5.00</td><td>+$312.13</td><td>−$341.49</td><td>−$29.36</td><td>0.7371</td></tr>
+<tr><td>−$1.00</td><td>−$62.43</td><td>+$61.14</td><td>−$1.28</td><td>0.5984</td></tr>
+<tr><td>−$5.00</td><td>−$312.13</td><td>+$278.51</td><td>−$33.62</td><td>0.4862</td></tr>
+
+</table>
+</div>
+<p>For $0.10 the net is almost zero; for $5 it is a clear loss, whichever way the stock moves, because the call's price curve bends (the slope \(\Delta\) changes). Frequent rebalancing keeps it small. Continuous trading is exactly assumption 5, and hedging costs are assumption 2: these two are where reality bites the hedge. (The bending is "gamma", Lecture 9.)</p>
+
+<div class="quiz num" data-answer="150" data-tol="0.5">
+  <p class="q"><strong>5.</strong> A call has \(\Delta c = 0.25\,\Delta S\). A dealer writes 600 of them. How many shares make the position riskless over the next instant (long positive)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">\(0.25\times600 = 150\) shares, long (a written call loses when the stock rises, the shares gain).</div>
+</div>
+
+<div class="quiz num" data-answer="45" data-tol="0.5">
+  <p class="q"><strong>6.</strong> A dealer has written 300 calls and holds \(0.40\times300 = 120\) shares. The stock rises and the calls' delta becomes 0.55. How many shares must the dealer buy to rebalance (negative if selling)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">New holding \(0.55\times300 = 165\). Buy \(165 - 120 = 45\). The stock rose, delta rose, so buy more.</div>
+</div>
+
+<div class="quiz num" data-answer="70" data-tol="0.5">
+  <p class="q"><strong>7.</strong> A market maker <em>buys</em> 200 puts whose \(\Delta p = -0.35\). How many shares should be held to hedge (long positive, short negative)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">\(|{-0.35}|\times200 = 70\), long: the puts gain when the stock falls, the 70 shares lose by about the same. Answering −70 is the hedge for <em>written</em> puts.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>8.</strong> Why must a stock-and-option portfolio with offsetting gains and losses earn the risk-free rate?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It has no risk, so any other return would be an arbitrage</button>
+    <button class="opt" data-key="b">The stock's expected return is assumed equal to the risk-free rate</button>
+    <button class="opt" data-key="c">Investors in the real world are assumed to be risk-neutral</button>
+    <button class="opt" data-key="d">Option prices are set so that every option earns exactly r</button>
+  </div>
+  <div class="why">No risk plus no arbitrage forces \(r\). The other three are common mis-statements: neither the stock nor the option earns \(r\) on its own; only the <em>hedged combination</em> does.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>9.</strong> A dealer who wrote calls is delta hedged. The stock then <em>rises</em> for a while. To stay hedged the dealer should:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Sell shares, since the calls are now less likely to pay</button>
+    <button class="opt" data-key="b">Buy shares, since the calls' delta has risen with the stock</button>
+    <button class="opt" data-key="c">Do nothing, since a delta hedge is fixed at the start</button>
+    <button class="opt" data-key="d">Buy more calls, since the calls have lost value overall</button>
+  </div>
+  <div class="why">A call's delta rises with \(S\) (table above: 0.6243 to 0.7371 after +$5). Shares held \(= \Delta\times\) calls, so buy. Doing nothing (c) is the error the exams test.</div>
+</div>
+
+<h2>4 · Why the expected return \(\mu\) drops out</h2>
+<p>The hedge removes all the stock-price risk from the portfolio. What it earns is then \(r\), whether the stock is expected to return 5% or 25%. The option's price is the <em>cost of building the hedge</em>, and that cost depends on today's prices and on how wildly the stock moves, not on where it is expected to drift.</p>
+<p><strong>Predict first:</strong> a bullish analyst thinks a stock will return 25% a year; a bearish one thinks 5%. Same \(S_0\), \(K\), \(T\), \(r\), \(\sigma\). Whose call is worth more under BSM?</p>
+<details><summary>Reveal: the same</summary><div>
+<p>Both obtain the identical BSM price. Their views matter only for whether they <em>buy the stock</em> at \(S_0\) (the bull thinks it is cheap, buys, and so pushes up \(S_0\)). Given \(S_0\), the price of the option is fixed by the hedge. This is Lesson 17's <strong>risk-neutral valuation</strong>: because the answer does not depend on \(\mu\) or on risk attitudes, you may compute it in an imaginary world where every asset earns \(r\), and the answer is right for the real world too.</p>
+</div></details>
+<div class="tablewrap">
+<table>
+<tr><th>Quantity</th><th>In the BSM price?</th><th>Why</th></tr>
+<tr><td>\(S_0\)</td><td>Yes</td><td>Today's price already reflects everyone's views and risk attitudes</td></tr>
+<tr><td>\(K\), \(T\)</td><td>Yes</td><td>They define the payoff</td></tr>
+<tr><td>\(r\)</td><td>Yes</td><td>The hedged portfolio earns \(r\); also discounting</td></tr>
+<tr><td>\(\sigma\)</td><td>Yes</td><td>How much the stock moves is how much the hedge has to chase</td></tr>
+<tr><td>\(\mu\)</td><td><strong>No</strong></td><td>The hedge cancels the stock's direction, up or down</td></tr>
+<tr><td>Risk aversion</td><td><strong>No</strong></td><td>No risk is left to be averse to</td></tr>
+</table>
+</div>
+<div class="box"><p><strong>Template for the 2-mark "risk preferences play no role" statement.</strong> Qualified agreement: <em>an option can be hedged with the stock to form a riskless portfolio, which must earn the risk-free rate whatever investors' attitudes to risk or expectation of the stock's return; so the price depends on \(r\) and \(\sigma\), not on \(\mu\) or risk aversion. But they are reflected indirectly in the stock price \(S_0\), which is an input.</em> (Same pattern as Lesson 18, B(f); the binomial \(p\) is likewise not the real-world probability.)</p></div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>10.</strong> Two otherwise identical stocks have the same \(S_0\) and \(\sigma\). Stock A is expected to return 18% a year, stock B 6%. For identical European calls on them, BSM gives:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A a higher price, as it is more likely to finish in the money</button>
+    <button class="opt" data-key="b">A a lower price, as its higher return already makes it dearer</button>
+    <button class="opt" data-key="c">The same price, as the hedged position's return ignores \(\mu\)</button>
+    <button class="opt" data-key="d">The same price, but only when investors are risk-neutral</button>
+  </div>
+  <div class="why">(a) is the natural trap: A is more likely to finish in the money in the real world, but the price is not a real-world expectation. (d): the result holds because of the hedge; it needs no assumption about investors.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>11.</strong> Which one of these inputs does the BSM call formula <em>not</em> use?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The volatility of the stock's continuously compounded return</button>
+    <button class="opt" data-key="b">The continuously compounded risk-free rate of interest</button>
+    <button class="opt" data-key="c">The current stock price and the strike price of the option</button>
+    <button class="opt" data-key="d">The expected return on the stock over the option's life</button>
+  </div>
+  <div class="why">\(\mu\) appears in the real-world distribution of \(S_T\) (Lesson 22) but not in the price.</div>
+</div>
+
+<h2>5 · The limits: what BSM does at the extremes</h2>
+<p>A good formula behaves sensibly at the edges. Lecture 7 (slides 20 to 21, and the handwritten notes) check four cases. <strong>Predict first:</strong> a call on a stock that is almost worthless (\(S\to0\)) and a call on a stock that is enormous (\(S\to\infty\)). What should each be worth?</p>
+<p>Handwritten route for \(S_0\to0\): \(\ln(S_0/K)\to-\infty\), so \(d_1,d_2\to-\infty\), so \(N(d_1),N(d_2)\to0\) (far into the left tail), so \(c\to0\). For \(S_0\to\infty\) it flips: \(d\to+\infty\), \(N\to1\).</p>
+<div class="tablewrap">
+<table>
+<tr><th>Case</th><th>\(N\) terms</th><th>Value</th><th>Meaning</th></tr>
+<tr><td>Call, \(S\to0\)</td><td>\(N(d_1),N(d_2)\to0\)</td><td>\(c\to0\)</td><td>Almost certainly never in the money</td></tr>
+<tr><td>Call, \(S\to\infty\)</td><td>\(N(d_1),N(d_2)\to1\)</td><td>\(c\to S-Ke^{-rT}\)</td><td>Certain to be exercised, so a <strong>long forward</strong> to buy at \(K\) (Lesson 10: forward value \(S-Ke^{-rT}\))</td></tr>
+<tr><td>Put, \(S\to\infty\)</td><td>\(N(-d_1),N(-d_2)\to0\)</td><td>\(p\to0\)</td><td>Almost certainly never in the money</td></tr>
+<tr><td>Put, \(S\to0\)</td><td>\(N(-d_1),N(-d_2)\to1\)</td><td>\(p\to Ke^{-rT}-S\)</td><td>Certain to be exercised: a <strong>short forward</strong> (sell at \(K\))</td></tr>
+</table>
+</div>
+<p>These are the lower bounds of <a href="0013-bounds-on-option-prices.html">Lesson 13</a> (\(c\ge S-Ke^{-rT}\), \(p\ge Ke^{-rT}-S\)): at the extremes BSM sits on the bound, so the option's "choice" has no value left. Check with \(K=50\), \(r=5\%\), \(\sigma=30\%\), \(T=1\) (\(Ke^{-rT}=47.56\); software values):</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>\(S\)</th><th>\(c\)</th><th>\(S-Ke^{-rT}\)</th><th>\(p\)</th><th>\(Ke^{-rT}-S\)</th><th>\(N(d_1)\)</th><th>\(N(d_2)\)</th></tr>
+<tr><td>2</td><td>0.00</td><td>−45.56</td><td>45.56</td><td>45.56</td><td>0.0000</td><td>0.0000</td></tr>
+<tr><td>10</td><td>0.00</td><td>−37.56</td><td>37.56</td><td>37.56</td><td>0.0000</td><td>0.0000</td></tr>
+<tr><td>25</td><td>0.06</td><td>−22.56</td><td>22.62</td><td>22.56</td><td>0.0231</td><td>0.0109</td></tr>
+<tr><td>40</td><td>2.28</td><td>−7.56</td><td>9.84</td><td>7.56</td><td>0.3346</td><td>0.2336</td></tr>
+<tr><td>50</td><td>7.12</td><td>2.44</td><td>4.68</td><td>−2.44</td><td>0.6243</td><td>0.5066</td></tr>
+<tr><td>60</td><td>14.44</td><td>12.44</td><td>2.00</td><td>−12.44</td><td>0.8224</td><td>0.7338</td></tr>
+<tr><td>80</td><td>32.75</td><td>32.44</td><td>0.31</td><td>−32.44</td><td>0.9702</td><td>0.9433</td></tr>
+<tr><td>100</td><td>52.48</td><td>52.44</td><td>0.04</td><td>−52.44</td><td>0.9957</td><td>0.9900</td></tr>
+<tr><td>150</td><td>102.44</td><td>102.44</td><td>0.00</td><td>−102.44</td><td>1.0000</td><td>0.9999</td></tr>
+<tr><td>250</td><td>202.44</td><td>202.44</td><td>0.00</td><td>−202.44</td><td>1.0000</td><td>1.0000</td></tr>
+
+</table>
+</div>
+<p>Slide 31's "in the money" intuition shows up in the last two columns: as \(S\) grows both go to 1, as \(S\) shrinks both go to 0.</p>
+
+<p><strong>Try it.</strong> Drag \(S\) to the far right, then far left, then raise \(\sigma\) and \(T\) to see the gaps to the dashed bounds open.</p>
+<div class="bsml" data-k="50" data-r="5" data-sigma="30" data-t="1"></div>
+
+<div class="quiz num" data-answer="327.61" data-tol="0.1">
+  <p class="q"><strong>12.</strong> \(K=80\), \(r=5\%\), \(T=2\) years. A call is so deep in the money (\(S=400\)) that BSM is essentially at its limit. Approximate its value.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(S-Ke^{-rT} = 400 - 80e^{-0.10} = 400 - 72.39 = 327.61\). (Full formula: 327.61.)</div>
+</div>
+
+<div class="quiz num" data-answer="72.39" data-tol="0.1">
+  <p class="q"><strong>13.</strong> Same \(K\), \(r\), \(T\), but the stock collapses to almost nothing (\(S\to0\)). What is the put worth?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(Ke^{-rT}-S\to 80e^{-0.10} = 72.39\). The put is sure to be exercised for \(K\) in two years; you get \(K\) for a worthless share, so the value is the PV of \(K\), not \(K\) itself.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>14.</strong> A call is very deep in the money, so \(N(d_1)\approx1\). A dealer has written 1,000 of them. The hedge is roughly:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Long about 500 shares, as the calls are at the money</button>
+    <button class="opt" data-key="b">Long about 1,000 shares, as the calls move one-for-one</button>
+    <button class="opt" data-key="c">Short about 1,000 shares, as the dealer wrote the calls</button>
+    <button class="opt" data-key="d">No shares at all, as the calls will certainly be exercised</button>
+  </div>
+  <div class="why">A near-certain-to-be-exercised call behaves like the stock itself (a long forward), so \(\Delta\approx1\) and the writer holds one share per call. A written call is hedged <em>long</em>, never short (c).</div>
+</div>
+
+<h2>6 · What \(N(d_2)\) and \(N(d_1)\) mean</h2>
+
+<h3>\(N(d_2)\): the chance the call is exercised</h3>
+<p>\(N(d_2)\) is the probability that \(S_T \gt K\), i.e. that the call finishes in the money (Lecture 7 slide 18), and \(N(-d_2) = 1 - N(d_2)\) is the chance the put does. It is the lognormal calculation of Lesson 22 with one change: the drift. Using drift \(m\):</p>
+$$P(S_T \gt K) = N\!\left(\frac{\ln(S_0/K) + (m - \sigma^2/2)T}{\sigma\sqrt{T}}\right).$$
+<p>With \(m = r\) this is \(N(d_2)\), the <strong>risk-neutral</strong> probability (the pretend world where everything earns \(r\), used for pricing). With \(m = \mu\) it is the <strong>real-world</strong> probability. <em>Which one the question wants:</em> if it says "risk-neutral", use \(r\); if it gives an expected return \(\mu\) and asks the chance the option is exercised, use \(\mu\) (the 5-mark question pattern above, Question B below). \(N(d_2)\) is a probability; \(N(d_1)\) is not.</p>
+
+<h3>\(N(d_1)\): the hedge ratio (preview of Lecture 9)</h3>
+<p>\(N(d_1)\) is the call's delta: hold \(N(d_1)\) shares per written call (section 3). The put's delta is \(N(d_1)-1\), between \(-1\) and 0, so a <em>bought</em> put is hedged with \(1-N(d_1)\) long shares. Lecture 9 develops this. Note \(N(d_1) \gt N(d_2)\) always (\(d_1 \gt d_2\)).</p>
+
+<h3>The slide 31 reading: "expectation over the in-the-money region"</h3>
+<p>A call pays \(S_T-K\) only if \(S_T \gt K\), else 0. In plain words its value is: <strong>(chance it pays) × (average payoff when it does) discounted</strong>:</p>
+$$c = e^{-rT}\Big[\,N(d_2)\times\big(\underbrace{S_0e^{rT}\tfrac{N(d_1)}{N(d_2)}}_{\text{average } S_T \text{ when } S_T \gt K} - K\big)\Big].$$
+<p>The brace is the expected stock price <em>given</em> the call is in the money. It is larger than the unconditional risk-neutral mean \(S_0e^{rT}\) because we keep only the top part of the distribution, which is why the ratio \(N(d_1)/N(d_2)\) exceeds 1. Multiply out and the \(N(d_2)\) cancels in the first term:</p>
+$$c = S_0N(d_1) - Ke^{-rT}N(d_2).$$
+<p>Read it as: <strong>\(S_0N(d_1)\)</strong> = PV of the stock you receive, if exercised; <strong>\(Ke^{-rT}N(d_2)\)</strong> = PV of the strike you pay, if exercised.</p>
+<div class="box"><p><strong>Check with the lecture's example</strong> (slide 22: \(S_0=30\), \(K=25\), \(r=4\%\), \(\sigma=30\%\), \(T=0.5\); table values \(N(d_1)=0.8554\), \(N(d_2)=0.8023\)):</p>
+<p>Chance of exercise (risk-neutral) = 80.23%. Average stock price when exercised \(= 30e^{0.02}\times0.8554/0.8023 = 32.63\), so the average payoff when it pays is \(32.63-25 = 7.63\). Value \(= e^{-0.02}\times0.8023\times7.63 = \$6.00\), equal to the lecture's \(c=30(0.8554)-25e^{-0.02}(0.8023) = 25.66-19.66 = 6.00\) ✓.</p></div>
+
+<div class="quiz num" data-answer="0.3300" data-tol="0.0005">
+  <p class="q"><strong>15.</strong> For a call, \(d_2 = -0.44\). What is the (risk-neutral) probability it is exercised (table value, 4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(N(-0.44) = 0.3300\). The put is exercised with probability \(N(0.44) = 0.6700\). A common slip is giving \(N(0.44)\) for the call.</div>
+</div>
+
+<div class="quiz num" data-answer="349" data-tol="0.5">
+  <p class="q"><strong>16.</strong> A dealer writes 500 calls for which \(d_1 = 0.52\), so \(N(d_1) = 0.6985\). How many shares (nearest whole) hedge them?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">\(500\times0.6985 = 349.25 \approx 349\), long. (If instead the dealer <em>bought</em> 500 puts with the same \(d_1\): \(\Delta_{put} = 0.6985-1 = -0.3015\), long \(500\times0.3015 = 150.75\approx151\) shares.)</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>17.</strong> In the BSM call price, the term \(Ke^{-rT}N(d_2)\) is best described as:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The present value of the strike expected to be paid on exercise</button>
+    <button class="opt" data-key="b">The present value of the stock expected to be received on exercise</button>
+    <button class="opt" data-key="c">The real-world chance the option expires worthless at maturity</button>
+    <button class="opt" data-key="d">The number of shares that must be held to delta hedge a call</button>
+  </div>
+  <div class="why">(b) is \(S_0N(d_1)\); (d) is \(N(d_1)\) alone; (c) is not \(N(d_2)\) at all (and \(N(d_2)\) is risk-neutral, not real-world).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>18.</strong> Which statement about \(N(d_1)\) and \(N(d_2)\) for a call is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(N(d_1)\) is the risk-neutral probability of exercise, \(N(d_2)\) is delta</button>
+    <button class="opt" data-key="b">Both are probabilities of exercise, in different probability worlds</button>
+    <button class="opt" data-key="c">\(N(d_2)\) exceeds \(N(d_1)\), since \(d_2\) comes second in the formula</button>
+    <button class="opt" data-key="d">\(N(d_2)\) is the exercise probability, \(N(d_1)\) the delta, and it is larger</button>
+  </div>
+  <div class="why">\(d_1=d_2+\sigma\sqrt T \gt d_2\), so \(N(d_1) \gt N(d_2)\). The roles are not interchangeable (a swaps them).</div>
+</div>
+
+<h2>7 · Many what-ifs: how \(c\) and \(p\) respond</h2>
+<p>These are the Lesson 12 directions, now with BSM numbers. Base: \(S_0=K=50\), \(r=5\%\), \(\sigma=30\%\), \(T=1\): \(c=7.12\), \(p=4.68\) (software values; the table method, with \(d_1=0.32\), \(d_2=0.02\), gives \(c=7.11\), \(p=4.68\)). <strong>Predict first</strong> for each change: call up or down? Put?</p>
+<details><summary>Reveal the scenario table (one change at a time)</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Change</th><th>\(c\)</th><th>\(p\)</th><th style="text-align:left">Why</th></tr>
+<tr><td>Base</td><td>7.12</td><td>4.68</td><td style="text-align:left">—</td></tr>
+<tr><td>\(S_0\) 50 → 55</td><td>10.53</td><td>3.09</td><td style="text-align:left">Call more in the money, put less</td></tr>
+<tr><td>\(S_0\) 50 → 45</td><td>4.33</td><td>6.89</td><td style="text-align:left">The reverse</td></tr>
+<tr><td>\(K\) 50 → 55</td><td>5.01</td><td>7.33</td><td style="text-align:left">Higher strike: calls need more, puts pay more</td></tr>
+<tr><td>\(K\) 50 → 45</td><td>9.85</td><td>2.65</td><td style="text-align:left">The reverse</td></tr>
+<tr><td>\(\sigma\) 30% → 40%</td><td>9.01</td><td>6.57</td><td style="text-align:left">Wider spread helps holders; both rise equally (parity)</td></tr>
+<tr><td>\(\sigma\) 30% → 20%</td><td>5.23</td><td>2.79</td><td style="text-align:left">Both fall equally</td></tr>
+<tr><td>\(T\) 1 → 2</td><td>10.60</td><td>5.84</td><td style="text-align:left">More time, more spread; also more interest</td></tr>
+<tr><td>\(T\) 1 → 0.5</td><td>4.82</td><td>3.58</td><td style="text-align:left">Less time: both fall here</td></tr>
+<tr><td>\(r\) 5% → 8%</td><td>7.86</td><td>4.01</td><td style="text-align:left">Forward \(S_0e^{rT}\) rises vs \(K\): call up, put down</td></tr>
+<tr><td>\(r\) 5% → 2%</td><td>6.41</td><td>5.42</td><td style="text-align:left">The reverse</td></tr>
+<tr><td>Deep ITM put (\(S_0=30\), \(K=50\)): \(T\) 1 → 2</td><td>0.30 → 1.36</td><td>17.86 → 16.61</td><td style="text-align:left">Put <em>falls</em>: strike received later is worth less today</td></tr>
+
+</table>
+</div>
+<p><strong>Patterns.</strong> \(S\uparrow\): call up, put down; \(K\uparrow\): the reverse. \(\sigma\uparrow\): <em>both</em> up by the <em>same</em> amount (here +1.90 each: parity says \(c-p=S-Ke^{-rT}\) does not involve \(\sigma\)). \(r\uparrow\): call up, put down (the forward \(S_0e^{rT}\) moves further above \(K\); Lesson 12). \(T\uparrow\): usually both up, but a deep in-the-money European put can fall (last row: the strike is received later and is worth less today). Scaling \(S\) and \(K\) together by 10% scales both prices by 10%: only \(S/K\) matters.</p>
+</div></details>
+
+<div class="quiz num" data-answer="6.57" data-tol="0.02">
+  <p class="q"><strong>19.</strong> In the base case, volatility rises from 30% to 40% and the call goes from 7.12 to 9.01. Use put-call parity to find the new put value (\(S_0\), \(K\), \(r\), \(T\) unchanged).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(c-p = S_0-Ke^{-rT}\) is unchanged, so \(p\) rises by the same \(9.01-7.12=1.89\): \(4.68+1.89 = 6.57\) (the formula gives 6.57).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>20.</strong> A European call and put share \(S_0\), \(K\), \(T\), \(\sigma\). The risk-free rate falls. Under BSM:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The call rises and the put falls, since cheaper money helps</button>
+    <button class="opt" data-key="b">The call falls and the put rises, since the forward price falls</button>
+    <button class="opt" data-key="c">Both fall, since the discount on the strike is now smaller</button>
+    <button class="opt" data-key="d">Neither changes, since \(r\) only discounts and \(\mu\) drives the drift</button>
+  </div>
+  <div class="why">\(r\downarrow\) lowers the forward \(S_0e^{rT}\) relative to \(K\): bad for calls, good for puts (base: \(r=2\%\) gives \(c=6.41\), \(p=5.42\)). (d) is wrong because \(r\) <em>is</em> the growth rate in the hedged world.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>21.</strong> The stock price and the strike both rise by 20%; \(T\), \(r\) and \(\sigma\) are unchanged. Each option's BSM value:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Is unchanged, as only the ratio \(S_0/K\) enters</button>
+    <button class="opt" data-key="b">Rises by less than 20%, as the call is capped by the stock</button>
+    <button class="opt" data-key="c">Rises by exactly 20%, as the payoff scales and the ratio is fixed</button>
+    <button class="opt" data-key="d">Rises by more than 20%, as volatility is applied to a larger base</button>
+  </div>
+  <div class="why">\(d_1\) and \(d_2\) depend only on \(S_0/K\), and \(c = K[\,(S_0/K)N(d_1) - e^{-rT}N(d_2)\,]\), so the value scales with the size of the contract. (a) is half right: the \(N\) terms are unchanged, but the dollar value is not.</div>
+</div>
+
+<h2>8 · Exam-style questions</h2>
+<p>Table style: \(d\) to 2 dp, \(N\) from the formula sheet (pp. 5-6, 4 dp, no interpolation). When both are needed, \(d_2 = d_1 - \sigma\sqrt T\) using the <em>unrounded</em> \(d_1\), then round both. Allow about 2 minutes per mark.</p>
+
+<h3>Question A (8 marks): the hedge counts</h3>
+<div class="box"><p>A dealer writes 400 European calls on a non-dividend-paying stock. At initiation BSM gives \(d_1 = 0.28\) for the calls. A week later the stock has risen and \(d_1 = 0.64\). Use \(N(0.28)=0.6103\), \(N(0.64)=0.7389\).</p></div>
+
+<div class="quiz num" data-answer="244" data-tol="0.5">
+  <p class="q"><strong>A(a).</strong> (2 marks) How many shares (nearest whole) should the dealer hold at initiation?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">\(400\times0.6103 = 244.12 \approx 244\), long.</div>
+</div>
+
+<div class="quiz num" data-answer="52" data-tol="0.5">
+  <p class="q"><strong>A(b).</strong> (2 marks) After the rise, how many shares must be bought (negative if sold) to rebalance?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">New: \(400\times0.7389 = 295.56\approx296\). Buy \(296-244 = 52\). (Rounding each holding to whole shares first is what the exam does.)</div>
+</div>
+
+<div class="quiz num" data-answer="156" data-tol="0.5">
+  <p class="q"><strong>A(c).</strong> (2 marks) Instead, a dealer <em>buys</em> 400 puts with the same strike and maturity, \(d_1 = 0.28\). How many shares (long positive, short negative, nearest whole) hedge them at initiation?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">\(\Delta_{put} = N(d_1)-1 = 0.6103-1 = -0.3897\). Bought puts are hedged with long \(|\Delta|\) shares: \(400\times0.3897 = 155.88\approx156\) long.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>A(d).</strong> (2 marks) Why did the dealer have to trade shares after the stock moved?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The calls' value went up, which made the position risky again</button>
+    <button class="opt" data-key="b">The expected return on the stock changed with the new price</button>
+    <button class="opt" data-key="c">Delta changes with the stock price, so the hedge ratio drifted</button>
+    <button class="opt" data-key="d">Interest accrued on the shares, which changed the hedge ratio</button>
+  </div>
+  <div class="why">The option-stock relationship \(\Delta c=\Delta\cdot\Delta S\) holds for tiny moves only; \(\Delta\) itself depends on \(S\) (and on time). Hence continuous rebalancing in the model.</div>
+</div>
+
+<h3>Question B (7 marks): the chance of exercise</h3>
+<div class="box"><p>A non-dividend-paying stock is $42 with expected return 14% p.a. and volatility 30% p.a.; \(r=5\%\) p.a. A European call and put each have strike $45 and expire in six months. Assume lognormal prices.</p></div>
+
+<div class="quiz num" data-answer="0.3783" data-tol="0.0005">
+  <p class="q"><strong>B(a).</strong> (2 marks) What is the <em>risk-neutral</em> probability that the call is exercised (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(d_2 = [\ln(42/45) + (0.05-0.045)(0.5)]/(0.3\sqrt{0.5}) = (-0.0690+0.0025)/0.2121 = -0.3135\approx-0.31\). \(N(-0.31)=0.3783\). (Unrounded \(d_2\) gives 0.3770; the exam expects the formula-sheet table value, \(d\) to 2 dp, pp. 5-6.)</div>
+</div>
+
+<div class="quiz num" data-answer="0.6217" data-tol="0.0005">
+  <p class="q"><strong>B(b).</strong> (1 mark) The risk-neutral probability that the put is exercised (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(N(-d_2)=N(0.31)=1-0.3783=0.6217\).</div>
+</div>
+
+<div class="quiz num" data-answer="0.4602" data-tol="0.0005">
+  <p class="q"><strong>B(c).</strong> (3 marks) What is the <em>real-world</em> probability that the call is exercised (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Replace \(r\) by \(\mu\): \((\ln(42/45)+(0.14-0.045)(0.5))/0.2121 = (-0.0690+0.0475)/0.2121 = -0.1013\approx-0.10\). \(N(-0.10)=0.4602\) (unrounded: 0.4597). The put's real-world chance is \(0.5398\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>B(d).</strong> (1 mark) The real-world chance exceeds the risk-neutral one because:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The stock is expected to grow faster than the risk-free rate</button>
+    <button class="opt" data-key="b">The risk-neutral world has a higher volatility than the real one</button>
+    <button class="opt" data-key="c">The strike is discounted in one calculation and not the other</button>
+    <button class="opt" data-key="d">Real-world probabilities always exceed risk-neutral probabilities</button>
+  </div>
+  <div class="why">\(\mu = 14\% \gt r = 5\%\) lifts the whole price distribution. If \(\mu\) were below \(r\), the order would flip (d is false).</div>
+</div>
+
+<h3>Question C (6 marks): concepts and limits</h3>
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>C(a).</strong> (2 marks) "Risk preferences play no role in option pricing." The best response is:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Fully agree: option prices depend only on the five formula inputs</button>
+    <button class="opt" data-key="b">Agree given \(S_0\): the hedge is riskless, but views shape \(S_0\)</button>
+    <button class="opt" data-key="c">Disagree: the hedge ratio is chosen to match investors' risk aversion</button>
+    <button class="opt" data-key="d">Agree only because BSM assumes that all investors are risk-neutral</button>
+  </div>
+  <div class="why">The hedged portfolio is riskless and earns \(r\) whatever the preferences, so the formula contains none; but they influence \(S_0\) itself. (a) forgets the indirect route; (d) states a false assumption.</div>
+</div>
+
+<div class="quiz num" data-answer="243.49" data-tol="0.1">
+  <p class="q"><strong>C(b).</strong> (2 marks) \(K=60\), \(r=4\%\), \(T=1.5\). The stock is now $300, so the call is extremely deep in the money. Approximate its BSM value.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(S-Ke^{-rT}=300-60e^{-0.06}=300-56.51=243.49\) (\(60e^{-0.06}=56.5059\), so 243.4941).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>C(c).</strong> (2 marks) An analyst applies BSM to a stock about to announce earnings, with a big expected jump either way. Which assumptions does this most directly break?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">No dividends and the same borrowing and lending rate</button>
+    <button class="opt" data-key="b">No transaction costs and a constant risk-free rate of interest</button>
+    <button class="opt" data-key="c">No riskless arbitrage and trading only at set times</button>
+    <button class="opt" data-key="d">Constant volatility with smooth lognormal moves, and continuous hedging</button>
+  </div>
+  <div class="why">A jump means volatility is not constant and the price does not move smoothly, so a hedge cannot be adjusted instant by instant through it.</div>
+</div>
+
+<h2>9 · Before you close this tab</h2>
+<div class="box"><p><strong>Rule of thumb.</strong> <em>Hedge, then price.</em> Stock and option share one risk, so \(\Delta\) shares per option cancels it; a riskless portfolio earns \(r\); so the price depends on \(S_0,K,T,r,\sigma\) and not on \(\mu\) or risk aversion (only through \(S_0\)). Limits: \(S\to\infty\): \(c\to S-Ke^{-rT}\), \(p\to0\); \(S\to0\): \(c\to0\), \(p\to Ke^{-rT}-S\). \(N(d_2)\) = (risk-neutral) chance of exercise, \(N(d_1)\) = call delta, put delta \(=N(d_1)-1\). Hedge size = \(|\Delta|\times\) options; written call or bought put: long shares. Rebalance as \(\Delta\) moves.</p></div>
+
+<details><summary>Retrieval: from memory, list the seven assumptions, the hedge for 100 written calls with \(\Delta=0.4\), why \(\mu\) is missing, the four limits, and the meaning of \(N(d_1)\), \(N(d_2)\). Then check</summary><div>
+<p>Assumptions: lognormal with constant \(\mu,\sigma\); no costs or taxes; no dividends; no arbitrage; continuous trading; same borrowing and lending rate; constant \(r\). Hedge: long 40 shares per 100 short calls; rebalance as \(\Delta\) changes. \(\mu\) missing: hedged portfolio is riskless, earns \(r\). Limits as in the rule of thumb. \(N(d_2)\) chance of exercise (use \(\mu\) for real-world), \(N(d_1)\) delta.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/Lecture%207_BSM.pdf">Lecture 7</a>, slides 12 to 21 and 31 (assumptions, theory, formula, limits, "getting behind the formula"); handwritten <a href="../lectures/Lecture%207%20notes.pdf">Lecture 7 notes</a>, pp. 2 to 3. Textbook: Hull, <em>Options, Futures and Other Derivatives</em>, the Black-Scholes-Merton chapter (the lecture cites Ch. 13; later editions number it differently).</p>
+
+<p><strong>Homework (about 3 parts):</strong></p>
+<ol>
+<li>Hedge counts. A dealer writes 250 calls with \(N(d_1)=0.62\) and buys 250 puts of the same strike with the same \(d_1\). (i) Shares to hedge the calls. (ii) Shares to hedge the puts. (iii) Holding both books together, the net share position?
+<details><summary>Answer</summary><div>(i) \(250\times0.62=155\) long. (ii) \(\Delta_{put}=-0.38\), long \(0.38\times250=95\). (iii) Both long: \(155+95=250\) shares.</div></details></li>
+<li>Limits. \(K=100\), \(r=6\%\), \(T=1\). Approximate the call at \(S=800\) and the put at \(S=0.5\), and say which \(N\) terms go to 0 or 1.
+<details><summary>Answer</summary><div>\(Ke^{-rT}=94.18\). Call \(\approx800-94.18=705.82\) (\(N(d_1),N(d_2)\to1\)). Put \(\approx94.18-0.5=93.68\) (\(N(-d_1),N(-d_2)\to1\)).</div></details></li>
+<li>Write-up (2 marks each, in two sentences): (i) why \(\mu\) is absent from the formula; (ii) the difference between \(N(d_2)\) and \(N(d_1)\); (iii) one assumption that fails and what it does to the model's accuracy.
+<details><summary>Answer</summary><div>Use the section 4 template for (i); \(N(d_2)\) is the (risk-neutral) exercise probability, \(N(d_1)\) the delta and larger; (iii) e.g. non-constant \(\sigma\) leads to a smile, or discrete hedging leaves residual risk and costs.</div></details></li>
+</ol>
+<p><em>Later:</em> <a href="../tutes/Tutorial%207%20QUESTIONS_21stSept.pdf">Tutorial 7</a> Q4 and Q5 (computing and checking against the binomial) belong to Lessons 24 and 25.</p>
+<p><strong>Spacing:</strong> tomorrow redo Questions A and B from a blank page; in three days answer the section 4 template and the four limits cold.</p>
+
+<div class="ask">💬 Stuck on which probability to use, or which way the hedge goes? Paste your working in the terminal and ask me: I'm your teacher for this. Ask for more fresh hedge-count or "probability exercised" questions at exam length.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0022-normal-and-lognormal-stock-prices.html">Lesson 22, normal and lognormal stock prices</a></span>
+  <span>Reference: <a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0024-computing-bsm-call-and-put-prices.html">Lesson 24, computing BSM prices</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

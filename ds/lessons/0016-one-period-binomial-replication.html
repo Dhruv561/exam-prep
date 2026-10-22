@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One-Period Binomial Pricing</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.tree { display: block; margin: 1rem auto; max-width: 100%; height: auto; font-family: Inter, system-ui, sans-serif; }
+.tree text { fill: var(--fg); font-size: 15px; }
+.tree text.m { fill: var(--muted); font-size: 13px; }
+.tree text.a { fill: var(--accent); font-weight: 600; }
+.tree line { stroke: var(--muted); stroke-width: 1.2; }
+.widget { border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.2rem; margin: 1.4rem 0; font-family: Inter, system-ui, sans-serif; font-size: .85rem; }
+.widget .controls { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .4rem 1.2rem; }
+.widget label { display: flex; flex-direction: column; }
+.widget input[type=range], .widget select { width: 100%; accent-color: var(--accent); }
+.widget select { font: inherit; padding: .3rem; background: var(--bg); color: var(--fg); border: 1px solid var(--rule); border-radius: 4px; }
+.widget .out { margin-top: .8rem; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .3rem 1.2rem; font-variant-numeric: tabular-nums; }
+.widget .out b { font-size: 1rem; }
+.widget .v { margin-top: .8rem; padding: .6rem .8rem; border-radius: 6px; font-size: .9rem; }
+.widget .v.fair { background: var(--ok-bg); border-left: 4px solid var(--ok); }
+.widget .v.arb { background: var(--trap-bg); border-left: 4px solid var(--trap); }
+.widget .note { color: var(--muted); margin-top: .5rem; }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 16 · Topic 5: Binomial trees I</div>
+<h1>The one-period binomial tree: price an option by building a portfolio with no risk</h1>
+<p class="lede">The goal: given today's stock price, its two possible prices one period later, a strike and a rate, find the hedge ratio \(\Delta\) and the no-arbitrage price of a call or a put in four short lines; say which side of the stock hedges which option position; and, when the market quotes the option at the wrong price, lay out the arbitrage and its riskless profit.</p>
+
+<div class="mission">Why this matters for 5 Nov: every recent final has a binomial question worth about 10 marks. The tree is usually 2–3 steps (Lessons 17–18), but each step is exactly the one-period calculation in this lesson, and the other parts are one-period ideas: "what position in the stock hedges the option you just bought or wrote?" (that's \(\Delta\)), "the option trades at $X: identify the arbitrage and the steps to lock in a profit", and a 2-mark "real-world probabilities and risk aversion play no role: agree?" Tutorial 5 Q5 is a one-period tree with "use no-arbitrage arguments".</div>
+
+<p>This lesson assumes payoffs and moneyness (<a href="0011-options-payoffs-profits-and-moneyness.html">Lesson 11</a>), the arbitrage habit from <a href="0006-cost-of-carry-and-arbitrage.html">Lesson 6</a> (something riskless must earn the risk-free rate) and put-call parity (<a href="0014-put-call-parity.html">Lesson 14</a>), which we'll use as a check.</p>
+
+<p><strong>Notation</strong> (as in Lecture 5). \(S_0\): stock price today. \(S_u\) and \(S_d\): the stock price at the end of the period in the <strong>up state</strong> and the <strong>down state</strong>, the only two things that can happen. \(f\): the option's price today; \(f_u\), \(f_d\): its value in each state (at expiry, just its payoff). \(r\): continuously compounded risk-free rate, \(T\): length of the period in years. Later lessons write \(S_u = S_0u\) and \(S_d = S_0d\), where \(u\) and \(d\) are the up and down factors (e.g. \(u = 1.2\) is a 20% rise).</p>
+
+<h2>1 · One coin flip drives both the stock and the option</h2>
+
+<p>A <strong>one-period binomial tree</strong> is the simplest model of an uncertain stock: over one period it moves from \(S_0\) to one of two prices. Lecture 5's example: the stock is $10 today and in one year will be either $13.50 or $7.40. A 1-year European call has \(K = 7\); \(r = 5\%\).</p>
+
+<svg class="tree" viewBox="0 0 440 150" width="440" role="img" aria-label="Tree: stock 10 today, 13.50 up (call pays 6.50), 7.40 down (call pays 0.40)">
+  <line x1="150" y1="75" x2="270" y2="30"/><line x1="150" y1="75" x2="270" y2="120"/>
+  <text x="10" y="70">S₀ = 10</text><text x="10" y="88" class="a">f = ?</text>
+  <text x="278" y="28">Su = 13.50</text><text x="278" y="46" class="m">call pays 6.50</text>
+  <text x="278" y="118">Sd = 7.40</text><text x="278" y="136" class="m">call pays 0.40</text>
+</svg>
+
+<p><strong>Predict first.</strong> You're also told the stock goes up with probability 70%. The expected payoff is \(0.7(6.50) + 0.3(0.40) = 4.67\); discounting at 5% gives $4.44. Is $4.44 the option's price?</p>
+
+<details><summary>Reveal: no, it's $3.34, and the 70% is irrelevant</summary><div>
+<p>Discounting at \(r\) is wrong: the option is far riskier than a bond (its payoff swings from 0.40 to 6.50), so investors would want a higher return, and we don't know how much higher (Lecture 5, slides 17–21: the right rate even changes with the stock price). The binomial method dodges that question completely. Its price, $3.34, uses no probabilities at all.</p>
+</div></details>
+
+<p><strong>The idea.</strong> The stock and the option are driven by the <em>same</em> coin flip. When the coin lands "up", the stock is high and the call pays a lot; "down", both are low. So hold the stock and the option on <em>opposite</em> sides, in the right ratio, and the coin cancels out: the portfolio is worth the same in both states. A portfolio with a certain payoff is a <strong>riskless portfolio</strong>, so it must earn the risk-free rate, or there is an arbitrage (Lesson 6). That one equation pins down the option price.</p>
+
+<h2>2 · Build the riskless portfolio, step by step</h2>
+
+<p>Hold <strong>long \(\Delta\) shares and short 1 call</strong> (you wrote, i.e. sold, the call). \(\Delta\) is the number we must find: the <strong>hedge ratio</strong>, also called the option's <strong>delta</strong>. At \(T\):</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Portfolio at \(T\)</th><th>Up (\(S = 13.50\))</th><th>Down (\(S = 7.40\))</th></tr>
+<tr><td>\(\Delta\) shares</td><td>\(13.5\Delta\)</td><td>\(7.4\Delta\)</td></tr>
+<tr><td>Short 1 call</td><td>\(-6.5\)</td><td>\(-0.4\)</td></tr>
+<tr><td><strong>Total \(\pi\)</strong></td><td>\(13.5\Delta - 6.5\)</td><td>\(7.4\Delta - 0.4\)</td></tr>
+</table>
+</div>
+<ol class="steps">
+  <li><strong>Make it riskless:</strong> set the two totals equal. \(13.5\Delta - 6.5 = 7.4\Delta - 0.4\), so \(6.1\Delta = 6.1\) and \(\Delta = 1\).</li>
+  <li><strong>Its certain value at \(T\):</strong> \(\pi = 13.5(1) - 6.5 = 7\) (check the down state: \(7.4 - 0.4 = 7\) ✓).</li>
+  <li><strong>Its value today:</strong> riskless, so discount at \(r\): \(7e^{-0.05} = 6.6586\).</li>
+  <li><strong>Back out the option:</strong> today the portfolio costs 1 share minus the call received: \(10\Delta - f = 6.6586\), so \(f = 10 - 6.6586 = \mathbf{\$3.34}\).</li>
+</ol>
+
+<p><strong>Why short the call and not long?</strong> When the stock rises, long shares gain and a <em>short</em> call loses: the two moves offset (Lecture 5, slide 11). Long both and the gains pile up: more risk, not less.</p>
+
+<p><strong>What \(\Delta\) means.</strong> From step 1, \(\Delta = \dfrac{6.5 - 0.4}{13.5 - 7.4} = \dfrac{\text{change in the option}}{\text{change in the stock}}\). It is the option's slope: how many dollars the option moves per $1 move in the stock, across the two states. Hold that many shares per option written and the moves cancel.</p>
+
+<h3>The general formulas (Lecture 5, slides 13–15; on the formula sheet)</h3>
+<p>Long \(\Delta\) shares, short 1 option. Riskless when \(S_u\Delta - f_u = S_d\Delta - f_d\):</p>
+$$\boxed{\;\Delta = \frac{f_u - f_d}{S_u - S_d}\;}\qquad \pi = S_u\Delta - f_u \;(= S_d\Delta - f_d) \qquad \boxed{\;f = S_0\Delta - \pi e^{-rT}\;}$$
+<p>The last formula is step 4: today's cost of the portfolio, \(S_0\Delta - f\), must equal \(\pi e^{-rT}\). The lecture writes it as \(f = S_0\Delta - (S_u\Delta - f_u)e^{-rT}\).</p>
+
+<div class="box"><p><strong>The four-line recipe (works for any payoff, call or put).</strong><br>
+1. Payoffs at the two nodes: \(f_u\), \(f_d\).<br>
+2. \(\Delta = (f_u - f_d)/(S_u - S_d)\). Keep the sign.<br>
+3. \(\pi = S_u\Delta - f_u\); check it equals \(S_d\Delta - f_d\).<br>
+4. \(f = S_0\Delta - \pi e^{-rT}\).</p></div>
+
+<div class="trap"><strong>Four slips</strong><br>
+(1) Reporting \(\pi\) or its PV as the option price; the price comes from step 4. (2) Mixing the order in \(\Delta\): it's up minus down on top <em>and</em> on the bottom. (3) Using the whole option life for \(T\) when the tree has several steps: \(T\) here is one step's length (\(\Delta t\) from Lesson 17). (4) Dropping the minus sign on a put's \(\Delta\).</div>
+
+<h2>3 · A put, and the base tree we'll use all lesson</h2>
+
+<p>Lecture 5 slide 16 asks for the put with \(K = 13.50\) on the same stock (no answer on the slide). Payoffs: up \(\max(13.5 - 13.5, 0) = 0\), down \(13.5 - 7.4 = 6.1\). <strong>Predict first:</strong> is \(\Delta\) positive or negative? What size?</p>
+<details><summary>Reveal: \(\Delta = -1\), put = $2.84</summary><div>
+<p>\(\Delta = (0 - 6.1)/(13.5 - 7.4) = -1\). Negative: the put is worth <em>more</em> when the stock is <em>lower</em>. \(\pi = 13.5(-1) - 0 = -13.5\) (down: \(7.4(-1) - 6.1 = -13.5\) ✓). \(f = 10(-1) - (-13.5)e^{-0.05} = -10 + 12.8416 = \mathbf{\$2.84}\).</p>
+<p>"Long \(-1\) share" means <em>short</em> 1 share. Short a share plus short a put: if the stock rises, the short share loses and the short put gains. Same cancelling idea.</p>
+<p><strong>Same thing, friendlier signs.</strong> Multiply the portfolio by \(-1\): <em>long 1 share and long 1 put</em>. That pays 13.50 in both states (a protective put with \(K = S_u\)), so it costs \(13.5e^{-0.05} = 12.8416\) today, and the put is \(12.8416 - 10 = 2.84\). Use whichever you prefer; the formula with the negative \(\Delta\) gives the same answer automatically.</p>
+</div></details>
+
+<div class="box">
+<p><strong>Base tree for the rest of the lesson.</strong> \(S_0 = \$40\); in 6 months the stock is either \(S_u = \$46\) or \(S_d = \$36\). \(r = 5\%\), \(T = 0.5\), \(K = 40\). (Check \(e^{-rT} = e^{-0.025} = 0.975310\).)</p>
+<svg class="tree" viewBox="0 0 440 150" width="440" role="img" aria-label="Base tree: 40 today; 46 up (call 6, put 0); 36 down (call 0, put 4)">
+  <line x1="150" y1="75" x2="270" y2="30"/><line x1="150" y1="75" x2="270" y2="120"/>
+  <text x="10" y="70">S₀ = 40</text><text x="10" y="88" class="a">c = 2.93</text><text x="10" y="106" class="a">p = 1.95</text>
+  <text x="278" y="28">Su = 46</text><text x="278" y="46" class="m">call 6 · put 0</text>
+  <text x="278" y="118">Sd = 36</text><text x="278" y="136" class="m">call 0 · put 4</text>
+</svg>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Step</th><th>Call, \(K = 40\)</th><th>Put, \(K = 40\)</th></tr>
+<tr><td>1. \(f_u\), \(f_d\)</td><td>6, 0</td><td>0, 4</td></tr>
+<tr><td>2. \(\Delta\)</td><td>\(6/10 = 0.6\)</td><td>\(-4/10 = -0.4\)</td></tr>
+<tr><td>3. \(\pi\)</td><td>\(46(0.6) - 6 = 21.6\)</td><td>\(46(-0.4) - 0 = -18.4\)</td></tr>
+<tr><td>4. \(f\)</td><td>\(24 - 21.6(0.975310) = \mathbf{2.93}\)</td><td>\(-16 + 18.4(0.975310) = \mathbf{1.95}\)</td></tr>
+</table>
+</div>
+<p><strong>Parity check</strong> (Lesson 14): \(c - p = 2.9333 - 1.9457 = 0.9876\) and \(S_0 - Ke^{-rT} = 40 - 39.0124 = 0.9876\) ✓. The tree respects parity automatically, which makes it a free check on your arithmetic.</p>
+</div>
+
+<h2>4 · The replication view: an option is shares plus a loan</h2>
+
+<p>Rearrange step 4: \(f = \Delta S_0 - \pi e^{-rT}\). Read it as a shopping list. The option is worth exactly the cost of holding \(\Delta\) shares and <strong>borrowing</strong> \(\pi e^{-rT}\) (or lending, if that number is negative). That portfolio is the option's <strong>replicating portfolio</strong>: it has the same payoff in both states.</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Replicate</th><th>Today</th><th>Up (46)</th><th>Down (36)</th></tr>
+<tr><td><strong>Call:</strong> buy 0.6 shares</td><td>−24.00</td><td>27.60</td><td>21.60</td></tr>
+<tr><td>Borrow 21.0667, repay 21.60</td><td>+21.07</td><td>−21.60</td><td>−21.60</td></tr>
+<tr><td><strong>Total = call</strong></td><td><strong>−2.93</strong></td><td><strong>6</strong></td><td><strong>0</strong></td></tr>
+<tr><td><strong>Put:</strong> short 0.4 shares</td><td>+16.00</td><td>−18.40</td><td>−14.40</td></tr>
+<tr><td>Lend 17.9457, receive 18.40</td><td>−17.95</td><td>+18.40</td><td>+18.40</td></tr>
+<tr><td><strong>Total = put</strong></td><td><strong>−1.95</strong></td><td><strong>0</strong></td><td><strong>4</strong></td></tr>
+</table>
+</div>
+<p>So a <strong>call = a leveraged long position in the stock</strong> (some shares, partly bought with borrowed money) and a <strong>put = a short position in the stock plus a bond</strong>. Two things with the same payoff in every state must have the same price; that's the whole of no-arbitrage pricing, and it's why the next section's arbitrage works.</p>
+
+<h3>Check your understanding</h3>
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> To build the riskless portfolio for a call, Lecture 5 holds long \(\Delta\) shares and <em>short</em> one call. Why short the call?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Short calls earn the premium, which is the risk-free return</button>
+    <button class="opt" data-key="b">A short call costs nothing, so the portfolio is self-financing</button>
+    <button class="opt" data-key="c">Its value falls when the shares rise, so the two moves offset</button>
+    <button class="opt" data-key="d">The writer can exercise early, which removes the stock's risk</button>
+  </div>
+  <div class="why">Long shares gain when the stock rises; a short call loses then. In the right ratio (\(\Delta\)) the gains and losses cancel in both states. (a) and (b) confuse receiving the premium with being riskless; (d) is wrong because only the holder can exercise.</div>
+</div>
+
+<div class="quiz num" data-answer="0.53" data-tol="0.006">
+  <p class="q"><strong>2.</strong> A stock is $50 and in one year will be $60 or $45. For a 1-year European call with \(K = 52\), how many shares per call written make the portfolio riskless? (2 dp)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">\(f_u = 8\), \(f_d = 0\). \(\Delta = (8 - 0)/(60 - 45) = 0.5333\). Dividing by \(S_0\) instead of \(S_u - S_d\) gives 0.16.</div>
+</div>
+
+<div class="quiz num" data-answer="4.06" data-tol="0.01">
+  <p class="q"><strong>3.</strong> Same stock, \(r = 6\%\). What is the call worth today?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(\pi = 60(0.5333) - 8 = 24\) (down: \(45(0.5333) - 0 = 24\) ✓). \(f = 50(0.5333) - 24e^{-0.06} = 26.6667 - 22.6023 = \$4.06\). Answering \(24e^{-0.06} = 22.60\) reports the portfolio, not the option.</div>
+</div>
+
+<div class="quiz num" data-answer="3.04" data-tol="0.01">
+  <p class="q"><strong>4.</strong> Same stock and rate. Price the 1-year European put with \(K = 52\). (Then check it with parity.)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(f_u = 0\), \(f_d = 7\), \(\Delta = -7/15 = -0.4667\). \(\pi = 60(-0.4667) - 0 = -28\). \(f = 50(-0.4667) + 28e^{-0.06} = -23.3333 + 26.3694 = \$3.04\). Parity: \(4.0643 - 3.0361 = 1.0282 = 50 - 52e^{-0.06}\) ✓. Dropping the minus sign on \(\Delta\) gives a negative price, a sure sign of a slip.</div>
+</div>
+
+<h2>5 · Sign and size of \(\Delta\): calls versus puts</h2>
+
+<p>Keep the base tree (\(40 \to 46\) or \(36\), \(r = 5\%\), \(T = 0.5\)) and slide the strike. <strong>Predict first:</strong> for \(K = 30\) (below both branches) and \(K = 50\) (above both), what are the call and put deltas?</p>
+
+<details><summary>Reveal: the strike scenario table</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>\(K\)</th><th>Call \(f_u, f_d\)</th><th>Call \(\Delta\)</th><th>Call \(c\)</th><th>Put \(f_u, f_d\)</th><th>Put \(\Delta\)</th><th>Put \(p\)</th></tr>
+<tr><td>30</td><td>16, 6</td><td>1</td><td>10.74</td><td>0, 0</td><td>0</td><td>0</td></tr>
+<tr><td>38</td><td>8, 0</td><td>0.8</td><td>3.91</td><td>0, 2</td><td>−0.2</td><td>0.97</td></tr>
+<tr><td>40</td><td>6, 0</td><td>0.6</td><td>2.93</td><td>0, 4</td><td>−0.4</td><td>1.95</td></tr>
+<tr><td>44</td><td>2, 0</td><td>0.2</td><td>0.98</td><td>0, 8</td><td>−0.8</td><td>3.89</td></tr>
+<tr><td>50</td><td>0, 0</td><td>0</td><td>0</td><td>4, 14</td><td>−1</td><td>8.77</td></tr>
+</table>
+</div>
+<p>Patterns:</p>
+<ul>
+<li><strong>Call: \(0 \le \Delta \le 1\). Put: \(-1 \le \Delta \le 0\).</strong> An option can't move by more than the stock does.</li>
+<li><strong>Deep in the money in both states:</strong> \(|\Delta| = 1\) and the option is just a forward: \(c = S_0 - Ke^{-rT} = 40 - 30e^{-0.025} = 10.74\) (its lower bound from Lesson 13), \(p = Ke^{-rT} - S_0 = 8.77\). <strong>Out of the money in both:</strong> \(\Delta = 0\), price 0. Nothing to hedge.</li>
+<li><strong>\(\Delta_{\text{call}} - \Delta_{\text{put}} = 1\)</strong> at the same strike, every row. (Call minus put pays \(S - K\) in both states, which moves one-for-one with the stock: parity again.)</li>
+<li>Lower \(K\): the call moves more like the stock (\(\Delta\) toward 1), the put less (\(\Delta\) toward 0).</li>
+</ul>
+</div></details>
+
+<h3>Which side of the stock hedges which option position?</h3>
+<p>The riskless portfolio is <em>short 1 option + long \(\Delta\) shares</em>. Flip everything for a long option. One rule covers all four cases: <strong>shares to hold = −(options held) × \(\Delta\)</strong>, with options held = +1 if you bought, −1 if you wrote. Base tree (\(\Delta_c = 0.6\), \(\Delta_p = -0.4\)):</p>
+<div class="tablewrap">
+<table>
+<tr><th>Your option position</th><th>Hedge in the stock</th><th>Why it cancels</th></tr>
+<tr><td>Wrote (short) 1 call</td><td><strong>Buy</strong> 0.6 shares</td><td>Stock up: call loss, share gain</td></tr>
+<tr><td>Bought (long) 1 call</td><td><strong>Short</strong> 0.6 shares</td><td>Stock up: call gain, short-share loss</td></tr>
+<tr><td>Wrote (short) 1 put</td><td><strong>Short</strong> 0.4 shares</td><td>Stock down: put loss, short-share gain</td></tr>
+<tr><td>Bought (long) 1 put</td><td><strong>Buy</strong> 0.4 shares</td><td>Stock down: put gain, share loss</td></tr>
+</table>
+</div>
+<p>Memory hook: <em>long call and short put are both bullish, so hedge by shorting; short call and long put are both bearish, so hedge by buying.</em> Holding the hedge so your position doesn't care about small stock moves is <strong>delta hedging</strong> (Lecture 9 does it properly with BSM). In a multi-step tree \(\Delta\) changes at every node, so a hedge set today must be rebalanced after the stock moves: Lesson 18's exam pattern.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>5.</strong> In a one-period tree a stock is $70 today and will be $77 or $63. What are the deltas of a call and a put, both with \(K = 70\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Call 0.5 and put 0.5, as the strike sits halfway</button>
+    <button class="opt" data-key="b">Call 0.5 and put −0.5, as the put falls as the stock rises</button>
+    <button class="opt" data-key="c">Call 1.0 and put −1.0, as each is in the money in one state</button>
+    <button class="opt" data-key="d">Call 0.5 and put −1.5, as the put must cover its strike</button>
+  </div>
+  <div class="why">Call: \((7 - 0)/14 = 0.5\). Put: \((0 - 7)/14 = -0.5\). Difference \(0.5 - (-0.5) = 1\) ✓. (a) drops the put's sign; (c) wrongly treats "in the money in one state" as \(|\Delta| = 1\); (d) breaks \(-1 \le \Delta_p \le 0\).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>6.</strong> In a one-period tree, both possible stock prices at \(T\) are above a call's strike. Which statement is true?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\Delta = 0\), and the call is worth its intrinsic value today</button>
+    <button class="opt" data-key="b">\(\Delta = 0.5\), and the call is worth the average payoff today</button>
+    <button class="opt" data-key="c">\(\Delta = 1\), and the call is worth \(S_0 - K\) today, undiscounted</button>
+    <button class="opt" data-key="d">\(\Delta = 1\), and the call is worth \(S_0 - Ke^{-rT}\) today</button>
+  </div>
+  <div class="why">Both payoffs are \(S - K\), so \(f_u - f_d = S_u - S_d\) and \(\Delta = 1\). The call is certain to be exercised, so it's a forward to buy at \(K\): worth \(S_0 - Ke^{-rT}\) (base tree, \(K = 30\): 10.74). (c) forgets that \(K\) is paid later.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>7.</strong> A trader has just bought 20 call contracts (100 calls each). In the one-period tree the call's \(\Delta\) is 0.45. What stock position hedges her?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Short 900 shares, since she gains on the calls when the stock rises</button>
+    <button class="opt" data-key="b">Buy 900 shares, since the calls and the shares then move together</button>
+    <button class="opt" data-key="c">Short 45 shares, since the delta applies once per contract held</button>
+    <button class="opt" data-key="d">Buy 1,100 shares, since a long call is hedged with \(1 - \Delta\) each</button>
+  </div>
+  <div class="why">Shares \(= -(+2000)(0.45) = -900\): short 900. A long call is bullish, so the hedge is bearish. (b) doubles the risk; (c) forgets the 100-share multiplier; (d) uses the put's delta size.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>8.</strong> A market maker has just bought one European put from a client. In the one-period tree the put's \(\Delta = -0.35\). Her hedge is to:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Short 0.35 shares, matching the sign of the put's delta</button>
+    <button class="opt" data-key="b">Short 0.65 shares, the size of the matching call's delta</button>
+    <button class="opt" data-key="c">Buy 0.35 shares, so share losses offset the put's gains</button>
+    <button class="opt" data-key="d">Buy 1.00 share, the full protective-put stock position</button>
+  </div>
+  <div class="why">Shares \(= -(+1)(-0.35) = +0.35\): buy 0.35 shares. If the stock falls her put gains and her shares lose, by the same amount. This "long put, so long \(|\Delta|\) shares" is exactly how past finals word the market-maker part. (a) is the hedge for a <em>written</em> put.</div>
+</div>
+
+<h2>6 · What moves the price, and what doesn't</h2>
+<p>Base call 2.93, put 1.95. <strong>Predict first</strong> for each change: does the call rise or fall? The put?</p>
+<ol>
+  <li>Analysts now say the stock rises with probability 90% (it was 60%). The tree and \(S_0\) are unchanged.</li>
+  <li>\(r\) rises from 5% to 10%.</li>
+  <li>The branches spread out: \(S_u = 50\), \(S_d = 32\) (more volatile).</li>
+</ol>
+<details><summary>Reveal the scenario table</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Scenario</th><th>Call \(\Delta\)</th><th>Call</th><th>Put \(\Delta\)</th><th>Put</th><th style="text-align:left">Why</th></tr>
+<tr><td>Base</td><td>0.6</td><td>2.93</td><td>−0.4</td><td>1.95</td><td style="text-align:left"></td></tr>
+<tr><td>1. 90% up</td><td>0.6</td><td>2.93</td><td>−0.4</td><td>1.95</td><td style="text-align:left">No probability appears anywhere in the recipe</td></tr>
+<tr><td>2. \(r = 10\%\)</td><td>0.6</td><td>3.45</td><td>−0.4</td><td>1.50</td><td style="text-align:left">Call = shares + loan: a loan's PV is smaller. Put = short shares + bond: the bond's PV is smaller</td></tr>
+<tr><td>3. Wider tree</td><td>0.56</td><td>4.88</td><td>−0.44</td><td>3.90</td><td style="text-align:left">Bigger best case for each option, same worst case 0: volatility helps both (Lesson 12)</td></tr>
+</table>
+</div>
+<p>Scenario 1 is Tutorial 5 Q4. The probabilities don't matter because the hedge works <em>whichever</em> branch happens. But beliefs aren't irrelevant in the real world: if investors think the stock is more likely to rise they'll pay more for it, raising \(S_0\), and \(S_0\) does enter the formula (the 2025 final's "attitudes to risk play no role: agree?" answer is <em>no</em>, for this reason). Lesson 17 turns this into risk-neutral valuation.</p>
+</div></details>
+
+<div class="trap"><strong>A tree that is itself an arbitrage</strong><br>
+The tree only makes sense if \(S_d \lt S_0e^{rT} \lt S_u\) (equivalently \(d \lt e^{rT} \lt u\)). If even the down price beats \(S_0e^{rT}\), borrowing to buy the stock wins in both states; if the up price is below it, shorting the stock and lending wins. Exam trees always satisfy this, but it's a good one-line sanity check.</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>9.</strong> A one-period tree has \(S_0 = 40\), \(S_u = 46\), \(S_d = 42\), \(r = 5\%\), \(T = 0.5\). What does this imply?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The call is worth more than usual, as the stock can't really fall</button>
+    <button class="opt" data-key="b">An arbitrage exists: borrow to buy the stock, as it beats the loan</button>
+    <button class="opt" data-key="c">An arbitrage exists: short the stock and lend, as the loan beats it</button>
+    <button class="opt" data-key="d">Nothing unusual, as long as the up probability is more than half</button>
+  </div>
+  <div class="why">\(S_0e^{rT} = 40e^{0.025} = 41.01 \lt 42 = S_d\). Borrow 40, buy a share: at \(T\) you owe 41.01 and hold at least 42. The model's assumption \(d \lt e^{rT} \lt u\) fails, so no option price from it can be trusted.</div>
+</div>
+
+<h2>7 · When the market misprices the option: arbitrage</h2>
+
+<p>The tree gives the <strong>no-arbitrage price</strong>: the only price at which you can't make a riskless profit. If the market quotes anything else, the replicating portfolio from section 4 lets you trade against it. Same habit as Lessons 6 and 14: <strong>sell what's dear, buy what's cheap, and check the payoff is certain in every state.</strong></p>
+
+<ol class="steps">
+  <li><strong>Price it:</strong> model \(f\) versus market \(f_{\text{mkt}}\).</li>
+  <li><strong>Overpriced</strong> (\(f_{\text{mkt}} \gt f\)): sell the option, buy the replica, i.e. hold \(\Delta\) shares and borrow the rest. <strong>Underpriced</strong>: buy the option, sell the replica, i.e. short \(\Delta\) shares and lend the rest. (For a put, "\(\Delta\) shares" is negative: a short position.)</li>
+  <li><strong>Net zero today:</strong> borrow or lend whatever cash is left over.</li>
+  <li><strong>At \(T\), check both states:</strong> the profit is the same, \(|f_{\text{mkt}} - f|\,e^{rT}\).</li>
+</ol>
+
+<h3>Case A: the call is quoted at $3.40 (fair 2.93)</h3>
+<p><strong>Predict first:</strong> which way do you trade the call and the stock? Do you borrow or lend?</p>
+<details><summary>Reveal: sell the call, buy 0.6 shares, borrow $20.60</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>Today</th><th>Up (46)</th><th>Down (36)</th></tr>
+<tr><td>Sell 1 call</td><td>+3.40</td><td>−6.00</td><td>0</td></tr>
+<tr><td>Buy 0.6 shares</td><td>−24.00</td><td>+27.60</td><td>+21.60</td></tr>
+<tr><td>Borrow 20.60 for 6 months</td><td>+20.60</td><td>−21.12</td><td>−21.12</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>0</strong></td><td><strong>+0.48</strong></td><td><strong>+0.48</strong></td></tr>
+</table>
+</div>
+<p>Repayment \(20.60e^{0.025} = 21.1215\). Profit \(0.4785\) in both states \(= (3.40 - 2.9333)e^{0.025}\) ✓. If the stock goes up you lose 6 on the call but the shares cover it; if it goes down the call expires and the shares alone repay the loan.</p>
+</div></details>
+
+<h3>Case B: the call is quoted at $2.50</h3>
+<details><summary>Reveal: buy the call, short 0.6 shares, lend $21.50</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>Today</th><th>Up (46)</th><th>Down (36)</th></tr>
+<tr><td>Buy 1 call</td><td>−2.50</td><td>+6.00</td><td>0</td></tr>
+<tr><td>Short 0.6 shares</td><td>+24.00</td><td>−27.60</td><td>−21.60</td></tr>
+<tr><td>Lend 21.50</td><td>−21.50</td><td>+22.04</td><td>+22.04</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>0</strong></td><td><strong>+0.44</strong></td><td><strong>+0.44</strong></td></tr>
+</table>
+</div>
+<p>\(21.50e^{0.025} = 22.0443\); profit \(0.4443 = (2.9333 - 2.50)e^{0.025}\) ✓.</p>
+</div></details>
+
+<h3>Case C: the put is quoted at $2.30 (fair 1.95)</h3>
+<details><summary>Reveal: sell the put, short 0.4 shares, lend $18.30</summary><div>
+<p>Selling the put leaves you bullish, so the hedge is to short \(|\Delta| = 0.4\) shares. Cash today: \(+2.30 + 16 = 18.30\), lent.</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>Today</th><th>Up (46)</th><th>Down (36)</th></tr>
+<tr><td>Sell 1 put</td><td>+2.30</td><td>0</td><td>−4.00</td></tr>
+<tr><td>Short 0.4 shares</td><td>+16.00</td><td>−18.40</td><td>−14.40</td></tr>
+<tr><td>Lend 18.30</td><td>−18.30</td><td>+18.76</td><td>+18.76</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>0</strong></td><td><strong>+0.36</strong></td><td><strong>+0.36</strong></td></tr>
+</table>
+</div>
+<p>\(18.30e^{0.025} = 18.7633\); profit \(0.3633 = (2.30 - 1.9457)e^{0.025}\) ✓.</p>
+</div></details>
+
+<div class="box"><p><strong>Without the hedge it's a bet, not an arbitrage.</strong> In Case A, sell the $3.40 call and do nothing else (invest the 3.40): if the stock goes down you keep \(3.40e^{0.025} = 3.49\), but if it goes up you pay 6 and lose 2.51. Only the \(\Delta\) shares make the profit certain. An exam answer that just says "the call is overpriced, sell it" earns at most one mark.</p></div>
+
+<h3>Try it: one-period tree calculator</h3>
+<div class="widget" id="bw">
+  <div class="controls">
+    <label>Today \(S_0\): <span id="vS"></span><input type="range" id="S" min="20" max="60" step="1" value="40"></label>
+    <label>Up \(S_u\): <span id="vSu"></span><input type="range" id="Su" min="20" max="80" step="1" value="46"></label>
+    <label>Down \(S_d\): <span id="vSd"></span><input type="range" id="Sd" min="10" max="60" step="1" value="36"></label>
+    <label>Strike \(K\): <span id="vK"></span><input type="range" id="K" min="10" max="80" step="1" value="40"></label>
+    <label>Rate \(r\): <span id="vr"></span><input type="range" id="r" min="0" max="0.15" step="0.005" value="0.05"></label>
+    <label>Period \(T\) (yrs): <span id="vT"></span><input type="range" id="T" min="0.25" max="2" step="0.25" value="0.5"></label>
+    <label>Option<select id="typ"><option value="c">Call</option><option value="p">Put</option></select></label>
+    <label>Market price: <span id="vM"></span><input type="range" id="M" min="0" max="20" step="0.05" value="3.40"></label>
+  </div>
+  <div class="out">
+    <div>\(f_u\), \(f_d\): <b id="oF"></b></div>
+    <div>\(\Delta\): <b id="oD"></b></div>
+    <div>\(\pi\) at \(T\): <b id="oP"></b></div>
+    <div>PV of \(\pi\): <b id="oPV"></b></div>
+    <div>Model price \(f\): <b id="of"></b></div>
+    <div>Gap (market − model): <b id="oG"></b></div>
+  </div>
+  <div class="v" id="oV"></div>
+  <div class="note">Start: Case A. Switch to Put and set the market price to 2.30 for Case C. Drag \(K\) below \(S_d\) and watch the call's \(\Delta\) hit 1; drag \(S_d\) above \(S_0e^{rT}\) to break the tree.</div>
+</div>
+<script>
+(function () {
+  const el = id => document.getElementById(id);
+  const f2 = x => x.toFixed(2), f4 = x => x.toFixed(4);
+  function upd() {
+    const S = +el('S').value, Su = +el('Su').value, Sd = +el('Sd').value, K = +el('K').value,
+          r = +el('r').value, T = +el('T').value, typ = el('typ').value, M = +el('M').value;
+    el('vS').textContent = S; el('vSu').textContent = Su; el('vSd').textContent = Sd; el('vK').textContent = K;
+    el('vr').textContent = (r * 100).toFixed(1) + '%'; el('vT').textContent = T; el('vM').textContent = f2(M);
+    const v = el('oV'), g = Math.exp(r * T);
+    if (!(Sd < S * g && S * g < Su)) {
+      ['oF','oD','oP','oPV','of','oG'].forEach(i => el(i).textContent = '—');
+      v.className = 'v arb';
+      v.textContent = 'Invalid tree: need Sd < S0·e^(rT) = ' + f2(S * g) + ' < Su. Otherwise the stock itself is an arbitrage (borrow-and-buy or short-and-lend wins in both states).';
+      return;
+    }
+    const pay = s => typ === 'c' ? Math.max(s - K, 0) : Math.max(K - s, 0);
+    const fu = pay(Su), fd = pay(Sd), D = (fu - fd) / (Su - Sd), pi = Su * D - fu, pv = pi / g, f = S * D - pv, gap = M - f;
+    el('oF').textContent = f2(fu) + ', ' + f2(fd); el('oD').textContent = f4(D);
+    el('oP').textContent = f4(pi); el('oPV').textContent = f4(pv); el('of').textContent = f4(f); el('oG').textContent = f4(gap);
+    const nm = typ === 'c' ? 'call' : 'put';
+    const sh = Math.abs(D);
+    if (Math.abs(gap) < 0.005) {
+      v.className = 'v fair';
+      v.textContent = 'Market price equals the model price: no arbitrage.';
+    } else if (gap > 0) {
+      const stockSide = D >= 0 ? 'BUY ' + f4(sh) + ' shares' : 'SHORT ' + f4(sh) + ' shares';
+      const cash = M - S * D;
+      v.className = 'v arb';
+      v.textContent = 'The ' + nm + ' is overpriced by ' + f4(gap) + '. SELL the ' + nm + ', ' + stockSide + ', and ' +
+        (cash < 0 ? 'borrow ' + f2(-cash) : 'lend ' + f2(cash)) + ' so net cash today is 0. Profit at T in both states: ' + f4(gap * g) + '.';
+    } else {
+      const stockSide = D >= 0 ? 'SHORT ' + f4(sh) + ' shares' : 'BUY ' + f4(sh) + ' shares';
+      const cash = S * D - M;
+      v.className = 'v arb';
+      v.textContent = 'The ' + nm + ' is underpriced by ' + f4(-gap) + '. BUY the ' + nm + ', ' + stockSide + ', and ' +
+        (cash < 0 ? 'borrow ' + f2(-cash) : 'lend ' + f2(cash)) + ' so net cash today is 0. Profit at T in both states: ' + f4(-gap * g) + '.';
+    }
+  }
+  ['S','Su','Sd','K','r','T','typ','M'].forEach(id => el(id).addEventListener('input', upd));
+  upd();
+})();
+</script>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>10.</strong> In a one-period tree a put's model price is $2.10 and its \(\Delta = -0.5\). The market quotes the put at $1.70. The arbitrage is:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Buy the put, buy 0.5 shares, and borrow the net cash outlay</button>
+    <button class="opt" data-key="b">Buy the put, short 0.5 shares, and lend the net cash received</button>
+    <button class="opt" data-key="c">Sell the put, buy 0.5 shares, and borrow the net cash outlay</button>
+    <button class="opt" data-key="d">Sell the put, short 0.5 shares, and lend the net cash received</button>
+  </div>
+  <div class="why">Cheap, so buy it. A long put is bearish, so hedge by <em>buying</em> \(|\Delta| = 0.5\) shares (shares \(= -(+1)(-0.5)\)). Put plus shares costs more than you have, so borrow. (b) doubles the bearish bet; (d) is the trade for an <em>overpriced</em> put.</div>
+</div>
+
+<div class="quiz num" data-answer="0.42" data-tol="0.006">
+  <p class="q"><strong>11.</strong> Run Q10's trade with \(S_0 = 30\), \(r = 4\%\), and a 1-year period. What is the riskless profit at \(T\), per put?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Profit at \(T\) = mispricing \(\times e^{rT} = (2.10 - 1.70)e^{0.04} = 0.40 \times 1.0408 = \$0.42\). (Borrow \(1.70 + 0.5(30) = 16.70\), repay \(16.70e^{0.04} = 17.38\).) Answering 0.40 gives the profit's PV today, not at expiry.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>12.</strong> A call is overpriced. You sell it but, to save on fees, skip buying the \(\Delta\) shares. Which statement is true?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">You still lock in the same profit, just with smaller fees paid</button>
+    <button class="opt" data-key="b">You still lock in a profit, though smaller than when hedged</button>
+    <button class="opt" data-key="c">You now profit only if the stock falls; it is no longer arbitrage</button>
+    <button class="opt" data-key="d">You now profit only if the stock rises; it is no longer arbitrage</button>
+  </div>
+  <div class="why">A naked short call loses if the stock rises enough (base tree, Case A: you'd pay 6 against 3.49). Only the hedged portfolio is riskless. (d) has the direction backwards.</div>
+</div>
+
+<h2>8 · Exam-style questions</h2>
+<p>These match the length and step count of the final's binomial parts (one period here; Lessons 17–18 add steps). Work on paper with your calculator, keep 4 dp in the working and give answers to 2 dp. Every part follows the recipe.</p>
+
+<h3>Question A (about 6 marks)</h3>
+<div class="box"><p>A non-dividend-paying stock trades at $25. In 3 months it will be either $28 or $22. The risk-free rate is 8% p.a. with continuous compounding. Use no-arbitrage arguments throughout.<br>
+(a) Find the number of shares, per call written, that makes a portfolio riskless, for a 3-month European call with \(K = 24\).<br>
+(b) Find the value of that riskless portfolio at expiry.<br>
+(c) Price the call.<br>
+(d) Price the 3-month European put with \(K = 24\).<br>
+(e) Show your answers satisfy put-call parity.</p></div>
+
+<div class="quiz num" data-answer="0.67" data-tol="0.006">
+  <p class="q"><strong>A(a).</strong> \(\Delta\) for the call?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">\(f_u = 4\), \(f_d = 0\); \(\Delta = 4/6 = 0.6667\).</div>
+</div>
+<div class="quiz num" data-answer="14.67" data-tol="0.01">
+  <p class="q"><strong>A(b).</strong> Value of the portfolio (long \(\Delta\) shares, short 1 call) at expiry?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Up: \(28(0.6667) - 4 = 14.6667\). Down: \(22(0.6667) - 0 = 14.6667\) ✓.</div>
+</div>
+<div class="quiz num" data-answer="2.29" data-tol="0.01">
+  <p class="q"><strong>A(c).</strong> The call price?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(T = 0.25\): \(f = 25(0.6667) - 14.6667e^{-0.02} = 16.6667 - 14.3762 = \$2.29\). Using \(T = 3\) (months, not years) gives a nonsense 6.12.</div>
+</div>
+<div class="quiz num" data-answer="0.82" data-tol="0.01">
+  <p class="q"><strong>A(d).</strong> The put price?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(f_u = 0\), \(f_d = 2\), \(\Delta = -1/3\). \(\pi = 28(-0.3333) = -9.3333\). \(p = 25(-0.3333) + 9.3333e^{-0.02} = -8.3333 + 9.1485 = \$0.82\) (0.8152).</div>
+</div>
+<div class="quiz num" data-answer="1.48" data-tol="0.01">
+  <p class="q"><strong>A(e).</strong> Compute \(S_0 - Ke^{-rT}\). (It should equal your \(c - p\).)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(25 - 24e^{-0.02} = 25 - 23.5248 = 1.4752\); \(c - p = 2.2904 - 0.8152 = 1.4752\) ✓. Written answer: "\(c + Ke^{-rT} = 2.2904 + 23.5248 = 25.8152 = p + S_0 = 0.8152 + 25\)."</div>
+</div>
+
+<h3>Question B (about 5 marks)</h3>
+<div class="box"><p>A dealer has just <strong>written</strong> 1,000 three-month European puts with strike $62 on a stock now at $60. In 3 months the stock will be $66 or $51. \(r = 4\%\) p.a. continuously compounded.<br>
+(a) Find the put's delta.<br>
+(b) What position in the stock hedges the dealer, and why?<br>
+(c) Price one put.<br>
+(d) A client offers to sell the dealer more of these puts at $3.50 each. Describe the arbitrage and find the riskless profit at expiry on 1,000 puts.</p></div>
+
+<div class="quiz num" data-answer="-0.73" data-tol="0.006">
+  <p class="q"><strong>B(a).</strong> The put's \(\Delta\)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit"></span></div>
+  <div class="why">\(f_u = 0\), \(f_d = 62 - 51 = 11\). \(\Delta = (0 - 11)/(66 - 51) = -0.7333\).</div>
+</div>
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>B(b).</strong> The dealer's hedge:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Buy 733 shares, since the written puts lose when the stock rises</button>
+    <button class="opt" data-key="b">Short 733 shares, since the written puts lose when the stock falls</button>
+    <button class="opt" data-key="c">Buy 267 shares, the delta of the call with the same strike price</button>
+    <button class="opt" data-key="d">Short 1,000 shares, one share for each put option that was written</button>
+  </div>
+  <div class="why">Shares \(= -(-1000)(-0.7333) = -733.3\): short about 733 shares. Written puts lose if the stock falls; the short shares gain then. (a) gets the risk direction wrong; (d) ignores \(\Delta\).</div>
+</div>
+<div class="quiz num" data-answer="3.92" data-tol="0.01">
+  <p class="q"><strong>B(c).</strong> Price of one put?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(\pi = 66(-0.7333) - 0 = -48.40\) (down: \(51(-0.7333) - 11 = -48.40\) ✓). \(p = 60(-0.7333) + 48.40e^{-0.01} = -44 + 47.9184 = \$3.92\).</div>
+</div>
+<div class="quiz num" data-answer="422.59" data-tol="1">
+  <p class="q"><strong>B(d).</strong> At $3.50 the put is cheap. Buy 1,000 puts, buy 733.33 shares, borrow the rest. Profit at expiry, in dollars?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Per put: cost \(3.50 + 0.7333(60) = 47.50\), borrowed; repay \(47.50e^{0.01} = 47.9774\). Put + shares pay 48.40 in both states (up: \(0 + 48.40\); down: \(11 + 37.40\)). Profit \(0.4226 = (3.9184 - 3.50)e^{0.01}\). On 1,000 puts: \$422.59. (Practically: the new long puts also offset the dealer's written ones.)</div>
+</div>
+
+<h3>Question C (about 5 marks): option quoted off-model</h3>
+<div class="box"><p>A stock is $80. In 6 months it will be $92 or $71. \(r = 6\%\) p.a. continuously compounded. A 6-month European call with \(K = 85\) trades at $3.20.<br>
+(a) Find the no-arbitrage price of the call.<br>
+(b) Is there an arbitrage? Give the steps (no cash-flow table needed) and the profit at expiry per call.<br>
+(c) If instead the call traded at $4.10, what would change?<br>
+(d) A colleague is sure the stock will rise to $92 and says the call is worth more than your model price. Respond in one or two sentences.</p></div>
+
+<div class="quiz num" data-answer="3.70" data-tol="0.01">
+  <p class="q"><strong>C(a).</strong> No-arbitrage call price?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(f_u = 7\), \(f_d = 0\), \(\Delta = 7/21 = 0.3333\). \(\pi = 71(0.3333) = 23.6667\). \(c = 80(0.3333) - 23.6667e^{-0.03} = 26.6667 - 22.9672 = \$3.70\).</div>
+</div>
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>C(b).</strong> At $3.20, the steps are:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Sell 1 call, buy 1/3 share, borrow 23.47; collect 0.51 at expiry</button>
+    <button class="opt" data-key="b">Buy 1 call, buy 1/3 share, borrow 29.87; collect 0.51 at expiry</button>
+    <button class="opt" data-key="c">Buy 1 call, short 1/3 share, lend 26.67; collect 0.50 at expiry</button>
+    <button class="opt" data-key="d">Buy 1 call, short 1/3 share, lend 23.47; collect 0.51 at expiry</button>
+  </div>
+  <div class="why">Cheap, so buy it; a long call is hedged by shorting \(\Delta = 1/3\) share. Cash: \(-3.20 + 26.6667 = 23.4667\), lent. At \(T\): up \(7 - 30.6667 + 24.1813 = 0.5147\); down \(0 - 23.6667 + 24.1813 = 0.5147\). Profit \((3.6995 - 3.20)e^{0.03} = \$0.51\). (c) lends the share proceeds but forgets to pay for the call.</div>
+</div>
+<div class="quiz num" data-answer="0.41" data-tol="0.01">
+  <p class="q"><strong>C(c).</strong> At $4.10 the call is dear: sell it, buy 1/3 share, borrow 22.57. Profit at expiry per call?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\((4.10 - 3.6995)e^{0.03} = 0.4005 \times 1.0305 = \$0.41\). Every leg flips relative to (b).</div>
+</div>
+<details><summary>C(d): model answer</summary><div>
+<p>The price doesn't depend on how likely the up move is: the call can be replicated by 1/3 share and a loan whatever happens, and the replica costs $3.70, so any other price gives an arbitrage. If the market shared the colleague's view, it would show up in a higher \(S_0\), not in a different formula.</p>
+</div></details>
+
+<h2>9 · Before you close this tab</h2>
+
+<div class="box"><p><strong>Rule of thumb.</strong> <em>Same coin, opposite sides.</em> Hold \(\Delta = \dfrac{f_u - f_d}{S_u - S_d}\) shares against one written option; the portfolio is riskless, so \(f = S_0\Delta - \pi e^{-rT}\). Call \(\Delta \in [0, 1]\), put \(\Delta \in [-1, 0]\), \(\Delta_c - \Delta_p = 1\). Hedge shares \(= -(\text{options held}) \times \Delta\). Option mispriced: buy the cheap one of {option, replica}, sell the dear one; profit \(= |\text{gap}|\,e^{rT}\) in every state. Probabilities never enter.</p></div>
+
+<details><summary>Retrieval: from memory, write the riskless portfolio, the three formulas, the four hedge positions and the arbitrage steps. Then check</summary><div>
+<p>Long \(\Delta\) shares, short 1 option. \(\Delta = (f_u - f_d)/(S_u - S_d)\); \(\pi = S_u\Delta - f_u = S_d\Delta - f_d\); \(f = S_0\Delta - \pi e^{-rT}\). Wrote call: buy \(\Delta\). Bought call: short \(\Delta\). Wrote put: short \(|\Delta|\). Bought put: buy \(|\Delta|\). Overpriced: sell option, hold \(\Delta\) shares, borrow/lend the rest. Underpriced: buy option, the opposite. Check: same profit up and down, equal to the gap \(\times e^{rT}\); parity holds between your call and put.</p>
+</div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/Lecture%205_Binomial%20I.pdf">Lecture 5, Binomial I</a>, slides 5–16 (riskless portfolio, general formulas, the put on slide 16), and Hull, <em>Options, Futures and Other Derivatives</em>, Ch. 13 "Binomial trees" (Ch. 12 in older editions), section 13.1 "A one-step binomial model and a no-arbitrage argument". Chapter numbers vary by edition.</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%205.pdf">Tutorial 5</a> (<a href="../tutes/Tutorial%205%20Solutions.pdf">solutions</a>): <strong>Q5</strong> in three parts: (a) \(\Delta\) and the riskless portfolio, (b) the call price by no-arbitrage, (c) your own extension: price the matching put and check parity. <strong>Q4</strong>: answer in two sentences, then compare with section 6. Optional: Q1 (the algebra from \(\Delta\) to the risk-neutral formula; Lesson 17 walks through it) and Q2–Q3 (two-step trees, Lesson 17).</p>
+<p><strong>Spacing:</strong> tomorrow, redo Question C cold and the four-row hedge table from memory. In three days, redo Questions A and B with the answers hidden.</p>
+
+<div class="ask">💬 Stuck on a sign, a hedge direction, or which way to run the arbitrage? Paste your working in the terminal and ask me. I'm your teacher for this. Ask for more one-period trees with fresh numbers, or a timed set of exam-style parts.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0015-early-exercise-of-american-options.html">Lesson 15, early exercise of American options</a></span>
+  <span>Reference: <a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="0014-put-call-parity.html">L14 parity</a></span>
+  <span>Next: <a href="0017-risk-neutral-valuation.html">Lesson 17, risk-neutral valuation</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

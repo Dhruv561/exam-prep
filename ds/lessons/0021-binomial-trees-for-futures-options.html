@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Binomial Trees for Futures Options</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 21 · Topic 5: Binomial trees (capstone)</div>
+<h1>Binomial trees when the underlying is a futures price</h1>
+<p class="lede">The goal: price European and American calls and puts on futures with one-, two- and three-step trees, explain in one sentence why the risk-neutral probability becomes \(p = (1-d)/(u-d)\), hedge with \(\Delta\) futures contracts, and say how the answer differs from the same tree for a stock.</p>
+
+<div class="mission">Why this matters for 5 Nov: the formula sheet lists \(p = \frac{1-d}{u-d}\) and \(\Delta = \frac{f_u-f_d}{F_0u-F_0d}\) right next to the futures-option bounds. Past finals give 10–12 mark binomial questions: two or three steps, \(u = e^{\sigma\sqrt{\Delta t}}\), "do all calculations to four decimal places", then the value, a delta hedge ("what position should a market maker take?"), whether \(\Delta\) still hedges at \(t=1\), and an early-exercise check. The sample exam ran the same tree on a currency. Here you swap in a futures price: one line changes and everything else is the same.</div>
+
+<p>This lesson assumes <a href="0016-one-period-binomial-replication.html">Lesson 16</a> (one-step replication, \(\Delta\)), <a href="0017-risk-neutral-valuation.html">Lesson 17</a> (risk-neutral valuation), <a href="0018-two-step-trees-and-u-d-from-volatility.html">Lesson 18</a> (two-step trees, \(u, d\) from \(\sigma\)), <a href="0019-american-options-on-trees.html">Lesson 19</a> (American options on trees) and <a href="0020-futures-options-basics-and-parity.html">Lesson 20</a> (what a futures option is, exercise cash flows, parity and bounds). Terms are re-defined briefly where they first appear here; the <a href="../reference/glossary.html">glossary</a> has the rest.</p>
+
+<h2>1 · Why \(p\) changes: a futures contract costs nothing</h2>
+
+<p>A <strong>futures option</strong> gives the right to enter a futures contract at the strike \(K\): a call gives a long futures position plus cash \(F-K\), a put gives a short position plus \(K-F\). In a <strong>binomial tree</strong> the futures price \(F_0\) moves each step of length \(\Delta t\) either up to \(F_0u\) or down to \(F_0d\). The <strong>risk-neutral probability</strong> \(p\) is the up-probability that makes the underlying earn exactly what a riskless investor would require, so that every option value is just its expected payoff discounted at \(r\).</p>
+
+<p><strong>Predict first:</strong> for a stock, \(p = \frac{e^{r\Delta t}-d}{u-d}\). What should the "\(e^{r\Delta t}\)" become when the underlying is a futures price?</p>
+
+<details><summary>Reveal: the zero-investment argument (Lecture 6 slides 20–23)</summary><div>
+<p><strong>Stock:</strong> you pay \(S_0\) today, so in a risk-neutral world you must expect to earn \(r\) on it: \(pS_0u + (1-p)S_0d = S_0e^{r\Delta t}\).</p>
+<p><strong>Futures:</strong> entering a futures contract costs <em>nothing</em> (margin is a deposit that earns interest, not a price). A position that costs nothing must have expected gain zero under the risk-neutral measure, otherwise everyone would enter it for free money. So the futures price has <strong>zero expected growth</strong>:</p>
+$$pF_0u + (1-p)F_0d = F_0 \quad\Longrightarrow\quad \boxed{\,p = \frac{1-d}{u-d}\,}$$
+<p>The "\(e^{r\Delta t}\)" becomes \(e^{0}=1\). Equivalently (slide 22): a futures price behaves like a stock paying a dividend yield \(q = r\), because the growth rate \(r - q\) becomes 0.</p>
+</div></details>
+
+<p>What does <em>not</em> change: the option itself costs money (you pay the premium today), so its expected payoff is still <strong>discounted at \(e^{-r\Delta t}\)</strong> per step:</p>
+$$f = e^{-r\Delta t}\left[p f_u + (1-p) f_d\right], \qquad p = \frac{1-d}{u-d}.$$
+
+<div class="trap"><strong>Two classic slips</strong><br>
+(1) Using the stock \(p = \frac{e^{r\Delta t}-d}{u-d}\) on a futures tree. (2) Over-correcting: "futures need no money, so don't discount." Only \(p\) changes. Discounting stays at \(r\).</div>
+
+<h3>A shortcut when \(d = 1/u\)</h3>
+<p>Exam trees use \(u = e^{\sigma\sqrt{\Delta t}}\) and \(d = 1/u\). Then</p>
+$$p = \frac{1-1/u}{u-1/u} = \frac{u-1}{u^2-1} = \frac{1}{1+u}.$$
+<p>So \(p\) is always a bit <em>below</em> 0.5 for a futures tree (\(u>1\)), and it falls as \(\sigma\) rises. Good for checking your calculator: \(u = 1.1618\) gives \(p = 1/2.1618 = 0.4626\).</p>
+
+<h3>Stock vs futures on the same tree: what if?</h3>
+<p>Same \(u = 1.10\), \(d = 0.90\), \(r = 5\%\), \(\Delta t = 0.5\). Predict each row before reading across.</p>
+<div class="tablewrap">
+<table>
+<tr><th>Underlying</th><th>Expected growth per step (risk-neutral)</th><th>\(p\)</th><th>Effect on option values</th></tr>
+<tr><td>Non-dividend stock</td><td>\(r\)</td><td>\(\frac{e^{0.025}-0.9}{0.2} = 0.6266\)</td><td>More weight on the up node: calls dearer, puts cheaper</td></tr>
+<tr><td>Futures price</td><td>0</td><td>\(\frac{1-0.9}{0.2} = 0.5000\)</td><td>Less weight up: calls cheaper, puts dearer (same start price)</td></tr>
+<tr><td>Stock, dividend yield \(q\)</td><td>\(r-q\)</td><td>\(\frac{e^{(r-q)\Delta t}-d}{u-d}\)</td><td>In between; \(q = r\) gives the futures \(p\)</td></tr>
+<tr><td>Currency (foreign rate \(r_f\))</td><td>\(r-r_f\)</td><td>\(\frac{e^{(r-r_f)\Delta t}-d}{u-d}\)</td><td>Same tree, \(q = r_f\)</td></tr>
+</table>
+</div>
+<p>The last two rows are on the formula sheet and are taught in Lecture 8 (dividends, currencies). Lecture 6 uses them only to explain the futures case. One idea covers all four rows: <strong>\(p\) makes the underlying grow at the rate an investor who holds it would need</strong>, net of any income it pays: \(r\) for a stock, \(r - q\) with a yield, 0 for something that costs nothing to hold.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>C1.</strong> Why is the risk-neutral up-probability for a futures price \(p = (1-d)/(u-d)\) rather than \((e^{r\Delta t}-d)/(u-d)\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Futures prices are less volatile than stock prices are</button>
+    <button class="opt" data-key="b">Futures options are American, so they need a lower p</button>
+    <button class="opt" data-key="c">Entering a futures costs nothing, so its expected gain is 0</button>
+    <button class="opt" data-key="d">Futures are marked to market, so no discounting is needed</button>
+  </div>
+  <div class="why">A zero-cost position must have zero expected gain under risk neutrality, so \(E^*[F_{\Delta t}] = F_0\). Volatility enters through \(u, d\), not through the formula for \(p\). Discounting at \(r\) still applies to the option.</div>
+</div>
+
+<h2>2 · One step: the lecture's hedge argument</h2>
+
+<p>Lecture 6 (slides 17–19): a one-month futures call, \(K = 29\), futures price 30 now, either 33 or 28 in a month, \(r = 6\%\). Option payoffs: \(f_u = 4\), \(f_d = 0\).</p>
+<ol class="steps">
+  <li><strong>Riskless portfolio.</strong> Short one option, long \(\Delta\) futures. A futures position's payoff is the <em>change</em> in price: \(+3\Delta\) up, \(-2\Delta\) down. Set \(3\Delta - 4 = -2\Delta\), so \(\Delta = 0.8\). In general, \(\Delta = \frac{f_u - f_d}{F_0u - F_0d} = \frac{4-0}{33-28} = 0.8\).</li>
+  <li><strong>Value in a month:</strong> \(3(0.8) - 4 = -1.6\) in both states. Today: \(-1.6e^{-0.06/12} = -1.592\).</li>
+  <li><strong>The twist:</strong> the futures position is worth 0 today, so the whole portfolio today is just \(-f\). Hence \(f = 1.592\). (For a stock you'd subtract \(\Delta S_0\) here; with futures there's nothing to subtract.)</li>
+</ol>
+<p>Risk-neutral route: \(u = 33/30 = 1.1\), \(d = 28/30 = 0.9333\), \(p = \frac{1-0.9333}{1.1-0.9333} = 0.4\), \(f = e^{-0.005}(0.4 \times 4) = 1.592\). Same answer, faster.</p>
+
+<p><strong>Predict:</strong> the matching put (\(K = 29\)) pays 0 up, 1 down. Value? And does put-call parity for futures options (Lesson 20) hold?</p>
+<details><summary>Reveal</summary><div>
+<p>\(p_{\text{put}} = e^{-0.005}(0.6 \times 1) = 0.597\). Parity: \(c - p = (F_0 - K)e^{-rT} = 1 \times e^{-0.005} = 0.995\), and \(1.592 - 0.597 = 0.995\). It holds: the tree and parity agree.</p>
+</div></details>
+
+<h2>3 · Two steps, European and American</h2>
+
+<p>Futures price \(F_0 = 50\), \(\sigma = 30\%\), six months, two three-month steps (\(\Delta t = 0.25\)), \(r = 5\%\), \(K = 50\). Value a put, European and American.</p>
+<ol class="steps">
+  <li>\(u = e^{0.3\sqrt{0.25}} = e^{0.15} = 1.1618\), \(d = 1/u = 0.8607\), \(p = \frac{1-0.8607}{1.1618-0.8607} = 0.4626\) (check: \(1/(1+u)\)), \(1-p = 0.5374\), discount per step \(e^{-0.0125} = 0.9876\).</li>
+  <li>Futures prices: up 58.0917, down 43.0354; final 67.4929, 50.0000, 37.0409.</li>
+  <li>Final put payoffs \(\max(50-F,0)\): 0, 0, 12.9591.</li>
+  <li>Work back. At each node of the American option compare the <strong>continuation value</strong> (discounted expected value of waiting) with the <strong>intrinsic value</strong> (exercise now), and keep the larger.</li>
+</ol>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Node</th><th>\(F\)</th><th>European (continuation)</th><th>Intrinsic \(50 - F\)</th><th>American</th></tr>
+<tr><td>uu / ud / dd</td><td>67.49 / 50 / 37.04</td><td>0 / 0 / 12.9591</td><td>same</td><td>0 / 0 / 12.9591</td></tr>
+<tr><td>u</td><td>58.0917</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>d</td><td>43.0354</td><td>\(0.9876(0.5374 \times 12.9591) = 6.8781\)</td><td>6.9646</td><td><strong>6.9646 (exercise)</strong></td></tr>
+<tr><td>Root</td><td>50</td><td>\(0.9876(0.5374 \times 6.8781) = 3.6506\)</td><td>0</td><td>\(0.9876(0.5374 \times 6.9646) = 3.6965\)</td></tr>
+</table>
+</div>
+<p>European put \(= 3.65\), American put \(= 3.70\). (With all parameters rounded to 4 dp first you get 3.6514 and 3.6970; markers accept either, which is why you show your working.)</p>
+
+<p><strong>Predict:</strong> now the call, same tree, \(K = 50\). Will the American call ever be exercised early? For a non-dividend stock, Lesson 19 said never.</p>
+<details><summary>Reveal: yes, at the up node</summary><div>
+<p>Call payoffs: 17.4929, 0, 0. Node u: continuation \(0.9876(0.4626 \times 17.4929) = 7.9912\), intrinsic \(58.0917 - 50 = 8.0917\). <strong>Exercise.</strong> European call 3.6506, American call 3.6965.</p>
+<p><strong>Why?</strong> Exercising a deep-in-the-money futures call pays \(F - K\) into your margin account <em>now</em>, where it earns interest. Waiting keeps that cash locked inside an option whose underlying has zero expected growth. It's the dividend argument from Lesson 15 with \(q = r\): the "dividend" you capture by exercising is the interest on \(F-K\). The non-dividend-stock argument (\(C \ge S - Ke^{-rT} > S - K\)) has no futures version, because the futures bound is only \(c \ge (F_0 - K)e^{-rT}\), which sits <em>below</em> \(F_0 - K\).</p>
+<p>(Call = put here only because \(K = F_0\): parity gives \(c - p = (F_0-K)e^{-rT} = 0\).)</p>
+</div></details>
+
+<div class="box"><strong>American futures options.</strong> Both calls <em>and</em> puts can be optimally exercised early when deep in the money, so \(C > c\) and \(P > p\) are both possible. Most traded futures options are American (Lecture 6 slide 3).</div>
+
+<h3>What if? (two-step tree, base: \(F_0 = 50\), \(K = 50\), \(\sigma = 30\%\), \(r = 5\%\))</h3>
+<p>Predict the direction for each row, then open.</p>
+<details><summary>Reveal the scenario table</summary><div>
+<div class="tablewrap">
+<table>
+<tr><th>Change</th><th>\(p\)</th><th>Euro call / put</th><th>Amer call / put</th><th>Why</th></tr>
+<tr><td>Base</td><td>0.4626</td><td>3.65 / 3.65</td><td>3.70 / 3.70</td><td>\(K = F_0\) so \(c = p\)</td></tr>
+<tr><td>\(r\): 5% → 10%</td><td>0.4626 (same)</td><td>3.56 / 3.56</td><td>3.65 / 3.65</td><td>\(r\) is not in \(p\); only the discount factor falls. Both European values fall. For a <em>stock</em> call, higher \(r\) raises the value</td></tr>
+<tr><td>\(\sigma\): 30% → 40%</td><td>0.4502</td><td>4.86 / 4.86</td><td>4.92 / 4.92</td><td>Wider tree; \(p = 1/(1+u)\) dips but the spread effect dominates</td></tr>
+<tr><td>\(F_0\): 50 → 55</td><td>0.4626</td><td>7.48 / 2.61</td><td>7.56 / 2.61</td><td>Call ITM, put OTM; no early exercise for the put now</td></tr>
+<tr><td>Underlying a stock at 50 instead</td><td>0.5043</td><td>4.34 / 3.11</td><td>4.34 / 3.41</td><td>Stock grows at \(r\): call dearer, put cheaper; American call = European (never early)</td></tr>
+</table>
+</div>
+</div></details>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>C2.</strong> The risk-free rate rises while \(F_0\), \(K\), \(\sigma\) and \(T\) stay fixed. What happens to European call and put options on the futures?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The call rises and the put falls, as for stock options</button>
+    <button class="opt" data-key="b">Both fall, because only the discount factor changes</button>
+    <button class="opt" data-key="c">Both rise, because the risk-neutral p becomes larger</button>
+    <button class="opt" data-key="d">Neither changes, because r does not appear in p at all</button>
+  </div>
+  <div class="why">With futures, \(p = (1-d)/(u-d)\) has no \(r\), so the expected payoff is unchanged, but it is discounted more heavily. (In reality \(F_0\) itself would also move with \(r\); the question holds it fixed.)</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>C3.</strong> Why can early exercise of a deep in-the-money American call on a futures contract be optimal, when it never is for a call on a non-dividend stock?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Futures options have a lower volatility than stock options</button>
+    <button class="opt" data-key="b">The futures call has an upper bound of K, like a put does</button>
+    <button class="opt" data-key="c">The futures position costs nothing, so there is no premium</button>
+    <button class="opt" data-key="d">Exercising pays F − K in cash now, which then earns interest</button>
+  </div>
+  <div class="why">The futures price has zero risk-neutral growth (like a stock with \(q = r\)), so the call's continuation value can fall below \(F-K\): the cash received on exercise earns interest, the "dividend" captured by exercising.</div>
+</div>
+
+<h2>4 · Delta: hedging with futures</h2>
+<p>The <strong>delta</strong> of a futures option is the number of futures contracts (per unit of underlying) that hedges it over the next step:</p>
+$$\Delta = \frac{f_u - f_d}{F_0u - F_0d}.$$
+<ul>
+  <li>Calls: \(\Delta > 0\). Puts: \(\Delta &lt; 0\). Writer of an option: holds \(-\Delta\) per option, so <strong>offsets with \(+\Delta\) futures</strong>. Holder of an option: offsets with \(-\Delta\) futures.</li>
+  <li>For a long put (\(\Delta &lt; 0\)) the hedge is <strong>long</strong> \(|\Delta|\) futures: the put gains when \(F\) falls, the long futures loses. Hedges always point the opposite way to the option's exposure.</li>
+  <li>The hedge costs nothing to set up (futures need only margin), unlike buying \(\Delta\) shares.</li>
+  <li>\(\Delta\) changes node by node. In section 3 the European put has \(\Delta_0 = \frac{0 - 6.8781}{58.0917 - 43.0354} = -0.4568\); at the down node \(\Delta_d = \frac{0 - 12.9591}{50 - 37.0409} = -1\). A hedge set at \(t=0\) must be rebalanced at \(t=1\) (the exam's "does the \(\Delta\) from (b) still hedge?" part).</li>
+  <li>Contract sizes: number of futures contracts \(= |\Delta| \times\) units the options cover \(\div\) units per futures contract.</li>
+</ul>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>C4.</strong> In the one-step hedge for a futures option, why is the riskless portfolio's value today equal to \(-f\) rather than \(\Delta F_0 - f\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A futures position is worth zero when it is entered</button>
+    <button class="opt" data-key="b">The futures price never changes over the life of the tree</button>
+    <button class="opt" data-key="c">The option is worth zero because it is a futures option</button>
+    <button class="opt" data-key="d">The value of Δ is always equal to 1 for a futures contract</button>
+  </div>
+  <div class="why">Futures cost nothing to enter, so only the option contributes to today's value (Lecture 6 slide 18: "since the value of the futures contract today is zero, the value of the option today must be 1.592").</div>
+</div>
+
+<h2>5 · Try it: futures tree explorer</h2>
+<p>Set the underlying, option and style, then drag. Things to try: (1) base case put, switch European → American: the down node turns amber. (2) Switch to call: early exercise moves to the up node. (3) Switch the underlying to a stock: \(p\) rises above 0.5, and the American call stops being exercised early. (4) Raise \(r\) with a futures underlying: \(p\) doesn't move. (5) Set \(K = F_0\): call and put values match (European).</p>
+<div class="fote" data-f0="50" data-k="50" data-sigma="0.30" data-r="0.05" data-t="0.5" data-n="2" data-type="put" data-style="euro" data-under="futures"></div>
+<script src="../assets/futures-option-tree-explorer.js"></script>
+
+<h2>6 · Exam-style practice</h2>
+<p>Exam conventions: continuous compounding; \(u = e^{\sigma\sqrt{\Delta t}}\), \(d = 1/u\) unless the prices are given; keep 4 dp in intermediate steps; answer to 2 dp. Tolerances allow for the rounding differences.</p>
+
+<h3>Question A (one step, 6 marks style)</h3>
+<p>Gold futures are at $1,800 per ounce. In three months the futures price will be either $1,890 or $1,710. A three-month European call on the futures has \(K = \$1{,}820\); one contract covers 100 ounces. \(r = 4\%\).</p>
+
+<div class="quiz num" data-answer="0.5" data-tol="0.002">
+  <p class="q"><strong>A1.</strong> Risk-neutral probability of an up move?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(u = 1890/1800 = 1.05\), \(d = 0.95\), \(p = \frac{1-0.95}{1.05-0.95} = 0.5\). (A stock with these numbers would have \(p = \frac{e^{0.01}-0.95}{0.10} = 0.6005\).)</div>
+</div>
+
+<div class="quiz num" data-answer="34.65" data-tol="0.01">
+  <p class="q"><strong>A2.</strong> Value of the call per ounce?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(f_u = 70\), \(f_d = 0\). \(f = e^{-0.04 \times 0.25}(0.5 \times 70) = 0.99005 \times 35 = \$34.65\).</div>
+</div>
+
+<div class="quiz num" data-answer="17325.87" data-tol="1">
+  <p class="q"><strong>A3.</strong> A client buys 5 call contracts. Total premium?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(34.6517 \times 100 \times 5 = \$17{,}325.87\).</div>
+</div>
+
+<div class="quiz num" data-answer="1.94" data-tol="0.01">
+  <p class="q"><strong>A4.</strong> The dealer who wrote those 5 contracts hedges with gold futures (100 oz each). How many futures contracts (long)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">contracts</span></div>
+  <div class="why">\(\Delta = \frac{70 - 0}{1890 - 1710} = 0.3889\) per ounce. Short calls on 500 oz → long \(0.3889 \times 500 = 194.44\) oz \(= 1.94\) contracts.</div>
+</div>
+
+<div class="quiz num" data-answer="54.45" data-tol="0.01">
+  <p class="q"><strong>A5.</strong> A European put with the same strike, per ounce? (Then check parity: \(c - p = (F_0 - K)e^{-rT}\).)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(f_u = 0\), \(f_d = 110\): \(e^{-0.01}(0.5 \times 110) = \$54.45\). Parity: \(34.65 - 54.45 = -19.80 = -20e^{-0.01}\). ✓</div>
+</div>
+
+<h3>Question B (two steps, 10 marks style)</h3>
+<p>Brent crude futures are at $72 per barrel, volatility 35% p.a. A six-month put on the futures has \(K = \$75\). \(r = 3\%\). Use a two-step tree.</p>
+
+<div class="quiz num" data-answer="1.1912" data-tol="0.0005">
+  <p class="q"><strong>B1.</strong> \(u\) (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\Delta t = 0.25\), \(u = e^{0.35 \times 0.5} = e^{0.175} = 1.1912\), \(d = 0.8395\).</div>
+</div>
+
+<div class="quiz num" data-answer="0.4564" data-tol="0.0005">
+  <p class="q"><strong>B2.</strong> \(p\) (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\frac{1-0.8395}{1.1912-0.8395} = 0.4564\), or \(1/(1+1.1912)\).</div>
+</div>
+
+<div class="quiz num" data-answer="8.53" data-tol="0.02">
+  <p class="q"><strong>B3.</strong> Value of the European put?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Prices: 85.7697, 60.4409; final 102.1729, 72, 50.7375. Payoffs 0, 3, 24.2625. Discount \(e^{-0.0075} = 0.9925\). Up node: \(0.9925(0.5436 \times 3) = 1.6187\). Down: \(0.9925(0.4564 \times 3 + 0.5436 \times 24.2625) = 14.4503\). Root: \(0.9925(0.4564 \times 1.6187 + 0.5436 \times 14.4503) = \$8.53\).</div>
+</div>
+
+<div class="quiz num" data-answer="8.59" data-tol="0.02">
+  <p class="q"><strong>B4.</strong> Value if the put is American?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Down node: intrinsic \(75 - 60.4409 = 14.5591 > 14.4503\), so exercise. Up node: intrinsic 0 \(&lt;\) 1.6187, hold. Root: \(0.9925(0.4564 \times 1.6187 + 0.5436 \times 14.5591) = \$8.59\); intrinsic at root is only 3.</div>
+</div>
+
+<div class="quiz num" data-answer="5.07" data-tol="0.02">
+  <p class="q"><strong>B5.</strong> A market maker has just <em>bought</em> 10 European put contracts (1,000 barrels each). How many Brent futures contracts (1,000 barrels) should they go <em>long</em> to hedge until the end of the first step?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">contracts</span></div>
+  <div class="why">\(\Delta = \frac{1.6187 - 14.4503}{85.7697 - 60.4409} = -0.5066\). Long puts on 10,000 barrels have delta \(-5{,}066\) barrels, so go long 5,066 barrels of futures = 5.07 contracts.</div>
+</div>
+
+<div class="quiz num" data-answer="-1" data-tol="0.005">
+  <p class="q"><strong>B6.</strong> If the futures price falls in the first step, what is the European put's delta at that node?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\frac{3 - 24.2625}{72 - 50.7375} = -1\). Both final nodes below are in the money, so the put moves one-for-one with \(F\). The \(t=0\) hedge (\(-0.5066\)) no longer works: rebalance.</div>
+</div>
+
+<h3>Question C (three steps, American call)</h3>
+<p>A futures price is 40, \(\sigma = 25\%\), \(r = 6\%\). A nine-month American call on the futures has \(K = 38\). Use three three-month steps (\(u = e^{0.125} = 1.1331\), \(d = 0.8825\)).</p>
+
+<div class="quiz num" data-answer="0.4688" data-tol="0.0005">
+  <p class="q"><strong>C-1.</strong> \(p\)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\frac{1-0.8825}{1.1331-0.8825} = 0.4688\) (0.4689 with rounded \(u, d\)).</div>
+</div>
+
+<div class="quiz num" data-answer="4.44" data-tol="0.02">
+  <p class="q"><strong>C-2.</strong> Value if it were European?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Final prices 58.1997, 45.3259, 35.2999, 27.4916; payoffs 20.1997, 7.3259, 0, 0. Discount \(e^{-0.015} = 0.9851\). Step 2: uu \(= 13.1621\), ud \(= 3.3832\), dd \(= 0\). Step 1: u \(= 7.8488\), d \(= 1.5624\). Root \(= 4.44\). Shortcut: \(e^{-0.045}[p^3(20.1997) + 3p^2(1-p)(7.3259)]\).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>C-3.</strong> For the American call, at which node is early exercise optimal?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">At the up node after one step (F = 45.33)</button>
+    <button class="opt" data-key="b">At the up-up node after two steps (F = 51.36)</button>
+    <button class="opt" data-key="c">At the up-down node after two steps (F = 40.00)</button>
+    <button class="opt" data-key="d">Nowhere, an American call is never exercised early</button>
+  </div>
+  <div class="why">uu: intrinsic \(51.3610 - 38 = 13.3610 > 13.1621\), exercise. ud: \(2 &lt; 3.3832\). u: after updating uu, continuation \(= 0.9851(0.4688 \times 13.3610 + 0.5312 \times 3.3832) = 7.9407 > 7.3259\), hold. "Never" is the non-dividend <em>stock</em> rule.</div>
+</div>
+
+<div class="quiz num" data-answer="4.48" data-tol="0.02">
+  <p class="q"><strong>C-4.</strong> Value of the American call?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(0.9851(0.4688 \times 7.9407 + 0.5312 \times 1.5624) = 4.48\). Early exercise adds about 0.04.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>C-5.</strong> Same numbers, but the underlying is a non-dividend stock at 40. Compared with C-4, the American call is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">cheaper, and it is exercised early at the same node</button>
+    <button class="opt" data-key="b">cheaper, and it is never exercised early at any node</button>
+    <button class="opt" data-key="c">dearer, and it is never exercised early at any node</button>
+    <button class="opt" data-key="d">dearer, and it is exercised early at the same node</button>
+  </div>
+  <div class="why">Stock \(p = \frac{e^{0.015}-0.8825}{0.2506} = 0.5291 > 0.4688\): more weight on the high payoffs, value 5.63, and \(C = c\) for a non-dividend stock.</div>
+</div>
+
+<h3>Question D (the family of \(p\)'s)</h3>
+<div class="quiz num" data-answer="0.5459" data-tol="0.0005">
+  <p class="q"><strong>D1.</strong> A currency tree has \(u = 1.06\), \(d = 0.95\), \(\Delta t = 0.5\), domestic \(r = 4\%\), foreign \(r_f = 2\%\). Risk-neutral \(p\) (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\frac{e^{(0.04-0.02)(0.5)} - 0.95}{0.11} = \frac{1.01005 - 0.95}{0.11} = 0.5459\). If this were a futures price: \(\frac{1-0.95}{0.11} = 0.4545\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>D2.</strong> In \(p = \frac{e^{(r-q)\Delta t}-d}{u-d}\), which choice of \(q\) gives the futures-option tree?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">q equal to the domestic risk-free rate r</button>
+    <button class="opt" data-key="b">q equal to zero, as for a non-dividend stock</button>
+    <button class="opt" data-key="c">q equal to the foreign risk-free rate r_f</button>
+    <button class="opt" data-key="d">q equal to the futures price's volatility</button>
+  </div>
+  <div class="why">\(q = r\) gives growth \(r - q = 0\): Lecture 6 slide 22, "futures prices behave like a stock paying a dividend yield at the risk-free rate".</div>
+</div>
+
+<h2>7 · Mixed retrieval: Lessons 16–21 interleaved</h2>
+<p>These jump between stock and futures trees, European and American, calls and puts. Say which \(p\) you'll use before you calculate.</p>
+
+<div class="quiz num" data-answer="0.6266" data-tol="0.0005">
+  <p class="q"><strong>M1 (L17).</strong> A stock is at $40; each six-month step it moves by \(u = 1.1\) or \(d = 0.9\); \(r = 5\%\). Risk-neutral \(p\) (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\frac{e^{0.025} - 0.9}{0.2} = 0.6266\).</div>
+</div>
+
+<div class="quiz num" data-answer="1.22" data-tol="0.01">
+  <p class="q"><strong>M2 (L16–17).</strong> Same stock, one step: value of a six-month European call with \(K = \$42\)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Payoffs \(44 - 42 = 2\) and 0. \(e^{-0.025}(0.6266 \times 2) = \$1.22\). \(\Delta = 2/8 = 0.25\) shares.</div>
+</div>
+
+<div class="quiz num" data-answer="0.98" data-tol="0.01">
+  <p class="q"><strong>M3 (L21).</strong> Now the underlying is a <em>futures</em> price at 40 that moves to 44 or 36 in six months. Same call (\(K = 42\), \(r = 5\%\))?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(p = 0.5\): \(e^{-0.025}(0.5 \times 2) = \$0.98\). Lower than M2: no \(r\)-growth in the futures price.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>M4 (L17).</strong> The real-world probability of an up move rises from 50% to 60%, with \(S_0\), \(u\), \(d\), \(r\) unchanged. The binomial value of a European call…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">rises, because the call pays off more often</button>
+    <button class="opt" data-key="b">falls, because the risk premium is now higher</button>
+    <button class="opt" data-key="c">is unchanged, because only risk-neutral p is used</button>
+    <button class="opt" data-key="d">is unchanged, because a call's delta is constant</button>
+  </div>
+  <div class="why">Valuation uses \(p\) built from \(r, u, d\); real-world probabilities never enter (Tutorial 5 Q4).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>M5 (L18).</strong> In \(f = e^{-2r\Delta t}[p^2f_{uu} + 2p(1-p)f_{ud} + (1-p)^2f_{dd}]\), why does \(f_{ud}\) carry the factor 2?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The middle node is discounted over two separate periods</button>
+    <button class="opt" data-key="b">Two paths reach it: up then down, and down then up</button>
+    <button class="opt" data-key="c">The middle payoff is twice the size of the others</button>
+    <button class="opt" data-key="d">The tree only recombines when u is equal to 2 times d</button>
+  </div>
+  <div class="why">ud and du end at the same price (\(ud = du\)), each with probability \(p(1-p)\).</div>
+</div>
+
+<div class="quiz num" data-answer="2.72" data-tol="0.02">
+  <p class="q"><strong>M6 (L19).</strong> Stock at 40, two six-month steps, \(u = 1.1\), \(d = 0.9\), \(r = 5\%\), American put \(K = 42\). Value?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(p = 0.6266\). Final: 48.4, 39.6, 32.4, payoffs 0, 2.4, 9.6. Down node (36): continuation \(e^{-0.025}(0.6266 \times 2.4 + 0.3734 \times 9.6) = 4.963 &lt; 6\), exercise. Up node (44): 0.8741. Root: \(e^{-0.025}(0.6266 \times 0.8741 + 0.3734 \times 6) = \$2.72\) (European: 2.34).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>M7 (L19, L21).</strong> Which American options can be optimally exercised early (deep in the money, no dividends on any stock)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Stock put only; never a futures put or futures call</button>
+    <button class="opt" data-key="b">Stock call and stock put; never any futures options</button>
+    <button class="opt" data-key="c">Futures call only; never a stock put or futures put</button>
+    <button class="opt" data-key="d">Stock put, futures put and futures call; not stock call</button>
+  </div>
+  <div class="why">Non-dividend stock call: never (\(C = c\)). Puts: interest on \(K\). Futures call: interest on \(F-K\), since the futures price has zero risk-neutral growth.</div>
+</div>
+
+<div class="quiz num" data-answer="2.14" data-tol="0.01">
+  <p class="q"><strong>M8 (L20).</strong> Futures at 60, six-month European futures call with \(K = 58\) at $4.10, \(r = 4\%\). Fair European futures put?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(c + Ke^{-rT} = p + F_0e^{-rT}\), so \(p = 4.10 - (60 - 58)e^{-0.02} = 4.10 - 1.96 = \$2.14\).</div>
+</div>
+
+<div class="quiz num" data-answer="3000" data-tol="0.5">
+  <p class="q"><strong>M9 (L20).</strong> You exercise a futures call (\(K = 60\), contract on 500 units) when the futures settlement price is 66. Cash credited to your margin account?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\((66 - 60) \times 500 = \$3{,}000\), plus a long futures position at 66, marked to market from then on.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>M10 (L16, L21).</strong> A dealer is long one put option. Which hedge is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">On a stock, buy |Δ| shares; on a futures, go long |Δ| futures</button>
+    <button class="opt" data-key="b">On a stock, short |Δ| shares; on a futures, go short |Δ| futures</button>
+    <button class="opt" data-key="c">On a stock, buy |Δ| shares; on a futures, go short |Δ| futures</button>
+    <button class="opt" data-key="d">On a stock, short |Δ| shares; on a futures, go long |Δ| futures</button>
+  </div>
+  <div class="why">A long put loses when the price rises, so offset with a position that gains when it rises: long the underlying, in either case. Only the cost differs (shares cost \(\Delta S_0\); futures cost nothing).</div>
+</div>
+
+<div class="quiz num" data-answer="5" data-tol="0.005">
+  <p class="q"><strong>M11 (L20, L21).</strong> Futures at 60. What is the lowest price an <em>American</em> futures call with \(K = 55\) can have?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(C \ge F_0 - K = 5\) (exercise now). The European bound \((F_0 - K)e^{-rT}\) is lower, which is exactly why an American futures call can be worth exercising.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>M12 (L18, L21).</strong> In a futures tree with \(d = 1/u\), volatility rises. What happens to \(p\) and to an at-the-money option's value?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">p rises above 0.5 and the option value rises too</button>
+    <button class="opt" data-key="b">p falls slightly and the option value still rises</button>
+    <button class="opt" data-key="c">p falls slightly and the option value falls as well</button>
+    <button class="opt" data-key="d">p is unchanged and the option value is unchanged</button>
+  </div>
+  <div class="why">\(p = 1/(1+u)\) falls as \(u\) grows (0.4626 → 0.4502 for 30% → 40%), but the wider spread raises the option value (3.65 → 4.86).</div>
+</div>
+
+<h2>8 · Rule of thumb</h2>
+<div class="box">
+<strong>Futures tree = stock tree with growth set to zero.</strong> \(p = \frac{1-d}{u-d}\) (\(= \frac{1}{1+u}\) when \(d = 1/u\)), but still discount at \(e^{-r\Delta t}\). \(\Delta = \frac{f_u - f_d}{F_0u - F_0d}\) futures contracts, and the hedge costs nothing. American futures calls <em>and</em> puts can be exercised early, so check intrinsic vs continuation at every node for both. Before calculating, write down which \(p\): \(r\) (stock), \(r-q\) (yield), \(r-r_f\) (currency), 0 (futures).
+</div>
+
+<details><summary>Retrieval: from memory, explain why p changes and why discounting doesn't. Then check</summary><div>
+<p>A futures contract costs nothing to enter, so under risk neutrality its expected gain is zero: \(pF_0u + (1-p)F_0d = F_0\), giving \(p = (1-d)/(u-d)\). The option still costs a premium today, and its payoff comes later, so the payoff is discounted at \(r\). Equivalent view: futures = stock with \(q = r\).</p>
+</div></details>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>: the binomial-trees chapter (Ch. 12 in the lecture's edition, section on options on futures) and the futures-options chapter (Ch. 16 in the lecture's edition, "Valuation of futures options using binomial trees"). Course: <a href="../lectures/Lecture%206_Future%20Options.pdf">Lecture 6, Future Options</a> slides 17–23 and <a href="../lectures/Lecture%206_Binomial%20II.pdf">Lecture 6, Binomial II</a> slides 3–12 (American trees).</p>
+
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%206.pdf">Tutorial 6</a> Q6, Option C (Jan 2027 Brent call, a real futures option): do 2.1 for \(N = 2\) by hand (\(\Delta t\), \(u\), \(d\), \(p = (1-d)/(u-d)\), value) and \(N = 4\) in the simulator, then answer the first two bullets of 2.2. The official solution was deferred; my check, with \(T = 83/365\): \(N = 2\) gives \(u = 1.1661\), \(p = 0.4617\), value 6.76; \(N = 4\) gives 7.17 (market 7.72). Also <a href="../tutes/Tutorial%206.pdf">Tutorial 6</a> Q1 (three-step American put on a stock: redo the node comparisons) as stock/futures contrast. Optional: rerun Question B above as an American <em>call</em> (\(K = 70\)) and check whether the up node exercises.</p>
+
+<p><strong>Spacing:</strong> tomorrow, redo B3–B5 and C-3 cold, and write the four \(p\) formulas from memory.</p>
+
+<div class="ask">💬 Unsure which \(p\) to use, whether a node should exercise, or which way a futures hedge goes? Paste your working in the terminal and ask me. I'm your teacher for this. Ask for another three-step tree or a mixed quiz on Lessons 16–21 any time.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0020-futures-options-basics-and-parity.html">Lesson 20, futures options basics</a></span>
+  <span>Topic 5: <a href="0016-one-period-binomial-replication.html">L16</a> · <a href="0017-risk-neutral-valuation.html">L17</a> · <a href="0018-two-step-trees-and-u-d-from-volatility.html">L18</a> · <a href="0019-american-options-on-trees.html">L19</a> · <a href="0020-futures-options-basics-and-parity.html">L20</a> · <a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/futures-cheatsheet.html">Futures cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0022-normal-and-lognormal-stock-prices.html">Lesson 22, normal and lognormal stock prices</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

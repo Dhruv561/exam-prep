@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Normal and Lognormal Stock Prices</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 22 · Topic 7: Black-Scholes-Merton (1 of 7)</div>
+<h1>Normal and lognormal stock prices</h1>
+<p class="lede">The goal: read probabilities off the normal table, say why a stock price is lognormal rather than normal, write down the distribution of \(\ln S_T\), and compute the mean, variance and 95% interval of \(S_T\) and the size of a one-standard-deviation move over any period.</p>
+
+<div class="mission">Why this matters for 5 Nov: the BSM formula (Lessons 23–24) is built from one assumption, "stock prices are lognormal", and \(N(d_1)\), \(N(d_2)\) are just normal-table lookups. Tutorial 7 Q1–3 are exactly this lesson, and a past final carried a 12-mark question with a 95% interval for \(S_T\) in nine months plus the expected value and variance, all to 4 decimal places. It is pure formula-plugging if you know which number goes where. Most lost marks come from using the variance where the standard deviation belongs.</div>
+
+<p>No finance is assumed. A <strong>stock price</strong> \(S\) is what one share costs. \(S_0\) is the price today, \(S_T\) the price at a future date \(T\) years away (\(T = 0.5\) means six months). A <strong>random variable</strong> is a number whose value we don't know yet but whose likelihoods we can describe. Terms are re-defined where they appear; the <a href="../reference/glossary.html">glossary</a> has the rest.</p>
+
+<h2>1 · The normal distribution and the table</h2>
+
+<p>A <strong>normal distribution</strong> is the bell curve. It is fully described by two numbers: its <strong>mean</strong> \(m\) (the centre) and its <strong>variance</strong> \(v\) (how spread out it is). The <strong>standard deviation</strong> is \(\sqrt{v}\), written \(s.d.\) The lecture writes</p>
+$$X \sim \varphi(m, v)$$
+<p>meaning "\(X\) is normal with mean \(m\) and <em>variance</em> \(v\)". The second slot is the variance, not the standard deviation.</p>
+
+<div class="trap"><strong>The most common slip in this topic</strong><br>
+\(X \sim \varphi(50, 25)\) has standard deviation 5, not 25. Always take \(\sqrt{\ }\) of the second number before standardising. (The same slot-two-is-variance rule is why \(\ln S_T \sim \varphi(\cdot, \sigma^2 T)\) later has s.d. \(\sigma\sqrt{T}\).)</div>
+<p>The lecturer's handwritten notes box exactly this case, \(X \sim \varphi(3.2, 1.6)\): variance 1.6, so s.d. \(=\sqrt{1.6}=1.2649\), not 1.6. Then \(P(X&lt;4)\): \(z=(4-3.2)/1.2649=0.63\) (2 dp), \(N(0.63)=0.7357\). And \(P(X&gt;2)\): \(z=-0.95\), \(1-N(-0.95)=N(0.95)=0.8289\). The notes also draw \(N(0.5)\) as the shaded area to the <em>left</em> of 0.5 under \(\varphi(0,1)\): \(N(0.5)=0.6915\) (more than half, since 0.5 is right of the mean).</p>
+
+<h3>Standardise, then look up</h3>
+<p>The <strong>standard normal</strong> \(Z \sim \varphi(0, 1)\) has mean 0 and s.d. 1. Any normal \(X\) converts to it with the <strong>z-score</strong>, the number of standard deviations \(x\) sits from the mean:</p>
+$$z = \frac{x - m}{\sqrt{v}}.$$
+<p>The <strong>normal table</strong> gives \(N(z) = P(Z &lt; z)\), the area under the bell to the <em>left</em> of \(z\) (a probability between 0 and 1). The exam gives it on the formula sheet (pp. 5-6): \(z\) from 0.00 to 4.00 in steps of 0.01, \(N(z)\) to 4 dp, and no interpolation is required. Excerpt for this lesson:</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>\(z\)</th><td>0.13</td><td>0.18</td><td>0.50</td><td>1.00</td><td>1.20</td><td>1.25</td><td>1.40</td><td>1.50</td><td>1.60</td><td>1.96</td><td>2.00</td></tr>
+<tr><th>\(N(z)\)</th><td>0.5517</td><td>0.5714</td><td>0.6915</td><td>0.8413</td><td>0.8849</td><td>0.8944</td><td>0.9192</td><td>0.9332</td><td>0.9452</td><td>0.9750</td><td>0.9772</td></tr>
+</table>
+</div>
+<p>The formula sheet has two tables: \(N(z)\) for \(z\le0\) (p. 5) and for \(z\ge0\) (p. 6), so \(N(-z)\) can be read straight off the first. Either way the symmetry \(N(-z)=1-N(z)\) holds. Three rules cover everything:</p>
+<ul>
+  <li><strong>Negative \(z\):</strong> the bell is symmetric, so \(N(-z) = 1 - N(z)\). Example: \(N(-1.20) = 1 - 0.8849 = 0.1151\).</li>
+  <li><strong>"Greater than":</strong> \(P(X > x) = 1 - N(z)\).</li>
+  <li><strong>"Between":</strong> \(P(a &lt; X &lt; b) = N(z_b) - N(z_a)\): the area to the left of \(b\), minus the area to the left of \(a\).</li>
+</ul>
+
+<p><strong>Worked example (fresh numbers).</strong> \(X \sim \varphi(80, 64)\), so \(m = 80\), s.d. \(= \sqrt{64} = 8\).</p>
+<ol class="steps">
+  <li>\(P(X &lt; 68)\): \(z = (68-80)/8 = -1.5\). \(N(-1.5) = 1 - 0.9332 = 0.0668\).</li>
+  <li>\(P(X > 90)\): \(z = (90-80)/8 = 1.25\). \(1 - N(1.25) = 1 - 0.8944 = 0.1056\).</li>
+  <li>\(P(68 &lt; X &lt; 90) = N(1.25) - N(-1.5) = 0.8944 - 0.0668 = 0.8276\). (Check: \(1 - 0.0668 - 0.1056 = 0.8276\).)</li>
+</ol>
+
+<p><strong>Predict first:</strong> for any normal variable, what is the probability of landing within one s.d. of the mean? Within two? Within 1.96?</p>
+<details><summary>Reveal: the 68 / 95 rule</summary><div>
+<p>\(P(-1 &lt; Z &lt; 1) = 0.8413 - 0.1587 = 0.6826\); \(P(-2 &lt; Z &lt; 2) = 0.9772 - 0.0228 = 0.9544\) (Tutorial 7 Q2). Memorise: about <strong>68%</strong> within 1 s.d., about <strong>95%</strong> within 2, about 99.7% within 3. The exact 95% point is <strong>1.96</strong>: \(P(-1.96 &lt; Z &lt; 1.96) = 0.9750 - 0.0250 = 0.9500\). That 1.96 is the number the lecture and the exam use for a "95% confidence interval": <em>mean \(\pm\) 1.96 standard deviations</em>.</p>
+</div></details>
+
+<h3>What if? Move the mean, widen the spread</h3>
+<p>Base: \(X \sim \varphi(80, 64)\), \(P(X &lt; 68) = 0.0668\). Predict each direction.</p>
+<details><summary>Reveal</summary><div>
+<ul>
+<li><strong>Mean rises to 85</strong> (spread unchanged): 68 is now further below the mean, \(z = -2.125\), so \(P(X&lt;68)\) falls. The whole bell slides right.</li>
+<li><strong>Variance rises to 144</strong> (s.d. 12): \(z = -1\), \(P(X&lt;68) = 0.1587\), up from 0.0668. A fatter bell puts more weight in both tails. Probabilities <em>between</em> two points near the mean fall.</li>
+<li><strong>The value moves to the mean</strong> (\(x = 80\)): \(z = 0\), \(N(0) = 0.5\) always.</li>
+</ul>
+</div></details>
+
+<div class="quiz num" data-answer="0.0548" data-tol="0.0005">
+  <p class="q"><strong>N1.</strong> \(X \sim \varphi(50, 25)\). \(P(X &lt; 42)\)? (4 dp)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">s.d. \(= \sqrt{25} = 5\). \(z = (42-50)/5 = -1.6\). \(N(-1.6) = 1 - 0.9452 = 0.0548\). (Using 25 as the s.d. gives \(z = -0.32\): the classic slip.)</div>
+</div>
+
+<div class="quiz num" data-answer="0.0808" data-tol="0.0005">
+  <p class="q"><strong>N2.</strong> Same \(X \sim \varphi(50, 25)\). \(P(X > 57)\)? (4 dp)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(z = 7/5 = 1.4\). \(1 - N(1.4) = 1 - 0.9192 = 0.0808\).</div>
+</div>
+
+<div class="quiz num" data-answer="0.7698" data-tol="0.0005">
+  <p class="q"><strong>N3.</strong> Same \(X\). \(P(44 &lt; X &lt; 56)\)? (4 dp)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(z = \pm 1.2\). \(N(1.2) - N(-1.2) = 0.8849 - 0.1151 = 0.7698\).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>N4.</strong> \(X \sim \varphi(200, 100)\). Which range holds about 95% of the probability?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">From 100 to 300, about plus or minus 100 from the mean</button>
+    <button class="opt" data-key="b">From 190 to 210, about plus or minus 10 from the mean</button>
+    <button class="opt" data-key="c">From 180 to 220, about plus or minus 20 from the mean</button>
+    <button class="opt" data-key="d">From 195 to 205, about plus or minus 5 from the mean</button>
+  </div>
+  <div class="why">Variance 100, so s.d. 10. 95% is about 2 s.d. each side: \(200 \pm 20\). (Option b is only 1 s.d., about 68%. Option a uses the variance as if it were the s.d.)</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>N5.</strong> You raise the variance of a normal \(X\) but keep its mean. For a point <em>far</em> above the mean, \(P(X > \text{point})\)…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">falls, because the bell gets taller around the mean</button>
+    <button class="opt" data-key="b">rises, because the tails of the bell get fatter</button>
+    <button class="opt" data-key="c">is unchanged, because the mean has not moved at all</button>
+    <button class="opt" data-key="d">rises, because the whole bell slides to the right</button>
+  </div>
+  <div class="why">More variance spreads the bell: the peak drops and the tails thicken. The centre is fixed, so nothing slides.</div>
+</div>
+
+<p><strong>Tutorial 7 Q1 and Q2</strong> are these exact skills; they are in the homework below, and a good test is to do them now before reading on.</p>
+
+<h2>2 · Stock returns are (roughly) normal, prices are not</h2>
+
+<p>A stock's <strong>return</strong> over a short period is its percentage change \(\Delta S / S\) (the small change in price divided by the price). The BSM model assumes, for a short period of length \(\Delta t\) years:</p>
+$$\frac{\Delta S}{S} \sim \varphi\!\left(\mu\,\Delta t,\; \sigma^2\,\Delta t\right).$$
+<ul>
+  <li>\(\mu\) = the stock's <strong>expected return</strong> per year (its average growth), e.g. 10%.</li>
+  <li>\(\sigma\) = the stock's <strong>volatility</strong>: the standard deviation of its return over one year. It measures how jumpy the stock is (higher \(\sigma\) = wilder swings). It is quoted per year, e.g. 30% p.a. ("p.a." = per annum = per year).</li>
+</ul>
+<p>Mean grows with \(\Delta t\); the variance grows with \(\Delta t\) too, so the s.d. grows with \(\sqrt{\Delta t}\). That square root is the heart of Section 4.</p>
+
+<p><strong>Predict:</strong> why not simply say the <em>price</em> \(S_T\) is normal? Think about what a normal bell allows.</p>
+<details><summary>Reveal: two reasons</summary><div>
+<ol>
+<li><strong>A normal has a left tail running to \(-\infty\)</strong>, so it would give a positive chance of a negative price. A share can fall to nearly nothing but never below zero (limited liability).</li>
+<li><strong>Percent moves, not dollar moves, are what look alike across stocks.</strong> A \(\pm\$5\) daily swing is huge for a \$10 stock and trivial for a \$500 one. Returns are the comparable quantity, and \(\sigma\) is a % figure.</li>
+</ol>
+<p>Fix: let the <em>log</em> of the price be normal. Then \(S_T = e^{\ln S_T}\) is always positive, can in principle rise without limit, and is lopsided: a long right tail, a hard floor at 0 (lecture slide 5: "unlimited upside; \(S_T \approx 0\)").</p>
+</div></details>
+
+<h3>Lognormal and the continuously compounded return</h3>
+<p>A variable \(X\) is <strong>lognormal</strong> if \(\ln X\) is normal. \(\ln\) is the natural logarithm (calculator <code>ln</code> key; \(e^{\ln x} = x\)). For a long period \(T\), the lecture uses the <strong>continuously compounded return</strong> \(\ln(S_T/S_0)\): the rate \(R\) that makes \(S_0 e^{RT} = S_T\) (units: per year if divided by \(T\)). The model is</p>
+$$\ln\frac{S_T}{S_0} \sim \varphi\!\left(\left(\mu - \tfrac{\sigma^2}{2}\right)T,\; \sigma^2 T\right)
+\quad\Longleftrightarrow\quad
+\boxed{\ln S_T \sim \varphi\!\left(\ln S_0 + \left(\mu - \tfrac{\sigma^2}{2}\right)T,\; \sigma^2 T\right)}$$
+<p>(lecture slides 4–5). Read it as: <strong>mean</strong> of \(\ln S_T\) is \(\ln S_0 + (\mu - \sigma^2/2)T\); <strong>variance</strong> is \(\sigma^2 T\); <strong>s.d.</strong> is \(\sigma\sqrt{T}\).</p>
+
+<div class="box"><strong>Why the \(-\sigma^2/2\)?</strong> A stock that alternates +20% and −20% has arithmetic average return 0, yet \(\$100 \to \$120 \to \$96\): it loses ground. In logs, \(\ln 1.2 + \ln 0.8 = 0.1823 - 0.2231 = -0.0408\), about \(-0.02\) per period. And \(\sigma = 0.2\) gives \(\sigma^2/2 = 0.02\). Volatility drags down the <em>compounded</em> growth rate: arithmetic mean \(\mu\) minus \(\sigma^2/2\). The model's \(\mu\) is the arithmetic (simple average) expected return; the typical path grows at the lower \(\mu - \sigma^2/2\).</div>
+
+<h3>Mean, median, variance of \(S_T\)</h3>
+<p>Convert back from logs. The <strong>median</strong> (the value with a 50% chance of being exceeded) is \(e^{\text{mean of }\ln S_T}\), because \(\ln\) preserves order. The <strong>mean</strong> is higher, because the long right tail drags the average up:</p>
+$$\text{median}(S_T) = S_0\,e^{(\mu - \sigma^2/2)T}, \qquad
+E[S_T] = S_0\,e^{\mu T}, \qquad
+\operatorname{var}(S_T) = S_0^2\,e^{2\mu T}\left(e^{\sigma^2 T} - 1\right).$$
+<p>(Lecture slide 6; the last two are on the formula sheet. Check that they agree: \(E[S_T] = \text{median} \times e^{\sigma^2 T/2}\), so the mean is above the median by the factor \(e^{\sigma^2T/2}\), which is exactly the \(\sigma^2/2\) that the log-mean gave away.)</p>
+
+<div class="trap"><strong>Do not mix the two worlds</strong><br>
+\(E[S_T] = S_0e^{\mu T}\) has <em>no</em> \(\sigma\) in the exponent; \(E[\ln S_T]\) has \(-\sigma^2/2\). Do not put \(\mu - \sigma^2/2\) into the mean of \(S_T\), and do not forget it in the mean of \(\ln S_T\). Also, \(E[\ln S_T] \ne \ln E[S_T]\).</div>
+
+<div class="quiz num" data-answer="3.8089" data-tol="0.0005">
+  <p class="q"><strong>L1.</strong> \(S_0 = \$40\), \(\mu = 14\%\), \(\sigma = 20\%\), \(T = 1\). The mean of \(\ln S_T\) (4 dp)? (Compare Tutorial 7 Q3.)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\ln 40 = 3.6889\). \(\mu - \sigma^2/2 = 0.14 - 0.02 = 0.12\). \(3.6889 + 0.12 \times 1 = 3.8089\). The variance is \(0.2^2 \times 1 = 0.04\) (s.d. 0.2).</div>
+</div>
+
+<div class="quiz num" data-answer="46.01" data-tol="0.02">
+  <p class="q"><strong>L2.</strong> Same stock. \(E[S_T]\)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(40 e^{0.14} = 40 \times 1.1503 = \$46.01\). No \(\sigma\) here. The median is \(e^{3.8089} = \$45.10\), lower.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>L3.</strong> For a lognormal stock price, how do the mean and median of \(S_T\) compare (any \(\sigma > 0\))?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">They are equal, as for every symmetric bell curve</button>
+    <button class="opt" data-key="b">The median is above the mean, from the floor at zero</button>
+    <button class="opt" data-key="c">Mean above median only when \(\mu\) is above zero</button>
+    <button class="opt" data-key="d">The mean is above the median, from the long right tail</button>
+  </div>
+  <div class="why">Mean \(=\) median \(\times\, e^{\sigma^2T/2} >\) median whenever \(\sigma T > 0\), whatever \(\mu\) is. \(\ln S_T\) is symmetric; \(S_T\) is not.</div>
+</div>
+
+<h2>3 · A full worked example: the 95% interval</h2>
+
+<p>Lecture slides 7–9 do this for a \$50 stock. Fresh numbers: \(S_0 = \$80\), \(\mu = 12\%\) p.a., \(\sigma = 30\%\) p.a., \(T = 6\) months \(= 0.5\). Find the distribution of \(\ln S_T\), a 95% interval for \(S_T\), and the mean and variance of \(S_T\).</p>
+<ol class="steps">
+  <li><strong>Mean of \(\ln S_T\):</strong> \(\ln 80 + (0.12 - 0.3^2/2)(0.5) = 4.3820 + (0.12-0.045)(0.5) = 4.3820 + 0.0375 = 4.4195\).</li>
+  <li><strong>Variance:</strong> \(\sigma^2T = 0.09 \times 0.5 = 0.0450\). <strong>S.d.:</strong> \(\sqrt{0.045} = 0.2121\) (equivalently \(0.3\sqrt{0.5}\)).<br>So \(\ln S_T \sim \varphi(4.4195,\ 0.0450)\).</li>
+  <li><strong>95% band in logs</strong> (mean \(\pm\) 1.96 s.d.): \(4.4195 \pm 1.96(0.2121) = 4.4195 \pm 0.4157\), i.e. \(4.0038 &lt; \ln S_T &lt; 4.8352\).</li>
+  <li><strong>Back to prices</strong> (apply \(e^{(\cdot)}\) to both ends): \(e^{4.0038} = 54.80\), \(e^{4.8352} = 125.88\). So \(\$54.80 &lt; S_T &lt; \$125.88\) with 95% probability. (Working with every number rounded to 4 dp gives 54.81 and 125.87; the exam accepts either. Stay consistent.)</li>
+  <li><strong>Mean:</strong> \(E[S_T] = 80e^{0.12 \times 0.5} = 80e^{0.06} = \$84.95\).</li>
+  <li><strong>Variance:</strong> \(80^2 e^{2(0.12)(0.5)}\left(e^{0.09 \times 0.5} - 1\right) = 6400 \times 1.1275 \times 0.04603 = 332.14\), i.e. s.d. \(\$18.22\).</li>
+</ol>
+
+<p>Look at what the numbers say. The interval \(54.80\) to \(125.88\) is <em>not</em> centred on the mean \(84.95\): the upside distance is \(+41\) but the downside only \(-30\). That is the lognormal skew. The median is \(e^{4.4195} = \$83.06\), below the mean \(\$84.95\). And \(80\) (today's price) sits well inside the band.</p>
+
+<div class="trap"><strong>Three traps in this calculation</strong><br>
+(1) Going \(\pm 1.96 \times 0.045\) instead of \(1.96 \times \sqrt{0.045}\). The lecture's slide 8 writes "\(\varphi(3.990, 0.045)\)", then uses \(0.212\) (the s.d.) in the next line. The 0.045 is a variance. (2) Forgetting to exponentiate at the end: the interval from step 3 is for \(\ln S_T\), not for \(S_T\). (3) Centring the price interval on the mean: add and subtract in <em>logs</em> only.</div>
+
+<div class="quiz num" data-answer="125.88" data-tol="0.1">
+  <p class="q"><strong>I1.</strong> \(S_0 = \$80\), \(\mu = 12\%\), \(\sigma = 30\%\), \(T = 0.5\) again. Change nothing but ask: the upper end of the 95% interval?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(e^{4.4195 + 1.96 \times 0.2121} = e^{4.8352} = \$125.88\).</div>
+</div>
+
+<div class="quiz num" data-answer="332.14" data-tol="0.5">
+  <p class="q"><strong>I2.</strong> The variance of \(S_T\) for that same stock? (This is in squared dollars.)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(S_0^2e^{2\mu T}(e^{\sigma^2T} - 1) = 6400 \times e^{0.12} \times (e^{0.045} - 1) = 6400 \times 1.12750 \times 0.046028 = 332.14\).</div>
+</div>
+
+<h3>Between two prices: the probability a stock ends above a level</h3>
+<p>Not on the lecture slides, but it falls straight out of the table skills and it is the doorway to BSM. For a target price \(K\) (think "strike"): standardise \(\ln K\) against the distribution of \(\ln S_T\):</p>
+$$P(S_T > K) = N\!\left(\frac{\ln(S_0/K) + (\mu - \sigma^2/2)T}{\sigma\sqrt{T}}\right).$$
+<p>Example: \(S_0 = 50\), \(\mu = 10\%\), \(\sigma = 30\%\), \(T = 1\), \(K = 55\). Argument: \(\frac{\ln(50/55) + 0.055}{0.3} = \frac{-0.0953 + 0.055}{0.3} = -0.1344 \approx -0.13\). \(N(-0.13) = 1 - 0.5517 = 0.4483\). About a 45% chance of finishing above \$55, even though 55 is only 10% above today's price.</p>
+<p>Look at the shape of the numerator: \(\ln(S_0/K) + (\mu - \sigma^2/2)T\) over \(\sigma\sqrt{T}\). The BSM formula's \(d_2\) is this same expression with \(\mu\) replaced by the risk-free rate \(r\). That is why the lecture calls \(N(d_2)\) "the probability the call will be exercised". Lesson 23 explains the swap \(\mu \to r\).</p>
+
+<div class="quiz num" data-answer="0.4286" data-tol="0.0005">
+  <p class="q"><strong>P1.</strong> \(S_0 = 50\), \(\mu = 10\%\), \(\sigma = 30\%\), \(T = 1\). Probability that \(S_T &lt; 50\) (the stock ends the year <em>below</em> where it started)? (4 dp)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(P(S_T &lt; S_0) = 1 - N\!\left(\frac{(\mu - \sigma^2/2)T}{\sigma\sqrt T}\right) = N(-0.1833) \approx N(-0.18) = 1 - 0.5714 = 0.4286\). With a 10% expected return the stock still has a 43% chance of ending lower.</div>
+</div>
+
+<h2>4 · Volatility and the \(\sqrt{T}\) rule</h2>
+
+<p>Volatility \(\sigma\) is defined per <em>year</em>. Over a shorter period \(\Delta t\) (as a fraction of a year), the standard deviation of the percentage return is</p>
+$$\sigma\sqrt{\Delta t}.$$
+<p>Why a square root? Variance adds over time: 4 independent weeks have 4 times the variance of one week, so the standard deviation grows only \(\sqrt{4} = 2\) times. Time \(\times 4\), spread \(\times 2\).</p>
+
+<p><strong>Worked (lecture slide 11 style, new numbers).</strong> A stock is at \(S = \$85\), \(\sigma = 24\%\) p.a. How big is a <strong>one-standard-deviation move</strong> over one month? One month \(= 1/12\) year.</p>
+<ol class="steps">
+  <li>S.d. of the % change: \(24\% \times \sqrt{1/12} = 24\% \times 0.28868 = 6.93\%\).</li>
+  <li>In dollars: \(85 \times 0.0693 = \$5.89\).</li>
+</ol>
+<p>Meaning: over the next month the price moves by about \(\pm\$5.89\) (about 2 in 3 of the time, since 68% lie within 1 s.d.), and by more than \(2 \times 5.89 \approx \$11.78\) only about 5% of the time. Conventions: a fortnight is \(1/26\), a week \(1/52\), a trading day \(1/252\) (the exam states which it wants).</p>
+
+<h3>What if? The period or the volatility changes</h3>
+<p>Base: \(\sigma = 24\%\), \(S = \$85\), one month: 6.93% or \$5.89. Predict, then open.</p>
+<details><summary>Reveal</summary><div>
+<ul>
+<li><strong>Period 1 month → 1 quarter</strong> (3 times longer): s.d. \(\times \sqrt{3} = 1.73\): \(24\% \times \sqrt{0.25} = 12\%\), or \$10.20. Not three times bigger.</li>
+<li><strong>Period 1 month → 1 year:</strong> exactly \(\sigma = 24\%\), \(= \$20.40\). The month s.d. times \(\sqrt{12} = 3.46\).</li>
+<li><strong>Period 1 month → 1 day</strong> (\(1/252\)): \(24\% \times 0.063 = 1.51\%\), or \$1.28. Short periods look small.</li>
+<li><strong>\(\sigma\) 24% → 48%</strong> (double): the s.d. of every period doubles. Dollar move for a month: \$11.78.</li>
+<li><strong>Price \(S\) \$85 → \$170</strong> (double) with \(\sigma\) unchanged: the <em>% move is unchanged</em> (6.93%) but the <em>dollar</em> move doubles to \$11.78. Volatility is in percent.</li>
+</ul>
+</div></details>
+
+<p><strong>Reading volatility from data.</strong> The relation runs backwards too: if a stock's monthly returns have standard deviation 4.5%, then \(\sigma = 4.5\% \times \sqrt{12} = 15.59\%\) p.a. (Annualise by multiplying by \(\sqrt{\text{periods per year}}\).)</p>
+
+<div class="quiz num" data-answer="4.16" data-tol="0.02">
+  <p class="q"><strong>V1.</strong> \(\sigma = 30\%\) p.a. S.d. of the stock's percentage change over one <em>week</em> (\(\Delta t = 1/52\))? (in %)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(30\% \times \sqrt{1/52} = 30\% \times 0.13868 = 4.16\%\). (Not \(30\%/52 = 0.58\%\).)</div>
+</div>
+
+<div class="quiz num" data-answer="2.50" data-tol="0.02">
+  <p class="q"><strong>V2.</strong> The stock in V1 trades at \$60. A one-standard-deviation move over a week?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(60 \times 0.0416 = \$2.50\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>V3.</strong> A stock's one-month s.d. is 5%. What is its one-<em>year</em> s.d. (assume independent months)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">About 17.3%, since 5% is multiplied by the square root of 12</button>
+    <button class="opt" data-key="b">Exactly 60%, since 5% is multiplied by the 12 months</button>
+    <button class="opt" data-key="c">About 0.4%, since 5% is divided by the 12 months</button>
+    <button class="opt" data-key="d">About 1.4%, since 5% is divided by the square root of 12</button>
+  </div>
+  <div class="why">Variance adds, s.d. scales with \(\sqrt{T}\): \(5\% \times \sqrt{12} = 17.3\%\). Going <em>down</em> in time you divide by the root; going <em>up</em> you multiply.</div>
+</div>
+
+<div class="quiz num" data-answer="15.59" data-tol="0.05">
+  <p class="q"><strong>V4.</strong> Weekly returns on a share have a standard deviation of 2.16%. Annualised volatility, using 52 weeks a year? (in %)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(2.16\% \times \sqrt{52} = 2.16\% \times 7.2111 = 15.58\%\) (15.59% if you carry 2.1618%). Tolerance covers rounding.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>V5.</strong> Two stocks both have \(\sigma = 25\%\), one at \$20 and one at \$400. Over a week, a one-s.d. move is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">the same dollar amount for both, since sigma is the same</button>
+    <button class="opt" data-key="b">the same percentage for both, but 20 times more dollars on the \$400 stock</button>
+    <button class="opt" data-key="c">the same percentage for both, and the same dollars too for both</button>
+    <button class="opt" data-key="d">a larger percentage for the \$20 stock, since it is cheaper</button>
+  </div>
+  <div class="why">\(\sigma\) is a % figure: \(25\% \times \sqrt{1/52} = 3.47\%\) for both, which is \$0.69 and \$13.87.</div>
+</div>
+
+<h3>The same square root is inside the binomial tree</h3>
+<p>In Lesson 18 you used \(u = e^{\sigma\sqrt{\Delta t}}\) and \(d = 1/u\). Now you can see why: over one small step the <em>log</em> of the price moves by \(\pm\sigma\sqrt{\Delta t}\), which is exactly one s.d. of the step's return. The tree is a coarse picture of the lognormal; Lesson 25 shows the tree converging to the BSM formula as the steps shrink.</p>
+
+<h2>5 · Scenarios: move \(\mu\), \(\sigma\), \(T\)</h2>
+
+<p>Base: \(S_0 = \$50\), \(\mu = 10\%\), \(\sigma = 30\%\), \(T = 1\). Median \(= 50e^{0.055} = 52.83\), mean \(= 50e^{0.10} = 55.26\), 95% band \(29.34\) to \(95.11\). Predict what each change does to the mean, the median and the width of the band, then open.</p>
+<details><summary>Reveal the scenario table</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Change</th><th>Median</th><th>Mean</th><th>95% band</th><th>P(\(S_T &lt; S_0\))</th></tr>
+<tr><td>Base</td><td>52.83</td><td>55.26</td><td>29.34 – 95.11</td><td>42.7%</td></tr>
+<tr><td>\(\mu\): 10% → 20%</td><td>58.38</td><td>61.07</td><td>32.43 – 105.11</td><td>30.2%</td></tr>
+<tr><td>\(\sigma\): 30% → 50%</td><td><strong>48.77</strong></td><td>55.26</td><td>18.30 – 129.93</td><td>52.0%</td></tr>
+<tr><td>\(T\): 1 → 4 years</td><td>62.30</td><td>74.59</td><td>19.22 – 201.95</td><td>35.7%</td></tr>
+<tr><td>\(T\): 1 → 0.25 years</td><td>50.69</td><td>51.27</td><td>37.78 – 68.02</td><td>–</td></tr>
+</table>
+</div>
+<ul>
+<li><strong>Higher \(\mu\):</strong> the whole picture slides right. Median, mean and both ends of the band all scale by the same factor (\(e^{0.1} = 1.105\)). The band's <em>width in logs</em> is unchanged; it is only \(\sigma\) and \(T\) that set that.</li>
+<li><strong>Higher \(\sigma\):</strong> the mean does <em>not</em> change at all (\(\sigma\) is not in \(S_0e^{\mu T}\)) but the median <em>falls</em> (from 52.83 to 48.77) because \(\sigma^2/2\) drag grows, and the band widens a lot, with the downside floored at 0 and the upside stretching. With \(\sigma = 50\%\) the stock is slightly <em>more</em> likely than not to end below \$50 even though \(\mu = +10\%\) (\(\mu - \sigma^2/2 = -2.5\% &lt; 0\)). The mean is held up by a few huge outcomes.</li>
+<li><strong>Longer \(T\):</strong> mean, median and width all grow, but the mean pulls away from the median (74.59 vs 62.30): the skew grows with \(\sigma^2 T\). The band's s.d. grows with \(\sqrt{T}\), not with \(T\).</li>
+</ul>
+</div></details>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>S1.</strong> Only \(\sigma\) rises (\(S_0\), \(\mu\), \(T\) fixed). What happens to \(E[S_T]\) and to the median of \(S_T\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The mean rises and the median rises by the same amount</button>
+    <button class="opt" data-key="b">The mean falls and the median is not changed at all</button>
+    <button class="opt" data-key="c">The mean is not changed and the median falls a bit</button>
+    <button class="opt" data-key="d">The mean is not changed and the median rises a bit</button>
+  </div>
+  <div class="why">\(E[S_T] = S_0e^{\mu T}\) has no \(\sigma\). Median \(= S_0e^{(\mu - \sigma^2/2)T}\) falls as \(\sigma\) rises. A higher \(\sigma\) widens the distribution and skews it further without changing the average.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>S2.</strong> \(T\) is doubled (same \(S_0, \mu, \sigma\)). The s.d. of \(\ln S_T\) is multiplied by…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">1.41, the square root of 2, while its variance is multiplied by 2</button>
+    <button class="opt" data-key="b">2, the same factor as the one applied to time itself</button>
+    <button class="opt" data-key="c">4, because the variance is squared and then doubled</button>
+    <button class="opt" data-key="d">0.71, because a longer horizon makes prices less spread</button>
+  </div>
+  <div class="why">Variance \(\sigma^2T\) doubles; s.d. \(\sigma\sqrt{T}\) goes up by \(\sqrt{2}\).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>S3.</strong> Why can the 95% interval for \(S_T\) never include negative prices, however large \(\sigma\) is?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Because the model caps the s.d. of the price at its mean</button>
+    <button class="opt" data-key="b">Because \(S_T = e^{\ln S_T}\) and an exponential is always positive</button>
+    <button class="opt" data-key="c">Because the model adds a floor of zero to every simulated price</button>
+    <button class="opt" data-key="d">Because \(\mu\) is assumed to be positive for every share</button>
+  </div>
+  <div class="why">\(\ln S_T\) can be any real number, including very negative ones, but \(e^{\text{anything}} > 0\). Very negative logs mean prices very close to zero.</div>
+</div>
+
+<div class="quiz num" data-answer="30.47" data-tol="0.05">
+  <p class="q"><strong>S4.</strong> \(S_0 = \$40\), \(\mu = 14\%\), \(\sigma = 20\%\), \(T = 1\) (the stock from L1). Lower end of the 95% interval?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Log mean 3.8089, s.d. 0.2: \(e^{3.8089 - 1.96(0.2)} = e^{3.4169} = \$30.47\). Upper end \(e^{4.2009} = \$66.75\).</div>
+</div>
+
+<h2>6 · Try it: lognormal explorer</h2>
+<p>Drag the sliders. Dashed grey is the starting case ($50, 10%, 30%, 1 year). Things to try: (1) raise \(\mu\): everything slides right, the band's shape doesn't change. (2) Raise \(\sigma\) to 60% or more: the median slides <em>left</em> and drops below the starting price, the mean doesn't move, \(P(S_T &lt; S_0)\) climbs above 50%. (3) Raise \(T\) to 5: the right tail runs off the picture while the mean-median gap widens. (4) Set \(\sigma\) near 10%: the curve looks almost normal and mean \(\approx\) median. (5) Set \(\mu = 0\): the median is below \(S_0\) and the mean sits at \(S_0\).</p>
+<div class="bsmln" data-s0="50" data-mu="0.10" data-sigma="0.30" data-t="1"></div>
+<script src="../assets/bsm-lognormal-explorer.js"></script>
+
+<h2>7 · Exam-style practice</h2>
+<p>Conventions: continuous compounding; 1.96 for a 95% interval; 4 dp in intermediate steps; answers to 2 dp unless the question says 4; tables with \(z\) to 2 dp. Tolerances allow for rounding differences.</p>
+
+<h3>Question A (12 marks style)</h3>
+<p>A non-dividend-paying stock is priced at \$120. Its expected return is 8% p.a. and its volatility is 35% p.a. Keep 4 dp throughout. Consider the stock price in <strong>8 months</strong> (\(T = 8/12 = 0.6667\)).</p>
+
+<div class="quiz num" data-answer="4.8000" data-tol="0.0005">
+  <p class="q"><strong>A1.</strong> The mean of \(\ln S_T\)? (4 dp)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\ln 120 = 4.7875\). \(\mu - \sigma^2/2 = 0.08 - 0.06125 = 0.01875\). \(0.01875 \times 0.6667 = 0.0125\). Mean \(= 4.7875 + 0.0125 = 4.8000\).</div>
+</div>
+
+<div class="quiz num" data-answer="0.0817" data-tol="0.0002">
+  <p class="q"><strong>A2.</strong> The <em>variance</em> of \(\ln S_T\)? (4 dp)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\sigma^2T = 0.1225 \times 0.6667 = 0.0817\). S.d. \(= 0.2858\). So \(\ln S_T \sim \varphi(4.8000, 0.0817)\).</div>
+</div>
+
+<div class="quiz num" data-answer="69.40" data-tol="0.1">
+  <p class="q"><strong>A3.</strong> The lower end of the 95% interval for \(S_T\)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(4.8000 - 1.96(0.2858) = 4.2398\); \(e^{4.2398} = \$69.40\).</div>
+</div>
+
+<div class="quiz num" data-answer="212.76" data-tol="0.2">
+  <p class="q"><strong>A4.</strong> The upper end?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(4.8000 + 0.5602 = 5.3602\); \(e^{5.3602} = \$212.76\). The interval \(69.40\) to \(212.76\) is far from symmetric around \$120.</div>
+</div>
+
+<div class="quiz num" data-answer="126.57" data-tol="0.05">
+  <p class="q"><strong>A5.</strong> \(E[S_T]\)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(120e^{0.08 \times 0.6667} = 120e^{0.0533} = 120 \times 1.0548 = \$126.57\).</div>
+</div>
+
+<div class="quiz num" data-answer="1363.3" data-tol="1">
+  <p class="q"><strong>A6.</strong> \(\operatorname{var}(S_T)\)? (Answers within 1 are accepted: carrying \(\sigma^2T = 0.0817\) rather than 0.081667 shifts it by 0.6.)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(120^2 e^{0.1067}\left(e^{0.0817} - 1\right) = 14400 \times 1.1126 \times 0.08512 \approx 1363.7\) with 4 dp rounding at each step (1363.3 unrounded). The s.d. is \(\sqrt{1363.3} = \$36.92\), about 29% of the mean.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>A7.</strong> A classmate says "the 95% interval should be centred on \$126.57, so \(126.57 \pm 1.96 \times 36.92\)". That gives a lower end of about \$54.2. Is this right?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">No: the interval is built in logs, so it is not centred on the mean</button>
+    <button class="opt" data-key="b">Yes: any 95% interval is the mean plus or minus 1.96 sd</button>
+    <button class="opt" data-key="c">No: the right interval is the median plus or minus 1.96 sd</button>
+    <button class="opt" data-key="d">Yes: but only for six months or less, as for short periods</button>
+  </div>
+  <div class="why">Normality holds for \(\ln S_T\), so "mean \(\pm\) 1.96 s.d." applies to the log. Exponentiating gives 69.40 to 212.76, which is lopsided. Mean \(\pm\) 1.96 s.d. of the <em>price</em> would wrongly treat the price as normal and could even give a negative lower end for a volatile stock.</div>
+</div>
+
+<h3>Question B (volatility scaling, 6 marks style)</h3>
+<p>A share is trading at \$150 with volatility 28% p.a.</p>
+
+<div class="quiz num" data-answer="1.76" data-tol="0.02">
+  <p class="q"><strong>B1.</strong> The standard deviation of its percentage change over one trading day (\(\Delta t = 1/252\))? (in %)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(28\% \times \sqrt{1/252} = 28\% \times 0.06299 = 1.76\%\).</div>
+</div>
+
+<div class="quiz num" data-answer="2.65" data-tol="0.02">
+  <p class="q"><strong>B2.</strong> A one-standard-deviation move over one trading day, in dollars?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(150 \times 0.017638 = \$2.65\).</div>
+</div>
+
+<div class="quiz num" data-answer="12.12" data-tol="0.05">
+  <p class="q"><strong>B3.</strong> A one-standard-deviation move over one month (\(\Delta t = 1/12\)), in dollars?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(150 \times 0.28 \times \sqrt{1/12} = 150 \times 0.08083 = \$12.12\).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>B4.</strong> A trader says "a one-month move is \(21 \times\) a one-day move" (21 trading days). Compare B2 and B3 to see if that is right.</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Correct: moves scale in proportion to time, so 21 times</button>
+    <button class="opt" data-key="b">Wrong: the month move is only about 3 times the day move</button>
+    <button class="opt" data-key="c">Wrong: the month move is less than the day move</button>
+    <button class="opt" data-key="d">Wrong: the month move is about 4.6 times the day move</button>
+  </div>
+  <div class="why">The s.d. scales with \(\sqrt{21} = 4.58\): \(12.12 / 2.65 = 4.6\). Option b would be right for roughly 9 trading days, not 21.</div>
+</div>
+
+<h3>Question C (normal table, Tutorial-style)</h3>
+<div class="quiz num" data-answer="0.3085" data-tol="0.0005">
+  <p class="q"><strong>C1.</strong> \(X \sim \varphi(60, 36)\). \(P(X > 63)\)? (4 dp)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">S.d. 6. \(z = 0.5\). \(1 - 0.6915 = 0.3085\).</div>
+</div>
+
+<div class="quiz num" data-answer="0.7745" data-tol="0.0005">
+  <p class="q"><strong>C2.</strong> Same \(X\). \(P(54 &lt; X &lt; 69)\)? (4 dp)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(z\) from \(-1\) to \(1.5\). \(N(1.5) - N(-1) = 0.9332 - 0.1587 = 0.7745\).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>C3.</strong> For a normal \(X\), \(P(X &lt; \text{mean} - 2 \text{ s.d.})\) is closest to…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">0.05 on both sides together, so 5% for each of the two tails</button>
+    <button class="opt" data-key="b">0.16, since a one-sided tail is 16% beyond one s.d.</button>
+    <button class="opt" data-key="c">0.023, which is half of the roughly 5% outside two s.d.</button>
+    <button class="opt" data-key="d">0.0013, which is the area beyond three s.d.</button>
+  </div>
+  <div class="why">\(N(-2) = 1 - 0.9772 = 0.0228\). About 5% lies outside \(\pm 2\) s.d., half in each tail. (Option b is the one-sided tail at \(-1\) s.d.: \(N(-1) = 0.1587\).)</div>
+</div>
+
+<h2>8 · Mixed retrieval (earlier lessons)</h2>
+
+<div class="quiz num" data-answer="1.1618" data-tol="0.0005">
+  <p class="q"><strong>M1 (L18).</strong> \(\sigma = 30\%\), step \(\Delta t = 0.25\). Binomial \(u = e^{\sigma\sqrt{\Delta t}}\) (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(e^{0.3 \times 0.5} = e^{0.15} = 1.1618\). This is "one s.d. of the step's log return" turned into a price factor.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>M2 (L17).</strong> In this lesson \(\mu\) is the stock's expected return. When valuing an option on a tree (Lesson 17), which return drives the probability \(p\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The expected return \(\mu\) of the stock, which is what investors earn</button>
+    <button class="opt" data-key="b">The risk-free rate \(r\), because valuation uses risk-neutral probabilities</button>
+    <button class="opt" data-key="c">The volatility \(\sigma\), because the volatility sets the probabilities</button>
+    <button class="opt" data-key="d">The average of \(\mu\) and \(r\), because the model blends the two</button>
+  </div>
+  <div class="why">\(p = (e^{r\Delta t} - d)/(u - d)\) has \(r\), not \(\mu\). \(\mu\) matters for forecasting \(S_T\) (this lesson), but option prices don't depend on it. Lesson 23 shows BSM has the same property.</div>
+</div>
+
+<h2>9 · Rule of thumb</h2>
+<div class="box">
+<strong>Returns are normal, prices are lognormal.</strong> \(\ln S_T \sim \varphi\big(\ln S_0 + (\mu - \tfrac{\sigma^2}{2})T,\ \sigma^2T\big)\): second slot is a <em>variance</em>, so the s.d. is \(\sigma\sqrt{T}\). Build the 95% interval in logs (\(\pm 1.96\) s.d.), then exponentiate. \(E[S_T] = S_0e^{\mu T}\) (no \(\sigma\)) is above the median \(S_0e^{(\mu-\sigma^2/2)T}\). Over a short period, a one-s.d. move is \(\sigma\sqrt{\Delta t}\) in percent, then times \(S\) in dollars. Normal table: \(N(-z) = 1 - N(z)\), \(P(a&lt;X&lt;b) = N(z_b) - N(z_a)\).
+</div>
+
+<details><summary>Retrieval: from memory, state the distribution of ln S_T and say why the mean of S_T has no minus sigma-squared-over-2. Then check</summary><div>
+<p>\(\ln S_T \sim \varphi(\ln S_0 + (\mu - \sigma^2/2)T,\ \sigma^2T)\). The \(-\sigma^2/2\) is the volatility drag on the <em>log</em> (compounded) growth. Converting back to a price, the right-skew adds \(+\sigma^2T/2\) to the exponent, cancelling it: \(E[S_T] = S_0e^{\mu T}\), while the median keeps the drag.</p>
+</div></details>
+
+<p><strong>Primary source:</strong> Lecture 7 (BSM) slides 3–11 (<a href="../lectures/Lecture%207_BSM.pdf">PDF</a>), Hull, <em>Options, Futures and Other Derivatives</em>, the chapter on the Black-Scholes-Merton model ("The Stock Price Process" / "Lognormal Property of Stock Prices"; Ch. 13 in the lecture's edition). The normal table is on the exam formula sheet, pp. 5-6.</p>
+
+<h2>Homework</h2>
+<p><strong>Official practice: <a href="../tutes/Tutorial%207%20QUESTIONS_21stSept.pdf">Tutorial 7</a> Q1, Q2, Q3</strong> (solutions: <a href="../tutes/Tutorial%207%20Solutions.pdf">Tutorial 7 Solutions</a>; Q4–Q6 belong to Lessons 24–25).</p>
+<ol>
+<li><strong>Tutorial 7 Q1</strong>: \(X \sim \varphi(100, 100)\); parts (a) \(P(X&lt;85)\), (b) \(P(X>90)\), (c) \(P(X&lt;85 \text{ or } X>90)\). Before looking: what is the s.d., and why do the two events in (c) add with no overlap?
+<details><summary>Check</summary><div>S.d. 10. (a) \(z=-1.5\): 0.0668. (b) \(z=-1\): \(1-0.1587 = 0.8413\). (c) disjoint events: \(0.0668 + 0.8413 = 0.9081\). Check: the only values missing are 85 to 90, with probability \(N(-1) - N(-1.5) = 0.1587 - 0.0668 = 0.0919\), and \(1 - 0.0919 = 0.9081\).</div></details></li>
+<li><strong>Tutorial 7 Q2</strong>: (a) \(P(-1&lt;Z&lt;1)\), (b) \(P(-2&lt;Z&lt;2)\), (c) comment. Add (d): \(P(-1.96&lt;Z&lt;1.96)\) and say which of the three numbers you'd use for a "95% interval" and why.
+<details><summary>Check</summary><div>(a) 0.6826, (b) 0.9544, (c) about 68% and 95% of a normal lies within 1 and 2 s.d. of the mean. (d) 0.9500, so the exact 95% multiplier is 1.96, not 2.</div></details></li>
+<li><strong>Tutorial 7 Q3</strong>: \(S_0 = 50\), \(\mu = 18\%\), \(\sigma = 30\%\): (a) distribution of \(\ln S_T\) at \(T=1\), (b) at \(T=2\). Extend: for each, also give the 95% interval for \(S_T\) and \(E[S_T]\).
+<details><summary>Check</summary><div>(a) \(\ln S_T \sim \varphi(4.047, 0.09)\), s.d. 0.3; 95% interval 31.79 to 103.03; \(E[S_T] = 50e^{0.18} = 59.86\) (median 57.23). (b) \(\varphi(4.182, 0.18)\), s.d. 0.4243; interval 28.52 to 150.44; \(E[S_T] = 71.67\) (median 65.50). Note the log s.d. grows by \(\sqrt{2}\), not 2, and the lower end barely moves.</div></details></li>
+<li><strong>Extra (exam style, 4 dp).</strong> A stock is at \$25, \(\mu = 14\%\), \(\sigma = 40\%\), \(T = 1.5\) (eighteen months). (a) Distribution of \(\ln S_T\). (b) 95% interval for \(S_T\). (c) \(E[S_T]\) and \(\operatorname{var}(S_T)\).
+<details><summary>Check</summary><div>(a) \(\ln 25 + (0.14 - 0.08)(1.5) = 3.2189 + 0.09 = 3.3089\); variance \(0.16 \times 1.5 = 0.24\); \(\varphi(3.3089, 0.24)\), s.d. 0.4899. (b) \(e^{3.3089 \pm 0.9602}\): \(\$10.47\) to \(\$71.46\). (c) \(25e^{0.21} = \$30.84\); var \(= 625e^{0.42}(e^{0.24} - 1) = 258.02\) (s.d. \$16.06).</div></details></li>
+<li><strong>Extra (volatility).</strong> A \$36 stock has \(\sigma = 40\%\). (a) S.d. of its percentage move over a fortnight (\(1/26\)); (b) the dollar one-s.d. move; (c) over a fortnight, roughly what is the chance of a fall of more than the figure in (b)?
+<details><summary>Check</summary><div>(a) \(40\%/\sqrt{26} = 7.84\%\). (b) \(36 \times 0.0784 = \$2.82\). (c) \(N(-1) = 0.1587\), about 16% (ignoring the tiny mean).</div></details></li>
+</ol>
+
+<p><strong>Spacing:</strong> tomorrow, redo Question A cold (no notes) and then write the 95% interval recipe in four lines. In two days, explain to yourself why \(N(d_2)\) is an exercise probability.</p>
+
+<div class="ask">💬 Unsure whether a number is a variance or a standard deviation, or which way the median moves? Paste your working in the terminal and ask me. I'm your teacher for this. Ask for another 95%-interval question or a normal-table drill any time.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0021-binomial-trees-for-futures-options.html">Lesson 21, binomial trees for futures options</a></span>
+  <span>Topic 7: <a href="0022-normal-and-lognormal-stock-prices.html">L22</a> · <a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0023-what-bsm-assumes-and-why-it-works.html">Lesson 23, what BSM assumes and why it works</a> (the seven assumptions, why \(\mu\) drops out, and where \(N(d_1)\), \(N(d_2)\) come from)</span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

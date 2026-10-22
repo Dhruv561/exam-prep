@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Black's Model: Futures Options and FX</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 27 · Topic 7: Black-Scholes-Merton</div>
+<h1>Black's model: options on futures, and the family of underlyings</h1>
+<p class="lede">The goal: price a European call or put on a futures contract with Black's model, explain in one line why \(d_1\) has no \(r\) in it, check the answer with put-call parity, and see that stocks, dividend-paying stocks, currencies and futures are all the same formula with a different thing standing in for \(S_0\).</p>
+
+<div class="mission">Why this matters for 5 Nov: the 2025 final asked for the Black-Scholes price of a European put on a commodity futures contract (4 marks, "keep four decimal places", total price for a contract of several thousand units), after a 2-mark "what happens if you exercise now, is it in the money?" part. The formula sheet gives you Black's formulas, but you must know to use \(F_0\) (not the spot), that \(d_1\) has no \(r\), and to multiply by the contract size. Tutorial 7 Q6 (dividend) and Q7 (currency) use the same machinery.</div>
+
+<p>Assumes <a href="0024-computing-bsm-call-and-put-prices.html">Lesson 24</a> (the BSM formulas, \(N(\cdot)\) tables), <a href="0020-futures-options-basics-and-parity.html">Lesson 20</a> (what a futures option is, futures parity) and <a href="0021-binomial-trees-for-futures-options.html">Lesson 21</a> (the futures tree with \(p=(1-d)/(u-d)\)). Terms are re-defined briefly where they first appear; the <a href="../reference/glossary.html">glossary</a> has the rest.</p>
+
+<h2>1 · The one-line idea</h2>
+
+<p>A <strong>futures option</strong> gives the right to enter a futures contract at the strike \(K\): a call gives a long futures position plus cash \(F-K\) in your margin account, a put gives a short position plus \(K-F\). The <strong>futures price</strong> \(F_0\) is the price agreed today for delivery at the futures' maturity. <strong>Volatility \(\sigma\)</strong> here is the volatility of the futures price.</p>
+
+<p><strong>Predict first:</strong> the stock formula is \(c = S_0N(d_1) - Ke^{-rT}N(d_2)\). In Lesson 21 the futures tree changed one thing: the growth rate of the underlying went from \(r\) to 0. What do you replace \(S_0\) by so that the stock formula "knows" the underlying grows at 0, and what does \(d_1\) lose?</p>
+
+<details><summary>Reveal: Lecture 7 slide 39, "Replace \(S_0\) with \(F_0e^{-rT}\)"</summary><div>
+<p>Take the stock formula with a dividend yield \(q\) (Lecture 8; the stock is replaced by \(S_0e^{-qT}\) and \(d_1\) has \(r-q\)). A futures price behaves like a stock paying a yield \(q=r\) (zero growth, as in Lesson 21). Set \(S_0 \to F_0e^{-rT}\) in the stock formula:</p>
+$$c = F_0e^{-rT}N(d_1) - Ke^{-rT}N(d_2) = e^{-rT}\big[F_0N(d_1) - KN(d_2)\big].$$
+<p>And \(d_1\) loses its \(r\):</p>
+$$d_1=\frac{\ln\!\big(F_0e^{-rT}/K\big)+\big(r+\tfrac{\sigma^2}{2}\big)T}{\sigma\sqrt T}=\frac{\ln(F_0/K) - rT + rT + \tfrac{\sigma^2}{2}T}{\sigma\sqrt T}=\frac{\ln(F_0/K)+\sigma^2T/2}{\sigma\sqrt T}.$$
+<p>The \(-rT\) from the logarithm cancels the \(+rT\) in the drift. <strong>Intuition:</strong> a futures costs nothing to hold, so it has no interest to earn, so \(r\) cannot push its price up. The only place \(r\) survives is the discount factor \(e^{-rT}\), because the <em>option premium</em> is paid today but the payoff arrives at \(T\).</p>
+</div></details>
+
+<div class="box"><strong>Formula sheet (page 2, "Black's model" block).</strong> It prints exactly these four lines, and nothing else for futures options:
+$$c = e^{-rT}[F_0N(d_1)-KN(d_2)],\qquad p = e^{-rT}[KN(-d_2)-F_0N(-d_1)]$$
+$$d_1=\frac{\ln(F_0/K)+\sigma^2T/2}{\sigma\sqrt T},\qquad d_2=\frac{\ln(F_0/K)-\sigma^2T/2}{\sigma\sqrt T}=d_1-\sigma\sqrt T.$$
+The sheet has no "\(r\)" in \(d_1\); the stock block directly above it does. Mixing the two is the classic error. The same sheet also gives futures parity \(c+Ke^{-rT}=p+F_0e^{-rT}\) and the bounds \(c\ge (F_0-K)e^{-rT}\), \(p\ge (K-F_0)e^{-rT}\).</div>
+
+<div class="trap"><strong>Three slips</strong><br>
+(1) Putting the spot price in for \(F_0\) (the question gives you the futures price; use it). (2) Keeping \(r\) in \(d_1\) because "the stock one had it". (3) Forgetting the factor \(e^{-rT}\) <em>outside</em> the bracket: it multiplies <em>both</em> terms.</div>
+
+<h3>Why it is the same idea as the tree</h3>
+<p>In the binomial tree (Lesson 21) the futures price has zero risk-neutral growth, \(pF_0u+(1-p)F_0d=F_0\), so \(p=(1-d)/(u-d)\), while the option is still discounted at \(e^{-r\Delta t}\) per step. Make the steps tiny (Lesson 25) and the tree becomes Black's formula: zero growth inside \(d_1\), discounting outside. Equivalent statement: \(N(d_2)\) is the risk-neutral probability the futures price finishes above \(K\), and its expected final value is just \(F_0\).</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>C1.</strong> In Black's model for a futures option, where does the risk-free rate \(r\) appear?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">In d1 and d2 only, as in the stock formula</button>
+    <button class="opt" data-key="b">In d1, d2 and the factor in front of the bracket</button>
+    <button class="opt" data-key="c">Only in the discount factor e^(-rT) in front of the bracket</button>
+    <button class="opt" data-key="d">Nowhere, because futures contracts cost nothing</button>
+  </div>
+  <div class="why">The futures price has zero growth, so \(r\) drops out of \(d_1, d_2\). The option premium is paid today for a payoff at \(T\), so the whole bracket is still discounted at \(e^{-rT}\).</div>
+</div>
+
+<h2>2 · Worked example, exam style</h2>
+
+<p>It is now March. A trader holds a <strong>European put option on Brent crude oil futures</strong>, covering 1,000 barrels. Strike \(K = \$80\) per barrel. The futures contract currently trades at \(F_0 = \$78\) per barrel. Both option and futures expire in 3 months. Risk-free rate 4% p.a. continuously compounded; volatility of the futures price 30% p.a. (This is a fresh setup, not from any past paper.)</p>
+<p><strong>(a)</strong> What happens if the put is exercised now? In, at or out of the money? <strong>(b)</strong> Price the put per barrel and in total, using the normal table on the formula sheet (pp.5-6): \(d\) to 2 dp, \(N\) to 4 dp, no interpolation.</p>
+
+<p><strong>Predict (a):</strong> exercising a put on futures gives a short futures position at which price, and what cash lands in the margin account?</p>
+<details><summary>Reveal (a)</summary><div>
+<p>The put delivers a <strong>short</strong> futures position at the effective price \(K=\$80\), and the margin account is credited \((K-F_0)\times 1{,}000=(80-78)\times1{,}000=\$2{,}000\). Positive payoff, so the put is <strong>in the money</strong> (\(K>F_0\)). The short futures position is then marked to market at the usual daily rate from 78 onwards.</p>
+</div></details>
+
+<ol class="steps">
+  <li><strong>\(d_1\):</strong> \(\ln(78/80)=-0.0253\); \(\sigma^2T/2=0.3^2\times0.25/2=0.01125\); \(\sigma\sqrt T=0.3\times0.5=0.15\). So \(d_1=\dfrac{-0.0253+0.01125}{0.15}=-0.0938\approx -0.09\).</li>
+  <li><strong>\(d_2\):</strong> \(d_1-\sigma\sqrt T=-0.0938-0.15=-0.2438\approx-0.24\) (from the unrounded \(d_1\); round both to 2 dp).</li>
+  <li><strong>Tables:</strong> \(N(-d_1)=N(0.09)=0.5359\), \(N(-d_2)=N(0.24)=0.5948\) (read straight off the formula-sheet table, pp.5-6). Discount: \(e^{-0.04\times0.25}=e^{-0.01}=0.9900\).</li>
+  <li><strong>Put:</strong> \(p=0.9900\,[\,80\times0.5948-78\times0.5359\,]=0.9900\,[47.5840-41.8002]=0.9900\times5.7838=\mathbf{5.7260}\approx 5.73\) per barrel.</li>
+  <li><strong>Contract size:</strong> \(0.9900\,[\ldots]\times1{,}000=\$5{,}725.96\approx\$5{,}726\) in total (contract size inside the bracket, rounded once).</li>
+</ol>
+<p>Using unrounded \(d\) (calculator) gives \(5.7324\) per barrel, \(\$5{,}732\) in total. The exam expects the table route (\(d\) to 2 dp), so quote \(\$5{,}726\) (a 0.99005 discount would give \$5,726.25); both round to 5.73 per barrel here, but the totals differ by \(\$6\), which is why you show your working.</p>
+
+<p><strong>Predict:</strong> the matching call (same \(K\), \(T\)) without redoing the whole calculation. Which cross-check gives it in one line?</p>
+<details><summary>Reveal: futures parity, then the long way as a check</summary><div>
+<p>\(c-p=e^{-rT}(F_0-K)=0.9900\times(78-80)=-1.9800\). So \(c=5.7260-1.9800=3.7460\) per barrel. Long way: \(N(d_1)=N(-0.09)=0.4641\), \(N(d_2)=N(-0.24)=0.4052\), \(c=0.9900[78\times0.4641-80\times0.4052]=0.9900\times3.7838=3.7460\). They agree: 3.75 per barrel, \(\$3{,}746\) for 1,000 barrels.</p>
+</div></details>
+
+<div class="box"><strong>Which \(T\) and which \(F_0\)?</strong> \(T\) is the <em>option's</em> life. \(F_0\) is the price of the futures contract the option is written on (the July contract for a July option). If the futures matures after the option, use that futures price and the option's \(T\); the formula is unchanged. The spot price never appears.</div>
+<p><strong>Option expiry versus futures expiry.</strong> The lecturer's notes list three options, each written on a futures contract that matures about two months <em>after</em> the option: A (option 25 Sep, futures 26 Nov), B (27 Oct, 26 Dec), C (25 Nov, 27 Jan). Same rule for all three: \(T\) is the time to the <em>option's</em> expiry (A: short, C: longest) and \(F_0\) is the quoted price of the futures it is written on (the Nov, Dec, Jan contract respectively). The futures' own expiry sets which contract, not \(T\).</p>
+
+<h3>Calculator</h3>
+<p>Set the mode to futures (the default below is the example). Move one slider at a time and compare with the scenarios in section 4.</p>
+<div class="bbc" data-mode="futures" data-s="78" data-k="80" data-sigma="0.30" data-r="0.04" data-t="0.25"></div>
+<script src="../assets/bsm-blacks-calculator.js"></script>
+
+<div class="quiz num" data-answer="-0.09" data-tol="0.006">
+  <p class="q"><strong>N1.</strong> Brent put example: what is \(d_1\) (to 2 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">d₁</span></div>
+  <div class="why">\(d_1=[\ln(78/80)+0.3^2(0.25)/2]/(0.3\sqrt{0.25})=-0.0938\). No \(r\) in it.</div>
+</div>
+<div class="quiz num" data-answer="5.73" data-tol="0.011">
+  <p class="q"><strong>N2.</strong> European put on the futures, price per barrel (table method)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(0.9900[80(0.5948)-78(0.5359)]=5.7260\).</div>
+</div>
+<div class="quiz num" data-answer="5726" data-tol="8">
+  <p class="q"><strong>N3.</strong> Total price of the put on 1,000 barrels (tables; accept 5,726 to 5,732)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(5.7260\times1{,}000\). The marker's total = per-unit price × contract size.</div>
+</div>
+<div class="quiz num" data-answer="3.75" data-tol="0.011">
+  <p class="q"><strong>N4.</strong> Using parity \(c = p + e^{-rT}(F_0-K)\) and the put 5.7260, what is the call per barrel?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(5.7260-1.9800=3.7460\).</div>
+</div>
+
+<h2>3 · Cross-checks that cost ten seconds</h2>
+<ul>
+<li><strong>Futures put-call parity:</strong> \(c-p=e^{-rT}(F_0-K)\) (sheet: \(c+Ke^{-rT}=p+F_0e^{-rT}\)). Above: \(3.7460-5.7260=-1.9800\) and \(0.9900\times(-2)=-1.9800\). If your \(c\) and \(p\) fail this, a table lookup or a sign is wrong.</li>
+<li><strong>Bounds:</strong> \(c\ge(F_0-K)e^{-rT}=-1.98\), so \(c\ge0\) binds; \(p\ge(K-F_0)e^{-rT}=1.98\) and \(5.73\ge1.98\). OK.</li>
+<li><strong>At the money (\(F_0=K\)):</strong> \(c=p\), because parity gives \(c-p=0\). Also \(d_1=\sigma\sqrt T/2=-d_2\), so \(N(d_2)=N(-d_1)\) and both prices equal \(F_0e^{-rT}[N(d_1)-N(-d_1)]\). Quick estimate: \(c\approx0.4\,F_0\,\sigma\sqrt T\,e^{-rT}\). Example: \(F_0=K=60\), \(\sigma=20\%\), \(T=0.25\), \(r=3\%\): \(d_1=0.05\), \(c=p=0.9925\times60\times[N(0.05)-N(-0.05)]=0.9925\times60\times(0.5199-0.4801)=2.37\); estimate \(0.4\times60\times0.1\times0.9925=2.38\).</li>
+<li><strong>Same answer as the stock formula:</strong> take a stock \(S_0=50\), \(q=2\%\), \(r=5\%\), \(\sigma=30\%\), \(T=0.5\), \(K=50\). The futures price on it is \(F_0=50e^{(0.05-0.02)\times0.5}=50.7557\). The yield-BSM formula (Lecture 8) gives \(c=4.68\), \(p=3.95\); Black's formula with \(F_0=50.7557\) gives exactly the same, because \(F_0e^{-rT}=S_0e^{-qT}=49.5025\) and the \(d_1\)'s are algebraically equal (0.1768). <em>Black's formula is the stock formula applied to the forward price.</em></li>
+</ul>
+
+<h2>4 · What if? (base: \(F_0=78\), \(K=80\), \(\sigma=30\%\), \(T=0.25\), \(r=4\%\))</h2>
+<p>Predict the direction of the <strong>call</strong> and the <strong>put</strong> for each row before opening. Base: call 3.75, put 5.73 (unrounded \(d\) throughout this table so the direction is clean; table lookups can shift a value by up to a few cents).</p>
+<details><summary>Reveal the scenario table</summary><div>
+<div class="tablewrap">
+<table>
+<tr><th>Change</th><th>Call</th><th>Put</th><th>Why</th></tr>
+<tr><td>Base</td><td>3.75</td><td>5.73</td><td>Put in the money by 2, call out of the money by 2</td></tr>
+<tr><td>\(F_0\): 78 → 82</td><td>5.85 ↑</td><td>3.87 ↓</td><td>Futures up: call gains, put loses; \(c-p\) moves by \(e^{-rT}\Delta F_0\)</td></tr>
+<tr><td>\(F_0\): 78 → 74</td><td>2.19 ↓</td><td>8.13 ↑</td><td>Mirror image</td></tr>
+<tr><td>\(\sigma\): 30% → 40%</td><td>5.29 ↑</td><td>7.27 ↑</td><td>More vol helps both (a bigger spread of outcomes, losses capped at the premium); \(\Delta c=\Delta p\)</td></tr>
+<tr><td>\(\sigma\): 30% → 20%</td><td>2.23 ↓</td><td>4.21 ↓</td><td>Same, reversed</td></tr>
+<tr><td>\(T\): 3 → 6 months</td><td>5.61 ↑</td><td>7.57 ↑</td><td>More time, more chance of a big move. (A European put can fall with \(T\) when deep in the money; not here)</td></tr>
+<tr><td>\(T\): 3 → 1 month</td><td>1.84 ↓</td><td>3.83 ↓</td><td>Time value shrinks</td></tr>
+<tr><td>\(r\): 4% → 8%</td><td>3.72 ↓</td><td>5.68 ↓</td><td><strong>Both fall.</strong> \(r\) only discounts: \(d_1\) is unchanged. For a stock the call would rise and the put fall</td></tr>
+<tr><td>\(K\): 80 → 85</td><td>2.13 ↓</td><td>9.06 ↑</td><td>Higher strike: call worse, put better</td></tr>
+<tr><td>\(K\): 80 → 75</td><td>6.17 ↑</td><td>3.20 ↓</td><td>Call now in the money</td></tr>
+</table>
+</div>
+</div></details>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>C2.</strong> Futures price, strike, volatility and time are fixed. The interest rate rises. What happens to a European call and a European put on that futures?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The call rises and the put falls, exactly like options on a stock</button>
+    <button class="opt" data-key="b">Both fall slightly, because only the discounting is stronger</button>
+    <button class="opt" data-key="c">Both rise slightly, because the payoff is likely to be larger</button>
+    <button class="opt" data-key="d">Neither moves, because the interest rate is not in the formula</button>
+  </div>
+  <div class="why">\(d_1,d_2\) do not contain \(r\), so \(N(\cdot)\) values are unchanged; the factor \(e^{-rT}\) falls, so both prices fall. (Real-world \(F_0\) would also move with \(r\); the question holds it fixed.)</div>
+</div>
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>C3.</strong> A trader holds a European call on a futures contract. Which move helps the call most, other inputs fixed?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A fall in the futures price with unchanged volatility</button>
+    <button class="opt" data-key="b">A rise in the strike price with the same futures price</button>
+    <button class="opt" data-key="c">A fall in the volatility of the futures price afterwards</button>
+    <button class="opt" data-key="d">A rise in the futures price with unchanged volatility</button>
+  </div>
+  <div class="why">Calls gain from a higher underlying, a lower strike, and higher volatility.</div>
+</div>
+<div class="quiz num" data-answer="2.37" data-tol="0.02">
+  <p class="q"><strong>N5.</strong> ATM futures put: \(F_0=K=60\), \(\sigma=20\%\), \(T=0.25\), \(r=3\%\). Price (table method, \(d\) to 2 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(d_1=0.05\), \(d_2=-0.05\). \(p=0.9925[60\,N(0.05)-60\,N(-0.05)]=0.9925\times60\times0.0398=2.37\). Also equals the call.</div>
+</div>
+
+<h2>5 · The family: one formula, a different stand-in for \(S_0\)</h2>
+
+<p>This section previews <strong>Lecture 8</strong> (dividends and currencies, taught next week) so you can see Black's model as one member of a family. Tutorial 7 Q6 and Q7 already use it. Nothing here is new algebra: you decide what the "effective" underlying is and use the standard formula.</p>
+
+<h3>Tutorial 7 Q7: an option on a currency</h3>
+<p>A <strong>foreign currency</strong> pays interest at its own risk-free rate \(r_f\), exactly as a stock pays a dividend yield, so its growth under risk neutrality is \(r-r_f\) (domestic rate minus foreign rate). Replace \(S_0\) by \(S_0e^{-r_fT}\). Data: \(S_0=0.95\) (US$ per C$), \(K=0.95\), \(r=5\%\) (US), \(r_f=4\%\) (Canada), \(\sigma=8\%\), \(T=0.75\).</p>
+<p>\(d_1=\dfrac{\ln(0.95/0.95)+(0.05-0.04+0.0064/2)\times0.75}{0.08\sqrt{0.75}}=0.1429\approx0.14\), \(d_2=0.0736\approx0.07\). \(N(d_1)=0.5557\), \(N(d_2)=0.5279\):</p>
+$$c=0.95e^{-0.04\times0.75}(0.5557)-0.95e^{-0.05\times0.75}(0.5279)=0.0293,$$
+<p>and parity \(p=c+Ke^{-rT}-S_0e^{-r_fT}=0.0224\). <strong>The twist:</strong> "an option to buy US$ with C$" is an option to <em>sell</em> C$ for US$, a <strong>put on the C$</strong>, so the answer is \(0.0224\) (the C$ is the "foreign" currency, \(r_f=4\%\), because it is the asset being bought or sold). I checked: unrounded \(d\) gives 0.0290 and 0.0221; the tutorial uses tables.</p>
+<p>This is Black's model in disguise. The forward price of the C$ is \(F_0=0.95e^{(0.05-0.04)\times0.75}=0.9572\). Plug \(F_0=0.9572\), \(K=0.95\), \(r=5\%\), \(\sigma=8\%\), \(T=0.75\) into <em>Black's</em> formula and you get \(0.0293\) and \(0.0224\) again.</p>
+
+<h3>Tutorial 7 Q6: a stock with a known dividend</h3>
+<p>\(S_0=30\), \(K=29\), \(r=5\%\), \(\sigma=25\%\), \(T=4/12\). A 50 cent dividend goes ex in 1.5 months (inside the option's life). Holders of the option do not receive the dividend, so subtract its present value from the stock price: \(S_0^*=30-0.5e^{-0.05\times1.5/12}=29.5031\). Then ordinary BSM on \(S_0^*\):</p>
+<p>\(d_1=0.3068\approx0.31\), \(d_2=0.1625\approx0.16\); \(N(d_1)=0.6217\), \(N(d_2)=0.5636\): \(c=29.5031\times0.6217-29e^{-0.05\times0.3333}\times0.5636=\mathbf{2.27}\). \(N(-d_1)=0.3783\), \(N(-d_2)=0.4364\): \(p=\mathbf{1.29}\). I recomputed both and they match the tutorial's 2.2678 and 1.2854. (Unrounded \(d\): 2.21 and 1.22. Without the dividend adjustment you would get 2.48 and 1.00: calls like a lower stock price, puts like it.) Part (c): a second dividend 6 months out is <strong>after expiry</strong>, so the price does not change; only dividends with ex-dates inside \([0,T]\) are subtracted.</p>
+
+<h3>Unifying table</h3>
+<div class="tablewrap">
+<table>
+<tr><th>Underlying</th><th>Replace \(S_0\) by</th><th>Numerator of \(d_1\)</th><th>Forward price \(F\)</th></tr>
+<tr><td>Non-dividend stock</td><td>\(S_0\)</td><td>\(\ln(S_0/K)+(r+\sigma^2/2)T\)</td><td>\(S_0e^{rT}\)</td></tr>
+<tr><td>Stock, known dividends (Q6)</td><td>\(S_0-PV(D)\)</td><td>\(\ln\!\big[(S_0-PV(D))/K\big]+(r+\sigma^2/2)T\)</td><td>\((S_0-PV(D))e^{rT}\)</td></tr>
+<tr><td>Index with yield \(q\)</td><td>\(S_0e^{-qT}\)</td><td>\(\ln(S_0/K)+(r-q+\sigma^2/2)T\)</td><td>\(S_0e^{(r-q)T}\)</td></tr>
+<tr><td>Currency (Q7), \(q=r_f\)</td><td>\(S_0e^{-r_fT}\)</td><td>\(\ln(S_0/K)+(r-r_f+\sigma^2/2)T\)</td><td>\(S_0e^{(r-r_f)T}\)</td></tr>
+<tr><td>Futures (Black's)</td><td>\(F_0e^{-rT}\)</td><td>\(\ln(F_0/K)+\sigma^2T/2\) (no \(r\))</td><td>\(F_0\) itself</td></tr>
+</table>
+</div>
+<p><strong>The unifying rule:</strong> in every row, \(c=e^{-rT}[F\,N(d_1)-K\,N(d_2)]\) with \(d_1=[\ln(F/K)+\sigma^2T/2]/(\sigma\sqrt T)\), where \(F\) is the <em>forward price</em> of the underlying for delivery at \(T\). The rows differ only in how \(F\) arises (compounded spot, spot less income, or quoted directly). Prices from the table, all with \(S_0=50\), \(K=50\), \(r=5\%\), \(\sigma=30\%\), \(T=0.5\) (tables):</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Underlying</th><th>Call</th><th>Put</th></tr>
+<tr><td>Stock, no dividend</td><td>4.78</td><td>3.54</td></tr>
+<tr><td>Stock, 0.50 dividend in 3 months (PV 0.4938)</td><td>4.69</td><td>3.94</td></tr>
+<tr><td>Yield \(q=2\%\) or currency with \(r_f=2\%\), also futures at \(F_0=50.7557\)</td><td>4.68</td><td>3.95</td></tr>
+</table>
+</div>
+<p>Dividends or foreign interest lower the call and raise the put, relative to the plain stock: the holder of the option misses the income. (The yield, \(r_f\) and dividend variants of BSM and Black's model are printed on the formula sheet; the \(N(\cdot)\) table is on pp.5-6.)</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>C4.</strong> You price a European call on an index paying a continuous dividend yield, then on the index's futures price with the same \(\sigma\). Which statement is right?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Both equal when F0 = S0 e^((r-q)T), for the same K and T</button>
+    <button class="opt" data-key="b">Both equal only when the dividend yield is exactly zero</button>
+    <button class="opt" data-key="c">The index call is bigger because it has a higher growth rate</button>
+    <button class="opt" data-key="d">The futures call is bigger because it needs no money today</button>
+  </div>
+  <div class="why">Black's formula is the stock formula in terms of the forward price. The cost of the underlying is already inside \(F_0\), so with the matching \(F_0\) the two prices coincide.</div>
+</div>
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>C5.</strong> Tutorial 7 Q7: "an option to buy US$ 0.95 with one Canadian dollar in nine months" is which option on the C$ in US$ terms?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A call on C$ with strike US$ 0.95, worth 0.0293</button>
+    <button class="opt" data-key="b">A put on US$ with strike C$ 0.95, worth 0.0224</button>
+    <button class="opt" data-key="c">A put on C$ with strike US$ 0.95, worth 0.0224</button>
+    <button class="opt" data-key="d">A call on US$ with strike C$ 0.95, worth 0.0293</button>
+  </div>
+  <div class="why">Giving up C$1 and receiving US$0.95 is selling the C$: a put on the C$. Price by parity: 0.0224.</div>
+</div>
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>C6.</strong> A stock option expires in 5 months. Dividends are expected in 2 months and in 8 months. What goes into the PV(D) that you subtract from \(S_0\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Both dividends, each discounted back to today</button>
+    <button class="opt" data-key="b">Only the 2-month dividend, discounted back to today</button>
+    <button class="opt" data-key="c">Only the 2-month dividend, with no discounting at all</button>
+    <button class="opt" data-key="d">Neither dividend, because only the stock holder is paid</button>
+  </div>
+  <div class="why">Only dividends going ex inside the option's life count (Tute 7 Q6c). Discount the included ones at \(r\) to today.</div>
+</div>
+<div class="quiz num" data-answer="0.61" data-tol="0.006">
+  <p class="q"><strong>N6.</strong> Currency option: \(S_0=0.65\), \(r_f=3\%\), \(T=2\) years. What replaces \(S_0\) in the formula (to 2 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(0.65e^{-0.03\times2}=0.6121\).</div>
+</div>
+<div class="quiz num" data-answer="59.01" data-tol="0.011">
+  <p class="q"><strong>N7.</strong> Stock at 60, dividend of 1.00 going ex in 2 months, option life 6 months, \(r=6\%\). What replaces \(S_0\)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(60-1.00e^{-0.06\times2/12}=60-0.9900=59.0100\).</div>
+</div>
+
+<h2>6 · Exam-style practice (answers hidden)</h2>
+
+<p><strong>E1 (about 6 marks).</strong> A corn farmer holds a European <strong>call</strong> on a corn futures contract covering 5,000 bushels. Strike \(\$6.00\) per bushel; the futures price is \(\$5.80\); both expire in 3 months. \(r=5\%\) p.a. continuous; futures volatility 30% p.a. (a) If the option were exercised now, what position and what cash flow does the farmer get, and is it in, at or out of the money? (b) Price the call per bushel and in total with Black's model (formula-sheet table, \(d\) to 2 dp, 4 dp working). (c) Use parity to find the put per bushel and check it against the direct formula.</p>
+<details><summary>Answer</summary><div>
+<p>(a) Long futures at an effective price of 6.00, margin credit \((5.80-6.00)\times5{,}000<0\): out of the money, so you would not exercise (payoff \(\max(F-K,0)=0\)). (b) \(d_1=\dfrac{\ln(5.8/6)+0.3^2\times0.25/2}{0.15}=-0.1510\approx-0.15\), \(d_2=-0.30\); \(N(d_1)=0.4404\), \(N(d_2)=0.3821\); discount \(e^{-0.0125}=0.9876\). \(c=0.9876[5.8\times0.4404-6\times0.3821]=0.9876\times0.2617=0.2585\) per bushel; total \(0.9876\times0.26172\times5{,}000=\$1{,}292.37\). (c) \(p=c-e^{-rT}(F_0-K)=0.2585+0.9876\times0.20=0.4560\). Direct: \(0.9876[6\times0.6179-5.8\times0.5596]=0.9876\times0.4617=0.4560\). Total put \(\$2{,}279.97\) (contract size inside the bracket, rounded once).</p>
+</div></details>
+
+<p><strong>E2 (2 marks).</strong> The futures price in E1 rises to 6.20 with everything else fixed. Without calculating, say what happens to the call and the put and explain via parity.</p>
+<details><summary>Answer</summary><div>
+<p>Call rises, put falls. Parity: \(c-p=e^{-rT}(F_0-K)\) goes from \(-0.20\times0.9876\) to \(+0.20\times0.9876\), so \(c-p\) rises by \(0.40\times0.9876\), split across the two. (Unrounded: call 0.4675, put 0.2700.)</p>
+</div></details>
+
+<p><strong>E3 (3 marks).</strong> A student prices an option on a gold futures contract and uses the gold <em>spot</em> price as \(F_0\), and includes \(r\) in \(d_1\). Name both errors and say, for each, whether it makes the call price too high or too low when spot is below the futures price (contango).</p>
+<details><summary>Answer</summary><div>
+<p>The option is on the futures, so \(F_0\) must be the futures price. Spot below futures gives a smaller \(F\), so the call comes out too low. Including \(r\) in \(d_1\) adds a drift the futures price does not have, which raises \(d_1\) and \(d_2\) and pushes the call too high. The errors pull in opposite directions, so do not hope they cancel.</p>
+</div></details>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>C7.</strong> A European put on a commodity futures has \(F_0 = 6.10\), \(K = 6.20\). Which statement is true?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It is out of the money, since the futures price is below the strike</button>
+    <button class="opt" data-key="b">Exercising now gives a long futures position and a cash debit</button>
+    <button class="opt" data-key="c">Exercising now gives a short futures position and a cash credit</button>
+    <button class="opt" data-key="d">Exercising now gives a short futures position and a cash debit</button>
+  </div>
+  <div class="why">A put gives a short position at \(K\) plus cash \(K-F_0=0.10\) per unit: in the money.</div>
+</div>
+
+<h2>7 · Rule of thumb</h2>
+<div class="box">
+<strong>Black's model = BSM with the forward price in place of the stock price.</strong> Futures: use \(F_0\) as given; \(d_1=[\ln(F_0/K)+\sigma^2T/2]/(\sigma\sqrt T)\), no \(r\); prices \(c=e^{-rT}[F_0N(d_1)-KN(d_2)]\), \(p=e^{-rT}[KN(-d_2)-F_0N(-d_1)]\). \(r\) only discounts, so higher \(r\) lowers both. Check: \(c-p=e^{-rT}(F_0-K)\), and \(c=p\) when \(F_0=K\). Multiply by the contract size at the end. Dividend: subtract PV of dividends inside the life from \(S_0\). Currency or yield: \(S_0e^{-r_fT}\) (or \(e^{-qT}\)) and \(r-r_f\) (or \(r-q\)) in \(d_1\).
+</div>
+
+<details><summary>Retrieval: write the four formulas from memory and say why \(d_1\) loses its \(r\)</summary><div>
+<p>Black: \(c=e^{-rT}[F_0N(d_1)-KN(d_2)]\), \(p=e^{-rT}[KN(-d_2)-F_0N(-d_1)]\), \(d_1=\frac{\ln(F_0/K)+\sigma^2T/2}{\sigma\sqrt T}\), \(d_2=d_1-\sigma\sqrt T\). Replacing \(S_0\) by \(F_0e^{-rT}\) puts \(-rT\) into the log, which cancels the \(+rT\) in the stock drift: a futures costs nothing to hold, so it earns no interest.</p>
+</div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/Lecture%207_BSM.pdf">Lecture 7</a> slides 39-41 (Black's model; the gold put example on slide 40-41 is worth redoing by hand: \(d_1=0.3479\), put 22.41), <a href="../lectures/Lecture%208_Dividends.pdf">Lecture 8</a> (yield, currency, dividends); Hull, <em>Options, Futures and Other Derivatives</em>: the chapters on options on stock indices, currencies and futures (Black's model; chapter numbers vary by edition).</p>
+
+<p><strong>Homework:</strong> <a href="../tutes/Tutorial%207%20QUESTIONS_21stSept.pdf">Tutorial 7</a> Q7 (do the call, the parity put and the "buy US$" reinterpretation; then recompute with Black's formula on \(F_0=0.9572\) as a check) and Q6 (a, b, c; also redo with the dividend ignored and say which way each price moves). Plus (a) E1 above under a 6-month life, (b) E1 with \(F_0\) falling to 5.40: price the put and compare with its intrinsic value \(K-F_0\) (answer 0.71 unrounded, versus 0.60), (c) a Black-model put on 10,000 units of your choice from a real futures quote, with the parity check.</p>
+
+<div class="ask">💬 Unsure whether to use the spot or the futures price, or which formula block applies? Paste your working in the terminal and ask. Ask for a mixed set on Lessons 22-28 any time.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0026-implied-volatility-smiles-and-vix.html">Lesson 26, implied volatility, smiles and VIX</a></span>
+  <span>Topic 7: <a href="0022-normal-and-lognormal-stock-prices.html">L22</a> · <a href="0023-what-bsm-assumes-and-why-it-works.html">L23</a> · <a href="0024-computing-bsm-call-and-put-prices.html">L24</a> · <a href="0025-bsm-as-the-limit-of-the-binomial-tree.html">L25</a> · <a href="0026-implied-volatility-smiles-and-vix.html">L26</a> · <a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0028-bsm-capstone-exam-style-practice.html">Lesson 28, BSM capstone practice</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

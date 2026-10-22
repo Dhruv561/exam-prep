@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BSM as the Limit of the Binomial Tree</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/bsm-convergence-plot.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 25 · Topic 7: Black-Scholes-Merton</div>
+<h1>BSM is the binomial tree with infinitely many steps</h1>
+<p class="lede">The goal: see that the tree of Topics 5–6 and the BSM formula are one model at two resolutions. Know how fast and in what pattern the tree value approaches BSM, read the Tutorial 7 convergence questions, say when the tree beats the formula (American options), and write the 2-mark "link between binomial and BSM" answer.</p>
+
+<div class="mission">Why this matters for 5 Nov: the binomial question in past finals ends with a short "link between the binomial model and BSM" part (about 2 marks), and Lecture 7 slide 32 and Tutorial 7 (Q5, Q6) are built around it. Expect a 1- or 2-step tree value next to a BSM value, then "which is larger?", "what happens as steps increase?" and "why would you still use the tree?".</div>
+
+<p>Assumes <a href="0018-two-step-trees-and-u-d-from-volatility.html">Lesson 18</a> (\(u = e^{\sigma\sqrt{\Delta t}}\), \(d = 1/u\), \(p\), roll-back), <a href="0019-american-options-on-trees.html">Lesson 19</a> (early exercise) and <a href="0024-computing-bsm-call-and-put-prices.html">Lesson 24</a> (\(d_1\), \(d_2\), \(N(\cdot)\), the call and put formulas). <strong>Notation:</strong> \(N\) (capital, no argument) in this lesson is the <em>number of steps</em> when it appears as \(N=20\) etc.; \(N(x)\) with brackets is the standard normal cumulative probability. \(\Delta t = T/N\) is one step in years.</p>
+
+<h2>1 · One model, two resolutions</h2>
+
+<details><summary>Predict first: a tree with 1 step has two possible end prices. A stock really has a whole range. What should happen to the tree's option value as you add steps: jump around, drift one way, or settle? And settle at what?</summary><div>
+<p>It settles (with a zig-zag on the way, section 4) at the BSM price. Nothing else in the tree changes: same \(S_0\), \(K\), \(r\), \(\sigma\), \(T\). Only the step length \(\Delta t\) shrinks.</p></div></details>
+
+<div class="box">
+<p><strong>The tree (CRR, from Lesson 18).</strong></p>
+\[u = e^{\sigma\sqrt{\Delta t}},\qquad d = \frac1u,\qquad p = \frac{e^{r\Delta t}-d}{u-d},\qquad f = e^{-r\Delta t}\big[\,p f_u + (1-p) f_d\,\big]\]
+<p><strong>The limit.</strong> Let \(N\to\infty\), so \(\Delta t\to0\). The European tree value converges to the BSM value \(c = S_0N(d_1) - Ke^{-rT}N(d_2)\) (and likewise for the put).</p>
+</div>
+
+<p><strong>Why they must agree.</strong> Three links, each already in your notes:</p>
+<ol class="steps">
+<li><strong>The same spread.</strong> Each step moves \(\ln S\) by \(+\sigma\sqrt{\Delta t}\) or \(-\sigma\sqrt{\Delta t}\), so after \(N\) steps the variance of \(\ln S_T\) is about \(N\sigma^2\Delta t = \sigma^2 T\). That is exactly the BSM assumption that \(\ln S_T\) is normal with standard deviation \(\sigma\sqrt T\) (<a href="0022-normal-and-lognormal-stock-prices.html">Lesson 22</a>). Adding up many small \(\pm\) moves gives a bell curve in \(\ln S\); that is why \(u\) is built from \(\sigma\sqrt{\Delta t}\).</li>
+<li><strong>The same pricing logic.</strong> In the tree you hold \(\Delta\) shares against the option so the portfolio is riskless for one step, so it must earn \(r\) (no arbitrage). BSM does the same "riskless portfolio earns \(r\)" argument over an instant (Lecture 7 slides 13–14). Hence both can be priced as an expected payoff discounted at \(r\), with the stock growing at \(r\), not at its real-world return.</li>
+<li><strong>Rebalancing frequency.</strong> The tree's hedge ratio \(\Delta\) is reset at each of \(N\) dates; BSM resets it continuously (that is the "short period of time" on slide 15). More steps = closer to continuous rebalancing.</li>
+</ol>
+
+<div class="trap"><strong>"The tree is a different model"</strong><br>
+No. The tree has <em>no extra assumption</em> over BSM; it is BSM with the stock allowed only a coarse set of prices. Its risk-neutral probability \(p\) is not a real-world probability and has nothing to do with the stock's expected return \(\mu\) (<a href="0017-risk-neutral-valuation.html">Lesson 17</a>); \(\mu\) also never appears in the BSM formula.</div>
+
+<h2>2 · The numbers: Lecture 7, slide 32</h2>
+
+<p>Slide 22 prices a call on Woodside (WPL): \(S_0=30\), \(K=25\), \(r=4\%\), \(\sigma=30\%\), \(T=0.5\). BSM with tables gives \(c = 6.00\) (\(d_1 = 1.06\), \(d_2 = 0.85\)). Slide 32 asks the simulator for trees of 2, 5 and 20 steps: 6.19, 6.07, 6.01. Recomputed in Python:</p>
+
+<table>
+<tr><th>Steps \(N\)</th><th>Tree call value</th><th>Tree − 6.0161</th></tr>
+<tr><td>1 (by hand below)</td><td>5.8589</td><td>−0.1572</td></tr>
+<tr><td>2 (slide: 6.19)</td><td>6.1862</td><td>+0.1701</td></tr>
+<tr><td>5 (slide: 6.07)</td><td>6.0722</td><td>+0.0561</td></tr>
+<tr><td>20 (slide: 6.01)</td><td>6.0060</td><td>−0.0101</td></tr>
+<tr><td>100</td><td>6.0177</td><td>+0.0016</td></tr>
+<tr><td>1000</td><td>6.0164</td><td>+0.0003</td></tr>
+</table>
+
+<p><strong>Why the limit is 6.0161, not 6.00.</strong> The slide's 6.00 rounds \(d_1\), \(d_2\) to two decimals before reading the formula sheet's normal table (pp. 5-6: \(N(1.06)=0.8554\), \(N(0.85)=0.8023\); the sheet says no interpolation is needed). Exact (calculator-\(N\)) BSM is 6.0161, and that is what the tree approaches (6.0164 at 1000 steps). The exam expects the table method (\(d_2 = d_1 - \sigma\sqrt T\) from unrounded \(d_1\), both to 2 dp, \(N\) at 4 dp), so you will see a gap of a cent or two to the exact tree limit. Do not read that as a tree error.</p>
+
+<div class="box"><p><strong>One-step tree for WPL, by hand.</strong> \(\Delta t = 0.5\): \(u = e^{0.3\sqrt{0.5}} = 1.2363\), \(d = 0.8089\), \(e^{0.02}=1.0202\), \(p = (1.0202-0.8089)/(1.2363-0.8089) = 0.4944\). \(S_u = 37.09\) so \(f_u = 12.09\); \(S_d = 24.27 \lt 25\) so \(f_d = 0\). \(c = e^{-0.02}\times0.4944\times12.09 = \mathbf{5.86}\). Slightly <em>below</em> BSM.</p></div>
+
+<div class="trap"><strong>The one-step error has no fixed sign</strong><br>
+WPL: 1-step 5.86 is below BSM 6.02. Tutorial 7's option (next section): 1-step 3.16 is above BSM 2.71. Never write "the tree always overprices" or "always underprices". What <em>is</em> reliable is that the error shrinks as \(N\) grows.</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> You keep \(S_0\), \(K\), \(r\), \(\sigma\), \(T\) fixed and raise the tree from 20 steps to 2000. What happens to the European call value?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It rises without limit, as more nodes give more chances to finish in the money</button>
+    <button class="opt" data-key="b">It settles ever closer to the Black-Scholes-Merton call price for those inputs</button>
+    <button class="opt" data-key="c">It falls toward the option's intrinsic value, as time value is lost with small steps</button>
+    <button class="opt" data-key="d">It stays unchanged, as the inputs \(S_0\), \(K\), \(r\), \(\sigma\), \(T\) are unchanged</button>
+  </div>
+  <div class="why">(b). The inputs are the same but the tree is a finer picture of them, so the value changes slightly each time and converges to BSM. (d) is the tempting one: values at 20 and 2000 steps differ by about a cent or two, e.g. WPL 6.0060 vs 6.0164.</div>
+</div>
+
+<h2>3 · Try it: tree value against number of steps</h2>
+
+<p>The plot below is the widget for this lesson. It starts on Tutorial 7 Q4/Q5 (\(S_0 = K = 10\), \(r=6\%\), \(\sigma=40\%\), \(T=2\), call; BSM exact 2.7123). Before you touch anything: do the dots sit above or below the green line, and does the zig-zag fade? Then try: <strong>(i)</strong> the WPL inputs (30, 25, 4, 30, 0.5); <strong>(ii)</strong> a put with the Tutorial 7 inputs; <strong>(iii)</strong> \(\sigma\) from 40 to 15; <strong>(iv)</strong> \(K\) far from \(S_0\) (say 6 or 16).</p>
+
+<div class="bsmconv" data-s="10" data-k="10" data-r="6" data-sigma="40" data-t="2" data-type="call" data-maxn="60"></div>
+
+<p>What you should see: ATM, the odd-\(N\) dots (orange) sit above the line and the even-\(N\) dots (red) below it; the gap closes at about \(1/N\). The put zig-zags the same way. A lower \(\sigma\) or a far-away strike makes the zig-zag smaller in dollars but it never fully disappears.</p>
+
+<h2>4 · How the tree converges: the odd/even sawtooth</h2>
+
+<p>Tutorial 7 option, \(N = 1,\dots,12\) (BSM exact 2.7123):</p>
+<div class="tablewrap"><table>
+<tr><th>\(N\)</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td></tr>
+<tr><th>Tree</th><td>3.17</td><td>2.47</td><td>2.87</td><td>2.58</td><td>2.81</td><td>2.63</td><td>2.78</td><td>2.65</td><td>2.76</td><td>2.66</td><td>2.75</td><td>2.67</td></tr>
+<tr><th>vs BSM</th><td>+</td><td>−</td><td>+</td><td>−</td><td>+</td><td>−</td><td>+</td><td>−</td><td>+</td><td>−</td><td>+</td><td>−</td></tr>
+</table></div>
+
+<p><strong>The pattern.</strong> For an at-the-money European option the values do not creep up to BSM from one side; they alternate: odd \(N\) too high, even \(N\) too low, with both gaps shrinking. Doubling \(N\) roughly halves the gap: even \(N=10, 20, 40, 80\) give errors −0.0527, −0.0266, −0.0133, −0.0067 (odd \(N = 11, 21, 41, 81\): +0.0425, +0.0222, +0.0113, +0.0057). So error \(\approx\) constant\(/N\), and to buy one more correct decimal you need ten times the steps.</p>
+
+<p><strong>Why it zig-zags (intuition).</strong> The payoff has a kink at \(K\). With \(d=1/u\), an <em>even</em> number of steps has a terminal node at exactly \(S_0\), so for an ATM option a node sits right on the kink. With an <em>odd</em> number of steps there is no such node: the nearest nodes straddle \(K\). Where the kink sits relative to the nodes decides whether the coarse payoff overstates or understates the true curve, so the error flips sign with parity. (This explains the pattern; the exam never asks for the proof. Away from the money the zig-zag is still there, e.g. WPL \(N = 5,6,7,8\): 6.07, 5.96, 6.06, 6.02, but it is less regular.) A handy consequence: averaging the values for \(N\) and \(N+1\) cancels much of the zig-zag; for the Tutorial 7 option \(N=10, 11\) averages to 2.7072 against BSM 2.7123.</p>
+
+<p><strong>Why a shorter \(\Delta t\) helps</strong> (exam wording: "as \(\Delta t\to0\)"):</p>
+<ul>
+<li>the \(N+1\) end prices become dense, so the lognormal distribution of \(S_T\) and the kinked payoff \(\max(S_T-K,0)\) are captured more finely;</li>
+<li>each step's move \(\pm\sigma\sqrt{\Delta t}\) is small, so "only two outcomes per step" is a smaller approximation;</li>
+<li>the hedge is rebalanced more often, approaching BSM's continuous rebalancing.</li>
+</ul>
+
+<div class="trap"><strong>Monotone convergence is not guaranteed</strong><br>
+Tutorial 7 Q6 (Brent) shows only even \(N\) (2, 4, 8, 16), which do rise steadily. Odd \(N\) would have given values <em>falling</em> toward the answer from above. "More steps always raises the value" is wrong in general; "more steps always gets <em>closer on average</em>" is the right claim.</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> For an at-the-money European call, the tree value at \(N=10\) is below BSM by 0.05. About how far from BSM would you expect \(N=20\) to be?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Below BSM by about 0.10, as extra nodes add extra error</button>
+    <button class="opt" data-key="b">Above BSM by about 0.05, as the error flips sign every step</button>
+    <button class="opt" data-key="c">Below BSM by about 0.025, as doubling the steps halves the gap</button>
+    <button class="opt" data-key="d">Equal to BSM exactly, as 20 is an even number of steps</button>
+  </div>
+  <div class="why">(c). Both 10 and 20 are even, so the sign matches, and the gap scales like \(1/N\) (Tutorial 7 numbers: −0.0527 then −0.0266). Even \(N\) are not exact; they are just consistently on one side.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> A student prices an ATM European call with 7 steps and gets 0.40 above BSM. She then prices it with 8 steps. Which result is the typical one?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Below BSM, by a smaller amount than 0.40</button>
+    <button class="opt" data-key="b">Above BSM, by an even larger amount than 0.40</button>
+    <button class="opt" data-key="c">Above BSM, by a smaller amount than 0.40</button>
+    <button class="opt" data-key="d">Below BSM, by a larger amount than 0.40</button>
+  </div>
+  <div class="why">(a). Odd \(N\) sits above and even \(N\) below for an ATM call, and the gap shrinks with \(N\): Tutorial 7 option, \(N=7\): +0.0669, \(N=8\): −0.0657 (magnitudes nearly equal, slightly smaller at 8).</div>
+</div>
+
+<h2>5 · Tutorial 7: Q5 and Q6 (Brent), with interpretations</h2>
+
+<h3>Q5: \(S_0 = K = 10\), \(r = 6\%\), \(\sigma = 40\%\), \(T = 2\), European call</h3>
+<div class="box">
+<p><strong>(a) One period.</strong> \(\Delta t = 2\): \(u = e^{0.4\sqrt2} = 1.7607\), \(d = 0.5680\), \(e^{0.12} = 1.1275\), \(p = (1.1275 - 0.5680)/(1.7607-0.5680) = 0.4691\). \(S_u = 17.607\), \(f_u = 7.607\); \(S_d=5.68\), \(f_d = 0\). \(c = e^{-0.12}\times0.4691\times7.607 = \mathbf{3.16}\) (Python: 3.1650, so 3.16 or 3.17 depending on how you round \(u\), \(p\); the tute solution gives 3.16).</p>
+<p><strong>(b) Ten periods</strong> (simulator, \(\Delta t = 0.2\), \(u = 1.1959\)): <strong>2.66</strong> (Python 2.6596 ✓).</p>
+<p><strong>BSM</strong> (Tute 4a, table method, formula sheet pp. 5-6): \(d_1 = 0.4950 \to 0.49\), \(d_2 = 0.4950 - 0.4\sqrt2 = -0.0707 \to -0.07\), \(N(d_1)=0.6879\), \(N(d_2)=0.4721\), \(c = 10(0.6879) - 10e^{-0.12}(0.4721) = \mathbf{2.69}\). With exact \(N\) and unrounded \(d\) (not the exam method): 2.71. Exact BSM is 2.7123; the tree's true limit is 2.7123, not 2.69.</p>
+</div>
+<p><strong>(c) Interpretation (model answer):</strong> one step gives 3.16, ten steps give 2.66, BSM gives about 2.7. As the number of steps rises (the step length \(\Delta t\) falls), the binomial price moves toward the BSM price, so BSM is the limit of the binomial model. Note the solution sheet says "increasing the time step", which is a slip: it is <em>shortening</em> the time step (more steps) that gives convergence. Also notice the ten-step value (2.66) is slightly <em>below</em> both BSM figures, which is the even-\(N\) side of the sawtooth. One could not conclude "the tree always underprices" from one value.</p>
+
+<h3>Q6 (Brent; Q8 in the solutions file): table and interpretation</h3>
+<p>Jan 2027 Brent call on a futures contract (a futures option, tree with \(p = (1-d)/(u-d)\), <a href="0021-binomial-trees-for-futures-options.html">Lesson 21</a>). Inputs: \(F_0=88.98\), \(K=89\), \(\sigma=45.57\%\), \(r=3.87\%\), \(T=84/365\) (the question says 84 days, not the 83 in the case table). The tute's reference results, against an observed market price of 7.72, are the <strong>American</strong> tree values (the simulator tests early exercise at every node, and a futures call can be worth exercising early because exercising pays now rather than later). My Python reproduces all four exactly, including the errors:</p>
+<table>
+<tr><th>\(N\)</th><th>Binomial value</th><th>Model − market</th><th>Abs % error</th></tr>
+<tr><td>2</td><td>6.82</td><td>−0.90</td><td>11.61%</td></tr>
+<tr><td>4</td><td>7.23</td><td>−0.49</td><td>6.31%</td></tr>
+<tr><td>8</td><td>7.45</td><td>−0.27</td><td>3.45%</td></tr>
+<tr><td>16</td><td>7.57</td><td>−0.15</td><td>1.99%</td></tr>
+</table>
+<ul>
+<li><strong>How does the value change with \(N\)?</strong> It rises each time (these are all even \(N\); section 4).</li>
+<li><strong>More stable?</strong> Yes: the increments shrink 0.41, 0.22, 0.11, about halving each time \(N\) doubles, the same \(1/N\) behaviour as Tutorial 7 Q5.</li>
+<li><strong>Pricing error?</strong> It falls 11.6% to 2.0%.</li>
+<li><strong>Convergence?</strong> The tree is converging, but to its own limit, not to the market price. Python (same inputs, \(T=84/365\)): American tree 6.82, 7.23, 7.45, 7.57 (matches the tute), limit about 7.68 at \(N=2000\); European tree 6.80, 7.21, 7.43, 7.55, limit 7.67 (Black's formula for futures, 7.6671). The 0.02 gap between the two is the early-exercise premium, and it is why a European-only calculation looks 0.02 low against the tute. Either way the last gap to 7.72 is not a tree error. Market price \(\ne\) model price because of bid-ask spreads, the rounding of the quoted implied volatility, and the market not being exactly this model. Increasing \(N\) shrinks only the <em>numerical</em> error, not the model-vs-market gap (the Tutorial 6 version of this question asks precisely this: no, it does not force equality).</li>
+
+</ul>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>4.</strong> In the Brent table, the error against the market falls from 11.6% (N=2) to 2.0% (N=16). The best conclusion is:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The tree will reach the market price 7.72 once N is large enough</button>
+    <button class="opt" data-key="b">The market price is wrong, since the tree is nearly equal to it</button>
+    <button class="opt" data-key="c">Each doubling of N adds exactly 0.4 to the value of the call</button>
+    <button class="opt" data-key="d">The tree is converging to its own BSM-type limit, close to but not at 7.72</button>
+  </div>
+  <div class="why">(d). Increments halve (0.41, 0.22, 0.11), so they are not constant (c). The limit (about 7.68 here) depends on inputs (\(\sigma\) especially), not on market prices (a, b).</div>
+</div>
+
+<h2>6 · The tree and N(d2) tell the same story</h2>
+
+<p>Lecture 7 slide 31 reads the call as "expected payoff given in-the-money, times the chance of being in the money". The tree has the same pieces: at the end there are \(N+1\) nodes, each with a risk-neutral probability from \(p\); add those for nodes with \(S_T \gt K\) and you get the tree's risk-neutral probability of finishing in the money. As \(N\to\infty\) that probability tends to <strong>\(N(d_2)\)</strong>, and the tree's probability-weighted stock payoff tends to the \(S_0 N(d_1)\) part.</p>
+<p>WPL: \(N(d_2) = 0.8023\) (tables; unrounded 0.8017). The tree's chance of ending above \(K=25\): 0.8127 at \(N=100\), 0.7990 at \(N=500\), 0.8001 at \(N=1000\): the same zig-zag, settling on the BSM value. So "\(N(d_2)\) is the risk-neutral probability the option is exercised" and "\(p\) is the risk-neutral probability of one up move" are the same idea at two resolutions, and neither is a forecast using the stock's real expected return.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>5.</strong> For a call, \(N(d_2)\) in the BSM formula is best matched on the tree by:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The real-world probability that the stock rises in the first step</button>
+    <button class="opt" data-key="b">The risk-neutral probability that the stock finishes above the strike</button>
+    <button class="opt" data-key="c">The probability that one step of the tree is an up move, namely \(p\)</button>
+    <button class="opt" data-key="d">The delta of the call at the first node, namely \((f_u-f_d)/(S_u-S_d)\)</button>
+  </div>
+  <div class="why">(b). \(p\) (c) is per step and \(\Delta\) (d) is a hedge ratio (it matches \(N(d_1)\), the call's delta). Nothing in BSM or the tree uses real-world probabilities (a).</div>
+</div>
+
+<h2>7 · When is the tree preferable?</h2>
+
+<p>For a plain European option on a non-dividend stock, use the formula: exact, instant, no step error. The tree wins when the formula cannot be used:</p>
+<ul>
+<li><strong>American options</strong> where early exercise can be optimal (American puts; calls on dividend payers): the BSM formula is for European options only. The tree handles it by comparing the held value with exercise value at every node (<a href="0019-american-options-on-trees.html">Lesson 19</a>).</li>
+<li>Payoffs that are unusual or depend on the path, and trees with changing inputs.</li>
+<li>Teaching the hedge: the tree shows \(\Delta\) at each node explicitly.</li>
+</ul>
+<div class="box"><p><strong>Numbers.</strong> Put with \(S_0=50\), \(K=52\), \(r=5\%\), \(\sigma=30\%\), \(T=1\). BSM (European): \(d_1=0.19\), \(d_2=-0.11\), \(p = 52e^{-0.05}(0.5438)-50(0.4247) = \mathbf{5.66}\) by the formula-sheet table (\(N(-x)\) read off the \(x\le0\) table), 5.67 with exact \(N\). Trees: 2-step European 5.42, 2-step American 6.04; at 1000 steps the European tree is 5.66 (converging to BSM) but the American tree is <strong>6.00</strong>. The formula has no way to produce the extra 0.33 for the right to exercise early (the American put's early-exercise premium).</p></div>
+<p>A European and American <em>call</em> on a non-dividend stock are equal (never exercise early), so BSM is fine for both. For the same inputs, call: American tree 6.1980 equals the European tree 6.1980, against BSM 6.20.</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>6.</strong> Why would an analyst value an American put with a 100-step tree rather than the BSM put formula?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The BSM formula covers European exercise only, whereas the tree can test early exercise at every node</button>
+    <button class="opt" data-key="b">The BSM formula needs a volatility input, whereas the tree can be built without one</button>
+    <button class="opt" data-key="c">The BSM formula ignores the risk-free rate, whereas every node of the tree discounts at it</button>
+    <button class="opt" data-key="d">The BSM formula gives a lower bound, whereas the tree gives the exact price of the option</button>
+  </div>
+  <div class="why">(a). Trees need \(\sigma\) for \(u\) too (b), BSM uses \(r\) (c), and neither is a bound (d).</div>
+</div>
+
+<h2>8 · The 2-mark exam answer</h2>
+
+<div class="box"><p><strong>"Explain the link between the binomial model and the BSM model" (model answer, 2 marks).</strong> (1) As the number of steps increases (time step \(\Delta t\to0\)), the binomial price for a European option converges to the BSM price, i.e. BSM is the limit of the binomial model with \(u=e^{\sigma\sqrt{\Delta t}}\), \(d=1/u\). (2) Both rest on the same no-arbitrage argument: a riskless hedge of stock and option earns the risk-free rate, so valuation is risk-neutral, and the stock's real expected return does not matter. The difference is that the binomial rebalances at discrete dates and BSM continuously; the tree can also value American options.</p></div>
+<p>Marking points to hit: <em>more steps / shorter \(\Delta t\)</em>, <em>converges to</em> BSM, <em>same no-arbitrage / risk-neutral</em> logic. Add "European" or you may lose the mark.</p>
+
+<h2>9 · Exam-style questions</h2>
+<p>Same length and rounding as past finals (4 dp working, answers 2 dp, BSM with \(d\) rounded to 2 dp for the formula-sheet table, pp. 5-6, no interpolation). About 2 minutes per mark.</p>
+
+<h3>Question A (9 marks): one step against BSM</h3>
+<div class="box"><p>A non-dividend-paying stock trades at $60. A 6-month European call has strike $50. The risk-free rate is 5% p.a. continuously compounded and the volatility is 20% p.a.</p></div>
+
+<div class="quiz num" data-answer="0.5539" data-tol="0.0006">
+  <p class="q"><strong>A(a).</strong> (2 marks) Using a one-step binomial tree with \(u=e^{\sigma\sqrt{\Delta t}}\), \(d=1/u\), find the risk-neutral probability of an up move (4 dp).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\Delta t = 0.5\): \(u = e^{0.1414} = 1.1519\), \(d = 0.8681\), \(e^{0.025}=1.0253\). \(p = (1.0253-0.8681)/(1.1519-0.8681) = 0.1572/0.2838 = 0.5539\). (Using \(e^{0.05}\) gives 0.6405.)</div>
+</div>
+
+<div class="quiz num" data-answer="11.23" data-tol="0.02">
+  <p class="q"><strong>A(b).</strong> (3 marks) Value the call with the one-step tree.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(S_u = 69.11\), \(f_u = 19.11\); \(S_d = 52.09\), \(f_d = 2.09\) (both nodes are in the money). \(c = e^{-0.025}[0.5539(19.1146)+0.4461(2.0874)] = 0.9753\times11.5196 = 11.23\).</div>
+</div>
+
+<div class="quiz num" data-answer="11.47" data-tol="0.02">
+  <p class="q"><strong>A(c).</strong> (2 marks) Value the call with BSM (tables, \(d\) to 2 dp).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(d_1 = [\ln(60/50)+(0.05+0.02)(0.5)]/(0.2\sqrt{0.5}) = 0.2178/0.1414 = 1.54\); \(d_2 = 1.5367-0.1414 = 1.3953 \to 1.40\). \(N(1.54)=0.9382\), \(N(1.40)=0.9192\). \(c = 60(0.9382) - 50e^{-0.025}(0.9192) = 56.292 - 44.826 = 11.47\). Exact \(N\), unrounded \(d\): 11.48 (not the exam method).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>A(d).</strong> (2 marks) Which statement about the one-step value 11.23 and the BSM value is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The tree value is higher, since discrete trees always overstate option values</button>
+    <button class="opt" data-key="b">The two are equal, since both use the same \(\sigma\), \(r\) and risk-neutral logic</button>
+    <button class="opt" data-key="c">The tree is lower, since with both end nodes in the money it values only the forward-style payoff</button>
+    <button class="opt" data-key="d">The tree is lower, since 6 months is too short a period for the tree to be valid</button>
+  </div>
+  <div class="why">(c). With both end nodes above \(K\), the tree payoff is just \(S_T - K\), worth \(S_0 - Ke^{-rT} = 11.23\) exactly. It cannot see the chance of finishing below \(K\) (where the call pays 0), so it undervalues the option. More steps add that chance: 2-step 11.42, 3-step 11.54, 20-step 11.47, 1000-step 11.48. Note the 3-step overshoots: the sawtooth. (a) is false in general (WPL one-step was lower, Tutorial 7 higher); (d) invents a validity rule.</div>
+</div>
+
+<p><strong>A(e)</strong> (1 mark, no answer box): "What happens to the tree value of the put as \(N\) increases?" The one-step put is worth $0.00 (both end nodes above 50, the put pays nothing) while BSM gives about $0.23: the tree value rises and converges to BSM (2-step 0.18, 4-step 0.23, 50-step 0.24).</p>
+
+<h3>Question B (6 marks): at the money, parity of the zig-zag</h3>
+<div class="box"><p>A stock is $40, a 3-month European call has \(K=40\), \(r=5\%\), \(\sigma=30\%\), no dividends.</p></div>
+
+<div class="quiz num" data-answer="1.1618" data-tol="0.0005">
+  <p class="q"><strong>B(a).</strong> (1 mark) With a one-step tree, find \(u\) (4 dp).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\Delta t = 0.25\), \(\sigma\sqrt{\Delta t} = 0.15\), \(u = e^{0.15} = 1.1618\), \(d = 0.8607\).</div>
+</div>
+
+<div class="quiz num" data-answer="3.22" data-tol="0.02">
+  <p class="q"><strong>B(b).</strong> (3 marks) Value the call with the one-step tree (\(p = 0.5043\)).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(S_u = 46.47\), \(f_u = 6.47\); \(S_d = 34.43\), \(f_d = 0\). \(c = e^{-0.0125}\times0.5043\times6.4734 = 0.9876\times3.2646 = 3.22\).</div>
+</div>
+
+<div class="quiz num" data-answer="2.63" data-tol="0.02">
+  <p class="q"><strong>B(c).</strong> (2 marks) BSM value (tables, \(d\) to 2 dp).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(d_1 = [0 + (0.05+0.045)(0.25)]/(0.3\times0.5) = 0.1583 \approx 0.16\); \(d_2 = 0.1583-0.15 = 0.0083 \to 0.01\). \(N(0.16)=0.5636\), \(N(0.01)=0.5040\). \(c = 40(0.5636) - 40e^{-0.0125}(0.5040) = 22.544 - 19.910 = 2.63\) (exact 2.6332). The one-step tree is 0.59 too high; the two-step tree (2.36) is too low; 3-step 2.83, 4-step 2.49.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>B(d).</strong> Directional: the analyst now runs 12 steps and then 13. Which pair is typical for this ATM option?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">12 steps above 2.63 and 13 steps below 2.63, with both close</button>
+    <button class="opt" data-key="b">12 steps below 2.63 and 13 steps above 2.63, with both close</button>
+    <button class="opt" data-key="c">Both below 2.63, as more steps always lower the call value</button>
+    <button class="opt" data-key="d">Both above 2.63, as discrete trees always overstate the call</button>
+  </div>
+  <div class="why">(b). Even \(N\) low, odd \(N\) high for ATM: 12 steps give 2.5841, 11 steps 2.6870, 13 steps 2.6787. Check with the widget: set \(S=K=40\), \(r=5\), \(\sigma=30\), \(T=0.25\).</div>
+</div>
+
+<h3>Question C (4 marks): American or European?</h3>
+<div class="box"><p>For the put in section 7 (\(S_0=50\), \(K=52\), \(r=5\%\), \(\sigma=30\%\), \(T=1\)) BSM gives $5.67 and a fine tree for an American put gives about $6.00.</p></div>
+
+<div class="quiz num" data-answer="5.67" data-tol="0.02">
+  <p class="q"><strong>C(a).</strong> (2 marks) Check the BSM put: \(d_1 = 0.19\), \(d_2 = -0.11\). Use \(N(0.11)=0.5438\) and \(N(-0.19) = 0.4247\) (read \(N(-x)\) from the \(x\le0\) table, formula sheet p. 5).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(p = Ke^{-rT}N(-d_2) - S_0N(-d_1) = 52(0.9512)(0.5438) - 50(0.4247) = 26.899 - 21.235 = 5.66\) by the table method (the exam answer); exact \(N\) gives 5.6656, i.e. 5.67, within this quiz's tolerance.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>C(b).</strong> (2 marks) The tree American value is about 0.33 above the BSM value. Best explanation?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The tree has discretisation error that more steps would remove, giving 5.67</button>
+    <button class="opt" data-key="b">BSM underestimates \(\sigma\), and the tree adds the volatility that is missing</button>
+    <button class="opt" data-key="c">The tree discounts less than BSM does, since each step uses \(e^{-r\Delta t}\)</button>
+    <button class="opt" data-key="d">The gap is the value of the right to exercise early, which BSM cannot include</button>
+  </div>
+  <div class="why">(d). A European tree with 1000 steps is 5.66 (matches BSM), so discretisation (a) cannot explain a 0.33 gap. For a put, early exercise is valuable when the stock is low and \(r\) is positive (interest on \(K\) received early).</div>
+</div>
+
+<h3>Mixed quick-fire (directional)</h3>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>D1.</strong> A tree is valued with \(\sigma = 20\%\) and a second with \(\sigma = 30\%\), all else equal and 50 steps. A call on a non-dividend stock: the 30% tree value is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Lower, since \(u\) is larger and the down node is more likely</button>
+    <button class="opt" data-key="b">Lower, since a larger \(u\) leaves \(p\) closer to one half</button>
+    <button class="opt" data-key="c">Higher, matching the higher BSM value that the same inputs would give</button>
+    <button class="opt" data-key="d">Equal, since both trees use the same risk-free rate and strike</button>
+  </div>
+  <div class="why">(c). The tree and BSM move together; a call gains from a wider range of end prices (more upside, losses capped at the premium). Both tree and BSM call values rise with \(\sigma\) (Lesson 12).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>D2.</strong> True statement about the tree and BSM for a European call on a non-dividend stock?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">As the number of steps rises, the tree price converges to the BSM price</button>
+    <button class="opt" data-key="b">The tree price is always above the BSM price, for any number of steps</button>
+    <button class="opt" data-key="c">The tree price equals the BSM price once there are about ten steps</button>
+    <button class="opt" data-key="d">The tree and BSM differ because only the tree uses risk-neutral valuation</button>
+  </div>
+  <div class="why">(a). Both are risk-neutral (d). Ten steps are not exact: Tutorial 7 gives 2.66 vs 2.71 (c).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>D3.</strong> Which is a real effect of shortening \(\Delta t\) (more steps), all else equal?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The stock's expected return in the tree rises, which lifts every call value</button>
+    <button class="opt" data-key="b">The hedge is rebalanced more often and end prices are denser, so the error falls</button>
+    <button class="opt" data-key="c">The risk-neutral probability \(p\) must exceed one half, so up moves dominate</button>
+    <button class="opt" data-key="d">The option's time to expiry is shortened, so time value falls toward zero</button>
+  </div>
+  <div class="why">(b). \(T\) is unchanged (d); only the grid is finer. \(p\) is close to 0.5 but can sit either side (c).</div>
+</div>
+
+<h2>10 · Before you close this tab</h2>
+
+<div class="box"><p><strong>Rule of thumb.</strong> <em>BSM = the tree as \(N\to\infty\).</em> Same \(u=e^{\sigma\sqrt{\Delta t}}\), \(d=1/u\), same risk-neutral logic; the tree rebalances at \(N\) dates, BSM continuously. Convergence: error \(\approx\) const\(/N\), with an odd/even zig-zag for ATM options and no fixed sign for one step. Use the formula for European options, the tree for American ones. \(N(d_2)\) is the risk-neutral chance of finishing in the money, the continuous version of the tree's terminal probabilities.</p></div>
+
+<details><summary>Retrieval: from memory, write \(u\), \(d\), \(p\), the limit of the tree, the error pattern as \(N\) doubles, why the sign alternates for ATM options, two reasons to use a tree, and the 2-mark link answer. Then check</summary><div>
+<p>\(u=e^{\sigma\sqrt{\Delta t}}\), \(d=1/u\), \(p=(e^{r\Delta t}-d)/(u-d)\). European tree value \(\to\) BSM as \(N\to\infty\). Error halves when \(N\) doubles (\(\propto 1/N\)); odd \(N\) high and even \(N\) low for ATM calls (kink at \(K\) falls on a node only for even \(N\)). Tree used for American options (early exercise at each node) and non-standard payoffs. Link answer: converges as \(\Delta t\to0\); same no-arbitrage riskless hedge and risk-neutral valuation; discrete vs continuous rebalancing.</p></div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/Lecture%207_BSM.pdf">Lecture 7</a>, slides 13–16 (riskless portfolio and rebalancing), 30–32 (link between BSM and binomial; WPL 2-, 5-, 20-step values); <a href="../tutes/Tutorial%207%20QUESTIONS_21stSept.pdf">Tutorial 7</a> Q5 and Q6 (Brent; Q8 in the solutions file) (<a href="../tutes/Tutorial%207%20Solutions.pdf">solutions</a>). Textbook: Hull, <em>Options, Futures and Other Derivatives</em>, the BSM chapter (approximately Ch. 15 in recent editions) and the binomial chapter (Ch. 13).</p>
+
+<p><strong>Homework (official practice, about 3 parts):</strong> <a href="../tutes/Tutorial%207%20QUESTIONS_21stSept.pdf">Tutorial 7</a> Q5(a)–(c) (1-step and 10-step against BSM; write the interpretation in one sentence), Q6 (Brent; Q8 in the solutions file) 6.1 (fill the table with the simulator, American tree, 84 days) and 6.2 (the interpretation bullets, using section 5 only to check). <em>Fresh, answers hidden:</em> \(S_0=K=45\), \(r=4\%\), \(\sigma=20\%\), \(T=1\), call. (i) One-step tree value; (ii) BSM value (formula-sheet table, d to 2 dp); (iii) say whether 12 or 13 steps would be nearer BSM from above.</p>
+<details><summary>Answers to the fresh question</summary><div>
+<p>(i) \(u=e^{0.2}=1.2214\), \(d=0.8187\), \(e^{0.04}=1.0408\), \(p=0.5515\); \(f_u = 9.9631\), \(f_d=0\); \(c = e^{-0.04}\times0.5515\times9.9631 = 5.28\). (ii) \(d_1=0.30\), \(d_2=0.10\), \(N=0.6179\), \(0.5398\); \(c=45(0.6179)-45e^{-0.04}(0.5398)=27.806-23.340 = 4.47\) (exact 4.4663). (iii) Odd \(N\) (13) is above BSM, even (12) is below; so 13 steps is the one nearer from above; sign pattern assumed ATM, as here. The one-step value 5.28 is above BSM by 0.81.</p></div></details>
+<p><strong>Spacing:</strong> tomorrow, redo A(a)–(d) from a blank page in 15 minutes. In three days, write the 2-mark link answer from memory.</p>
+
+<div class="ask">💬 Stuck on why the zig-zag goes the way it does, or on a table-vs-exact rounding gap? Paste your numbers in the terminal and ask me. I can generate more one-step-versus-BSM drills at exam length.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0024-computing-bsm-call-and-put-prices.html">Lesson 24, computing BSM prices</a></span>
+  <span>Reference: <a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0026-implied-volatility-smiles-and-vix.html">Lesson 26, implied volatility, smiles and VIX</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

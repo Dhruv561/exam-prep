@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>American Options on Trees</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/american-tree.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 19 · Topic 5: Binomial trees</div>
+<h1>American options on a binomial tree</h1>
+<p class="lede">The goal: price an American put on a two- or three-step tree by checking at every node whether to exercise now or keep the option; say which nodes exercise and why; get the early-exercise premium; and know without calculating that an American call on a non-dividend stock is just the European call.</p>
+
+<div class="mission">Why this matters for 5 Nov: past finals have a 7-mark "three-period American put: draw the tree with stock price and option value at every node" (u from \(\sigma\), u and d to 4 dp, stock prices to 2 dp), followed by a 3-mark "the option trades at $X: find the arbitrage". Older papers ask for the European and American values on the same tree, and the MCQs ask "American call, no dividends: when do you exercise early?" (never).</div>
+
+<p>Assumes <a href="0016-one-period-binomial-replication.html">Lesson 16</a> (one-period tree, \(\Delta\)), <a href="0017-risk-neutral-valuation.html">Lesson 17</a> (risk-neutral \(p\)) and <a href="0018-two-step-trees-and-u-d-from-volatility.html">Lesson 18</a> (two-step European trees, working backwards, \(u\) and \(d\) from \(\sigma\)). It reuses the early-exercise reasons from <a href="0015-early-exercise-of-american-options.html">Lesson 15</a>. Notation (Lecture 6): \(u, d\) = up and down factors, \(\Delta t\) = length of one step, \(p = \dfrac{e^{r\Delta t}-d}{u-d}\) = risk-neutral probability of an up move, \(f\) = option value at a node.</p>
+
+<h2>1 · One new rule: at each node, take the better of keeping it and cashing it in</h2>
+
+<p>A European option can only be used at expiry, so at an earlier node its value is the discounted risk-neutral average of the two values one step later. An <strong>American option</strong> can be exercised at any node. So its holder, at each node, has two choices:</p>
+<ul>
+  <li><strong>Continuation value</strong> (also called the hold value): what the option is worth if you keep it for one more step. Same formula as the European tree, applied to the next step's <em>American</em> values: \(e^{-r\Delta t}\,[\,p f_u + (1-p) f_d\,]\).</li>
+  <li><strong>Exercise value</strong> (the intrinsic value at that node): what you get by exercising right now. Put \(K - S\), call \(S - K\) (or 0 if negative).</li>
+</ul>
+$$f_{\text{node}} \;=\; \max\Big(\underbrace{e^{-r\Delta t}\,[\,p f_u + (1-p) f_d\,]}_{\text{continuation (hold)}},\;\; \underbrace{K - S_{\text{node}}}_{\text{exercise now (put)}}\Big)$$
+<p>That is the whole method. You still start at expiry and work backwards (<strong>backward induction</strong>: each node's value uses the next step's values, which already include the best decisions from there on). At the final nodes nothing changes: payoff = exercise value, the same as for the European option. A node where exercise wins is an <strong>exercise node</strong>; there the option's time value is zero.</p>
+<p>Because the American holder has every right the European holder has, plus more, American \(\ge\) European at every node. The difference at time 0 is the <strong>early-exercise premium</strong>: \(P - p_{\text{Euro}}\) for a put. (Lecture 6, slides 5–7; Hull, Binomial Trees chapter, "American options".)</p>
+
+<h2>2 · The lecture's two-step put, done as an American</h2>
+
+<p>Lecture 6 setup: \(S_0 = 50\), \(K = 52\), \(\Delta t = 1\) year, \(r = 5\%\), \(u = 1.2\), \(d = 0.8\). Node names as in the lecture: A (today), B (up), C (down), D, E, F (expiry). The lecture's Week 5 recap (slide 3) priced the European put at \(4.1923\), with \(f_B = 1.4147\) and \(f_C = 9.4636\).</p>
+<p><strong>Predict first:</strong> at node C the stock is $40 and the put has strike $52. The European value there is $9.46. Would an American holder keep the put at C?</p>
+<details><summary>Reveal</summary><div>
+<p>No. Exercising at C pays \(52 - 40 = \$12\), more than the $9.46 the put is worth if kept. Look at C's two children: E ($48) and F ($32). The put finishes in the money on both branches, so keeping it gives you no protection you don't already have. All waiting does is delay receiving \(K\) (lose interest on $52 for a year).</p>
+</div></details>
+
+<ol class="steps">
+  <li><strong>Parameters.</strong> \(p = \dfrac{e^{0.05}-0.8}{1.2-0.8} = \dfrac{1.0513-0.8}{0.4} = 0.6282\), discount factor \(e^{-0.05} = 0.9512\).</li>
+  <li><strong>Expiry (D, E, F).</strong> Stock 72, 48, 32. Put payoffs \(0, 4, 20\). Same as the European.</li>
+  <li><strong>Node B</strong> (\(S = 60\)). Hold: \(e^{-0.05}[0.6282(0) + 0.3718(4)] = 1.4147\). Exercise: \(52-60 \lt 0\), so 0. Value \(= \max(1.4147, 0) = 1.4147\). Keep.</li>
+  <li><strong>Node C</strong> (\(S = 40\)). Hold: \(e^{-0.05}[0.6282(4) + 0.3718(20)] = 9.4636\). Exercise: \(52-40 = 12\). Value \(= \max(9.4636, 12) = \mathbf{12}\). <strong>Exercise.</strong></li>
+  <li><strong>Node A</strong> (\(S = 50\)). Hold, using the <em>American</em> values at B and C: \(e^{-0.05}[0.6282(1.4147) + 0.3718(12)] = 5.0894\). Exercise: \(52-50 = 2\). Value \(= \max(5.0894, 2) = 5.0894\). Keep.</li>
+</ol>
+<div class="box"><strong>Result.</strong> American put \(= \$5.09\) vs European put \(= \$4.19\). Early-exercise premium \(= 5.09 - 4.19 = \$0.90\). The whole premium comes from one decision: exercise at node C if the stock falls.</div>
+
+<div class="amtree" data-controls="0" data-s="50" data-k="52" data-r="0.05" data-dt="1" data-n="2" data-u="1.2" data-d="0.8" data-type="put"></div>
+<p style="font-size:.85rem;color:var(--muted)">The diagram uses unrounded \(p\), so node A shows 5.0896. The lecture slide shows 5.0892 (rounding \(p\) and \(f_B\)). Anything that rounds to 5.09 is fine.</p>
+
+<div class="trap"><strong>The mark-losing slip</strong><br>
+Working out node A from the <em>European</em> value at C (9.4636) and only then comparing with exercise at A gives \(\max(4.1923, 2) = 4.19\), which is just the European price. The exercise check at C has to feed into A. Do the check at every node <em>as you go</em>, and carry the larger number back.</div>
+
+<h2>3 · Why early exercise happens at the low nodes</h2>
+
+<p>Lesson 15 gave the trade-off for a put: exercising early <em>earns interest on \(K\)</em>, and waiting keeps the <em>insurance value</em> (if you keep the put you still gain if the stock falls further, but lose nothing extra if it rebounds). The tree makes both visible at a single node.</p>
+
+<h3>A node with one step left</h3>
+<p>Take a node with \(S = 40\), \(K = 44\), one step of \(\Delta t = 0.25\) left, so exercising pays $4. The next step has \(u = 1 + x\), \(d = 1 - x\). A wider spread \(x\) plays the role of higher volatility. <strong>Predict each row before reading the verdict.</strong></p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Spread, rate</th><th>Children (put payoffs)</th><th>Hold value</th><th style="text-align:left">Verdict</th></tr>
+<tr><td>\(\pm 10\%\), \(r = 4\%\)</td><td>44 (0), 36 (8)</td><td>3.56</td><td style="text-align:left">Exercise (4 &gt; 3.56)</td></tr>
+<tr><td>\(\pm 10\%\), \(r = 0\)</td><td>44 (0), 36 (8)</td><td>4.00</td><td style="text-align:left">Tie: no interest to earn</td></tr>
+<tr><td>\(\pm 15\%\), \(r = 4\%\)</td><td>46 (0), 34 (10)</td><td>4.62</td><td style="text-align:left">Hold: more insurance value</td></tr>
+<tr><td>\(\pm 15\%\), \(r = 12\%\)</td><td>46 (0), 34 (10)</td><td>3.87</td><td style="text-align:left">Exercise: interest now beats it</td></tr>
+<tr><td>\(\pm 20\%\), \(r = 12\%\)</td><td>48 (0), 32 (12)</td><td>4.94</td><td style="text-align:left">Hold: too much insurance to give up</td></tr>
+</table>
+</div>
+<p>Two things to read from this table.</p>
+<ul>
+  <li><strong>Higher \(r\) pushes towards exercise; higher \(\sigma\) pushes towards holding.</strong> Same directions as Lesson 15 and Tutorial 4 Q6, now with numbers.</li>
+  <li><strong>If the put is in the money on both branches, exercise (when \(r>0\)).</strong> Then the put is like a promise to swap the share for \(K\) one step later, worth \(Ke^{-r\Delta t} - S\), which is less than \(K - S\). No insurance is left, only lost interest. This is exactly node C of the lecture tree (both children 48 and 32 are below 52).</li>
+</ul>
+<p>Why the <em>low</em> nodes? Down there the put is deep in the money: both branches below finish in the money, the insurance value has gone, and \(K - S\) is large, so the interest on it is large. At the high nodes the put is near or out of the money and is mostly insurance, so you keep it.</p>
+
+<h3>Scenarios on the lecture tree</h3>
+<p>Keep \(S_0 = 50\), \(K = 52\), \(u = 1.2\), \(d = 0.8\), \(\Delta t = 1\) and change \(r\). Predict: does the premium for being American grow or shrink as \(r\) falls towards 0?</p>
+<details><summary>Reveal the table</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>\(r\)</th><th>Hold at C</th><th>Exercise at C</th><th>Gap</th><th>American</th><th>European</th></tr>
+<tr><td>0%</td><td>12.00</td><td>12</td><td>0.00</td><td>7.00</td><td>7.00</td></tr>
+<tr><td>1%</td><td>11.48</td><td>12</td><td>0.52</td><td>6.62</td><td>6.38</td></tr>
+<tr><td>5%</td><td>9.46</td><td>12</td><td>2.54</td><td>5.09</td><td>4.19</td></tr>
+<tr><td>10%</td><td>7.05</td><td>12</td><td>4.95</td><td>3.17</td><td>2.11</td></tr>
+</table>
+</div>
+<p>The gap at C is \(K(1 - e^{-r\Delta t})\): interest on $52 for a year. At \(r = 0\) it vanishes, exercising only ties, and American = European. A higher \(r\) makes both puts cheaper (the PV of receiving \(K\) falls), but it makes early exercise worth more.</p>
+</div></details>
+
+<h2>4 · American call on a non-dividend stock: the tree never exercises</h2>
+<p><strong>Predict first:</strong> same lecture tree, but a call with \(K = 52\). At node B (\(S = 60\)) exercising pays $8. Will the tree exercise there?</p>
+<details><summary>Reveal</summary><div>
+<p>Hold at B: \(e^{-0.05}[0.6282(72-52) + 0.3718(48-52)^+] = e^{-0.05}(0.6282 \times 20) = 11.95\), well above 8. Keep. At C the call is out of the money. At A: hold \(= 7.14\) vs exercise 0. American call \(= \) European call \(= \$7.14\).</p>
+</div></details>
+<p>This is Lesson 15's result showing up in the tree: holding a call is worth at least \(S - Ke^{-r\Delta t}\), which is more than \(S - K\), the exercise value, because you pay the strike later. So at every node hold beats exercise, and \(C = c\). On an exam you can say "no dividends, so the American call equals the European call; no node is exercised" and price it as European. Showing the hold-vs-exercise check at one or two nodes is a cheap way to prove it. (Dividends change this; that comes in the dividends lessons.)</p>
+
+<div class="trap"><strong>Lecture slide 8, both halves</strong><br>
+(i) American call, no dividends: never exercise early (exercise gets intrinsic; waiting gets intrinsic + time value). (ii) American put, no dividends: early exercise <em>may</em> be optimal, and at a node where it is, time value = 0.</div>
+
+<h2>5 · More steps, same rule</h2>
+<p>Lecture 6's multi-period example is a 5-step American put: \(S_0 = K = 50\), \(r = 10\%\), \(\sigma = 40\%\), \(T = 5\) months, \(\Delta t = 1\) month. With more steps, \(u\) and \(d\) come from volatility:</p>
+$$u = e^{\sigma\sqrt{\Delta t}}, \qquad d = \frac{1}{u}.$$
+<p>Here \(u = e^{0.4\sqrt{1/12}} = 1.1224\), \(d = 0.8909\), \(p = 0.5073\). Because \(ud = 1\), the tree recombines onto the same prices (50 appears at \(t = 0, 2, 4\)). The tree exercises at three nodes, all in the bottom-left corner: \(S = 39.69\) at month 4 (hold 9.90 vs exercise 10.31, the lecture's ticked node), \(S = 31.50\) at month 4, and \(S = 35.36\) at month 3. The American put is 4.49; the European would be about 4.32. The boundary between "hold" and "exercise" nodes is the <strong>early-exercise boundary</strong>: below it, exercise.</p>
+<p>Exams use 2 or 3 steps. Three steps is 6 hold-vs-exercise checks (3 at \(t=2\), 2 at \(t=1\), 1 at \(t=0\)).</p>
+
+<h2>6 · Exam layout (what earns the marks)</h2>
+<div class="box">
+<ol class="steps">
+  <li><strong>Parameters.</strong> \(\Delta t = T/n\). \(u, d\) (given, or \(u = e^{\sigma\sqrt{\Delta t}}\), \(d = 1/u\)) to 4 dp. \(p = (e^{r\Delta t} - d)/(u-d)\) to 4 dp. Write the discount factor \(e^{-r\Delta t}\).</li>
+  <li><strong>Stock tree</strong>, prices to 2 dp. Label nodes (A, B, C, …).</li>
+  <li><strong>Expiry payoffs</strong> at the final nodes.</li>
+  <li><strong>Work backwards.</strong> At every earlier node write three things: hold \(= e^{-r\Delta t}[p f_u + (1-p) f_d]\), exercise \(= K - S\) (put), value \(= \max\). Mark exercise nodes (✓ or "EE").</li>
+  <li><strong>Draw the final tree</strong> with stock price and option value at every node (the 7-mark question literally asks for this).</li>
+  <li><strong>State the answer</strong> to 2 dp, list the nodes where early exercise is optimal, and if asked, give the European value from the same tree (no max) and the premium.</li>
+  <li><strong>One sentence why:</strong> "at C the put is deep in the money on both branches, so interest on \(K\) beats the time value given up."</li>
+</ol>
+</div>
+<p>Calculator tip (Casio FX-82): store \(p\) in memory A and \(e^{-r\Delta t}\) in B. Each node is then \(B(Af_u + (1-A)f_d)\). Keep 4 dp for node values; round only the final answer.</p>
+
+<h3>Worked model answer, three steps (exam format)</h3>
+<p>Non-dividend stock \(S_0 = \$45\), \(\sigma = 20\%\), \(r = 8\%\). American put, \(K = \$48\), 9 months, three-period tree.</p>
+<details><summary>Show the full model answer</summary><div>
+<p><strong>Parameters.</strong> \(\Delta t = 0.25\). \(u = e^{0.2\sqrt{0.25}} = e^{0.1} = 1.1052\), \(d = 1/u = 0.9048\). \(p = \dfrac{e^{0.02} - 0.9048}{1.1052 - 0.9048} = \dfrac{1.0202 - 0.9048}{0.2004} = 0.5759\). Discount factor \(e^{-0.02} = 0.9802\).</p>
+<p><strong>Stock tree.</strong> \(t=1\): 49.73, 40.72. \(t=2\): 54.97, 45.00, 36.84. \(t=3\): 60.75, 49.73, 40.72, 33.33.</p>
+<p><strong>Expiry payoffs</strong> (\(K = 48\)): 0, 0, 7.28, 14.67.</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Node</th><th>\(S\)</th><th>Hold</th><th>Exercise</th><th>Value</th></tr>
+<tr><td>\(t=2\), up-up</td><td>54.97</td><td>0.0000</td><td>0</td><td>0.0000</td></tr>
+<tr><td>\(t=2\), middle</td><td>45.00</td><td>\(0.9802[0.5759(0)+0.4241(7.28)] = 3.0282\)</td><td>3.00</td><td>3.0282</td></tr>
+<tr><td>\(t=2\), down-down</td><td>36.84</td><td>\(0.9802[0.5759(7.28)+0.4241(14.67)] = 10.2094\)</td><td>11.16</td><td><strong>11.1602 EE</strong></td></tr>
+<tr><td>\(t=1\), up</td><td>49.73</td><td>\(0.9802[0.5759(0)+0.4241(3.0282)] = 1.2588\)</td><td>0</td><td>1.2588</td></tr>
+<tr><td>\(t=1\), down</td><td>40.72</td><td>\(0.9802[0.5759(3.0282)+0.4241(11.1602)] = 6.3487\)</td><td>7.28</td><td><strong>7.2840 EE</strong></td></tr>
+<tr><td>\(t=0\)</td><td>45.00</td><td>\(0.9802[0.5759(1.2588)+0.4241(7.2840)] = 3.7386\)</td><td>3.00</td><td>3.7386</td></tr>
+</table>
+</div>
+<p><strong>Answer.</strong> American put \(= \$3.74\). Early exercise is optimal at the down node after one step (\(S = 40.72\)) and at the down-down node (\(S = 36.84\)). The same tree without the max gives a European put of \$3.19, so the early-exercise premium is about \$0.55. Notice the middle node at \(t=2\): hold 3.03 only just beats exercise 3.00, because there one branch still finishes out of the money.</p>
+</div></details>
+
+<h2>7 · Try it</h2>
+<p>Set up any tree with up to 4 steps. Things to try: (1) the lecture put, then switch Style to European and watch node C drop from 12 to 9.46. (2) Switch to a call: no node ever highlights. (3) Raise \(r\) and watch more nodes exercise; raise \(u\) (or \(\sigma\)) and watch them stop. (4) Set \(r = 0\): the premium goes to zero.</p>
+<div class="amtree" data-s="50" data-k="52" data-r="0.05" data-dt="1" data-n="2" data-u="1.2" data-d="0.8" data-type="put"></div>
+
+<h2>8 · Concept checks</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>C1.</strong> At an interior node of an American put tree, what is the option value?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The discounted risk-neutral average of the next two values</button>
+    <button class="opt" data-key="b">The exercise value \(K - S\) at that node, whatever it is</button>
+    <button class="opt" data-key="c">The larger of the continuation value and \(K - S\) there</button>
+    <button class="opt" data-key="d">The smaller of the continuation value and \(K - S\) there</button>
+  </div>
+  <div class="why">The holder picks the better of keeping (continuation) and exercising. (a) is the European rule.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>C2.</strong> At the final nodes of an American put tree, how does the value compare with the European tree?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Higher, because the American holder can still choose to wait</button>
+    <button class="opt" data-key="b">Identical, because both equal the payoff \(\max(K - S_T, 0)\)</button>
+    <button class="opt" data-key="c">Lower, because the early-exercise right has been used up</button>
+    <button class="opt" data-key="d">Identical only if no earlier node was an exercise node</button>
+  </div>
+  <div class="why">At expiry there is no "later", so both options are worth the payoff. Differences only appear at earlier nodes.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>C3.</strong> At a node of a put tree both next-step stock prices are below \(K\), and \(r \gt 0\). What should the American holder do there?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Hold, because the put is certain to pay off next step</button>
+    <button class="opt" data-key="b">Hold, unless volatility is low enough to make it worth it</button>
+    <button class="opt" data-key="c">It depends on \(p\), so the node must be computed first</button>
+    <button class="opt" data-key="d">Exercise, because holding is only worth \(Ke^{-r\Delta t} - S\)</button>
+  </div>
+  <div class="why">Both payoffs are \(K - S_{\text{next}}\), linear in the stock, so the hold value is \(e^{-r\Delta t}E^*[K - S_{\text{next}}] = Ke^{-r\Delta t} - S \lt K - S\). No insurance left, only lost interest.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>C4.</strong> A two-step American put tree has no exercise nodes. What follows?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The American put equals the European put on that tree</button>
+    <button class="opt" data-key="b">The American put is worth less than the European put</button>
+    <button class="opt" data-key="c">The tree is wrong, since puts are always exercised early</button>
+    <button class="opt" data-key="d">The American put is worth its intrinsic value at \(t = 0\)</button>
+  </div>
+  <div class="why">If the max never picks exercise, every node equals the European calculation, so the early-exercise premium is 0.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>C5.</strong> Starting from a tree where a down node is just barely an exercise node, which change is most likely to make that node a hold node?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A higher risk-free rate, with \(u\) and \(d\) unchanged</button>
+    <button class="opt" data-key="b">A wider gap between \(u\) and \(d\), with \(r\) unchanged</button>
+    <button class="opt" data-key="c">A higher strike price, with \(u\), \(d\) and \(r\) unchanged</button>
+    <button class="opt" data-key="d">A lower risk-free rate together with a narrower \(u\)–\(d\) gap</button>
+  </div>
+  <div class="why">A wider spread is higher volatility: more insurance value from holding. Higher \(r\) and higher \(K\) push towards exercise; (d) mixes a push each way.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>C6.</strong> An American call on a non-dividend stock is priced on a three-step tree. How many nodes are exercise nodes?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Only the highest node at \(t = 2\), where the call is deepest</button>
+    <button class="opt" data-key="b">All in-the-money nodes before expiry, as for an American put</button>
+    <button class="opt" data-key="c">None, because holding is worth at least \(S - Ke^{-r\Delta t}\)</button>
+    <button class="opt" data-key="d">It depends on the volatility, so the tree must be computed</button>
+  </div>
+  <div class="why">Hold \(\ge S - Ke^{-r\Delta t} \gt S - K\) at every node, so \(C = c\). Lecture 6 slide 8 (i).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>C7.</strong> At an exercise node of an American put tree, what is the option's time value at that node?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Zero: the option value equals its intrinsic value there</button>
+    <button class="opt" data-key="b">Positive: it equals the early-exercise premium at \(t = 0\)</button>
+    <button class="opt" data-key="c">Negative: the continuation value is above intrinsic value</button>
+    <button class="opt" data-key="d">Equal to the European value at that node minus \(K - S\)</button>
+  </div>
+  <div class="why">Value = max(hold, \(K - S\)) = \(K - S\) at an exercise node, so time value = value − intrinsic = 0. (The European put there can be worth <em>less</em> than \(K - S\).)</div>
+</div>
+
+<h2>9 · Exam-style questions</h2>
+<p>Calculator-only, same length as the finals. Keep \(u, d, p\) to 4 dp and node values to 4 dp; answers to 2 dp. Draw the tree on paper first.</p>
+
+<h3>Question A (two-step, \(u\) and \(d\) given, about 6 marks)</h3>
+<div class="box">A non-dividend stock trades at $80. Over each of the next two 6-month periods it will either rise by 25% or fall by 20%. The risk-free rate is 6% p.a. continuously compounded. Consider a 1-year put with strike $84.</div>
+
+<div class="quiz num" data-answer="0.5121" data-tol="0.0002">
+  <p class="q"><strong>A1.</strong> What is the risk-neutral probability \(p\) of an up move (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(u = 1.25\), \(d = 0.80\), \(\Delta t = 0.5\). \(p = \dfrac{e^{0.03} - 0.8}{1.25 - 0.8} = \dfrac{1.0305 - 0.8}{0.45} = 0.5121\).</div>
+</div>
+
+<div class="quiz num" data-answer="17.52" data-tol="0.01">
+  <p class="q"><strong>A2.</strong> At the down node after 6 months (\(S = 64\)), what is the put's continuation value?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Expiry payoffs: \(S = 125, 80, 51.20\) give \(0, 4, 32.80\). Hold \(= e^{-0.03}[0.5121(4) + 0.4879(32.80)] = 0.9704 \times 18.0509 = 17.52\). Exercising pays \(84 - 64 = 20\), which is more.</div>
+</div>
+
+<div class="quiz num" data-answer="10.41" data-tol="0.01">
+  <p class="q"><strong>A3.</strong> What is the value of the American put today?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Up node (\(S = 100\)): \(e^{-0.03}[0.5121(0) + 0.4879(4)] = 1.8938\), exercise 0 → keep. Down node: \(\max(17.52, 20) = 20\), exercise. Today: \(e^{-0.03}[0.5121(1.8938) + 0.4879(20)] = 10.41\) vs exercise \(84 - 80 = 4\) → keep. \(P = \$10.41\).</div>
+</div>
+
+<div class="quiz num" data-answer="9.24" data-tol="0.01">
+  <p class="q"><strong>A4.</strong> What is the value of the European put with the same terms?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Use 17.52 (not 20) at the down node: \(e^{-0.03}[0.5121(1.8938) + 0.4879(17.5174)] = 9.24\).</div>
+</div>
+
+<div class="quiz num" data-answer="1.18" data-tol="0.015">
+  <p class="q"><strong>A5.</strong> What is the early-exercise premium?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(10.4104 - 9.2350 = 1.18\) (1.17 if you subtract the rounded 10.41 and 9.24; either is fine).</div>
+</div>
+
+<div class="quiz num" data-answer="10.13" data-tol="0.01">
+  <p class="q"><strong>A6.</strong> Same tree, an <em>American call</em> with strike $84. What is it worth?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">No dividends, so price it as European. Payoffs \(41, 0, 0\). \(f = e^{-0.06}\,p^2(41) = 0.9418 \times 0.2623 \times 41 = 10.13\). Check the up node: hold \(e^{-0.03}(0.5121 \times 41) = 20.37 \gt 100 - 84 = 16\), so keep.</div>
+</div>
+
+<h3>Question B (\(u\) from \(\sigma\): a two-step warm-up, then three steps, about 7 marks)</h3>
+<div class="box">A non-dividend stock trades at $60 with volatility 30% p.a. The risk-free rate is 2% p.a. continuously compounded. An American put has strike $58 and 6 months to expiry. Use a two-period tree for B1–B3.</div>
+
+<div class="quiz num" data-answer="1.1618" data-tol="0.0002">
+  <p class="q"><strong>B1.</strong> What is \(u\) (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\Delta t = 0.25\). \(u = e^{0.3\sqrt{0.25}} = e^{0.15} = 1.1618\); \(d = 1/u = 0.8607\); \(p = (e^{0.005} - 0.8607)/(1.1618 - 0.8607) = 0.4793\).</div>
+</div>
+
+<div class="quiz num" data-answer="3.64" data-tol="0.01">
+  <p class="q"><strong>B2.</strong> What is the American put worth today?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Stock: 80.99, 60.00, 44.45 at expiry; payoffs 0, 0, 13.55. Down node (\(S = 51.64\)): hold \(e^{-0.005}(0.5207 \times 13.5517) = 7.02\) vs exercise \(58 - 51.64 = 6.36\) → keep. Up node: 0. Today: \(e^{-0.005}(0.5207 \times 7.0212) = 3.64\) vs exercise 0. \(P = \$3.64\).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>B3.</strong> Which conclusion about the put in B2 is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Exercise at the down node; American is worth more than European</button>
+    <button class="opt" data-key="b">No node is exercised early; American equals European at 3.64</button>
+    <button class="opt" data-key="c">Exercise today, since the put is in the money at \(t = 0\)</button>
+    <button class="opt" data-key="d">No node is exercised early; American is below European at 3.64</button>
+  </div>
+  <div class="why">At the down node the middle child (60) is out of the money, so the put still has insurance value, and with \(r = 2\%\) there is little interest to gain. Also, at \(t = 0\) the put is out of the money (\(S = 60 \gt 58\)).</div>
+</div>
+
+<div class="box">Now a different put for B4–B6. Non-dividend stock $45, \(\sigma = 20\%\), \(r = 8\%\), American put, \(K = \$48\), 9 months, <strong>three</strong>-period tree (the model answer in section 6; cover it first).</div>
+
+<div class="quiz num" data-answer="0.5759" data-tol="0.0002">
+  <p class="q"><strong>B4.</strong> What is \(p\) (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(u = e^{0.1} = 1.1052\), \(d = 0.9048\), \(p = (e^{0.02} - 0.9048)/0.2004 = 0.5759\).</div>
+</div>
+
+<div class="quiz num" data-answer="3.74" data-tol="0.01">
+  <p class="q"><strong>B5.</strong> What is the American put worth today?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the table in section 6. Exercise at \(S = 36.84\) (\(t=2\)) and \(S = 40.72\) (\(t=1\)); today \(0.9802[0.5759(1.2588) + 0.4241(7.2840)] = 3.74\).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>B6.</strong> At which nodes is early exercise optimal in B5?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Only the down-down node at \(t = 2\), where \(S = 36.84\)</button>
+    <button class="opt" data-key="b">The middle node at \(t = 2\) and the down node at \(t = 1\)</button>
+    <button class="opt" data-key="c">Every node where the put is in the money before expiry</button>
+    <button class="opt" data-key="d">The down node at \(t = 1\) and the down-down node at \(t = 2\)</button>
+  </div>
+  <div class="why">\(t=1\) down: \(\max(6.35, 7.28)\); \(t=2\) down-down: \(\max(10.21, 11.16)\). The middle node at \(t=2\) (\(S = 45\)) is in the money but hold (3.03) beats exercise (3.00); today hold 3.74 beats 3.00. So (c) is wrong.</div>
+</div>
+
+<h3>Question C (deep in the money, about 4 marks)</h3>
+<div class="box">A non-dividend stock trades at $30. Each 6-month period it rises 10% or falls 10%. \(r = 10\%\) p.a. continuously compounded. A 1-year American put has strike $40. Two-period tree.</div>
+
+<div class="quiz num" data-answer="10" data-tol="0.01">
+  <p class="q"><strong>C-1.</strong> What is the American put worth today?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(p = (e^{0.05} - 0.9)/0.2 = 0.7564\). Expiry: 36.30, 29.70, 24.30 → 3.70, 10.30, 15.70. Up node (33): hold 5.05 vs 7 → exercise. Down node (27): hold 11.05 vs 13 → exercise. Today: hold \(e^{-0.05}[0.7564(7) + 0.2436(13)] = 8.05\) vs \(40 - 30 = 10\) → exercise now. \(P = \$10.00\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>C-2.</strong> What should the holder of the put in C-1 do today, and what is the European put worth?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Exercise immediately; the European put is worth about $6.19</button>
+    <button class="opt" data-key="b">Hold until the first node; the European put is worth $10.00</button>
+    <button class="opt" data-key="c">Exercise immediately; the European put is also worth $10.00</button>
+    <button class="opt" data-key="d">Hold to expiry; the European put is worth about $8.05</button>
+  </div>
+  <div class="why">European: \(e^{-0.10}[p^2(3.70) + 2p(1-p)(10.30) + (1-p)^2(15.70)] = 6.19\), below its intrinsic value of 10 (a European put can trade below \(K - S\); Lesson 15). The premium is 3.81.</div>
+</div>
+
+<h3>Question D (mispricing, about 3 marks)</h3>
+<div class="box">Back to Question A: your tree says the American put is worth $10.41. Use the American values at the first-step nodes (\(f_u = 1.8938\) at \(S = 100\), \(f_d = 20\) at \(S = 64\)).</div>
+
+<div class="quiz num" data-answer="-0.503" data-tol="0.001">
+  <p class="q"><strong>D1.</strong> What is the put's delta \(\Delta = \dfrac{f_u - f_d}{S_u - S_d}\) at \(t = 0\) (3 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\Delta = (1.8938 - 20)/(100 - 64) = -18.1062/36 = -0.503\). A long put is hedged by buying 0.503 shares.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>D2.</strong> The put is quoted at $9.50. Which strategy locks in a riskless profit?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Sell the put, short 0.503 shares, invest the proceeds at \(r\)</button>
+    <button class="opt" data-key="b">Buy the put, short 0.503 shares, invest the proceeds at \(r\)</button>
+    <button class="opt" data-key="c">Buy the put, buy 0.503 shares, borrow the cost at rate \(r\)</button>
+    <button class="opt" data-key="d">Sell the put, buy 0.503 shares, borrow the cost at rate \(r\)</button>
+  </div>
+  <div class="why">Cheap → buy it. Hedge a long put (\(\Delta \lt 0\)) with a long stock position, financed by borrowing. Rebalance at the next node and exercise where the tree says (at \(S = 64\)). The profit in today's money is \(10.41 - 9.50 = \$0.91\).</div>
+</div>
+
+<div class="quiz num" data-answer="0.5" data-tol="0.005">
+  <p class="q"><strong>D3.</strong> Instead the put is quoted at $3.50 with the stock at $80. What riskless profit is available right now, per put?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">That is below the intrinsic value \(84 - 80 = 4\). Buy the put and a share for \(83.50\), exercise immediately, receive \(84\): profit \(\$0.50\). No tree needed.</div>
+</div>
+
+<h3>Quick variations</h3>
+
+<div class="quiz num" data-answer="6.62" data-tol="0.01">
+  <p class="q"><strong>V1.</strong> The lecture tree (\(S_0 = 50\), \(K = 52\), \(u = 1.2\), \(d = 0.8\), \(\Delta t = 1\)) with \(r = 1\%\). Value of the American put?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(p = (e^{0.01} - 0.8)/0.4 = 0.5251\). B: \(e^{-0.01}(0.4749 \times 4) = 1.8806\). C: hold \(e^{-0.01}[0.5251(4) + 0.4749(20)] = 11.48\) vs 12 → exercise. A: \(e^{-0.01}[0.5251(1.8806) + 0.4749(12)] = 6.62\). European is 6.38: premium only 0.24 at a low rate.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>V2.</strong> A student prices an American put by building the European tree, then at \(t = 0\) only takes \(\max(f_{\text{Euro}}, K - S_0)\). When does this give the right answer?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Always, since early exercise only matters at \(t = 0\)</button>
+    <button class="opt" data-key="b">Only if no node after \(t = 0\) would be an exercise node</button>
+    <button class="opt" data-key="c">Never, because the final payoffs differ for American puts</button>
+    <button class="opt" data-key="d">Only if the put is out of the money at time \(t = 0\)</button>
+  </div>
+  <div class="why">The exercise checks must be done at every node and carried back. On the lecture tree this shortcut gives 4.19 instead of 5.09.</div>
+</div>
+
+<div class="quiz num" data-answer="0.29" data-tol="0.005">
+  <p class="q"><strong>V3 (Tutorial 6 Q1).</strong> 3-month American put, \(S_0 = K = \$50\), \(r = 12\%\), the stock moves up or down 2% each month, three one-month steps. Value?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(p = (e^{0.01} - 0.98)/0.04 = 0.7513\). Exercise at \(S = 49\) after one month (hold 0.674 vs 1) and at \(S = 48.02\) (only reachable through 49). Value \(0.29\); the European would be 0.18. A high \(r\) and a tiny 2% move make the put almost all "interest" and very little insurance.</div>
+</div>
+
+<h2>10 · Rule of thumb</h2>
+<div class="box"><strong>American on a tree = European tree + "max(hold, exercise)" at every node, carried backwards.</strong> For puts, exercise shows up at the low nodes, especially where both branches below finish in the money; more of it with higher \(r\), less with wider \(u\)–\(d\) (higher \(\sigma\)), none at \(r = 0\). For calls on non-dividend stocks it never shows up, so \(C = c\). Report: value, exercise nodes, and (if asked) European value and premium.</div>
+
+<details><summary>Retrieval: before closing, write the node formula and the three-line answer for the lecture tree from memory</summary><div>
+<p>\(f = \max\{e^{-r\Delta t}[pf_u + (1-p)f_d],\; K - S\}\). Lecture tree: C is an exercise node (12 vs 9.46); American 5.09, European 4.19, premium 0.90. Call on the same tree: 7.14 American = European.</p>
+</div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/Lecture%206_Binomial%20II.pdf">Lecture 6 (Binomial II)</a>, slides 4–12, and Hull, <em>Options, Futures and Other Derivatives</em>, the Binomial Trees chapter (Ch. 12 in the edition the lecture cites), sections "American options" and "Increasing the number of steps".</p>
+<p><strong>Homework (trimmed).</strong> <a href="../tutes/Tutorial%206.pdf">Tutorial 6</a> Q1: (i) find \(u, d, p\) and draw the three-period stock tree, (ii) work back with the max at all six earlier nodes, (iii) state where you'd exercise and compare with the European value (<a href="../tutes/Tutorial%206%20solutions.pdf">solutions</a>: 0.29, exercise at the $49 node). Then on Lecture 6's 5-step tree, check two nodes yourself: \(S = 39.69\) at month 4 and \(S = 35.36\) at month 3. Optional: Tutorial 6 Q2 (the two-step formula, already in Lesson 18) and Q6 (convergence with the simulator). Tutorial 6 Q3–Q5 belong to Lesson 20.</p>
+<p><strong>Spacing:</strong> tomorrow redo Question A cold in under 10 minutes, then Question B (three-step) in under 15.</p>
+
+<div class="ask">💬 Stuck on a node, or want a fresh tree to practise (different \(u\), \(d\), \(r\), three steps, a call that "looks" like it should be exercised)? Paste your working in the terminal and ask me. I'm your teacher for this.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0018-two-step-trees-and-u-d-from-volatility.html">Lesson 18, two-step trees</a></span>
+  <span>Reference: <a href="../reference/options-cheatsheet.html">Options cheatsheet</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="0015-early-exercise-of-american-options.html">Lesson 15</a></span>
+  <span>Next: <a href="0020-futures-options-basics-and-parity.html">Lesson 20, futures options basics and parity</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

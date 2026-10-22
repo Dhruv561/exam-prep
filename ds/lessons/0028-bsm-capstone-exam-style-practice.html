@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BSM Capstone: Exam-Style Practice</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.exq { border: 1px solid var(--rule); border-radius: 6px; padding: .2rem 1.1rem 1rem; margin: 1.4rem 0; background: var(--card); }
+.exq h3 { margin-top: 1rem; }
+.pt { display: flex; gap: .8rem; margin: .6rem 0; }
+.pt .mk { flex: none; font-family: Inter, system-ui, sans-serif; font-size: .78rem; font-weight: 600; color: var(--accent); width: 4.2rem; padding-top: .25rem; }
+.pt .tx { flex: 1; }
+.given { font-family: Inter, system-ui, sans-serif; font-size: .85rem; color: var(--muted); }
+.checklist h3 { margin-top: 1rem; }
+@media print { .exq { break-inside: avoid; } .checklist { break-before: page; } }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 28 · Topic 7: Black-Scholes-Merton (capstone)</div>
+<h1>BSM capstone: exam-style practice</h1>
+<p class="lede">The goal: sit five fresh 10–12 mark BSM-style questions plus a 12-item mixed quiz, mark yourself line by line, and leave with a map of which lesson to reopen for each lost mark, and a one-page checklist to take into the exam.</p>
+
+<div class="mission">Why this matters for 5 Nov: the BSM topic shows up in finals as 1–2 questions of 9–12 marks (a priced call or put with 4 dp working, a lognormal exercise probability, a dividend, currency or futures variant, a delta or market-maker follow-up) plus 1–2 mark theory parts ("link between binomial and BSM", implied volatility, the VIX futures example). Each part is worth a few marks and most marks are for visible method, so practise showing every line.</div>
+
+<p>This lesson assumes <a href="0022-normal-and-lognormal-stock-prices.html">Lesson 22</a> (the normal table, lognormal prices, \(\sigma\sqrt{T}\), 95% intervals), <a href="0023-what-bsm-assumes-and-why-it-works.html">Lesson 23</a> (assumptions, the riskless hedge, limiting cases, meaning of \(N(d_1)\) and \(N(d_2)\)), <a href="0024-computing-bsm-call-and-put-prices.html">Lesson 24</a> (computing prices, the rounding rule), <a href="0025-bsm-as-the-limit-of-the-binomial-tree.html">Lesson 25</a> (binomial convergence, the 2-mark "link"), <a href="0026-implied-volatility-smiles-and-vix.html">Lesson 26</a> (implied volatility, smiles, VIX futures) and <a href="0027-blacks-model-futures-options-and-fx.html">Lesson 27</a> (Black's model, plus a Lecture 8 preview of currency, yield and dividend adjustments). Terms are defined in the <a href="../reference/glossary.html">glossary</a>. Past exams were mined for <em>patterns only</em>; every question below is new.</p>
+
+<h2>0 · How the finals ask BSM (patterns)</h2>
+<div class="tablewrap">
+<table>
+<tr><th>Pattern in past finals</th><th>Typical marks</th><th>Where the marks go</th></tr>
+<tr><td>Price a call or put: \(d_1, d_2\), table values, price</td><td>4–5</td><td>\(d_1\) and \(d_2\) lines, the four \(N(\cdot)\) values, the formula with numbers substituted, final answer</td></tr>
+<tr><td>Put from put-call parity after pricing the call</td><td>1–2</td><td>Right parity form for the underlying (dividend, yield, currency)</td></tr>
+<tr><td>Lognormal "probability the option is exercised" given \(\mu\)</td><td>5 + 1</td><td>Mean of \(\ln S_T\) uses \(\mu - \sigma^2/2\); put probability is \(1-\) call probability</td></tr>
+<tr><td>Discrete dividends before expiry; one falls after expiry</td><td>5</td><td>PV of dividends inside the life only; \(S_0 \to S_0 - PV(D)\)</td></tr>
+<tr><td>Futures option (Black's model) or currency option, then parity</td><td>4 + 1–2</td><td>No \(r\) in \(d_1\); multiply by \(e^{-rT}\); contract size; foreign rate as yield</td></tr>
+<tr><td>Delta of a short put from \(N(d_1)\); re-hedge after the stock moves</td><td>2–3 each</td><td>Sign (put delta \(= -N(-d_1)\)), short flips the sign, number of units</td></tr>
+<tr><td>Quoted price differs from model price: market-maker trade</td><td>2–3</td><td>Sell if market \(>\) model, buy if below, hedge with \(N(d_1)\) shares</td></tr>
+<tr><td>Theory: binomial vs BSM assumption, when they converge, "the link"</td><td>1 + 1 + 2</td><td>Discrete vs continuous trading; steps \(\to\infty\) with \(u = e^{\sigma\sqrt{\Delta t}}\); BSM is the limit</td></tr>
+<tr><td>Implied vol and VIX explanation, smile shape, direction</td><td>2–6</td><td>Definition (price in, \(\sigma\) out), forward looking, 30-day S&amp;P 500, futures P&amp;L \(\times\) 1,000</td></tr>
+</table>
+</div>
+<div class="trap"><strong>Rounding rule used in every solution here (full evidence in <a href="0024-computing-bsm-call-and-put-prices.html">Lesson 24</a>)</strong><br>
+Compute \(d_2 = d_1 - \sigma\sqrt{T}\) from the unrounded \(d_1\); round \(d_1, d_2\) to 2 dp; read \(N\) from the table (4 dp; no interpolation); carry 4 dp; give the final answer to the dp the question asks ("keep four decimal places" means 4 dp; if silent, 2 dp for a dollar price). With a contract size, multiply inside the formula and round once at the end. The normal table is on the formula sheet (pp.5-6): one table for \(x\le0\), one for \(x\ge0\), \(x\) from 0.00 to 4.00, so read \(N(-x)\) straight off the \(x\le0\) table (it equals \(1-N(x)\)). The Black's, yield, currency and delta variants are on the sheet too. Exception: the 2022 final said "round \(d\) to 4 dp and interpolate", so obey any such instruction on your paper. Solutions show the exact-\(d\) value as "exact" when it differs; the table value is the one to write. Always show \(d_1\), \(d_2\) and the \(N\) values: markers award method marks.</div>
+
+<h2>1 · Warm-up: direction drill (predict first)</h2>
+<p>Non-dividend stock, European options. For each change (others fixed), say whether the call and the put go up or down. Commit, then open.</p>
+<details><summary>Reveal the drill</summary><div>
+<div class="tablewrap"><table>
+<tr><th>Change</th><th>Call</th><th>Put</th><th>One-line reason</th></tr>
+<tr><td>\(S_0\) up</td><td>up</td><td>down</td><td>Call pays more in the money; put less</td></tr>
+<tr><td>\(K\) up</td><td>down</td><td>up</td><td>Mirror image</td></tr>
+<tr><td>\(\sigma\) up</td><td>up</td><td>up</td><td>Both have limited downside to the holder, so wider spread helps both</td></tr>
+<tr><td>\(T\) up</td><td>up</td><td>up (usually)</td><td>More time for the spread to widen; a deep in-the-money put can fall because of discounting</td></tr>
+<tr><td>\(r\) up</td><td>up</td><td>down</td><td>PV of \(K\) falls: \(c - p = S_0 - Ke^{-rT}\) widens</td></tr>
+<tr><td>Dividend announced inside the life</td><td>down</td><td>up</td><td>\(S_0 \to S_0 - PV(D)\)</td></tr>
+<tr><td>Market price of the call rises, nothing else changes</td><td>implied \(\sigma\) up</td><td>(n/a)</td><td>Price is increasing in \(\sigma\), so a higher price needs a higher \(\sigma\)</td></tr>
+</table></div>
+</div></details>
+
+<h2>2 · Mixed retrieval quiz (Lessons 22–27)</h2>
+<p>Twelve one-mark items. Do them cold before the long questions.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>R1 (L22).</strong> A stock has \(\sigma = 40\%\) a year. What is the standard deviation of \(\ln(S_T/S_0)\) over three months?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">10.0%, found as volatility times T</button>
+    <button class="opt" data-key="b">20.0%, found as volatility times root T</button>
+    <button class="opt" data-key="c">40.0%, volatility is already annual</button>
+    <button class="opt" data-key="d">80.0%, found as volatility over root T</button>
+  </div>
+  <div class="why">Variance grows with time, so standard deviation grows with \(\sqrt{T}\): \(0.40\sqrt{0.25} = 0.20\).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>R2 (L22).</strong> Why does BSM assume the stock price is lognormal rather than normal?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Normal prices would make option values come out negative</button>
+    <button class="opt" data-key="b">Lognormal prices have a mean that equals the current price</button>
+    <button class="opt" data-key="c">Price cannot fall below zero but can rise without any limit</button>
+    <button class="opt" data-key="d">Lognormal prices remove the need to know the volatility</button>
+  </div>
+  <div class="why">\(\ln S_T\) is normal, so \(S_T = e^{\ln S_T} > 0\), and the right tail is unbounded.</div>
+</div>
+
+<div class="quiz num" data-answer="0.02" data-tol="0.005">
+  <p class="q"><strong>R3 (L24).</strong> A call has \(d_1 = 0.52\), \(\sigma = 25\%\) and \(T = 4\) years. What is \(d_2\)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(d_2 = d_1 - \sigma\sqrt{T} = 0.52 - 0.25 \times 2 = 0.02\).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>R4 (L24).</strong> In the BSM formula, what is \(N(d_2)\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The delta of the call, i.e. the shares held to hedge it</button>
+    <button class="opt" data-key="b">The real-world chance that the put finishes in the money</button>
+    <button class="opt" data-key="c">The expected payoff of the call, discounted to today</button>
+    <button class="opt" data-key="d">The risk-neutral chance that the call finishes in the money</button>
+  </div>
+  <div class="why">\(N(d_2)\) is the risk-neutral probability \(S_T > K\); \(N(d_1)\) is the call's delta. A real-world probability would use \(\mu\) in place of \(r\).</div>
+</div>
+
+<div class="quiz num" data-answer="1.24" data-tol="0.01">
+  <p class="q"><strong>R5 (L24).</strong> A one-year European call (\(K = 50\)) costs $3.20; the non-dividend stock is $50 and \(r = 4\%\). Fair price of the matching European put?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(p = c + Ke^{-rT} - S_0 = 3.20 + 48.0395 - 50 = \$1.24\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>R6 (L25).</strong> A binomial tree with \(u = e^{\sigma\sqrt{\Delta t}}\), \(d = 1/u\) prices a European call. As the number of steps grows, the tree value approaches:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">the BSM price, because the tree's final prices become lognormal</button>
+    <button class="opt" data-key="b">zero, because each step carries a smaller up-move than before</button>
+    <button class="opt" data-key="c">the intrinsic value, because small steps remove the time value</button>
+    <button class="opt" data-key="d">the American price, because more steps allow early exercise</button>
+  </div>
+  <div class="why">Same \(\sigma\), \(r\), \(K\), \(T\): the binomial price converges to BSM (lecture: 6.19, 6.07, 6.01 for 2, 5, 20 steps versus 6.00).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>R7 (L26).</strong> The market price of a call rises while \(S_0\), \(K\), \(T\) and \(r\) are unchanged. The implied volatility:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">falls, because the call now looks overpriced to the model</button>
+    <button class="opt" data-key="b">rises, because only a higher \(\sigma\) gives a higher model price</button>
+    <button class="opt" data-key="c">stays put, because implied volatility ignores the option price</button>
+    <button class="opt" data-key="d">cannot be said, because it depends on the dividend only</button>
+  </div>
+  <div class="why">BSM price is increasing in \(\sigma\); implied volatility is the \(\sigma\) that matches the market price.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>R8 (L26).</strong> For equity index options, implied volatility is usually highest at which strikes, and why?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">High strikes, as crashes are less likely than lognormal says</button>
+    <button class="opt" data-key="b">At-the-money, as time value is largest for those options</button>
+    <button class="opt" data-key="c">Low strikes, as big falls are likelier than lognormal says</button>
+    <button class="opt" data-key="d">All strikes equally, as BSM is correct for equity options</button>
+  </div>
+  <div class="why">The equity "smirk": implied volatility falls as the strike rises, reflecting a fatter left tail (negative skew) than the lognormal.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>R9 (L26).</strong> A trader buys one VIX futures contract (1,000 times the index) at 18.2 and closes it at 17.5. What is the result?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A gain of $700, because volatility is a measure of risk</button>
+    <button class="opt" data-key="b">A loss of $700, found as (17.5 - 18.2) x 1,000</button>
+    <button class="opt" data-key="c">A loss of $0.70, found as the move in the index alone</button>
+    <button class="opt" data-key="d">A gain of $700, found as 18.2 minus 17.5 times 1,000</button>
+  </div>
+  <div class="why">Long futures gain when the price rises: \((17.5 - 18.2) \times 1{,}000 = -\$700\). The VIX is an index of the implied volatility of 30-day S&amp;P 500 options (a reading of 15 means 15% a year); the lecture's example is a gain of \((19.3 - 18.5) \times 1{,}000 = \$800\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>R10 (L27).</strong> In Black's model for a European option on a futures price \(F_0\), \(d_1\) equals:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\([\ln(F_0/K) + \sigma^2T/2] / (\sigma\sqrt{T})\), with no \(r\) in it</button>
+    <button class="opt" data-key="b">\([\ln(F_0/K) + (r + \sigma^2/2)T] / (\sigma\sqrt{T})\), as for stock</button>
+    <button class="opt" data-key="c">\([\ln(F_0/K) - \sigma^2T/2] / (\sigma\sqrt{T})\), with no \(r\) in it</button>
+    <button class="opt" data-key="d">\([\ln(F_0/K) + (r - \sigma^2/2)T] / (\sigma\sqrt{T})\), as for \(d_2\)</button>
+  </div>
+  <div class="why">Replace \(S_0\) by \(F_0e^{-rT}\): the \(rT\) cancels inside the log. The price is then multiplied by \(e^{-rT}\).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>R11 (L24, L27).</strong> A stock is $30. It pays $0.50 in 2 months and $0.50 in 8 months. A 6-month European call is priced by BSM. What replaces \(S_0\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(30 - 0.50 - 0.50\), subtracting both dividends at face value</button>
+    <button class="opt" data-key="b">\(30 - 0.50e^{-r \times 2/12}\), as only the first falls in the life</button>
+    <button class="opt" data-key="c">\(30 - 0.50e^{-r \times 2/12} - 0.50e^{-r \times 8/12}\)</button>
+    <button class="opt" data-key="d">\(30\), as dividends are already inside the volatility</button>
+  </div>
+  <div class="why">The second dividend is after expiry, so the option holder never misses it. Only dividends inside the life are present-valued and removed.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>R12 (L27).</strong> To price a European call on a foreign currency with the stock formula, which input plays the role of the dividend yield \(q\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The domestic risk-free rate, used to discount the strike</button>
+    <button class="opt" data-key="b">The volatility of the exchange rate over the option's life</button>
+    <button class="opt" data-key="c">The foreign risk-free rate, earned by holding the currency</button>
+    <button class="opt" data-key="d">The forward premium, quoted as a percentage of spot</button>
+  </div>
+  <div class="why">Holding foreign currency earns \(r_f\), exactly like a continuous yield: \(S_0 \to S_0e^{-r_fT}\), \(d_1\) uses \(r - r_f\).</div>
+</div>
+
+<h2>3 · Exam-style questions</h2>
+<p>Do each timed (about 2 minutes a mark), on paper, with a calculator and the formula-sheet normal table (pp.5-6). Then open the solution and mark yourself part by part. Marks are shown per part; method marks are given for each line shown.</p>
+
+<!-- ===================== Q1 ===================== -->
+<div class="exq">
+<h3>Question 1 (11 marks): lognormal prices and the binomial link</h3>
+<p>A non-dividend-paying stock is $45. Its expected return is 14% a year (continuously compounded) and its volatility is 30% a year. The risk-free rate is 5% a year. Assume the stock price is lognormal. Keep four decimal places in your working.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">State the distribution of \(\ln S_T\) for \(T\) = nine months, giving its mean and standard deviation.</span></div>
+<div class="pt"><span class="mk">(b) 4 marks</span><span class="tx">What is the probability that a nine-month European call with strike $42 is exercised?</span></div>
+<div class="pt"><span class="mk">(c) 1 mark</span><span class="tx">What is the probability that the matching European put (strike $42) is exercised?</span></div>
+<div class="pt"><span class="mk">(d) 2 marks</span><span class="tx">The BSM formula contains \(N(d_2)\). Calculate it and explain why it differs from your answer to (b).</span></div>
+<div class="pt"><span class="mk">(e) 2 marks</span><span class="tx">What is the link between the binomial model and the BSM model, and under what condition do their prices agree? No formulae needed.</span></div>
+<details><summary>Normal-table values you may need</summary><div class="given">\(N(0.27)=0.6064\), \(N(0.28)=0.6103\), \(N(0.54)=0.7054\), \(N(0.55)=0.7088\).</div></details>
+<div class="quiz num" data-answer="0.7054" data-tol="0.0005">
+  <p class="q">Headline check: your answer to (b), as a probability.</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> \(\ln S_T \sim \text{Normal}\big(\ln S_0 + (\mu - \sigma^2/2)T,\ \sigma^2T\big)\).</p>
+<p>Mean \(= \ln 45 + (0.14 - 0.3^2/2)(0.75) = 3.8067 + (0.14 - 0.045)(0.75) = 3.8067 + 0.0713 = 3.8779\). Variance \(= 0.3^2 \times 0.75 = 0.0675\); standard deviation \(= 0.3\sqrt{0.75} = 0.2598\). (1 mark mean, 1 mark sd.)</p>
+<p><strong>(b) 4 marks.</strong> The call is exercised if \(S_T > 42\), i.e. \(\ln S_T > \ln 42\). Standardise with the real-world mean (the question gives \(\mu\)):</p>
+$$z = \frac{\ln(42) - 3.8779}{0.2598}, \qquad P(S_T > 42) = N\!\left(\frac{\ln(45/42) + (\mu - \sigma^2/2)T}{\sigma\sqrt{T}}\right).$$
+<p>\(\ln(45/42) = 0.0690\), so the numerator is \(0.0690 + 0.0713 = 0.1403\) and the argument is \(0.1403/0.2598 = 0.5398 \approx 0.54\). \(P = N(0.54) = 0.7054\). (Exact: \(N(0.5398) = 0.7053\).) Marks: ratio set up (1), numerator (1), denominator (1), table (1).</p>
+<p><strong>(c) 1 mark.</strong> The put is exercised if \(S_T < 42\): \(1 - 0.7054 = 0.2946\).</p>
+<p><strong>(d) 2 marks.</strong> \(d_2 = \frac{\ln(45/42) + (r - \sigma^2/2)T}{\sigma\sqrt{T}} = \frac{0.0690 + (0.05 - 0.045)(0.75)}{0.2598} = \frac{0.0690 + 0.0038}{0.2598} = 0.2800\). \(N(0.28) = 0.6103\).</p>
+<p>It is lower than 0.7054 because \(N(d_2)\) is a <em>risk-neutral</em> probability: the stock is assumed to drift at \(r = 5\%\), not at the investor's expected return \(\mu = 14\%\). Option prices must not depend on \(\mu\); the real-world probability in (b) does.</p>
+<p><strong>(e) 2 marks.</strong> BSM assumes the stock price moves continuously (continuous trading, lognormal at expiry); the binomial model has discrete steps. Link: as the number of steps grows (with \(u = e^{\sigma\sqrt{\Delta t}}\), \(d = 1/u\) and risk-neutral \(p\)) the binomial terminal price distribution tends to the lognormal and the option value converges to the BSM price; BSM is the limit of the tree.</p>
+<div class="trap"><strong>Common slips</strong><br>Using \(\ln S_0 + \mu T\) and forgetting \(-\sigma^2/2\) (gives \(N(0.67) = 0.7486\) rather than 0.7054); using \(r\) when the question supplies \(\mu\); reporting \(N(d_2)\) as the answer to (b); using \(\sigma T\) instead of \(\sigma\sqrt{T}\).</div>
+</div></details>
+</div>
+
+<!-- ===================== Q2 ===================== -->
+<div class="exq">
+<h3>Question 2 (12 marks): pricing, parity and a mispriced quote</h3>
+<p>A non-dividend-paying stock trades at $40 with volatility 30% a year. The continuously compounded risk-free rate is 6% a year. Consider three-month European options with strike $42. Keep four decimal places.</p>
+<div class="pt"><span class="mk">(a) 3 marks</span><span class="tx">Calculate \(d_1\) and \(d_2\) and read the four normal-table values needed for the call and the put.</span></div>
+<div class="pt"><span class="mk">(b) 3 marks</span><span class="tx">Calculate the BSM price of the call.</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">Use put-call parity to find the price of the put.</span></div>
+<div class="pt"><span class="mk">(d) 2 marks</span><span class="tx">An options market quotes the call at $2.10. Assuming BSM with \(\sigma = 30\%\) is right, what should a market maker do, and how can the position be hedged against stock moves?</span></div>
+<div class="pt"><span class="mk">(e) 2 marks</span><span class="tx">Is the volatility implied by the $2.10 quote above or below 30%? Explain. What does this say about the market's view relative to the 30% estimate?</span></div>
+<details><summary>Normal-table values you may need</summary><div class="given">\(N(0.15)=0.5596\), \(N(0.30)=0.6179\), \(N(-0.15)=0.4404\), \(N(-0.30)=0.3821\).</div></details>
+<div class="quiz num" data-answer="1.81" data-tol="0.01">
+  <p class="q">Headline check: BSM call price from (b).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 3 marks.</strong> \(\sigma\sqrt{T} = 0.3\sqrt{0.25} = 0.1500\).</p>
+$$d_1 = \frac{\ln(40/42) + (0.06 + 0.3^2/2)(0.25)}{0.1500} = \frac{-0.0488 + 0.0263}{0.1500} = -0.1503 \approx -0.15,$$
+$$d_2 = d_1 - 0.1500 = -0.3003 \approx -0.30.$$
+<p>Tables: \(N(d_1) = N(-0.15) = 0.4404\), \(N(d_2) = N(-0.30) = 0.3821\), \(N(-d_1) = 0.5596\), \(N(-d_2) = 0.6179\). (Check: \(N(-x) = 1 - N(x)\).)</p>
+<p><strong>(b) 3 marks.</strong> \(Ke^{-rT} = 42e^{-0.015} = 42 \times 0.9851 = 41.3747\).</p>
+$$c = 40(0.4404) - 41.3747(0.3821) = 17.6160 - 15.8093 = 1.8067 \approx \$1.81.$$
+<p>(Exact \(d\): $1.8065, same to 2 dp.)</p>
+<p><strong>(c) 2 marks.</strong> \(p = c + Ke^{-rT} - S_0 = 1.8067 + 41.3747 - 40 = 3.1814 \approx \$3.18\). Check by the put formula: \(41.3747(0.6179) - 40(0.5596) = 25.5654 - 22.3840 = 3.1814\). Both routes agree, which is a good self-check in the exam.</p>
+<p><strong>(d) 2 marks.</strong> The market price 2.10 exceeds the model value 1.8067 by 0.2933: the call looks overpriced. Sell the call (1 mark). Hedge: for each call sold, buy \(N(d_1) = 0.4404\) shares (1 mark), e.g. sell 100 calls, buy 44 shares (cost about $1,762). The hedge is instantaneous and must be rebalanced as \(N(d_1)\) changes; the expected gain is about $0.29 per option (about $29 on 100) if the model is right. This is a model-based trade, not a riskless arbitrage like a parity violation.</p>
+<p><strong>(e) 2 marks.</strong> The BSM call price rises with \(\sigma\). At 30% the model gives 1.81 which is below 2.10, so a higher \(\sigma\) is needed: the implied volatility is above 30% (about 33.7% by iteration). The market is pricing in more uncertainty than the 30% estimate, or demanding a premium for risk and supply/demand pressure; the trader in (d) is betting that the market's volatility view is too high.</p>
+<div class="trap"><strong>Common slips</strong><br>Not discounting \(K\) in (b) or (c); using \(N(d_1)\) and \(N(d_2)\) where the put needs \(N(-d_1)\), \(N(-d_2)\); hedging a <em>sold</em> call by selling stock (wrong side); calling the model-vs-quote gap a "riskless arbitrage". Without table rounding (exact \(d\)), \(c = 1.8065\), so the 2 dp answer is unchanged here.</div>
+</div></details>
+</div>
+
+<!-- ===================== Q3 ===================== -->
+<div class="exq">
+<h3>Question 3 (10 marks): a dividend inside the life, one outside</h3>
+<p>A stock is $51. The volatility of the stock price (excluding the dividends) is 30% a year and the continuously compounded risk-free rate is 5% a year. The stock goes ex-dividend with $1.00 in two months and with $1.00 in eleven months. Consider a nine-month European call with strike $49. Keep four decimal places.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Calculate the input that replaces \(S_0\) in the BSM formula, and say which dividend is ignored and why.</span></div>
+<div class="pt"><span class="mk">(b) 3 marks</span><span class="tx">Calculate \(d_1\), \(d_2\) and the four-decimal normal-table values.</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">Calculate the call price.</span></div>
+<div class="pt"><span class="mk">(d) 1 mark</span><span class="tx">Find the price of the matching European put using put-call parity.</span></div>
+<div class="pt"><span class="mk">(e) 2 marks</span><span class="tx">If you wrongly ignored both dividends, would your call price be too high or too low, and your put too high or too low? Explain.</span></div>
+<details><summary>Normal-table values you may need</summary><div class="given">\(N(0.35)=0.6368\), \(N(0.09)=0.5359\), \(N(0.36)=0.6406\), \(N(0.10)=0.5398\).</div></details>
+<div class="quiz num" data-answer="6.55" data-tol="0.01">
+  <p class="q">Headline check: call price from (c).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> Only the 2-month dividend falls inside the 9-month life. \(PV(D) = 1.00e^{-0.05 \times 2/12} = 1.00 \times 0.9917 = 0.9917\). The adjusted price is \(S_0^* = 51 - 0.9917 = 50.0083\). The 11-month dividend is paid after expiry, so the option holder is unaffected: ignore it.</p>
+<p><strong>(b) 3 marks.</strong> \(\sigma\sqrt{T} = 0.3\sqrt{0.75} = 0.2598\); \(Ke^{-rT} = 49e^{-0.0375} = 49 \times 0.9632 = 47.1965\).</p>
+$$d_1 = \frac{\ln(50.0083/49) + (0.05 + 0.045)(0.75)}{0.2598} = \frac{0.0204 + 0.0713}{0.2598} = 0.3526 \approx 0.35,$$
+$$d_2 = 0.3526 - 0.2598 = 0.0928 \approx 0.09.$$
+<p>\(N(0.35) = 0.6368\), \(N(0.09) = 0.5359\).</p>
+<p><strong>(c) 2 marks.</strong> \(c = 50.0083(0.6368) - 47.1965(0.5359) = 31.8453 - 25.2926 = 6.5527 \approx \$6.55\). (Exact \(d\): 6.5527, the same.)</p>
+<p><strong>(d) 1 mark.</strong> Parity with a dividend: \(p = c + Ke^{-rT} - S_0^* = 6.5527 + 47.1965 - 50.0083 = 3.7409 \approx \$3.74\).</p>
+<p><strong>(e) 2 marks.</strong> Ignoring both dividends uses \(S_0 = 51\): the call comes out higher (7.20) and the put lower (3.40). A dividend lowers the stock price on the ex-date, which hurts calls and helps puts; leaving it out overstates the stock's future value, so calls are too high and puts too low.</p>
+<div class="trap"><strong>Common slips</strong><br>Subtracting the dividend at face value (1.00 instead of 0.9917); including the post-expiry dividend (it would reduce \(S_0\) by another 0.9552 and understate the call); putting the dividend into the parity formula with the wrong sign.</div>
+</div></details>
+</div>
+
+<!-- ===================== Q4 ===================== -->
+<div class="exq">
+<h3>Question 4 (11 marks): an option on a futures contract (Black's model)</h3>
+<p>It is now March. An investor holds an American put on a crude oil futures contract covering 1,000 barrels. The strike is $80 per barrel, the option and the futures expire in three months, and the current futures price is $78 per barrel. The risk-free rate is 4% a year, continuously compounded. The volatility of the futures price is 22% a year.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Describe what happens to the investor's position if they exercise now. Is the put in, at or out of the money? Show the amount.</span></div>
+<div class="pt"><span class="mk">(b) 4 marks</span><span class="tx">What is the total price of the European version of this put on 1,000 barrels, using Black's model? Keep four decimal places.</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">Use put-call parity for futures options to find the total price of the matching European call.</span></div>
+<div class="pt"><span class="mk">(d) 3 marks</span><span class="tx">Explain why \(d_1\) in Black's model has no risk-free rate in it, yet the option price still depends on \(r\).</span></div>
+<details><summary>Normal-table values you may need</summary><div class="given">\(N(0.18)=0.5714\), \(N(0.29)=0.6141\), \(N(-0.18)=0.4286\), \(N(-0.29)=0.3859\).</div></details>
+<div class="quiz num" data-answer="4513.21" data-tol="1">
+  <p class="q">Headline check: total European put price from (b), in dollars.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Table method with the contract size inside the bracket gives $4,513.21 (per barrel 4.5132); exact \(d\) would give $4,511.00. Write the table answer.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> The put is in the money: the strike 80 exceeds the futures price 78 by $2 per barrel. Exercising gives a <em>short</em> futures position (at the current futures price) and a cash payment of \((K - F_0) \times 1{,}000 = 2 \times 1{,}000 = \$2{,}000\) credited to the margin account.</p>
+<p><strong>(b) 4 marks.</strong> \(\sigma\sqrt{T} = 0.22\sqrt{0.25} = 0.1100\).</p>
+$$d_1 = \frac{\ln(78/80) + 0.22^2(0.25)/2}{0.1100} = \frac{-0.0253 + 0.0061}{0.1100} = -0.1752 \approx -0.18,\qquad d_2 = d_1 - 0.1100 = -0.2852 \approx -0.29.$$
+<p>\(N(-d_1) = N(0.18) = 0.5714\); \(N(-d_2) = N(0.29) = 0.6141\); \(e^{-rT} = e^{-0.01} = 0.9900\).</p>
+$$p = e^{-rT}\big[KN(-d_2) - F_0N(-d_1)\big] = 0.9900\big[80(0.6141) - 78(0.5714)\big] = 0.9900(49.1280 - 44.5692) = 4.5132 \text{ per barrel}.$$
+<p>Total, under the rule (multiply by the 1,000 barrels inside the bracket, round once at the end, as the 2025 solution did): \(0.9900\,[80(0.6141) - 78(0.5714)] \times 1{,}000 = \$4{,}513.21\). (Rounding the per-barrel price to 4.5132 first would give $4,513.20, hence "round once at the end"; an unrounded discount 0.99005 gives $4,513.44. Exact \(d\): $4,511.00.) Show the per-barrel working too.</p>
+<p><strong>(c) 2 marks.</strong> Futures-option parity: \(c - p = (F_0 - K)e^{-rT} = (78 - 80)(0.9900) = -1.9800\). So \(c = 4.5132 - 1.9800 = 2.5332\) per barrel; total \(\$4{,}513.21 - \$1{,}980.00 = \$2{,}533.21\).</p>
+<p><strong>(d) 3 marks.</strong> Black's model is BSM with \(S_0\) replaced by \(F_0e^{-rT}\) (the PV of the futures price; equivalent to a stock with yield \(q = r\)). In \(d_1\) the term \(\ln(S_0/K) + rT\) becomes \(\ln(F_0e^{-rT}/K) + rT = \ln(F_0/K)\): the \(r\) cancels. The option premium is still paid today but the payoff comes at \(T\), so the whole expression is discounted by \(e^{-rT}\). A futures price has zero risk-neutral growth, so \(r\) does not shift the distribution; it only discounts.</p>
+<div class="trap"><strong>Common slips</strong><br>Putting \(r\) into \(d_1\); forgetting to multiply by \(e^{-rT}\) or by 1,000; using the stock parity \(c - p = S_0 - Ke^{-rT}\); calling the put out of the money because "78 is below 80, so the price fell".</div>
+</div></details>
+</div>
+
+<!-- ===================== Q5 ===================== -->
+<div class="exq">
+<h3>Question 5 (10 marks): implied volatility, the smile and the VIX</h3>
+<p>A non-dividend-paying stock is $100. The risk-free rate is 4% a year, continuously compounded. A three-month European call with strike $100 is quoted at $5.10.</p>
+<div class="pt"><span class="mk">(a) 3 marks</span><span class="tx">Calculate the BSM price of this call using \(\sigma = 20\%\).</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">Use the exact (solver) BSM prices $4.4852 at \(\sigma = 20\%\) and $5.4721 at \(\sigma = 25\%\) (implied volatility is a computer job, so no table rounding here). Is the implied volatility above or below 20%? Use linear interpolation to estimate it.</span></div>
+<div class="pt"><span class="mk">(c) 3 marks</span><span class="tx">Briefly explain implied volatility, and why it differs across strikes for equity options. Describe the usual shape.</span></div>
+<div class="pt"><span class="mk">(d) 2 marks</span><span class="tx">A trader buys a VIX futures contract (1,000 times the index) at 21.6 and closes it at 22.9. What is the VIX, and what is the trader's gain or loss?</span></div>
+<details><summary>Normal-table values you may need</summary><div class="given">\(N(0.15)=0.5596\), \(N(0.05)=0.5199\).</div></details>
+<div class="quiz num" data-answer="23.1" data-tol="0.3">
+  <p class="q">Headline check: your implied volatility estimate from (b), in % per year.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">Linear interpolation gives 23.11%; solving exactly gives 23.12%.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 3 marks.</strong> \(\sigma\sqrt{T} = 0.2\sqrt{0.25} = 0.1000\).</p>
+$$d_1 = \frac{\ln(100/100) + (0.04 + 0.02)(0.25)}{0.1000} = \frac{0.0150}{0.1000} = 0.1500,\qquad d_2 = 0.1500 - 0.1000 = 0.0500.$$
+<p>\(N(0.15) = 0.5596\), \(N(0.05) = 0.5199\), \(Ke^{-rT} = 100e^{-0.01} = 99.0050\).</p>
+$$c = 100(0.5596) - 99.0050(0.5199) = 55.9600 - 51.4727 = 4.4873 \approx \$4.49.$$
+<p>(Exact \(d\): 4.4852, also $4.49 to 2 dp.)</p>
+<p><strong>(b) 2 marks.</strong> The market price 5.10 is above the 20% price, and call price rises with \(\sigma\), so the implied volatility is above 20%. It lies between 20% and 25% (5.4721 is above 5.10). Linear interpolation with the solver prices 4.4852 and 5.4721:</p>
+$$\sigma \approx 0.20 + 0.05 \times \frac{5.10 - 4.4852}{5.4721 - 4.4852} = 0.20 + 0.05 \times 0.6230 = 0.2312 \approx 23.1\%.$$
+<p><strong>(c) 3 marks.</strong> Implied volatility is the \(\sigma\) that, put in the BSM formula, gives a theoretical price equal to the market price; it cannot be inverted, so it is found iteratively (1 mark). If BSM were perfect, every option on the same stock would give the same implied \(\sigma\). In practice it varies with strike: equity options show a "smirk" (implied volatility falls as the strike rises) and currency options a symmetric "smile" (1 mark). For equities the reason is negative skewness in returns: a large price fall is likelier than the normal distribution says, so out-of-the-money puts are worth more than BSM says and have the highest implied volatility (1 mark).</p>
+<p><strong>(d) 2 marks.</strong> The VIX is an index of the implied volatility of 30-day S&amp;P 500 options: 22.9 means those options are priced as if volatility were 22.9% a year (1 mark). Long one contract: gain \(= (22.9 - 21.6) \times 1{,}000 = \$1{,}300\) (1 mark). The sign comes from the futures price moving up, not from any view on the stock market.</p>
+<div class="trap"><strong>Common slips</strong><br>Treating implied volatility as historical volatility; forgetting the 1,000 multiplier on the VIX futures; reversing the sign for a long position; linear interpolation is only an estimate (the true value is 23.12%); arguing that a higher call price lowers implied volatility.</div>
+</div></details>
+</div>
+
+<h2>4 · Which lesson do I revisit?</h2>
+<p>Tally the marks you lost, find the skill, reopen the lesson.</p>
+<div class="tablewrap"><table>
+<tr><th>Lost marks on</th><th>Skill</th><th>Questions</th><th>Reopen</th></tr>
+<tr><td>Mean and sd of \(\ln S_T\); \(\sigma\sqrt{T}\); lognormal vs normal; normal-table lookups</td><td>Lognormal, \(\mu - \sigma^2/2\)</td><td>Q1(a), R1, R2</td><td><a href="0022-normal-and-lognormal-stock-prices.html">Lesson 22</a> (sections 1-4)</td></tr>
+<tr><td>Probability the option is exercised: real world (\(\mu\)) vs risk-neutral \(N(d_2)\)</td><td>Standardising; which drift</td><td>Q1(b)-(d), R4</td><td><a href="0023-what-bsm-assumes-and-why-it-works.html">Lesson 23</a> (section 6), <a href="0022-normal-and-lognormal-stock-prices.html">Lesson 22</a> (section 3 numerator)</td></tr>
+<tr><td>Assumptions, why a hedge gives the formula, why \(\mu\) drops out, limiting cases</td><td>BSM intuition</td><td>Q1(d), Q2(d)</td><td><a href="0023-what-bsm-assumes-and-why-it-works.html">Lesson 23</a> (sections 2-5)</td></tr>
+<tr><td>\(d_1\), \(d_2\), table lookups, rounding, call and put formulas, parity</td><td>Mechanics</td><td>Q2(a)-(c), Q3(b)-(d), Q5(a), R3, R5</td><td><a href="0024-computing-bsm-call-and-put-prices.html">Lesson 24</a></td></tr>
+<tr><td>Binomial vs BSM, convergence, the "link"</td><td>Theory</td><td>Q1(e), R6</td><td><a href="0025-bsm-as-the-limit-of-the-binomial-tree.html">Lesson 25</a> (section 8 is the 2-mark answer)</td></tr>
+<tr><td>Hedge ratio \(N(d_1)\); selling a call that looks rich and hedging it</td><td>Market-maker trade</td><td>Q2(d)</td><td><a href="0023-what-bsm-assumes-and-why-it-works.html">Lesson 23</a> (sections 3, 6), <a href="0026-implied-volatility-smiles-and-vix.html">Lesson 26</a> (section 4)</td></tr>
+<tr><td>Implied volatility: direction, bracketing, interpolation; smile and smirk; VIX futures P&amp;L</td><td>Market vs model</td><td>Q2(e), Q5, R7-R9</td><td><a href="0026-implied-volatility-smiles-and-vix.html">Lesson 26</a></td></tr>
+<tr><td>Futures options (Black's model), contract size, futures parity</td><td>Black's model</td><td>Q4, R10</td><td><a href="0027-blacks-model-futures-options-and-fx.html">Lesson 27</a> (sections 1-3)</td></tr>
+<tr><td>Dividends inside the life, currency as a yield</td><td>Adjust \(S_0\)</td><td>Q3, R11, R12, homework</td><td><a href="0027-blacks-model-futures-options-and-fx.html">Lesson 27</a> (section 5, a Lecture 8 preview from Tutorial 7 Q6, Q7); full treatment in Lecture 8</td></tr>
+</table></div>
+
+<h2>5 · Rule of thumb</h2>
+<div class="box"><strong>BSM is the binomial tree with infinitely many steps.</strong> Same inputs, same logic: pretend the stock grows at \(r\) (less any yield), take the discounted expected payoff. \(N(d_2)\) is the risk-neutral chance of finishing in the money, \(N(d_1)\) the shares to hold. Adjust the stock input for what the holder misses (dividends, foreign interest), never the formula.</div>
+
+<details><summary>Retrieval: from memory, write the call and put formulas, then \(d_1\), \(d_2\). Then check</summary><div>
+$$c = S_0N(d_1) - Ke^{-rT}N(d_2),\quad p = Ke^{-rT}N(-d_2) - S_0N(-d_1)$$
+$$d_1 = \frac{\ln(S_0/K) + (r + \sigma^2/2)T}{\sigma\sqrt{T}},\quad d_2 = d_1 - \sigma\sqrt{T}.$$
+</div></details>
+
+<h2>6 · Homework</h2>
+<p><strong>Official practice:</strong> Tutorial 7 Q3 (distribution of the stock price in 1 and 2 years), Q4 (2-year call and put, \(S = K = 10\), \(\sigma = 40\%\)) and Q5 (one-period and ten-period binomial against BSM); the full solutions are in <code>tutes/Tutorial 7 Solutions.pdf</code>.</p>
+<p><strong>Extra (fresh):</strong> an index is 1,000, the one-year European options have strike 1,050, \(r = 5\%\), dividend yield \(q = 2\%\), \(\sigma = 20\%\).</p>
+<ol>
+<li>Calculate \(d_1\) and \(d_2\) (use \(S_0e^{-qT}\) and the \(r - q\) drift).</li>
+<li>Price the call and then, by parity, the put.</li>
+<li>The call trades at 80. Is its implied volatility above or below 20%? Which way would you trade, and what is the hedge?</li>
+</ol>
+<details><summary>Answers</summary><div>
+<ol>
+<li>\(d_1 = [\ln(1000/1050) + (0.05 - 0.02 + 0.02)(1)]/0.2 = (-0.0488 + 0.05)/0.2 = 0.0060 \approx 0.01\); \(d_2 = -0.1940 \approx -0.19\).</li>
+<li>\(N(0.01)=0.5040\), \(N(-0.19)=0.4247\). \(S_0e^{-qT} = 980.1987\), \(Ke^{-rT} = 998.7909\). \(c = 980.1987(0.5040) - 998.7909(0.4247) = 494.0201 - 424.1865 = 69.83\) (exact \(d\): 69.87). Parity: \(p = c + Ke^{-rT} - S_0e^{-qT} = 69.8336 + 998.7909 - 980.1987 = 88.43\) (exact: 88.46).</li>
+<li>80 is above 69.83, so implied volatility is above 20%. The call looks expensive: sell it and hedge by buying \(e^{-qT}N(d_1) = 0.9802 \times 0.5040 = 0.4940\) index units per call (delta of a call with a yield includes \(e^{-qT}\)).</li>
+</ol>
+</div></details>
+
+<div class="ask">Unsure where a mark went, or want another question on one pattern (a put on a currency, a delta re-hedge, a lognormal interval)? Paste your working in the terminal and ask me.</div>
+
+<!-- ===================== CHECKLIST ===================== -->
+<h2>7 · One-page BSM exam checklist</h2>
+<div class="box checklist">
+<h3>Formulas (stock, no dividend)</h3>
+<p>\(c = S_0N(d_1) - Ke^{-rT}N(d_2)\); \(p = Ke^{-rT}N(-d_2) - S_0N(-d_1)\); \(d_1 = \dfrac{\ln(S_0/K) + (r + \sigma^2/2)T}{\sigma\sqrt{T}}\); \(d_2 = d_1 - \sigma\sqrt{T}\); parity \(c + Ke^{-rT} = p + S_0\).</p>
+<h3>Adjust the stock input, not the formula</h3>
+<p>Discrete dividends: \(S_0 \to S_0 - PV(D)\), only dividends before expiry. Index with yield \(q\): \(S_0 \to S_0e^{-qT}\), \(r \to r - q\) in \(d_1\). Currency: \(q = r_f\). Futures (Black): \(d_1 = [\ln(F_0/K) + \sigma^2T/2]/(\sigma\sqrt{T})\), \(c = e^{-rT}[F_0N(d_1) - KN(d_2)]\), \(p = e^{-rT}[KN(-d_2) - F_0N(-d_1)]\), \(c - p = (F_0 - K)e^{-rT}\).</p>
+<h3>Lognormal and probabilities</h3>
+<p>\(\ln S_T \sim N\big(\ln S_0 + (\mu - \sigma^2/2)T,\ \sigma^2T\big)\). \(P(S_T > K)\) real world: \(N\!\big(\tfrac{\ln(S_0/K) + (\mu - \sigma^2/2)T}{\sigma\sqrt{T}}\big)\). Risk-neutral: same with \(r\) (= \(N(d_2)\)). Put exercised: \(1 - \) call. One-sd move of \(\ln S\) over \(T\): \(\sigma\sqrt{T}\). VIX futures: P&amp;L \(=\) (price change) \(\times\) 1,000.</p>
+<h3>Order of steps</h3>
+<ol class="steps">
+<li>Write inputs; convert \(T\) to years, check \(r\) is continuous, adjust \(S_0\) (dividends, yield) or use \(F_0\).</li>
+<li>\(\sigma\sqrt{T}\) first; then \(d_1\); then \(d_2 = d_1 - \sigma\sqrt{T}\).</li>
+<li>\(d_2\) from the unrounded \(d_1\); round both to 2 dp (unless told 4 dp and to interpolate); read the 4 dp table; for \(N(-d)\) read the \(x\le0\) table (\(=1-N(d)\)); the sheet runs to \(|x|=4.00\).</li>
+<li>\(Ke^{-rT}\) separately; substitute into the formula; keep 4 dp; final answer to the dp asked (silent: 2 dp for dollars); contract size inside, round once.</li>
+<li>Check: parity, bounds (call \(\ge S_0 - Ke^{-rT}\)), put \(< Ke^{-rT}\), sign and size sensible.</li>
+<li>Follow-ups: delta call \(N(d_1)\), put \(-N(-d_1)\); hedge a short position with the opposite; quoted \(>\) model: sell and hedge.</li>
+</ol>
+<h3>Traps</h3>
+<ul>
+<li>\(\sigma T\) instead of \(\sigma\sqrt{T}\); months not converted to years.</li>
+<li>\(\mu\) used in the price (never); \(r\) used where the question wants a real-world probability (use \(\mu\)).</li>
+<li>Forgetting \(-\sigma^2/2\) in lognormal means.</li>
+<li>\(K\) not discounted; \(N(d_1)\) used for the put.</li>
+<li>Dividend after expiry subtracted; dividend subtracted at face value.</li>
+<li>\(r\) put in Black's \(d_1\); forgot \(e^{-rT}\) outside; forgot the contract size.</li>
+<li>Implied volatility confused with historical; VIX futures multiplier (1,000) forgotten.</li>
+</ul>
+<h3>Theory one-liners</h3>
+<p>Binomial = discrete steps, BSM = continuous trading; they converge as steps \(\to\infty\) with \(u = e^{\sigma\sqrt{\Delta t}}\); BSM is the limit. Option value does not depend on \(\mu\) or risk attitudes (they act through \(S_0\)). Implied volatility = \(\sigma\) that matches the market price, found by iteration. Equity smirk: low strikes highest. VIX: 30-day S&amp;P 500 implied volatility (15 means 15% a year).</p>
+</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0027-blacks-model-futures-options-and-fx.html">Lesson 27, Black's model, futures options and FX</a></span>
+  <span><a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Last lesson in the series</span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

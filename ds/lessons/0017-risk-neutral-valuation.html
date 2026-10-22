@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Risk-Neutral Valuation</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/binomial-tree-widget.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 17 · Topic 5: Binomial trees</div>
+<h1>Risk-neutral valuation: price an option as if nobody cared about risk</h1>
+<p class="lede">The goal: on a one-period tree, find the risk-neutral probability \(p\), price any call, put or odd payoff with \(f = e^{-rT}[pf_u + (1-p)f_d]\), check the put against the call with put-call parity, and explain in two sentences why the real-world probability of an up move doesn't matter.</p>
+
+<div class="mission">Why this matters for 5 Nov: every binomial question in the finals (2–3 step trees, 4 marks for the price alone) is this formula applied node by node, and the 2025 final also asked a 2-mark "is this statement about risk-neutral valuation right?" Older papers ask "what is risk-neutral valuation and how does it relate to the riskless hedge?" and MCQs ask for the formula for \(p\). Lesson 18 adds steps; this lesson makes one step automatic.</div>
+
+<p>This lesson assumes <a href="0016-one-period-binomial-replication.html">Lesson 16</a>: the one-period tree, the riskless portfolio "long \(\Delta\) shares, short 1 option" with \(\Delta = (f_u - f_d)/(S_0u - S_0d)\), and pricing by "that portfolio must earn \(r\)". Put-call parity is from <a href="0014-put-call-parity.html">Lesson 14</a>.</p>
+
+<p><strong>Notation</strong> (Lecture 5 and Hull). \(S_0\) is today's stock price. In one period of length \(T\) it either goes <strong>up</strong> to \(S_0u\) (\(u \gt  1\) is the <strong>up factor</strong>; \(u = 1.25\) means +25%) or <strong>down</strong> to \(S_0d\) (\(d \lt  1\) is the <strong>down factor</strong>; \(d = 0.8\) means −20%). \(f_u\) and \(f_d\) are the option's payoffs in those two states, \(f\) its value today, \(r\) the continuously compounded risk-free rate.</p>
+
+<h2>1 · The puzzle: does a 70% chance of going up matter?</h2>
+
+<div class="box">
+<p><strong>Running example (used all lesson).</strong> A stock is <strong>$40</strong>. In 6 months it will be <strong>$50</strong> or <strong>$32</strong> (\(u = 1.25\), \(d = 0.8\)). \(r = 6\%\). Value a 6-month European call with \(K = 42\). Payoffs: \(f_u = 8\), \(f_d = 0\).</p>
+<p>Lesson 16's replication answer: \(\Delta = 8/18 = 0.4444\); the portfolio is worth \(0.4444\times50 - 8 = 14.2222\) in both states; so \(f = 40\times0.4444 - 14.2222e^{-0.03} = 17.7778 - 13.8019 = \mathbf{\$3.98}\).</p>
+</div>
+
+<p><strong>Predict first.</strong> An analyst says the stock has a <em>70%</em> chance of going up. (a) Does that change the $3.98? (b) Your friend values the call as "expected payoff, discounted at the risk-free rate": \(0.7\times8 = 5.60\), and \(5.60e^{-0.03} = 5.43\). What is wrong?</p>
+
+<details><summary>Reveal</summary><div>
+<p>(a) No. The replication argument never used a probability. The riskless portfolio is worth 14.2222 whichever state happens, so its price is fixed, and so is the call's. If the call traded at anything other than $3.98 you could arbitrage it (Lesson 16).</p>
+<p>(b) Two mistakes that don't cancel. The 70% belongs to the <strong>real world</strong>, where investors are <strong>risk averse</strong> (they demand extra expected return for bearing risk). In that world the call is a risky asset, so its expected payoff should be discounted at a <em>risky</em> rate, not \(r\). Your friend mixed a real-world probability with a risk-free discount rate. $5.43 is wrong; any trader would sell your friend calls all day.</p>
+</div></details>
+
+<h2>2 · The traditional approach works, but is a nightmare</h2>
+
+<p>In first-year finance (FNCE10002), you valued a risky asset as <em>expected cash flow ÷ (1 + required return)</em>, with a required return that reflects its risk. The slides (Lecture 5, slides 17–23) try this on the option.</p>
+
+<p>For our call, with the 70% real-world probability, the expected payoff is $5.60 and we know the right price is $3.98. So the return the call must be expected to earn is \(5.60/3.98 - 1 = \mathbf{40.8\%}\) over 6 months. The stock's own expected return is only \((0.7\times50 + 0.3\times32)/40 - 1 = 11.5\%\).</p>
+
+<div class="box"><p><strong>Why so high?</strong> A call is a <em>leveraged</em> bet on the stock: it's like owning \(\Delta = 0.44\) shares mostly financed by borrowing (replication). Leverage magnifies risk, so it magnifies the required return. A put is a <em>negative</em> position in the stock (\(\Delta \lt  0\)), so it's a hedge, and its required return is below \(r\), even negative.</p></div>
+
+<p>The lecture's formula for that rate (Cox and Rubinstein) is \(E(r_C) = r_f + \Omega\,[E(r_S) - r_f]\), where \(\Omega\), the option's <em>elasticity</em>, depends on \(S\) and on \(C\) itself. So:</p>
+<ol>
+  <li><strong>It's circular.</strong> To find the discount rate you need \(C\), the thing you're solving for (one equation in \(C\); the slides' answer is $3.33 ≈ $3.34).</li>
+  <li><strong>It changes every time \(S\) moves.</strong> On a two- or three-step tree the option's discount rate is different at every node. Stocks, bonds and projects never needed that.</li>
+  <li><strong>The probability doesn't matter anyway.</strong> Try 60/40 instead of 70/30 (slide 23): the expected payoff changes, the discount rate changes with it, and the answer is still $3.34.</li>
+</ol>
+<p>Point 3 is the key. If the probability is irrelevant, pick a convenient one: one that makes the discount rate simple.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> The lecture says the traditional approach (expected payoff discounted at a risk-adjusted rate) gives the right option price but isn't used. Why not?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It needs the real-world probabilities, which no one can estimate</button>
+    <button class="opt" data-key="b">It ignores the time value of money over the life of the option</button>
+    <button class="opt" data-key="c">Its discount rate depends on \(S\) and \(C\), so it shifts at every node</button>
+    <button class="opt" data-key="d">It gives a different answer from the riskless-hedge (replication) price</button>
+  </div>
+  <div class="why">The option's required return \(r_f + \Omega[E(r_S) - r_f]\) depends on the option's elasticity, which depends on \(S\) and on \(C\) itself: circular, and different at every node. (a): the slides show any probability works, as long as the matching rate is used. (b): it does discount. (d): it gives the same $3.34.</div>
+</div>
+
+<h2>3 · The trick: pretend everyone is risk neutral</h2>
+
+<p>A <strong>risk-neutral</strong> investor doesn't care about risk: they hold any asset whose expected return is \(r\). In an imaginary <strong>risk-neutral world</strong> full of such investors, <em>every</em> asset is expected to earn the risk-free rate, so <em>every</em> expected payoff is discounted at \(r\). No elasticity, no circularity.</p>
+
+<p>What probability of an up move would make the stock earn exactly \(r\)? Set the expected stock price equal to today's price grown at \(r\) (slide 24):</p>
+$$pS_0u + (1-p)S_0d = S_0e^{rT} \quad\Longrightarrow\quad \boxed{\,p = \frac{e^{rT} - d}{u - d}\,}$$
+<p>(Divide by \(S_0\): \(pu + d - pd = e^{rT}\), so \(p(u - d) = e^{rT} - d\).) This \(p\) is the <strong>risk-neutral probability</strong> of an up move; \(1 - p\) is that of a down move. Now price the option the same way, as its risk-neutral expected payoff discounted at \(r\) (slide 26):</p>
+$$\boxed{\,f = e^{-rT}\big[\,p f_u + (1-p) f_d\,\big]\,}$$
+<p>This is <strong>risk-neutral valuation</strong>. It needs \(r\), \(u\), \(d\), \(T\) and the payoffs. No real-world probability, no expected stock return, no risk aversion.</p>
+
+<div class="box">
+<p><strong>Running example.</strong> \(e^{rT} = e^{0.06\times0.5} = 1.0305\).</p>
+<p>\(p = \dfrac{1.0305 - 0.8}{1.25 - 0.8} = \dfrac{0.2305}{0.45} = \mathbf{0.5121}\), \(1 - p = 0.4879\).</p>
+<p>\(f = e^{-0.03}[0.5121\times8 + 0.4879\times0] = 0.9704\times4.0970 = \mathbf{\$3.98}\). Same as replication.</p>
+<p>Check that \(p\) does its job: \(0.5121\times50 + 0.4879\times32 = 41.22 = 40e^{0.03}\). Under \(p\), the stock is expected to earn exactly 6% p.a.</p>
+</div>
+
+<ol class="steps">
+  <li>Work out \(u = S_u/S_0\), \(d = S_d/S_0\) (if you're given prices, not percentages) and \(e^{rT}\), with \(T\) in years.</li>
+  <li>\(p = (e^{rT} - d)/(u - d)\). Keep 4 dp. Check \(0 \lt  p \lt  1\).</li>
+  <li>Payoffs at the two end nodes: \(\max(S - K, 0)\) for a call, \(\max(K - S, 0)\) for a put.</li>
+  <li>\(f = e^{-rT}[pf_u + (1-p)f_d]\). Answer to 2 dp.</li>
+</ol>
+
+<div class="trap"><strong>Common slips</strong><br>
+(1) Using \(1 + r\) or \(e^{r}\) instead of \(e^{rT}\): a 3-month step uses \(e^{0.25r}\). (2) Putting \(u - 1\) and \(1 - d\) (the percentages) into the formula instead of \(u\) and \(d\). (3) Swapping \(p\) and \(1 - p\): \(p\) goes with the <em>up</em> payoff. (4) Forgetting to discount at the end.</div>
+
+<div class="quiz num" data-answer="1.79" data-tol="0.01">
+  <p class="q"><strong>2.</strong> A stock is $20. In one year it will be $24 or $16. \(r = 5\%\). Value a one-year European call with \(K = 21\) by risk-neutral valuation.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(u = 1.2\), \(d = 0.8\), \(e^{0.05} = 1.0513\). \(p = (1.0513 - 0.8)/0.4 = 0.6282\). \(f_u = 3\), \(f_d = 0\). \(f = e^{-0.05}\times0.6282\times3 = \$1.79\). Forgetting to discount gives 1.88.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>3.</strong> Which statement best describes the risk-neutral probability \(p\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The market's best forecast of the chance that the stock goes up</button>
+    <button class="opt" data-key="b">The up-probability that makes the stock's expected return equal \(r\)</button>
+    <button class="opt" data-key="c">The up-probability that makes the option's expected return equal \(r\) only</button>
+    <button class="opt" data-key="d">The real-world up-probability adjusted for the stock's beta and alpha</button>
+  </div>
+  <div class="why">\(p\) solves \(pS_0u + (1-p)S_0d = S_0e^{rT}\). It's a pricing device, not a forecast (a). It does make the option earn \(r\) too, but that's a consequence: it is <em>defined</em> from the stock, so (c) has it backwards. No beta or alpha anywhere (d).</div>
+</div>
+
+<h2>4 · Why it gives the replication answer</h2>
+
+<p>Lay the two methods side by side on the running example:</p>
+<div class="tablewrap">
+<table>
+<tr><th></th><th>Replication (Lesson 16)</th><th>Risk-neutral valuation</th></tr>
+<tr><td>Uses</td><td>\(\Delta\) shares and a loan that copy the option</td><td>A probability that makes the stock earn \(r\)</td></tr>
+<tr><td>Working</td><td>\(\Delta = 0.4444\); \(f = 17.7778 - 13.8019\)</td><td>\(p = 0.5121\); \(f = e^{-0.03}(0.5121\times8)\)</td></tr>
+<tr><td>Answer</td><td>$3.98</td><td>$3.98</td></tr>
+<tr><td>Real-world probability?</td><td>Not used</td><td>Not used</td></tr>
+</table>
+</div>
+
+<p><strong>The intuition.</strong> The replication price is a fact about today's prices: the option costs what \(\Delta\) shares minus a loan cost. That fact holds whatever investors feel about risk. So it must also hold in an imaginary world where they don't care about risk. In <em>that</em> world, every asset earns \(r\), so the option's price is its expected payoff discounted at \(r\). Same price, easier sum. (Hull's version: a price worked out in the risk-neutral world is correct in the real world too.)</p>
+
+<details><summary>The algebra (Tutorial 5 Q1, key lines only)</summary><div>
+<p>From replication, \(f = \Delta S_0 - e^{-rT}(\Delta S_0u - f_u)\) with \(\Delta = \dfrac{f_u - f_d}{S_0(u - d)}\). Substitute \(\Delta S_0 = \dfrac{f_u - f_d}{u - d}\):</p>
+$$f = \frac{f_u - f_d}{u-d} - e^{-rT}\Big(\frac{u(f_u - f_d)}{u-d} - f_u\Big) = e^{-rT}\Big[\frac{e^{rT} - d}{u-d}f_u + \frac{u - e^{rT}}{u-d}f_d\Big].$$
+<p>The first fraction is \(p\), and \(\dfrac{u - e^{rT}}{u-d} = 1 - p\). So \(f = e^{-rT}[pf_u + (1-p)f_d]\). The probabilities fall out of the hedge; nobody assumed them.</p>
+</div></details>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>4.</strong> A classmate says: "Risk-neutral valuation assumes investors really are risk neutral, so the binomial price is wrong in the real world." Best reply?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Correct; the price must be raised to add a risk premium for the option</button>
+    <button class="opt" data-key="b">Correct; it holds only when the real-world probability equals \(p\)</button>
+    <button class="opt" data-key="c">Wrong, as real investors are risk neutral over a single short period</button>
+    <button class="opt" data-key="d">Wrong, as the price comes from a riskless hedge that holds in any world</button>
+  </div>
+  <div class="why">The price is pinned by the no-arbitrage (replication) argument, which uses no preferences. Risk neutrality is a calculation shortcut that happens to reproduce it. (a) and (b) treat \(p\) as an assumption about real investors; (c) is just false.</div>
+</div>
+
+<h2>5 · Puts, and the parity check</h2>
+
+<p><strong>Predict first:</strong> a European put on the running example with \(K = 42\). Is \(p\) different from the call's? What are \(f_u\) and \(f_d\)?</p>
+<details><summary>Reveal</summary><div>
+<p>\(p\) depends only on \(r\), \(u\), \(d\), \(T\), so it's the same 0.5121 for every derivative on this tree. Only the payoffs change: \(f_u = \max(42 - 50, 0) = 0\), \(f_d = 42 - 32 = 10\).</p>
+<p>\(p_{\text{put}} = e^{-0.03}[0.5121\times0 + 0.4879\times10] = 0.9704\times4.8788 = \mathbf{\$4.73}\).</p>
+<p><strong>Parity check</strong> (Lesson 14, \(c + Ke^{-rT} = p + S_0\)): left \(3.9759 + 42e^{-0.03} = 3.9759 + 40.7587 = 44.7346\); right \(4.7346 + 40 = 44.7346\). ✓ It holds exactly, because both options were priced off the same stock and bond. (Tutorial 5 Q3 does this check on a two-step tree.)</p>
+<p>The put's \(\Delta = (0 - 10)/18 = -0.5556\). Note \(\Delta_{\text{call}} - \Delta_{\text{put}} = 0.4444 + 0.5556 = 1\): parity again (call − put = stock − bond, and a bond has \(\Delta = 0\)).</p>
+</div></details>
+
+<div class="quiz num" data-answer="2.84" data-tol="0.01">
+  <p class="q"><strong>5.</strong> Lecture 5, slide 16 leaves this for you. The stock is $10 and will be $13.50 or $7.40 in one year; \(r = 5\%\). Value a one-year European put with \(K = 13.50\).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(u = 1.35\), \(d = 0.74\), \(p = (e^{0.05} - 0.74)/0.61 = 0.5103\). \(f_u = 0\), \(f_d = 13.50 - 7.40 = 6.10\). \(f = e^{-0.05}\times0.4897\times6.10 = \$2.84\). Parity check: the call with \(K = 13.50\) pays 0 in both states, so \(c = 0\) and \(p = 0 + 13.5e^{-0.05} - 10 = 2.84\) ✓.</div>
+</div>
+
+<h2>6 · What moves \(p\), and when the tree breaks</h2>
+
+<p>\(p = (e^{rT} - d)/(u - d)\) measures <em>where the risk-free growth \(e^{rT}\) sits between \(d\) and \(u\)</em>: 0 if it sits on \(d\), 1 if it sits on \(u\). Base: \(e^{rT} = 1.0305\) sits 51% of the way from 0.8 to 1.25.</p>
+
+<p><strong>Predict first</strong> for each change to the running example (\(K = 42\), others fixed): does \(p\) go up or down? The call? The put?</p>
+<ol>
+  <li>\(r\) falls to 0.</li>
+  <li>\(r\) rises to 12%.</li>
+  <li>\(u\) rises to 1.40 (up state $56).</li>
+  <li>\(d\) rises to 0.90 (down state $36).</li>
+  <li>\(d\) falls to 0.70 (down state $28).</li>
+  <li>The real-world chance of an up move rises from 70% to 90%.</li>
+  <li>\(r\) rises to 50%, so \(e^{rT} = 1.284 \gt  u\).</li>
+</ol>
+
+<details><summary>Reveal the scenario table</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Scenario</th><th>\(p\)</th><th>Call</th><th>Put</th><th style="text-align:left">Why</th></tr>
+<tr><td>Base</td><td>0.5121</td><td>3.98</td><td>4.73</td><td style="text-align:left"></td></tr>
+<tr><td>1. \(r = 0\)</td><td>0.4444</td><td>3.56</td><td>5.56</td><td style="text-align:left">\(p = (1 - d)/(u - d)\); call down, put up (Lesson 12's \(r\) effect)</td></tr>
+<tr><td>2. \(r = 12\%\)</td><td>0.5819</td><td>4.38</td><td>3.94</td><td style="text-align:left">\(e^{rT}\) closer to \(u\): more weight on the up state</td></tr>
+<tr><td>3. \(u = 1.40\)</td><td>0.3841</td><td>5.22</td><td>5.98</td><td style="text-align:left">Wider spread = more volatility: both options gain</td></tr>
+<tr><td>4. \(d = 0.90\)</td><td>0.3727</td><td>2.89</td><td>3.65</td><td style="text-align:left">Narrower spread: both options lose</td></tr>
+<tr><td>5. \(d = 0.70\)</td><td>0.6008</td><td>4.66</td><td>5.42</td><td style="text-align:left">Wider spread: both gain, even though \(p\) rose</td></tr>
+<tr><td>6. Real-world 90%</td><td>0.5121</td><td>3.98</td><td>4.73</td><td style="text-align:left"><strong>No change</strong>: not in the formula (Tutorial 5 Q4)</td></tr>
+<tr><td>7. \(r = 50\%\)</td><td>1.0756</td><td>6.70</td><td>−0.59</td><td style="text-align:left">\(p \gt  1\) and a negative put: the tree allows arbitrage</td></tr>
+</table>
+</div>
+<p>Patterns: \(p\) rises with \(r\) and \(T\), and falls when \(u\) or \(d\) rises. But don't read option values off \(p\) alone: in rows 3 and 5 the call and put <em>both</em> rise (more spread, like higher \(\sigma\) in Lesson 12), while \(p\) moves in opposite directions.</p>
+</div></details>
+
+<h3>The no-arbitrage condition: \(d \lt  e^{rT} \lt  u\)</h3>
+<p>\(p\) is a probability only if \(0 \lt  p \lt  1\), i.e. \(d \lt  e^{rT} \lt  u\). This isn't a technicality; outside it there's a free lunch:</p>
+<ul>
+  <li><strong>\(e^{rT} \ge u\)</strong>: the bond beats the stock even in the stock's <em>best</em> state. Short the stock, lend the proceeds: at \(T\) you have \(S_0e^{rT}\), and buying the stock back costs at most \(S_0u\). Riskless profit.</li>
+  <li><strong>\(e^{rT} \le d\)</strong>: the stock beats the bond even in its <em>worst</em> state. Borrow \(S_0\), buy the stock: you end with at least \(S_0d\) and owe only \(S_0e^{rT}\).</li>
+</ul>
+<p>Row 7 above shows the symptom: a "put price" of −0.59. Whenever \(p\) comes out outside 0 to 1, recheck your \(u\), \(d\), \(T\) and \(r\) before anything else.</p>
+
+<h3>Try it</h3>
+<p>Move the sliders. The tree shows the stock (top) and option value (bottom) at each node. The red line is your friend's mistake from section 1: real-world probability with discounting at \(r\). Move the real-world probability and watch the correct value not budge; push \(r\) up until \(e^{rT}\) passes \(u\).</p>
+<div class="bintree" data-s="40" data-u="1.25" data-d="0.8" data-r="0.06" data-t="0.5" data-k="42" data-type="call" data-steps="1" data-realq="0.7"></div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>6.</strong> On a one-period tree with \(u\), \(d\), \(T\) fixed, the risk-free rate rises (still with \(e^{rT} \lt  u\)). What happens?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(p\) rises; the call is worth more and the put is worth less</button>
+    <button class="opt" data-key="b">\(p\) rises; the call and the put are both worth more than before</button>
+    <button class="opt" data-key="c">\(p\) falls; the call is worth less and the put is worth more</button>
+    <button class="opt" data-key="d">\(p\) is unchanged; only the discount factor \(e^{-rT}\) changes</button>
+  </div>
+  <div class="why">\(e^{rT}\) moves towards \(u\), so \(p\) rises: more risk-neutral weight on the up payoff, which helps calls and hurts puts, partly offset by heavier discounting. In the table, \(r\) from 6% to 12% took the call from 3.98 to 4.38 and the put from 4.73 to 3.94. Consistent with Lesson 12 (\(r\uparrow\): call +, put −).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>7.</strong> Which one-period tree (step of one year) admits an arbitrage?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(u = 1.10\), \(d = 0.95\), \(r = 4\%\)</button>
+    <button class="opt" data-key="b">\(u = 1.30\), \(d = 0.80\), \(r = 10\%\)</button>
+    <button class="opt" data-key="c">\(u = 1.08\), \(d = 1.02\), \(r = 1\%\)</button>
+    <button class="opt" data-key="d">\(u = 1.05\), \(d = 0.90\), \(r = 3\%\)</button>
+  </div>
+  <div class="why">Need \(d \lt  e^{r} \lt  u\). (c): \(e^{0.01} = 1.0101 \lt  d = 1.02\): the stock beats the bond in every state, so borrow and buy the stock (\(p = -0.165\)). (a) 1.0408, (b) 1.1052, (d) 1.0305 all sit strictly between \(d\) and \(u\).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>8.</strong> New research raises the real-world probability that the stock goes up, but \(S_0\), \(u\), \(d\), \(r\) and \(T\) are all unchanged. The European call's binomial value:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Rises, as the up payoff is now more likely to be received</button>
+    <button class="opt" data-key="b">Stays the same, as \(p\) depends only on \(r\), \(u\), \(d\) and \(T\)</button>
+    <button class="opt" data-key="c">Falls, as \(1 - p\) must rise to keep the probabilities summing</button>
+    <button class="opt" data-key="d">Rises, as the stock's expected return now exceeds the rate \(r\)</button>
+  </div>
+  <div class="why">Tutorial 5 Q4. Real-world probabilities don't enter \(p\) or \(f\). The tutorial's caveat: in reality, better prospects would likely push up \(S_0\) itself, and <em>that</em> would raise the call. But with \(S_0\) held fixed, nothing changes.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>9.</strong> After a market scare, investors become more risk averse and the stock drops from $40 to $36; the up and down factors, \(r\) and \(T\) are unchanged. A colleague says the call's binomial value can't change, since risk aversion isn't in the formula. Who is right?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The colleague, as \(p\) depends only on \(r\), \(u\), \(d\) and \(T\)</button>
+    <button class="opt" data-key="b">The colleague, as options are priced assuming risk-neutral investors</button>
+    <button class="opt" data-key="c">Neither; the call rises, as \(p\) must rise to reflect the extra risk</button>
+    <button class="opt" data-key="d">Not the colleague; the call falls, as it depends on the lower \(S_0\)</button>
+  </div>
+  <div class="why">Risk aversion and expectations don't appear <em>directly</em>, but they work through the stock price: the lower \(S_0\) shrinks both end nodes, so the call falls (and the put rises), with \(p\) unchanged. Recent finals ask for exactly this 2-mark argument in words. (a) is true about \(p\) but forgets \(S_0\); (b) misreads risk neutrality as an assumption about real people; (c): \(p\) doesn't move.</div>
+</div>
+
+<h2>7 · Where \(u\) and \(d\) come from (preview of Lesson 18)</h2>
+<p>So far \(u\) and \(d\) were given. Exams instead give the stock's <strong>volatility</strong> \(\sigma\) (the annual standard deviation of its returns) and you build them (slide 28), with \(\Delta t\) the length of one step in years:</p>
+$$u = e^{\sigma\sqrt{\Delta t}}, \qquad d = \frac{1}{u}.$$
+<p>Higher \(\sigma\) widens the spread, which raises both calls and puts (row 3 of the table). Lesson 18 uses this on two- and three-step trees, where \(p\) uses \(e^{r\Delta t}\) per step.</p>
+
+<div class="quiz num" data-answer="2.79" data-tol="0.01">
+  <p class="q"><strong>10.</strong> A stock is $50 with volatility 20% p.a.; \(r = 5\%\). Using a <em>one-step</em> tree over 3 months, value a 3-month European call with \(K = 50\).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(\sigma\sqrt{\Delta t} = 0.2\times0.5 = 0.1\), so \(u = e^{0.1} = 1.1052\), \(d = 0.9048\). Stock nodes 55.26 and 45.24. \(p = (e^{0.0125} - 0.9048)/(1.1052 - 0.9048) = 0.5378\). \(f = e^{-0.0125}\times0.5378\times5.26 = \$2.79\).</div>
+</div>
+
+<h2>8 · Exam-style practice</h2>
+<p>Work each on paper with your Casio first: \(p\) to 4 dp, money to 2 dp. Exam finals ask "show all your working", so write each of the four recipe lines.</p>
+
+<div class="box"><p><strong>Q11–13 share a setup.</strong> A non-dividend-paying stock is $25. In 6 months it will be either $30 or $21. \(r = 5\%\) p.a., continuously compounded. European options have \(K = 24\) and 6 months to expiry.</p></div>
+
+<div class="quiz num" data-answer="3.01" data-tol="0.01">
+  <p class="q"><strong>11.</strong> Value the call by risk-neutral valuation.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(u = 1.2\), \(d = 0.84\), \(e^{0.025} = 1.0253\). \(p = (1.0253 - 0.84)/0.36 = 0.5148\). \(f_u = 6\), \(f_d = 0\). \(c = e^{-0.025}\times0.5148\times6 = \$3.01\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>12.</strong> You have just <em>written</em> (sold) one of these calls. What stock position hedges it over the 6 months?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Buy 0.6667 shares per call written</button>
+    <button class="opt" data-key="b">Short 0.6667 shares per call written</button>
+    <button class="opt" data-key="c">Buy 0.5148 shares per call written</button>
+    <button class="opt" data-key="d">Buy 0.3333 shares per call written</button>
+  </div>
+  <div class="why">\(\Delta = (6 - 0)/(30 - 21) = 0.6667\). A short call loses when the stock rises, so offset with a long \(\Delta\) shares (Lesson 16's riskless portfolio). Shorting is the hedge for a <em>long</em> call (b). \(p\) is not a hedge ratio (c). 0.3333 is the size of the put's delta (d).</div>
+</div>
+
+<div class="quiz num" data-answer="1.42" data-tol="0.01">
+  <p class="q"><strong>13.</strong> Use put-call parity and your answer to Q11 to value the matching European put. (Then check it with the tree.)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(p = c + Ke^{-rT} - S_0 = 3.0123 + 24e^{-0.025} - 25 = 3.0123 + 23.4074 - 25 = \$1.42\). Tree: \(f_u = 0\), \(f_d = 3\), \(e^{-0.025}\times0.4852\times3 = 1.42\) ✓. If the two disagree, look for a slip in \(p\) or in discounting.</div>
+</div>
+
+<div class="box"><p><strong>Q14–16 share a setup.</strong> A stock is $80. Over the next 3 months it will either rise by 15% or fall by 10%. \(r = 4\%\) p.a. continuously compounded. European options have \(K = 78\) and 3 months to expiry.</p></div>
+
+<div class="quiz num" data-answer="0.4402" data-tol="0.0006">
+  <p class="q"><strong>14.</strong> What is the risk-neutral probability of an up move (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(u = 1.15\), \(d = 0.90\) (not 0.15 and 0.10). \(e^{0.04\times0.25} = 1.0101\). \(p = (1.0101 - 0.90)/0.25 = 0.4402\). Using \(e^{0.04}\) (forgetting \(T\)) gives 0.5632.</div>
+</div>
+
+<div class="quiz num" data-answer="3.33" data-tol="0.01">
+  <p class="q"><strong>15.</strong> Value the put.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Nodes: 92 and 72. \(f_u = 0\), \(f_d = 78 - 72 = 6\). \(p_{\text{put}} = e^{-0.01}\times0.5598\times6 = \$3.33\). Using \(p\) instead of \(1 - p\) on the down payoff gives 2.61.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>16.</strong> The tree values the call at $6.10. A dealer quotes the call at $6.50. Which trade locks in a riskless profit, and how much today?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Buy the call, short 0.7 shares, lend; profit $0.40 today</button>
+    <button class="opt" data-key="b">Sell the call, buy 0.7 shares, borrow; profit $0.40 today</button>
+    <button class="opt" data-key="c">Sell the call, buy 0.44 shares, borrow; profit $0.40 today</button>
+    <button class="opt" data-key="d">Sell the call, buy 0.7 shares, borrow; profit $0.41 at expiry</button>
+  </div>
+  <div class="why">The call is dear: sell it and buy the replicating portfolio. \(\Delta = (14 - 0)/(92 - 72) = 0.7\): buy 0.7 shares ($56) and borrow the PV of what the hedge is worth at \(T\): \(0.7\times92 - 14 = 50.40\), PV \(49.90\). Cash today: \(6.50 - 56 + 49.90 = 0.40\), and at \(T\) the shares exactly repay the loan and the call. (c) uses \(p\) as the hedge ratio. (d): \(0.40e^{0.01} = 0.40\), not 0.41.</div>
+</div>
+
+<div class="quiz num" data-answer="0.4966" data-tol="0.0006">
+  <p class="q"><strong>17.</strong> A stock is $36. In 2 months it will be $39 or $34. \(r = 8\%\) p.a. continuously compounded. Find the risk-neutral probability of the up move (4 dp).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(u = 39/36 = 1.0833\), \(d = 34/36 = 0.9444\), \(e^{0.08\times2/12} = 1.0134\). \(p = (1.0134 - 0.9444)/(1.0833 - 0.9444) = 0.4966\). Shortcut: in price terms \(p = (S_0e^{rT} - S_d)/(S_u - S_d) = (36.4831 - 34)/5\).</div>
+</div>
+
+<div class="quiz num" data-answer="1.96" data-tol="0.01">
+  <p class="q"><strong>18.</strong> Same stock as Q17. Value a 2-month European call with \(K = 35\).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(f_u = 4\), \(f_d = 0\). \(c = e^{-0.08/6}\times0.4966\times4 = \$1.96\). (Check by replication: \(\Delta = 4/5 = 0.8\); \(0.8\times36 - (0.8\times39 - 4)e^{-0.0133} = 28.8 - 26.84 = 1.96\) ✓.)</div>
+</div>
+
+<div class="quiz num" data-answer="4.97" data-tol="0.01">
+  <p class="q"><strong>19.</strong> Running example (\(S_0 = 40\), up to 50 or down to 32 in 6 months, \(r = 6\%\)). A <em>binary</em> option pays $10 if the stock goes up and nothing if it goes down. What is it worth?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Risk-neutral valuation works for <em>any</em> payoff on the tree: \(f = e^{-0.03}[0.5121\times10 + 0.4879\times0] = \$4.97\). Exams use odd payoffs (e.g. a squared call payoff) to check you can apply \(f = e^{-rT}[pf_u + (1-p)f_d]\) beyond plain calls and puts.</div>
+</div>
+
+<div class="quiz num" data-answer="6.30" data-tol="0.02">
+  <p class="q"><strong>20.</strong> Working backwards: a one-year tree has \(u = 1.2\), \(d = 0.9\) and risk-neutral probability \(p = 0.55\). What continuously compounded risk-free rate (% p.a.) does that imply?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(e^{r} = pu + (1-p)d = 0.55\times1.2 + 0.45\times0.9 = 0.66 + 0.405 = 1.065\), so \(r = \ln 1.065 = 6.30\%\). This is the definition of \(p\) in reverse: the risk-neutral expected growth of the stock is \(e^{rT}\).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>21.</strong> On the Q11 tree an analyst estimates the real-world probability of the up move at 80%. Which statement is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The call is worth \(e^{-0.025}(0.8\times6) = 4.68\), not 3.01</button>
+    <button class="opt" data-key="b">The call is worth 3.01 only if the stock's expected return is 5%</button>
+    <button class="opt" data-key="c">The call is still worth 3.01; the real-world probability doesn't enter</button>
+    <button class="opt" data-key="d">The call is worth more than 3.01, as \(p\) must be raised to 0.80</button>
+  </div>
+  <div class="why">Same as section 1. (a) is the mixed-world mistake (real-world probability with the risk-free rate). (b): the price holds whatever the real expected return is. (d): \(p\) is fixed by \(r\), \(u\), \(d\), \(T\).</div>
+</div>
+
+<h3>Two-mark written answers</h3>
+<p>Older finals ask these in words. Write 2–3 sentences, then compare.</p>
+<details><summary>(a) Explain why we're allowed to assume investors are risk neutral when pricing an option on a binomial tree.</summary><div>
+<p>A portfolio of \(\Delta\) shares and one short option is riskless, so by no-arbitrage it earns \(r\); that pins the option's price without using any risk preferences. Since the price is the same whatever investors' attitudes to risk, we may pick the easiest: risk neutrality, where the option is worth its expected payoff under the risk-neutral probabilities (those that make the stock earn \(r\)), discounted at \(r\). Both routes give the same price.</p>
+</div></details>
+<details><summary>(b) Why can't you discount the real-world expected payoff at the risk-free rate?</summary><div>
+<p>Real-world probabilities belong to a world of risk-averse investors, where an option is a risky (leveraged, for a call) asset whose required return isn't \(r\) and changes with \(S\). Mixing real-world probabilities with the risk-free rate gives the wrong price; you must use risk-neutral probabilities with \(r\), or real-world probabilities with the option's own risk-adjusted rate.</p>
+</div></details>
+
+<h2>9 · Exam-level challenge</h2>
+<div class="box">
+<p>A non-dividend-paying stock trades at <strong>$60</strong>. In 3 months it will be either <strong>$66</strong> or <strong>$54</strong>. The risk-free rate is <strong>6%</strong> p.a., continuously compounded. Consider 3-month European options with strike <strong>$62</strong>.</p>
+<p>(a) Find the risk-neutral probability of an up move. (1 mark)<br>
+(b) Value the put by risk-neutral valuation. (2 marks)<br>
+(c) Value the call, and check (b) and (c) satisfy put-call parity. (2 marks)<br>
+(d) What stock position hedges a <em>written</em> put? (2 marks)<br>
+(e) The put trades at $3.60. Describe the arbitrage and the profit today. (3 marks)<br>
+(f) The real-world probability of an up move is 70%. What expected return would you need to discount the put's real-world expected payoff at to get the right price, and why is it so low? (2 marks)</p>
+</div>
+
+<details><summary>(a) the probability</summary><div>
+<p>\(u = 1.1\), \(d = 0.9\), \(e^{0.06\times0.25} = e^{0.015} = 1.0151\). \(p = (1.0151 - 0.9)/0.2 = \mathbf{0.5756}\), \(1 - p = 0.4244\).</p></div></details>
+<details><summary>(b) the put</summary><div>
+<p>\(f_u = \max(62 - 66, 0) = 0\), \(f_d = 62 - 54 = 8\). \(p_{\text{put}} = e^{-0.015}\times0.4244\times8 = \mathbf{\$3.34}\) (3.3449).</p></div></details>
+<details><summary>(c) the call and parity</summary><div>
+<p>\(f_u = 4\), \(f_d = 0\): \(c = e^{-0.015}\times0.5756\times4 = \mathbf{\$2.27}\) (2.2680).<br>
+Parity: \(c + Ke^{-rT} = 2.2680 + 62e^{-0.015} = 2.2680 + 61.0769 = 63.3449\); \(p + S_0 = 3.3449 + 60 = 63.3449\). ✓</p></div></details>
+<details><summary>(d) hedging a written put</summary><div>
+<p>\(\Delta_{\text{put}} = (0 - 8)/(66 - 54) = -0.6667\). The writer of a put loses when the stock <em>falls</em>, so they <strong>short 0.6667 shares</strong> per put. Check: short put + short \(\tfrac23\) share is worth \(0 - 44 = -44\) if up, \(-8 - 36 = -44\) if down. Riskless.</p></div></details>
+<details><summary>(e) the arbitrage</summary><div>
+<p>Market 3.60 > model 3.34: the put is dear. <strong>Sell the put, short 0.6667 shares, lend the PV of 44.</strong></p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>Action</th><th>\(t = 0\)</th><th>\(T\), up (66)</th><th>\(T\), down (54)</th></tr>
+<tr><td>Sell put</td><td>+3.60</td><td>0</td><td>−8.00</td></tr>
+<tr><td>Short 0.6667 shares</td><td>+40.00</td><td>−44.00</td><td>−36.00</td></tr>
+<tr><td>Lend \(44e^{-0.015}\)</td><td>−43.34</td><td>+44.00</td><td>+44.00</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>+0.26</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+</table>
+</div>
+<p>Profit today = market − model = \(3.60 - 3.3449 = \mathbf{\$0.26}\) per put, with nothing owed later.</p></div></details>
+<details><summary>(f) the traditional approach</summary><div>
+<p>Real-world expected payoff: \(0.3\times8 = 2.40\). Needed return: \(2.40/3.3449 - 1 = \mathbf{-28.2\%}\) over 3 months. The stock's real-world expected return is \((0.7\times66 + 0.3\times54)/60 - 1 = 4\%\). The put pays off when the stock falls, so it's a hedge (negative \(\Delta\)); investors accept a low, even negative, expected return for insurance. That rate depends on \(S\) and the put's own price, which is why we use risk-neutral valuation instead.</p></div></details>
+
+<h2>10 · Before you close this tab</h2>
+<div class="box"><p><strong>Rule of thumb.</strong> <em>Price in the risk-neutral world: grow the stock at \(r\) to get \(p = (e^{rT} - d)/(u - d)\), then discount the \(p\)-weighted payoff at \(r\).</em> Real-world probabilities and expected returns never go in. \(p\) is the same for every derivative on the tree, must lie strictly between 0 and 1 (\(d \lt  e^{rT} \lt  u\)), and a call and put priced off it satisfy parity exactly.</p></div>
+
+<details><summary>Retrieval: from memory, write \(p\) and \(f\), derive \(p\) in one line, state the no-arbitrage condition and its two arbitrages, say why the 70% doesn't matter, and say how risk aversion still affects option prices. Then check</summary><div>
+<p>\(p = (e^{rT} - d)/(u - d)\) from \(pS_0u + (1-p)S_0d = S_0e^{rT}\). \(f = e^{-rT}[pf_u + (1-p)f_d]\). \(d \lt  e^{rT} \lt  u\); if \(e^{rT} \ge u\), short stock and lend; if \(e^{rT} \le d\), borrow and buy stock. Real-world probability is irrelevant because the price comes from the riskless hedge, which uses none; risk-neutral valuation is a shortcut that reproduces it. Risk aversion and expectations still matter through \(S_0\).</p></div></details>
+
+<div class="quiz num" data-answer="4.04" data-tol="0.01">
+  <p class="q"><strong>R1.</strong> (Spacing, Lesson 14) A 1-year European call with \(K = 30\) costs $3.50; the stock is $28, \(r = 5\%\), no dividends. Put price by parity?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(p = c + Ke^{-rT} - S_0 = 3.50 + 30e^{-0.05} - 28 = 3.50 + 28.5369 - 28 = \$4.04\). Not discounting \(K\) gives 5.50.</div>
+</div>
+
+<p><strong>Primary source:</strong> Hull, <em>Options, Futures and Other Derivatives</em>, the chapter "Binomial trees" (one-step model, risk-neutral valuation, real world vs risk-neutral world; Ch. 13 in recent editions), and <a href="../lectures/Lecture%205_Binomial%20I.pdf">Lecture 5</a>, slides 17–27 (traditional approach, \(p\), \(f\)) and 28 (\(u\), \(d\) from \(\sigma\)).</p>
+<p><strong>Homework (official practice):</strong> <a href="../tutes/Tutorial%205.pdf">Tutorial 5</a> (<a href="../tutes/Tutorial%205%20Solutions.pdf">solutions</a>): <strong>Q1</strong> (the derivation in section 4; do it without looking), <strong>Q5</strong> (do it twice: by no-arbitrage, then by \(p\)), and <strong>Q4</strong> (answer in two sentences). Optional: Q2–Q3 are two-step trees, the core of <a href="0018-two-step-trees-and-u-d-from-volatility.html">Lesson 18</a>; try them now if you're keen.</p>
+<p><strong>Spacing:</strong> tomorrow, redo the challenge (a)–(e) cold. In three days, redo Q14–16 and Q20.</p>
+
+<div class="ask">💬 Stuck on why the real-world probability drops out, or which way to trade a mispriced option? Paste your working in the terminal and ask me. I'm your teacher for this. Ask me for more one-step trees with fresh numbers, odd payoffs, or "what happens to \(p\) if…" drills.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0016-one-period-binomial-replication.html">Lesson 16, one-period replication and delta</a></span>
+  <span>Reference: <a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0018-two-step-trees-and-u-d-from-volatility.html">Lesson 18, two-step trees</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>
