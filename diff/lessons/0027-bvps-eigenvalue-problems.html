@@ -66,7 +66,12 @@
 <tr><td>Dirichlet</td><td>value</td><td>$y(0)=0$</td></tr>
 <tr><td>Neumann</td><td>derivative</td><td>$y'(2)=0$</td></tr>
 <tr><td>Robin</td><td>weighted sum</td><td>$y(0)-3y'(0)=0$</td></tr>
+<tr><td>Mixed</td><td>different type at each end</td><td>$y(0)=0,\ y'(L)=0$ (2017, 2021)</td></tr>
+<tr><td>Periodic</td><td>ends match: value and slope</td><td>$y(-\pi)=y(\pi),\ y'(-\pi)=y'(\pi)$ (2024)</td></tr>
+<tr><td>Polar (angle $\theta$)</td><td>periodic in $\theta$, period $2\pi$ for a full disc/annulus</td><td>$\Theta(0)=\Theta(2\pi),\ \Theta'(0)=\Theta'(2\pi)$</td></tr>
+<tr><td>Polar (radius $r$)</td><td>Dirichlet on each circle of an annulus; for a disc, <em>bounded at $r=0$</em> replaces the inner BC</td><td>$R(1)=0$; $R(0)$ finite (2022)</td></tr>
 </table>
+<p>Wedge or half-disc ($0\le\theta\le\beta$): $\theta$ gets ordinary Dirichlet BCs, e.g. $\Theta(0)=\Theta(\beta)=0$ (2022). Bounded-at-origin drops $r^{-k}$ and $\ln r$; see Lesson 30.</p>
 <p>BCs are <strong>homogeneous</strong> if $c_1=c_2=0$. The <em>BVP</em> is homogeneous if also $g=0$.</p>
 
 <h3>From words to BCs (the 2026 paper is wordy)</h3>
