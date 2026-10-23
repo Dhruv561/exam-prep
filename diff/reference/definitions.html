@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Definitions and Theorems</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+@page { size: A4; margin: 10mm; }
+body.ref main { max-width: 62rem; }
+.toc { display: flex; flex-wrap: wrap; gap: .4rem .9rem; margin: .8rem 0 1rem; font-size: .95em; }
+.toc a { text-decoration: none; border-bottom: 1px solid currentColor; }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; margin: .6rem 0 1.2rem; padding: .5rem .8rem; border: 1px solid var(--rule, #8884); border-radius: 6px; font-size: .92em; }
+.bar button { font: inherit; padding: .25rem .7rem; border-radius: 5px; border: 1px solid currentColor; background: transparent; color: inherit; cursor: pointer; }
+.bar button[aria-pressed="true"] { background: var(--accent, #2a6); color: #fff; border-color: transparent; }
+section.def { margin: .9rem 0; padding: .1rem 0 .1rem .9rem; border-left: 3px solid var(--accent, #2a6); break-inside: avoid; }
+section.def > h3 { margin: .2rem 0 .3rem; font-size: 1.05rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem .6rem; }
+.src, .tag { font-size: .72em; font-weight: 700; letter-spacing: .04em; border: 1px solid currentColor; border-radius: 3px; padding: 0 .3em; white-space: nowrap; opacity: .85; }
+.tag.s { background: var(--accent, #2a6); color: #fff; border-color: transparent; opacity: 1; }
+.tag.std { opacity: .7; font-style: italic; }
+.body > * { margin: .3rem 0; }
+.body ul { padding-left: 1.2rem; }
+.cond-h { font-size: .78em; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .7; margin: .5rem 0 .1rem; }
+.watch { font-size: .95em; padding: .3rem .6rem; border-left: 3px solid #c84; background: #c841; }
+.watch strong:first-child { color: #c84; }
+.recall section.def:not(.open) > .body { display: none; }
+.recall section.def:not(.open) > h3 { cursor: pointer; }
+.recall section.def:not(.open) > h3::after { content: "click to reveal"; font-size: .75em; font-weight: 400; opacity: .6; }
+.recall section.def > h3 { cursor: pointer; }
+table.cmp td, table.cmp th { vertical-align: top; }
+.katex-display { margin: .35em 0; }
+@media print {
+  html { font-size: 8pt; }
+  .bar, .nav { display: none; }
+  .recall section.def:not(.open) > .body { display: block; }
+  .recall section.def > h3::after { content: none !important; }
+  body.ref main { padding: 0; max-width: none; }
+}
+</style>
+</head>
+<body class="ref">
+<main>
+<div class="kicker">MAST20030 · Reference</div>
+<h1>Definitions and theorems: exact statements</h1>
+<p class="lede">The lecturer says definitions are examinable. Each entry gives the statement as the lecture notes give it, the <strong>conditions</strong> it needs, and the usual trap. <span class="src">L9</span> = lecture number. <span class="tag s">on sheet</span> = on the formula sheet (so you need not memorise it). <span class="tag std">standard</span> = not stated formally in the notes; I added the standard form, so check it against how Thomas words it.</p>
+
+<div class="toc">
+<a href="#confusables">Confusable pairs</a>
+<a href="#t1">T1 ODEs &amp; systems</a>
+<a href="#t2">T2 Power series</a>
+<a href="#t3">T3 Laplace</a>
+<a href="#t4">T4 Fourier series</a>
+<a href="#t5">T5 BVPs &amp; PDEs</a>
+<a href="#t6">T6 Fourier transforms</a>
+<a href="#phrasing">Exam phrasing</a>
+</div>
+
+<div class="bar noprint">
+<button id="recallBtn" aria-pressed="false" type="button">Recall mode: off</button>
+<span>On = statements hidden. Say it aloud or write it, then click the title to check. Printing always shows everything.</span>
+<button id="openAll" type="button">Reveal all</button>
+</div>
+
+<h2 id="confusables">Confusable pairs: say the difference in one line</h2>
+<table class="cmp">
+<tr><th>Pair</th><th>Difference</th></tr>
+<tr><td>Pointwise vs uniform convergence</td><td>Pointwise: for each fixed $t$, $W_N(t)\to W(t)$. Uniform: the <em>worst</em> error over the whole domain $\to0$: $\max_{t\in D}|W_N-W|\to0$. Uniform $\Rightarrow$ pointwise, not conversely ($t^N$ on $[0,1]$).</td></tr>
+<tr><td>Weierstrass test vs ratio test</td><td>Ratio test: radius of convergence of a <em>power series</em> (where it converges). Weierstrass: <em>uniform</em> convergence of a series of <em>functions</em> by bounding each by a number $a_n$ with $\sum a_n$ convergent.</td></tr>
+<tr><td>Formal vs genuine solution</td><td>Formal: term-by-term differentiated series satisfies the ODE/PDE (convergence not checked). Genuine: series and all derivatives up to the order of the equation converge uniformly, so term-by-term differentiation is legal and it really solves it.</td></tr>
+<tr><td>Dirichlet (pointwise) vs uniform theorem for Fourier series</td><td>Dirichlet: $f$ piecewise $C^1$ $\Rightarrow$ converges to $F$ (or midpoint at a jump). Uniform: needs more, $F$ <em>continuous</em> everywhere. A jump gives pointwise but never uniform convergence (Gibbs).</td></tr>
+<tr><td>Dirichlet BC vs Neumann BC vs Robin</td><td>Dirichlet fixes the value $u$; Neumann fixes the (normal) derivative $\partial_nu$; Robin is a weighted sum of both.</td></tr>
+<tr><td>Homogeneous ODE vs homogeneous BC vs homogeneous BVP</td><td>ODE homogeneous: $g=0$. BCs homogeneous: $c_1=c_2=0$. BVP homogeneous: both.</td></tr>
+<tr><td>Complementary vs particular vs general solution</td><td>$y_c$: solves $Ty=0$ (a vector space). $y_p$: any single solution of $Ty=g$. General: $y=y_c+y_p$.</td></tr>
+<tr><td>Steady-state vs transient</td><td>$u=u_S(x)+u_T(x,t)$. $u_S$: time-independent, carries the inhomogeneous BCs, solves Laplace/$u_S''=0$. $u_T\to0$ as $t\to\infty$, has homogeneous BCs.</td></tr>
+<tr><td>Laplace vs Fourier transform</td><td>$\mathcal L$: $t\in[0,\infty)$, kernel $e^{-st}$, $s$ complex, exists for $\operatorname{Re}s&gt;\alpha$. $\mathcal F$: $x\in(-\infty,\infty)$, kernel $e^{-ikx}$, $k$ real, needs $f$ absolutely integrable.</td></tr>
+<tr><td>Laplace vs Fourier convolution</td><td>Laplace: $\int_0^t f(t-\tau)g(\tau)d\tau$. Fourier: $\int_{-\infty}^{\infty}f(x-\xi)g(\xi)d\xi$. Both turn into a product of transforms.</td></tr>
+</table>
+
+<!-- ============================ TOPIC 1 ============================ -->
+<h2 id="t1">Topic 1: Linear ODEs, IVPs, systems (L1–L6)</h2>
+
+<section class="def" id="linear-ode"><h3>Linear ODE, order, homogeneous <span class="src">L1</span></h3><div class="body">
+<div class="box">$$f_n(t)y^{(n)}+\dots+f_1(t)y'+f_0(t)y=g(t)$$</div>
+<p>Linear: a linear combination of derivatives of the unknown $y(t)$; coefficients may depend on $t$ but not on $y$. Order $n$ if $f_n\ne0$. Homogeneous if $g=0$, inhomogeneous if $g\ne0$.</p>
+<p class="watch"><strong>Trap.</strong> Nonlinear means $y$ (or a derivative) appears inside a function or a product: $y^2$, $\log y$, $yy'$. $\cos(t)y'$ is fine.</p>
+</div></section>
+
+<section class="def" id="ivp"><h3>Initial value problem <span class="src">L1</span></h3><div class="body">
+<p>An ODE of order $n$ plus $n$ initial values at one point $t_0$: $y(t_0)=y_0,\ y'(t_0)=y_0',\dots,y^{(n-1)}(t_0)=y_0^{(n-1)}$.</p>
+<p class="watch"><strong>Trap.</strong> Values at two different points ($y(0)=1,\ y(2)=0$) make a <em>boundary</em> value problem, not an IVP.</p>
+</div></section>
+
+<section class="def" id="linop"><h3>The operator $T$: linear transformation, solution space <span class="src">L2</span></h3><div class="body">
+<div class="box">$$(Ty)(t)=\frac{d^2y}{dt^2}+f_1(t)\frac{dy}{dt}+f_0(t)y,\qquad T(y_1+y_2)=Ty_1+Ty_2,\quad T(ky)=k\,Ty$$</div>
+<p>Same idea for $T=\frac{d}{dt}+f(t)\cdot$ (first order) and $T=\frac{d}{dt}-A\cdot$ (systems). The solutions of $Ty=0$ (complementary solutions) form a <strong>vector space</strong> (the solution space). Solve $Ty=g$ by: find all $y_c$ with $Ty_c=0$, find one $y_p$ with $Ty_p=g$, then $y=y_c+y_p$.</p>
+<p class="watch"><strong>Check to show.</strong> To prove $T$ is linear, verify both properties (additivity and scalar multiplication). Order of the solution space = order of the ODE (1st order: 1-D, 2nd order: 2-D).</p>
+</div></section>
+
+<section class="def" id="eu"><h3>Existence and uniqueness (linear ODE, order $n$) <span class="src">L3</span></h3><div class="body">
+<p class="cond-h">Hypothesis</p>
+<p>$(Ty)(t)=g(t)$ with $T=\frac{d^n}{dt^n}+f_{n-1}\frac{d^{n-1}}{dt^{n-1}}+\dots+f_0$ (leading coefficient $1$), and $f_0,\dots,f_{n-1},g$ all <strong>continuous on $D=[a,b]$</strong>.</p>
+<p class="cond-h">Conclusion (on $D$)</p>
+<ul>
+<li>General solution = $n$ linearly independent complementary solutions + one particular solution.</li>
+<li>Solution space is an $n$-dimensional vector space.</li>
+<li>IVP: with $y(t_0),\dots,y^{(n-1)}(t_0)$, $t_0\in D$, there is a <strong>unique</strong> $n$-times differentiable solution.</li>
+</ul>
+<p class="watch"><strong>Trap.</strong> First divide by the leading coefficient to reach standard form, then look for discontinuities of the $f_i$ and $g$. Bessel $y''+\frac1ry'+y=0$ fails: $\frac1r$ is not continuous on any interval containing $r=0$. "Largest interval" = the interval around $t_0$ with no discontinuity.</p>
+</div></section>
+
+<section class="def" id="lin-indep"><h3>Linear independence of functions <span class="src">L3</span> <span class="tag std">standard form for $n$</span></h3><div class="body">
+<p>Two non-zero functions are <strong>linearly dependent</strong> if $y_1(t)=c\,y_2(t)$ for some constant $c$ and <em>all</em> $t$; otherwise independent. For $n$ functions (standard): independent iff $c_1y_1+\dots+c_ny_n=0$ for all $t$ forces $c_1=\dots=c_n=0$.</p>
+<p class="watch"><strong>Trap.</strong> $e^{-2t}$ and $2e^{-2t}$ are dependent. Independence must hold as functions, not at one $t$.</p>
+</div></section>
+
+<section class="def" id="wronskian"><h3>Wronskian <span class="src">L3</span> <span class="src">L4</span></h3><div class="body">
+<div class="box">$$\operatorname{wr}[y_1,y_2](t)=\det\begin{pmatrix}y_1&amp;y_2\\y_1'&amp;y_2'\end{pmatrix}=y_1y_2'-y_1'y_2,\qquad \operatorname{wr}[y_1,\dots,y_n]=\det\begin{pmatrix}y_1&amp;\cdots&amp;y_n\\ \vdots&amp;&amp;\vdots\\y_1^{(n-1)}&amp;\cdots&amp;y_n^{(n-1)}\end{pmatrix}$$</div>
+<ul>
+<li>$\operatorname{wr}(t)\ne0$ for <strong>some</strong> $t$ $\Rightarrow$ linearly independent.</li>
+<li>Linearly dependent $\Rightarrow$ $\operatorname{wr}(t)=0$ for <strong>all</strong> $t$.</li>
+<li>$\operatorname{wr}(t_*)=0$ at <em>one</em> $t_*$ tells you <strong>nothing</strong>.</li>
+</ul>
+<p>For a system $\mathbf y'=A\mathbf y$ the Wronskian is $\det[\mathbf y_1\ \dots\ \mathbf y_n]$ (columns are the solution vectors).</p>
+<p class="watch"><strong>Trap.</strong> For solutions of the <em>same</em> linear ODE, Abel's identity upgrades this: nonzero anywhere $\Leftrightarrow$ nonzero everywhere. The statement "$\operatorname{wr}\equiv0\Rightarrow$ dependent" is only safe for solutions of one linear ODE.</p>
+</div></section>
+
+<section class="def" id="abel"><h3>Abel's identity <span class="src">L3</span></h3><div class="body">
+<p class="cond-h">Hypothesis</p>
+<p>$y_1,y_2$ are two <strong>solutions</strong> of $y''+f_1(t)y'+f_0(t)y=0$ (homogeneous, leading coefficient $1$).</p>
+<div class="box">$$\operatorname{wr}[y_1,y_2](t)=\operatorname{wr}[y_1,y_2](t_0)\,e^{-\int_{t_0}^{t}f_1(\tau)\,d\tau}$$</div>
+<ul>
+<li>Nonzero at one point $\Leftrightarrow$ nonzero everywhere; zero at one point $\Leftrightarrow$ zero everywhere.</li>
+<li>Use: if $y_1$ is known, solve $y_1y_2'-y_1'y_2=\operatorname{wr}(t_0)e^{-\int f_1}$ for $y_2$ (equivalent to reduction of order). E.g. $f_1=\frac1r\Rightarrow\operatorname{wr}\propto\frac1r$.</li>
+</ul>
+<p class="watch"><strong>Trap.</strong> Only $f_1$ (the $y'$ coefficient, after dividing by the leading coefficient) appears. Not $f_0$.</p>
+</div></section>
+
+<section class="def" id="rod"><h3>Reduction of order <span class="src">L2</span> <span class="tag s">on sheet</span></h3><div class="body">
+<p class="cond-h">Hypothesis</p>
+<p>$T$ is a 2nd-order linear operator and $v(t)$ is a <strong>non-zero solution of $Tv=0$</strong>. Then the general solution of $Ty=g$ can be found in the form $y=u(t)v(t)$.</p>
+<div class="box">$$w=u':\ \ w'+\Big(\frac{2v'}{v}+f_1\Big)w=\frac gv,\qquad I=v^2e^{\int f_1dt},\qquad y=v\int\frac1I\Big(\int\frac{Ig}{v}\,dt\Big)dt$$</div>
+<p class="watch"><strong>Trap.</strong> $f_0$ drops out because $Tv=0$. The two integrals supply the two constants. Finding $v$ is the hard part (trial $t^n$, $e^{\lambda t}$).</p>
+</div></section>
+
+<section class="def" id="system"><h3>Higher-order ODE as a first-order system <span class="src">L4</span></h3><div class="body">
+<p>$y^{(n)}+f_{n-1}y^{(n-1)}+\dots+f_0y=g$ is equivalent to $\mathbf z'=A\mathbf z+\mathbf b$ with $z_i=y^{(i-1)}$ ($i=1..n$):</p>
+<div class="box">$$\frac{d}{dt}\begin{pmatrix}z_1\\ \vdots\\z_{n-1}\\z_n\end{pmatrix}=\begin{pmatrix}0&amp;1&amp;\cdots&amp;0\\ \vdots&amp;&amp;\ddots&amp;\vdots\\0&amp;0&amp;\cdots&amp;1\\-f_0&amp;-f_1&amp;\cdots&amp;-f_{n-1}\end{pmatrix}\begin{pmatrix}z_1\\ \vdots\\z_{n-1}\\z_n\end{pmatrix}+\begin{pmatrix}0\\ \vdots\\0\\g\end{pmatrix}$$</div>
+<p>2nd order $y''+by'+cy=0$: $A=\begin{pmatrix}0&amp;1\\-c&amp;-b\end{pmatrix}$.</p>
+</div></section>
+
+<section class="def" id="vec-ode"><h3>Vector-valued linear ODE and its IVP; existence/uniqueness <span class="src">L4</span></h3><div class="body">
+<div class="box">$$\mathbf y'(t)=A(t)\mathbf y(t)+\mathbf b(t),\qquad \mathbf y(t_0)=\mathbf y_0$$</div>
+<p>$\mathbf y,\mathbf b$ length-$n$ vectors of functions, $A(t)$ an $n\times n$ matrix of functions. The operator $T=\frac{d}{dt}-A\cdot$ is linear.</p>
+<p class="cond-h">Theorem</p>
+<ul>
+<li>If $A$ is continuous in $t$, the solution space has dimension $n$.</li>
+<li>The IVP has a unique solution, differentiable on any interval where $A$ and $\mathbf b$ are continuous.</li>
+</ul>
+</div></section>
+
+<section class="def" id="eigen-sol"><h3>Eigenvalue method (constant coefficients) <span class="src">L4</span></h3><div class="body">
+<p>For $\mathbf y'=A\mathbf y$, $A$ constant: trial $\mathbf y=\mathbf v e^{\lambda t}$ ($\lambda\in\mathbb C,\ \mathbf v\in\mathbb C^n$) gives $A\mathbf v=\lambda\mathbf v$. Solve $\det(A-\lambda I)=0$ for $\lambda_i$, then eigenvectors $\mathbf v_i$. The solutions $\mathbf v_ie^{\lambda_it}$ form a basis for the solution space (check with the Wronskian $\det[\mathbf y_1\dots\mathbf y_n]\ne0$).</p>
+<p class="watch"><strong>Falls apart</strong> when $A$ is not diagonalisable (use the matrix exponential) or the coefficients depend on $t$.</p>
+</div></section>
+
+<section class="def" id="diag"><h3>Diagonalisation of an inhomogeneous system <span class="src">L6</span></h3><div class="body">
+<p class="cond-h">Hypothesis</p>
+<p>$A$ constant and <strong>diagonalisable</strong>: $A=SDS^{-1}$, $D$ diagonal with the eigenvalues, columns of $S$ the eigenvectors.</p>
+<div class="box">$$\mathbf y'=A\mathbf y+\mathbf b\ \Longrightarrow\ \mathbf z'=D\mathbf z+S^{-1}\mathbf b,\quad \mathbf z=S^{-1}\mathbf y,\quad \mathbf y=S\mathbf z$$</div>
+<p>The system decouples into $n$ independent first-order linear ODEs (solve each with an integrating factor).</p>
+</div></section>
+
+<section class="def" id="matexp"><h3>Matrix exponential <span class="src">L6</span></h3><div class="body">
+<div class="box">$$e^{M}=\sum_{n=0}^{\infty}\frac{M^n}{n!}=I+M+\tfrac12M^2+\cdots\ \ (M\text{ any square matrix; always well-defined})$$</div>
+<ul>
+<li>$\frac{d}{dt}e^{At}=Ae^{At}$ (term by term, justified by uniform convergence) and $e^{A\cdot0}=I$.</li>
+<li>So $\mathbf y(t)=e^{At}\mathbf y_0$ solves $\mathbf y'=A\mathbf y,\ \mathbf y(0)=\mathbf y_0$ ($A$ constant).</li>
+<li>If $\mathbf y_0=\mathbf v$ is an eigenvector ($A\mathbf v=\lambda\mathbf v$): $e^{At}\mathbf v=e^{\lambda t}\mathbf v$.</li>
+<li>$A=\begin{pmatrix}\lambda&amp;1\\0&amp;\lambda\end{pmatrix}$ (not diagonalisable): $e^{At}=\begin{pmatrix}e^{\lambda t}&amp;te^{\lambda t}\\0&amp;e^{\lambda t}\end{pmatrix}$.</li>
+</ul>
+</div></section>
+
+<section class="def" id="phase"><h3>Phase space, orbit, critical point, phase portrait <span class="src">L5</span></h3><div class="body">
+<ul>
+<li><strong>Phase space</strong>: the $(x,v)$ (or $\mathbf y$) plane. A solution traces a <strong>trajectory / orbit</strong>, a parametric curve in $t$, arrow in the direction of increasing $t$.</li>
+<li><strong>Critical point</strong> (stationary point, equilibrium): $\mathbf y$ with $A\mathbf y=0$, so $\mathbf y'=0$ and the solution does not change. For $A$ invertible the only one is $\mathbf y=\mathbf 0$.</li>
+<li><strong>Phase portrait</strong>: graphical representation of the solution space: all critical points plus representative orbits. The matrix $A$ alone fixes its structure.</li>
+<li><strong>Straight-line orbits</strong>: if the initial condition is an eigenvector, $A\mathbf y_0=\lambda\mathbf y_0$, so the orbit is a straight line along that eigenvector (direction by sign of $\lambda$).</li>
+<li>Uniqueness of IVPs $\Rightarrow$ orbits cannot cross.</li>
+</ul>
+</div></section>
+
+<section class="def" id="stability"><h3>Stable, asymptotically stable, unstable <span class="src">L6</span></h3><div class="body">
+<ul>
+<li><strong>Stable</strong>: whenever a solution starts close enough to the critical point, it stays close forever for $t\gt0$.</li>
+<li><strong>Unstable</strong>: not stable; some solution starts arbitrarily close and eventually leaves the neighbourhood.</li>
+<li><strong>Asymptotically stable</strong> (lecture's criterion): origin of $\mathbf y'=A\mathbf y$ is <strong>stable if all $\operatorname{Re}\lambda\le0$</strong>, <strong>asymptotically stable if all $\operatorname{Re}\lambda\lt0$</strong> (orbits also tend to the origin).</li>
+</ul>
+<p class="watch"><strong>Trap.</strong> Centre ($\lambda=\pm i\beta$): stable, not asymptotically. Any eigenvalue with $\operatorname{Re}\gt0$ (saddle, source): unstable. Beyond the notes: a repeated $\lambda=0$ with a Jordan block ($\begin{pmatrix}0&amp;1\\0&amp;0\end{pmatrix}$) is unstable, so the "$\le0$" rule is for the cases seen in lectures.</p>
+</div></section>
+
+<!-- ============================ TOPIC 2 ============================ -->
+<h2 id="t2">Topic 2: Power series (L7–L9)</h2>
+
+<section class="def" id="taylor"><h3>Taylor polynomial, Taylor/Maclaurin series <span class="src">L7</span></h3><div class="body">
+<div class="box">$$P_N(t)=\sum_{n=0}^{N}\frac{f^{(n)}(a)}{n!}(t-a)^n,\qquad P(t)=\lim_{N\to\infty}P_N(t)=\sum_{n=0}^{\infty}\frac{f^{(n)}(a)}{n!}(t-a)^n$$</div>
+<p>$P_N$ needs $f$ $N$-times differentiable; the series needs $f$ infinitely differentiable (smooth), and exists only if the limit exists. $a=0$: Maclaurin series.</p>
+<p class="watch"><strong>Trap.</strong> $P(t)$ may <em>not</em> equal $f(t)$. $f=e^{-1/t^2}$ ($f(0)=0$) is smooth with $f^{(n)}(0)=0$, so $P\equiv0\ne f$. Example that does work: $\frac1{1-t}=\sum t^n$ for $|t|\lt1$ only.</p>
+</div></section>
+
+<section class="def" id="ratio-series"><h3>Ratio test (series) <span class="src">L7</span></h3><div class="body">
+<p class="cond-h">Hypothesis</p>
+<p>$\sum a_n$ with $a_n\ne0$ for all large enough $n$.</p>
+<div class="box">$$\ell=\lim_{n\to\infty}\left|\frac{a_{n+1}}{a_n}\right|:\quad \ell\lt1\Rightarrow\text{converges},\quad \ell\gt1\Rightarrow\text{diverges},\quad \ell=1\Rightarrow\text{inconclusive}$$</div>
+</div></section>
+
+<section class="def" id="radius"><h3>Power series, radius of convergence, ratio test for power series <span class="src">L7</span></h3><div class="body">
+<p>A power series about $a$: $P(t)=\sum_{n=0}^{\infty}c_n(t-a)^n$.</p>
+<div class="box">$$R=\lim_{n\to\infty}\left|\frac{c_n}{c_{n+1}}\right|\ (=L^{-1},\ L=\lim|c_{n+1}/c_n|)$$</div>
+<ul>
+<li>Converges for $|t-a|\lt R$, diverges for $|t-a|\gt R$; at $|t-a|=R$ check separately with another test.</li>
+<li>$R=0$ and $R=\infty$ are allowed. A power series always converges at $t=a$.</li>
+<li>Needs $c_n\ne0$ for all large $n$. If every other coefficient is zero, apply the ratio test to consecutive <em>non-zero</em> terms (e.g. set $n=2k$).</li>
+</ul>
+<p class="watch"><strong>Trap.</strong> Note the quotient order: $c_n/c_{n+1}$ (opposite to the plain ratio test). Converges does not mean converges to $f$; see Taylor above.</p>
+</div></section>
+
+<section class="def" id="pointwise"><h3>Pointwise convergence <span class="src">L9</span> <span class="tag std">implicit in the notes</span></h3><div class="body">
+<p>$W_N\to W$ <strong>pointwise on $D$</strong> if for every fixed $t\in D$, $\lim_{N\to\infty}W_N(t)=W(t)$. The notes use it ("converges pointwise to the function...") and call uniform convergence the stronger condition.</p>
+<p class="watch"><strong>Example.</strong> $W_N(t)=t^N$ on $[0,1]$ converges pointwise to $W=0$ for $0\le t\lt1$, $W(1)=1$.</p>
+</div></section>
+
+<section class="def" id="uniform"><h3>Uniform convergence <span class="src">L9</span></h3><div class="body">
+<p>Sequence: $W_N\to W$ <strong>uniformly on $D$</strong> if</p>
+<div class="box">$$\lim_{N\to\infty}\ \max_{t\in D}\big|W_N(t)-W(t)\big|=0$$</div>
+<p>i.e. the maximal error on $D$ goes to $0$ (strictly "sup", not max). Series: $\sum_{n=1}^{\infty}w_n(t)$ converges uniformly to $W$ on $D$ if the partial sums $W_N=\sum_{n=1}^{N}w_n$ do:</p>
+<div class="box">$$\lim_{N\to\infty}\ \max_{t\in D}\Big|\sum_{n=1}^{N}w_n(t)-W(t)\Big|=0$$</div>
+<p class="watch"><strong>Counterexample.</strong> $W_N=t^N$ on $D=[0,1]$: $\max_D|W_N-W|=1$ for every $N$ (near $t=1^-$), so NOT uniform. Why it matters: allows term-by-term differentiation and integration.</p>
+</div></section>
+
+<section class="def" id="weierstrass"><h3>Weierstrass M-test <span class="src">L9</span></h3><div class="body">
+<p class="cond-h">Hypotheses</p>
+<ul>
+<li>$w_n(t)$, $n=1,2,3,\dots$ are functions on a domain $D$.</li>
+<li>There are real numbers $a_n$ with $\displaystyle\max_{t\in D}|w_n(t)|\le a_n$ for every $n$.</li>
+<li>$\displaystyle\sum_{n=1}^{\infty}a_n$ <strong>converges</strong>.</li>
+</ul>
+<p class="cond-h">Conclusion</p>
+<div class="box">$$\sum_{n=1}^{\infty}w_n(t)\ \text{converges uniformly on }D.$$</div>
+<p class="watch"><strong>How to apply.</strong> (1) bound $|w_n|$ on all of $D$ by a number $a_n$ independent of $t$ ($|\cos|,|\sin|\le1$, $|t|\le b$); (2) show $\sum a_n$ converges (ratio test, $p$-series $p\gt1$, geometric $|r|\lt1$); (3) conclude. Example: $\frac{b^n}{n!}$ on $[-b,b]$, ratio $\to0$. The test is only sufficient: if $\sum a_n$ diverges (e.g. $\frac1n$), it tells you nothing.</p>
+</div></section>
+
+<section class="def" id="termdiff"><h3>Differentiating a series term by term <span class="src">L9</span></h3><div class="body">
+<p class="cond-h">Hypotheses</p>
+<ul>
+<li>$P(t)=\sum_{n=0}^{\infty}w_n(t)$ where each $w_n$ is continuous and differentiable on $D=[a,b]$.</li>
+<li>$\sum w_n$ converges <strong>uniformly</strong> on $D$.</li>
+<li>$\sum w_n'$ converges <strong>uniformly</strong> on $D$.</li>
+</ul>
+<div class="box">$$\frac{dP}{dt}=\frac{d}{dt}\sum_{n=0}^{\infty}w_n(t)=\sum_{n=0}^{\infty}\frac{d}{dt}w_n(t)$$</div>
+<p class="watch"><strong>Trap.</strong> Uniform convergence of the series alone is not enough; the series of <em>derivatives</em> must also converge uniformly. (Integration term by term needs only uniform convergence of the original series.)</p>
+</div></section>
+
+<section class="def" id="power-unif"><h3>Uniform convergence of a power series <span class="src">L9</span></h3><div class="body">
+<div class="box">Every power series converges uniformly on every <strong>closed interval that lies strictly within its interval of convergence</strong>.</div>
+<p class="watch"><strong>Trap.</strong> Uniform on $[-b,b]$ for every $b\lt R$, not necessarily on the open interval $(-R,R)$ and not on a closed interval that reaches $\pm R$.</p>
+</div></section>
+
+<section class="def" id="formal-genuine"><h3>Formal vs genuine solution (ODE) <span class="src">L9</span></h3><div class="body">
+<ul>
+<li><strong>Formal solution</strong>: the term-by-term differentiated series satisfies the ODE. The series and its derivatives may or may not converge (pointwise or uniformly), so it may or may not actually solve the ODE.</li>
+<li><strong>Genuine solution</strong>: the series <em>and all its derivatives up to the order of the ODE</em> converge uniformly. Term-by-term differentiation up to that order is allowed, and the solution satisfies the ODE.</li>
+</ul>
+<p class="cond-h">Rule used in exams</p>
+<p>If the formal series has radius of convergence $R\gt0$, then on any domain strictly within $|t-a|\lt R$ the series (1) converges uniformly, (2) can be differentiated term by term, (3) is a genuine solution. Quote this, with "by the theorem on uniform convergence of power series and the term-by-term differentiation theorem".</p>
+</div></section>
+
+<section class="def" id="method"><h3>Power series method (5 steps) and recurrence <span class="src">L8</span></h3><div class="body">
+<ol class="steps">
+<li>Substitute $y=\sum c_nt^n$ into the ODE.</li>
+<li>Shift indices so every sum has the same power $t^m$.</li>
+<li>Extract low-index terms so all sums run over the same range (these give conditions like $c_1=0$, $c_2=0$).</li>
+<li>Collect the coefficient of $t^m$ and set it to $0$: the <strong>recurrence relation</strong> for $c_m$.</li>
+<li>Check you have the right number of linearly independent solutions (2 for a 2nd-order ODE; Bessel order 0 gives only one, then use reduction of order).</li>
+</ol>
+</div></section>
+
+<section class="def" id="named-odes"><h3>Named equations you may need to state <span class="src">L8</span> <span class="src">L9</span></h3><div class="body">
+<ul>
+<li><strong>Airy</strong>: $y''-xy=0$. Series $y_1=1+\sum\frac{x^{3k}}{2\cdot3\cdot5\cdot6\cdots(3k-1)(3k)}$, $y_2=x+\sum\frac{x^{3k+1}}{3\cdot4\cdot6\cdot7\cdots(3k)(3k+1)}$, $R=\infty$; recurrence $c_2=0$, $c_{m+3}=\frac{c_m}{(m+3)(m+2)}$. Airy functions $\mathrm{Ai},\mathrm{Bi}$ are combinations; $\mathrm{Ai}\to0$ as $x\to\infty$.</li>
+<li><strong>Bessel, order zero</strong>: $r^2y''+ry'+r^2y=0$ (standard form $y''+\frac1ry'+y=0$). Recurrence $c_1=0$, $c_{m+2}=-\frac{c_m}{(m+2)^2}$. Solution $J_0(r)=\sum_{k=0}^{\infty}\frac{(-1)^k}{(2^kk!)^2}r^{2k}$ (Bessel function of the first kind, order zero). Second solution by reduction of order: $y_2=J_0\int\frac{dr}{rJ_0^2}$.</li>
+</ul>
+</div></section>
+
+<!-- ============================ TOPIC 3 ============================ -->
+<h2 id="t3">Topic 3: Laplace transforms (L10–L14)</h2>
+
+<section class="def" id="improper"><h3>Improper integral; comparison test <span class="src">L10</span></h3><div class="body">
+<p>$\int_a^bf\,dt$ ($a\lt b$) is <strong>improper</strong> if $(a,b)$ is infinite or $f$ is unbounded on $(a,b)$. With all unboundedness at the endpoints (otherwise split):</p>
+<div class="box">$$\int_a^bf(t)\,dt=\lim_{L\to a^+}\ \lim_{R\to b^-}\int_L^Rf(t)\,dt\quad\text{(the two limits must exist separately)}$$</div>
+<p><strong>Comparison test</strong> ($f,g$ continuous on $(a,b)$): (1) if $|f|\le g$ and $\int g$ converges then $\int f$ converges; (2) if $f\ge g\ge0$ and $\int g$ diverges then $\int f$ diverges.</p>
+<p class="watch"><strong>Trap.</strong> $\int_{-1}^1\frac{dt}{t^2}$ diverges: split at $0$, each side must converge. Don't just evaluate the antiderivative across the singularity.</p>
+</div></section>
+
+<section class="def" id="laplace"><h3>Laplace transform <span class="src">L10</span> <span class="tag s">on sheet</span></h3><div class="body">
+<div class="box">$$\mathcal L\{f\}=F(s)=\int_0^{\infty}e^{-st}f(t)\,dt$$</div>
+<p>For $t\in[0,\infty)$, $s\in\mathbb C$, defined for those $s$ for which the integral converges. It is a <strong>linear transformation</strong>: $\mathcal L\{f+g\}=F+G$, $\mathcal L\{\beta f\}=\beta F$. Examples: $\mathcal L\{1\}=\frac1s$ ($\operatorname{Re}s\gt0$); $\mathcal L\{e^{\alpha t}\}=\frac1{s-\alpha}$ ($\operatorname{Re}s\gt\alpha$), using $|e^{-sR}|=e^{-R\operatorname{Re}s}$.</p>
+</div></section>
+
+<section class="def" id="pw-cont"><h3>Piecewise continuous; exponential order; existence of $\mathcal L\{f\}$ <span class="src">L10</span></h3><div class="body">
+<p class="cond-h">Piecewise continuous on $[0,L]$</p>
+<p>$f$ has finitely many discontinuities on $(0,L)$, and the limits of $f$ at the endpoints and on each side of every discontinuity are finite.</p>
+<p class="cond-h">Existence criteria (both needed)</p>
+<ul>
+<li>$f$ is piecewise continuous on $[0,L]$ for <strong>every</strong> $L\gt0$.</li>
+<li>$f$ is <strong>exponentially bounded</strong>: there exist $\alpha,k,T\in\mathbb R$ with $|f(t)|\le ke^{\alpha t}$ for all $t\gt T$.</li>
+</ul>
+<p>Then $\mathcal L\{f\}$ exists and the integral converges for $\operatorname{Re}(s)\gt\alpha$.</p>
+<p class="watch"><strong>Trap.</strong> Sufficient, not necessary. $t^3e^{2t}$ is exponentially bounded (compare with $e^{3t}$: $t^3e^{-t}\to0$). $e^{t^2}$ outruns every $ke^{\alpha t}$, so no transform. $\frac1t$-type blow-ups violate piecewise continuity (infinite limit).</p>
+</div></section>
+
+<section class="def" id="ilt"><h3>Inverse Laplace transform <span class="src">L11</span></h3><div class="body">
+<p class="cond-h">Theorem</p>
+<p>If $f$ is <strong>continuous on $[0,\infty)$</strong> and has a Laplace transform $F$, then $\mathcal L^{-1}\{F\}=f$ for all $t\in[0,\infty)$. $\mathcal L^{-1}$ is linear: $\mathcal L^{-1}\{F+G\}=f+g$, $\mathcal L^{-1}\{\beta F\}=\beta f$.</p>
+<p class="cond-h">At discontinuities</p>
+<ul>
+<li>$f$ discontinuous at $t=0$: $\mathcal L^{-1}\{F\}(0)=\lim_{t\to0^+}f(t)$.</li>
+<li>$f$ discontinuous at $\tau\gt0$: $\mathcal L^{-1}\{F\}(\tau)=\tfrac12\big[\lim_{t\to\tau^-}f+\lim_{t\to\tau^+}f\big]$ (midpoint).</li>
+</ul>
+</div></section>
+
+<section class="def" id="lt-deriv"><h3>Laplace transform of derivatives <span class="src">L12</span> <span class="tag s">on sheet</span></h3><div class="body">
+<p class="cond-h">Hypothesis</p>
+<p>$f$ differentiable on $[0,\infty)$ and of exponential order, $f'$ piecewise continuous. (Order $n$: $f,\dots,f^{(n-1)}$ of exponential order, $f^{(n)}$ piecewise continuous.)</p>
+<div class="box">$$\mathcal L\{f'\}=sF(s)-f(0),\qquad \mathcal L\{f''\}=s^2F(s)-sf(0)-f'(0)$$ $$\mathcal L\{f^{(n)}\}=s^nF(s)-s^{n-1}f(0)-s^{n-2}f'(0)-\dots-f^{(n-1)}(0)$$</div>
+<p><strong>Proof of the first</strong> (examinable pattern): integrate $\int_0^b e^{-st}f'dt$ by parts: $\big[e^{-st}f\big]_0^b+s\int_0^be^{-st}f\,dt$; the boundary term at $b\to\infty$ vanishes by exponential order, leaving $-f(0)+sF$. Higher order: parts + induction.</p>
+<p class="watch"><strong>Why it matters.</strong> The initial conditions are built into the transform.</p>
+</div></section>
+
+<section class="def" id="shifts"><h3>Heaviside step; s-shift; t-shift <span class="src">L12</span> <span class="tag s">on sheet</span></h3><div class="body">
+<div class="box">$$H(t)=\begin{cases}0&amp;t\le0\\1&amp;t\gt0\end{cases},\qquad H_c(t)=H(t-c)\ \text{(switches on at }t=c)$$</div>
+<ul>
+<li><strong>s-shift.</strong> If $\mathcal L\{f\}=F$ exists for $\operatorname{Re}s\gt\alpha$, then $\mathcal L\{e^{\omega t}f(t)\}=F(s-\omega)$, valid for $\operatorname{Re}(s)\gt\alpha+\omega$ (for real $\omega$).</li>
+<li><strong>t-shift.</strong> If $F(s)$ exists for $\operatorname{Re}s\gt\alpha$ and <strong>$c\ge0$</strong>, then $\mathcal L\{f(t-c)H(t-c)\}=e^{-cs}F(s)$, $\operatorname{Re}s\gt\alpha$.</li>
+</ul>
+<p class="watch"><strong>Trap.</strong> t-shift needs the function written as $f(t-c)H(t-c)$: the shifted argument must appear in $f$ itself. Rewrite $t\,H(t-2)=(t-2)H(t-2)+2H(t-2)$ first. Factor $e^{-cs}$ means a delay by $c$.</p>
+</div></section>
+
+<section class="def" id="disc-ivp"><h3>IVP with piecewise-continuous forcing: what the solution looks like <span class="src">L13</span></h3><div class="body">
+<p class="cond-h">Hypothesis</p>
+<p>$y^{(n)}+f_{n-1}y^{(n-1)}+\dots+f_0y=g$ with the $f_i$ continuous on $[0,\infty)$ and $g$ piecewise continuous on $[0,L]$ for all $L\gt0$.</p>
+<ul>
+<li>$y,y',\dots,y^{(n-1)}$ are <strong>continuous</strong> on $[0,\infty)$.</li>
+<li>$y^{(n)}$ is continuous wherever $g$ is; at each discontinuity of $g$ its left and right limits are given by the ODE.</li>
+<li>$y$ satisfies the ODE at every point where $g$ is continuous.</li>
+</ul>
+<p class="watch"><strong>Use.</strong> Check: $y$ and $y'$ continuous at the switching time for a 2nd-order ODE ($y''$ jumps). With $H(t-2)$ on the right of a 1st-order ODE, $y$ is continuous and $y'$ jumps.</p>
+</div></section>
+
+<section class="def" id="dirac"><h3>Dirac delta <span class="src">L14</span> <span class="tag s">$\mathcal L\{\delta(t-a)\}$ on sheet</span></h3><div class="body">
+<p class="cond-h">Motivation</p>
+<p>Unit-area pulse $\delta_\epsilon(t)=\frac1\epsilon$ for $0\lt t\le\epsilon$, else $0$: $\int\delta_\epsilon=1$, $\mathcal L\{\delta_\epsilon\}=\frac{1-e^{-\epsilon s}}{\epsilon s}\to1$ as $\epsilon\to0$.</p>
+<p class="cond-h">Definition: $\delta(t)$ is such that</p>
+<ol>
+<li>$\delta(t)=0$ for all $t\ne0$,</li>
+<li>$\displaystyle\int_{-\infty}^{\infty}\delta(t)\,dt=\int_0^{a}\delta(t)\,dt=1$ for all $a\gt0$,</li>
+<li>$\mathcal L\{\delta(t)\}=1$.</li>
+</ol>
+<p>Not a function in the traditional sense (a generalised function).</p>
+<div class="box">Sifting: $\displaystyle\int_0^{\infty}f(t)\delta(t-c)\,dt=f(c)$ for $c\ge0$; hence $\mathcal L\{\delta(t-c)\}=e^{-cs}$.</div>
+<p class="watch"><strong>Use.</strong> $y'-y=\delta(t-1)$, $y(0)=0$: $Y=\frac{e^{-s}}{s-1}$, $y=e^{t-1}H(t-1)$. Solution is discontinuous (a jump at the impulse for 1st order; for 2nd order $y$ is continuous and $y'$ jumps).</p>
+</div></section>
+
+<section class="def" id="conv-L"><h3>Convolution (Laplace) and convolution theorem <span class="src">L14</span> <span class="tag s">on sheet</span></h3><div class="body">
+<div class="box">$$(f*g)(t)=\int_0^{t}f(t-\tau)g(\tau)\,d\tau,\qquad \mathcal L\{f*g\}=F(s)G(s)$$</div>
+<ul>
+<li>$f,g$ defined on $[0,\infty)$ with Laplace transforms. Commutative: $f*g=g*f$.</li>
+<li>$1*f\ne f$ in general: $(1*f)(t)=\int_0^tf(\tau)d\tau$, an antiderivative. So $\mathcal L\{\int_0^tf(\tau)d\tau\}=\frac{F(s)}{s}$.</li>
+<li>Use: $\mathcal L^{-1}\{F\,G\}=f*g$, e.g. $\mathcal L^{-1}\{\frac1{(s-1)(s-2)}\}=e^t*e^{2t}=e^t(e^t-1)$.</li>
+</ul>
+</div></section>
+
+<!-- ============================ TOPIC 4 ============================ -->
+<h2 id="t4">Topic 4: Fourier series (L15–L19)</h2>
+
+<section class="def" id="per-ext"><h3>Periodic extension <span class="src">L15</span></h3><div class="body">
+<div class="box">$f$ defined on $(-L,L]$. Its periodic extension $F$: $F(x)=f(x)$ for $x\in(-L,L]$ and $F(x+2L)=F(x)$.</div>
+</div></section>
+
+<section class="def" id="eigfun"><h3>Eigenvalue problem for a differential operator; periodic BCs <span class="src">L15</span></h3><div class="body">
+<p>Matrix: $A\mathbf v=\lambda\mathbf v$. Operator: $-\frac{d^2y}{dx^2}=\lambda y$ — $\lambda$ an <strong>eigenvalue</strong>, $y(x)$ an <strong>eigenfunction</strong>; boundary conditions are needed to fix them.</p>
+<p><strong>Periodic BCs:</strong> $y(-L)=y(L)$ and $y'(-L)=y'(L)$. Result: $\lambda=0$ with $y=$ const; $\lambda=k_n^2$, $k_n=\frac{n\pi}{L}$ ($n=1,2,\dots$) with two eigenfunctions $\cos k_nx$ and $\sin k_nx$; no eigenfunctions for $\lambda\lt0$.</p>
+</div></section>
+
+<section class="def" id="inner"><h3>Inner product, orthogonality, norm <span class="src">L15</span></h3><div class="body">
+<div class="box">$$\langle f,g\rangle=\frac1L\int_{-L}^{L}f(x)^*\,g(x)\,dx\qquad(\text{complex-valued }f,g\text{ on }(-L,L])$$</div>
+<ul>
+<li>$f,g$ <strong>orthogonal</strong> if $\langle f,g\rangle=0$.</li>
+<li>Norm / RMS: $\sqrt{\langle f,f\rangle}$.</li>
+<li>Orthogonality relations: $\langle\cos k_mx,\cos k_nx\rangle=\delta_{mn}$ ($m,n\ge1$), $\langle\sin k_mx,\sin k_nx\rangle=\delta_{mn}$, $\langle\cos k_mx,\sin k_nx\rangle=0$ (odd integrand), (constant eigenfunction chosen as $\tfrac12$: $\langle\tfrac12,\tfrac12\rangle=\tfrac12$, $\langle\tfrac12,1\rangle=1$, $\langle\tfrac12,\cos k_nx\rangle=\langle\tfrac12,\sin k_nx\rangle=0$).</li>
+</ul>
+<p class="watch"><strong>Trap.</strong> The $\frac1L$ normalisation makes $\|\cos k_nx\|=\|\sin k_nx\|=1$. For $n\ne m$ use the product-to-sum identities (on the sheet).</p>
+</div></section>
+
+<section class="def" id="selfadj"><h3>Self-adjoint operator <span class="src">L16</span></h3><div class="body">
+<div class="box">$T$ is self-adjoint if $\langle Tf,g\rangle=\langle f,Tg\rangle$ (for $f,g$ in a suitable function space). Then $Ty=\lambda y$ has <strong>real</strong> eigenvalues.</div>
+<p>Example: $T=-\frac{d^2}{dx^2}$ with periodic BCs, under the inner product above. Matrix analogue: Hermitian $A^\dagger=A$ has real eigenvalues and orthogonal eigenvectors, and $\mathbf u=\sum c_i\mathbf v_i$ with $c_i=\frac{\langle\mathbf v_i,\mathbf u\rangle}{\langle\mathbf v_i,\mathbf v_i\rangle}$.</p>
+</div></section>
+
+<section class="def" id="fs"><h3>Fourier series and Euler–Fourier formulae <span class="src">L16</span> <span class="tag s">on sheet</span></h3><div class="body">
+<div class="box">$$\tfrac12a_0+\sum_{n=1}^{\infty}\Big[a_n\cos(k_nx)+b_n\sin(k_nx)\Big],\quad k_n=\frac{n\pi}{L}$$ $$a_n=\frac1L\int_{-L}^{L}f\cos(k_nx)\,dx\ (n\ge0),\qquad b_n=\frac1L\int_{-L}^{L}f\sin(k_nx)\,dx\ (n\ge1)$$</div>
+<ul>
+<li>Each term is a <strong>mode</strong>; $a_n,b_n$ are the <strong>amplitudes</strong>; $k_n$ the <strong>wavenumbers</strong> (angular frequencies $\omega_n$ if the variable is time). Every Fourier series is $2L$-periodic.</li>
+<li>Formulae assume the series converges and equals $f$; $a_n=\langle\cos k_nx,f\rangle$, $b_n=\langle\sin k_nx,f\rangle$. $\frac{a_0}{2}$ is the mean of $f$.</li>
+</ul>
+</div></section>
+
+<section class="def" id="dirichlet"><h3>Pointwise convergence: Dirichlet's sufficient condition <span class="src">L17</span></h3><div class="body">
+<p class="cond-h">Hypothesis</p>
+<p>$f$ is <strong>piecewise continuously differentiable</strong> (piecewise $C^1$) on $(-L,L]$: finitely many pieces, on each of which $f$ and $f'$ are continuous with finite one-sided limits at the break points <span class="tag std">my wording</span>.</p>
+<p class="cond-h">Conclusion</p>
+<ul>
+<li>The Fourier series of $f$ exists (the Euler–Fourier integrals converge).</li>
+<li>It converges to the periodic extension $F(x)$ at every $x$ where $F$ is continuous.</li>
+<li>At every $x$ where $F$ is discontinuous it converges to $\displaystyle\tfrac12\Big[\lim_{w\to x^-}F(w)+\lim_{w\to x^+}F(w)\Big]$.</li>
+</ul>
+<p class="watch"><strong>Trap.</strong> Include the ends $x=\pm L$ when the periodic extension jumps there: the value is $\tfrac12[f(L^-)+f(-L^+)]$. Use to sum series: plug in $x=0$ for $x^2$ to get $\sum\frac{(-1)^n}{n^2}=-\frac{\pi^2}{12}$. Same midpoint rule as the inverse Laplace transform.</p>
+</div></section>
+
+<section class="def" id="fs-unif"><h3>Uniform convergence of Fourier series; Gibbs <span class="src">L17</span></h3><div class="body">
+<p class="cond-h">Hypotheses</p>
+<ul>
+<li>$f'$ is piecewise continuous on $(-L,L]$, and</li>
+<li>the periodic extension of $f$ is <strong>continuous on all of $\mathbb R$</strong> (so $f(-L^+)=f(L^-)$).</li>
+</ul>
+<p class="cond-h">Conclusion</p>
+<p>The Fourier series converges <strong>uniformly</strong> to the periodic extension of $f$.</p>
+<p>If $f$ meets the pointwise (Dirichlet) conditions but the periodic extension is <strong>discontinuous</strong>, convergence is <strong>not</strong> uniform: the partial sums overshoot and "ring" either side of the jump (<strong>Gibbs phenomenon</strong>).</p>
+<p class="watch"><strong>Direct M-test route.</strong> If $|a_n\cos k_nx+b_n\sin k_nx|\le\frac C{n^2}$ for all $x$, then since $\sum\frac1{n^2}$ converges, the series converges uniformly by the Weierstrass test ($x^2$: $|\frac{(-1)^n}{n^2}\cos nx|\le\frac1{n^2}$). Coefficients only $\sim\frac1n$ (jump) fail this test.</p>
+</div></section>
+
+<section class="def" id="cfs"><h3>Complex Fourier series <span class="src">L18</span></h3><div class="body">
+<div class="box">$$\sum_{n=-\infty}^{\infty}c_ne^{ik_nx},\qquad c_n=\frac1{2L}\int_{-L}^{L}f(x)e^{-ik_nx}\,dx,\qquad k_n=\frac{n\pi}{L}$$</div>
+<p>Starting point for the Fourier transform. Link: $c_0=\frac{a_0}2$, $c_n=\frac{a_n-ib_n}2$, $c_{-n}=\frac{a_n+ib_n}2$ (real $f$).</p>
+</div></section>
+
+<section class="def" id="ext"><h3>Even and odd extensions; sine/cosine series <span class="src">L18</span></h3><div class="body">
+<p>$f$ given on $[0,L]$. Extend to $(-L,0)$ and then $2L$-periodically:</p>
+<ul>
+<li><strong>Even</strong> extension: $F(x)=f(-x)$ on $(-L,0)$. Cosine series: $a_n=\frac2L\int_0^Lf\cos k_nx\,dx$, $b_n=0$.</li>
+<li><strong>Odd</strong> extension: $F(x)=-f(-x)$ on $(-L,0)$. Sine series: $b_n=\frac2L\int_0^Lf\sin k_nx\,dx$, $a_n=0$.</li>
+</ul>
+<p class="watch"><strong>Trap.</strong> A function on $(-L,L]$ that is odd ($f(-x)=-f(x)$): the series reduces to the sine series, even to cosine. Odd extension has a jump at $x=0$ when $f(0^+)\ne0$.</p>
+</div></section>
+
+<section class="def" id="tbt-int"><h3>Integrating a Fourier series term by term <span class="src">L19</span></h3><div class="body">
+<p>A uniformly convergent series can be integrated term by term (and integrating a uniformly convergent series gives a uniformly convergent series). Obtaining an antiderivative's Fourier series: integrate the series of the odd/even extension, then find the constant term by integrating the result over a period (the cosine terms vanish).</p>
+<p class="watch"><strong>Trap.</strong> Term-by-term <em>differentiation</em> needs the extra condition (see differentiating a series). The Fourier series of $x$ on $(-\pi,\pi]$ cannot be differentiated: its derivative series diverges.</p>
+</div></section>
+
+<section class="def" id="parseval"><h3>Parseval's identity <span class="src">L19</span></h3><div class="body">
+<div class="box">$$\langle s,s\rangle=\frac1L\int_{-L}^{L}|s(x)|^2dx=\frac{|a_0|^2}{2}+\sum_{n=1}^{\infty}\big(|a_n|^2+|b_n|^2\big)$$</div>
+<p>For a Fourier series $s(x)$; proved from orthogonality of the eigenfunctions. $\langle s,s\rangle$ is the <strong>average power</strong> of the signal; its square root the RMS. Use: $x^2$ on $(-\pi,\pi]$ gives $\frac{2\pi^4}{5}=\frac{2\pi^4}{9}+16\sum\frac1{n^4}$, hence $\sum\frac1{n^4}=\frac{\pi^4}{90}$.</p>
+</div></section>
+
+<section class="def" id="resonance"><h3>Resonance in a forced oscillator <span class="src">L19</span></h3><div class="body">
+<p>$My''+ky=F(t)$ with $F$ a Fourier series, $\Omega^2=k/M$. Particular solution $y_p=\sum b_n\sin(\omega_nt)$ with $b_n(\Omega^2-\omega_n^2)=$ (forcing coefficient). If $\Omega=\omega_m$ for some $m$ whose forcing coefficient is non-zero, that term becomes $\propto t\cos(\omega_mt)$ and <strong>grows unbounded</strong>: resonance. Damping curbs it in real systems.</p>
+</div></section>
+
+<!-- ============================ TOPIC 5 ============================ -->
+<h2 id="t5">Topic 5: BVPs and PDEs (L20–L27)</h2>
+
+<section class="def" id="bvp"><h3>Boundary value problem; Dirichlet / Neumann / Robin <span class="src">L20</span></h3><div class="body">
+<p>A 2nd-order linear BVP: a 2nd-order linear ODE $f_2y''+f_1y'+f_0y=g$ plus two linear BCs</p>
+<div class="box">$$a_1y'(x_1)+b_1y(x_1)=c_1,\qquad a_2y'(x_2)+b_2y(x_2)=c_2$$</div>
+<ul>
+<li>BCs <strong>homogeneous</strong> if $c_1=c_2=0$; BVP <strong>homogeneous</strong> if also $g=0$.</li>
+<li><strong>Dirichlet</strong>: fix the value, e.g. $y(0)=0,\ y(L)=1$. <strong>Neumann</strong>: fix the derivative, e.g. $y'(0)=y'(L)=0$. <strong>Robin</strong>: weighted sum, e.g. $y(0)-y'(0)=0$.</li>
+</ul>
+<p class="watch"><strong>Trap.</strong> Unlike IVPs, a linear BVP need not have a unique solution, or any: $y''+y=0$ on $(0,2\pi)$ with $y(0)=0,\ y(2\pi)=0$ has $y=B\sin x$ (not unique); with $y(0)=1,\ y(2\pi)=0$ none. Structure: homogeneous solutions form a vector space (possibly $\{0\}$); general = one particular + homogeneous; if no particular exists, no solution.</p>
+</div></section>
+
+<section class="def" id="pde-class"><h3>PDE: order, linear, homogeneous; classification <span class="src">L21</span></h3><div class="body">
+<ul>
+<li><strong>Order</strong>: order of the highest derivative.</li>
+<li><strong>Linear</strong>: a linear combination of partial derivatives of the unknown, with coefficients that are functions of the independent variables only, equal to a function of the independent variables. Otherwise non-linear ($u\,u_x$, $e^{\lambda u}$).</li>
+<li><strong>Homogeneous</strong>: every term contains the unknown. Inhomogeneous if some term contains only independent variables.</li>
+</ul>
+<div class="box">$$Au_{xx}+Bu_{xy}+Cu_{yy}+\text{lower order}=0:\ \ \text{elliptic if }B^2-4AC\lt0,\ \text{parabolic if }=0,\ \text{hyperbolic if }\gt0$$</div>
+<p>Laplace: elliptic. Heat: parabolic. Wave: hyperbolic.</p>
+</div></section>
+
+<section class="def" id="ibvp"><h3>Initial conditions, boundary conditions, IBVP <span class="src">L21</span></h3><div class="body">
+<ul>
+<li>First order in time: one IC, $u(x,0)=f(x)$. Second order in time: also $\partial_tu(x,0)=g(x)$.</li>
+<li>BCs are imposed on the boundary $\partial D$ of the spatial domain $D$ for all later times. <strong>Dirichlet</strong>: $u(x,t)=f(x,t)$ on $\partial D$. <strong>Neumann</strong>: $\partial_nu(x,t)=g(x,t)$ on $\partial D$, $n$ the outward unit normal.</li>
+<li>A PDE with ICs and BCs is an <strong>initial-boundary value problem (IBVP)</strong>.</li>
+<li>General solutions of PDEs contain unknown <em>functions</em> (not just constants).</li>
+</ul>
+</div></section>
+
+<section class="def" id="pdes"><h3>The equations <span class="src">L20</span> <span class="src">L21</span> <span class="src">L26</span></h3><div class="body">
+<ul>
+<li>Laplacian: 2D Cartesian $\nabla^2=\partial_x^2+\partial_y^2$; cylindrical $\nabla^2=\frac1r\partial_r(r\partial_r)+\frac1{r^2}\partial_\theta^2+\partial_z^2$.</li>
+<li>Laplace: $\nabla^2u=0$. Heat/diffusion: $u_t=\alpha\nabla^2u$, thermal diffusivity $\alpha=\kappa/(c\rho)\gt0$ (Fourier's law: heat flow $=-\kappa u_x$; derivation not examined). Wave: $u_{tt}=c^2\nabla^2u$, $c$ the constant propagation speed.</li>
+<li>Axisymmetric heat: $u_t=\frac\alpha r(ru_r)_r$; axisymmetric wave: $u_{tt}=\frac{c^2}r(ru_r)_r$.</li>
+</ul>
+</div></section>
+
+<section class="def" id="sov"><h3>Separation of variables: the five steps <span class="src">L22</span></h3><div class="body">
+<ol class="steps">
+<li><strong>Separate</strong>: $u=X(x)T(t)$. Heat: $\frac{\dot T}{\alpha T}=\frac{X''}{X}=\lambda$, so $\dot T-\alpha\lambda T=0$ and $X''-\lambda X=0$. Wave: $\ddot T-c^2\lambda T=0$.</li>
+<li><strong>Eigenvalue problem</strong> from the homogeneous BCs; treat $\lambda\gt0$, $\lambda=0$, $\lambda\lt0$ separately.</li>
+<li><strong>Solve</strong> the other ODE for each eigenvalue.</li>
+<li><strong>Superposition</strong>: sum all the $u_n=X_nT_n$ with unknown coefficients.</li>
+<li><strong>Apply the IC(s)</strong> (Fourier series): match coefficients / use orthogonality.</li>
+</ol>
+<p class="watch"><strong>Superposition principle.</strong> For a linear homogeneous PDE with homogeneous BCs, sums of solutions are solutions. The result is a <em>formal</em> solution until you check convergence.</p>
+</div></section>
+
+<section class="def" id="eigtable"><h3>Eigenproblems you must be able to state <span class="src">L22</span> <span class="src">L23</span> <span class="src">L24</span></h3><div class="body">
+<table>
+<tr><th>Problem ($X''-\lambda X=0$, $\lambda=-k^2$)</th><th>Eigenfunctions</th><th>Eigenvalues</th></tr>
+<tr><td>Dirichlet $X(0)=X(L)=0$</td><td>$X_n=\sin k_nx$, $n\ge1$</td><td>$\lambda_n=-k_n^2$, $k_n=\frac{n\pi}{L}$ ($\lambda\ge0$: only trivial)</td></tr>
+<tr><td>Neumann $X'(0)=X'(L)=0$</td><td>$X_n=\cos k_nx$, $n\ge1$, <strong>and $X_0=1$</strong></td><td>$\lambda_n=-k_n^2$, plus $\lambda_0=0$</td></tr>
+<tr><td>Periodic $\Theta(0)=\Theta(2\pi)$, $\Theta'(0)=\Theta'(2\pi)$ ($\Theta''+\mu\Theta=0$)</td><td>$\Theta=1,\ \cos n\theta,\ \sin n\theta$</td><td>$\mu=n^2$, $n=0,1,2,\dots$</td></tr>
+<tr><td>Disc, $R''+\frac1rR'+k^2R=0$, $R(a)=0$, $R$ bounded at $0$</td><td>$R_n=J_0(k_nr)$</td><td>$J_0(k_na)=0$ (infinitely many zeros)</td></tr>
+</table>
+<p>Resulting solutions: Dirichlet heat $u=\sum C_ne^{-\alpha k_n^2t}\sin k_nx$, $C_n=\frac2L\int_0^Lf\sin k_nx\,dx$. Neumann heat $u=\frac12a_0+\sum a_ne^{-\alpha k_n^2t}\cos k_nx$, $a_n=\frac2L\int_0^Lf\cos k_nx\,dx$. Wave $u=\sum[a_n\cos\omega_nt+b_n\sin\omega_nt]\sin k_nx$, $\omega_n=ck_n$, $a_n=\frac2L\int_0^Lf\sin k_nx$, $\omega_nb_n=\frac2L\int_0^L\dot u(x,0)\sin k_nx$.</p>
+</div></section>
+
+<section class="def" id="regularity"><h3>Regularity (boundedness) condition; $J_0$ orthogonality <span class="src">L24</span></h3><div class="body">
+<ul>
+<li>Regularity: $\lim_{r\to0}u(r,t)$ is finite. It kills the singular solution: $R=AJ_0(kr)+By_2(kr)$ with $y_2$ unbounded at $0$ gives $B=0$; in the Laplace problem $R=A+B\log r$ or $Ar^n+Br^{-n}$ gives $B=0$.</li>
+<li>Orthogonality of $J_0$ with <strong>weight $r$</strong>: $\int_0^aJ_0(k_mr)J_0(k_nr)\,r\,dr=\frac{a^2}{2}J_1^2(k_na)$ if $n=m$, $0$ if $n\ne m$. Hence $C_n=\frac{2}{a^2J_1^2(k_na)}\int_0^af(r)J_0(k_nr)\,r\,dr$.</li>
+</ul>
+</div></section>
+
+<section class="def" id="steady"><h3>Steady-state and transient decomposition <span class="src">L23</span> <span class="src">L24</span></h3><div class="body">
+<div class="box">$$u(x,t)=u_S(x)+u_T(x,t),\qquad u_T\to0\ (t\to\infty)\ \Rightarrow\ u\to u_S$$</div>
+<ul>
+<li>$u_S$ is <strong>time-independent</strong>, satisfies the <strong>inhomogeneous BCs</strong>, and satisfies the PDE with $\partial_t=0$: 1D heat gives $u_S''=0$; 2D gives Laplace's equation $\nabla^2u_S=0$. It depends on the BCs only, not on the IC.</li>
+<li>$u_T$ satisfies the PDE with <strong>homogeneous</strong> BCs and the modified IC $u_T(x,0)=f(x)-u_S(x)$.</li>
+<li>Example: $u(0,t)=0,\ u(L,t)=L$ gives $u_S=x$.</li>
+<li>Laplace in a disc, $u_S(a,\theta)=f(\theta)$: $u_S=\frac12a_0+\sum r^n(a_n\cos n\theta+b_n\sin n\theta)$ with $a^na_n=\frac1\pi\int_{-\pi}^{\pi}f\cos n\theta\,d\theta$ (same for $b_n$).</li>
+</ul>
+</div></section>
+
+<section class="def" id="genuine-pde"><h3>Formal vs genuine solution of a PDE; how to prove genuine <span class="src">L25</span></h3><div class="body">
+<ul>
+<li><strong>Formal</strong>: from SoV, convergence ignored.</li>
+<li><strong>Genuine</strong>: the series satisfies the PDE, i.e. all derivatives in the PDE can be taken <strong>inside the infinite sum</strong> (series and each differentiated series converge uniformly).</li>
+</ul>
+<p class="cond-h">Standard proof (1D heat, Dirichlet)</p>
+<ol class="steps">
+<li>Fix $T\gt0$, domain $D=\{x\in[0,L],\ t\ge T\}$.</li>
+<li>For each of $u_m$, $\partial_xu_m$, $\partial_x^2u_m$ (and $\partial_tu_m=\alpha\partial_x^2u_m$) bound $\max_D|\cdot|\le a_m$ using $e^{-\alpha k_m^2t}\le e^{-\alpha k_m^2T}$, with $\sum a_m$ convergent (ratio test / $p$-series).</li>
+<li>Weierstrass test $\Rightarrow$ each series converges uniformly $\Rightarrow$ term-by-term differentiation justified $\Rightarrow$ genuine for every $t\gt0$.</li>
+</ol>
+<p class="watch"><strong>Trap.</strong> The estimate needs $t\ge T\gt0$ (the exponential supplies the decay); uniform convergence fails on $t\gt0$ down to $t=0$. Heat equation smooths corners; the wave equation does not (propagates them), so the wave SoV solution with a kinked IC is only a <strong>weak</strong> solution. Weak solutions and uniqueness proofs are <em>not assessed</em>.</p>
+</div></section>
+
+<section class="def" id="modes"><h3>Normal modes, normal frequencies, dispersion relation <span class="src">L27</span></h3><div class="body">
+<ul>
+<li>1D wave, Dirichlet: each term $u_n(x,t)=\big[a_n\cos\omega_nt+b_n\sin\omega_nt\big]\sin k_nx$ is a <strong>normal mode</strong>; $\omega_n=ck_n$ are the <strong>normal (resonant) frequencies</strong>. Any finite superposition of normal modes is a genuine solution.</li>
+<li>2D rectangular drum, $0\lt x\lt L_x$, $0\lt y\lt L_y$, Dirichlet on all sides: $u_{m,n}=T_{m,n}(t)\sin(k_{x,m}x)\sin(k_{y,n}y)$, $k_{x,m}=\frac{m\pi}{L_x}$, $k_{y,n}=\frac{n\pi}{L_y}$, $T_{m,n}=a\cos\omega_{m,n}t+b\sin\omega_{m,n}t$.</li>
+<li><strong>Dispersion relation</strong> (frequency vs wavenumbers): $\omega_{m,n}^2=c^2\big(k_{x,m}^2+k_{y,n}^2\big)$.</li>
+</ul>
+</div></section>
+
+<!-- ============================ TOPIC 6 ============================ -->
+<h2 id="t6">Topic 6: Fourier transforms (L28–L31)</h2>
+
+<section class="def" id="ft"><h3>Fourier transform and inverse <span class="src">L28</span> <span class="tag s">on sheet</span></h3><div class="body">
+<div class="box">$$\hat f(k)=\mathcal F\{f\}=\int_{-\infty}^{\infty}f(x)e^{-ikx}\,dx,\qquad f(x)=\mathcal F^{-1}\{\hat f\}=\frac1{2\pi}\int_{-\infty}^{\infty}\hat f(k)e^{+ikx}\,dk$$</div>
+<ul>
+<li>Maps $x$-space ($x\in\mathbb R$) to $k$-space; $\mathcal F$ and $\mathcal F^{-1}$ are linear: $\mathcal F\{f+g\}=\hat f+\hat g$, $\mathcal F\{\beta f\}=\beta\hat f$.</li>
+<li>Derivation from the complex Fourier series: $f(x)=\frac1{2\pi}\sum\Delta k_n\hat f(k_n)e^{ik_nx}$ with $\Delta k_n=\frac\pi L$; as $L\to\infty$, $\Delta k_n\to0$ and the sum becomes the integral.</li>
+</ul>
+<p class="watch"><strong>Trap.</strong> Conventions differ (factor $\frac1{2\pi}$ placement, $\frac1{\sqrt{2\pi}}$, $e^{\pm ikx}$, $e^{-2\pi ikx}$). Use the course's: $e^{-ikx}$ forward, $\frac1{2\pi}e^{+ikx}$ back. Example: $\mathcal F\{\delta(x-a)\}=e^{-ika}$.</p>
+</div></section>
+
+<section class="def" id="ft-exist"><h3>Existence and inversion theorem <span class="src">L28</span></h3><div class="body">
+<p class="cond-h">Hypotheses</p>
+<ul>
+<li>$f:\mathbb R\to\mathbb C$ is piecewise continuous, with finitely many critical points and finitely many discontinuities on every closed interval of its domain.</li>
+<li>$\displaystyle\int_{-\infty}^{\infty}|f(x)|\,dx$ converges ("absolutely integrable").</li>
+</ul>
+<p class="cond-h">Conclusion</p>
+<p>$\hat f$ exists, and (1) if $f$ is continuous at $x$ then $\mathcal F^{-1}\mathcal F\{f\}(x)=f(x)$; (2) if $f$ is discontinuous at $x$ then it equals $\tfrac12\big[\lim_{\xi\to x^-}f(\xi)+\lim_{\xi\to x^+}f(\xi)\big]$ (midpoint).</p>
+<p class="watch"><strong>Trap.</strong> Solutions like $e^{\pm x}$ and $\mathrm{Bi}$ grow at infinity, so they have no Fourier transform. That is why "subject to the FT of $y$ existing" selects one solution (lecture 30: the FT gives $\mathrm{Ai}$ but not $\mathrm{Bi}$).</p>
+</div></section>
+
+<section class="def" id="ft-conv"><h3>Convolution theorem (Fourier) <span class="src">L29</span> <span class="tag s">on sheet</span></h3><div class="body">
+<div class="box">$$(f*g)(x)=\int_{-\infty}^{\infty}f(x-\xi)g(\xi)\,d\xi,\qquad \mathcal F\{f*g\}=\hat f(k)\,\hat g(k)$$</div>
+<p>Use: $\mathcal F^{-1}\{\hat f\hat g\}=f*g$; e.g. $\frac1{x^2+4}*\frac1{x^2+9}=\frac{5\pi}6\frac1{x^2+25}$ via $\frac\pi2e^{-2|k|}\cdot\frac\pi3e^{-3|k|}$.</p>
+</div></section>
+
+<section class="def" id="ft-shift"><h3>Shift theorems (Fourier) <span class="src">L29</span></h3><div class="body">
+<div class="box">$$\mathcal F\{f(x-y)\}=e^{-iky}\hat f(k)\ \ (y\in\mathbb R),\qquad \mathcal F\{e^{iqx}f(x)\}=\hat f(k-q)\ \ (q\in\mathbb R)$$</div>
+<p>Analogous to the Laplace t-shift and s-shift. Example: $\mathcal F\{e^{-a|x-2|}\}=\frac{2ae^{-2ik}}{a^2+k^2}$.</p>
+</div></section>
+
+<section class="def" id="ft-rules"><h3>Derivative rule and multiplication-by-$x$ rule <span class="src">L29</span> <span class="tag s">on sheet</span></h3><div class="body">
+<p class="cond-h">Hypothesis</p>
+<p>$f$ and its derivatives <strong>decay sufficiently rapidly at $\pm\infty$</strong> (so boundary terms vanish).</p>
+<div class="box">$$\mathcal F\{f^{(n)}\}=(ik)^n\hat f,\qquad \mathcal F\{x^nf\}=i^n\frac{d^n\hat f}{dk^n}$$</div>
+<p><strong>Proofs (examinable):</strong> $\mathcal F\{f'\}=\int f'e^{-ikx}dx=\big[fe^{-ikx}\big]_{-\infty}^{\infty}+ik\int fe^{-ikx}dx=ik\hat f$ (boundary term $\to0$). $\mathcal F\{xf\}=\int f\,xe^{-ikx}dx=\int f\,i\frac{d}{dk}e^{-ikx}dx=i\frac{d\hat f}{dk}$.</p>
+</div></section>
+
+<section class="def" id="ft-table"><h3>Table of transforms given in lectures <span class="src">L29</span></h3><div class="body">
+<table>
+<tr><th>$f(x)$</th><th>$\hat f(k)$</th><th>$f(x)$</th><th>$\hat f(k)$</th></tr>
+<tr><td>$\delta_a(x)=\delta(x-a)$</td><td>$e^{-iak}$</td><td>$e^{iax}$</td><td>$2\pi\delta_a(k)$</td></tr>
+<tr><td>$e^{-a|x|}$ ($a\gt0$)</td><td>$\frac{2a}{a^2+k^2}$</td><td>$\frac1{a^2+x^2}$ ($a\gt0$)</td><td>$\frac\pi ae^{-a|k|}$</td></tr>
+<tr><td>$H_{-a}(x)-H_a(x)$ ($a\gt0$)</td><td>$2a\,\mathrm{sinc}(ak)$</td><td>$\mathrm{sinc}(ax)$ ($a\gt0$)</td><td>$\frac\pi a\big(H_{-a}(k)-H_a(k)\big)$</td></tr>
+<tr><td>$e^{-ax^2}$ ($a\gt0$)</td><td>$\sqrt{\frac\pi a}\,e^{-k^2/4a}$</td><td>$\mathrm{sech}(ax)$ ($a\ne0$)</td><td>$\frac\pi a\mathrm{sech}\frac{\pi k}{2a}$</td></tr>
+</table>
+<p>$\mathrm{sinc}(y)=\frac{\sin y}{y}$ ($y\ne0$), $\mathrm{sinc}(0)=1$. <span class="tag std">The table is NOT on the formula sheet; the exam either gives the pair or expects you to derive it from the definition.</span></p>
+</div></section>
+
+<section class="def" id="ft-pde"><h3>Fourier transform of a PDE; heat kernel <span class="src">L30</span> <span class="src">L31</span></h3><div class="body">
+<p class="cond-h">Setup</p>
+<p>$u(x,t)$ with $x\in\mathbb R$, $t\gt0$, and $u\to0$ as $x\to\pm\infty$ (so we may transform in $x$). Define $\hat u(k,t)=\mathcal F\{u(x,t)\}$; then $\mathcal F\{\partial_x^nu\}=(ik)^n\hat u$ and $\partial_t$ commutes with $\mathcal F$.</p>
+<div class="box">Heat: $u_t=\alpha u_{xx}$, $u(x,0)=f(x)$ $\Rightarrow$ $\partial_t\hat u=-\alpha k^2\hat u$, $\hat u(k,0)=\hat f(k)$ $\Rightarrow$ $\hat u=\hat f(k)e^{-\alpha k^2t}$ $$u(x,t)=\frac1{2\pi}\int\hat f(k)e^{-\alpha k^2t}e^{ikx}dk=f*\frac{e^{-x^2/(4\alpha t)}}{\sqrt{4\pi\alpha t}}$$</div>
+<p>For $f=\delta$: $\hat f=1$ and $u=\frac{1}{2\sqrt{\pi\alpha t}}e^{-x^2/(4\alpha t)}$, the <strong>heat kernel</strong>.</p>
+<p class="watch"><strong>ODE use.</strong> $y''-y=\delta(x)$ "with FT existing": $-k^2\hat y-\hat y=1$, $\hat y=-\frac1{1+k^2}$, $y=-\frac12e^{-|x|}$ (the condition that $\hat y$ exists discards the $e^{\pm x}$ complementary solutions). Airy: $-k^2\hat y-i\hat y'=0\Rightarrow\hat y=Ae^{ik^3/3}$, giving $\mathrm{Ai}$.</p>
+</div></section>
+
+<h2 id="phrasing">How a definition question is likely worded</h2>
+<table>
+<tr><th>Prompt</th><th>What to write</th></tr>
+<tr><td>"State the Weierstrass test."</td><td>Functions $w_n$ on $D$; numbers $a_n$ with $\max_D|w_n|\le a_n$; $\sum a_n$ converges; conclusion: $\sum w_n$ converges uniformly on $D$. Name all three hypotheses.</td></tr>
+<tr><td>"Define uniform convergence" / "How does it differ from pointwise?"</td><td>The $\max_D|\text{partial sum}-W|\to0$ formula; mention it is stronger; give $t^N$ on $[0,1]$.</td></tr>
+<tr><td>"State the pointwise convergence theorem" (Dirichlet)</td><td>$f$ piecewise $C^1$ on $(-L,L]$; converges to $F(x)$ where continuous, midpoint of one-sided limits at jumps.</td></tr>
+<tr><td>"When does the Fourier series converge uniformly?"</td><td>$f'$ piecewise continuous and the periodic extension continuous on $\mathbb R$. Jump means not uniform (Gibbs).</td></tr>
+<tr><td>"What is a genuine solution?" / "What must you check to show it is genuine?"</td><td>Series and all derivatives up to the order of the equation converge uniformly (Weierstrass on each differentiated series, on $t\ge T\gt0$ for the heat equation); then differentiating term by term is legal.</td></tr>
+<tr><td>"Define the Laplace transform; when does it exist?"</td><td>Integral definition for $\operatorname{Re}s$ where it converges; piecewise continuous + exponential order $\Rightarrow$ exists for $\operatorname{Re}s\gt\alpha$.</td></tr>
+<tr><td>"Define the Dirac delta."</td><td>Three properties: zero for $t\ne0$, unit area ($\int_0^a=1$ for all $a\gt0$), $\mathcal L\{\delta\}=1$; sifting property.</td></tr>
+<tr><td>"Define the Wronskian / what does it tell you?"</td><td>Determinant formula; nonzero somewhere $\Rightarrow$ independent; dependent $\Rightarrow$ zero everywhere; Abel for solutions of one ODE.</td></tr>
+<tr><td>"What does it mean for the operator $T$ to be linear?"</td><td>$T(y_1+y_2)=Ty_1+Ty_2$, $T(ky)=kTy$; check both for $T=\frac{d^2}{dt^2}+f_1\frac d{dt}+f_0$.</td></tr>
+<tr><td>"Define stability of a critical point."</td><td>Stable / unstable wording, plus the eigenvalue criterion ($\operatorname{Re}\lambda\le0$; asymptotically stable if $\lt0$).</td></tr>
+<tr><td>"Define the Fourier transform; state conditions for existence."</td><td>Integral definition with $e^{-ikx}$ and inverse with $\frac1{2\pi}e^{ikx}$; absolutely integrable + piecewise continuous; midpoint at jumps.</td></tr>
+</table>
+
+<div class="nav">
+  <span>See also: <a href="exam-2026-prediction.html">2026 prediction</a> · <a href="ode-method-map.html">Decision map</a> · <a href="topic1-cheatsheet.html">T1</a> · <a href="topic2-cheatsheet.html">T2</a> · <a href="topic3-cheatsheet.html">T3</a> · <a href="topic4-cheatsheet.html">T4</a> · <a href="topic5-cheatsheet.html">T5</a> · <a href="topic6-cheatsheet.html">T6</a></span>
+</div>
+<p class="ask noprint">Unsure how a statement is worded or why a hypothesis matters? Ask your teacher in the terminal.</p>
+</main>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, { delimiters: [
+    { left: '$$', right: '$$', display: true },
+    { left: '$', right: '$', display: false }
+  ], throwOnError: false });
+  var btn = document.getElementById('recallBtn');
+  var defs = document.querySelectorAll('section.def');
+  btn.addEventListener('click', function () {
+    var on = btn.getAttribute('aria-pressed') !== 'true';
+    btn.setAttribute('aria-pressed', on);
+    btn.textContent = 'Recall mode: ' + (on ? 'on' : 'off');
+    document.body.classList.toggle('recall', on);
+    defs.forEach(function (d) { d.classList.remove('open'); });
+  });
+  defs.forEach(function (d) {
+    d.querySelector('h3').addEventListener('click', function () {
+      if (document.body.classList.contains('recall')) d.classList.toggle('open');
+    });
+  });
+  document.getElementById('openAll').addEventListener('click', function () {
+    defs.forEach(function (d) { d.classList.add('open'); });
+  });
+});
+</script>
+</body>
+</html>
