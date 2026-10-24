@@ -125,3 +125,13 @@ body.ref h2 { margin-top: 1.6rem; padding-top: .8rem; font-size: 1.2rem; }
 table.ledger td, table.ledger th { text-align: right; font-variant-numeric: tabular-nums; }
 table.ledger td:first-child, table.ledger th:first-child { text-align: left; }
 .tablewrap { overflow-x: auto; }
+
+/* Exam-style question blocks (capstones; shared since Lesson 34) */
+.exq { border: 1px solid var(--rule); border-radius: 6px; padding: .2rem 1.1rem 1rem; margin: 1.4rem 0; background: var(--card); }
+.exq h3 { margin-top: 1rem; }
+.pt { display: flex; gap: .8rem; margin: .6rem 0; }
+.pt .mk { flex: none; font-family: Inter, system-ui, sans-serif; font-size: .78rem; font-weight: 600; color: var(--accent); width: 4.2rem; padding-top: .25rem; }
+.pt .tx { flex: 1; }
+.given { font-family: Inter, system-ui, sans-serif; font-size: .85rem; color: var(--muted); }
+.drills { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); margin: -.2rem 0 .6rem; }
+@media print { .exq { break-inside: avoid; } }

@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delta of Forwards and Futures</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 36 · Topic 9: Greeks and delta hedging</div>
+<h1>Delta of forwards and futures: hedging an option book with futures</h1>
+<p class="lede">The goal: know the delta of a forward and of a futures contract (they differ), and use futures or forwards instead of the spot asset to delta-hedge an options position, including how many contracts.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topic 9 is in the 70% of marks from Topics 5-10. Past finals asked a dealer to delta-hedge short currency options with futures contracts (number of contracts, long or short), then with forwards, then "is the delta the same? give the intuition". The formula sheet lists all of these deltas; the marks are in choosing the right one and dividing correctly.</div>
+
+<p>Builds on <a href="0034-delta-what-it-measures-and-the-first-hedge.html">Lesson 34</a> (what delta is, hedge direction) and <a href="0035-bsm-deltas-and-rebalancing.html">Lesson 35</a> (\(N(d_1)\) deltas with \(q\), \(r_f\)). Terms are in the <a href="../reference/glossary.html">glossary</a>. Sources: Lecture 9 slides 31-38; handwritten Lecture 9 notes pp. 4-6 (also Lecture 10 notes pp. 3-5); Tutorial 9 Q1-Q2; Hull, <em>Options, Futures and Other Derivatives</em>, chapter on the Greek letters (the lecture outline tags it "Chapter 17", an older edition's numbering). Past exams were mined for <em>patterns only</em>; every exam question here is new.</p>
+
+<h2>1 · Why a forward or futures has a delta at all (intuition first)</h2>
+<p>Delta is "how much does this position's value move when the stock (spot) price moves by $1?". A share has delta 1. A forward or futures contract is also tied to the spot price, so it has a delta too, and that lets you hedge with it. The trick is that a forward's value is a <em>present value</em>, while a futures contract is <em>settled daily</em>. That one difference gives two different deltas.</p>
+
+<h2>2 · Delta of a forward</h2>
+<p>For a long forward with delivery price \(K\) on an asset paying yield \(q\) (slide 33), the value is \(f = S_0e^{-qT} - Ke^{-rT}\). <strong>Derive it from the setup:</strong> a long forward is worth \(f = (F_0 - K)e^{-rT}\) with \(F_0 = S_0e^{(r-q)T}\).</p>
+<details><summary>Derivation (try it first)</summary><div>
+$$f = \big(S_0e^{(r-q)T} - K\big)e^{-rT} = S_0e^{-qT} - Ke^{-rT}.$$
+<p>\(K\) and \(r\) do not depend on \(S_0\). If \(S_0\) rises by $1, \(f\) rises by \(e^{-qT}\). Hence \(\Delta_{\text{forward}} = e^{-qT}\). With \(q=0\): \(f = S_0 - Ke^{-rT}\), \(\Delta = 1\).</p>
+</div></details>
+<div class="tablewrap"><table>
+<tr><th>Underlying</th><th>\(\Delta\) of a long forward</th><th>Short forward</th></tr>
+<tr><td>Non-dividend stock</td><td>\(1\)</td><td>\(-1\)</td></tr>
+<tr><td>Index, yield \(q\)</td><td>\(e^{-qT}\)</td><td>\(-e^{-qT}\)</td></tr>
+<tr><td>Currency, foreign rate \(r_f\)</td><td>\(e^{-r_fT}\)</td><td>\(-e^{-r_fT}\)</td></tr>
+</table></div>
+<p>(For a currency, \(q = r_f\) throughout this course.) Hedge direction is as always: a long forward has positive delta, so it is hedged by <em>selling</em> spot; a short forward is hedged by <em>buying</em> spot.</p>
+
+<h2>3 · Delta of a futures contract</h2>
+<p>A long futures contract's value is just the price gap, settled in cash each day: \(f = F_0 - K\) (handwritten notes p. 5). With \(F_0 = S_0e^{rT}\), \(f = S_0e^{rT} - K\), so a $1 rise in spot lifts \(F_0\) by \(e^{rT}\), and the holder collects that immediately in the margin account. Nothing is discounted.</p>
+<div class="tablewrap"><table>
+<tr><th>Underlying</th><th>\(\Delta\) of a long futures</th><th>Short futures</th></tr>
+<tr><td>Non-dividend stock</td><td>\(e^{rT}\)</td><td>\(-e^{rT}\)</td></tr>
+<tr><td>Index, yield \(q\)</td><td>\(e^{(r-q)T}\)</td><td>\(-e^{(r-q)T}\)</td></tr>
+<tr><td>Currency</td><td>\(e^{(r-r_f)T}\)</td><td>\(-e^{(r-r_f)T}\)</td></tr>
+</table></div>
+<div class="box"><strong>Rule of thumb.</strong> Forward delta is the PV-style \(e^{-qT}\) (at most 1 if \(q\ge0\)). Futures delta is the "grown" \(e^{(r-q)T}\), the forward delta times \(e^{rT}\) (usually above 1 when \(r>q\)). Same underlying, same maturity, different deltas, because the forward's gain is discounted and the futures' gain is paid now.</div>
+
+<div class="quiz num" data-answer="1.0152" data-tol="0.0005">
+  <p class="q"><strong>Check.</strong> Index futures, \(r = 5\%\), \(q = 2\%\), \(T = 0.5\). Delta of a long futures contract, to 4 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(e^{(0.05-0.02)(0.5)} = e^{0.015} = 1.0151\) (1.01511).</div>
+</div>
+<div class="quiz num" data-answer="0.9900" data-tol="0.0005">
+  <p class="q"><strong>Check.</strong> A long forward on the same index (same \(T\)), delta to 4 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(e^{-qT} = e^{-0.01} = 0.9900\).</div>
+</div>
+
+<h3>Why the deltas differ (a 2-3 sentence written answer)</h3>
+<p>Write your answer to: <em>"Explain why a long forward and a long futures contract on the same asset and maturity have different deltas."</em> Then open the model answer.</p>
+<details><summary>Model answer</summary><div>
+<p>A forward's value is \(S_0e^{-qT} - Ke^{-rT}\), a present value, so a $1 spot rise changes it by \(e^{-qT}\). A futures contract is settled daily and is worth \(F_0 - K = S_0e^{(r-q)T} - K\), so the same rise moves \(F_0\) by \(e^{(r-q)T}\) and the holder receives that gain at once; it is not discounted. The two deltas therefore differ by the factor \(e^{rT}\).</p>
+</div></details>
+
+<h2>4 · Hedging an option position with futures</h2>
+<p>Lecture 9 gives you the delta-neutral position in the <em>spot</em> asset. Often a dealer prefers futures. Because one unit of futures moves like \(\Delta_F\) units of spot, you need <em>more</em> (or fewer) units of futures than spot:</p>
+$$\text{units of futures} = \frac{\text{spot-equivalent exposure to cover}}{\Delta_{\text{futures}}}.$$
+<p>The <strong>direction</strong> is the same as the spot hedge (long futures if the spot hedge is long). Contracts \(=\) units \(\div\) contract size.</p>
+
+<p><strong>Lecture example (slide 37-38, handwritten p. 6).</strong> An Australian dealer's 11-month put options on pounds sterling are delta-neutral by shorting £978,000. Futures are on £, \(r = 6\%\), \(r_f = 7.5\%\). \(\Delta_F = e^{(0.06-0.075)(11/12)} = 0.9863\). Short futures on \(978{,}000/0.9863441 = \) £991,540. (Fewer than 1 here because \(r < r_f\), so the futures delta is below 1 and you need more of it.)</p>
+
+<p><strong>Fresh worked example.</strong> An Australian dealer has sold 7-month call options on US dollars; its spot hedge is <em>long</em> USD 2,400,000. \(r = 4.8\%\) (AUD), \(r_f = 3.6\%\) (USD), \(T = 7/12\). Futures contracts are on USD 100,000 each.</p>
+<ol class="steps">
+<li>Futures delta: \(e^{(0.048-0.036)(7/12)} = e^{0.007} = 1.0070\).</li>
+<li>Units: \(2{,}400{,}000/1.0070246 = \) USD 2,383,259 of futures.</li>
+<li>Contracts: \(2{,}383{,}259/100{,}000 = 23.83\), so about <strong>24 long contracts</strong>. Long, since the spot hedge is long.</li>
+<li>Forwards instead: \(\Delta_{\text{fwd}} = e^{-0.036(7/12)} = 0.9792\), so a long forward on \(2{,}400{,}000/0.9792190 = \) USD 2,450,933 (no contract size for a tailored forward).</li>
+</ol>
+<p>Compare: futures USD 2.383m, spot USD 2.400m, forward USD 2.451m. A futures contract is "worth more spot" than a forward, so you need less of it.</p>
+
+<div class="quiz num" data-answer="2383259" data-tol="20">
+  <p class="q"><strong>Check.</strong> Units of USD futures needed (nearest USD)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">USD</span></div>
+  <div class="why">\(2{,}400{,}000/e^{0.007} = 2{,}383{,}259\).</div>
+</div>
+<div class="quiz num" data-answer="2450933" data-tol="20">
+  <p class="q"><strong>Check.</strong> Notional of the long forward that gives the same hedge (nearest USD)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">USD</span></div>
+  <div class="why">\(2{,}400{,}000/e^{-0.021} = 2{,}450{,}933\).</div>
+</div>
+
+<h2>5 · Tutorial 9 Q1-Q2: options on silver futures</h2>
+<p>For a <strong>futures option</strong> (Black's model) the delta of a long call is \(e^{-rT}N(d_1)\) per unit of <em>futures</em> (formula sheet: "\(q = r\)"). <strong>Q1.</strong> Short 1,000 calls, futures \(F_0 = 8\), \(K = 8\), \(r = 12\%\), \(\sigma = 18\%\), \(T = 8/12\). Delta of the short position?</p>
+<ol class="steps">
+<li>\(d_1 = \dfrac{\ln(8/8) + 0.18^2(8/12)/2}{0.18\sqrt{8/12}} = \dfrac{0.0108}{0.14697} = 0.0735 \approx 0.07\); \(N(0.07) = 0.5279\).</li>
+<li>\(e^{-rT} = e^{-0.08} = 0.9231\). Long-call delta \(= 0.9231 \times 0.5279 = 0.4873\).</li>
+<li>Short 1,000: delta \(= -487.3\) (in units of futures, 1 ounce each).</li>
+</ol>
+<p><strong>Q2.</strong> Hedge: <strong>long about 487 ounces of silver futures</strong>. If silver itself is used: multiply by the futures delta \(e^{rT} = e^{0.08}\): \(487.3 \times 1.0833 = 527.9\), so <strong>long about 528 ounces</strong> (this is just \(1000 \times N(d_1) = 527.9\)).</p>
+<div class="trap"><strong>Table vs exact.</strong> With exact (unrounded) \(d_1\), \(N(0.0735) = 0.5293\), giving 488.6 futures-ounces and 529.3 ounces of silver. The exam rounds \(d_1\) to 2 dp and reads the table, so write 487 / 528; answers within a couple of units are the rounding gap, not an error.</div>
+<div class="quiz num" data-answer="487.3" data-tol="2">
+  <p class="q"><strong>Check.</strong> Futures-ounces to hold (positive = long), table method, 1 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">ounces</span></div>
+  <div class="why">\(1000 \times 0.9231 \times 0.5279 = 487.3\). Exact: 488.6.</div>
+</div>
+<div class="quiz num" data-answer="527.9" data-tol="2">
+  <p class="q"><strong>Check.</strong> Ounces of silver itself to hold, table method, 1 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">ounces</span></div>
+  <div class="why">\(487.3 \times e^{0.08} = 527.9\) (also \(1000 \times 0.5279\)). Exact: 529.3.</div>
+</div>
+
+<h2>6 · Exam-style question (8 marks)</h2>
+<div class="exq">
+<h3>Question: hedging with futures and forwards</h3>
+<div class="drills">Drills Lecture 9 slides 31-38</div>
+<p>An Australian dealer has written 5-month put options on euros. The delta-neutral position in euros is a <em>short</em> of EUR 1,800,000. The AUD risk-free rate is 5.4% and the EUR rate is 3.0% (continuously compounded). Futures contracts on euros are for EUR 125,000.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Delta of one long EUR futures contract (per EUR), 4 dp.</span></div>
+<div class="pt"><span class="mk">(b) 3 marks</span><span class="tx">Number of futures contracts, to the nearest whole contract, and whether long or short.</span></div>
+<div class="pt"><span class="mk">(c) 1 mark</span><span class="tx">Notional (to the nearest euro) of the forward position giving the same hedge.</span></div>
+<div class="pt"><span class="mk">(d) 2 marks</span><span class="tx">Is the hedge using forwards the same size as using futures? Explain.</span></div>
+<div class="quiz num" data-answer="1.0101" data-tol="0.0005"><p class="q">(a) headline</p><div class="numrow"><input aria-label="Your answer"></div><div class="why">See the solution.</div></div>
+<div class="quiz num" data-answer="14" data-tol="0.5"><p class="q">(b) headline: contracts (short)</p><div class="numrow"><input aria-label="Your answer"></div><div class="why">See the solution.</div></div>
+<div class="quiz num" data-answer="1822641" data-tol="20"><p class="q">(c) headline: forward notional</p><div class="numrow"><input aria-label="Your answer"><span class="unit">EUR</span></div><div class="why">See the solution.</div></div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a)</strong> \(T = 5/12\): \(\Delta_F = e^{(0.054-0.030)(5/12)} = e^{0.01} = 1.0101\).</p>
+<p><strong>(b)</strong> Units \(= 1{,}800{,}000/1.0100502 = \) EUR 1,782,090. Contracts \(= 1{,}782{,}090/125{,}000 = 14.26 \approx 14\). The spot hedge is short, so <strong>short 14 contracts</strong>.</p>
+<p><strong>(c)</strong> \(\Delta_{\text{fwd}} = e^{-0.03(5/12)} = e^{-0.0125} = 0.98758\). Notional \(= 1{,}800{,}000/0.98758 = \) EUR 1,822,641 (short).</p>
+<p><strong>(d)</strong> No. The forward delta (0.9876) is below 1 and the futures delta (1.0101) is above 1, because the forward's gain is a present value while the futures gain is settled daily. So the forward needs a bigger notional than the futures for the same hedge.</p>
+</div></details>
+</div>
+
+<h2>Homework</h2>
+<ul>
+<li><strong>Tutorial 9 Q1-Q2</strong> (silver): redo without peeking; answers 487 futures-ounces and 528 ounces of silver (table method).</li>
+<li><strong>Tutorial 9 Q5</strong> (yen put options) belongs with <a href="0035-bsm-deltas-and-rebalancing.html">Lesson 35</a>; then size the hedge in yen futures as well, using \(e^{(r-r_f)T}\).</li>
+<li>Write your own 3-line "why forward and futures delta differ" answer from memory tomorrow.</li>
+</ul>
+
+<div class="ask">Unsure which delta to divide by, or when the answer is long vs short? Paste your working in the terminal and ask me. Recommended primary source: Lecture 9 slides 31-38, then the handwritten notes pp. 4-6.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0035-bsm-deltas-and-rebalancing.html">Lesson 35, BSM deltas and rebalancing</a></span>
+  <span><a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0037-delta-hedging-issues-and-topic-9-capstone.html">Lesson 37, issues and capstone</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

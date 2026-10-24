@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delta Hedging Issues and Topic 9 Capstone</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 37 · Topic 9: Greeks and delta hedging (issues + capstone)</div>
+<h1>When delta hedging goes wrong, plus a Topic 9 capstone</h1>
+<p class="lede">The goal: say precisely why a delta hedge must be rebalanced and why that costs money, name the other Greek letters, then sit four mixed exam-style questions covering all of Lecture 9.</p>
+
+<div class="mission">Why this matters for 5 Nov: Lecture 9 sits in the 70% of marks from Topics 5-10. Past finals asked a short put's delta on an index or currency, "recalculate and say how to adjust the hedge", a futures-based hedge with a contract count, and "why does a forward's delta differ from a futures' delta". About 15% of marks are short written answers, so the "issues" slide is a likely 2-3 mark theory item.</div>
+
+<p>This lesson assumes <a href="0034-delta-what-it-measures-and-the-first-hedge.html">Lesson 34</a> (delta, the first hedge), <a href="0035-bsm-deltas-and-rebalancing.html">Lesson 35</a> (BSM deltas, rebalancing) and <a href="0036-delta-of-forwards-and-futures-hedging-with-futures.html">Lesson 36</a> (forward and futures deltas). Terms are in the <a href="../reference/glossary.html">glossary</a>. Sources: Lecture 9 slides 3-4 (the Greek letters) and 40 (issues in delta hedging); Tutorial 9 Q3 and Q4; the handwritten Lecture 9 notes for the option-portfolio and index examples. Past exams were mined for <em>patterns only</em>; every capstone question is new.</p>
+
+<h2>Part 1 · Issues with delta hedging</h2>
+
+<h2>1 · Delta is not constant</h2>
+<p>Slide 40: delta changes whenever the share price moves (the call-price curve on slide 7 is not a straight line, so its slope changes along it). The hedge you set up is only a hedge for <strong>small</strong> moves. To stay delta neutral you must <strong>rebalance</strong>: re-compute delta and trade shares so that the net delta is zero again. Delta hedging means <em>maintaining</em> neutrality through time (slide 11), not setting it once.</p>
+
+<h3>The cost: buy high, sell low</h3>
+<p>Take the dealer who is <strong>short calls</strong>. Hedge: long \(\Delta \times\) options shares.</p>
+<ul>
+<li>Share price rises: delta of a call rises, so the hedge must grow: <strong>buy more shares at the higher price</strong>.</li>
+<li>Share price falls: delta falls, so the hedge shrinks: <strong>sell shares at the lower price</strong>.</li>
+</ul>
+<p>Every rebalance buys after a rise and sells after a fall: buy high, sell low. That is slide 40's "this strategy is costly". It also takes time and trading costs, as the slide says.</p>
+
+<h3>See it: a big move with no rebalancing</h3>
+<p>The widget hedges 10,000 short calls (\(S_0 = K = 50\), \(\sigma = 30\%\), \(r = 5\%\), \(T = 0.5\)) with long shares, then moves the stock at once. Drag it to \(\pm 20\%\). Small moves: net near zero. Big moves: the net is <em>negative in both directions</em>.</p>
+<div class="dhe" data-s="50" data-k="50" data-r="0.05" data-q="0" data-sigma="0.30" data-t="0.5" data-type="call" data-pos="short" data-n="10000" data-max="25"></div>
+<script src="../assets/delta-hedge-explorer.js"></script>
+<p class="given">The widget reprices with exact (unrounded) BSM. Table of the same experiment (hedge long 5,886 shares set at \(S_0 = 50\), no rebalancing):</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Stock move</th><th>Short calls P&amp;L</th><th>Shares P&amp;L</th><th>Net</th><th>Shares now needed</th></tr>
+<tr><td>-20%</td><td>+$39,369</td><td>-$58,859</td><td>-$19,490</td><td>2,038</td></tr>
+<tr><td>-10%</td><td>+$24,604</td><td>-$29,429</td><td>-$4,825</td><td>3,925</td></tr>
+<tr><td>-1%</td><td>+$2,897</td><td>-$2,943</td><td>-$46</td><td>5,701</td></tr>
+<tr><td>+1%</td><td>-$2,988</td><td>+$2,943</td><td>-$46</td><td>6,067</td></tr>
+<tr><td>+10%</td><td>-$33,653</td><td>+$29,429</td><td>-$4,223</td><td>7,496</td></tr>
+<tr><td>+20%</td><td>-$74,116</td><td>+$58,859</td><td>-$15,257</td><td>8,607</td></tr>
+</table></div>
+<p><strong>Why the leftover is always a loss for a short call.</strong> The call price curve bends upward. Delta is the slope at the starting point (the straight line, slide 7). After any move, the curve lies <em>above</em> that line, so the call you sold has risen by more than the line says (up move), or fallen by less (down move). That bend is what <strong>gamma</strong> measures (next section). The size of the leftover grows with the square of the move: 1% gives -$46, 10% gives -$4,223.</p>
+
+<div class="quiz num" data-answer="1610" data-tol="5">
+  <p class="q"><strong>Check.</strong> From the table: after the +10% move the dealer needs 7,496 shares and holds 5,886. How many shares must be <strong>bought</strong> to rebalance?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">\(7{,}496 - 5{,}886 = 1{,}610\) shares bought, at the new higher price: buying high.</div>
+</div>
+<div class="quiz num" data-answer="1961" data-tol="5">
+  <p class="q"><strong>Check.</strong> After the -10% move the dealer needs 3,925 shares and holds 5,886. How many shares must be <strong>sold</strong>?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">\(5{,}886 - 3{,}925 = 1{,}961\) shares sold, at the new lower price: selling low.</div>
+</div>
+
+<h2>2 · The other Greek letters (definitions only)</h2>
+<p>Slides 3-4 name five Greeks, each a partial derivative of the BSM price with respect to one variable. For the exam, know the one-line meaning:</p>
+<div class="tablewrap"><table>
+<tr><th>Greek</th><th>Measures sensitivity of</th><th>To</th></tr>
+<tr><td>Delta \(\Delta\)</td><td>the option price</td><td>the underlying's price</td></tr>
+<tr><td>Gamma \(\Gamma\)</td><td>delta</td><td>the underlying's price</td></tr>
+<tr><td>Vega</td><td>the option price</td><td>the underlying's volatility</td></tr>
+<tr><td>Theta \(\Theta\)</td><td>the option price</td><td>time (time decay: value lost as expiry nears)</td></tr>
+<tr><td>Rho \(\rho\)</td><td>the option price</td><td>the risk-free rate</td></tr>
+</table></div>
+<p>The lecture then works only with delta ("for this week's lecture, we focus on Delta"). Gamma is the one that explains this lesson: it is how fast delta changes, so it is what forces rebalancing.</p>
+<div class="trap"><strong>Outside the slides</strong>Formulas and signs for gamma, vega, theta and rho, the idea of gamma/vega-neutral portfolios, and how often to rebalance are in Hull's chapter on the Greek letters, not on the slides. Treat the statement "a delta-neutral position with large gamma is still exposed to large moves" as the one gamma idea you need (it is what the table above shows); do not memorise more.</div>
+
+<h2>3 · Tutorial 9 written questions (model answers)</h2>
+<p><strong>Tutorial 9 Q3: discuss the problems that may be experienced when using delta hedging.</strong> Try it, then open.</p>
+<details><summary>Model answer (3 marks style)</summary><div>
+<ul>
+<li>Delta is not constant: it changes with the share price (and with time), so the hedge is only exact for small moves and must be rebalanced.</li>
+<li>Rebalancing is time-consuming and has transaction costs; it needs frequent monitoring.</li>
+<li>It is costly in direction: a short-call dealer buys shares after a rise and sells after a fall (buy high, sell low).</li>
+<li>Between rebalances a large move leaves a net loss (the table above).</li>
+</ul>
+</div></details>
+
+<p><strong>Tutorial 9 Q4: you sold a call on 50,000 shares and fear the price will rise before expiry. You plan to close out before expiry. How can you hedge?</strong></p>
+<details><summary>Model answer</summary><div>
+<p>On the slides: <strong>delta hedge</strong>. Buy \(\Delta \times 50{,}000\) shares now (a short call has negative delta, so you go long), and rebalance as delta changes until you close out. A rise in the price then loses on the call and gains on the shares, by about the same amount.</p>
+<p class="given">Outside the slides (Hull's list of alternatives, mention only if the question asks "other ways"): a <em>covered</em> position (buy 50,000 shares now, fully protected if exercised but costly if the price falls), a <em>stop-loss</em> strategy (buy when the price crosses \(K\), sell when it falls back; hard to do without slippage), or buying a call with the same terms (removes the risk but leaves the premium difference).</p>
+</div></details>
+
+<div class="box"><strong>Derive it from this setup.</strong> A dealer holds \(n\) short calls and \(\Delta n\) shares, so the position is \(\Pi = \Delta n S - n c\). <em>Show that for a small move \(\delta S\) the value change is zero to first order, and say what is left over.</em>
+<details><summary>Derivation</summary><div>
+<p>\(\delta c \approx \Delta\,\delta S\) (the definition of delta). Then \(\delta\Pi = \Delta n\,\delta S - n\,\delta c \approx \Delta n\,\delta S - n\Delta\,\delta S = 0\). The leftover comes from the "\(\approx\)": the true \(\delta c\) exceeds \(\Delta\,\delta S\) for a call whatever the sign of \(\delta S\) (curve above its tangent), so \(\delta\Pi \lt 0\), of order \((\delta S)^2\). Gamma is the coefficient of that square.</p>
+</div></details></div>
+
+<h2>Part 2 · Topic 9 capstone</h2>
+<p>Four questions, 32 marks (about 85 minutes at exam pace, but these are untimed). Use the Casio fx-82 and the formula sheet (deltas are in the list on p.3-4). Use the <strong>table method</strong>: \(d_1\) to 2 dp, \(N(\cdot)\) to 4 dp from the formula-sheet table, no interpolation; deltas to 4 dp.</p>
+
+<!-- ===================== Q1 ===================== -->
+<div class="exq">
+<h3>Question 1 (8 marks): index put, hedge and rebalance</h3>
+<div class="drills">Drills Lessons 34, 35 (Lecture 9 slides 17-22, 27)</div>
+<p>A financial institution has sold European put options on 1,500 units of an index. The options have strike 4,100 and six months to expiry. The index is 4,000, its dividend yield is 2.5% a year, the risk-free rate is 5% a year (both continuous) and its volatility is 18% a year.</p>
+<div class="pt"><span class="mk">(a) 3 marks</span><span class="tx">Calculate the delta of <em>one short put</em>, to 4 dp.</span></div>
+<div class="pt"><span class="mk">(b) 1 mark</span><span class="tx">How can the institution make its position delta neutral? Give the number of index units, to 1 dp.</span></div>
+<div class="pt"><span class="mk">(c) 3 marks</span><span class="tx">Shortly afterwards the index rises to 4,160 with no time passing and all else unchanged. Recalculate the delta (4 dp) and say how the hedge should be adjusted, in units to 1 dp.</span></div>
+<div class="pt"><span class="mk">(d) 1 mark</span><span class="tx">Why does the hedge need adjusting at all?</span></div>
+<div class="given">Table values you may need: \(N(-0.03)=0.4880\), \(N(0.28)=0.6103\), \(N(0.03)=0.5120\), \(N(-0.28)=0.3897\).</div>
+<div class="quiz num" data-answer="0.5056" data-tol="0.0006">
+  <p class="q">Headline check: (a), delta of one short put.</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="758.4" data-tol="1">
+  <p class="q">Headline check: (b), index units, and then say to yourself the side (buy or sell).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">units</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="181" data-tol="2">
+  <p class="q">Headline check: (c), index units to <strong>buy back</strong> (enter a positive number).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">units</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 3 marks.</strong> \(\sigma\sqrt{T} = 0.18\sqrt{0.5} = 0.1273\).</p>
+$$d_1 = \frac{\ln(4000/4100) + (0.05 - 0.025 + 0.18^2/2)(0.5)}{0.1273} = \frac{-0.0247 + 0.0206}{0.1273} = -0.0321 \approx -0.03.$$
+<p>\(N(-0.03) = 0.4880\), so \(N(d_1) = 0.4880\). Short put delta \(= e^{-qT}(1 - N(d_1)) = e^{-0.0125}(1 - 0.4880) = 0.98758 \times 0.5120 = \mathbf{0.5056}\).</p>
+<p><strong>(b) 1 mark.</strong> A short put has positive delta, so offset with a <strong>short</strong> position in the index: \(0.5056 \times 1{,}500 = \mathbf{758.4}\) units sold.</p>
+<p><strong>(c) 3 marks.</strong> \(d_1 = [\ln(4160/4100) + 0.0206]/0.1273 = (0.0145 + 0.0206)/0.1273 = 0.2760 \approx 0.28\). \(N(0.28) = 0.6103\), so \(1 - N(d_1) = 0.3897\) and delta \(= 0.98758 \times 0.3897 = \mathbf{0.3849}\). New hedge: short \(0.3849 \times 1{,}500 = 577.4\) units. Adjust: <strong>buy back</strong> \(758.4 - 577.4 = 181.0\) units (or \(0.1207 \times 1{,}500 = 181.05\)).</p>
+<p><strong>(d) 1 mark.</strong> Delta changes with the index level (and with time). After the rise the put is less likely to finish in the money, so its (positive) delta for the writer has fallen and the old short position is too big. The hedge is only valid for small moves.</p>
+<div class="trap"><strong>Common slips</strong>Forgetting \(e^{-qT}\); using \(N(d_1) - 1\) (a <em>long</em> put's delta) for the short position, getting the wrong sign and side; leaving the hedge in "per unit" form and not multiplying by 1,500; choosing the wrong direction for the adjustment (buy back, not sell more).</div>
+</div></details>
+</div>
+
+<!-- ===================== Q2 ===================== -->
+<div class="exq">
+<h3>Question 2 (10 marks): currency options, futures and forwards</h3>
+<div class="drills">Drills Lessons 35, 36 (Lecture 9 slides 28-29, 31-38)</div>
+<p>An Australian dealer has sold nine-month call options on EUR 3,000,000, with strike 1.62 (AUD per EUR). The spot rate is 1.60. The AUD risk-free rate is 4.5% a year and the EUR rate is 2.5% a year (both continuous). Volatility is 12% a year. Futures contracts on EUR trade with size EUR 125,000 and the same nine-month maturity.</p>
+<div class="pt"><span class="mk">(a) 3 marks</span><span class="tx">Calculate the delta of the short call position and say how many EUR the dealer should trade in the <em>spot</em> market to be delta neutral (to the nearest EUR using the 4 dp delta).</span></div>
+<div class="pt"><span class="mk">(b) 3 marks</span><span class="tx">The dealer wants to use futures instead. How many futures contracts, long or short, to the nearest whole contract?</span></div>
+<div class="pt"><span class="mk">(c) 1 mark</span><span class="tx">If a nine-month <em>forward</em> contract is used instead, what notional amount of EUR is needed (nearest EUR)?</span></div>
+<div class="pt"><span class="mk">(d) 3 marks</span><span class="tx">Are the numbers in (b) and (c) the same? Explain the economic reason, in 2-4 sentences.</span></div>
+<div class="given">Table value you may need: \(N(0.08) = 0.5319\).</div>
+<div class="quiz num" data-answer="1566000" data-tol="200">
+  <p class="q">Headline check: (a), EUR to hold in the spot market.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">EUR</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="12" data-tol="0.5">
+  <p class="q">Headline check: (b), whole futures contracts (long is the right side; enter the count).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">contracts</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="1595700" data-tol="300">
+  <p class="q">Headline check: (c), forward notional.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">EUR</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 3 marks.</strong> \(\sigma\sqrt{T} = 0.12\sqrt{0.75} = 0.1039\).</p>
+$$d_1 = \frac{\ln(1.60/1.62) + (0.045 - 0.025 + 0.12^2/2)(0.75)}{0.1039} = \frac{-0.0124 + 0.0204}{0.1039} = 0.0768 \approx 0.08.$$
+<p>\(N(0.08) = 0.5319\). Long call delta \(= e^{-r_fT}N(d_1) = e^{-0.01875}(0.5319) = 0.9814 \times 0.5319 = 0.5220\); short call delta \(= -0.5220\). Exposure \(= -0.5220 \times 3{,}000{,}000 = -1{,}566{,}000\) EUR (about \(-1{,}566{,}059\) unrounded). To neutralise: <strong>buy EUR 1,566,000</strong> spot (long).</p>
+<p><strong>(b) 3 marks.</strong> Futures delta (long, per EUR of futures) \(= e^{(r-r_f)T} = e^{(0.02)(0.75)} = 1.0151\). Futures needed: \(1{,}566{,}000/1.0151 = \) EUR 1,542,700, i.e. \(1{,}542{,}700/125{,}000 = 12.3 \approx 12\) contracts. <strong>Long</strong> (the short call needs positive delta added).</p>
+<p><strong>(c) 1 mark.</strong> Forward delta \(= e^{-r_fT} = 0.9814\). Notional \(= 1{,}566{,}000/0.9814 = \) EUR 1,595,700 (long forward).</p>
+<p><strong>(d) 3 marks.</strong> Not the same (12.3 contracts of EUR 125,000 \(\approx\) EUR 1.54m of futures against EUR 1.60m of forward). A $1 rise in the spot rate changes the futures price by \(e^{(r-r_f)T} > 1\) and the futures is settled daily, so the gain is received at once: each EUR of futures carries more than one EUR of spot exposure. A forward's value is the present value of \(F - K\) so it gains \(e^{-r_fT} < 1\) per EUR: it carries less spot exposure per EUR, so more notional is needed.</p>
+<div class="trap"><strong>Common slips</strong>Hedging with the spot-delta number as the futures count (skipping the divide by 1.0151); multiplying instead of dividing by the futures or forward delta; \(e^{(r+r_f)T}\); short instead of long (the dealer is short the call: needs positive delta); forgetting the 125,000 contract size.</div>
+</div></details>
+</div>
+
+<!-- ===================== Q3 ===================== -->
+<div class="exq">
+<h3>Question 3 (7 marks): a portfolio of options</h3>
+<div class="drills">Drills Lessons 34, 35, Part 1 of this lesson (handwritten Lecture 9 notes, Q2 pattern)</div>
+<p>A bank has the following positions in options on one stock. The delta quoted is that of the <em>position per option</em> (sign included).</p>
+<div class="tablewrap"><table>
+<tr><th>Position</th><th>Options</th><th>Delta per option now</th><th>Delta per option after the stock rises $4</th></tr>
+<tr><td>Long calls, K = $60, 4 months</td><td>30,000</td><td>+0.54</td><td>+0.60</td></tr>
+<tr><td>Short calls, K = $65, 6 months</td><td>50,000</td><td>-0.38</td><td>-0.45</td></tr>
+<tr><td>Short puts, K = $60, 3 months</td><td>20,000</td><td>+0.31</td><td>+0.26</td></tr>
+</table></div>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">What is the delta of the portfolio, and how can the bank make it delta neutral?</span></div>
+<div class="pt"><span class="mk">(b) 3 marks</span><span class="tx">The stock rises by $4. What is the new hedge and what trade does the bank make?</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">The bank trades after the rise as in (b). Explain why this kind of hedging is costly.</span></div>
+<div class="quiz num" data-answer="3400" data-tol="1">
+  <p class="q">Headline check: (a), the number of shares to <strong>sell short</strong> (portfolio delta is positive).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="2700" data-tol="1">
+  <p class="q">Headline check: (b), shares to <strong>buy back</strong>.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> \(30{,}000(0.54) + 50{,}000(-0.38) + 20{,}000(0.31) = 16{,}200 - 19{,}000 + 6{,}200 = +3{,}400\). The portfolio behaves like 3,400 shares held, so <strong>short 3,400 shares</strong> (a share has delta +1).</p>
+<p><strong>(b) 3 marks.</strong> New delta \(= 30{,}000(0.60) + 50{,}000(-0.45) + 20{,}000(0.26) = 18{,}000 - 22{,}500 + 5{,}200 = +700\). The new hedge is short 700 shares. The bank holds short 3,400, so it <strong>buys back 2,700 shares</strong>, at the higher price.</p>
+<p><strong>(c) 2 marks.</strong> The portfolio is dominated by short calls, so after a price rise delta moves toward zero and the bank must buy shares after the price has already risen (and, after a fall, sell after it has fallen): buy high, sell low. Each rebalance also costs time and transaction costs.</p>
+<div class="trap"><strong>Common slips</strong>Applying a second minus sign to the short options' deltas (they are already per-position); hedging with the sum of option counts; reporting the new hedge as the trade (the <em>trade</em> is the change); buying when you should sell back.</div>
+</div></details>
+</div>
+
+<!-- ===================== Q4 ===================== -->
+<div class="exq">
+<h3>Question 4 (7 marks): derivation and case</h3>
+<div class="drills">Drills Lesson 36 (Lecture 9 slides 31-33; handwritten notes p.4), the GameStop case</div>
+<p>A forward contract to buy one unit of an index at delivery price \(K\) at time \(T\) has value \(f = S_0e^{-qT} - Ke^{-rT}\), where \(q\) is the index dividend yield and \(r\) the risk-free rate.</p>
+<div class="pt"><span class="mk">(a) 3 marks</span><span class="tx">Starting from this value, derive the delta of a long forward and say how a short forward is hedged.</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">A dealer is short forwards on 10,000 units of an index, \(q = 3\%\), \(T = 0.75\). How many index units should the dealer hold (nearest unit)?</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">The GameStop case argued that no-arbitrage trades rely on being able to trade freely at reasonable cost. Give one reason, from the case, why an arbitrage or hedge that needs <em>shorting</em> shares can fail in a short squeeze.</span></div>
+<div class="quiz num" data-answer="9778" data-tol="1">
+  <p class="q">Headline check: (b), index units held.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">units</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 3 marks.</strong> Delta \(= \delta f/\delta S\). Only the first term contains \(S_0\), and \(Ke^{-rT}\) is a constant, so</p>
+$$\Delta_{\text{long forward}} = \frac{\partial}{\partial S_0}\left(S_0e^{-qT} - Ke^{-rT}\right) = e^{-qT}.$$
+<p>(With \(q = 0\) this is 1; with \(q = r_f\) it is the currency version.) A short forward has delta \(-e^{-qT}\), so it is hedged by <strong>buying \(e^{-qT}\) units of the index per unit of forward</strong>.</p>
+<p><strong>(b) 2 marks.</strong> \(e^{-0.03 \times 0.75} = 0.97775\). Hold \(0.97775 \times 10{,}000 = \mathbf{9{,}778}\) units (long).</p>
+<p><strong>(c) 2 marks.</strong> Any one of the case's reasons: shares become hard to borrow because demand to borrow is extreme; borrowing cost rises, which can wipe out the apparent profit; extreme volatility creates large losses and margin pressure on a short position; trading and margin restrictions. The apparent mispricing is then not a risk-free profit. (Case Section 4.)</p>
+<p class="given">The case itself discusses put-call parity and the squeeze, not delta hedging. Applying the same idea to a delta hedge of <em>short calls</em> (the hedger must <em>buy</em> shares into a surge, which is the buy-high cost in Part 1) is this lesson's extension, not something the case states.</p>
+</div></details>
+</div>
+
+<h2>Which lesson do I revisit?</h2>
+<div class="tablewrap"><table>
+<tr><th>Lost marks on</th><th>Questions</th><th>Reopen</th></tr>
+<tr><td>Delta as slope, long vs short sign, which side of the share, the multiplication by number of options</td><td>Q1(b), Q3(a)</td><td><a href="0034-delta-what-it-measures-and-the-first-hedge.html">Lesson 34</a></td></tr>
+<tr><td>\(N(d_1)\) formulas, \(e^{-qT}\), \(e^{-r_fT}\), table method, recalculating delta after a move</td><td>Q1(a)(c), Q2(a)</td><td><a href="0035-bsm-deltas-and-rebalancing.html">Lesson 35</a></td></tr>
+<tr><td>Forward and futures deltas, number of contracts, why they differ, the derivation</td><td>Q2(b)-(d), Q4(a)(b)</td><td><a href="0036-delta-of-forwards-and-futures-hedging-with-futures.html">Lesson 36</a></td></tr>
+<tr><td>Why rebalance, buy high / sell low, gamma, the written answers</td><td>Q1(d), Q3(b)(c), Q4(c)</td><td>Part 1 of this lesson</td></tr>
+</table></div>
+
+<h2>Homework</h2>
+<ul>
+<li><strong>Tutorial 9 Q3 and Q4</strong>: write your answers in 3-4 sentences each before opening the model answers above.</li>
+<li><strong>Tutorial 9 Q1, Q2 and Q5</strong> belong with Lessons 35-36; do them there if not yet done.</li>
+<li><strong>Timed attempt (suggested):</strong> sit Q1 and Q2 in one go in 50 minutes (18 marks; paper pace is about 2.7 minutes a mark). Q3 and Q4 untimed. All four together are 32 marks, about 85 minutes at exam pace.</li>
+<li><strong>Closed-book:</strong> from memory, write the delta formulas (long and short call, put, forward, futures, each with \(q\), \(r_f\) or \(r\)). Check against p.3-4 of the sheet.</li>
+</ul>
+
+<div class="ask">Unsure why a number came out differently, or want more questions on one pattern (a futures hedge with a contract count, an option portfolio, the rebalance direction)? Paste your working in the terminal and ask me. Recommended primary source: Lecture 9 slide 40 and slides 35-38, then Tutorial 9; for gamma and the other Greeks beyond definitions, Hull's chapter on the Greek letters.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0036-delta-of-forwards-and-futures-hedging-with-futures.html">Lesson 36, forward and futures deltas</a></span>
+  <span><a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0038-zero-rates-bond-pricing-and-par-yield.html">Lesson 38, Topic 10: zero rates and bonds</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

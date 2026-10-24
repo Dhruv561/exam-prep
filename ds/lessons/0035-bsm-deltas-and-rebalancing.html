@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BSM Deltas and Rebalancing</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 35 · Topic 9: Greeks and delta hedging</div>
+<h1>BSM deltas: how many shares to hold, and when to change them</h1>
+<p class="lede">The goal: given an option position, compute its delta from \(N(d_1)\) (with the right \(e^{-qT}\) factor), turn it into a number of shares or units of the asset, and redo the hedge after the price moves.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topics 5-10 carry 70% of the marks, and delta hedging is a near-certain 8-mark question. Finals ask for the delta of a short put (index or currency) to 4 dp, "how can the position be made delta neutral", then "the index rises: recalculate delta and adjust the hedge". All of it uses the delta lines on the formula sheet and the \(N(x)\) table.</div>
+
+<p>Builds on <a href="0034-delta-what-it-measures-and-the-first-hedge.html">Lesson 34</a> (delta, hedge ratio, the four positions), <a href="0023-what-bsm-assumes-and-why-it-works.html">Lesson 23</a> (\(N(d_1)\) as delta), <a href="0024-computing-bsm-call-and-put-prices.html">Lesson 24</a> (rounding: \(d_1\) to 2 dp, \(N\) at 4 dp from the table, no interpolation) and <a href="0032-bsm-with-dividends-yield-fx-and-known-dollar.html">Lesson 32</a> (\(q\), \(r_f\)). Terms are in the <a href="../reference/glossary.html">glossary</a>. Sources: Lecture 9 slides 17-29; the handwritten Lecture 9 notes pp. 2-3 (sign table, dividend deltas) and pp. 7-8 (ASX 200 example, option-portfolio example); the formula sheet (delta lines); Tutorial 9 Q5. Numbers are fresh unless labelled "lecture". Delta needs only \(d_1\), so \(d_2\) never appears.</p>
+
+<h2>1 · The delta table (intuition first)</h2>
+<p>Delta of an option is how many dollars it gains per $1 the underlying rises; a share has delta +1. To hedge, hold an <strong>opposite-signed</strong> delta in the underlying so the total is zero.</p>
+<ul>
+<li><strong>Call:</strong> gains when \(S\) rises. A <em>long</em> call has positive delta, a <em>short</em> call negative.</li>
+<li><strong>Put:</strong> gains when \(S\) falls. A <em>long</em> put has negative delta, a <em>short</em> put positive.</li>
+</ul>
+<p>BSM gives the size. For a stock paying no dividend (formula sheet; slides 17-22):</p>
+<div class="tablewrap"><table>
+<tr><th>Position (one option)</th><th>Delta</th><th>Sign</th><th>Delta-neutral hedge</th></tr>
+<tr><td>Long call</td><td>\(N(d_1)\)</td><td>+, between 0 and 1</td><td>Short \(N(d_1)\) shares</td></tr>
+<tr><td>Short call</td><td>\(-N(d_1)\)</td><td>−</td><td>Long \(N(d_1)\) shares</td></tr>
+<tr><td>Long put</td><td>\(N(d_1)-1\)</td><td>−, between −1 and 0</td><td>Long \(1-N(d_1)\) shares</td></tr>
+<tr><td>Short put</td><td>\(1-N(d_1)\)</td><td>+</td><td>Short \(1-N(d_1)\) shares</td></tr>
+</table></div>
+<p>One rule covers the table: <strong>find the sign of the position's delta, then take the opposite sign in the underlying.</strong> Long call and short put both gain when \(S\) rises, so both are hedged by <em>selling</em>. Short call and long put both lose when \(S\) rises, so both are hedged by <em>buying</em>.</p>
+
+<h3>With a dividend yield, a foreign rate, or a futures underlying</h3>
+<p>Multiply every delta by \(e^{-qT}\) (slides 25-27; formula sheet). Only \(q\) changes:</p>
+<div class="tablewrap"><table>
+<tr><th>Underlying</th><th>\(q\) is</th><th>Long call delta</th><th>Long put delta</th></tr>
+<tr><td>Stock index</td><td>dividend yield \(q\)</td><td>\(e^{-qT}N(d_1)\)</td><td>\(e^{-qT}[N(d_1)-1]\)</td></tr>
+<tr><td>Currency</td><td>foreign rate \(r_f\)</td><td>\(e^{-r_fT}N(d_1)\)</td><td>\(e^{-r_fT}[N(d_1)-1]\)</td></tr>
+<tr><td>Futures (Black)</td><td>domestic \(r\)</td><td>\(e^{-rT}N(d_1)\)</td><td>\(e^{-rT}[N(d_1)-1]\)</td></tr>
+</table></div>
+<p>\(d_1\) is the matching formula-sheet one: \(\dfrac{\ln(S_0/K)+(r-q+\sigma^2/2)T}{\sigma\sqrt T}\) for index (\(q\) = yield) and currency (\(q=r_f\)); \(\dfrac{\ln(F_0/K)+\sigma^2T/2}{\sigma\sqrt T}\) for a futures option. Short positions flip the sign. Futures options are hedged with futures in <a href="0036-delta-of-forwards-and-futures-hedging-with-futures.html">Lesson 36</a>.</p>
+
+<div class="trap"><strong>Traps</strong><br>\(N(d_1)\) used for a <em>put</em> (it is \(N(d_1)-1\)) · no sign flip for a <em>short</em> position · \(e^{-qT}\) forgotten, or written \(e^{+qT}\) · \(d_2\) used · hedge in the wrong direction · number of options forgotten (delta is per option; multiply by the units each covers).</div>
+
+<h2>2 · Lecture examples (slides 23-29)</h2>
+<p><strong>(i) Stock, short call.</strong> A bank has sold calls on 50,000 shares: \(K=30\), 6 months, \(S_0=29\), \(r=5\%\), \(\sigma=25\%\). \(d_1=[\ln(29/30)+(0.05+0.03125)(0.5)]/(0.25\sqrt{0.5})=0.038\approx 0.04\); \(N(0.04)=0.5160\). Short call, so <strong>long</strong> \(0.5160\times 50{,}000=25{,}800\) shares.</p>
+<p><strong>(ii) Currency, short put.</strong> An Australian bank sold 6-month puts on USD 1 million: \(K=1.25\), \(S_0=1.27\), \(r=5\%\), \(r_f=2\%\), \(\sigma=20\%\). \(d_1=0.289\approx 0.29\); \(N(0.29)=0.6141\). Short put delta \(=e^{-0.01}(1-0.6141)=0.382\), so <strong>short</strong> USD 382,000 (the slide's rounding).</p>
+
+<div class="quiz num" data-answer="3800" data-tol="1">
+  <p class="q"><strong>Check (long put).</strong> You own 10,000 puts on a share and \(N(d_1)=0.62\). How many shares do you <em>buy</em> to be delta neutral?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares (long)</span></div>
+  <div class="why">Long put delta \(=0.62-1=-0.38\); position delta \(=-3{,}800\); buy 3,800 shares.</div>
+</div>
+<div class="quiz num" data-answer="2950" data-tol="1">
+  <p class="q"><strong>Check (short put).</strong> You are short 5,000 puts with \(N(d_1)=0.41\). How many shares do you <em>sell short</em>?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares (short)</span></div>
+  <div class="why">Short put delta \(=1-0.41=+0.59\); position delta \(=+2{,}950\); short 2,950 shares.</div>
+</div>
+<div class="quiz num" data-answer="0.518" data-tol="0.001">
+  <p class="q"><strong>Check (yield).</strong> A long call on an index with \(q=3\%\), \(T=2\) years, \(N(d_1)=0.55\). Its delta to 3 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(e^{-0.06}\times 0.55=0.9418\times 0.55=0.518\).</div>
+</div>
+
+<h2>3 · Fresh worked example: short puts on a stock</h2>
+<p>A trader is short 20,000 puts on a stock (one share each): \(S_0=45\), \(K=50\), \(r=4\%\), \(\sigma=30\%\), \(T=0.5\), no dividends.</p>
+<ol class="steps">
+<li>\(\sigma\sqrt T=0.30\sqrt{0.5}=0.2121\). \(d_1=[\ln(45/50)+(0.04+0.045)(0.5)]/0.2121=(-0.1054+0.0425)/0.2121=-0.2963\approx -0.30\).</li>
+<li>\(N(-0.30)=0.3821\), so the short put's delta is \(1-0.3821=0.6179\) per put.</li>
+<li>Position delta \(=0.6179\times 20{,}000=+12{,}358\). Opposite sign: <strong>short 12,358 shares</strong>.</li>
+</ol>
+<p>Sanity check: the put is in the money (\(K>S\)), so \(|\Delta|\) should exceed 0.5. It is 0.62. ✓</p>
+<div class="quiz num" data-answer="5156" data-tol="2">
+  <p class="q"><strong>Check.</strong> Same trade but \(S_0=55\) (out of the money). Table: \(N(0.65)=0.7422\). Shares to sell short?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares (short)</span></div>
+  <div class="why">\(d_1=[\ln(55/50)+0.085(0.5)]/0.2121=(0.0953+0.0425)/0.2121=0.6497\approx 0.65\). Delta \(=1-0.7422=0.2578\); \(0.2578\times 20{,}000=5{,}156\). Out of the money, delta is smaller: less hedge needed.</div>
+</div>
+
+<h2>4 · A portfolio of options: add the deltas</h2>
+<p>Delta is additive, so one hedge covers every option on the same underlying. Handwritten notes, p. 8, with fresh numbers. A bank holds these positions on one stock; each delta below is the delta of the <em>position per option</em>:</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Position</th><th>Delta per option</th><th>Options</th><th>Position delta</th></tr>
+<tr><td>Long calls, K = 40, 4 months</td><td>0.580</td><td>40,000</td><td>+23,200</td></tr>
+<tr><td>Short puts, K = 38, 3 months</td><td>+0.410</td><td>25,000</td><td>+10,250</td></tr>
+<tr><td>Long puts, K = 42, 6 months</td><td>−0.370</td><td>30,000</td><td>−11,100</td></tr>
+</table></div>
+<p>Net delta \(=23{,}200+10{,}250-11{,}100=+22{,}350\): the portfolio gains if \(S\) rises, so <strong>short 22,350 shares</strong>. The sign of the "delta per option" already includes long/short, so just multiply and add; do not flip a sign twice.</p>
+<div class="quiz num" data-answer="11250" data-tol="1">
+  <p class="q"><strong>Check.</strong> Change the long puts to 60,000 (same delta −0.370 each). Net portfolio delta, in shares (positive = the portfolio gains when the stock rises)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">\(23{,}200+10{,}250-0.370\times 60{,}000=33{,}450-22{,}200=+11{,}250\). Positive, so the hedge is to short 11,250 shares.</div>
+</div>
+
+<h2>5 · Delta moves, so the hedge must move</h2>
+<p>Delta depends on \(S\) and \(T\), so a hedge that was exactly right at \(t=0\) is only approximately right later. Finals ask for this directly: <em>"the index rises; recalculate the delta and say how the hedge should be adjusted."</em> The recipe: (1) recompute \(d_1\) with the new \(S\) (and the new \(T\) if time has passed); (2) new delta from the table; (3) new target hedge minus current hedge = the trade.</p>
+<p><strong>Lecture (handwritten notes, ASX 200).</strong> A bank is short a put on the index: \(K=5{,}000\), \(T=1\), \(r=7\%\), \(q=3\%\), \(\sigma=20\%\), \(S_0=5{,}000\).</p>
+<ol class="steps">
+<li>\(d_1=[0+(0.07-0.03+0.02)(1)]/0.20=0.30\); \(N(0.30)=0.6179\). Short put delta \(=e^{-0.03}(1-0.6179)=0.371\). So <strong>short 0.371 units of the index per put</strong>.</li>
+<li>The index jumps to 5,150 (the notes say "one hour later", so \(T\) is still 1). \(d_1=[\ln(5150/5000)+0.06]/0.20=0.4478\approx 0.45\); \(N(0.45)=0.6736\); delta \(=e^{-0.03}(1-0.6736)=0.317\).</li>
+<li>Target is short 0.317, holding short 0.371: <strong>buy back 0.054</strong> units of the index per put.</li>
+</ol>
+<p>Why the direction? The index rose, so the put is less likely to finish in the money, so it behaves less like a short position in the index: delta shrinks towards 0 and you need a smaller short hedge. (For a <em>short call</em> the reverse: \(S\) up, delta up, <em>buy</em> more. That "buy high, sell low" cost is <a href="0037-delta-hedging-issues-and-topic-9-capstone.html">Lesson 37</a>.)</p>
+
+<div class="dhe" data-s="5000" data-k="5000" data-r="0.07" data-q="0.03" data-sigma="0.20" data-t="1" data-type="put" data-pos="short" data-n="1000" data-max="10"></div>
+<script src="../assets/delta-hedge-explorer.js"></script>
+<p class="given">The widget is the lecture example with 1,000 puts, using exact (unrounded) BSM. Drag the slider: "Hedge now needed" shrinks as the index rises, and the net stays near zero for small moves.</p>
+
+<div class="quiz num" data-answer="0.056" data-tol="0.002">
+  <p class="q"><strong>Check.</strong> Same bank, same short put, but the index <em>falls</em> to 4,850 (T unchanged). Table: \(d_1=0.1477\approx 0.15\), \(N(0.15)=0.5596\). By how many index units per put must the bank <em>change</em> its short hedge (positive number; you decide the direction)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">units</span></div>
+  <div class="why">New delta \(=e^{-0.03}(1-0.5596)=0.427\); old delta 0.371. Change \(=0.056\). Delta rose, so <strong>sell short 0.056 more</strong> units per put.</div>
+</div>
+
+<h2>6 · Derive it from this setup</h2>
+<p>Exam style: the set-up is given, you derive the result. <strong>Set-up:</strong> for a European call on an asset with yield \(q\), the lecture gives \(\Delta_{call}=e^{-qT}N(d_1)\). Put-call parity is \(c-p=S_0e^{-qT}-Ke^{-rT}\). <strong>Show</strong> that the delta of a long put is \(e^{-qT}[N(d_1)-1]\), and explain in words where \(e^{-qT}\) comes from.</p>
+<details><summary>Derivation (try it first)</summary><div>
+<p>Rearrange parity: \(p=c-S_0e^{-qT}+Ke^{-rT}\). Delta is the rate of change with respect to \(S_0\). \(Ke^{-rT}\) does not depend on \(S_0\), and \(S_0e^{-qT}\) changes by \(e^{-qT}\) per $1:</p>
+$$\Delta_{put}=\Delta_{call}-e^{-qT}=e^{-qT}N(d_1)-e^{-qT}=e^{-qT}\,[N(d_1)-1].$$
+<p>Where \(e^{-qT}\) comes from: an index paying yield \(q\) with dividends reinvested grows \(e^{qT}\)-fold, so \(e^{-qT}\) units held today become 1 unit at \(T\). The option's payoff depends on one unit of the index at \(T\), so today it is exposed to only \(e^{-qT}\) units. For a currency \(q=r_f\) (interest on the foreign deposit is the "dividend"); for a futures option \(q=r\).</p>
+</div></details>
+
+<h2>7 · Exam-style questions</h2>
+<p class="given">Table method: \(d_1\) to 2 dp, \(N\) at 4 dp, no interpolation. Casio fx-82 and formula sheet only. Headline checks are typed; the working and written parts are in the solution.</p>
+
+<div class="exq">
+<h3>Question 1 (6 marks): a short currency call</h3>
+<p>An Australian bank has sold 6-month European call options on EUR 4,000,000. The exercise price is AUD 1.60 per EUR and the spot rate is AUD 1.58. The Australian risk-free rate is 4% a year, the euro rate is 3% a year (both continuously compounded) and the volatility of the exchange rate is 12%.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Calculate the delta of one long call option, to 4 dp.</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">How should the bank make its position delta neutral? Give the amount.</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">The euro strengthens to AUD 1.62 immediately. In words, what has happened to the hedge and what should the bank do?</span></div>
+<div class="quiz num" data-answer="0.4730" data-tol="0.0006">
+  <p class="q">Headline check: (a), delta of one long call, 4 dp.</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">See the solution below.</div>
+</div>
+<div class="quiz num" data-answer="1891809" data-tol="300">
+  <p class="q">Headline check: (b), euros to buy (the bank is short the calls).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">EUR</span></div>
+  <div class="why">See the solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> \(\sigma\sqrt T=0.12\sqrt{0.5}=0.0849\). \(d_1=[\ln(1.58/1.60)+(0.04-0.03+0.0072)(0.5)]/0.0849=(-0.0126+0.0086)/0.0849=-0.0469\approx -0.05\). \(N(-0.05)=0.4801\). Delta \(=e^{-0.03\times 0.5}\times 0.4801=0.9851\times 0.4801=0.4730\).</p>
+<p><strong>(b) 2 marks.</strong> The bank is short calls, so its delta is negative: \(-0.4730\times 4{,}000{,}000\). It should <strong>buy (go long) EUR \(0.4730\times 4{,}000{,}000\approx\) 1,891,809</strong> (EUR 1,892,000 if you use the 4-dp delta).</p>
+<p><strong>(c) 2 marks.</strong> The call is now closer to in the money, so its delta rises (towards 1). The existing long EUR 1.89m now under-hedges the short calls: if the euro keeps rising the bank loses more on the calls than it gains. The bank should recompute delta at 1.62 and <strong>buy more euros</strong> (buy high), the usual cost of hedging a short call.</p>
+<div class="trap"><strong>Common slips</strong><br>Leaving out \(e^{-r_fT}\) (gives 0.4801, 1.92m); using \(r\) instead of \(r-r_f\) in \(d_1\); selling instead of buying; using \(N(d_1)-1\) (that is the put).</div>
+</div></details>
+</div>
+
+<div class="exq">
+<h3>Question 2 (8 marks): a short index call, then re-hedge</h3>
+<p>A bank has written European call options on 20,000 units of a stock index. \(S_0=2{,}000\), \(K=2{,}050\), \(T=0.75\) years, \(r=5\%\), \(q=2\%\), \(\sigma=18\%\).</p>
+<div class="pt"><span class="mk">(a) 3 marks</span><span class="tx">Calculate the delta of one short call, to 4 dp.</span></div>
+<div class="pt"><span class="mk">(b) 1 mark</span><span class="tx">What position in the index makes the bank delta neutral?</span></div>
+<div class="pt"><span class="mk">(c) 3 marks</span><span class="tx">The index rises to 2,080 and nothing else changes. Recalculate the delta and state the trade needed to restore delta neutrality.</span></div>
+<div class="pt"><span class="mk">(d) 1 mark</span><span class="tx">Why is hedging a short call this way costly?</span></div>
+<div class="quiz num" data-answer="10322" data-tol="2">
+  <p class="q">Headline check: (b), index units to buy.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">units</span></div>
+  <div class="why">See the solution below.</div>
+</div>
+<div class="quiz num" data-answer="2002" data-tol="3">
+  <p class="q">Headline check: (c), index units to buy <em>in addition</em>.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">units</span></div>
+  <div class="why">See the solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 3 marks.</strong> \(\sigma\sqrt T=0.18\sqrt{0.75}=0.1559\). \(d_1=[\ln(2000/2050)+(0.05-0.02+0.0162)(0.75)]/0.1559=(-0.0247+0.0347)/0.1559=0.0639\approx 0.06\). \(N(0.06)=0.5239\). Long call delta \(=e^{-0.02\times 0.75}\times 0.5239=0.9851\times 0.5239=0.5161\). Short call: \(\Delta=-0.5161\).</p>
+<p><strong>(b) 1 mark.</strong> Buy (go long) \(0.5161\times 20{,}000=10{,}322\) units of the index.</p>
+<p><strong>(c) 3 marks.</strong> \(d_1=[\ln(2080/2050)+0.0462\times 0.75]/0.1559=(0.0145+0.0347)/0.1559=0.3155\approx 0.32\). \(N(0.32)=0.6255\). Delta of a long call \(=0.9851\times 0.6255=0.6162\). New hedge: long \(0.6162\times 20{,}000=12{,}324\). <strong>Buy a further 2,002 units</strong> (12,324 − 10,322).</p>
+<p><strong>(d) 1 mark.</strong> Delta of a call rises when the price rises, so the bank must <em>buy more after the price has gone up</em> (and sell after it falls): buy high, sell low.</p>
+</div></details>
+</div>
+
+<h2>Homework</h2>
+<ul>
+<li><strong><a href="../tutes/Tutorial%209%20.pdf">Tutorial 9</a> Q5</strong> (short put on JPY 100 million, \(K=0.01\), \(S_0=0.011\), \(r=6\%\), \(r_f=1\%\), \(\sigma=10\%\), 3 months). Table method: \(d_1=2.18\), \(N(2.18)=0.9854\), short-put delta \(=e^{-0.0025}(1-0.9854)=0.0146\); the bank should <strong>short about JPY 1.456 million</strong> (\(0.01456\times 100\text{m}\)). Why is the hedge tiny? The put is far out of the money, so delta is close to 0.</li>
+<li>Redo Question 2 with the call replaced by a <em>long put</em> (same numbers): sign, number of units, and direction of the re-hedge when the index rises.</li>
+<li>Tutorial 9 Q1-Q2 (futures options, hedging with futures) come with <a href="0036-delta-of-forwards-and-futures-hedging-with-futures.html">Lesson 36</a>; Q3-Q4 (problems with delta hedging) with <a href="0037-delta-hedging-issues-and-topic-9-capstone.html">Lesson 37</a>.</li>
+</ul>
+
+<div class="ask">Not sure which sign or which \(e^{-qT}\) to use for a scenario? Describe the position in the terminal and ask me to quiz you on it. Recommended primary source: Lecture 9 slides 17-29 and the handwritten notes pp. 2-3 and 7-8; then the delta lines of the formula sheet.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0034-delta-what-it-measures-and-the-first-hedge.html">Lesson 34, delta and the first hedge</a></span>
+  <span><a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0036-delta-of-forwards-and-futures-hedging-with-futures.html">Lesson 36, delta of forwards and futures</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>
