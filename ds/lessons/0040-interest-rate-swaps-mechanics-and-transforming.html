@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interest Rate Swaps: Mechanics and Transforming</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 40 · Topic 10: Interest rate contracts and swaps</div>
+<h1>Interest rate swaps: mechanics, and changing a loan or an investment</h1>
+<p class="lede">The goal: say who pays what in a fixed-for-floating swap, work out the net payment each period, and use a swap to turn a floating loan into a fixed one (and the reverse) by adding up the all-in cost.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topic 10 is in the 70% of marks from Topics 5-10, and swap questions on past finals mixed a swap design (Lesson 41) and a valuation (Lesson 42). Both start from the cash flows in this lesson. Practice here is typed answers, as on the paper (no MCQ), with a short written item for the 15% theory.</div>
+
+<p>This lesson follows <a href="0039-forward-rates-and-fras.html">Lesson 39</a> (forward rates and FRAs; each swap exchange is an FRA, which Lesson 42 uses). Terms are in the <a href="../reference/glossary.html">glossary</a>. Sources: Lecture 10 slides 20-27 (swap mechanics and transformations); Tutorial 10 Q2 (credit vs market risk); Hull, <em>Options, Futures and Other Derivatives</em>, chapter on swaps (the lecture reading says "Chapter 7"; check your edition). Past exams were mined for <em>patterns only</em>; every question here is new.</p>
+
+<h2>1 · What a swap is (intuition first)</h2>
+<p>Suppose you borrowed at a floating rate (SOFR plus something) but you would sleep better knowing your interest bill. A bank is happy to take the floating-rate risk. You agree: each period, <strong>you pay the bank a fixed rate and the bank pays you SOFR</strong>. The SOFR you receive cancels the SOFR you owe your lender, and you are left paying fixed. That agreement is an <strong>interest rate swap</strong>: an agreement to exchange interest payments, one leg fixed and one floating, on a <strong>notional principal</strong> (slide 20).</p>
+<ul>
+<li><strong>The notional is never exchanged.</strong> It is only the number you multiply the rates by (slide 21).</li>
+<li><strong>Payments are netted.</strong> Only the difference changes hands each period.</li>
+<li><strong>Two sides:</strong> the <em>fixed-rate payer</em> (receives floating) and the <em>floating-rate payer</em> (receives fixed).</li>
+<li><strong>Why do it:</strong> change fixed to floating or the reverse without refinancing, and (Lesson 41) cut borrowing costs.</li>
+<li><strong>Rate names (slides 3-4):</strong> the floating rate on the slides is SOFR (US, secured overnight, replaced LIBOR); BBSW is the Australian bank-bill equivalent. The maths is identical, and on the exam the floating reference rate will be named for you.</li>
+</ul>
+
+<h2>2 · The net payment each period</h2>
+<p>With notional \(L\), fixed rate \(R_K\), floating rate \(R_F\) set for the period, and payments every six months (accrual 0.5):</p>
+$$\text{fixed leg} = L \times R_K \times 0.5,\qquad \text{floating leg} = L \times R_F \times 0.5,\qquad \text{net} = L \times (R_F - R_K) \times 0.5.$$
+<p>A positive net goes <em>to the fixed-rate payer</em> (floating received exceeds fixed paid). <strong>Lecture example (slides 21-22):</strong> Apple pays 3% fixed, JPMorgan pays SOFR, notional $100m, payments every 6 months. First exchange: SOFR over the period is 2.2%. Apple pays \(0.5 \times 3\% \times 100 = \$1.5\)m, JPMorgan pays \(0.5 \times 2.2\% \times 100 = \$1.1\)m, so <strong>Apple pays JPMorgan $0.4m</strong>. Second exchange, SOFR 2.8%: floating \(=\$1.4\)m, net: Apple pays $0.1m.</p>
+<div class="trap"><strong>Slide 23 mismatch</strong>The "full cash flow schedule" table on slide 23 is dated 2016-2019 and uses SOFR figures starting 2.2%, 2.8%, 3.3%..., while the example on slides 21-22 is dated 2023-2026. The first two rows agree (2.2%, then 2.8%: net -0.40 and -0.10). Treat the table as the same swap with a different calendar; the method does not depend on the dates. Also, the SOFR rate for a period is set at the <em>start</em> of the period and paid at its <em>end</em>.</div>
+
+<p><strong>Fresh example.</strong> Notional $80m, you pay fixed 4.0%, semiannual, and receive SOFR. SOFR for the three periods turns out to be 3.6%, 4.1%, 4.5%.</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Period</th><th>SOFR</th><th>Floating received</th><th>Fixed paid</th><th>Net to you</th></tr>
+<tr><td>1</td><td>3.6%</td><td>+1.44m</td><td>-1.60m</td><td>-0.16m</td></tr>
+<tr><td>2</td><td>4.1%</td><td>+1.64m</td><td>-1.60m</td><td>+0.04m</td></tr>
+<tr><td>3</td><td>4.5%</td><td>+1.80m</td><td>-1.60m</td><td>+0.20m</td></tr>
+</table></div>
+
+<div class="quiz num" data-answer="0.20" data-tol="0.005">
+  <p class="q"><strong>Check.</strong> Same swap, but SOFR for the next period is 4.5%. How much does the <em>fixed-rate payer</em> receive (net), in $m to 2 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$m</span></div>
+  <div class="why">\(80 \times 0.5 \times (4.5\% - 4.0\%) = 0.20\). Floating exceeds fixed, so the fixed payer receives.</div>
+</div>
+
+<div class="quiz num" data-answer="0.175" data-tol="0.002">
+  <p class="q"><strong>Check.</strong> Notional $50m, you pay fixed 4.2% semiannual and receive SOFR. SOFR for the period is 4.9%. Your net receipt, in $m to 3 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$m</span></div>
+  <div class="why">\(50 \times 0.5 \times (4.9\% - 4.2\%) = 0.175\). (At SOFR 3.8% it would be \(-0.100\): you would pay $0.10m.)</div>
+</div>
+
+<h3>Predict first: who gains when rates rise?</h3>
+<p>Pay fixed, receive floating. If SOFR rises above the fixed rate from here on, who gains? Decide, then open.</p>
+<details><summary>Reveal</summary><div>
+<p>The <strong>fixed-rate payer gains</strong>: they keep paying a fixed amount but receive a bigger floating amount. The <strong>floating-rate payer loses</strong>. If rates fall, it reverses. So a borrower with a floating loan who <em>fears rising rates</em> becomes the fixed-rate payer.</p>
+</div></details>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Check.</strong> A company holds a swap in which it receives fixed and pays SOFR. Rates fall sharply, and stay down. The company:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">pays more each period than it receives, so loses</button>
+    <button class="opt" data-key="b">receives more each period than it pays, so gains</button>
+    <button class="opt" data-key="c">has no gain or loss, because the notional is not exchanged</button>
+    <button class="opt" data-key="d">gains only if the fixed rate is below SOFR at inception</button>
+  </div>
+  <div class="why">Fixed received stays put while the SOFR it pays falls: net is positive. (c) confuses the notional with the interest flows.</div>
+</div>
+
+<h2>3 · Changing a loan: the all-in cost ledger</h2>
+<p>A swap does not touch the original loan; it adds cash flows on top. To find the new rate, write every cash flow as a line and add:</p>
+$$\text{all-in cost} = \text{external loan rate} + \text{swap rate paid} - \text{swap rate received}.$$
+<p><strong>Lecture example (slide 25): floating to fixed.</strong> Apple borrows at SOFR + 0.1%. In the swap with Citigroup it pays 3.0% and receives SOFR.</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Cash flow</th><th>Rate paid (-) / received (+)</th></tr>
+<tr><td>Pays the lender</td><td>-(SOFR + 0.1%)</td></tr>
+<tr><td>Receives from swap</td><td>+SOFR</td></tr>
+<tr><td>Pays into swap</td><td>-3.0%</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>-3.1% (fixed)</strong></td></tr>
+</table></div>
+<p>The SOFR cancels, leaving the swap's fixed rate plus the loan's spread. <strong>Slide 26: fixed to floating.</strong> Intel borrows at 3.2% fixed, receives 2.97% and pays SOFR in the swap: \(-3.2\% + 2.97\% - \text{SOFR} = -(\text{SOFR} + 0.23\%)\). The fixed rate left over after the swap's fixed receipt becomes the spread.</p>
+
+<p><strong>Fresh examples (liabilities).</strong></p>
+<ol class="steps">
+<li>You borrow at SOFR + 0.5%. You pay 4.2% fixed and receive SOFR in a swap. Net: \(-(\text{SOFR} + 0.5\%) + \text{SOFR} - 4.2\% = -4.7\%\). Fixed at 4.7%.</li>
+<li>You borrow at 5.1% fixed. You receive 4.15% fixed and pay SOFR in a swap. Net: \(-5.1\% + 4.15\% - \text{SOFR} = -(\text{SOFR} + 0.95\%)\). Floating at SOFR + 0.95%.</li>
+</ol>
+
+<div class="quiz num" data-answer="4.7" data-tol="0.005">
+  <p class="q"><strong>Check.</strong> You borrow floating at SOFR + 0.5% and enter the first swap above (pay 4.2%, receive SOFR). What fixed rate do you now pay, in % to 1 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(4.2\% + 0.5\% = 4.7\%\). The 0.5% loan spread is not removed by the swap.</div>
+</div>
+
+<div class="quiz num" data-answer="0.95" data-tol="0.005">
+  <p class="q"><strong>Check.</strong> You borrow fixed at 5.1% and receive 4.15% fixed while paying SOFR. After the swap you pay SOFR plus how many %, to 2 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(5.1\% - 4.15\% = 0.95\%\), so you pay SOFR + 0.95%.</div>
+</div>
+
+<div class="trap"><strong>Common slips</strong>Adding the swap's fixed rate to the loan's fixed rate (the swap <em>receives</em> fixed here, so it is subtracted) · dropping the loan's spread · writing the final answer with the wrong sign convention (say "pay"/"earn" in words) · forgetting the swap's floating leg is the same SOFR as the loan's, which is exactly why it cancels.</div>
+
+<h2>4 · Changing an investment</h2>
+<p>Same ledger, but now the external flow is money <em>received</em>. All-in return \(=\) external return \(-\) swap rate paid \(+\) swap rate received. <strong>Lecture examples (slide 27):</strong> Apple holds 2.7% bonds, pays SOFR into the swap and receives 3.0%: \(2.7\% + \text{SOFR} - 3.0\% = \text{SOFR} - 0.3\%\) (fixed to floating). Intel holds an investment earning SOFR - 0.2%, receives 2.97% and pays SOFR: \((\text{SOFR} - 0.2\%) - \text{SOFR} + 2.97\% = 2.77\%\) (floating to fixed).</p>
+<p><strong>Fresh examples (assets).</strong></p>
+<ol class="steps">
+<li>A fixed investment earning 3.8%. In a swap you receive SOFR and pay 3.5% fixed. Net return: \(3.8\% + \text{SOFR} - 3.5\% = \text{SOFR} + 0.3\%\).</li>
+<li>A floating investment earning SOFR - 0.15%. You receive 3.9% fixed and pay SOFR. Net: \((\text{SOFR} - 0.15\%) + 3.9\% - \text{SOFR} = 3.75\%\) fixed.</li>
+</ol>
+
+<div class="quiz num" data-answer="3.75" data-tol="0.005">
+  <p class="q"><strong>Check.</strong> Your investment earns SOFR - 0.15%. You swap to receive 3.9% fixed and pay SOFR. Your fixed return, in % to 2 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(-0.15\% + 3.9\% = 3.75\%\); the SOFR you earn cancels the SOFR you pay.</div>
+</div>
+
+<div class="quiz num" data-answer="0.3" data-tol="0.005">
+  <p class="q"><strong>Check.</strong> Fixed investment at 3.8%; swap: receive SOFR, pay 3.5%. You now earn SOFR plus how many %, to 1 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(3.8\% - 3.5\% = 0.3\%\): SOFR + 0.3%.</div>
+</div>
+
+<h2>5 · What is a swap worth, and what can go wrong?</h2>
+<p><strong>At inception the value is zero (or near it):</strong> the fixed rate is chosen so that the fixed and floating legs are worth the same (slide 36). As rates move, the value drifts away from zero: positive for one side, negative for the other. Lesson 42 values this as a portfolio of FRAs.</p>
+<p><strong>Credit risk and market risk (Tutorial 10 Q2).</strong> <em>Market risk</em> is losing from moves in rates or exchange rates. <em>Credit risk</em> is the other side defaulting. In a swap you only face credit risk when the swap is worth <em>more than zero to you</em>: if it is a liability to you, your counterparty is the one exposed. Credit risk therefore depends on the market variables.</p>
+
+<h3>Short written item (theory marks)</h3>
+<p>In 2-3 sentences: a firm has a floating-rate loan and fears higher rates. Explain which side of a swap it takes and what it ends up paying. Then open the model answer.</p>
+<details><summary>Model answer</summary><div>
+<p>It becomes the <strong>fixed-rate payer</strong> (pays fixed, receives SOFR). The SOFR it receives offsets the SOFR in its loan, so its all-in cost is the swap's fixed rate plus the loan's spread, fixed whatever happens to rates. The notional is not exchanged, only net interest. If rates fall it ends up worse off than leaving the loan floating, but it has removed the uncertainty.</p>
+</div></details>
+
+<h2>Homework</h2>
+<ul>
+<li>Re-derive the four lecture transformations (slides 25-27: 3.1%, SOFR + 0.23%, SOFR - 0.3%, 2.77%) from the ledger without looking.</li>
+<li>Invent one fresh example of each of the four cases and check your sign with "which flows cancel?".</li>
+<li><a href="../tutes/Tutorial%2010.pdf">Tutorial 10</a> Q2 (credit vs market risk), written in 3 sentences. The design questions (Q3) come in <a href="0041-designing-a-swap-comparative-advantage.html">Lesson 41</a>; valuation and default loss (Q4) in <a href="0042-valuing-a-swap-and-counterparty-loss.html">Lesson 42</a>.</li>
+</ul>
+
+<div class="ask">Unsure which side of the swap a firm should take, or why the loan spread survives? Paste your ledger in the terminal and ask me. Recommended primary source: Lecture 10 slides 20-27, then Hull's swaps chapter for the wider market.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0039-forward-rates-and-fras.html">Lesson 39, forward rates and FRAs</a></span>
+  <span><a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0041-designing-a-swap-comparative-advantage.html">Lesson 41, designing a swap</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Valuing a Swap and Counterparty Loss</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 42 · Topic 10: Interest rate contracts and swaps</div>
+<h1>Valuing a swap, and the loss if the other side defaults</h1>
+<p class="lede">The goal: value an existing swap as a portfolio of FRAs (forward SOFR → floating cash flow → net → discount), check it against the bond view, and compute what you lose if the counterparty defaults.</p>
+
+<div class="mission">Why this matters for 5 Nov: swaps are in the 70% of marks from Topics 5-10, and past finals ask a swap design plus a valuation or default-loss item. The lecture method is a four-column table you can do on an fx-82 with \(e^x\) only. Tutorial 10 Q4 (default loss) is a direct exam pattern.</div>
+
+<p>Builds on <a href="0039-forward-rates-and-fras.html">Lesson 39</a> (forward rates, FRAs), <a href="0040-interest-rate-swaps-mechanics-and-transforming.html">Lesson 40</a> (mechanics) and <a href="0041-designing-a-swap-comparative-advantage.html">Lesson 41</a> (design). Terms are in the <a href="../reference/glossary.html">glossary</a>. Sources: Lecture 10 slides 35-37; Tutorial 10 Q4, Q5 and the tutorial-class solutions (<code>tutes/worked-solns/Derivative_Securities-10.pdf</code>). Past exams were mined for <em>patterns only</em>; every question here is new except the tutorial items, which are used as set.</p>
+
+<h2>1 · A swap is a bundle of FRAs</h2>
+<p>Each future exchange of fixed for floating is one <strong>forward rate agreement</strong> (Lesson 39): you pay the fixed rate \(K\) and receive the floating rate for that period. A swap is the sum of those FRAs. At inception the fixed rate is set so the bundle is worth zero. Later \(K\) is stuck but forward rates move, so some FRAs gain and some lose, and the swap has a value.</p>
+<p><strong>Direction (fix this first).</strong> The party that <em>pays fixed and receives floating</em> gains when forward SOFR is above \(K\). Its value is the sum of the PVs of (floating − fixed). The other party's value is the negative of that.</p>
+
+<h2>2 · The lecture's three steps</h2>
+<ol class="steps">
+<li><strong>Floating cash flow at each date:</strong> \(L\times \text{SOFR}_i\times 0.5\) for semiannual payments. The first SOFR is <em>already known</em> (set at the last reset); each later one is the forward rate implied by the zero curve (Lesson 39), written as a semiannual rate.</li>
+<li><strong>Net</strong> floating minus fixed (fixed is \(L\times K\times 0.5\)) at each date.</li>
+<li><strong>Discount</strong> each net flow at the zero rate for that date, \(e^{-R_it_i}\), and add.</li>
+</ol>
+<p>In symbols, with \(\tau = 0.5\):</p>
+$$V_{\text{pay fixed}}=\sum_i L\,(F_i-K)\,\tau\,e^{-R_it_i}.$$
+
+<p><strong>Lecture example (slide 37).</strong> Pay fixed 3% semiannual, receive SOFR, \(L=\$100\)m, payments in 0.25, 0.75 and 1.25 years. Zero rates (continuous) 2.8%, 3.2%, 3.4%. Next SOFR (already set) 2.9% semiannual. Forward 0.25 to 0.75: \(f=(3.2\times0.75-2.8\times0.25)/0.5=3.4\%\) continuous, which is \(2(e^{0.017}-1)=3.429\%\) semiannual. Forward 0.75 to 1.25: \((3.4\times1.25-3.2\times0.75)/0.5=3.7\%\), i.e. \(3.734\%\) semiannual.</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>\(t\)</th><th>Fixed ($m)</th><th>Floating ($m)</th><th>Net ($m)</th><th>\(e^{-Rt}\)</th><th>PV ($m)</th></tr>
+<tr><td>0.25</td><td>1.5000</td><td>1.4500</td><td>−0.0500</td><td>0.9930</td><td>−0.0497</td></tr>
+<tr><td>0.75</td><td>1.5000</td><td>1.7145</td><td>+0.2145</td><td>0.9763</td><td>+0.2094</td></tr>
+<tr><td>1.25</td><td>1.5000</td><td>1.8672</td><td>+0.3672</td><td>0.9584</td><td>+0.3519</td></tr>
+<tr><td><strong>Total</strong></td><td></td><td></td><td></td><td></td><td><strong>+0.5117</strong></td></tr>
+</table></div>
+<div class="trap"><strong>Slide wording</strong>Slide 37 calls $0.5117m "positive to the floating-rate payer". The table has the party <em>receiving</em> floating (the <em>fixed</em> payer) collecting floating minus fixed, so the value is positive to the <strong>fixed-rate payer</strong>. Use the cash-flow signs, not the caption.</div>
+
+<div class="quiz num" data-answer="-0.5117" data-tol="0.0005">
+  <p class="q"><strong>Check.</strong> What is the value of this swap to the <em>floating-rate payer</em> (receives fixed 3%, pays SOFR)? Signed, in $m (4 dp).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$m</span></div>
+  <div class="why">The two sides are mirror images: \(-0.5117\), a liability to the floating payer.</div>
+</div>
+
+<h2>3 · The bond view (tutorial method) agrees</h2>
+<p>Tutorial 10 values the same swap as <strong>bonds</strong>: pay fixed / receive floating is long a floating-rate bond and short a fixed-rate bond, so \(V=B_{\text{float}}-B_{\text{fix}}\). A fixed bond is its coupons and principal discounted. A floating bond is worth par right after a reset, so just before the next payment (time \(t_1\), known payment \(k^*\)) it is worth \((L+k^*)e^{-R_1t_1}\).</p>
+<p>Slide example: \(B_{\text{fix}}=1.5(0.9930+0.9763+0.9584)+100(0.9584)=100.2306\). \(B_{\text{float}}=(100+1.45)(0.9930)=100.7423\). \(V=100.7423-100.2306=0.5117\). ✓ Same number. Use whichever has fewer lines: the bond view needs one floating term but all fixed terms plus principal.</p>
+
+<div class="quiz num" data-answer="100.7423" data-tol="0.01">
+  <p class="q"><strong>Check.</strong> \(B_{\text{float}}\) for the slide example: \((L+k^*)e^{-R_1t_1}\) with \(L=100\), \(k^*=1.45\), \(R_1t_1=0.028\times0.25\).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$m</span></div>
+  <div class="why">\(101.45\times e^{-0.007}=101.45\times0.99302=100.7423\).</div>
+</div>
+
+<h2>4 · A fresh example, both sides</h2>
+<p>Notional $40m, fixed 4.5% semiannual, payments at 0.5, 1.0, 1.5 years. Current six-month SOFR 4.0% (semiannual). Zero rates (continuous) 3.9%, 4.1%, 4.3%. Forward 0.5 to 1: \((4.1\times1-3.9\times0.5)/0.5=4.3\%\) cont. = 4.3466% semiannual; forward 1 to 1.5: \((4.3\times1.5-4.1)/0.5=4.7\%\) = 4.7557% semiannual. Try the table (change the zero rates and the side, and watch the sign).</p>
+<div class="svt" data-notional="40" data-fixed="4.5" data-times="0.5,1,1.5" data-zeros="3.9,4.1,4.3" data-first="4.0" data-units="$m"></div>
+<script src="../assets/swap-valuation-table.js"></script>
+
+<div class="quiz num" data-answer="-79586" data-tol="60">
+  <p class="q"><strong>Check.</strong> Value of this swap to the <strong>fixed-rate payer</strong>, in dollars (signed, to the nearest dollar).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Net flows ($m): \(0.8000-0.9000=-0.1000\); \(0.8693-0.9000=-0.0307\); \(0.9511-0.9000=+0.0511\). PVs: \(-0.0981-0.0295+0.0479=-0.0796\), i.e. −$79,586 (unrounded). Forwards (4.35%, 4.76%) are below or close to 4.5% and the first SOFR is 4.0%, so the fixed payer overpays: negative. The <em>receive-fixed</em> side is worth +$79,586.</div>
+</div>
+<div class="quiz num" data-answer="-79586" data-tol="60">
+  <p class="q"><strong>Check (bond view).</strong> \(B_{\text{fix}}=40.0917\), \(B_{\text{float}}=(40+0.8)(0.98069)=40.0121\). Value to the fixed payer, in dollars.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(B_{\text{float}}-B_{\text{fix}}=40.0121-40.0917=-0.0796\)m = −$79,586. Same as the table.</div>
+</div>
+
+<h3>Predict first</h3>
+<p>All zero rates (and so forwards) rise by 1 percentage point. Value to the fixed payer: up or down?</p>
+<details><summary>Reveal</summary><div>Up. Floating flows rise, fixed stays at \(K\), so (floating − fixed) rises for the party receiving floating. (The discount factors fall a little, which shrinks the effect but does not reverse it.) The fixed payer gains when rates rise; the floating payer gains when they fall.</div></details>
+
+<h2>5 · Credit risk: what a default costs</h2>
+<p>Market risk is a move in rates. <strong>Credit risk</strong> is the other side failing to pay. You can only lose if the swap is worth <strong>more than zero to you</strong> (an asset): if it is a liability, you owe, and a default does not cost you. The loss is the PV of the net flows you will no longer receive (Tutorial 10 Q2, Q4).</p>
+<p><strong>Tutorial 10 Q4.</strong> A bank receives 4% and pays six-month SOFR on $10m for 5 years, semiannual. Company X defaults at the end of year 3. SOFR set at year 2.5 was 3%; forward SOFR for all later periods is 2%; all zero rates are 1.8% (continuous). The rates and their jobs: 4% fixed flows, 3% the payment due now, 2% later floating flows, 1.8% discounting.</p>
+<ol class="steps">
+<li>Due now (year 3): \(10\times0.5\times(4\%-3\%)=0.05\)m.</li>
+<li>Four later payments (3.5, 4, 4.5, 5): \(10\times0.5\times(4\%-2\%)=0.10\)m each.</li>
+<li>\(L=0.05+0.10(e^{-0.009}+e^{-0.018}+e^{-0.027}+e^{-0.036})=0.441120\)m \(=\$441{,}120\).</li>
+</ol>
+<div class="quiz num" data-answer="441120" data-tol="10">
+  <p class="q"><strong>Check.</strong> Reproduce the loss for Tutorial 10 Q4.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(0.05+0.10(0.99104+0.98216+0.97336+0.96464)=0.05+0.39112=0.44112\)m.</div>
+</div>
+
+<p><strong>Fresh variant.</strong> A dealer receives 5% and pays six-month SOFR on $20m, payments semiannual, four payments remain after the one now due. The counterparty defaults on the payment date. SOFR set for the payment due now was 3.4%; forward SOFR for later periods is 3.0%; zero rates are 2.5% continuous.</p>
+<div class="quiz num" data-answer="935462" data-tol="30">
+  <p class="q">Loss to the dealer, in dollars (nearest dollar).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Now: \(20\times0.5\times(5\%-3.4\%)=0.16\)m. Later: \(20\times0.5\times(5\%-3\%)=0.20\)m each, discounted at 2.5% over 0.5, 1, 1.5, 2 years: \(0.20(0.98758+0.97531+0.96319+0.95123)=0.77546\)m. Total \(0.93546\)m = $935,462.</div>
+</div>
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Concept check.</strong> A company pays fixed and the swap is worth −$0.3m to it. The other side defaults. The company's credit loss is:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">$0.3m, the amount it was owed on the swap</button>
+    <button class="opt" data-key="b">zero, because the swap was a liability to it</button>
+    <button class="opt" data-key="c">$0.3m, because the notional principal is not at risk</button>
+    <button class="opt" data-key="d">zero, because swaps carry no credit risk at all</button>
+  </div>
+  <div class="why">Credit risk bites only when the swap is an asset to you. Here the company owed the other side, so a default costs it nothing (it still faces market risk).</div>
+</div>
+
+<h2>6 · Derive it from this setup</h2>
+<p><strong>Set-up:</strong> you pay fixed \(K\) and receive the floating rate on notional \(L\), settled at \(t_1,\dots,t_n\) with accrual \(\tau\). Treat each date as an FRA whose forward rate is \(F_i\). <strong>Show</strong> that \(V=\sum_i L(F_i-K)\tau e^{-R_it_i}\).</p>
+<details><summary>Derivation (try it first)</summary><div>
+<p>The FRA for period \(i\) pays \(L(F_i-K)\tau\) at \(t_i\) in expectation-free terms: the floating flow is fixed in value at today's forward rate \(F_i\), so the net flow at \(t_i\) is \(L(F_i-K)\tau\). Its value today is that flow discounted at the zero rate for \(t_i\):</p>
+$$V_i=L(F_i-K)\tau\,e^{-R_it_i}.$$
+<p>The swap is the portfolio of FRAs, so \(V=\sum_iV_i\). At inception \(V=0\), which is how \(K\) is set. ✓</p>
+</div></details>
+
+<h2>7 · The swap rate that makes \(V=0\) (optional extension)</h2>
+<p>The slides do not do this, but Tutorial 10 Q5 does, and it is one linear equation. At inception \(\sum_i(F_i-K)\tau e^{-R_it_i}=0\). If every forward but the last is known, solve for the last one:</p>
+$$F_n=K-\frac{\sum_{i<n}(F_i-K)\,e^{-R_it_i}}{e^{-R_nt_n}}.$$
+<p><strong>Tutorial 10 Q5, step 1.</strong> Two-year swap rate 5.4%; SOFR 5%, 5.5%, 5.5% for the first three periods; zeros 4.2%, 4.35%, 4.5%, 4.65% at 0.5-2 years. \(\sum=(0.05-0.054)e^{-0.021}+(0.001)e^{-0.0435}+(0.001)e^{-0.0675}=-0.003917+0.000957+0.000935=-0.002025\). \(F_4=0.054+0.002025/e^{-0.093}=0.054+0.002223=5.62\%\).</p>
+<div class="quiz num" data-answer="4.72" data-tol="0.01">
+  <p class="q"><strong>Fresh.</strong> A 1.5-year swap has \(K=4.4\%\); SOFR for the first two periods is 4.0% and 4.5%; zeros 3.9%, 4.1%, 4.3% at 0.5, 1, 1.5 years. Forward SOFR for the third period, in % to 2 dp.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(\sum=(0.04-0.044)e^{-0.0195}+(0.045-0.044)e^{-0.041}=-0.003923+0.000960=-0.002963\). \(F_3=0.044+0.002963/e^{-0.0645}=0.044+0.003160=4.72\%\).</div>
+</div>
+
+<h2>8 · One written answer</h2>
+<p><strong>(3 marks)</strong> A bank's swap with Company Y is worth +$2m to the bank today. Explain the bank's credit risk and its market risk in two or three sentences.</p>
+<details><summary>Model answer</summary><div>Credit risk: if Y defaults the bank loses the PV of the net flows it was due (up to the $2m asset value, since it is positive). Market risk: the $2m value moves with interest rates; if rates move so that the swap turns into a liability, the bank has no credit exposure but still faces market risk. Credit exposure only exists while the swap value is positive to the bank.</div></details>
+
+<h2>Homework</h2>
+<ul>
+<li><strong>Tutorial 10 Q4</strong> (without peeking; answer $441,120), then change the default date to the end of year 4 (two payments left after the one due) and redo it.</li>
+<li><strong>Tutorial 10 Q5</strong>, step 1 only (answer 5.62%). Steps 2-3 are optional.</li>
+<li>Value the lecture example from the floating payer's side and confirm \(-0.5117\).</li>
+</ul>
+
+<div class="ask">Stuck on which rate does which job (known SOFR vs forward SOFR vs zero rate), or the sign of the value? Paste your working in the terminal and ask me. Recommended primary source: Lecture 10 slides 35-37, then Tutorial 10 Q4 and its solution; background in Hull's chapter on swaps.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0041-designing-a-swap-comparative-advantage.html">Lesson 41, designing a swap</a></span>
+  <span><a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0043-topic-10-capstone-exam-style-practice.html">Lesson 43, Topic 10 capstone</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

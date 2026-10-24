@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zero Rates, Bond Pricing and Par Yield</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 38 · Topic 10: Interest rate contracts and swaps</div>
+<h1>Zero rates, bond pricing and the par yield</h1>
+<p class="lede">The goal: price a coupon bond from a table of zero rates, find the coupon that makes it worth par, and run the calculation backwards to get a zero rate from a bond price. Every swap and FRA calculation in the next five lessons is built from these pieces.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topic 10 sits in the 70% of marks from Topics 5-10. Past finals asked a par yield from four zero rates and a zero rate backed out of a bond price, usually as a short 2-4 mark part of a swaps question. Both are pure calculator work with \(e^x\) and \(\ln\), on the formula sheet's \(P = \sum c\,e^{-R_it_i} + FV\,e^{-R_nt_n}\).</div>
+
+<p>Prerequisite: continuous compounding from <a href="0006-cost-of-carry-and-arbitrage.html">Lesson 6</a>. Terms are in the <a href="../reference/glossary.html">glossary</a>. Sources: Lecture 10 slides 3-12 (in the lecture's own words: reference rates, zero rates, bond pricing, par yield, determining Treasury rates); Hull, <em>Options, Futures and Other Derivatives</em>, Ch. 4.5-4.9 (the lecture's reading list). Questions here are new; Tutorial 10 starts at forward rates (<a href="0039-forward-rates-and-fras.html">Lesson 39</a>).</p>
+
+<h2>1 · Which interest rate? (slides 3-4)</h2>
+<p>Swaps and floating-rate loans need a benchmark "floating" rate. The lecture names three.</p>
+<div class="tablewrap"><table>
+<tr><th>Rate</th><th>Where</th><th>What it is</th></tr>
+<tr><td>LIBOR</td><td>London, all major currencies</td><td>Rate at which a bank will make a large wholesale deposit with other banks. Retired: new contracts stopped by end 2021, all wrapped up by 30 June 2023.</td></tr>
+<tr><td>SOFR</td><td>US</td><td>Secured Overnight Financing Rate: cost of borrowing cash overnight, secured by US Treasuries. "Nearly risk-free". Replaced LIBOR.</td></tr>
+<tr><td>BBSW</td><td>Australia</td><td>Bank Bill Swap Rate: average rate at which major banks lend and borrow short-term bank bills. Credit-based; the benchmark in the Australian swap market.</td></tr>
+</table></div>
+<p>The rest of Topic 10 writes "SOFR" for the floating rate. Nothing in the maths changes if the question says BBSW.</p>
+
+<h2>2 · Zero rates (slide 6)</h2>
+<p>The <strong>\(n\)-year zero rate</strong> is the rate earned on an investment that starts today and lasts \(n\) years, with <em>everything</em> (interest and principal) paid at the end: no coupons. With continuous compounding, \(A\) grows to \(Ae^{Rn}\). Slide example: $1 million for 5 years at a 7% zero rate:</p>
+$$1{,}000{,}000\,e^{0.07\times5} = \$1{,}419{,}067.55 \approx \$1.42\text{m}.$$
+<p>Turn it round: $1 received at time \(t\) is worth \(e^{-Rt}\) today. Call this the <strong>discount factor</strong> \(d(t)=e^{-R_tt}\), where \(R_t\) is the zero rate <em>for that maturity</em>. Each cash flow gets its own rate, because the zero rates differ by maturity (the zero curve).</p>
+
+<div class="quiz num" data-answer="0.9460" data-tol="0.0002">
+  <p class="q"><strong>Check.</strong> The 1.5-year zero rate is 3.7% (continuous). The discount factor \(e^{-Rt}\), to 4 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(e^{-0.037\times1.5}=e^{-0.0555}=0.9460\ldots\) Exact value 0.946012, so 0.9460.</div>
+</div>
+
+<h2>3 · Pricing a coupon bond (slides 7-9)</h2>
+<p>Most bonds pay a <strong>coupon</strong> every period, then the principal (face value, FV) at maturity. The theoretical price is the present value of every cash flow, <em>each discounted at the zero rate for its own date</em>. Formula sheet:</p>
+$$P=\sum_i c\,e^{-R_it_i}+FV\,e^{-R_nt_n}.$$
+<p>The last coupon and the principal arrive together, so they share a discount factor. <strong>Lecture example.</strong> $1m two-year Treasury, 8% coupon paid semiannually, so \(c=1{,}000{,}000\times0.08/2=\$40{,}000\) each time. Zero rates: 0.5y 6.0%, 1.0y 6.2%, 1.5y 6.3%, 2.0y 6.2%.</p>
+<ol class="steps">
+<li>Discount factors: \(e^{-0.06\times0.5}\), \(e^{-0.062\times1}\), \(e^{-0.063\times1.5}\), \(e^{-0.062\times2}\).</li>
+<li>\(P=40{,}000e^{-0.03}+40{,}000e^{-0.062}+40{,}000e^{-0.0945}+1{,}040{,}000e^{-0.124}\).</li>
+<li>\(P=\$1{,}031{,}521.28\) (matches the slide; recomputed).</li>
+</ol>
+<div class="trap"><strong>Trap</strong><br>Using one rate (say the 2-year zero rate) for every cash flow. Or discounting the principal but not the final coupon (the 2-year flow is \(1{,}040{,}000\), not \(1{,}000{,}000\)). Or forgetting the coupon is per <em>period</em> (halve an annual rate for semiannual).</div>
+
+<p><strong>Fresh worked example.</strong> $2m bond, 2 years, 6% coupon paid semiannually, so \(c=\$60{,}000\). Zero rates (continuous): 0.5y 3.0%, 1.0y 3.4%, 1.5y 3.7%, 2.0y 3.9%.</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Time</th><th>Zero rate</th><th>Cash flow</th><th>\(e^{-Rt}\)</th><th>PV</th></tr>
+<tr><td>0.5</td><td>3.0%</td><td>60,000</td><td>0.985112</td><td>59,106.72</td></tr>
+<tr><td>1.0</td><td>3.4%</td><td>60,000</td><td>0.966572</td><td>57,994.29</td></tr>
+<tr><td>1.5</td><td>3.7%</td><td>60,000</td><td>0.946012</td><td>56,760.72</td></tr>
+<tr><td>2.0</td><td>3.9%</td><td>2,060,000</td><td>0.924964</td><td>1,905,426.69</td></tr>
+<tr><td colspan="4"><strong>Price</strong></td><td><strong>2,079,288.45</strong></td></tr>
+</table></div>
+
+<div class="quiz num" data-answer="2039842" data-tol="3">
+  <p class="q"><strong>Predict, then check.</strong> Every zero rate rises by 1 percentage point (4.0%, 4.4%, 4.7%, 4.9%). Will the price rise or fall? Then compute it to the nearest dollar.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Falls: the cash flows are fixed, only the discount factors shrink. \(60{,}000(e^{-0.02}+e^{-0.044}+e^{-0.0705}+e^{-0.098})+2{,}000{,}000e^{-0.098}=2{,}039{,}842\), down from 2,079,288. Bond prices move opposite to interest rates.</div>
+</div>
+
+<div class="quiz num" data-answer="1021270.41" data-tol="1">
+  <p class="q"><strong>Check (lecture bond).</strong> Slide-9 bond, but each zero rate is 1 point higher (7.0%, 7.2%, 7.3%, 7.2%). Price to the nearest cent?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(40{,}000e^{-0.035}+40{,}000e^{-0.072}+40{,}000e^{-0.1095}+1{,}040{,}000e^{-0.144}\). Recomputed: $1,021,270.41 (the original was 1,031,521.28).</div>
+</div>
+
+<h2>4 · Par yield (slide 10)</h2>
+<p>The <strong>par yield</strong> for a given maturity is the coupon rate that makes the bond's price equal its par (face) value. Intuition: if the zero curve is flat, a bond paying the going rate is worth par, so the par yield equals the zero rate (after allowing for compounding: a coupon paid semiannually is compared with a semiannual-equivalent rate). If the curve slopes up, the par yield is a little below the long zero rate, because the early coupons are discounted at lower rates than the final principal and so are worth more. The par yield is a coupon rate, quoted with the bond's coupon frequency, whereas zero rates here are continuously compounded: the 2-year zero 3.9% continuous is 3.94% semiannual, and the par yield 3.93% sits just below it.</p>
+
+<h3>Derive it from this setup</h3>
+<p><strong>Set-up:</strong> a bond of face value 100 pays coupon \(c\) per period at times \(t_1,\ldots,t_n\), with discount factors \(d_i=e^{-R_it_i}\). <strong>Show</strong> that the par coupon per period is \(c=100\,(1-d_n)/\sum_i d_i\).</p>
+<details><summary>Derivation (try it first)</summary><div>
+<p>Price \(=c\sum_{i=1}^{n}d_i+100\,d_n\). Set the price equal to par, 100:</p>
+$$c\sum_i d_i+100d_n=100\;\Rightarrow\;c\sum_i d_i=100(1-d_n)\;\Rightarrow\;c=\frac{100(1-d_n)}{\sum_i d_i}.$$
+<p>For a semiannual bond this \(c\) is per half-year, so the annual par yield is \(2c\) (as a % of 100).</p>
+</div></details>
+
+<p><strong>Fresh example</strong> (the zero rates of section 3, semiannual coupons): \(\sum d_i=0.985112+0.966572+0.946012+0.924964=3.822660\); \(1-d_4=0.075036\). Per period \(c=100\times0.075036/3.822660=1.96292\); annual par yield \(=2\times1.96292=\mathbf{3.93\%}\) (3.9258% unrounded).</p>
+<div class="quiz num" data-answer="3.93" data-tol="0.006">
+  <p class="q"><strong>Check.</strong> Zero rates 0.5y 3.0%, 1.0y 3.4%, 1.5y 3.7%, 2.0y 3.9%. What is the 2-year par yield (semiannual coupons), as a % p.a. to 2 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">As above: \(2\times100(1-0.924964)/3.822660=3.9258\%\approx3.93\%\). It lies between the short zero rate (3.0%) and the long one, just under the 2-year zero rate expressed semiannually (3.94%), as expected for a rising curve.</div>
+</div>
+
+<p><strong>Lecture example</strong> (annual coupons; zeros 2%, 2.5%, 3% at 1, 2, 3 years): the slide sets \(c\,e^{-0.02}+c\,e^{-0.05}+(c+100)e^{-0.09}=100\) and states \(c=3.054\%\).</p>
+<div class="trap"><strong>Discrepancy with the slide</strong><br>Solving the slide's own equation gives \(c=100(1-e^{-0.09})/(e^{-0.02}+e^{-0.05}+e^{-0.09})=8.6069/2.8454=\mathbf{3.0249\%}\). Putting \(c=3.054\) back in gives a price of 100.08, not 100. So the slide's 3.054% looks like an arithmetic slip; the method is right. If a question uses these numbers, trust your own calculation (3.02%). (The 3.054 may be intended as a different number; ask on Ed if you want it confirmed.)</div>
+
+<div class="quiz num" data-answer="3.02" data-tol="0.006">
+  <p class="q"><strong>Check.</strong> Do the lecture example yourself: par yield (annual coupons) for zero rates 2%, 2.5%, 3% at 1, 2, 3 years, as a % to 2 dp.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(d=0.980199,\ 0.951229,\ 0.913931\); sum \(=2.845359\); \(100(1-0.913931)=8.6069\); \(c=3.0249\%\approx3.02\%\).</div>
+</div>
+
+<h2>5 · A zero rate from a bond price (slides 11-12)</h2>
+<p>Run the pricing formula backwards: if you know the market price and the shorter zero rates, only the last zero rate is unknown. Discount the known coupons, subtract from the price, and solve one exponential equation with \(\ln\).</p>
+<p><strong>Lecture example.</strong> Zero curve flat at 5% for the next 1.5 years. A $1m 2-year bond, coupons 10% p.a. semiannual (\(c=\$50{,}000\)), sells for $1.1m. Two-year zero rate \(R\)?</p>
+<ol class="steps">
+<li>PV of the first three coupons: \(50{,}000(e^{-0.025}+e^{-0.05}+e^{-0.075})=142{,}714.14\).</li>
+<li>Remainder: \(1{,}100{,}000-142{,}714.14=957{,}285.86=1{,}050{,}000\,e^{-2R}\).</li>
+<li>\(e^{-2R}=957{,}285.86/1{,}050{,}000=0.911700\Rightarrow R=-\ln(0.911700)/2=\mathbf{4.62\%}\) (slide: 0.046).</li>
+</ol>
+<p><strong>Fresh example.</strong> $1m, 2-year bond, 8% coupon semiannual (\(c=\$40{,}000\)); zero rates flat at 4% out to 1.5 years; price $1,060,000. Coupons PV \(=40{,}000(e^{-0.02}+e^{-0.04}+e^{-0.06})=115{,}310.11\). Remainder \(=944{,}689.89=1{,}040{,}000e^{-2R}\), so \(R=-\ln(0.908356)/2=4.81\%\). Sanity check: the price is above par because the coupon (8%) is well above the rates (about 4-5%), and a 2-year zero rate a little above 4% is plausible.</p>
+<div class="quiz num" data-answer="4.81" data-tol="0.006">
+  <p class="q"><strong>Check.</strong> Same bond, but the price is $1,060,000. Compute the 2-year zero rate as a % to 2 dp.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(R=\tfrac12\ln(1{,}040{,}000/944{,}689.89)=4.806\%\approx4.81\%\).</div>
+</div>
+<div class="quiz num" data-answer="5.34" data-tol="0.006">
+  <p class="q"><strong>Predict, then check.</strong> If the same bond sold for only $1,050,000, would the 2-year zero rate be higher or lower than 4.81%? Compute it (2 dp, %).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">Higher: a lower price means more discounting. Remainder \(=1{,}050{,}000-115{,}310.11=934{,}689.89\); \(R=\tfrac12\ln(1{,}040{,}000/934{,}689.89)=5.34\%\).</div>
+</div>
+
+<h2>Exam-style written part (3 marks)</h2>
+<p>"Explain, in 2-3 sentences, why a coupon bond cannot be priced with a single interest rate when the zero curve is not flat."</p>
+<details><summary>Model answer</summary><div>Each cash flow arrives at a different date and the market's rate for money received at that date differs (the zero rate for that maturity). The bond is a portfolio of zero-coupon bonds, one per payment, so each coupon is discounted at its own zero rate. Using one rate would misprice it unless the curve were flat.</div></details>
+
+<h2>Homework (own exercises, with answers)</h2>
+<ol>
+<li>Price a 3-year bond, face $100, 5% annual coupon, zero rates 2% (1y), 2.5% (2y), 3% (3y). <em>(\(105.62\))</em></li>
+<li>Par yield (semiannual coupons) for a <em>1-year</em> bond, zero rates 4.0% (0.5y) and 4.2% (1.0y); two coupons. <em>(\(4.24\%\); formula \(2\times100(1-e^{-0.042})/(e^{-0.02}+e^{-0.042})\))</em></li>
+<li>A 2-year bond, face $100, 6% annual coupon, sells for $103.50. The 1-year zero rate is 3%. Find the 2-year zero rate. <em>(\(4.09\%\))</em></li>
+</ol>
+
+<div class="ask">Unsure why a coupon gets its own rate, or want more par-yield and bootstrapping questions? Ask me in the terminal. Recommended primary source: Lecture 10 slides 3-12, then Hull Ch. 4.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0037-delta-hedging-issues-and-topic-9-capstone.html">Lesson 37, Topic 9 capstone</a></span>
+  <span><a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0039-forward-rates-and-fras.html">Lesson 39, forward rates and FRAs</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

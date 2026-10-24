@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topic 10 Capstone: Exam-Style Practice</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 43 · Topic 10: Interest rates and swaps (capstone)</div>
+<h1>Topic 10 capstone: five exam-style questions, plus a Topic 9 rapid-fire</h1>
+<p class="lede">The goal: sit mixed, exam-format questions on zero rates, bonds, forward rates, FRAs, swap transformations, swap design and swap valuation, then re-fire a few delta-hedge items from Topic 9 so the back half of the course is revisited in one session.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topics 5-10 carry 70% of the marks and the paper is 8 short-answer questions, no MCQ, about 85% calculation. Past finals paired a par-yield or zero-rate bond question with a swap-design question (benefit shares plus a bank fee) and a delta-hedge question. Each question below is about 8 marks, typed answers state their dp, and theory parts want 2-3 sentences. Casio fx-82 and the formula sheet only. All five questions together are 40 marks, about 105 minutes at exam pace.</div>
+
+<p>This lesson assumes <a href="0038-zero-rates-bond-pricing-and-par-yield.html">Lesson 38</a> (zero rates, bonds, par yield), <a href="0039-forward-rates-and-fras.html">Lesson 39</a> (forward rates, FRAs), <a href="0040-interest-rate-swaps-mechanics-and-transforming.html">Lesson 40</a> (swap mechanics, transforming), <a href="0041-designing-a-swap-comparative-advantage.html">Lesson 41</a> (swap design) and <a href="0042-valuing-a-swap-and-counterparty-loss.html">Lesson 42</a> (swap valuation, default loss). Terms are in the <a href="../reference/glossary.html">glossary</a>. Sources: Lecture 10 slides (zero rates 6-12, forward rates 14, FRAs 16-18, swaps 20-34, valuation 36-37) and Tutorial 10. Past exams were mined for <em>patterns only</em>; every question here is new. Rules: zero rates are continuously compounded; swap and FRA rates are semiannual unless a question says otherwise; the floating rate in a swap is one reference rate (SOFR) for every floating payment. Attempt each question on paper first, then use the headline checks, then open the full solution.</p>
+
+<!-- ===================== Q1 ===================== -->
+<div class="exq">
+<h3>Question 1 (8 marks): bonds and zero rates</h3>
+<div class="drills">Drills <a href="0038-zero-rates-bond-pricing-and-par-yield.html">Lesson 38</a> (Lecture 10 slides 6-12)</div>
+<p>Continuously compounded zero rates are: 6 months 3.2%, 12 months 3.5%, 18 months 3.8%, 24 months 4.0%.</p>
+<div class="pt"><span class="mk">(a) 3 marks</span><span class="tx">Find the price of a two-year bond with $1 million face value and a 5% p.a. coupon paid semiannually. Nearest dollar.</span></div>
+<div class="pt"><span class="mk">(b) 3 marks</span><span class="tx">Find the two-year par yield (semiannual coupons), in % to 2 dp.</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">A different two-year bond, face $1 million, 6% coupon paid semiannually, trades at $1,038,000. Using the first three zero rates above, find the implied 24-month zero rate, in % to 2 dp. Does it agree with 4.0%?</span></div>
+<div class="quiz num" data-answer="1018552" data-tol="10">
+  <p class="q">Headline check: (a), bond price.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="4.03" data-tol="0.006">
+  <p class="q">Headline check: (b), par yield.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="3.98" data-tol="0.006">
+  <p class="q">Headline check: (c), implied 24-month zero rate.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 3 marks.</strong> Coupon \(= 1{,}000{,}000 \times 0.05/2 = 25{,}000\). Discount factors \(e^{-Rt}\): \(e^{-0.016} = 0.98413\), \(e^{-0.035} = 0.96561\), \(e^{-0.057} = 0.94459\), \(e^{-0.08} = 0.92312\).</p>
+$$P = 25{,}000(0.98413 + 0.96561 + 0.94459) + 1{,}025{,}000(0.92312) = 72{,}358 + 946{,}194 = \$1{,}018{,}552.$$
+<p><strong>(b) 3 marks.</strong> The par yield \(c\) (annual rate, paid \(c/2\) per period) makes the price equal par: \(\tfrac{c}{2}\sum D_i + 100D_4 = 100\), so</p>
+$$c = \frac{2 \times 100(1 - D_4)}{\sum D_i} = \frac{200(1 - 0.92312)}{3.81744} = 4.03\%.$$
+<p><strong>(c) 2 marks.</strong> Coupon \(= 30{,}000\). PV of the first three coupons \(= 30{,}000(2.89633) = 86{,}830\). Remaining: \(1{,}038{,}000 - 86{,}830 = 951{,}170 = 1{,}030{,}000\,e^{-2R}\), so \(R = -\tfrac12\ln(951{,}170/1{,}030{,}000) = 3.98\%\). Slightly below 4.0%: the bond is priced a touch richer than the zero curve implies (a small mispricing).</p>
+<div class="trap"><strong>Common slips</strong><br>Putting the face value only at the last date but forgetting the last coupon with it; using \(e^{-Rt}\) with \(t\) in half-years; quoting the par yield as a per-period rate (2.01%) instead of annual; forgetting the factor 2 in the par-yield formula.</div>
+</div></details>
+</div>
+
+<!-- ===================== Q2 ===================== -->
+<div class="exq">
+<h3>Question 2 (8 marks): forward rates and an FRA</h3>
+<div class="drills">Drills <a href="0039-forward-rates-and-fras.html">Lesson 39</a> (Lecture 10 slides 14-18; Tutorial 10 Q1)</div>
+<p>Zero rates (continuous): 1 year 3.4%, 2 years 3.9%, 3 years 4.3%.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Find the forward rates for year 2 and for year 3 (continuous), in % to 1 dp.</span></div>
+<div class="pt"><span class="mk">(b) 4 marks</span><span class="tx">A company entered an FRA to <em>receive</em> a fixed 4.6% p.a. (annual compounding) on $20 million between the end of year 2 and the end of year 3. Find the value of the FRA to the company, to the nearest dollar. (Convert the forward rate to annual compounding.)</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">The forward rate for year 3 is above the 3-year zero rate. Explain why in 2-3 sentences.</span></div>
+<div class="quiz num" data-answer="5.1" data-tol="0.06">
+  <p class="q">Headline check: (a), forward rate for year 3.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="-111153" data-tol="150">
+  <p class="q">Headline check: (b), FRA value (negative if a liability).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> \(R_F = (R_2T_2 - R_1T_1)/(T_2 - T_1)\). Year 2: \(2(3.9) - 1(3.4) = 4.4\%\). Year 3: \(3(4.3) - 2(3.9) = 12.9 - 7.8 = 5.1\%\).</p>
+<p><strong>(b) 4 marks.</strong> Forward rate \(5.1\%\) continuous \(\Rightarrow\) annual compounding \(e^{0.051} - 1 = 5.2323\%\). Value to the receiver of fixed:</p>
+$$20{,}000{,}000\,(0.046 - 0.052323)\,e^{-0.043 \times 3} = 20{,}000{,}000(-0.006323)(0.87908) = -\$111{,}153.$$
+<p>(Discount at the 3-year zero rate: the payment is at the end of year 3.) It is negative: the company locked in 4.6% when the market forward is 5.23%.</p>
+<p><strong>(c) 2 marks.</strong> The 3-year zero rate is an average of the year-1, year-2 and year-3 rates. The zero curve slopes up (3.4%, 3.9%, 4.3%), so the rate for the latest year must be higher than the average of the earlier years to pull the 3-year average up: forwards lie above zeros when the curve slopes upward.</p>
+<div class="trap"><strong>Common slips</strong><br>Valuing with 5.1% continuous against 4.6% annual (different compounding); discounting at the 2-year rate or not discounting; sign (receiving a below-market fixed rate is a liability); forward rate \(= R_3 - R_2\).</div>
+</div></details>
+</div>
+
+<!-- ===================== Q3 ===================== -->
+<div class="exq">
+<h3>Question 3 (8 marks): transforming a loan and an investment</h3>
+<div class="drills">Drills <a href="0040-interest-rate-swaps-mechanics-and-transforming.html">Lesson 40</a> (Lecture 10 slides 20-27)</div>
+<p>A company has a $60 million loan at SOFR + 0.8% and wants fixed-rate exposure. It enters a five-year swap with a bank: it <em>pays</em> 4.3% fixed (semiannual) and <em>receives</em> SOFR, on $60 million.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">On one payment date the six-month SOFR is 3.9% p.a. What is the net swap payment, and in which direction? Nearest dollar.</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">What is the company's all-in fixed borrowing cost, in % to 1 dp?</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">A second company holds a floating-rate note earning SOFR − 0.2% and wants a fixed return. It <em>receives</em> 4.1% fixed and pays SOFR in a swap. What fixed return does it lock in, in % to 1 dp?</span></div>
+<div class="pt"><span class="mk">(d) 2 marks</span><span class="tx">Does the swap remove the first company's credit risk on its lender? What new risk does it take on? 2-3 sentences.</span></div>
+<div class="quiz num" data-answer="120000" data-tol="1">
+  <p class="q">Headline check: (a), net payment size.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="5.1" data-tol="0.01">
+  <p class="q">Headline check: (b), all-in cost.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="3.9" data-tol="0.01">
+  <p class="q">Headline check: (c), locked-in return.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> Fixed paid \(= 60\text{m} \times 4.3\% \times 0.5 = \$1{,}290{,}000\); floating received \(= 60\text{m} \times 3.9\% \times 0.5 = \$1{,}170{,}000\). Net: the company <strong>pays $120,000</strong> to the bank.</p>
+<p><strong>(b) 2 marks.</strong> \(-(\text{SOFR} + 0.8\%) + \text{SOFR} - 4.3\% = -5.1\%\). SOFR cancels, leaving a fixed 5.1%.</p>
+<p><strong>(c) 2 marks.</strong> \((\text{SOFR} - 0.2\%) - \text{SOFR} + 4.1\% = 3.9\%\) fixed.</p>
+<p><strong>(d) 2 marks.</strong> No: the loan is still with the lender, so the company is still exposed to its own credit spread (the 0.8%) and the lender is unaffected. The swap changes interest-rate exposure only. The company now carries credit (counterparty) risk on the bank: if the swap has positive value to it and the bank defaults, it loses that value (and, with the notional never exchanged, the exposure is far smaller than the $60m).</p>
+<div class="trap"><strong>Common slips</strong><br>Netting the wrong way round (the fixed payer pays net when SOFR is below the fixed rate); halving the rate twice; adding the swap rate to SOFR + 0.8% instead of letting SOFR cancel; thinking the $60m changes hands.</div>
+</div></details>
+</div>
+
+<!-- ===================== Q4 ===================== -->
+<div class="exq">
+<h3>Question 4 (8 marks): designing a swap</h3>
+<div class="drills">Drills <a href="0041-designing-a-swap-comparative-advantage.html">Lesson 41</a> (Lecture 10 slides 28-34; Tutorial 10 Q3)</div>
+<p>Two companies can borrow $25 million for ten years at:</p>
+<div class="tablewrap"><table>
+<tr><th></th><th>Fixed</th><th>Floating</th></tr>
+<tr><td>Company A</td><td>4.0%</td><td>SOFR + 0.5%</td></tr>
+<tr><td>Company B</td><td>5.8%</td><td>SOFR + 1.1%</td></tr>
+</table></div>
+<p>A wants floating-rate borrowing; B wants fixed. A bank intermediary keeps 0.2% p.a. Of the gain left after the bank's fee, A takes 40% and B takes 60%. Use SOFR + 1.1% (B's floating cost) as the floating leg on both sides of the bank.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Find the quality spread differential (the maximum total gain) and state who has the comparative advantage in which market. QSD in % to 1 dp.</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">What are A's and B's gains in % p.a.?</span></div>
+<div class="pt"><span class="mk">(c) 3 marks</span><span class="tx">Find the fixed rate the bank pays A and the fixed rate B pays the bank, in % to 1 dp. Verify the bank's margin.</span></div>
+<div class="pt"><span class="mk">(d) 1 mark</span><span class="tx">Draw the swap diagram (arrows and rates) in words or on paper.</span></div>
+<div class="quiz num" data-answer="1.2" data-tol="0.01">
+  <p class="q">Headline check: (a), QSD.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="5.0" data-tol="0.01">
+  <p class="q">Headline check: (c), fixed rate the bank pays A.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="5.2" data-tol="0.01">
+  <p class="q">Headline check: (c), fixed rate B pays the bank.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> Differences: fixed \(5.8 - 4.0 = 1.8\%\); floating \(1.1 - 0.5 = 0.6\%\). QSD \(= 1.8 - 0.6 = 1.2\%\). A has the comparative advantage in <strong>fixed</strong> (it is 1.8% cheaper there but only 0.6% cheaper in floating), B in <strong>floating</strong>. So A borrows fixed at 4.0% and B borrows floating at SOFR + 1.1%.</p>
+<p><strong>(b) 2 marks.</strong> Gain after fee \(= 1.2 - 0.2 = 1.0\%\). A gets \(0.4 \times 1.0 = 0.4\%\), B gets \(0.6\%\).</p>
+<p><strong>(c) 3 marks.</strong> B must end up paying \(5.8 - 0.6 = 5.2\%\) fixed, so B pays the bank <strong>5.2%</strong>. A must end up paying \(\text{SOFR} + 0.5 - 0.4 = \text{SOFR} + 0.1\%\). A's flows: \(-4.0\%\) (lender) \(+ F_A\) (bank) \(-(\text{SOFR} + 1.1\%)\) (bank) \(= -(\text{SOFR} + 0.1\%)\), so \(F_A = 4.0 + 1.1 - 0.1 = 5.0\%\). Bank: receives 5.2%, pays 5.0%: margin 0.2% ✓ (floating legs cancel).</p>
+<p><strong>(d) 1 mark.</strong> A pays 4.0% to its lender. A \(\xrightarrow{\ \text{SOFR}+1.1\%\ }\) Bank \(\xrightarrow{\ \text{SOFR}+1.1\%\ }\) B, and Bank \(\xrightarrow{\ 5.0\%\ }\) A, B \(\xrightarrow{\ 5.2\%\ }\) Bank. B pays SOFR + 1.1% to its lender (received back from the bank). Net: A pays SOFR + 0.1%, B pays 5.2%.</p>
+<div class="trap"><strong>Common slips</strong><br>Swapping the comparative advantages; splitting the gain 50/50 or before the fee; ending up with the bank's margin on the floating leg; rates not matching the all-in-cost check.</div>
+</div></details>
+</div>
+
+<!-- ===================== Q5 ===================== -->
+<div class="exq">
+<h3>Question 5 (8 marks): valuing a swap</h3>
+<div class="drills">Drills <a href="0042-valuing-a-swap-and-counterparty-loss.html">Lesson 42</a> (Lecture 10 slides 36-37; Tutorial 10 Q4)</div>
+<p>A swap has $50 million notional. You <em>pay</em> 4.0% fixed (semiannual) and <em>receive</em> six-month SOFR. Payments are in 6, 12 and 18 months. Continuous zero rates: 6 months 3.6%, 12 months 3.8%, 18 months 4.0%. The SOFR for the first period is already set at 3.7% (semiannual compounding).</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Find the forward SOFR (semiannual) for the 6-12 month and 12-18 month periods, in % to 2 dp.</span></div>
+<div class="pt"><span class="mk">(b) 4 marks</span><span class="tx">Build the net cash flow table and value the swap to you, to the nearest dollar.</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">If the counterparty defaulted today with nothing recovered, what would your loss be? Why does a positive swap value mean credit risk?</span></div>
+<div class="quiz num" data-answer="4.04" data-tol="0.006">
+  <p class="q">Headline check: (a), 6-12 month forward SOFR.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="41685" data-tol="60">
+  <p class="q">Headline check: (b), swap value to you.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> Continuous forwards: 6-12m \(= (3.8 \times 1 - 3.6 \times 0.5)/0.5 = 4.0\%\); 12-18m \(= (4.0 \times 1.5 - 3.8 \times 1)/0.5 = 4.4\%\). Semiannual: \(2(e^{0.04/2} - 1) = 4.04\%\); \(2(e^{0.044/2} - 1) = 4.45\%\).</p>
+<p><strong>(b) 4 marks.</strong> Fixed CF each date \(= 50\text{m} \times 4.0\% \times 0.5 = \$1.0\)m. Floating CF \(= 50\text{m} \times \text{SOFR} \times 0.5\).</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Time</th><th>Floating ($m)</th><th>Fixed ($m)</th><th>Net ($m)</th><th>Disc. factor</th><th>PV ($m)</th></tr>
+<tr><td>0.5</td><td>0.9250</td><td>-1.0000</td><td>-0.0750</td><td>0.9822</td><td>-0.0737</td></tr>
+<tr><td>1.0</td><td>1.0101</td><td>-1.0000</td><td>+0.0101</td><td>0.9627</td><td>+0.0097</td></tr>
+<tr><td>1.5</td><td>1.1122</td><td>-1.0000</td><td>+0.1122</td><td>0.9418</td><td>+0.1057</td></tr>
+<tr><td colspan="5">Total</td><td>+0.0417</td></tr>
+</table></div>
+<p>Discount factors \(e^{-0.036 \times 0.5} = 0.9822\), \(e^{-0.038} = 0.9627\), \(e^{-0.06} = 0.9418\). Value \(\approx +\$41{,}685\) (unrounded flows; rounding the table to 4 dp gives about $41,700). Check by bonds: \(B_{float} - B_{fix} = (50 + 0.925)(0.9822) - [1.0(0.9822 + 0.9627 + 0.9418) + 50(0.9418)] = 0.0417\)m ✓.</p>
+<p><strong>(c) 2 marks.</strong> Loss \(\approx\) the swap's value, about $41,700: you would lose the net PV you were due. Credit risk exists only when the swap's value to you is positive (you are owed money); if it is negative you owe the counterparty, so their default does not cost you.</p>
+<div class="trap"><strong>Common slips</strong><br>Using the continuous forward as the semiannual rate; discounting the first flow at 3.7% instead of the 6-month zero; reversing the sign (you receive floating, so floating minus fixed); forgetting that the first floating payment uses the already-set SOFR.</div>
+</div></details>
+</div>
+
+<h2>Rapid-fire: Topic 9 delta items</h2>
+<p>Five minutes, one number and two short written items, to keep <a href="0035-bsm-deltas-and-rebalancing.html">Lesson 35</a> and <a href="0037-delta-hedging-issues-and-topic-9-capstone.html">Lesson 37</a> alive. A bank has sold 10,000 European put options (each on one share) on a non-dividend stock: \(S_0 = 60\), \(K = 62\), \(r = 3\%\), \(\sigma = 25\%\), \(T = 0.5\). Use the table method for \(d_1\).</p>
+<div class="quiz num" data-answer="5040" data-tol="2">
+  <p class="q">How many shares should the bank short to be delta neutral (shares, whole number)? Delta of a short put \(= 1 - N(d_1)\).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">shares</span></div>
+  <div class="why">\(\sigma\sqrt{T} = 0.1768\); \(d_1 = [\ln(60/62) + (0.03 + 0.03125)(0.5)]/0.1768 = (-0.0328 + 0.0306)/0.1768 = -0.0122 \approx -0.01\). \(N(-0.01) = 0.4960\), so \(\Delta = 0.5040\) per put and the bank shorts \(0.5040 \times 10{,}000 = 5{,}040\) shares. (Short put: delta positive, so hedge with a short stock position.)</div>
+</div>
+<details><summary>Written 1 (2-3 sentences): the stock rises. What happens to the delta and to the hedge? Reveal after writing.</summary><div>The short put's delta \(1 - N(d_1)\) falls as the stock rises (the put moves out of the money), so fewer short shares are needed: the bank buys shares back. After a fall the delta rises and it sells more. So the hedge must be rebalanced, and it means buying after rises and selling after falls (buy high, sell low), which is why delta hedging costs money.</div></details>
+<details><summary>Written 2 (2-3 sentences): why does the delta of a long forward differ from the delta of a long futures contract on the same stock? Reveal after writing.</summary><div>A forward's value is \(S_0 - Ke^{-rT}\), so a $1 rise in \(S_0\) raises its value by $1: delta 1. A futures contract is settled daily, so its value is \(F - K\) with \(F = S_0e^{rT}\): a $1 rise in \(S_0\) lifts \(F\) by \(e^{rT}\) dollars, and the gain is received straight away, so the delta is \(e^{rT}\).</div></details>
+
+<h2>Which lesson do I revisit?</h2>
+<div class="tablewrap"><table>
+<tr><th>Lost marks on</th><th>Questions</th><th>Reopen</th></tr>
+<tr><td>Discount factors, bond price, par yield, zero rate from a price</td><td>Q1</td><td><a href="0038-zero-rates-bond-pricing-and-par-yield.html">Lesson 38</a></td></tr>
+<tr><td>Forward rate from zeros, FRA sign, compounding conversion, discounting</td><td>Q2</td><td><a href="0039-forward-rates-and-fras.html">Lesson 39</a></td></tr>
+<tr><td>Net swap payment, all-in cost of a transformed loan or asset, credit risk</td><td>Q3</td><td><a href="0040-interest-rate-swaps-mechanics-and-transforming.html">Lesson 40</a></td></tr>
+<tr><td>QSD, comparative advantage, sharing the gain, bank margin, the diagram</td><td>Q4</td><td><a href="0041-designing-a-swap-comparative-advantage.html">Lesson 41</a></td></tr>
+<tr><td>Forward SOFR, net CF table, discounting, value and default loss</td><td>Q5</td><td><a href="0042-valuing-a-swap-and-counterparty-loss.html">Lesson 42</a></td></tr>
+<tr><td>Delta of a short put, rebalancing, forward vs futures delta</td><td>Rapid-fire</td><td><a href="0035-bsm-deltas-and-rebalancing.html">Lesson 35</a>, <a href="0036-delta-of-forwards-and-futures-hedging-with-futures.html">Lesson 36</a>, <a href="0037-delta-hedging-issues-and-topic-9-capstone.html">Lesson 37</a></td></tr>
+</table></div>
+
+<h2>Homework</h2>
+<ul>
+<li><strong>Tutorial 10, trimmed:</strong> Q1 (forward rates; Lesson 39), Q3 (swap design with a 0.2% bank fee; Lesson 41) and Q4 (loss on default, answer $441,120; Lesson 42). Q2 (credit vs market risk) is a 2-sentence answer: Lesson 40. Q5 (SOFR forwards from swap rates) is optional and algebra-heavy: do the first step only (the 18-24 month forward, \(F_4 = 5.62\%\)).</li>
+<li><strong>Timed attempt (suggested):</strong> sit Q2 and Q4 in one go in 40 minutes (16 marks). Strictness: paper pace is about 2.7 minutes a mark, so 40 minutes buys about 15 marks. Do the rest untimed.</li>
+<li>Next: a full mock exam in the official format and the five case studies (still to build).</li>
+</ul>
+
+<div class="ask">Unsure why a number came out differently, or want more questions on one pattern (an investment-side swap design, a swap with a stub first period, the par yield with annual coupons)? Paste your working in the terminal and ask me. Recommended primary source: Lecture 10 slides 6-12 and 36-37, then Tutorial 10 and its solutions.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0042-valuing-a-swap-and-counterparty-loss.html">Lesson 42, valuing a swap</a></span>
+  <span><a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: mock exam and case studies (to be built)</span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

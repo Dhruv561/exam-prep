@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forward Rates and Forward Rate Agreements</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 39 · Topic 10: Interest rate contracts and swaps</div>
+<h1>Forward rates and forward rate agreements</h1>
+<p class="lede">The goal: turn a curve of zero rates into the interest rate the market has "locked in" for a future period, then value an agreement to swap that rate for a fixed one. This is the building block of swap valuation.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topic 10 is part of the 70% of marks from Topics 5-10. The forward rate formula is on the formula sheet, Tutorial 10 Q1 is a pure forward-rate question, and Lecture 10 says outright: "we will use this valuation approach to value swaps, which are treated as portfolios of FRAs". Every swap valuation in <a href="0042-valuing-a-swap-and-counterparty-loss.html">Lesson 42</a> is a stack of the calculation below.</div>
+
+<p>Assumes <a href="0038-zero-rates-bond-pricing-and-par-yield.html">Lesson 38</a> (zero rates, discounting with \(e^{-Rt}\)). Terms are in the <a href="../reference/glossary.html">glossary</a>. Sources: Lecture 10 slides 14-18 (forward rates, FRAs); Tutorial 10 Q1, Q2; Hull, <em>Options, Futures and Other Derivatives</em>, the chapters on interest rates (4.5-4.9 per the lecture outline) and swaps. All rates in this lesson are per annum.</p>
+
+<h2>1 · What a forward rate is (intuition first)</h2>
+<p>A <strong>zero rate</strong> \(R_n\) is the rate you earn on money invested today for \(n\) years. Suppose the 1-year zero rate is 3% and the 2-year zero rate is 4%. Invest for two years at 4%, or invest for one year at 3% and then roll over for a second year: to end up in the same place, the second-year rate has to be high enough to make up the difference. That rate, implied by today's curve, for a future period, is the <strong>forward rate</strong>.</p>
+
+<h2>2 · The formula, and why</h2>
+<p>With continuous compounding, growth over \(T_2\) years at \(R_2\) must equal growth over \(T_1\) years at \(R_1\) followed by growth over \(T_2 - T_1\) at the forward rate \(R_F\):</p>
+$$e^{R_2T_2} = e^{R_1T_1}\,e^{R_F(T_2-T_1)} \quad\Longrightarrow\quad R_F = \frac{R_2T_2 - R_1T_1}{T_2 - T_1}.$$
+<p>(Formula sheet.) Read it as "total interest to \(T_2\) minus total interest to \(T_1\), per year of the gap". It is a weighted average run backwards: the overall rate to \(T_2\) is the average of the rates over the two sub-periods.</p>
+
+<h3>Derive it from this setup</h3>
+<p><strong>Set-up:</strong> $100 can be invested at \(R_1\) for \(T_1\) years or at \(R_2\) for \(T_2\) years, both continuously compounded. A third contract fixes today the rate \(R_F\) for lending from \(T_1\) to \(T_2\). <strong>Show</strong> that no arbitrage requires \(R_F = (R_2T_2 - R_1T_1)/(T_2-T_1)\).</p>
+<details><summary>Derivation (try it first)</summary><div>
+<p>Strategy A: invest $100 to \(T_2\): \(100e^{R_2T_2}\). Strategy B: invest $100 to \(T_1\), giving \(100e^{R_1T_1}\), and lock in the forward rate on that amount for the next \(T_2-T_1\) years: \(100e^{R_1T_1}e^{R_F(T_2-T_1)}\). Both are riskless from today with the same horizon, so the payoffs must be equal. Cancel 100 and take logs: \(R_2T_2 = R_1T_1 + R_F(T_2-T_1)\). Rearrange for \(R_F\). If B paid more, borrow on A's terms and invest on B's (and the reverse if A paid more): an arbitrage.</p>
+<p>Check with the lecture numbers: \(100e^{0.03\times1}e^{0.05\times1} = 100e^{0.08} = 108.33 = 100e^{0.04\times2}\). ✓</p>
+</div></details>
+
+<h2>3 · Worked tables</h2>
+<p><strong>Lecture Table 4.6</strong> (slide 14). Zero rates 3.0, 4.0, 4.6, 5.0, 5.3 for 1 to 5 years. Year 2: \((4.0\times2 - 3.0\times1)/1 = 5.0\%\). Year 3: \((4.6\times3 - 4.0\times2)/1 = 5.8\%\). Years 4 and 5 give 6.2% and 6.5%. Check on year 3: \((4.0\times2 + 5.8\times1)/3 = 4.6\%\), the 3-year zero rate.</p>
+<p><strong>Tutorial 10 Q1.</strong> Zero rates 2.0, 3.0, 3.7, 4.2, 4.5. Forward for the second to fifth years:</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Year</th><th>Working</th><th>Forward rate</th></tr>
+<tr><td>2</td><td>\(2(3.0) - 1(2.0)\)</td><td>4.0%</td></tr>
+<tr><td>3</td><td>\(3(3.7) - 2(3.0)\)</td><td>5.1%</td></tr>
+<tr><td>4</td><td>\(4(4.2) - 3(3.7)\)</td><td>5.7%</td></tr>
+<tr><td>5</td><td>\(5(4.5) - 4(4.2)\)</td><td>5.7%</td></tr>
+</table></div>
+<p>The gap here is one year, so the denominator is 1. For a longer gap divide by it: the forward rate from year 1 to year 3 on this curve is \((3.7\times3 - 2.0\times1)/2 = 4.55\%\) p.a.</p>
+
+<p>Play with the curve. Make it upward sloping, then flat, then downward, and watch the forwards.</p>
+<div class="zfe" data-zeros="1:3.0,2:4.0,3:4.6,4:5.0,5:5.3"></div>
+<script src="../assets/zero-forward-explorer.js"></script>
+
+<div class="box"><strong>Why forwards beat zeros on an upward curve.</strong> The zero rate is an average of all the periods up to \(T\). If the average keeps rising, each new period must be above the average so far: forward \(&gt;\) zero. Downward curve: forward \(&lt;\) zero. Flat curve: forward = zero.</div>
+
+<div class="quiz num" data-answer="4.7" data-tol="0.005">
+  <p class="q"><strong>Check.</strong> Zero rates (continuous): 1 year 3.5%, 2 years 4.1%, 3 years 4.4%. Forward rate for the second year, % p.a.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(2(4.1) - 1(3.5) = 4.7\%\).</div>
+</div>
+<div class="quiz num" data-answer="5.0" data-tol="0.005">
+  <p class="q"><strong>Check.</strong> Same curve. Forward rate for the third year, % p.a.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(3(4.4) - 2(4.1) = 13.2 - 8.2 = 5.0\%\).</div>
+</div>
+<div class="quiz num" data-answer="4.85" data-tol="0.005">
+  <p class="q"><strong>Check.</strong> Same curve. The forward rate for the two-year period from year 1 to year 3, % p.a. (divide by the gap).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\((4.4\times3 - 3.5\times1)/(3-1) = 9.7/2 = 4.85\%\). It sits between the two single-year forwards 4.7% and 5.0%, as an average should.</div>
+</div>
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Check.</strong> Zero rates are 2.0% (1 year) and 1.6% (2 years). The forward rate for year 2 is:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">above 2.0%, because rates always rise with time</button>
+    <button class="opt" data-key="b">below 1.6%, because the curve slopes down</button>
+    <button class="opt" data-key="c">equal to 1.8%, the simple average</button>
+    <button class="opt" data-key="d">between 1.6% and 2.0%, near the mid-point</button>
+  </div>
+  <div class="why">\(2(1.6) - 1(2.0) = 1.2\%\). Falling average means each new period is below the average so far.</div>
+</div>
+
+<h2>4 · Forward rate agreements (FRAs)</h2>
+<p>A <strong>forward rate agreement</strong> is an over-the-counter contract that a certain rate \(R_K\) will apply to a notional principal \(L\) over a future period (slide 16). The principal is <strong>never exchanged</strong>: it only sets the size of the interest. At the end of the period one side compensates the other for the difference between the agreed rate and the market rate, as if interest at \(R_K\) were swapped for interest at the market rate.</p>
+<p>For the party <strong>receiving</strong> the fixed rate \(R_K\), over a period of \(\tau\) years, the cash flow at the end of the period is</p>
+$$L\,(R_K - R_M)\,\tau,$$
+<p>where \(R_M\) is the market rate that actually applies. The side that pays fixed gets the negative of this.</p>
+<p><strong>Lecture example (slide 17).</strong> A company receives 4% on $100 million for three months starting in three years. The three-month rate turns out to be 4.5%. Cash flow \(= 100{,}000{,}000\times(0.04 - 0.045)\times0.25 = -\$125{,}000\), paid at the 3.25-year point. The fixed receiver pays, because the market rate came in above the agreed 4%.</p>
+
+<div class="quiz num" data-answer="120000" data-tol="1">
+  <p class="q"><strong>Check.</strong> A company <em>pays</em> fixed 3.6% on $40 million for six months. The market rate for the period turns out to be 4.2%. Cash flow to the company at the end of the period, $ (positive = received)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">The payer of fixed gains when the market rate is higher: \(40{,}000{,}000\times(0.042 - 0.036)\times0.5 = +\$120{,}000\). Using \(\tau = 0.5\) matters: forgetting it doubles the answer.</div>
+</div>
+
+<h2>5 · Valuing an FRA today</h2>
+<p>When an FRA is set up, \(R_K\) equals the forward rate \(R_F\) for that period, so its value is <strong>zero</strong>. Later \(R_K\) stays put but \(R_F\) moves, so the FRA gains or loses value. Treat the forward rate as if it were the rate that will definitely apply, then discount the cash flow from its payment date \(T_2\) back to today with the zero rate:</p>
+$$V_{FRA} = L\,(R_K - R_F)\,\tau\; e^{-R_2T_2}\qquad(\text{receiving }R_K).$$
+<div class="trap"><strong>Compounding match</strong><br>\(R_K\) and \(R_F\) must be quoted the same way before you subtract. Zero and forward rates from the formula above are continuous; if \(R_K\) is annual (or semiannual), convert the forward first: annual \(= e^{R_F}-1\); semiannual \(= 2(e^{R_F/2}-1)\). The discount rate \(R_2\) stays continuous.</div>
+
+<p><strong>Lecture example (slide 18).</strong> Receive 6% (annual compounding) on $100 million between the end of year 1 and year 2. Forward rate 5% continuous \(= e^{0.05}-1 = 5.127\%\) annual; \(R_2 = 4\%\), so \(T_2 = 2\) gives \(e^{-0.04\times2}\).</p>
+$$V = 100{,}000{,}000\times(0.06 - 0.05127)\times e^{-0.08} = \$805{,}800.$$
+<p>The slide's 805,800 uses the 5.127% rounded; the unrounded \(e^{0.05}-1 = 0.0512711\) gives \(\$805{,}779\). Both are fine to the dp a question would ask; match the working the question implies.</p>
+
+<p><strong>Fresh worked example.</strong> You agree to receive 4.4% (annual compounding) on $50 million between year 2 and year 3. Zero rates (continuous): 2 years 3.8%, 3 years 4.2%. Value the FRA.</p>
+<ol class="steps">
+<li>Forward rate (continuous): \((4.2\times3 - 3.8\times2)/1 = 5.0\%\).</li>
+<li>Convert to annual to match \(R_K\): \(e^{0.05}-1 = 5.127\%\).</li>
+<li>Value \(= 50{,}000{,}000\times(0.044 - 0.05127)\times1\times e^{-0.042\times3} = 50{,}000{,}000\times(-0.00727)\times0.8816 \approx -\$320{,}500\).</li>
+</ol>
+<p>Negative: you agreed to receive 4.4% when the market now implies 5.127%, so the contract is a liability for you.</p>
+<div class="quiz num" data-answer="320515" data-tol="300">
+  <p class="q"><strong>Check.</strong> Same FRA, but you <em>pay</em> 4.4% and receive the market rate. Value to you, $?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">The sign flips: \(+\$320{,}515\). You lock in paying 4.4% while the market implies 5.127%, so the contract is an asset. The two sides of an FRA always have equal and opposite values.</div>
+</div>
+
+<div class="quiz num" data-answer="-363555" data-tol="400">
+  <p class="q"><strong>Check (the cash flow, undiscounted).</strong> In the fresh example, if the market rate for year 3 actually turns out to be exactly 5.127% (annual), what do you receive at \(T_2 = 3\) as the 4.4% receiver, $?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(50{,}000{,}000\times(0.044-0.05127) = -\$363{,}555\) paid at year 3. Its value today is that times \(e^{-0.126} = 0.8816\), i.e. \(-\$320{,}515\): the valuation formula is just this cash flow discounted.</div>
+</div>
+
+<h2>6 · Credit risk vs market risk (Tutorial 10 Q2)</h2>
+<p><strong>Written answer, 2-3 sentences.</strong> Explain the difference between credit risk and market risk in a financial contract.</p>
+<details><summary>Model answer (write yours first)</summary><div>
+<p>Credit risk is the possibility that the counterparty defaults and does not make the payments it owes. Market risk is the risk of loss from movements in market variables such as interest rates and exchange rates. In an FRA or swap the credit risk depends on the market variables: you only face credit risk when the contract has positive value to you (the counterparty owes you), never when its value to you is negative.</p>
+</div></details>
+
+<h2>Homework</h2>
+<ul>
+<li><strong><a href="../tutes/Tutorial%2010.pdf">Tutorial 10</a> Q1</strong>: do it without peeking (4.0, 5.1, 5.7, 5.7), then add the forward rate for years 2 to 4.</li>
+<li><strong>Tutorial 10 Q2</strong>: write your answer in three sentences and compare with the model above.</li>
+<li><strong>Drill:</strong> using lecture Table 4.6, value an FRA that pays 5.5% annual on $20 million for year 3, with \(R_3 = 4.6\%\).</li>
+</ul>
+
+<div class="ask">Unsure about the compounding conversion, the sign of an FRA, or why the denominator changes with the gap? Paste your working in the terminal and ask me. Recommended primary source: Lecture 10 slides 14-18, then Tutorial 10 Q1; Hull's chapter sections on forward rates and FRAs for the fuller treatment.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0038-zero-rates-bond-pricing-and-par-yield.html">Lesson 38, zero rates and bonds</a></span>
+  <span><a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0040-interest-rate-swaps-mechanics-and-transforming.html">Lesson 40, swap mechanics</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

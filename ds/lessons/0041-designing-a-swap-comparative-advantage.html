@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Designing a Swap: Comparative Advantage</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.flow { width: 100%; height: auto; margin: 1rem 0; }
+.flow text { font-family: Inter, system-ui, sans-serif; font-size: 12px; fill: var(--fg); }
+.flow .sm { font-size: 10.5px; fill: var(--muted); }
+.flow rect { fill: var(--card); stroke: var(--rule); }
+.flow line { stroke: var(--accent); stroke-width: 1.6; }
+.flow polygon { fill: var(--accent); }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 41 · Topic 10: Interest rate contracts and swaps (swap design)</div>
+<h1>Designing a swap from comparative advantage</h1>
+<p class="lede">The goal: given two companies' borrowing (or investing) rates and what each wants, build the swap through a bank that leaves both better off, and state every rate on the diagram.</p>
+
+<div class="mission">Why this matters for 5 Nov: swap design is the most predictable swaps question in the final: a rates table, a bank fee, a split of the gain (equal, or something like 25/75 or 40/60), "draw a swap diagram and show all your working". It is pure arithmetic (about 4 lines) once you have the recipe. The lecturer has also confirmed that the same floating rate is used for all floating payments, exactly as in the lecture layout used below.</div>
+
+<p>Assumes <a href="0040-interest-rate-swaps-mechanics-and-transforming.html">Lesson 40</a> (swap mechanics, all-in cost = loan + pay − receive). Next: <a href="0042-valuing-a-swap-and-counterparty-loss.html">Lesson 42</a> (valuing a swap). Terms are in the <a href="../reference/glossary.html">glossary</a>. Sources: Lecture 10 slides 28-34 (borrowing example), <a href="../tutes/Tutorial%2010.pdf">Tutorial 10</a> Q3 and its worked solution (investment version). Past finals were mined for <em>patterns only</em>; every fresh example here is new.</p>
+
+<h2>1 · Why a swap can make both sides better off</h2>
+<p>Suppose company A is better than B at borrowing in <em>both</em> markets (fixed and floating), but the gap is bigger in one of them. A is relatively strongest where its advantage is largest: that is its <strong>comparative advantage</strong>. If each company borrows where it is <em>relatively</em> best and they then swap into the form they actually want, the pair saves money. The saving does not come from nowhere: it is the difference in the two companies' credit spreads between the fixed market and the floating market.</p>
+<p><strong>Lecture setup (slide 28).</strong> A can borrow fixed at 7% or floating at SOFR + 1%, but wants <strong>floating</strong>. B can borrow fixed at 10% or floating at SOFR + 2%, but wants <strong>fixed</strong>.</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th></th><th>Fixed</th><th>Floating (spread over SOFR)</th></tr>
+<tr><td>A</td><td>7%</td><td>1%</td></tr>
+<tr><td>B</td><td>10%</td><td>2%</td></tr>
+<tr><td>Difference (B − A)</td><td>3%</td><td>1%</td></tr>
+</table></div>
+<p>The gap is 3 percentage points in fixed but only 1 in floating, so A is relatively strongest in <strong>fixed</strong> (comparative advantage) and B is relatively least bad in <strong>floating</strong>. Yet A wants floating and B wants fixed: the reverse of where each should borrow. That mismatch is what the swap fixes.</p>
+<div class="box"><strong>Quality spread differential (QSD)</strong> = the difference in the differences = \(3\% - 1\% = 2\%\). It is the <em>maximum</em> total saving, before the bank takes its cut. Call it QSD (Tutorial 10 uses the name).</div>
+
+<h2>2 · The recipe (three steps)</h2>
+<ol class="steps">
+<li><strong>QSD and who borrows where.</strong> Work out the two differences and take the difference of them. Each company borrows (or invests) in the market where it has the comparative advantage.</li>
+<li><strong>Net gain and the split.</strong> Total gain \(=\) QSD \(-\) bank fee. Split it as the question says (equal if it is silent). Each party's target is its direct rate improved by its share.</li>
+<li><strong>Swap rates by matching all-in costs.</strong> Use the lecture layout: the <strong>floating leg is the same rate on both sides of the bank</strong> (here B's outside floating rate, SOFR + 2%), so the bank's only margin is on the fixed legs.
+ <ul>
+ <li>B (the fixed-seeker) pays the bank \(F_B = \)(B's direct fixed rate) \(-\) (B's share of the gain).</li>
+ <li>The bank pays A \(F_A = F_B - \text{fee}\).</li>
+ </ul></li>
+</ol>
+<p>Why these two lines? B's ledger is \(-(\text{SOFR}+2\%)\) outside \(+(\text{SOFR}+2\%)\) from the bank \(-F_B\): the floating legs cancel and B's all-in cost is just \(F_B\), which must equal \(10\% -\) B's gain. The bank keeps the gap between what it collects (\(F_B\)) and what it hands to A (\(F_A\)), which is the fee. That is all of step 3.</p>
+
+<h3>Lecture example, fee 0.5% (slides 32-34)</h3>
+<p>Gain after fee \(= 2\% - 0.5\% = 1.5\%\), split equally: \(0.75\%\) each. \(F_B = 10\% - 0.75\% = 9.25\%\). \(F_A = 9.25\% - 0.5\% = 8.75\%\).</p>
+<svg class="flow" viewBox="0 0 560 190" role="img" aria-label="Swap diagram: A, bank, B with rates 8.75, 9.25 and SOFR plus 2 percent on both floating legs">
+ <rect x="10" y="60" width="90" height="46" rx="6"/><text x="55" y="88" text-anchor="middle">A</text>
+ <rect x="235" y="60" width="90" height="46" rx="6"/><text x="280" y="88" text-anchor="middle">Bank</text>
+ <rect x="460" y="60" width="90" height="46" rx="6"/><text x="505" y="88" text-anchor="middle">B</text>
+ <line x1="100" y1="72" x2="235" y2="72"/><polygon points="100,72 108,68 108,76"/>
+ <text x="168" y="64" text-anchor="middle">8.75% fixed</text>
+ <line x1="100" y1="96" x2="235" y2="96"/><polygon points="235,96 227,92 227,100"/>
+ <text x="168" y="114" text-anchor="middle">SOFR + 2%</text>
+ <line x1="325" y1="72" x2="460" y2="72"/><polygon points="460,72 452,68 452,76"/>
+ <text x="392" y="64" text-anchor="middle">SOFR + 2%</text>
+ <line x1="325" y1="96" x2="460" y2="96"/><polygon points="325,96 333,92 333,100"/>
+ <text x="392" y="114" text-anchor="middle">9.25% fixed</text>
+ <text class="sm" x="55" y="140" text-anchor="middle">outside: borrows fixed at 7%</text>
+ <text class="sm" x="505" y="140" text-anchor="middle">outside: borrows SOFR + 2%</text>
+ <text class="sm" x="280" y="140" text-anchor="middle">bank keeps 9.25 − 8.75 = 0.5%</text>
+</svg>
+<div class="tablewrap"><table class="ledger">
+<tr><th>All-in ledger</th><th>A</th><th>B</th></tr>
+<tr><td>Outside loan</td><td>−7%</td><td>−(SOFR + 2%)</td></tr>
+<tr><td>Receives from bank</td><td>+8.75%</td><td>+(SOFR + 2%)</td></tr>
+<tr><td>Pays to bank</td><td>−(SOFR + 2%)</td><td>−9.25%</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>−(SOFR + 0.25%)</strong></td><td><strong>−9.25%</strong></td></tr>
+<tr><td>Saving vs going direct</td><td>(SOFR + 1%) − (SOFR + 0.25%) = 0.75%</td><td>10% − 9.25% = 0.75%</td></tr>
+</table></div>
+<p>The slide's numbers, reproduced by the recipe in two lines. Total gain to A and B \(= 1.5\%\), plus 0.5% to the bank, \(= 2\% =\) QSD. If the numbers do not add back to QSD, something is wrong.</p>
+
+<h2>3 · Try it yourself</h2>
+<p><strong>Fresh example.</strong> Company P can borrow fixed at 5.0% or floating at SOFR + 0.6%, and wants floating. Company Q can borrow fixed at 6.4% or floating at SOFR + 1.1%, and wants fixed. A bank arranges the swap for 0.3% p.a. and the gain after the fee is shared equally.</p>
+<div class="quiz num" data-answer="0.9" data-tol="0.005">
+  <p class="q"><strong>Step 1.</strong> The QSD (difference in the differences), in % p.a.?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% p.a.</span></div>
+  <div class="why">Fixed gap \(6.4 - 5.0 = 1.4\); floating gap \(1.1 - 0.6 = 0.5\); QSD \(= 1.4 - 0.5 = 0.9\)%. P has the comparative advantage in fixed (gap 1.4 &gt; 0.5), so P borrows fixed and Q borrows floating.</div>
+</div>
+<div class="quiz num" data-answer="0.3" data-tol="0.005">
+  <p class="q"><strong>Step 2.</strong> The gain to P, after the fee and the equal split, in % p.a.?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% p.a.</span></div>
+  <div class="why">\(0.9 - 0.3 = 0.6\)% to share; equal split gives 0.3% each.</div>
+</div>
+<div class="quiz num" data-answer="6.1" data-tol="0.005">
+  <p class="q"><strong>Step 3a.</strong> The fixed rate Q pays the bank, in % p.a.?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% p.a.</span></div>
+  <div class="why">\(F_Q = 6.4 - 0.3 = 6.1\)%. Q's ledger: \(-(\text{SOFR}+1.1) + (\text{SOFR}+1.1) - 6.1 = -6.1\), saving 0.3% on 6.4%.</div>
+</div>
+<div class="quiz num" data-answer="5.8" data-tol="0.005">
+  <p class="q"><strong>Step 3b.</strong> The fixed rate the bank pays P, in % p.a.?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% p.a.</span></div>
+  <div class="why">\(F_P = 6.1 - 0.3 = 5.8\)%. Check P: \(-5.0 + 5.8 - (\text{SOFR}+1.1) = -(\text{SOFR}+0.3)\), saving 0.3% on SOFR + 0.6%. Bank: \(6.1 - 5.8 = 0.3\)% ✓.</div>
+</div>
+
+<div class="sdc" data-mode="borrow" data-a="5.0,0.6" data-b="6.4,1.1" data-fee="0.3" data-share="50"></div>
+<script src="../assets/swap-design-calculator.js"></script>
+<p class="given">Widget: A = P, B = Q. Drag the share slider and change the fee. Rates are 3-dp exact arithmetic: it is the same recipe as above.</p>
+
+<h2>4 · Unequal splits (the exam twist)</h2>
+<p>Past finals say "P shares 25% of the remaining gains and Q 75%" or similar. The recipe does not change: the only thing that moves is each party's share of the gain after the fee. Same P and Q, fee 0.3%, remaining gain 0.6%:</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>P's share</th><th>P's gain</th><th>Q's gain</th><th>Q pays bank \(F_Q\)</th><th>Bank pays P \(F_P\)</th><th>P ends at SOFR +</th></tr>
+<tr><td>50%</td><td>0.30</td><td>0.30</td><td>6.10</td><td>5.80</td><td>0.30</td></tr>
+<tr><td>40%</td><td>0.24</td><td>0.36</td><td>6.04</td><td>5.74</td><td>0.36</td></tr>
+<tr><td>25%</td><td>0.15</td><td>0.45</td><td>5.95</td><td>5.65</td><td>0.45</td></tr>
+</table></div>
+<p>Q's gain moves \(F_Q\) (6.4 minus Q's gain); \(F_P\) is always 0.3 below \(F_Q\); P's final cost is SOFR + 0.6% minus P's gain.</p>
+<div class="quiz num" data-answer="5.74" data-tol="0.005">
+  <p class="q"><strong>Check.</strong> P takes 40% of the remaining gain and Q 60%. What fixed rate does the bank pay P, in % p.a.?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% p.a.</span></div>
+  <div class="why">Q's gain \(= 0.6 \times 0.6 = 0.36\); \(F_Q = 6.4 - 0.36 = 6.04\); \(F_P = 6.04 - 0.3 = 5.74\)%. P's all-in: \(-5.0 + 5.74 - (\text{SOFR} + 1.1) = -(\text{SOFR} + 0.36)\).</div>
+</div>
+<div class="quiz num" data-answer="5.95" data-tol="0.005">
+  <p class="q"><strong>Check.</strong> P takes 25% of the remaining gain and Q 75%. What fixed rate does Q pay the bank, in % p.a.?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% p.a.</span></div>
+  <div class="why">Q's gain \(= 0.75 \times 0.6 = 0.45\); \(F_Q = 6.4 - 0.45 = 5.95\)%.</div>
+</div>
+
+<div class="trap"><strong>Traps</strong><br>
+<strong>Fee left out</strong>: sharing the full QSD instead of QSD − fee (the numbers then do not add back to QSD).
+<strong>Wrong sign on the fee</strong>: the bank <em>collects</em> more fixed than it pays out: \(F_B = F_A + \text{fee}\), never the reverse.
+<strong>Borrowing vs investing mixed up</strong>: for borrowers a gain lowers the rate you pay; for investors it raises the rate you earn (next section).
+<strong>Floating legs that differ</strong>: in the lecture layout both floating legs are the same rate; do not invent two different spreads.
+<strong>Wrong market</strong>: borrowing where you are <em>absolutely</em> cheapest instead of where your advantage is <em>relatively</em> largest.</div>
+
+<h2>5 · The investment version (Tutorial 10 Q3)</h2>
+<p>Same logic, mirrored: now the rates are <em>returns</em>, higher is better, and the gain raises what you earn. <strong>Tutorial 10 Q3:</strong> X and Y can invest $5 million for 10 years. X: fixed 8.0%, floating SOFR. Y: fixed 8.8%, floating SOFR. X requires a fixed return, Y a floating return. Bank fee 0.2%, equal split.</p>
+<ol class="steps">
+<li>Fixed gap \(8.8 - 8.0 = 0.8\); floating gap \(0 - 0 = 0\); QSD \(= 0.8\)%. Y earns relatively more on fixed, so <strong>Y invests fixed</strong> and X invests floating (SOFR).</li>
+<li>Gain after fee \(= 0.8 - 0.2 = 0.6\)%, 0.3% each.</li>
+<li>X wants fixed: the bank pays X \(F_X = 8.0 + 0.3 = 8.3\)%. Y pays the bank \(F_Y = F_X + \text{fee} = 8.5\)%. Floating legs: X pays SOFR to the bank, the bank pays SOFR to Y.</li>
+</ol>
+<p>Check Y: \(+8.8 - 8.5 + \text{SOFR} = \text{SOFR} + 0.3\), better than SOFR by 0.3% ✓. X: \(+\text{SOFR} - \text{SOFR} + 8.3 = 8.3\)%, better than 8.0% by 0.3% ✓. Bank: \(8.5 - 8.3 = 0.2\)% ✓. This is the worked solution's diagram (X ← 8.3% ← Bank → 8.5% ← Y, SOFR flowing X → bank → Y).</p>
+<svg class="flow" viewBox="0 0 560 170" role="img" aria-label="Investment swap diagram: X, bank, Y with 8.3 percent, 8.5 percent and SOFR">
+ <rect x="10" y="50" width="90" height="46" rx="6"/><text x="55" y="78" text-anchor="middle">X</text>
+ <rect x="235" y="50" width="90" height="46" rx="6"/><text x="280" y="78" text-anchor="middle">Bank</text>
+ <rect x="460" y="50" width="90" height="46" rx="6"/><text x="505" y="78" text-anchor="middle">Y</text>
+ <line x1="235" y1="62" x2="100" y2="62"/><polygon points="100,62 108,58 108,66"/>
+ <text x="168" y="54" text-anchor="middle">8.3% fixed</text>
+ <line x1="100" y1="86" x2="235" y2="86"/><polygon points="235,86 227,82 227,90"/>
+ <text x="168" y="104" text-anchor="middle">SOFR</text>
+ <line x1="460" y1="62" x2="325" y2="62"/><polygon points="325,62 333,58 333,66"/>
+ <text x="392" y="54" text-anchor="middle">8.5% fixed</text>
+ <line x1="325" y1="86" x2="460" y2="86"/><polygon points="460,86 452,82 452,90"/>
+ <text x="392" y="104" text-anchor="middle">SOFR</text>
+ <text class="sm" x="55" y="128" text-anchor="middle">outside: invests at SOFR</text>
+ <text class="sm" x="505" y="128" text-anchor="middle">outside: invests fixed 8.8%</text>
+ <text class="sm" x="280" y="128" text-anchor="middle">bank keeps 0.2%</text>
+</svg>
+
+<div class="sdc" data-mode="invest" data-a="8.0,0" data-b="8.8,0" data-fee="0.2" data-share="50"></div>
+<p class="given">Widget: A = X (wants fixed), B = Y (wants floating). Reproduces Tutorial 10 Q3.</p>
+
+<p><strong>Fresh investment example.</strong> Company M can invest at fixed 6.0% or SOFR + 0.2% and wants a <strong>fixed</strong> return. Company N can invest at fixed 7.1% or SOFR + 0.5% and wants a <strong>floating</strong> return. Fee 0.2%, equal split.</p>
+<div class="quiz num" data-answer="6.3" data-tol="0.005">
+  <p class="q">The fixed rate the bank pays M, in % p.a.?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% p.a.</span></div>
+  <div class="why">Fixed gap \(7.1 - 6.0 = 1.1\); floating gap \(0.5 - 0.2 = 0.3\); QSD \(= 0.8\). N earns relatively more on fixed, so N invests fixed. Gain after fee \(= 0.6\), 0.3 each. \(F_M = 6.0 + 0.3 = 6.3\)%.</div>
+</div>
+<div class="quiz num" data-answer="6.5" data-tol="0.005">
+  <p class="q">The fixed rate N pays the bank, in % p.a.?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% p.a.</span></div>
+  <div class="why">\(F_N = 6.3 + 0.2 = 6.5\)%. N's ledger: \(+7.1 - 6.5 + (\text{SOFR} + 0.2) = \text{SOFR} + 0.8\).</div>
+</div>
+<div class="quiz num" data-answer="0.8" data-tol="0.005">
+  <p class="q">N's final floating return is SOFR plus how many % p.a.?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% p.a.</span></div>
+  <div class="why">Direct would be SOFR + 0.5%; the gain of 0.3% takes it to SOFR + 0.8%.</div>
+</div>
+
+<h2>6 · When there is no gain</h2>
+<p>The swap only pays if the two companies' <em>wants</em> run against their comparative advantages. Example: A can borrow fixed at 6.0% or SOFR + 0.2% and wants floating. B can borrow fixed at 7.0% or SOFR + 1.5% and wants fixed. Fixed gap 1.0, floating gap 1.3: the floating gap is the larger one, so A has its comparative advantage in <em>floating</em>, which is what A wants, and B (relatively cheapest in fixed) wants fixed. Each already borrows where it is best: the difference in the differences (\(1.0 - 1.3 = -0.3\)) is negative in this layout, there is nothing to share, and a fee only makes it worse. <strong>Borrow directly.</strong></p>
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Check.</strong> A swap through a bank costing 0.5% p.a. is on offer. When is it worth doing?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Whenever one company can borrow more cheaply than the other in both markets</button>
+    <button class="opt" data-key="b">When the QSD, with each side's wants running against its comparative advantage, exceeds 0.5%</button>
+    <button class="opt" data-key="c">Whenever the two companies want different kinds of loan, fixed and floating</button>
+    <button class="opt" data-key="d">When the bank agrees to pay the same fixed rate that it collects</button>
+  </div>
+  <div class="why">The pool of gains is the QSD; the bank takes its fee out of it; the rest is split. Being cheaper in both markets, or merely wanting different loans, creates no gain on its own. A zero-margin bank is not what makes a swap worthwhile.</div>
+</div>
+
+<h2>7 · Exam-style questions (with model answers)</h2>
+<div class="exq">
+<h3>Question A (8 marks): swap design, unequal split</h3>
+<div class="drills">Drills Lecture 10 slides 28-34. Fresh numbers.</div>
+<p>Company R can borrow fixed at 4.8% or floating at SOFR + 0.5%. Company S can borrow fixed at 6.1% or floating at SOFR + 1.2%. R requires a floating-rate loan and S a fixed-rate loan. Design a swap that nets a bank, acting as intermediary, 0.25% p.a., with R receiving 40% and S 60% of the remaining gains. Draw a swap diagram and show all your working.</p>
+<div class="pt"><span class="mk">(a) 3 marks</span><span class="tx">The QSD, the comparative advantages and the gain to each of R and S, in % p.a. (3 dp where needed).</span></div>
+<div class="pt"><span class="mk">(b) 3 marks</span><span class="tx">The swap rates and the final borrowing rate of each company.</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">Draw the diagram and verify with an all-in ledger.</span></div>
+<div class="quiz num" data-answer="0.35" data-tol="0.0051">
+  <p class="q">Headline: the total gain to R and S after the fee, in % p.a.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% p.a.</span></div>
+  <div class="why">Fixed gap \(6.1 - 4.8 = 1.3\); floating gap \(1.2 - 0.5 = 0.7\); QSD \(= 0.6\); less the fee 0.25 gives 0.35.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a)</strong> Fixed gap \(1.3\); floating gap \(0.7\); QSD \(= 1.3 - 0.7 = 0.6\)%. R has the comparative advantage in fixed (1.3 &gt; 0.7), S in floating. Gain after fee \(= 0.6 - 0.25 = 0.35\)%. R gets \(0.4 \times 0.35 = 0.14\)%, S gets \(0.6 \times 0.35 = 0.21\)%.</p>
+<p><strong>(b)</strong> R borrows fixed at 4.8% outside; S borrows SOFR + 1.2% outside. S pays the bank \(F_S = 6.1 - 0.21 = 5.89\)%. The bank pays R \(F_R = 5.89 - 0.25 = 5.64\)%. Both floating legs are SOFR + 1.2%. R ends at \(\text{SOFR} + 0.5 - 0.14 = \text{SOFR} + 0.36\)%; S ends at 5.89%.</p>
+<p><strong>(c)</strong> Diagram: R pays bank SOFR + 1.2%, bank pays R 5.64%; S pays bank 5.89%, bank pays S SOFR + 1.2%. Ledger R: \(-4.8 + 5.64 - (\text{SOFR}+1.2) = -(\text{SOFR} + 0.36)\) ✓ (saving 0.14). S: \(-(\text{SOFR}+1.2) + (\text{SOFR}+1.2) - 5.89 = -5.89\) ✓ (saving 0.21). Bank: \(5.89 - 5.64 = 0.25\) ✓. Total \(0.14 + 0.21 + 0.25 = 0.60 =\) QSD ✓.</p>
+</div></details>
+</div>
+
+<div class="quiz num" data-answer="5.64" data-tol="0.005">
+  <p class="q">Headline for (b): the fixed rate the bank pays R, in % p.a.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% p.a.</span></div>
+  <div class="why">\(F_S = 6.1 - 0.21 = 5.89\); \(F_R = 5.89 - 0.25 = 5.64\)%. Full solution is in Question A above.</div>
+</div>
+
+<div class="exq">
+<h3>Question B (6 marks): investment swap, and a written part</h3>
+<div class="drills">Drills Tutorial 10 Q3 pattern. Fresh numbers.</div>
+<p>Companies T and U can each invest $20 million for five years. T: fixed 5.5%, floating SOFR + 0.1%. U: fixed 6.7%, floating SOFR + 0.3%. T requires a fixed return and U a floating return. A bank takes 0.2% p.a. and the remaining gain is shared equally.</p>
+<div class="pt"><span class="mk">(a) 4 marks</span><span class="tx">Design the swap: who invests where, the swap rates, and each company's final return.</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">Explain in 2-3 sentences why the two companies together can gain even though neither borrows or lends anything extra.</span></div>
+<div class="quiz num" data-answer="5.9" data-tol="0.005">
+  <p class="q">Headline: the fixed rate the bank pays T, in % p.a.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% p.a.</span></div>
+  <div class="why">See the solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a)</strong> Fixed gap \(6.7 - 5.5 = 1.2\); floating gap \(0.3 - 0.1 = 0.2\); QSD \(= 1.0\)%. U earns relatively more on fixed, so U invests fixed and T invests floating (SOFR + 0.1%). Gain after fee \(= 1.0 - 0.2 = 0.8\)%, 0.4% each. The bank pays T \(F_T = 5.5 + 0.4 = 5.9\)% fixed; U pays the bank \(F_U = 5.9 + 0.2 = 6.1\)%. Floating legs: T pays the bank SOFR + 0.1%, the bank pays U SOFR + 0.1%. T ends with 5.9% fixed (was 5.5%). U ends with SOFR + 0.3% + 0.4% = SOFR + 0.7%. Ledger U: \(+6.7 - 6.1 + (\text{SOFR}+0.1) = \text{SOFR} + 0.7\) ✓; T: \(+(\text{SOFR}+0.1) - (\text{SOFR}+0.1) + 5.9 = 5.9\) ✓; bank \(6.1 - 5.9 = 0.2\) ✓.</p>
+<p><strong>(b)</strong> Each company invests in the market where its advantage is relatively greatest (T floating, U fixed) and the swap then converts the cash flows into the form each actually wants. The pool of gains is the difference between the two companies' fixed-market and floating-market spreads (the QSD, 1.0%); the swap lets them share it, less the bank's fee. No extra money is lent: the gain comes from the spread difference, not from a change in risk-free rates.</p>
+</div></details>
+</div>
+
+<div class="exq">
+<h3>Question C (written, 3 marks): the diagram</h3>
+<div class="drills">Diagram-style written answer, lecture layout.</div>
+<p>Describe, in words or as a labelled diagram, the cash flows in Question A's swap, naming <em>every</em> arrow with its rate and direction. Then state in one sentence the check that proves you have not made an arithmetic slip.</p>
+<details><summary>Model answer</summary><div>
+<p>R pays the bank SOFR + 1.2%; the bank pays R 5.64% fixed. S pays the bank 5.89% fixed; the bank pays S SOFR + 1.2%. R also pays its outside lender 4.8% fixed; S pays its outside lender SOFR + 1.2%. Check: each party's all-in cost matches its target (R: SOFR + 0.36%, S: 5.89%) and the three gains plus the bank's 0.25% add back to the QSD of 0.6%.</p>
+</div></details>
+</div>
+
+<h2>Which lesson do I revisit?</h2>
+<div class="tablewrap"><table>
+<tr><th>Lost marks on</th><th>Reopen</th></tr>
+<tr><td>All-in cost ledger (loan + swap pay − swap receive), floating-to-fixed transformations</td><td><a href="0040-interest-rate-swaps-mechanics-and-transforming.html">Lesson 40</a></td></tr>
+<tr><td>Valuing a swap or the loss on a default</td><td><a href="0042-valuing-a-swap-and-counterparty-loss.html">Lesson 42</a></td></tr>
+</table></div>
+
+<h2>Homework</h2>
+<ul>
+<li><strong>Tutorial 10 Q3</strong> without peeking (8.3% fixed to X, 8.5% from Y, Y gets SOFR + 0.3%), then change the fee to 0.4% and the split to 25/75 (X/Y) and redo it.</li>
+<li>Re-do the lecture example (A 7%/SOFR + 1%, B 10%/SOFR + 2%) with a fee of 0.8% and an equal split; then with A taking 75%. Use the widget to check.</li>
+<li>Write the 3-step recipe from memory, then test it on Question A's numbers with the widget switched to your own values.</li>
+</ul>
+
+<div class="ask">Unsure which company has the comparative advantage, or why \(F_B - F_A\) is the fee? Paste your working in the terminal and ask me. Recommended primary source: Lecture 10 slides 28-34, then Tutorial 10 Q3 and its worked solution.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0040-interest-rate-swaps-mechanics-and-transforming.html">Lesson 40, swap mechanics</a></span>
+  <span><a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0042-valuing-a-swap-and-counterparty-loss.html">Lesson 42, valuing a swap</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>
