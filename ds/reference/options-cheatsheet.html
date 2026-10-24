@@ -29,6 +29,15 @@ $$\text{Long call } \max(S_T-K,0) \qquad \text{Long put } \max(K-S_T,0) \qquad \
 </table>
 <p>Profit = payoff − premium paid (long) or + premium received (short). Bullish: long call, short put. Bearish: long put, short call. Intrinsic: \(\max(S-K,0)\) call, \(\max(K-S,0)\) put. Price = intrinsic + time value (peaks ATM, 0 at expiry). Quote is per share: cost = quote × 100 × contracts.</p>
 <p>Straddle: break-evens \(K\pm(c+p)\), max loss \(c+p\) at \(S_T=K\). Bull call spread: break-even \(K_1+\text{debit}\), max loss = debit, max gain \((K_2-K_1)-\text{debit}\).</p>
+<h2>Dividends, index and FX options <span class="kicker">· Lessons <a href="../lessons/0029-dividend-yields-index-and-fx-options-bounds-parity.html">29</a>–<a href="../lessons/0033-portfolio-insurance-and-topic-8-capstone.html">33</a></span></h2>
+<div class="box">
+$$\text{Yield } q \text{ (or } r_f\text{): } S_0\to S_0e^{-qT},\qquad c\ge S_0e^{-qT}-Ke^{-rT},\quad p\ge Ke^{-rT}-S_0e^{-qT}$$
+$$c+Ke^{-rT}=p+S_0e^{-qT},\qquad p_{tree}:\ p=\frac{e^{(r-q)\Delta t}-d}{u-d}\ (\text{discount at } e^{-r\Delta t})$$
+$$\text{Dollar dividends: } S_0^*=S_0-PV(D)\ (\text{ex-dates before expiry only}),\quad p=\frac{e^{r\Delta t}-d}{u-d}$$
+</div>
+<p><strong>Rule (L29, L32):</strong> yield/FX: \(d_1\) has \(r-q\) (or \(r-r_f\)); dollar dividends: \(d_1\) has \(r\) with \(S_0-PV(D)\) in the log. FX quote "domestic per foreign": foreign rate plays \(q\). \(K=F_0\Rightarrow c=p\). Implied \(q\) solves parity. Higher \(q\): calls down, puts up.</p>
+<p><strong>Trees (L30, L31):</strong> yield tree: only \(p\) changes. Dollar dividend: tree on \(S^*\); American nodes use \(S^*+\)PV of dividends still to come. Early call exercise only just before an ex-dividend date (or high \(q\)/\(r_f>r\)).</p>
+<p><strong>Portfolio insurance (L33):</strong> puts \(=\) portfolio value \(/\,(\)index \(\times\) multiplier\()\); strike \(=\) index \(\times\) floor / portfolio; value at \(T=\max(\)portfolio, floor\()\); cost via BSM put with \(q\), times multiplier times contracts.</p>
 <div class="trap"><strong>Traps</strong><br>Payoff vs profit · time value always ≥ 0 only for American · forgetting contract size · wrong break-even sign for puts</div>
 
 <h2>Factors affecting prices <span class="kicker">· <a href="../lessons/0012-factors-affecting-option-prices.html">Lesson 12</a></span></h2>
@@ -95,6 +104,20 @@ $$d_1=\frac{\ln(S_0/K)+(r+\sigma^2/2)T}{\sigma\sqrt T},\; d_2=d_1-\sigma\sqrt T,
 <p><strong>Implied vol (L26):</strong> price increasing in \(\sigma\): bracket, interpolate \(\sigma_{lo}+\frac{c_{mkt}-c_{lo}}{c_{hi}-c_{lo}}(\sigma_{hi}-\sigma_{lo})\). Above your forecast: rich (sell). Equity smirk, currency smile. VIX 15 = 15% p.a.; futures \(\times1000\) (buy 18.5, close 19.3, 1 contract: +$800).</p>
 <p><strong>Black (L27):</strong> \(c-p=e^{-rT}(F_0-K)\); \(F_0=K\Rightarrow c=p\). Higher \(r\) lowers both \(c\) and \(p\) (discounting only). Multiply by contract size last.</p>
 <div class="trap"><strong>Traps</strong><br>\(\sigma^2T\) read as s.d. · months for \(T\) · \(d_2\) in place of \(d_1\) in the stock term · \(N(-d)\) read off as \(N(d)\) · \(r\) put inside Black's \(d_1\) · spot instead of \(F_0\) · missing contract multiplier · dividend after expiry subtracted · \(\mu\) vs \(r\) in exercise probability</div>
+
+<h2>Delta hedging <span class="kicker">· Lessons 34–37</span></h2>
+<div class="box">
+$$\Delta_{\text{long call}}=e^{-qT}N(d_1),\quad \Delta_{\text{long put}}=e^{-qT}[N(d_1)-1],\quad \text{short = minus}$$
+</div>
+<p>\(q\) = yield (index), \(r_f\) (currency), \(r\) (futures option). Position delta \(=\pm\Delta\times\)options\(\times\)units; hedge in the asset = opposite sign, same size. Long call / short put: short the asset; short call / long put: long it. Forward \(\Delta=1,\ e^{-qT},\ e^{-r_fT}\); futures \(\Delta=e^{rT},\ e^{(r-q)T},\ e^{(r-r_f)T}\); futures units \(=\) spot exposure \(\div\) futures delta; contracts \(=\) units \(\div\) contract size. Futures option: \(e^{-rT}N(d_1)\) per futures unit, \(N(d_1)\) per unit of spot. After a move: recompute \(d_1\) with the new \(S\) (and \(T\)), trade new target \(-\) old hedge. Short call: buy after a rise, sell after a fall (buy high, sell low). Delta-neutral holds for small moves only (gamma).</p>
+<div class="trap"><strong>Traps</strong><br>Long put delta read as positive · short put hedge as long · forgetting \(e^{-qT}\) · futures delta \(e^{rT}\) used for forwards · dividing instead of multiplying for contracts · \(T\) not updated · table vs exact \(N\) (answer to the dp asked)</div>
+
+<h2>Interest rates and swaps <span class="kicker">· Lessons 38–42</span></h2>
+<div class="box">
+$$P=\sum c\,e^{-R_it_i}+FV\,e^{-R_nt_n},\quad R_F=\frac{R_2T_2-R_1T_1}{T_2-T_1},\quad c_{\text{par}}=m\cdot100\frac{1-d_n}{\sum d_i}$$
+</div>
+<p><strong>FRA:</strong> value \(L(R_K-R_F)\tau e^{-R_2T_2}\), \(R_F\) in the same compounding as \(R_K\) (annual \(e^{R_F}-1\); s.a. \(2(e^{R_F/2}-1)\)). <strong>Swap net per period</strong> \(=L(R_{float}-R_{fix})\times0.5\), positive to the fixed payer. <strong>All-in cost</strong> \(=\) external \(+\) swap paid \(-\) swap received. <strong>Design:</strong> QSD \(=\) |fixed gap \(-\) floating gap|; gain \(=\) QSD \(-\) fee, split as told; \(F_B=\) direct fixed \(-\) B's gain, \(F_A=F_B-\) fee, same floating leg both sides (investing: \(F_A=\) direct fixed \(+\) gain, \(F_B=F_A+\) fee). <strong>Value:</strong> forward SOFR per date \(\to\) floating CF \(\to\) net \(\to\) discount at zero rates; or \(B_{fix}-B_{float}\), \(B_{float}=(L+k^*)e^{-Rt}\). Credit risk only when value to you is positive; default loss = PV of net flows no longer received.</p>
+<div class="trap"><strong>Traps</strong><br>Annual vs continuous compounding in an FRA · discounting at SOFR instead of the zero rate · forward rate used for the already-set first payment · sign of swap value (fixed payer receives floating) · forgetting the bank fee in the gain · mixing borrowing and investing designs · slide 10's par yield is 3.025%, not 3.054%</div>
 </main>
 </body>
 </html>
