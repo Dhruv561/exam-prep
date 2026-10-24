@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BSM with Dividends, FX and Known Dollar Dividends</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.exq { border: 1px solid var(--rule); border-radius: 6px; padding: .2rem 1.1rem 1rem; margin: 1.4rem 0; background: var(--card); }
+.exq h3 { margin-top: 1rem; }
+.pt { display: flex; gap: .8rem; margin: .6rem 0; }
+.pt .mk { flex: none; font-family: Inter, system-ui, sans-serif; font-size: .78rem; font-weight: 600; color: var(--accent); width: 4.2rem; padding-top: .25rem; }
+.pt .tx { flex: 1; }
+.given { font-family: Inter, system-ui, sans-serif; font-size: .85rem; color: var(--muted); }
+@media print { .exq { break-inside: avoid; } }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 32 · Topic 8: Dividends</div>
+<h1>BSM with a dividend yield, a foreign rate, and known dollar dividends</h1>
+<p class="lede">One idea, three costumes. The option holder does not receive the stock's dividends (or the foreign currency's interest), so you feed BSM a smaller "effective" stock price and nothing else changes. The skill is knowing which effective price, and which drift in \(d_1\), for index, currency and dollar-dividend questions.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topic 8 sits in the 70% back half. Past finals priced an option on a stock with two known dividends (one ex-date after expiry, to be ignored) and a currency option, and Tutorial 8 Q2, Q3, Q6 are exactly these. About 4-6 marks each, all procedure: substitute the right \(S_0\), then run the Lesson 24 workflow. Marks go on the effective price, \(d_1\), \(d_2\), the four \(N\) values and the contract size.</div>
+
+<p>Assumes <a href="0024-computing-bsm-call-and-put-prices.html">Lesson 24</a> (the BSM workflow and rounding rule), <a href="0027-blacks-model-futures-options-and-fx.html">Lesson 27</a> (Black's model, preview of this lesson) and <a href="0029-dividend-yields-index-and-fx-options-bounds-parity.html">Lesson 29</a> (yields, index and FX options, bounds, parity). The binomial versions are in <a href="0030-binomial-trees-with-dividend-yield-index-and-fx.html">Lesson 30</a> and <a href="0031-binomial-trees-with-known-dollar-dividends.html">Lesson 31</a>. Terms: \(q\) = the index's continuous <strong>dividend yield</strong> (dividends as a percentage of the index per year); \(r_f\) = the <strong>foreign</strong> risk-free rate and \(r\) = the domestic one; \(D\) = a known dividend in dollars; \(PV(D)\) = its present value, discounted from the <strong>ex-dividend date</strong> (the day the stock starts trading without the dividend) at \(r\); \(T\) = years to expiry. An <strong>index multiplier</strong> is the dollar value of one index point (here $25 or $10).</p>
+
+<h2>1 · Why the stock price shrinks</h2>
+<p>Own the stock and you collect dividends; own a call on it and you do not. The call is a claim on the stock's price at expiry, which is the price <em>after</em> every dividend has been paid out and the stock has dropped by that amount. So the option behaves like an option on a stock that is worth less today. A currency works the same way: holding \(\text{CAD}\) earns the Canadian rate \(r_f\), but the option holder does not earn it, so the currency's "effective price" is also discounted. Three costumes, one effect: <strong>the underlying's effective price today is lower than the screen price.</strong></p>
+<p><strong>Predict first:</strong> with the same \(S_0, K, r, \sigma, T\), what should an extra dividend (or a higher \(q\), or a higher \(r_f\)) do to a call and to a put?</p>
+<details><summary>Reveal</summary><div>
+<p>Lower effective price: the call falls, the put rises, just as if the stock had dropped (Lesson 24, scenario table). The strike and the time value are untouched.</p>
+</div></details>
+
+<h2>2 · The one rule, and the lookup table</h2>
+<p><strong>Replace \(S_0\) by an effective price \(S_0^*\) everywhere in BSM</strong> (the formula sheet, p. 3, prints each version):</p>
+<div class="tablewrap"><table>
+<tr><th>Underlying</th><th>Stand-in for \(S_0\)</th><th>Drift in \(d_1\) (with \(+\sigma^2/2\))</th><th>Lecture 8</th></tr>
+<tr><td>Non-dividend stock</td><td>\(S_0\)</td><td>\(r\)</td><td>Lecture 7</td></tr>
+<tr><td>Index / stock, yield \(q\)</td><td>\(S_0e^{-qT}\)</td><td>\(r - q\) (\(\ln(S_0/K)\) stays)</td><td>slide 29</td></tr>
+<tr><td>Currency, foreign rate \(r_f\)</td><td>\(S_0e^{-r_fT}\)</td><td>\(r - r_f\) (\(\ln(S_0/K)\) stays)</td><td>slide 30</td></tr>
+<tr><td>Known dollar dividends</td><td>\(S_0 - PV(D)\)</td><td>\(r\) only (the \(PV(D)\) sits <strong>inside</strong> the \(\ln\))</td><td>slides 31-35</td></tr>
+</table></div>
+<p>Fixed-dollar dividends: only dividends whose ex-date is <strong>inside the option's life</strong> go into \(PV(D)\). A dividend after expiry never touches the option holder: ignore it (slide 32). Discount each one from its own ex-date: \(PV(D) = \sum D_i e^{-r t_i}\).</p>
+
+<h3>The formulas</h3>
+<p>Yield (index or stock), from the formula sheet:</p>
+$$c = S_0e^{-qT}N(d_1) - Ke^{-rT}N(d_2), \quad p = Ke^{-rT}N(-d_2) - S_0e^{-qT}N(-d_1)$$
+$$d_1 = \frac{\ln(S_0/K) + (r - q + \sigma^2/2)T}{\sigma\sqrt{T}}, \quad d_2 = d_1 - \sigma\sqrt{T}$$
+<p>Currency: the same with \(q \to r_f\). Known dollar dividends:</p>
+$$c = [S_0 - PV(D)]N(d_1) - Ke^{-rT}N(d_2), \quad d_1 = \frac{\ln\big[(S_0 - PV(D))/K\big] + (r + \sigma^2/2)T}{\sigma\sqrt{T}}$$
+<p>and \(p = Ke^{-rT}N(-d_2) - [S_0 - PV(D)]N(-d_1)\). Then the Lesson 24 rounding rule, unchanged: \(d_2 = d_1 - \sigma\sqrt{T}\) from the <em>unrounded</em> \(d_1\), round \(d_1, d_2\) to 2 dp, read \(N\) (4 dp) from the formula-sheet table with no interpolation, \(N(-x) = 1 - N(x)\), contract size inside the formula and round once at the end, and the dp the question asks for.</p>
+
+<div class="box"><strong>One-line sanity check.</strong> In every row, (stand-in) \(\times e^{rT}\) is the <strong>forward price</strong> \(F_0\): \(S_0e^{(r-q)T}\), \(S_0e^{(r-r_f)T}\), \([S_0 - PV(D)]e^{rT}\) (Lesson 7 cost of carry). The option doesn't care how the forward price arose; it cares about \(F_0\) and \(K\). That is why one rule covers all three, and why Black's model (Lesson 27) matches.</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Check 1.</strong> A currency option: which \(S_0\) goes into the formula and which drift into \(d_1\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(S_0e^{-rT}\) and \(r\)</button>
+    <button class="opt" data-key="b">\(S_0 - r_f\) and \(r - r_f\)</button>
+    <button class="opt" data-key="c">\(S_0e^{-r_fT}\) and \(r - r_f\), with \(r\) the domestic rate</button>
+    <button class="opt" data-key="d">\(S_0e^{-r_fT}\) and \(r\) only</button>
+  </div>
+  <div class="why">Slide 30: \(q\) is replaced by \(r_f\). The stand-in is \(S_0e^{-r_fT}\) and the drift in \(d_1\) is \(r - r_f\), domestic minus foreign. (The strike is discounted at the domestic \(r\).)</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Check 2.</strong> For a stock with a known $0.60 dividend, where does the \(PV(D)\) go in \(d_1\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Into the drift, as \(r - PV(D)\)</button>
+    <button class="opt" data-key="b">Into the log: \(\ln[(S_0 - PV(D))/K]\); the drift stays \(r + \sigma^2/2\)</button>
+    <button class="opt" data-key="c">Nowhere; only the \(N\) values change</button>
+    <button class="opt" data-key="d">Into \(Ke^{-rT}\), which becomes \(Ke^{-rT} - PV(D)\)</button>
+  </div>
+  <div class="why">A dollar dividend lowers the stock price by a dollar amount, so it enters through \(S_0\). A yield is a rate, so it enters through the drift (\(r - q\)). That difference is the most common slip.</div>
+</div>
+
+<h2>3 · Derive it: why \(d_1\) gets \(r - q\)</h2>
+<p>Setup (the exam gives you this and asks you to show the result). The no-dividend formulas are
+\(c = S_0N(d_1) - Ke^{-rT}N(d_2)\) with \(d_1 = \dfrac{\ln(S_0/K) + (r + \sigma^2/2)T}{\sigma\sqrt{T}}\). A stock pays a continuous yield \(q\), and the holder of a call does not receive it, so BSM applies to the effective price \(S_0e^{-qT}\) with the same \(K, r, \sigma, T\). Show that \(c = S_0e^{-qT}N(d_1) - Ke^{-rT}N(d_2)\) with \(d_1\) containing \(r - q\).</p>
+<details><summary>Worked derivation</summary><div>
+<p><strong>Step 1.</strong> Replace \(S_0\) by \(S_0e^{-qT}\) in the formula: \(c = S_0e^{-qT}N(d_1) - Ke^{-rT}N(d_2)\). (This is the first claim.)</p>
+<p><strong>Step 2.</strong> Replace \(S_0\) inside \(d_1\) too. The log is the only place \(S_0\) appears:</p>
+$$\ln\frac{S_0e^{-qT}}{K} = \ln\frac{S_0}{K} + \ln e^{-qT} = \ln\frac{S_0}{K} - qT.$$
+<p><strong>Step 3.</strong> Substitute and collect the \(T\) terms:</p>
+$$d_1 = \frac{\ln(S_0/K) - qT + (r + \sigma^2/2)T}{\sigma\sqrt{T}} = \frac{\ln(S_0/K) + (r - q + \sigma^2/2)T}{\sigma\sqrt{T}}.$$
+<p><strong>Step 4.</strong> \(d_2 = d_1 - \sigma\sqrt{T}\) as before. For a currency, repeat with \(r_f\) in place of \(q\). Check: at \(q = 0\) it collapses to the plain formula.</p>
+</div></details>
+
+<h2>4 · Worked example 1: an index put with a $25 multiplier</h2>
+<p>An index stands at 2,400 and pays a dividend yield of 3% a year. \(\sigma = 20\%\), \(r = 5\%\). Price a <strong>three-month European put</strong> with strike 2,450 on the contract with a $25 multiplier, giving the total dollar price to 2 dp. (Tutorial 8 Q2 is the same job with different numbers; it is the homework.)</p>
+<p><strong>Predict first:</strong> the put is in the money by 50 points, i.e. $1,250 on one contract. Will the premium be above or below that?</p>
+<details><summary>Reveal the working</summary><div>
+<ol class="steps">
+<li><strong>Effective price.</strong> \(T = 0.25\). \(S_0e^{-qT} = 2400e^{-0.0075} = 2382.0673\); \(Ke^{-rT} = 2450e^{-0.0125} = 2419.5656\); \(\sigma\sqrt{T} = 0.20\sqrt{0.25} = 0.1000\).</li>
+<li><strong>\(d_1\)</strong> (log of the <em>raw</em> \(S_0/K\), drift \(r - q\)): \(\ln(2400/2450) = -0.0206\); \((0.05 - 0.03 + 0.02)(0.25) = 0.0100\). \(d_1 = (-0.0206 + 0.0100)/0.1 = -0.1062 \approx -0.11\). \(d_2 = -0.1062 - 0.1000 = -0.2062 \approx -0.21\).</li>
+<li><strong>Table.</strong> Put needs \(N(-d_1) = N(0.11) = 0.5438\) and \(N(-d_2) = N(0.21) = 0.5832\).</li>
+<li><strong>Put per index point:</strong> \(p = 2419.5656(0.5832) - 2382.0673(0.5438) = 1411.0907 - 1295.3682 = 115.7224\).</li>
+<li><strong>Contract:</strong> \(115.7224 \times 25 = \$2{,}893.06\). Exact \(d\) gives $2,891.31 (the table method is the one to write).</li>
+<li><strong>Parity check:</strong> \(c - p = S_0e^{-qT} - Ke^{-rT}\). The call is \(2382.0673(0.4562) - 2419.5656(0.4168) = 78.2242\); \(78.2242 - 115.7224 = -37.4982\) and \(2382.0673 - 2419.5656 = -37.4983\). They match.</li>
+</ol>
+<p>The put is worth more than its $1,250 intrinsic value because there is still time value, and the dividend yield (which lowers the stand-in) pushes the put up. Floor check: \(p \ge Ke^{-rT} - S_0e^{-qT} = 37.50\) points.</p>
+</div></details>
+
+<div class="quiz num" data-answer="-0.11" data-tol="0.006">
+  <p class="q"><strong>E1a.</strong> \(d_1\) to 2 dp for this index put?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\((\ln(2400/2450) + (0.05 - 0.03 + 0.02)(0.25))/0.1 = (-0.0206 + 0.0100)/0.1 = -0.1062 \approx -0.11\). Forgetting \(q\) in the drift gives \(d_1 = -0.03\).</div>
+</div>
+<div class="quiz num" data-answer="2893.06" data-tol="1">
+  <p class="q"><strong>E1b.</strong> The total price of the put on one $25-multiplier contract, in dollars (2 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(115.7224 \times 25 = 2893.06\). Per point 115.72; the multiplier goes in once, at the end (or inside the formula; same result).</div>
+</div>
+
+<p>Play with it: the calculator below is set to this example (yield mode: \(q\) is the dividend yield or the foreign rate). Move \(q\) and watch which of \(c\), \(p\) rises. Its table-method output uses the same 2 dp \(d\) rule.</p>
+<div class="bbc" data-mode="yield" data-s="2400" data-k="2450" data-sigma="0.20" data-r="0.05" data-t="0.25" data-q="0.03"></div>
+<script src="../assets/bsm-blacks-calculator.js"></script>
+
+<h2>5 · Worked example 2: a currency call and put, and the flipped option</h2>
+<p>The Australian dollar (AUD) is worth US$0.64 (quoted <strong>USD per AUD</strong>, so the AUD is the foreign currency and the USD the domestic one). \(\sigma = 10\%\), US rate \(r = 5\%\), Australian rate \(r_f = 3.5\%\). A European call to <strong>buy one AUD for US$0.65</strong> expires in six months. Find (i) the call, (ii) the put to sell one AUD for US$0.65 using parity, (iii) the price of an option to <strong>buy US$0.65 with one AUD</strong>. Four dp.</p>
+<p><strong>Predict first:</strong> the forward price \(0.64e^{(0.05-0.035)(0.5)} = 0.6448\) is below the strike. Which is dearer, the call or the put?</p>
+<details><summary>Reveal the working</summary><div>
+<ol class="steps">
+<li><strong>Stand-in:</strong> \(S_0e^{-r_fT} = 0.64e^{-0.0175} = 0.6289\); \(Ke^{-rT} = 0.65e^{-0.025} = 0.6340\); \(\sigma\sqrt{T} = 0.1\sqrt{0.5} = 0.0707\).</li>
+<li><strong>\(d_1\):</strong> \(\ln(0.64/0.65) = -0.0155\); \((0.05 - 0.035 + 0.005)(0.5) = 0.0100\). \(d_1 = -0.0055/0.0707 = -0.0778 \approx -0.08\); \(d_2 = -0.0778 - 0.0707 = -0.1486 \approx -0.15\).</li>
+<li><strong>Table:</strong> \(N(-0.08) = 0.4681\), \(N(-0.15) = 0.4404\).</li>
+<li><strong>(i) Call:</strong> \(0.6289(0.4681) - 0.6340(0.4404) = 0.2944 - 0.2792 = \mathbf{0.0152}\) (US$ per AUD, i.e. 1.52 cents). Exact 0.0154.</li>
+<li><strong>(ii) Put by parity</strong> (\(c + Ke^{-rT} = p + S_0e^{-r_fT}\)): \(p = c + Ke^{-rT} - S_0e^{-r_fT} = 0.0152 + 0.6340 - 0.6289 = \mathbf{0.0202}\). Full-precision check by the put formula: \(0.6340(0.5596) - 0.6289(0.5319) = 0.3548 - 0.3345 = 0.0202\).</li>
+<li><strong>(iii) Flip.</strong> Buying US$0.65 <em>with</em> one AUD means handing over an AUD and receiving US$0.65: that is selling one AUD for US$0.65, the <strong>put</strong> in (ii), price US$0.0202 per AUD. (Tutorial 8 Q3 uses exactly this reading.)</li>
+</ol>
+<p>The put is dearer: with the forward below the strike, the right to sell at 0.65 is the one more likely to be in the money. Direction check: set \(r_f = 0\) and the call rises to 0.0210 and the put falls to 0.0149, since the AUD no longer "leaks" its interest to non-holders.</p>
+</div></details>
+
+<div class="quiz num" data-answer="0.0152" data-tol="0.0002">
+  <p class="q"><strong>E2a.</strong> The call on one AUD, in US$ to 4 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">US$</span></div>
+  <div class="why">\(0.6289(0.4681) - 0.6340(0.4404) = 0.0152\).</div>
+</div>
+<div class="quiz num" data-answer="0.0202" data-tol="0.0002">
+  <p class="q"><strong>E2b.</strong> The put on one AUD by parity, 4 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">US$</span></div>
+  <div class="why">\(0.0152 + 0.6340 - 0.6289 = 0.0202\).</div>
+</div>
+<div class="trap"><strong>Trap</strong>: reading "USD per AUD" backwards. The number quoted is the <em>price of one unit of the foreign currency</em> in domestic currency. The foreign currency is the one in the denominator of "per". Also, the option "to buy US$ with AUD" is a <em>put</em> on the AUD, not a call: always rewrite it as "buy/sell one unit of the foreign currency for \(K\) domestic".</div>
+
+<h2>6 · Worked example 3: known dollar dividends, one possibly after expiry</h2>
+<p>A stock is $50, \(K = \$52\), \(\sigma = 30\%\), \(r = 4\%\), and the option expires in <strong>nine months</strong>. Price the European call and put in three situations:</p>
+<ol type="a">
+<li>One $1.00 dividend, ex-date in 3 months.</li>
+<li>That one <em>and</em> a second $1.00 dividend, ex-date in 7 months.</li>
+<li>That one and a second $1.00 dividend with ex-date in <strong>12 months</strong>.</li>
+</ol>
+<p><strong>Predict first:</strong> relative to (a), what does (b) do to the call and to the put? What does (c) do?</p>
+<details><summary>Reveal the working</summary><div>
+<p>Common pieces: \(T = 0.75\), \(\sigma\sqrt{T} = 0.2598\), \(Ke^{-rT} = 52e^{-0.03} = 50.4632\).</p>
+<p><strong>(a)</strong> \(PV(D) = 1.00e^{-0.04(3/12)} = 0.9900\); \(S_0^* = 50 - 0.9900 = 49.0100\). \(d_1 = [\ln(49.01/52) + (0.04 + 0.045)(0.75)]/0.2598 = (-0.0592 + 0.0638)/0.2598 = 0.0174 \approx 0.02\); \(d_2 = 0.0174 - 0.2598 = -0.2424 \approx -0.24\). \(N(0.02) = 0.5080\), \(N(-0.24) = 0.4052\); \(N(-0.02) = 0.4920\), \(N(0.24) = 0.5948\).
+Call \(= 49.0100(0.5080) - 50.4632(0.4052) = 24.8971 - 20.4477 = \mathbf{4.45}\). Put \(= 50.4632(0.5948) - 49.0100(0.4920) = 30.0155 - 24.1129 = \mathbf{5.90}\) (exact 4.45 and 5.90; parity: \(4.4494 - 49.0100 + 50.4632 = 5.9026\)).</p>
+<p><strong>(b)</strong> Both ex-dates are inside the nine months. \(PV(D) = 0.9900 + 1.00e^{-0.04(7/12)} = 0.9900 + 0.9769 = 1.9669\); \(S_0^* = 48.0330\). \(d_1 = [\ln(48.033/52) + 0.0638]/0.2598 = (-0.0794 + 0.0638)/0.2598 = -0.0601 \approx -0.06\); \(d_2 = -0.3199 \approx -0.32\). \(N(-0.06) = 0.4761\), \(N(-0.32) = 0.3745\); \(N(0.06) = 0.5239\), \(N(0.32) = 0.6255\).
+Call \(= 48.0330(0.4761) - 50.4632(0.3745) = 22.8685 - 18.8985 = \mathbf{3.97}\). Put \(= 50.4632(0.6255) - 48.0330(0.5239) = 31.5647 - 25.1645 = \mathbf{6.40}\).</p>
+<p><strong>(c)</strong> The 12-month dividend is paid after the option has expired, so the holder is unaffected: \(PV(D)\) is still 0.9900 and the answers are (a)'s: <strong>4.45 and 5.90</strong>.</p>
+<p><strong>Comparison.</strong> A second dividend <em>inside</em> the life lowers the call (4.45 to 3.97) and raises the put (5.90 to 6.40), because the effective stock price falls (49.01 to 48.03). A dividend <em>after</em> expiry changes nothing. This is the point of Tutorial 8 Q6(c): its second 50-cent dividend (ex-date in 6 months) falls after a 4-month option expires, so the price stays the same; the same logic with a second ex-date inside the life gives the lower call and higher put seen in (b).</p>
+</div></details>
+
+<div class="quiz num" data-answer="4.45" data-tol="0.02">
+  <p class="q"><strong>E3a.</strong> Call price in situation (a), 2 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(49.0100(0.5080) - 50.4632(0.4052) = 4.45\).</div>
+</div>
+<div class="quiz num" data-answer="3.97" data-tol="0.02">
+  <p class="q"><strong>E3b.</strong> Call price in situation (b), 2 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(S_0^* = 48.0330\); \(N(-0.06) = 0.4761\), \(N(-0.32) = 0.3745\): \(22.8685 - 18.8985 = 3.97\).</div>
+</div>
+<div class="quiz num" data-answer="6.40" data-tol="0.02">
+  <p class="q"><strong>E3c.</strong> Put price in situation (b) by parity (\(p = c + Ke^{-rT} - S_0^*\)), 2 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(3.9701 + 50.4632 - 48.0330 = 6.4003 \approx 6.40\). With dividends the parity uses \(S_0 - PV(D)\) in place of \(S_0\) (formula sheet: \(c + D + Ke^{-rT} = p + S_0\), with \(D\) the PV).</div>
+</div>
+
+<div class="trap"><strong>Dividend slips</strong>: (1) subtracting the dividend at face value instead of discounting it (\(1.00\) instead of \(0.9900\)); (2) subtracting a dividend with an ex-date after expiry; (3) discounting for the whole option life \(T\) instead of the time \(t_i\) to the ex-date; (4) putting a dollar dividend in the drift, or a yield \(q\) in the log as a dollar amount.</div>
+
+<h2>7 · Direction checks (all index, \(S_0 = 2400\), \(K = 2450\), \(r = 5\%\), \(\sigma = 20\%\), three months)</h2>
+<p>Table method throughout, the $25 multiplier not applied (index points):</p>
+<div class="tablewrap"><table>
+<tr><th>Yield \(q\)</th><th>Stand-in \(S_0e^{-qT}\)</th><th>\(d_1, d_2\)</th><th>Call</th><th>Put</th></tr>
+<tr><td>0%</td><td>2400.00</td><td>-0.03, -0.13</td><td>86.51</td><td>106.07</td></tr>
+<tr><td>1%</td><td>2394.01</td><td>-0.06, -0.16</td><td>83.89</td><td>109.45</td></tr>
+<tr><td>3% (example 1)</td><td>2382.07</td><td>-0.11, -0.21</td><td>78.22</td><td>115.72</td></tr>
+<tr><td>5%</td><td>2370.19</td><td>-0.16, -0.26</td><td>72.81</td><td>122.19</td></tr>
+</table></div>
+<p>\(q\) up: stand-in down, call down, put up. The same story for \(r_f\) up (currency) and for each extra dollar dividend inside the life. Intuition for the currency: a higher foreign rate makes the foreign currency's forward price lower, so a call to buy it is worth less.</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>D1.</strong> The foreign interest rate rises, all else fixed. What happens to a European call and a put on the foreign currency (domestic price quoted per unit)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Call falls, put rises</button>
+    <button class="opt" data-key="b">Call rises, put falls</button>
+    <button class="opt" data-key="c">Both rise, because volatility is unchanged</button>
+    <button class="opt" data-key="d">Neither moves: only the domestic rate matters</button>
+  </div>
+  <div class="why">\(r_f\) lowers the stand-in \(S_0e^{-r_fT}\) and the forward price \(S_0e^{(r-r_f)T}\). Lower forward: call down, put up.</div>
+</div>
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>D2.</strong> A stock has one dividend with ex-date inside an option's life. A second dividend is announced with an ex-date <em>after</em> expiry. What is the effect on the option's BSM price?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Call falls, put rises</button>
+    <button class="opt" data-key="b">Call rises, put falls</button>
+    <button class="opt" data-key="c">Both fall</button>
+    <button class="opt" data-key="d">No effect: the holder never faces that ex-date</button>
+  </div>
+  <div class="why">Slide 32: only dividends with ex-dates during the option's life enter \(PV(D)\).</div>
+</div>
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>D3.</strong> An index's dividend yield rises from 2% to 4%, all else fixed. The BSM call falls. Which is the best reason?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(Ke^{-rT}\) gets bigger, so you pay more at expiry</button>
+    <button class="opt" data-key="b">The effective price \(S_0e^{-qT}\) (and the forward) falls, and holders of the call do not receive the dividends</button>
+    <button class="opt" data-key="c">Volatility falls when dividends are paid</button>
+    <button class="opt" data-key="d">Early exercise becomes optimal</button>
+  </div>
+  <div class="why">The strike leg is unchanged; only the stand-in for the underlying moves. (Early exercise is a separate, American-option topic.)</div>
+</div>
+
+<h2>8 · Parity link and a flag for Topic 9</h2>
+<p>The parity forms from <a href="0029-dividend-yields-index-and-fx-options-bounds-parity.html">Lesson 29</a> are the check on every price above: \(c - p = S_0e^{-qT} - Ke^{-rT}\) (yield), \(c - p = S_0e^{-r_fT} - Ke^{-rT}\) (currency), \(c - p = S_0 - PV(D) - Ke^{-rT}\) (dollar dividends). With table values and \(N(-x) = 1 - N(x)\), parity holds exactly, so a mismatch is an arithmetic slip, and the quickest way to get the put is \(p = c - (\text{stand-in}) + Ke^{-rT}\).</p>
+<p><strong>Flag (Topic 9, not taught here):</strong> the delta of a long call on a dividend-yielding stock is \(e^{-qT}N(d_1)\) (and \(e^{-r_fT}N(d_1)\) for a currency); the formula sheet has them. The extra \(e^{-qT}\) is the same stand-in at work. Next week.</p>
+
+<h2>9 · Short written answers (model revealed)</h2>
+<p><strong>W1 (2 marks).</strong> In two or three sentences: why is the dividend subtracted from \(S_0\) as a present value, and why is a dividend with ex-date after expiry ignored?</p>
+<details><summary>Write your answer first, then reveal the model</summary><div><strong>Model.</strong> The stock price falls by the dividend on the ex-date, and the option holder does not receive it, so the option is on the stock <em>excluding</em> that cash; today's equivalent is the present value, discounted from the ex-date at \(r\) (1 mark). A dividend whose ex-date is after expiry never reduces the stock price during the option's life, so the holder is unaffected and it is left out (1 mark).</div></details>
+<p><strong>W2 (2 marks).</strong> A student prices a call on a foreign currency with the plain non-dividend BSM formula. Is the answer too high or too low, and why?</p>
+<details><summary>Write your answer first, then reveal the model</summary><div><strong>Model.</strong> Too high (1 mark): ignoring \(r_f\) uses \(S_0\) instead of the smaller \(S_0e^{-r_fT}\) and a drift \(r\) instead of \(r - r_f\), i.e. a forward price that is too high; the call holder does not earn the foreign interest, so the call is worth less than the plain formula says (1 mark). The put would be too low.</div></details>
+
+<h2>10 · Exam-style questions (about 10 marks)</h2>
+<p>Do these timed (about 2 minutes a mark) on paper, with the formula-sheet table (pp. 5-6). Casio fx-82, \(d\) to 2 dp, \(N\) to 4 dp, no interpolation, and the dp stated in each question. Then type your headline answers to check.</p>
+
+<div class="exq">
+<h3>Question 1 (3 marks): an index call</h3>
+<p>A stock index stands at 1,800 and has a dividend yield of 3% a year. Its volatility is 22% a year and the risk-free rate is 6% a year. A European call on the index with strike 1,700 expires in nine months. One contract has a multiplier of $10 per index point.</p>
+<div class="pt"><span class="mk">(a) 1 mark</span><span class="tx">Calculate \(d_1\) and \(d_2\) (2 dp).</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">What is the total price of one contract's call, in dollars to 2 dp?</span></div>
+<div class="quiz num" data-answer="0.32" data-tol="0.006">
+  <p class="q">Headline check (a): \(d_2\) (2 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(d_1 = [\ln(1800/1700) + (0.06 - 0.03 + 0.0242)(0.75)]/0.1905 = (0.0572 + 0.0406)/0.1905 = 0.5134 \approx 0.51\); \(d_2 = 0.5134 - 0.1905 = 0.3228 \approx 0.32\).</div>
+</div>
+<div class="quiz num" data-answer="2066.07" data-tol="0.5">
+  <p class="q">Headline check (b): total call price, dollars?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(S_0e^{-qT} = 1800e^{-0.0225} = 1759.9522\); \(Ke^{-rT} = 1700e^{-0.045} = 1625.1957\). \(N(0.51) = 0.6950\), \(N(0.32) = 0.6255\). \(c = 1759.9522(0.6950) - 1625.1957(0.6255) = 1223.1668 - 1016.5599 = 206.6069\) points. \(\times 10 = \$2{,}066.07\). Exact \(d\): $2,068.60. Put by parity (not asked): \(206.6069 - 1759.9522 + 1625.1957 = 71.8504\) points.</div>
+</div>
+
+<div class="exq">
+<h3>Question 2 (3 marks): a currency option</h3>
+<p>The US dollar price of one British pound (GBP) is US$1.25 and the volatility of the exchange rate is 10% a year. The US risk-free rate is 4% and the UK risk-free rate is 5.5% a year, both continuously compounded. Consider a one-year European option on one pound with strike US$1.28. Give prices in US$ to 4 dp.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Calculate the price of the call to buy one pound.</span></div>
+<div class="pt"><span class="mk">(b) 1 mark</span><span class="tx">Use put-call parity to find the price of the put to sell one pound at US$1.28.</span></div>
+<div class="quiz num" data-answer="0.0282" data-tol="0.0002">
+  <p class="q">Headline check (a): call, US$ to 4 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">US$</span></div>
+  <div class="why">\(S_0e^{-r_fT} = 1.25e^{-0.055} = 1.1831\); \(Ke^{-rT} = 1.28e^{-0.04} = 1.2298\). \(d_1 = [\ln(1.25/1.28) + (0.04 - 0.055 + 0.005)(1)]/0.10 = (-0.0237 - 0.0100)/0.10 = -0.3372 \approx -0.34\); \(d_2 = -0.4372 \approx -0.44\). \(N(-0.34) = 0.3669\), \(N(-0.44) = 0.3300\). \(c = 1.1831(0.3669) - 1.2298(0.3300) = 0.4341 - 0.4058 = 0.0282\).</div>
+</div>
+<div class="quiz num" data-answer="0.0749" data-tol="0.0002">
+  <p class="q">Headline check (b): put, US$ to 4 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">US$</span></div>
+  <div class="why">\(p = c + Ke^{-rT} - S_0e^{-r_fT} = 0.0282 + 1.2298 - 1.1831 = 0.0749\). Put formula: \(1.2298(0.6700) - 1.1831(0.6331) = 0.8240 - 0.7490 = 0.0749\). Exact \(d\): 0.0283 and 0.0750.</div>
+</div>
+
+<div class="exq">
+<h3>Question 3 (4 marks): a stock with two known dividends</h3>
+<p>A stock is $64. A six-month European call has strike $70. The volatility of the stock excluding dividends is 24% a year and the risk-free rate is 5% a year. The stock goes ex-dividend with $1.20 in two months and again with $1.20 in nine months.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Calculate the BSM price of the call (2 dp).</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">A student includes both dividends. Is her call price too high or too low? Explain why the second dividend should not be included.</span></div>
+<details><summary>Normal-table values you may need</summary><div class="given">\(N(-0.41) = 0.3409\), \(N(-0.58) = 0.2810\).</div></details>
+<div class="quiz num" data-answer="2.23" data-tol="0.02">
+  <p class="q">Headline check (a): call, dollars (2 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Only the 2-month dividend is inside the six months: \(PV(D) = 1.20e^{-0.05(2/12)} = 1.1900\); \(S_0^* = 62.8100\). \(Ke^{-rT} = 70e^{-0.025} = 68.2717\); \(\sigma\sqrt{T} = 0.1697\). \(d_1 = [\ln(62.81/70) + (0.05 + 0.0288)(0.5)]/0.1697 = (-0.1085 + 0.0394)/0.1697 = -0.4065 \approx -0.41\); \(d_2 = -0.5762 \approx -0.58\). \(c = 62.81(0.3409) - 68.2717(0.2810) = 21.4119 - 19.1843 = 2.2276 \approx \$2.23\). Exact \(d\): $2.22.</div>
+</div>
+<details><summary>Written part (b): model answer (open after attempting)</summary><div>
+<p><strong>Too low</strong> (1 mark). The student's \(PV(D)\) is bigger by \(1.20e^{-0.05(9/12)} = 1.1558\), so her \(S_0^* = 61.6541\) and her call is $1.86 against the correct $2.23. The nine-month ex-date is after the six-month expiry, so the stock never falls by that dividend while the option is alive; the holder's payoff \(\max(S_T - K, 0)\) is unaffected, so it must be left out (1 mark).</p>
+<p>Marking for (a): effective price 1 mark; \(d_1, d_2\) and \(N\) values; final price (the exam splits marks across these lines, so show each).</p>
+</div></details>
+</div>
+
+<h2>11 · Rule of thumb</h2>
+<div class="box"><strong>Pick the stand-in, then run the Lesson 24 workflow.</strong> Index/yield: \(S_0e^{-qT}\) and drift \(r - q\). Currency: \(S_0e^{-r_fT}\) and drift \(r - r_f\). Known dollar dividends: \(S_0 - PV(D)\) (only ex-dates inside the life; each discounted from its own date), drift \(r\), the \(PV(D)\) inside the log. Round \(d_1, d_2\) to 2 dp, \(N\) from the table, contract size in once. Check with the matching parity. Any of these (\(q\) up, \(r_f\) up, another dividend inside the life) lowers the stand-in: call down, put up.</div>
+
+<details><summary>Retrieval: from memory, write the yield-version \(d_1\) and the dollar-dividend \(S_0\) stand-in. Then check</summary><div>
+<p>\(d_1 = \dfrac{\ln(S_0/K) + (r - q + \sigma^2/2)T}{\sigma\sqrt{T}}\); dollar dividends: \(S_0 - \sum D_ie^{-rt_i}\), sum over ex-dates \(t_i \le T\), \(d_1\) with drift \(r\) and \(\ln[(S_0 - PV(D))/K]\).</p>
+</div></details>
+
+<p><strong>Primary source:</strong> Course: Lecture 8 slides 29-35 (yield, currency, and fixed-dollar-dividend BSM, the nine-month two-dividend example on slide 35) and the practice questions on slides 42-43; Tutorial 8 solutions Q2, Q3, Q6. Textbook: Hull, <em>Options, Futures and Other Derivatives</em>, the sections on options on stock indices and currencies and on BSM with dividends (chapter numbers vary by edition, so check your copy's contents page). The formula-sheet versions are on p. 3 and the \(N(x)\) tables on pp. 5-6. Tutorial 8 Q6(c) as printed has its second dividend after expiry, so the printed answer is "unchanged"; the "second dividend inside the life" case here is the natural exam variation.</p>
+
+<p><strong>Homework</strong> (<a href="../tutes/Tutorial%208.pdf">Tutorial 8</a>, trimmed):</p>
+<ol>
+<li><strong>Q2</strong> (index put, $25 per point). Give \(d_1, d_2\), the two \(N\) values, and the total dollar price.
+<details><summary>Answers</summary><div>\(d_1 = 0.0868 \approx 0.09\), \(d_2 = -0.0632 \approx -0.06\); \(N(-0.09) = 0.4641\), \(N(0.06) = 0.5239\). \(p = 700e^{-0.0175}(0.5239) - 696e^{-0.01}(0.4641) = 360.3681 - 319.7996 = 40.5685\) points; \(\times 25 = \$1{,}014.21\) (the printed solution rounds the 40.56 first and gets $1,014). Exact \(d\): $1,013.85.</div></details></li>
+<li><strong>Q3</strong> (CAD option). (a) the call, (b) the put by parity, (c) the price of the option to buy US$0.95 with one Canadian dollar.
+<details><summary>Answers</summary><div>(a) \(d_1 = 0.1429 \approx 0.14\), \(d_2 = 0.0736 \approx 0.07\); \(N = 0.5557, 0.5279\): \(c = 0.0293\) (2.93 cents; exact 0.0290). (b) \(p = 0.0293 + 0.95e^{-0.0375} - 0.95e^{-0.03} = 0.0224\). (c) This is the put on the Canadian dollar: US$0.0224.</div></details></li>
+<li><strong>Q6(a) and (c)</strong> (stock, 50 cent dividend, four months). (a) the call; (c) the effect of a second 50 cent dividend with ex-date in six months. Optional extension: redo (c) with the second ex-date in <em>three</em> months.
+<details><summary>Answers</summary><div>(a) \(S_0^* = 30 - 0.5e^{-0.00625} = 29.5031\); \(d_1 = 0.3068 \approx 0.31\), \(d_2 = 0.1625 \approx 0.16\); \(c = 29.5031(0.6217) - 29e^{-0.0167}(0.5636) = 2.27\) (2.2678; the put is 1.29). (c) Unchanged: the six-month ex-date is after the four-month expiry. Extension: \(PV(D) = 0.4969 + 0.4938 = 0.9907\), \(S_0^* = 29.0093\), \(d_1 = 0.19\), \(d_2 = 0.05\): call 1.86, put 1.37 (call down, put up).</div></details></li>
+</ol>
+
+<div class="ask">💬 Unsure which stand-in to use, whether a dividend is "inside the life", or how to read a currency quote? Paste your working in the terminal and ask me. I'm your teacher for this. Ask for another set of numbers any time.</div>
+
+<div class="nav" id="next">
+  <span>Next: <a href="0033-portfolio-insurance-and-topic-8-capstone.html">L33 capstone</a> · Binomial versions: <a href="../lessons/0030-binomial-trees-with-dividend-yield-index-and-fx.html">L30</a> · <a href="../lessons/0031-binomial-trees-with-known-dollar-dividends.html">L31</a></span>
+  <span>Earlier: <a href="0024-computing-bsm-call-and-put-prices.html">L24</a> · <a href="0027-blacks-model-futures-options-and-fx.html">L27</a> · <a href="0028-bsm-capstone-exam-style-practice.html">L28</a> · <a href="../lessons/0029-dividend-yields-index-and-fx-options-bounds-parity.html">L29</a> · <a href="../reference/glossary.html">Glossary</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

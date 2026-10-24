@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dividend Yields: Index and FX Options</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.exq { border: 1px solid var(--rule); border-radius: 6px; padding: .2rem 1.1rem 1rem; margin: 1.4rem 0; background: var(--card); }
+.exq h3 { margin-top: 1rem; }
+.pt { display: flex; gap: .8rem; margin: .6rem 0; }
+.pt .mk { flex: none; font-family: Inter, system-ui, sans-serif; font-size: .78rem; font-weight: 600; color: var(--accent); width: 4.2rem; padding-top: .25rem; }
+.pt .tx { flex: 1; }
+.given { font-family: Inter, system-ui, sans-serif; font-size: .85rem; color: var(--muted); }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 29 · Topic 8: Dividends</div>
+<h1>Dividend yields: the \(S_0e^{-qT}\) rule, index and FX options, bounds and parity</h1>
+<p class="lede">The goal: after this lesson you can (1) swap \(S_0\) for \(S_0e^{-qT}\) without thinking, (2) say which rate is \(q\) for an index option and for a currency option, (3) write the lower bounds and put-call parity with \(q\) (or \(r_f\)) and derive them from two portfolios, and (4) get a put from a call, or an implied dividend yield, in three lines on a Casio fx-82.</p>
+
+<div class="mission">Why this matters for 5 Nov: Topic 8 sits in the 70% back half of the exam. Past finals asked for a European put on an index with a dividend yield (ASX200 style, short position, hedge follow-up), an FX call priced by BSM with the put (or a relabelled option) then found by put-call parity for 1 mark, and tutes repeat on exams (Tutorial 8 Q1, Q3 are parity questions). Derivations are examinable: you may be handed portfolios A and C and asked to show the parity. Parity and bounds questions are the cheapest marks in the topic: three lines each.</div>
+
+<p><strong>Source:</strong> Lecture 8 slides 3-18 (yield rule, index and currency options, bounds, parity) and slides 42-43 (practice questions). Hull's matching sections are numbered 15.1-15.3 in the edition on the slides (other editions number the chapter differently, roughly Ch. 17). <strong>Recommended primary source:</strong> read Lecture 8 slides 3-18 first (fifteen minutes, all in lecturer wording, and the formula sheet prints the same formulas), then use Hull only if a step is unclear. Builds on <a href="0007-assets-with-income-and-yield.html">Lesson 7</a> (index and yield, \(e^{-qT}\) in forward prices), <a href="0008-currency-forwards.html">Lesson 8</a> (currency forwards, \(r_f\)), <a href="0013-bounds-on-option-prices.html">Lesson 13</a> (bounds) and <a href="0014-put-call-parity.html">Lesson 14</a> (put-call parity); terms are in the <a href="../reference/glossary.html">glossary</a>. Binomial and BSM with dividends are the next lesson; here we only reuse the call price as an input.</p>
+
+<h2>1 · Why a dividend yield slows the price down</h2>
+<p>A <strong>dividend yield</strong> \(q\) (continuous, per year, e.g. \(q = 2\%\)) means the underlying pays out a steady stream of cash worth a fraction \(q\) of its price per year. When the cash is paid the price drops by the same amount (the stock is now worth less because the cash has left). So the price still earns its total return, but part of it arrives as cash, and the share price itself grows by \(q\) less.</p>
+<p><strong>Predict first:</strong> two stocks, identical in every way except stock 1 pays no dividends and stock 2 pays yield \(q\). Both give investors the same total return. Which one has the higher price at time \(T\), on average? Which has the higher price today if their prices at \(T\) are to have the same distribution?</p>
+<details><summary>Reveal (Lecture 8 slides 3-4)</summary><div>
+<p>Stock 1 (no dividends) ends higher on average: its growth is all capital gain, so it grows by \(q\) more per year, i.e. by a factor \(e^{qT}\) more over the life. For both to end with the <em>same distribution</em> at \(T\), stock 1 must start lower, at \(S_0e^{-qT}\):</p>
+<ul>
+<li>Stock A: starts at \(S_0\), pays yield \(q\).</li>
+<li>Stock B: starts at \(S_0e^{-qT}\), pays nothing.</li>
+</ul>
+<p>Stocks A and B have the same probability distribution of \(S_T\). Any European option's payoff depends only on \(S_T\), so it has the same value on both. <strong>Rule:</strong> to value a European option on an asset paying a known yield \(q\), replace \(S_0\) by \(S_0e^{-qT}\) and treat the asset as paying nothing.</p>
+</div></details>
+
+<p>One setup, three scenarios: an index at \(S_0 = 1{,}000\). The "effective starting price" \(S_0e^{-qT}\) is what the option really sees:</p>
+<div class="tablewrap"><table>
+<tr><th>Case</th><th>\(q\)</th><th>\(T\)</th><th>\(S_0e^{-qT}\)</th><th>Read it as</th></tr>
+<tr><td>No dividends</td><td>0%</td><td>1</td><td>1,000.00</td><td>Nothing changes</td></tr>
+<tr><td>Modest yield</td><td>2%</td><td>1</td><td>980.20</td><td>Option behaves as if the index were 19.80 lower</td></tr>
+<tr><td>Higher yield</td><td>4%</td><td>1</td><td>960.79</td><td>Bigger haircut</td></tr>
+<tr><td>Modest yield, short life</td><td>2%</td><td>0.5</td><td>990.05</td><td>Less time to leak dividends, smaller haircut</td></tr>
+<tr><td>Modest yield, long life</td><td>2%</td><td>2</td><td>960.79</td><td>Same as 4% for one year: only \(qT\) matters</td></tr>
+</table></div>
+<div class="box"><strong>Rule of thumb.</strong> Only the product \(qT\) matters, and it only ever lowers the effective starting price. Lower effective \(S_0\) means a <em>cheaper call, dearer put</em>, exactly as if the stock itself had fallen. Everything in this lesson is "write the old formula, put \(S_0e^{-qT}\) where \(S_0\) was".</div>
+
+<div class="quiz num" data-answer="1883.53" data-tol="0.01">
+  <p class="q"><strong>Check 1.</strong> An index is at 2,000 with a yield of 3% a year. A European option has 2 years to expiry. What number replaces \(S_0\)? (2 dp)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(2000e^{-0.03\times2} = 2000e^{-0.06} = 1{,}883.53\).</div>
+</div>
+
+<p>Try the explorer. Drag \(q\) up and watch \(S_0e^{-qT}\), the call bound and the put-from-parity move (it uses a typed call premium, so the parity put moves while the call is held fixed: a quick way to feel which side the yield helps).</p>
+<div class="dqe" data-s="480" data-k="470" data-r="0.05" data-q="0.03" data-t="0.5" data-c="20" data-label="q"></div>
+
+<h2>2 · The two underlyings: indices and currencies</h2>
+<p><strong>Stock index options.</strong> An index (S&amp;P 500, ASX200) is a basket of shares; the basket pays dividends, and we model them as a yield \(q\) on the index level (slide 6; the lecture also allows dollar dividends, which come next lesson). Index options are settled in cash on the index level times a <strong>multiplier</strong> ($ per index point; the tutes use $25 and $100). Price per point first, then multiply, exactly as in Tutorial 8 Q1.</p>
+<p><strong>Currency options.</strong> A foreign currency in a bank account earns the foreign risk-free rate \(r_f\), exactly like a stock paying a yield, so \(q = r_f\) (slide 7). Spot is quoted as "domestic per one foreign": "USD per CAD = 0.95" means USD is <em>domestic</em>, CAD is <em>foreign</em>, and the CAD option is priced in USD. You hold CAD, you earn the Canadian rate, so \(q\) is the <strong>Canadian</strong> rate and \(r\) is the <strong>US</strong> rate.</p>
+<div class="tablewrap"><table>
+<tr><th>Option</th><th>Underlying behaves like</th><th>\(S_0\)</th><th>\(q\)</th><th>\(r\) (discounts \(K\))</th></tr>
+<tr><td>Index option</td><td>Stock paying yield</td><td>Index level</td><td>Dividend yield \(q\)</td><td>Domestic risk-free</td></tr>
+<tr><td>Option on CAD, quote USD per CAD</td><td>Stock paying yield</td><td>USD per CAD</td><td>\(r_f\) = CAD rate</td><td>\(r\) = USD rate</td></tr>
+<tr><td>Option on EUR, quote USD per EUR</td><td>Stock paying yield</td><td>USD per EUR</td><td>\(r_f\) = EUR rate</td><td>\(r\) = USD rate</td></tr>
+</table></div>
+<div class="trap"><strong>Trap: which currency is the "stock"?</strong><br>The "stock" is the currency the quote is <em>per one unit of</em>. An option "to buy 1 CAD for USD 0.95" is a <em>call</em> on CAD. An option "to buy USD 0.95 with 1 CAD" is the same contract seen from the other side: you give 1 CAD, you receive USD 0.95, which is a <em>put</em> on CAD with strike 0.95 (Tutorial 8 Q3, last part). Same price, in USD per CAD.</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Check 2.</strong> Spot is quoted at 0.74 USD per EUR. The USD risk-free rate is 4.5% and the EUR rate is 3%. To price a European option to buy 1 EUR, which rate plays the role of the dividend yield \(q\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">4.5%, the USD rate, because the premium is paid in USD</button>
+    <button class="opt" data-key="b">1.5%, the difference between the two rates</button>
+    <button class="opt" data-key="c">3%, the EUR rate, because holding EUR earns it</button>
+    <button class="opt" data-key="d">Zero, because a currency pays no dividends</button>
+  </div>
+  <div class="why">The underlying is EUR. Holding it earns the EUR rate, just as holding a stock earns its yield. The USD rate discounts the strike. (The difference \(r - r_f\) does appear, but inside \(d_1\) and \(F_0\), not as \(q\).)</div>
+</div>
+
+<h2>3 · Lower bounds with a yield</h2>
+<p>A <strong>lower bound</strong> is the least a European option can be worth without a free lunch. For a no-dividend stock the call bound is \(S_0 - Ke^{-rT}\) (Lesson 13). Apply the rule: put \(S_0e^{-qT}\) in place of \(S_0\):</p>
+$$c \ \ge\ S_0e^{-qT} - Ke^{-rT}\ \ (\text{and}\ c \ge 0), \qquad p \ \ge\ Ke^{-rT} - S_0e^{-qT}\ \ (\text{and}\ p \ge 0).$$
+<p>Intuition: a call holder does not receive dividends, so the call is worth less than if the index paid none (lower bound falls); a put holder profits when the index drops, and a dividend makes it drop (put bound rises). In a currency option replace \(q\) by \(r_f\) and the bounds read \(S_0e^{-r_fT} - Ke^{-rT}\) and \(Ke^{-rT} - S_0e^{-r_fT}\).</p>
+
+<h3>Derive it yourself (derivation practice)</h3>
+<p>Exam format: the setup is given, you show the result. Setup (slides 11-12). Portfolio A: one European call plus cash \(Ke^{-rT}\) in a risk-free account. Portfolio B: \(e^{-qT}\) shares, with every dividend reinvested in more shares. Fill in the table of values at time \(T\) before you open the answer.</p>
+<div class="tablewrap"><table>
+<tr><th></th><th>Value today</th><th>\(S_T > K\)</th><th>\(S_T < K\)</th></tr>
+<tr><td>A: call + cash</td><td>\(c + Ke^{-rT}\)</td><td>?</td><td>?</td></tr>
+<tr><td>B: \(e^{-qT}\) shares, reinvested</td><td>\(S_0e^{-qT}\)</td><td>?</td><td>?</td></tr>
+</table></div>
+<p><strong>Hints:</strong> cash grows from \(Ke^{-rT}\) to \(K\) at rate \(r\). The shares grow at the dividend rate \(q\) over and above the price, so \(e^{-qT}\) shares become \(e^{-qT}\times e^{qT} = 1\) share by time \(T\).</p>
+<details><summary>Reveal the derivation (3 steps)</summary><div>
+<ol>
+<li>A at \(T\): cash is \(K\). If \(S_T > K\) the call pays \(S_T - K\), total \(S_T\). If \(S_T < K\) the call pays 0, total \(K\). So A \(= \max(S_T, K)\).</li>
+<li>B at \(T\): the reinvested shares equal exactly one share, so B \(= S_T\).</li>
+<li>\(\max(S_T, K) \ge S_T\) in every outcome, so A must be worth at least B today (otherwise buy B, sell A: no cost, never a loss). Hence \(c + Ke^{-rT} \ge S_0e^{-qT}\), so \(c \ge S_0e^{-qT} - Ke^{-rT}\). Together with \(c \ge 0\), \(c \ge \max(S_0e^{-qT} - Ke^{-rT}, 0)\).</li>
+</ol>
+<p>Why the reinvestment trick? Without it you would hold fewer shares at \(T\) than the call holder is exposed to; reinvesting turns \(e^{-qT}\) shares into exactly one share, which makes the comparison clean. The put bound is the mirror image (portfolio C: put plus \(e^{-qT}\) reinvested shares; D: cash \(Ke^{-rT}\)); you derive it in exam question 4 below.</p>
+</div></details>
+
+<p><strong>Numbers.</strong> Index \(S_0 = 480\), \(K = 470\), \(q = 3\%\), \(r = 5\%\), \(T = 0.5\). The bound is \(480e^{-0.015} - 470e^{-0.025} = 472.85 - 458.40 = 14.46\). Note the no-yield version would have claimed \(480 - 458.40 = 21.60\): too high, because it ignored the dividends the call holder misses.</p>
+<div class="quiz num" data-answer="14.46" data-tol="0.01">
+  <p class="q"><strong>Check 3.</strong> Index \(S_0 = 480\), \(K = 470\), \(q = 3\%\), \(r = 5\%\), \(T = 0.5\). What is the lower bound for the European call? (2 dp)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(480e^{-0.03\times0.5} - 470e^{-0.05\times0.5} = 472.8537 - 458.3957 = 14.46\).</div>
+</div>
+
+<p><strong>Arbitrage if the bound is broken.</strong> The call is quoted at 12.00, below 14.46. Buy the call, short \(e^{-qT} = 0.9851\) units of the index (receive 472.85) and lend 458.40:</p>
+<div class="tablewrap"><table>
+<tr><th>Step</th><th>\(t=0\)</th><th>\(t=T\)</th></tr>
+<tr><td>Buy call</td><td>\(-12.00\)</td><td>\(\max(S_T - 470, 0)\)</td></tr>
+<tr><td>Short \(0.9851\) index units (dividends owed on them reinvested to one unit)</td><td>\(+472.85\)</td><td>\(-S_T\)</td></tr>
+<tr><td>Lend \(470e^{-0.025}\)</td><td>\(-458.40\)</td><td>\(+470\)</td></tr>
+<tr><td><strong>Total</strong></td><td>\(+2.46\)</td><td>\(\max(470 - S_T, 0) \ge 0\)</td></tr>
+</table></div>
+<p>Profit 2.46 today, never a loss later: that is the gap \(14.46 - 12.00\) in action.</p>
+
+<h2>4 · Put-call parity with a yield</h2>
+<p><strong>Put-call parity</strong> ties the call and the put (same \(K\), same \(T\)) together. Without dividends, \(c + Ke^{-rT} = p + S_0\). Apply the rule:</p>
+$$c + Ke^{-rT} = p + S_0e^{-qT}\quad\text{(index or stock with yield)},\qquad c + Ke^{-rT} = p + S_0e^{-r_fT}\quad\text{(currency)}.$$
+<p><strong>Derivation (slide 17).</strong> Portfolio A: call plus cash \(Ke^{-rT}\). Portfolio C: put plus \(e^{-qT}\) shares with dividends reinvested. At \(T\): A \(= \max(S_T, K)\) as in Section 3. C: the shares are worth \(S_T\); if \(S_T < K\) the put pays \(K - S_T\), total \(K\); if \(S_T > K\) the put pays 0, total \(S_T\). So C \(= \max(S_T, K)\) too. Same payoff in every outcome means same price today: \(c + Ke^{-rT} = p + S_0e^{-qT}\). Check it yourself: write each cell of the table for C when \(S_T > K\) and when \(S_T < K\).</p>
+
+<h3>Worked example: get the put from the call (Tutorial 8 Q1 style)</h3>
+<p>Index \(S_0 = 800\), yield \(q = 3\%\), \(r = 5\%\), six months. A call with \(K = 820\) is worth 38.00 per point. Multiplier $25. Find the put with \(K = 820\), per point (2 dp), then per contract.</p>
+<p><strong>Predict:</strong> will the put be bigger or smaller than the call? (Hint: compare \(K\) with the forward price \(F_0 = S_0e^{(r-q)T} = 808.04\).)</p>
+<details><summary>Reveal</summary><div>
+<p>\(K = 820\) is above \(F_0 = 808.04\), so the put is worth more than the call (the put is in the money on the forward). Rearrange parity: \(p = c + Ke^{-rT} - S_0e^{-qT}\).</p>
+$$p = 38.00 + 820e^{-0.05\times0.5} - 800e^{-0.03\times0.5} = 38.00 + 799.7541 - 788.0896 = 49.66.$$
+<p>Per contract: \(49.66 \times 25 = \$1{,}241.50\) (using the rounded per-point price, as the tute solution does with 3.84 x 25; unrounded it is $1,241.61). Using no yield would give 37.75 (wrong, and smaller than the call: a clue).</p>
+</div></details>
+<div class="quiz num" data-answer="42.66" data-tol="0.01">
+  <p class="q"><strong>Check 4.</strong> Same index and strike as the example (\(S_0=800\), \(K=820\), \(q=3\%\), \(r=5\%\), \(T=0.5\)), but the call is now 31.00. What is the put per point (2 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(p = 31.00 + 799.7541 - 788.0896 = 42.66\): a 7-point lower call gives a 7-point lower put, since at fixed \(S_0, K, r, q, T\) the put moves one-for-one with the call.</div>
+</div>
+
+<h3>Worked example: implied dividend yield (Lecture 8 slide 42 style, new numbers)</h3>
+<p>An index is 1,200. European call and put with \(K = 1{,}150\) and \(T = 0.75\) have prices 101.00 and 36.00. \(r = 4\%\). The <strong>implied dividend yield</strong> is the \(q\) that makes parity hold. Solve (answer as a % to 2 dp).</p>
+<p><strong>Predict first:</strong> with no yield, parity would need \(c - p = S_0 - Ke^{-rT} = 84\); the market has \(c - p = 65\). Is \(q\) then zero, small positive or large?</p>
+<details><summary>Reveal</summary><div>
+<ol class="steps">
+<li>Parity: \(101 + 1150e^{-0.04\times0.75} = 36 + 1200e^{-0.75q}\).</li>
+<li>\(1150e^{-0.03} = 1116.0124\), so left side \(= 1217.0124\); subtract 36: \(1200e^{-0.75q} = 1181.0124\).</li>
+<li>\(e^{-0.75q} = 0.984177\), so \(-0.75q = \ln(0.984177) = -0.015950\).</li>
+<li>\(q = 0.015950/0.75 = 0.02127\), i.e. <strong>2.13%</strong>.</li>
+</ol>
+<p>Sanity: if \(q\) were 0 the right side would be 1236, too big; so a positive \(q\) of a couple of percent is needed to pull \(S_0e^{-qT}\) down to 1181. Calculator: the only keys are \(e^x\) and ln.</p>
+</div></details>
+<div class="quiz num" data-answer="2.13" data-tol="0.01">
+  <p class="q"><strong>Check 5.</strong> Implied dividend yield (in %, 2 dp) for the numbers above.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(q = -\ln(1181.0124/1200)/0.75 = 2.13\%\).</div>
+</div>
+
+<h3>Worked example: \(c = p\) when \(K = F_0\) (slide 43, currency)</h3>
+<p>Currency option, USD per CAD. Show that the call and put have the same price when the strike equals the forward price. <strong>Derivation (given the setup, show the result):</strong> start from parity \(c + Ke^{-rT} = p + S_0e^{-r_fT}\) and the currency forward price \(F_0 = S_0e^{(r-r_f)T}\) (Lesson 8). Then \(S_0e^{-r_fT} = F_0e^{-rT}\) (multiply \(F_0\) by \(e^{-rT}\) and the \(e^{rT}\) cancels). Parity becomes \(c + Ke^{-rT} = p + F_0e^{-rT}\), i.e.</p>
+$$c - p = (F_0 - K)e^{-rT}.$$
+<p>If \(K = F_0\), the right side is 0, so \(c = p\). Numbers: \(S_0 = 0.74\) USD per CAD, \(r = 4.5\%\), \(r_f = 3\%\), \(T = 1\): \(F_0 = 0.74e^{0.015} = 0.7512\). Directional by-product: \(K < F_0\) means \(c > p\); \(K > F_0\) means \(p > c\) (check: Section 4 example, \(K = 820 > 808.04\), put bigger). The same identity holds for any underlying with a yield (stock, index): \(c - p = (F_0 - K)e^{-rT}\) with \(F_0 = S_0e^{(r-q)T}\). This is the same "\(c - p\)" line as in Black's model (Lesson 27).</p>
+<div class="quiz num" data-answer="0.0339" data-tol="0.0001">
+  <p class="q"><strong>Check 6.</strong> Same currency (\(S_0=0.74\), \(r=4.5\%\), \(r_f=3\%\), \(T=1\)). A call with \(K=0.75\) is worth 0.0350 USD. What is the put with \(K=0.75\)? (4 dp)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">USD</span></div>
+  <div class="why">\(p = 0.0350 + 0.75e^{-0.045} - 0.74e^{-0.03} = 0.0350 + 0.7170 - 0.7181 = 0.0339\). \(K = 0.75 < F_0 = 0.7512\), so \(c > p\): consistent.</div>
+</div>
+
+<h2>5 · Direction drill: what if \(q\) or \(r_f\) rises?</h2>
+<p>One setup (index or currency, fixed \(K\) and \(T\)). Commit to an answer for each row before opening.</p>
+<details><summary>Reveal the drill</summary><div>
+<div class="tablewrap"><table>
+<tr><th>Change (others fixed)</th><th>Call</th><th>Put</th><th>Forward \(F_0\)</th><th>Why</th></tr>
+<tr><td>\(q\) up (index) </td><td>down</td><td>up</td><td>down</td><td>\(S_0e^{-qT}\) falls: like the index itself dropping</td></tr>
+<tr><td>\(r_f\) up (currency, option on foreign)</td><td>down</td><td>up</td><td>down</td><td>Same as above with \(q = r_f\): the foreign currency "leaks" more yield</td></tr>
+<tr><td>\(r\) (domestic) up</td><td>up</td><td>down</td><td>up</td><td>\(Ke^{-rT}\) falls, forward rises: \(c - p = S_0e^{-qT} - Ke^{-rT}\) widens</td></tr>
+<tr><td>\(T\) up with \(q > 0\) (call)</td><td>depends</td><td>depends</td><td>depends</td><td>Time adds optionality but also more yield leakage; for a deep ITM call the leakage can dominate</td></tr>
+<tr><td>Call lower bound when \(q\) up</td><td>down</td><td>(put bound up)</td><td>-</td><td>\(S_0e^{-qT} - Ke^{-rT}\) shrinks</td></tr>
+</table></div>
+<p><strong>One rule covers all rows:</strong> \(q\) (or \(r_f\)) up behaves like \(S_0\) down, so calls fall, puts rise. \(r\) up behaves like \(K\) discounted harder, so calls rise, puts fall.</p>
+</div></details>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Check 7.</strong> A call and a put on an index have the same strike \(K\), which equals today's forward price. The market's expected dividend yield then rises, nothing else changes. After the move, which statement is right?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(c = p\) still, because both lose the same amount</button>
+    <button class="opt" data-key="b">\(p > c\), because the forward falls below \(K\)</button>
+    <button class="opt" data-key="c">\(c > p\), because yield makes calls more valuable</button>
+    <button class="opt" data-key="d">Cannot say without \(\sigma\)</button>
+  </div>
+  <div class="why">\(F_0 = S_0e^{(r-q)T}\) falls when \(q\) rises, so now \(K > F_0\). From \(c - p = (F_0 - K)e^{-rT} < 0\): the put is worth more.</div>
+</div>
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>Check 8.</strong> The foreign interest rate on a currency rises (\(r\) unchanged). What happens to a European call on that currency?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It rises, since higher rates make everything more valuable</button>
+    <button class="opt" data-key="b">It rises, since the currency now pays more</button>
+    <button class="opt" data-key="c">Unchanged, since the call holder does not own the currency</button>
+    <button class="opt" data-key="d">It falls, since \(S_0e^{-r_fT}\) falls and the holder misses the interest</button>
+  </div>
+  <div class="why">The call holder does not hold the currency, so does not earn \(r_f\). Higher \(r_f\) cuts \(S_0e^{-r_fT}\), lowering the call and raising the put (and lowering the forward).</div>
+</div>
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Check 9.</strong> Why is the call lower bound with a yield <em>smaller</em> than the no-dividend bound \(S_0 - Ke^{-rT}\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The call holder misses the dividends, so the underlying is worth \(S_0e^{-qT}\) to them</button>
+    <button class="opt" data-key="b">Dividends make the strike cheaper to pay</button>
+    <button class="opt" data-key="c">The dividend yield increases volatility</button>
+    <button class="opt" data-key="d">The bound is smaller because \(q\) is a probability</button>
+  </div>
+  <div class="why">Dividends go to the share owner, not the option holder. Present value of what the call holder gives up: \(S_0 - S_0e^{-qT}\).</div>
+</div>
+
+<h3>Written answers (theory, 2-4 sentences each)</h3>
+<p>Write your own answer first, then compare with the model.</p>
+<p><strong>W1 (2 marks).</strong> Explain why a foreign currency can be treated as a stock paying a dividend yield, and which rate is the yield.</p>
+<details><summary>Model answer</summary><div><p>A holder of foreign currency can deposit it and earn the foreign risk-free rate \(r_f\), a continuous income proportional to the amount held, just as a stock pays a dividend yield. So the currency is like a stock paying yield \(q = r_f\), and \(S_0\) (domestic per unit of foreign) is replaced by \(S_0e^{-r_fT}\). The option holder does not own the currency, so does not receive this interest; the domestic rate \(r\) still discounts the strike.</p></div></details>
+<p><strong>W2 (2 marks).</strong> A dividend yield rises. Say what happens to a European call and put on the index and why, without a formula.</p>
+<details><summary>Model answer</summary><div><p>The call falls and the put rises. A higher dividend yield lowers the growth of the index price by \(q\), so the expected final index level falls. The call holder gains when the index is high but never receives the dividends, so is hurt; the put holder gains when it is low, so benefits. Equivalent to lowering \(S_0\) to \(S_0e^{-qT}\).</p></div></details>
+
+<h2>6 · Exam-style questions (about 8 marks, plus one derivation)</h2>
+<p>Do each timed (about two minutes a mark), calculator only. Method marks per line shown; answers given to the dp stated. Tutorial-8 level, nothing harder.</p>
+
+<div class="exq">
+<h3>Question 1 (3 marks): put from call, index</h3>
+<p>A stock index stands at 3,150. Its dividend yield is 2% p.a. and the risk-free rate is 4% p.a. A six-month European call with a strike of 3,200 is worth 148.60 index points. One index point is worth $20.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Use put-call parity to find the value of a six-month European put with strike 3,200, in index points, to 2 dp.</span></div>
+<div class="pt"><span class="mk">(b) 1 mark</span><span class="tx">What is one put contract worth in dollars? (Use your rounded answer from (a).)</span></div>
+<div class="quiz num" data-answer="166.58" data-tol="0.01">
+  <p class="q">(a) Put value per index point.</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(p = c + Ke^{-rT} - S_0e^{-qT} = 148.60 + 3200e^{-0.02} - 3150e^{-0.01} = 148.60 + 3136.6358 - 3118.6570 = 166.58\).</div>
+</div>
+<div class="quiz num" data-answer="3331.60" data-tol="0.5">
+  <p class="q">(b) Dollar value of one put contract.</p>
+  <div class="numrow"><span class="unit">$</span><input aria-label="Your answer"></div>
+  <div class="why">\(166.58 \times 20 = \$3{,}331.60\) (unrounded \(\$3{,}331.58\)).</div>
+</div>
+<details><summary>Marking guide</summary><div>
+<p>(a) 1 mark: parity written with \(q\) (and \(e^{-0.04\times0.5}=e^{-0.02}\), \(e^{-0.02\times0.5}=e^{-0.01}\)); 1 mark: numbers and 166.58. (b) 1 mark: multiplier. Common slips: using no yield (135.24), using \(T=6\) instead of 0.5, forgetting the multiplier. Sanity: \(K = 3200\) is above \(F_0 = 3150e^{0.01} = 3181.7\), so put > call: yes.</p>
+</div></details>
+</div>
+
+<div class="exq">
+<h3>Question 2 (2 marks): implied dividend yield</h3>
+<p>An index is 2,400. European call and put options with strike 2,300 and six months to expiry are priced at 176.40 and 39.80. The risk-free rate is 6% p.a. continuously compounded. What is the implied dividend yield? Give the answer as a percentage to 2 dp.</p>
+<div class="quiz num" data-answer="2.63" data-tol="0.01">
+  <p class="q">Implied dividend yield (%).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\(176.40 + 2300e^{-0.03} = 39.80 + 2400e^{-0.5q}\): \(2300e^{-0.03} = 2232.0247\), left \(= 2408.4247\), minus 39.80 gives \(2368.6247\). \(e^{-0.5q} = 0.986927\), \(-0.5q = -0.013159\), \(q = 2.63\%\).</div>
+</div>
+<details><summary>Marking guide</summary><div><p>1 mark: parity with unknown \(q\) and right discounting. 1 mark: solving with ln to 2.63%. Slip: forgetting to divide by \(T\) (gives 1.32%).</p></div></details>
+</div>
+
+<div class="exq">
+<h3>Question 3 (3 marks): currency option and parity</h3>
+<p>The spot exchange rate is USD 1.0800 per EUR. The USD risk-free rate is 5% p.a. and the EUR risk-free rate is 3% p.a. (both continuously compounded). A six-month European call to buy one EUR at USD 1.0800 is worth USD 0.0412.</p>
+<div class="pt"><span class="mk">(a) 1 mark</span><span class="tx">Which rate plays the role of the dividend yield in the parity relationship? State it.</span></div>
+<div class="pt"><span class="mk">(b) 1 mark</span><span class="tx">Use put-call parity to value the European put to sell one EUR at USD 1.0800 in six months. Answer to 4 dp.</span></div>
+<div class="pt"><span class="mk">(c) 1 mark</span><span class="tx">What is the value of an option to buy USD 1.0800 with one EUR in six months, in USD per EUR? Answer to 4 dp.</span></div>
+<div class="quiz num" data-answer="0.0306" data-tol="0.0001">
+  <p class="q">(b) Put value in USD (4 dp).</p>
+  <div class="numrow"><span class="unit">USD</span><input aria-label="Your answer"></div>
+  <div class="why">(a) \(r_f = 3\%\) (the EUR rate: the foreign currency is the underlying). (b) \(p = c + Ke^{-rT} - S_0e^{-r_fT} = 0.0412 + 1.08e^{-0.025} - 1.08e^{-0.015} = 0.0412 + 1.0533 - 1.0639 = 0.0306\).</div>
+</div>
+<div class="quiz num" data-answer="0.0306" data-tol="0.0001">
+  <p class="q">(c) Value of the option to buy USD 1.0800 with one EUR (USD per EUR, 4 dp).</p>
+  <div class="numrow"><span class="unit">USD</span><input aria-label="Your answer"></div>
+  <div class="why">Giving one EUR to receive USD 1.0800 is selling one EUR at strike 1.0800: the same put. Value USD 0.0306 (not a new calculation).</div>
+</div>
+<details><summary>Marking guide</summary><div><p>(a) EUR rate 3%. (b) correct parity with \(r_f\) in the \(S_0\) term and \(r\) on the strike (0.0306). (c) recognise it is the put (0.0306). Sanity: \(F_0 = 1.0800e^{0.01} = 1.0909 > K\), so the call (0.0412) is above the put (0.0306): yes.</p></div></details>
+</div>
+
+<div class="exq">
+<h3>Question 4 (derivation, 3 marks): the put lower bound</h3>
+<p>Portfolio C: one European put option with strike \(K\) and expiry \(T\), plus \(e^{-qT}\) shares of a stock paying a continuous dividend yield \(q\), with all dividends reinvested in more shares. Portfolio D: cash of \(Ke^{-rT}\) invested at the continuously compounded risk-free rate \(r\).</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Find the value of each portfolio at time \(T\) in the two cases \(S_T > K\) and \(S_T < K\).</span></div>
+<div class="pt"><span class="mk">(b) 1 mark</span><span class="tx">Deduce a lower bound for the put price \(p\) today.</span></div>
+<details><summary>Model answer and marking guide</summary><div>
+<p>(a) D at \(T\) is worth \(K\) in both cases. C: the \(e^{-qT}\) reinvested shares are worth \(e^{-qT}e^{qT}S_T = S_T\). If \(S_T < K\), the put pays \(K - S_T\), so C \(= K\). If \(S_T > K\), the put pays 0, so C \(= S_T\). Hence C \(= \max(S_T, K)\). (1 mark for D = K, 1 mark for C in each case.)</p>
+<p>(b) C \(\ge\) D in every outcome, so C must cost at least as much as D today: \(p + S_0e^{-qT} \ge Ke^{-rT}\), i.e. \(p \ge Ke^{-rT} - S_0e^{-qT}\) (and \(p \ge 0\)). (1 mark.)</p>
+</div></details>
+</div>
+
+<h2>7 · One-minute summary</h2>
+<div class="box">
+<p><strong>Rule.</strong> Yield \(q\) (index) or \(r_f\) (currency): replace \(S_0\) by \(S_0e^{-qT}\); keep \(Ke^{-rT}\). Bounds: \(c \ge S_0e^{-qT} - Ke^{-rT}\), \(p \ge Ke^{-rT} - S_0e^{-qT}\), both \(\ge 0\). Parity: \(c + Ke^{-rT} = p + S_0e^{-qT}\). Equivalent: \(c - p = (F_0 - K)e^{-rT}\), \(F_0 = S_0e^{(r-q)T}\), so \(K = F_0\) gives \(c = p\). Implied \(q = -\ln\big[(c + Ke^{-rT} - p)/S_0\big]/T\).</p>
+<p><strong>Process.</strong> Identify underlying and \(q\); \(T\) in years; compute \(S_0e^{-qT}\) and \(Ke^{-rT}\) separately; apply parity; multiply by the multiplier last; sanity check \(c\) vs \(p\) against \(K\) vs \(F_0\).</p>
+<p><strong>Traps.</strong> Using the domestic rate as \(q\); quote direction ("USD per CAD" means CAD is foreign); "option to buy USD with CAD" is a put on CAD; no multiplier; \(S_0e^{-qT}\) put in the wrong place (it replaces \(S_0\) only, not \(K\)).</p>
+</div>
+
+<h2>8 · Homework</h2>
+<p>Do <strong>Tutorial 8 Q1</strong> (put from call on an index, $25 per point): (i) write down \(S_0, K, q, r, T, c\), (ii) the put per point, (iii) per contract. Do <strong>Tutorial 8 Q3</strong> (Canadian dollar option): (i) the call from the BSM formula with \(q = r_f\) (formula sheet; <a href="0027-blacks-model-futures-options-and-fx.html">Lesson 27</a> previews it; the full yield-based BSM is the next lesson, so if stuck, take 0.0293 as given), (ii) the put by parity, (iii) the "buy USD 0.95 with one CAD" option. Solutions are in <code>tutes/Tutorial 8 Solutions.pdf</code>; skip Q2, Q4-Q7 for now (Q2 and Q6 come with the next lessons).</p>
+
+<div class="ask">Stuck on a step, or want a few more parity or implied-yield questions with other numbers (currency with a different quote, a put given a call, a short position)? Ask me in the terminal and paste your working.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0028-bsm-capstone-exam-style-practice.html">Lesson 28, BSM capstone</a></span>
+  <span><a href="../reference/glossary.html">Glossary</a> · <a href="../reference/options-cheatsheet.html">Options cheat sheet</a></span>
+  <a href="0030-binomial-trees-with-dividend-yield-index-and-fx.html">Next: Lesson 30</a>
+</div>
+
+<div class="score" data-score></div>
+<script src="../assets/div-qT-explorer.js"></script>
+</main>
+</body>
+</html>

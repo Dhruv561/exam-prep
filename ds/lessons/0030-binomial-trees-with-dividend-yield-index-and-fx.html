@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Binomial Trees with a Dividend Yield</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/div-yield-tree.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 30 · Topic 8: Dividends</div>
+<h1>Binomial trees with a dividend yield: index and currency options</h1>
+<p class="lede">The goal: build and roll back a tree for an option on an index or a currency. One number changes (the risk-neutral probability \(p\), because the asset now grows at \(r-q\) or \(r-r_f\), not \(r\)); everything else is Lessons 16 to 19. You will derive \(p\) from a given setup, price one-, two- and three-step European and American options, and say when early exercise is worth it.</p>
+
+<div class="mission">Why this matters for 5 Nov: Lecture 8 slides 19 to 24 are examinable and the lecturer has said derivations are examinable (the setup is given, you derive the result), so "derive \(p\) when the index pays a yield \(q\)" is a live 2 to 3 mark item. Finals mix binomial trees with index and FX underlyings (up to 3 steps, "4 dp at each step", about 8 marks per question), and Tutorial 8 Q5 is exactly the "compute \(u\), \(d\), \(p\) for a currency tree" step. No MCQ: this lesson ends with typed-answer and written-answer practice in the exam format. The traditional (expected payoff at a risk-adjusted rate) approach is not examined; everything here is risk-neutral.</div>
+
+<p>Assumes <a href="0016-one-period-binomial-replication.html">Lesson 16</a> (one-step replication), <a href="0017-risk-neutral-valuation.html">Lesson 17</a> (risk-neutral \(p\)), <a href="0018-two-step-trees-and-u-d-from-volatility.html">Lesson 18</a> (two-step trees, \(u=e^{\sigma\sqrt{\Delta t}}\)), <a href="0019-american-options-on-trees.html">Lesson 19</a> (hold vs exercise at every node), and <a href="0021-binomial-trees-for-futures-options.html">Lesson 21</a> (the same tree with a different \(p\)). The yield and currency inputs come from <a href="0008-currency-forwards.html">Lesson 8</a> (\(r_f\), "X per unit of foreign currency") and <a href="0029-dividend-yields-index-and-fx-options-bounds-parity.html">Lesson 29</a> (bounds and parity with \(q\) and \(r_f\)). Terms are in the <a href="../reference/glossary.html">glossary</a>.</p>
+
+<p><strong>Terms.</strong> <em>Dividend yield \(q\)</em>: the continuously compounded cash yield the index pays its holders, as a % of the index level (for example 3% a year). <em>Foreign interest rate \(r_f\)</em>: the rate earned on the foreign currency if you hold it in a foreign bank; for an option on a currency it plays exactly the role of \(q\). <em>Domestic currency</em>: the one the option is priced and paid in (the exchange rate is "domestic per 1 unit of foreign"). <em>Multiplier</em>: dollars per index point (for example $100) or <em>notional</em>: units of foreign currency in the contract (for example 100,000).</p>
+
+<h2>1 · Why the tree changes: the holder gets paid, so the price grows more slowly</h2>
+
+<p>In Lesson 17 the stock paid nothing. Holding it earned only the price change, so in the risk-neutral world (where every asset earns \(r\) on average) the <em>price</em> grew at \(r\). Now the asset pays you a cash flow on top of its price: dividends at yield \(q\) for an index, interest at \(r_f\) for a foreign currency. In the risk-neutral world the <em>total</em> return must still be \(r\), so</p>
+$$\underbrace{\text{price growth}}_{\text{what the tree shows}} \;+\; \underbrace{\text{yield}}_{q \text{ or } r_f} \;=\; r \quad\Longrightarrow\quad \text{price grows at } r-q \;(\text{or } r-r_f).$$
+<p>The tree only draws the price, so the tree's average must grow at \(r-q\). Option holders do <em>not</em> get the dividends or the foreign interest, which is why the option is worth less (call) or more (put) than with \(q=0\). That is the whole lesson in two sentences. The discounting is untouched: cash is still discounted at the domestic risk-free rate, \(e^{-r\Delta t}\).</p>
+
+<p><strong>Predict first.</strong> Same one-step tree, same \(u\) and \(d\). If the index starts paying a yield, does the probability of an up move \(p\) need to go up or down? And what does that do to a call?</p>
+<details><summary>Reveal</summary><div>
+<p>Down. With \(q>0\) the index must grow less on average, so the weight on the up node must fall. A smaller \(p\) means a lower call value (calls pay on the up node) and a higher put value (puts pay on the down node). Same direction as Lesson 29: \(q\) up, call down, put up.</p>
+</div></details>
+
+<h2>2 · Derive \(p\) (the exam gives you the setup)</h2>
+
+<div class="box"><strong>Setup you would be given.</strong> An index is at \(S_0\) and pays a continuous dividend yield \(q\). Over one step of length \(\Delta t\) it moves to \(S_0u\) with risk-neutral probability \(p\), or to \(S_0d\) with probability \(1-p\). The risk-free rate is \(r\) (continuous). <strong>Derive</strong> \(p\), and write down the one-step option value \(f\) in terms of \(f_u\), \(f_d\).</div>
+
+<p>Try it on paper (2 marks: the condition, then the algebra) before opening the answer.</p>
+<details><summary>Model derivation</summary><div>
+<ol class="steps">
+  <li><strong>Condition.</strong> In a risk-neutral world the index's total return is \(r\). The dividends supply \(q\), so the capital gain must supply \(r-q\): the expected index level at the end of the step is \(S_0e^{(r-q)\Delta t}\).</li>
+  <li><strong>Expected level from the tree.</strong> \(E[S_{\Delta t}] = p\,S_0u + (1-p)\,S_0d\).</li>
+  <li><strong>Equate and cancel \(S_0\).</strong> \(p\,u + (1-p)\,d = e^{(r-q)\Delta t}\).</li>
+  <li><strong>Solve.</strong> \(p(u-d) + d = e^{(r-q)\Delta t}\), so
+  $$p \;=\; \frac{e^{(r-q)\Delta t}-d}{u-d}.$$</li>
+  <li><strong>Option value.</strong> The option pays no dividends and is a plain cash claim, so it is discounted at \(r\): \(f = e^{-r\Delta t}\,[\,p f_u + (1-p) f_d\,]\).</li>
+</ol>
+<p>Currency: replace \(q\) by \(r_f\): \(p = \dfrac{e^{(r-r_f)\Delta t}-d}{u-d}\). Check: a foreign-currency deposit earns \(r_f\) in foreign currency, so the exchange rate itself is expected to grow at \(r-r_f\).</p>
+</div></details>
+
+<details><summary>Second route (replication), if the exam setup is a hedge portfolio</summary><div>
+<p>Buy \(\Delta\) units of the index and reinvest the dividends in the index, so by the end of the step you hold \(\Delta e^{q\Delta t}\) units. Sell one option. Riskless means the same value in both states: \(\Delta e^{q\Delta t}S_0u - f_u = \Delta e^{q\Delta t}S_0d - f_d\), so \(\Delta = \dfrac{f_u - f_d}{e^{q\Delta t}S_0(u-d)}\). Today's value is \(f = \Delta S_0 - e^{-r\Delta t}(\Delta e^{q\Delta t}S_0u - f_u)\), and substituting \(\Delta\) and simplifying gives exactly \(f = e^{-r\Delta t}[pf_u+(1-p)f_d]\) with the \(p\) above (checked numerically on the slide-23 numbers below). Same answer, so use whichever route the question sets up; the expected-return route is the lecture's (slide 21).</p>
+</div></details>
+
+<h3>The lecture example (slides 22 to 24), then the same tree with other yields</h3>
+<p>Six-month put, \(K=40\), \(S_0=50\), \(u=1.2\), \(d=0.7\) (so \(S_u=60\), \(S_d=35\)), \(r=6\%\), \(q=2\%\), \(\Delta t = 0.5\). Then \(e^{(0.06-0.02)\times0.5}=1.0202\), \(p=(1.0202-0.7)/0.5=0.6404\). Payoffs: \(f_u=0\), \(f_d=5\). \(f = e^{-0.03}\,[0.6404\times0+0.3596\times5]=\$1.74\) (the lecture's answer). Now change only \(q\):</p>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>\(q\)</th><th>\(e^{(r-q)\Delta t}\)</th><th>\(p\)</th><th>Put \(f\)</th><th>Call \(f\) (same \(K=40\))</th></tr>
+<tr><td>0%</td><td>1.0305</td><td>0.6609</td><td>1.65</td><td>12.83</td></tr>
+<tr><td>2%</td><td>1.0202</td><td>0.6404</td><td>1.74</td><td>12.43</td></tr>
+<tr><td>6%</td><td>1.0000</td><td>0.6000</td><td>1.94</td><td>11.65</td></tr>
+</table>
+</div>
+<p>At \(q=r\) (6%) the index is expected to stay flat: \(e^{0}=1\). As \(q\) rises the up-probability falls, the put gains and the call loses. The put is a little more expensive and the call a little cheaper, but the move is modest because \(q\) only works through one half-year.</p>
+
+<div class="trap"><strong>Common slips</strong><br>(i) Using \(e^{(r-q)\Delta t}\) in the <em>discount</em> factor: discounting stays \(e^{-r\Delta t}\). (ii) Using \(T\) where the one-step formula needs \(\Delta t\) (two-step: \(\Delta t = T/2\)). (iii) Rounding \(e^{(r-q)\Delta t}\) to 4 dp before dividing: keep it on the calculator (rounding to 0.9925 instead of 0.992528 moves \(p\) from 0.4129 to 0.4126). (iv) On an FX tree swapping which rate is \(r\) (the one the option is paid in) and which is \(r_f\) (the one on the unit of foreign currency being tracked).</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> You move from a no-dividend index to an otherwise identical index with \(q=3\%\) (same \(u\), \(d\), \(r\)). What happens to the tree's \(p\), and to the one-step call?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(p\) rises; the call is worth more</button>
+    <button class="opt" data-key="b">\(p\) is unchanged; the call is worth less because the discount factor changes</button>
+    <button class="opt" data-key="c">\(p\) falls; the call is worth less</button>
+    <button class="opt" data-key="d">\(p\) falls; the call is worth more</button>
+  </div>
+  <div class="why">\(p=(e^{(r-q)\Delta t}-d)/(u-d)\) falls when \(q\) rises. The call pays on the up node, which now has less weight. The discount factor \(e^{-r\Delta t}\) does not involve \(q\).</div>
+</div>
+
+<div class="quiz num" data-answer="0.4841" data-tol="0.0006">
+  <p class="q"><strong>2.</strong> An index has \(\sigma = 25\%\), \(r=6\%\), \(q=4\%\), \(\Delta t=0.5\). Find \(u\) and \(d\) to 4 dp (check: \(u=1.1934\), \(d=0.8380\)), then \(p\) to 4 dp.</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(u=e^{0.25\sqrt{0.5}}=1.1934\), \(d=1/1.1934=0.8380\). \(e^{(0.06-0.04)\times0.5}=e^{0.01}=1.0101\). \(p=(1.0101-0.8380)/(1.1934-0.8380)=0.1721/0.3554=0.4841\). With no yield it would be \(e^{0.03}=1.0305\), \(p=0.5415\): the yield lowers \(p\) by about 0.06.</div>
+</div>
+
+<h3>Tutorial 8 Q5: \(u\), \(d\), \(p\) for a currency tree (numeric practice)</h3>
+<div class="box">Tutorial 8 Q5: a binomial tree values an option on a foreign currency. Step size one month, domestic rate 5% p.a., foreign rate 8% p.a., volatility 12% p.a. Find \(u\), \(d\), \(p\).</div>
+<div class="quiz num" data-answer="1.0352" data-tol="0.00006">
+  <p class="q"><strong>3a.</strong> \(u = e^{\sigma\sqrt{\Delta t}}\) with \(\Delta t = 1/12\) (4 dp):</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(u=e^{0.12\times\sqrt{1/12}}=e^{0.034641}=1.0352\).</div>
+</div>
+<div class="quiz num" data-answer="0.966" data-tol="0.00006">
+  <p class="q"><strong>3b.</strong> \(d=1/u\) (4 dp):</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(d=e^{-0.034641}=0.9660\) (from the unrounded \(u\); \(1/1.0352=0.9660\) too).</div>
+</div>
+<div class="quiz num" data-answer="0.4552" data-tol="0.0003">
+  <p class="q"><strong>3c.</strong> \(p=\dfrac{e^{(r-r_f)\Delta t}-d}{u-d}\) (4 dp):</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(e^{(0.05-0.08)/12}=e^{-0.0025}=0.9975\) (the tute solution prints this factor). \(p=(0.9975031-0.9660)/(1.0352-0.9660)=0.0315/0.0692=0.4552\) with \(u,d\) rounded to 4 dp (0.4553 if you keep unrounded \(u\) and \(d\); either is within the marking tolerance a 4-dp question allows). Compare with the no-foreign-rate value \(p=0.5517\): \(r_f>r\) pulls \(p\) below one half, because the foreign currency is expected to <em>depreciate</em> by 3% a year in the risk-neutral world (it earns more interest than the domestic currency, so it must lose value to compensate).</div>
+</div>
+
+<h2>3 · Two steps on an index: European, then American</h2>
+
+<p>Index at \(S_0=500\), put strike \(K=520\), \(\sigma=20\%\), \(r=5\%\), \(q=2\%\), one year, two steps (\(\Delta t=0.5\)), $100 per index point. This one setup runs through every scenario below.</p>
+<ol class="steps">
+  <li><strong>Parameters (4 dp).</strong> \(u=e^{0.2\sqrt{0.5}}=1.1519\), \(d=0.8681\). \(e^{(0.05-0.02)\times0.5}=e^{0.015}=1.0151\). \(p=(1.0151-0.8681)/(1.1519-0.8681)=0.5180\). Discount \(e^{-0.025}=0.9753\).</li>
+  <li><strong>Stock tree.</strong> \(t=1\): 575.95 (up), 434.05 (down). \(t=2\): 663.44 (uu), 499.98 (ud), 376.80 (dd). (The middle node is 499.98, not 500, because \(u\) and \(d\) are rounded to 4 dp; use it as is.)</li>
+  <li><strong>Expiry put payoffs</strong> \(\max(520-S,0)\): 0, 20.02, 143.20.</li>
+  <li><strong>European roll-back.</strong> Up node: \(0.9753\,[0.5180\times0+0.4820\times20.02]=9.4113\). Down node: \(0.9753\,[0.5180\times20.02+0.4820\times143.20]=77.4318\). Today: \(0.9753\,[0.5180\times9.4113+0.4820\times77.4318]=\) <strong>41.1549</strong>. Per contract: \(41.1549\times100=\$4{,}115.49\).</li>
+  <li><strong>American.</strong> Down node: hold 77.4318 vs exercise \(520-434.05=85.95\): <strong>exercise</strong>, value 85.95. Up node: hold 9.4113 vs exercise 0: hold. Today: hold \(0.9753\,[0.5180\times9.4113+0.4820\times85.95]=\) <strong>45.1593</strong> vs exercise \(520-500=20\): hold. American put \(=45.1593\) (\(\$4{,}515.93\) per contract), early-exercise premium \(45.1593-41.1549=4.0044\).</li>
+</ol>
+
+<div class="quiz num" data-answer="0.518" data-tol="0.0006">
+  <p class="q"><strong>4.</strong> For this index tree, what is \(p\) (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(e^{0.015}=1.015113\); \((1.015113-0.8681)/(1.1519-0.8681)=0.1470/0.2838=0.5180\).</div>
+</div>
+<div class="quiz num" data-answer="41.15" data-tol="0.01">
+  <p class="q"><strong>5.</strong> European put value on the index, in index points (2 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">points</span></div>
+  <div class="why">From the roll-back: 9.4113 (up), 77.4318 (down), today 41.1549, i.e. 41.15 points.</div>
+</div>
+<div class="quiz num" data-answer="4515.93" data-tol="0.5">
+  <p class="q"><strong>6.</strong> American put on one index contract ($100 per point), in dollars (2 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">American \(=45.1593\) points, exercise at the down node. \(45.1593\times100=\$4{,}515.93\). If you answered $4,115.49 you gave the European value.</div>
+</div>
+
+<p><strong>Same tree, other yields.</strong> Change only \(q\) (at-the-money \(K=500\), \(S_0=500\), everything else as above). Predict first: as \(q\) rises from 0 to 6%, what happens to the <em>premium for being American</em> on the put, and on the call?</p>
+<details><summary>Reveal the table</summary><div>
+<div class="tablewrap">
+<table class="ledger">
+<tr><th>\(q\)</th><th>\(p\)</th><th>Euro call</th><th>Amer call</th><th>Euro put</th><th>Amer put</th></tr>
+<tr><td>0%</td><td>0.5540</td><td>47.7149</td><td>47.7149</td><td>23.3202</td><td>28.6919</td></tr>
+<tr><td>2%</td><td>0.5180</td><td>41.7152</td><td>41.7152</td><td>27.2354</td><td>31.0075</td></tr>
+<tr><td>4%</td><td>0.4824</td><td>36.1784</td><td>36.1784</td><td>31.4056</td><td>33.2973</td></tr>
+<tr><td>6%</td><td>0.4472</td><td>31.0912</td><td>33.1259</td><td>35.8210</td><td>35.8210</td></tr>
+</table>
+</div>
+<p>(Strike 500, \(r=5\%\).) Reading across: \(p\) falls and the European call falls steadily while the European put rises, as predicted. The American <em>put</em> premium shrinks as \(q\) rises (5.37, 3.77, 1.89, then 0 at \(q=6\%>r\)); the American <em>call</em> premium is zero until \(q\) is large (6%, above \(r\)) and then it appears. Reason in Section 4.</p>
+<p>Parity check with the tree values at \(q=2\%\): call minus put \(=41.7152-27.2354=14.48\). Lesson 29's parity says \(c-p=S_0e^{-qT}-Ke^{-rT}=500e^{-0.02}-500e^{-0.05}=14.48\). The tree obeys it. If your tree does not, you have the wrong \(p\) or a wrong discount factor.</p>
+</div></details>
+
+<p>Play with it: set up your own tree. Try the two-step index put above (\(q=2\%\)), then slide \(q\) up and watch the highlighted exercise node disappear. The widget works with full-precision \(u\), \(d\), so its numbers can differ slightly from the 4-dp exam working (for example 41.1475 here vs 41.1549 by hand).</p>
+<div class="ytree" data-s="500" data-k="520" data-r="0.05" data-q="0.02" data-dt="0.5" data-n="2" data-sigma="0.2" data-type="put"></div>
+
+<h2>4 · When is early exercise worth it? (the yield is what you give up)</h2>
+
+<p>Every early-exercise decision weighs the same two things (Lesson 15, Lesson 19):</p>
+<ul>
+  <li><strong>Exercising early earns interest on the strike</strong> (a call pays \(K\) later by holding on; a put receives \(K\) sooner by exercising). That is the pull of \(r\).</li>
+  <li><strong>Holding the option keeps the insurance</strong> (the option value above intrinsic).</li>
+</ul>
+<p>A dividend yield adds a third term for <em>calls</em>. If you hold the option instead of the asset, you do not receive the dividends (or the foreign interest). If you exercise the call, you own the asset and start collecting \(q\) (or \(r_f\)). So <strong>the yield is the price of waiting</strong>:</p>
+<div class="box">
+<p><strong>Call on an asset with yield \(q\) (or \(r_f\)):</strong> exercising early gives up the interest on \(K\) (rate \(r\)) but collects the yield (rate \(q\)). Early exercise can be optimal once \(q>0\); it is likely when \(q\) is large compared with \(r\), the call is deep in the money, and the yield is about to be paid. With \(q=0\) (the Lesson 15 case) it is never optimal.</p>
+<p><strong>Put on that asset:</strong> exercising early receives \(K\) sooner (interest at \(r\)) and throws away the chance that the asset falls further. A high \(q\) makes the index <em>drift down</em> (\(r-q\)), which is good for the put, so waiting is worth more. Early exercise is more likely when \(r\) is large compared with \(q\), and becomes less likely as \(q\) rises (zero when \(q\geq r\) in the examples here).</p>
+</div>
+<p>Summary: calls care about \(q\) beating \(r\); puts care about \(r\) beating \(q\). With a currency, read \(q\) as \(r_f\): the call on the foreign currency is exercised early when the foreign rate is high compared with the domestic rate; the put when the domestic rate is high compared with the foreign rate.</p>
+
+<h3>Scenario A: an American call on a high-yield index</h3>
+<p>\(S_0=500\), \(K=480\), \(\sigma=20\%\), \(r=3\%\), \(q=7\%\), one year, two steps (same \(u=1.1519\), \(d=0.8681\)). \(e^{(0.03-0.07)\times0.5}=e^{-0.02}=0.9802\), \(p=(0.9802-0.8681)/0.2838=0.3950\), discount \(e^{-0.015}=0.9851\). Tree: 575.95 / 434.05; 663.44, 499.98, 376.80. Call payoffs: 183.44, 19.98, 0. Put payoffs (\(K=480\)): 0, 0, 103.20.</p>
+<p><strong>Predict first:</strong> the up node (575.95) is deep in the money. Will the American holder exercise there?</p>
+<details><summary>Reveal</summary><div>
+<p>Up node: hold \(0.9851\,[0.3950\times183.44+0.6050\times19.98]=83.2870\) vs exercise \(575.95-480=95.95\): <strong>exercise</strong> (collecting a 7% yield beats 3% interest on the strike). Down node: hold \(0.9851\,[0.3950\times19.98]=7.7745\), exercise 0: hold. Today: American \(=0.9851\,[0.3950\times95.95+0.6050\times7.7745]=41.9690\) vs 20 exercise now: hold. European: \(0.9851\,[0.3950\times83.2870+0.6050\times7.7745]=37.0417\). Premium \(=4.93\). The same call with \(q=0\) has no exercise node and no premium.</p>
+</div></details>
+<div class="quiz num" data-answer="41.97" data-tol="0.01">
+  <p class="q"><strong>7.</strong> American call value in Scenario A (2 dp, index points)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">points</span></div>
+  <div class="why">41.9690 \(\to\) 41.97. The only exercise node is the up node at \(t=1\) (575.95). European is 37.04.</div>
+</div>
+<div class="quiz num" data-answer="36.66" data-tol="0.01">
+  <p class="q"><strong>8.</strong> Same index and tree (\(q=7\%\), \(r=3\%\), \(K=480\)). The <em>put</em> is American. What is its value (2 dp)? Is any node exercised?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">points</span></div>
+  <div class="why">Payoffs 0, 0, 103.20. Down node: hold \(0.9851\,[0.3950\times0+0.6050\times103.20]=61.51\) vs exercise \(480-434.05=45.95\): hold. Up node: payoffs both 0, value 0. Today: 36.6565 \(\to\) 36.66, equal to the European put: no node is exercised, because \(q>r\) means the index drifts down by itself, so keeping the put pays more than the interest on \(K\).</div>
+</div>
+
+<h3>Scenario B: a three-step currency tree (domestic USD, foreign currency F)</h3>
+<p>Exchange rate \(S_0=1.3000\) (USD per F), call strike \(K=1.2500\), \(\sigma=10\%\), \(r=2\%\) (USD), \(r_f=5\%\) (F), 9 months, three steps (\(\Delta t=0.25\)), notional F100,000.</p>
+<ol class="steps">
+  <li><strong>Parameters (4 dp).</strong> \(u=e^{0.1\sqrt{0.25}}=1.0513\), \(d=0.9512\). \(e^{(0.02-0.05)\times0.25}=e^{-0.0075}=0.9925\). \(p=(0.9925-0.9512)/(1.0513-0.9512)=0.4129\). Discount \(e^{-0.005}=0.9950\).</li>
+  <li><strong>Rate tree (4 dp).</strong> \(t=1\): 1.3667, 1.2366. \(t=2\): 1.4368, 1.3000, 1.1762. \(t=3\): 1.5105, 1.3667, 1.2366, 1.1188.</li>
+  <li><strong>Expiry call payoffs</strong> \(\max(S-1.25,0)\): 0.2605, 0.1167, 0, 0.</li>
+  <li><strong>\(t=2\)</strong> (hold vs exercise): uu 1.4368: hold \(0.9950\,[0.4129\times0.2605+0.5871\times0.1167]=0.1752\), exercise 0.1868, so <strong>exercise</strong>. ud 1.3000: hold 0.0479, exercise 0.0500, so <strong>exercise</strong>. dd: 0.</li>
+  <li><strong>\(t=1\).</strong> Up 1.3667: hold \(0.9950\,[0.4129\times0.1868+0.5871\times0.0500]=0.1060\), exercise \(0.1167\): <strong>exercise</strong>. Down 1.2366: hold \(0.9950\,[0.4129\times0.0500]=0.0205\), exercise 0: hold.</li>
+  <li><strong>\(t=0\).</strong> Hold \(0.9950\,[0.4129\times0.1167+0.5871\times0.0205]=0.0599\) vs exercise \(0.05\): hold. <strong>American call \(=0.0599\) USD per F</strong>, i.e. \(0.0599\times100{,}000=\$5{,}990\).</li>
+  <li><strong>European</strong> (no max): \(t=2\): 0.1752, 0.0479, 0; \(t=1\): 0.1000, 0.0197; \(t=0\): 0.0526, i.e. \(\$5{,}260\). Early-exercise premium \(0.0073\) (\$730).</li>
+</ol>
+<div class="ytree" data-s="1.3" data-k="1.25" data-r="0.02" data-q="0.05" data-dt="0.25" data-n="3" data-sigma="0.1" data-type="call" data-dp="4"></div>
+
+<div class="quiz num" data-answer="0.4129" data-tol="0.0004">
+  <p class="q"><strong>9.</strong> Scenario B: \(p\) to 4 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(e^{-0.0075}=0.992528\); \((0.992528-0.9512)/(1.0513-0.9512)=0.041328/0.1001=0.4129\). (Using the rounded 0.9925 gives 0.4126, within tolerance in an exam, but avoid it.)</div>
+</div>
+<div class="quiz num" data-answer="5990" data-tol="5">
+  <p class="q"><strong>10.</strong> Scenario B: dollar value of the American call on F100,000?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(0.0599\times100{,}000=\$5{,}990\). European: \(\$5{,}260\).</div>
+</div>
+
+<h3>Scenario C: the mirror image, an American put when the domestic rate is higher</h3>
+<p>Swap the rates: \(S_0=1.3000\), \(K=1.3000\), \(\sigma=10\%\), \(r=5\%\) (USD), \(r_f=2\%\) (F), 9 months, three steps. Now \(e^{(0.05-0.02)\times0.25}=1.0075\), \(p=0.5627\), discount \(e^{-0.0125}=0.9876\), same rate tree. The put payoffs at \(t=3\): 0, 0, 0.0634, 0.1812. At the down-down node (\(S=1.1762\), \(t=2\)): hold \(0.9876\,[0.5627\times0.0634+0.4373\times0.1812]=0.1135\) vs exercise \(1.3000-1.1762=0.1238\): <strong>exercise</strong>. The American put is \(0.0362\), the European \(0.0343\). The put is exercised early for the mirror-image reason to Scenario B's call (here the domestic rate is the higher one).</p>
+<div class="quiz num" data-answer="0.0362" data-tol="0.0003">
+  <p class="q"><strong>11.</strong> Scenario C: American put value (4 dp, USD per F)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Down node at \(t=1\) (1.2366): hold \(0.9876\,[0.5627\times0.0274+0.4373\times0.1238]=0.0687\) vs exercise 0.0634: hold. Up node: 0.0118. Today: \(0.9876\,[0.5627\times0.0118+0.4373\times0.0687]=0.0362\) vs exercise 0: hold. So the only exercise node is dd at \(t=2\). European 0.0343.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>12.</strong> You value an American <em>call</em> on a foreign currency with \(r_f > r\) and find no exercise node on a three-step tree. Which is most plausible?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The tree is wrong: calls with \(r_f > r\) are always exercised somewhere</button>
+    <button class="opt" data-key="b">The call is out of the money or far from expiry; the yield gain is too small to beat the time value at every node</button>
+    <button class="opt" data-key="c">\(p\) must have been computed with \(r_f\) as the discount rate</button>
+    <button class="opt" data-key="d">American and European calls on currencies are always equal</button>
+  </div>
+  <div class="why">Early exercise is <em>possible</em>, not automatic. A deep out-of-the-money or high-volatility call keeps its option value, and a small \(r_f - r\) gap gives a small gain. (Scenario B's strike 1.30 call at the same rates has exercise only at the top node, \(S=1.4368\).)</div>
+</div>
+
+<div class="trap"><strong>Do not</strong> write "American call = European call" on an index or currency tree just because that was true for a non-dividend stock (Lesson 15, Lecture 6 slide 8). With \(q>0\) (or \(r_f>0\)) it can fail. Do the hold-vs-exercise check at each node, as in Lesson 19.</div>
+
+<h3>Short written answers (2 to 4 sentences; write first, then reveal)</h3>
+<details><summary>W1 (2 marks). An American call on a non-dividend stock is never exercised early. Explain why this can fail for a call on an index.</summary><div>
+<p>Model answer: holding the call (rather than the index) forgoes the dividends, so exercising early lets the holder collect the dividend yield \(q\) at the cost of paying \(K\) earlier. For a non-dividend stock there is nothing to collect, and waiting gives interest on \(K\) plus the option's time value, so waiting wins. With a large \(q\), a deep in-the-money index call can be worth more exercised than held, because the yield received exceeds the interest earned on \(K\) and the remaining time value.</p>
+</div></details>
+<details><summary>W2 (2 marks). A student says "the up-probability \(p\) is a real-world probability, so a currency that is expected to appreciate should have a higher \(p\)". Correct this.</summary><div>
+<p>Model answer: \(p\) is the risk-neutral probability, chosen so that the rate grows at \(r-r_f\) on average; it is not a forecast. It does not use any view on appreciation. A currency with \(r_f>r\) has \(p\) below the no-foreign-rate value because holders of the currency already earn \(r_f\), so in the risk-neutral world its price grows slowly (or falls).</p>
+</div></details>
+<details><summary>W3 (2 marks). Why is the discount factor \(e^{-r\Delta t}\) and not \(e^{-(r-q)\Delta t}\)?</summary><div>
+<p>Model answer: the option's payoff is a cash amount that does not include the dividends. Its expected value is discounted at the risk-free rate because the risk-neutral valuation says every traded claim earns \(r\) in total. The dividend yield belongs to the index holder and enters only through the tree's drift \(r-q\), via \(p\).</p>
+</div></details>
+
+<h2>5 · Rule of thumb</h2>
+<div class="box"><strong>Yield changes the tree through \(p\) only.</strong> \(p=\dfrac{e^{(r-q)\Delta t}-d}{u-d}\) (index; \(r_f\) for FX), \(u=e^{\sigma\sqrt{\Delta t}}\), \(d=1/u\), discount \(e^{-r\Delta t}\), value \(f=e^{-r\Delta t}[pf_u+(1-p)f_d]\), American = max(hold, exercise) at each node. Direction: \(q\) (or \(r_f\)) up \(\Rightarrow\) \(p\) down \(\Rightarrow\) call down, put up. Early exercise: a call is exercised early when \(q\) (or \(r_f\)) beats \(r\); a put when \(r\) beats \(q\). Multiply by the multiplier or notional at the end.</div>
+
+<details><summary>Retrieval: before moving on, write from memory the derivation of \(p\) and the two early-exercise rules</summary><div>
+<p>Total return must be \(r\); dividends give \(q\); capital gains give \(r-q\): \(pS_0u+(1-p)S_0d=S_0e^{(r-q)\Delta t}\), so \(p=(e^{(r-q)\Delta t}-d)/(u-d)\). Call: early exercise only with \(q>0\), likely when \(q\) is large against \(r\). Put: likely when \(r\) is large against \(q\). The yield is what you give up by holding the option instead of the asset.</p>
+</div></details>
+
+<h2>6 · Exam-style set (about 10 marks; type your answers, 4 dp at each step)</h2>
+<p>Close the page notes. Time yourself: about 18 minutes (roughly 2 minutes a mark), no calculator memory of the answers. Questions follow the tutes' level: given setup, ask for the result. Marks are in brackets.</p>
+
+<h3>Question 1 (3 marks): derive and compute \(p\) for an index</h3>
+<div class="box">A stock index has level \(S_0\) and pays a continuous dividend yield \(q\). Over a time step \(\Delta t\) the index rises to \(S_0u\) with risk-neutral probability \(p\) or falls to \(S_0d\) with probability \(1-p\). The risk-free rate is \(r\) (continuously compounded).<br>
+(a) <strong>[2]</strong> Derive an expression for \(p\) in terms of \(r\), \(q\), \(\Delta t\), \(u\), \(d\).<br>
+(b) <strong>[1]</strong> The index has volatility 20% p.a., \(r=4\%\), \(q=3\%\), and \(\Delta t = 0.25\) years. Find \(u\), \(d\) and \(p\) to 4 dp.</div>
+<details><summary>Model answer to (a), 2 marks</summary><div>
+<p>[1] In a risk-neutral world the total return on the index is \(r\), of which \(q\) comes from dividends, so the expected capital gain is at rate \(r-q\): \(pS_0u+(1-p)S_0d=S_0e^{(r-q)\Delta t}\). [1] Solving, \(p(u-d)=e^{(r-q)\Delta t}-d\), so \(p=\dfrac{e^{(r-q)\Delta t}-d}{u-d}\).</p>
+</div></details>
+<div class="quiz num" data-answer="0.4875" data-tol="0.0003">
+  <p class="q"><strong>Q1(b).</strong> \(p\) to 4 dp (check \(u=1.1052\), \(d=0.9048\) first).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(u=e^{0.2\sqrt{0.25}}=e^{0.1}=1.1052\), \(d=0.9048\). \(e^{(0.04-0.03)\times0.25}=e^{0.0025}=1.0025\). \(p=(1.0025-0.9048)/(1.1052-0.9048)=0.0977/0.2004=0.4875\). Mark scheme: \(u,d\) correct (0.5), \(p\) correct (0.5). With \(q=0\) it would be 0.5252: the yield lowers \(p\), which is the direction you should expect.</div>
+</div>
+
+<h3>Question 2 (5 marks): European and American call on a currency</h3>
+<div class="box">The exchange rate is 0.7500 USD per unit of currency F. A six-month American call on F has strike 0.7200 USD. The USD risk-free rate is 3% p.a. and the F risk-free rate is 6% p.a. (continuously compounded). The volatility is 10% p.a. Use a two-step tree (\(\Delta t=0.25\)); round \(u\), \(d\), \(p\) and every value to 4 dp.<br>
+(a) <strong>[1]</strong> Find \(u\), \(d\), \(p\).<br>
+(b) <strong>[2]</strong> Value the European call.<br>
+(c) <strong>[2]</strong> Value the American call; state at which node (if any) it is exercised early and why.</div>
+<div class="quiz num" data-answer="0.4129" data-tol="0.0004">
+  <p class="q"><strong>Q2(a).</strong> \(p\) (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(u=e^{0.1\sqrt{0.25}}=1.0513\), \(d=0.9512\). \(e^{(0.03-0.06)\times0.25}=e^{-0.0075}=0.992528\). \(p=(0.992528-0.9512)/(1.0513-0.9512)=0.4129\). [1 mark]</div>
+</div>
+<div class="quiz num" data-answer="0.0326" data-tol="0.0003">
+  <p class="q"><strong>Q2(b).</strong> European call (4 dp, USD per F)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Rates: \(t=1\): 0.7885, 0.7134; \(t=2\): 0.8289, 0.7500, 0.6786. Payoffs (\(K=0.72\)): 0.1089, 0.0300, 0. Discount \(e^{-0.0075}=0.9925\). Up node: \(0.9925\,[0.4129\times0.1089+0.5871\times0.0300]=0.0621\). Down node: \(0.9925\,[0.4129\times0.0300]=0.0123\). Today: \(0.9925\,[0.4129\times0.0621+0.5871\times0.0123]=0.0326\). [Marks: tree and payoffs 1, roll-back 1]</div>
+</div>
+<div class="quiz num" data-answer="0.0352" data-tol="0.0003">
+  <p class="q"><strong>Q2(c).</strong> American call (4 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Up node (0.7885): hold 0.0621 vs exercise \(0.7885-0.7200=0.0685\): <strong>exercise</strong>, value 0.0685. Down node: hold 0.0123 vs 0: hold. Today: hold \(0.9925\,[0.4129\times0.0685+0.5871\times0.0123]=0.0352\) vs exercise \(0.7500-0.7200=0.0300\): hold. American call \(=0.0352\). Reason [1 mark]: \(r_f>r\), so exercising the call at the up node lets the holder collect the higher foreign interest, which more than offsets the interest lost on paying \(K\) early and the small time value left.</div>
+</div>
+
+<h3>Question 3 (2 marks): written</h3>
+<div class="box">In Question 2 the American call was worth more than the European call. Would an American <em>put</em> on F with the same strike and parameters also be worth more than its European counterpart? Answer in at most four sentences.</div>
+<details><summary>Model answer (2 marks)</summary><div>
+<p>[1] No: here they are equal. Early exercise of a put is attractive when the domestic rate \(r\) is high compared with \(r_f\): receiving \(K\) early earns interest. [1] Here \(r=3\%&lt;r_f=6\%\), so F is expected to fall at 3% a year in the risk-neutral world; the put gains by waiting, and no node is exercised (the tree gives 0.0140 for both European and American).</p>
+</div></details>
+
+<div class="trap"><strong>Marking habits that cost marks</strong><br>(i) Write the formula before the numbers. (ii) Show \(e^{(r-q)\Delta t}\) as a separate line so a slip in \(p\) is visible. (iii) State "exercise" or "hold" at <em>every</em> node of an American tree. (iv) Finish with the unit (points, USD per F, or dollars per contract).</div>
+
+<p><strong>Primary source:</strong> <a href="../lectures/Lecture%208_Dividends.pdf">Lecture 8 (Dividends)</a>, slides 19 to 24 (binomial tree with a dividend yield; the lecture's example is the six-month put with \(u=1.2\), \(d=0.7\)), and Hull, <em>Options, Futures and Other Derivatives</em>, the binomial-tree chapter's section on options on stocks paying a continuous dividend yield (the lecture cites it as 12.10), and the later chapter section on trees for options on stock indices and currencies. Hull's chapter numbers vary by edition; check your copy.</p>
+<p><strong>Homework (trimmed).</strong> <a href="../tutes/Tutorial%208.pdf">Tutorial 8</a> Q5 (compute \(u\), \(d\), \(p\) for the currency tree; then, with \(S_0=0.60\), \(K=0.60\), value a one-month European call on that one-step tree: 0.0096). Then choose from <a href="../tutes/Tutorial%206.pdf">Tutorial 6</a> Q1 (the 3-month American put, solutions: 0.2923, exercise at the $49 node) and rerun it as an index put with a dividend yield of \(q=4\%\): (i) find \(p\) (0.6672, against 0.7513 with \(q=0\)), (ii) work back and decide where you exercise (same two nodes, $49 and $48.02), (iii) state American 0.4026 (European 0.3245) and compare with the \(q=0\) answer 0.2923 in one sentence. Tutorial 8 Q6 (known dollar dividend) belongs to Lesson 31, skip it here.</p>
+<p><strong>Spacing:</strong> tomorrow redo Scenario B (three-step FX) cold in 12 minutes; in three days redo Question 1 (derive \(p\)) from a blank page in 3 minutes.</p>
+
+<div class="ask">💬 Stuck on a node, a rounding difference, or the derivation? Want fresh numbers (a different \(q\), a currency put, a three-step index put)? Paste your working in the terminal and ask me. I'm your teacher for this.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0029-dividend-yields-index-and-fx-options-bounds-parity.html">Lesson 29, yields, bounds, parity</a></span>
+  <span>Reference: <a href="../reference/options-cheatsheet.html">Options cheatsheet</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="0019-american-options-on-trees.html">Lesson 19</a> · <a href="0021-binomial-trees-for-futures-options.html">Lesson 21</a></span>
+  <a href="0031-binomial-trees-with-known-dollar-dividends.html">Next: Lesson 31 (known dollar dividends)</a>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

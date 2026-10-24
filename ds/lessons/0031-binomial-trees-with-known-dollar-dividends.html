@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Binomial Trees with Known Dollar Dividends</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 31 · Topic 8: Dividends</div>
+<h1>Binomial trees with a known dollar dividend</h1>
+<p class="lede">The goal: price a European or American option on a tree when the stock will drop by a known dollar dividend inside the option's life. You will start the tree at \(S_0^* = S_0 - PV(D)\), say why that tree recombines, say when a dividend is ignored, and spot the one node where an American call is worth exercising early: just before an ex-dividend date.</div>
+
+<div class="mission">Why this matters for 5 Nov: Lecture 8 slides 25-27 do exactly this, topic 8 is part of the 70% weighting (Topics 5-10), and trees can have up to 3 steps. A past practice paper put a dividend on a 3-period American put (as a percentage drop at a node), and past BSM questions gave a stock with two dividends where one falls after expiry and must be ignored. The tree version is a calculator exercise of 4-8 marks: S0*, u, d, p, tree, answer to the stated dp, "4 dp at each step".</div>
+
+<p>Assumes <a href="0018-two-step-trees-and-u-d-from-volatility.html">Lesson 18</a> (two-step trees, \(u=e^{\sigma\sqrt{\Delta t}}\), \(d=1/u\)), <a href="0019-american-options-on-trees.html">Lesson 19</a> (max of hold and exercise at each node) and <a href="0015-early-exercise-of-american-options.html">Lesson 15</a> (why a call is never exercised early without dividends). The yield / index / FX trees (a <em>proportional</em> dividend, not a dollar one) are in <a href="0030-binomial-trees-with-dividend-yield-index-and-fx.html">Lesson 30</a>; the BSM version of today's rule is in <a href="0032-bsm-with-dividends-yield-fx-and-known-dollar.html">Lesson 32</a>. Terms: a <strong>known dollar dividend</strong> is a cash amount \(D\) per share, fixed and certain, paid on a known date. The <strong>ex-dividend date</strong> (ex-date) is the first day the stock trades without the right to that dividend, so its price drops by about \(D\) that morning.</p>
+
+<h2>1 · The problem: a dollar drop breaks the tree</h2>
+
+<p>In a plain tree every step multiplies the price by \(u\) or \(d\). Up-then-down gives the same price as down-then-up (\(S\,u\,d = S\,d\,u\)), which is why the tree <strong>recombines</strong> (paths meet at the same node) and why 2 steps need 3 end nodes, 3 steps need 4, and so on. Now take a stock at $50, \(u=1.2\), \(d=0.8\), and a $2 dividend that goes ex after step 1. The stock falls by $2 whichever node it is at:</p>
+
+<div class="tablewrap"><table class="ledger">
+<tr><th>Path</th><th>After step 1</th><th>Ex-date: minus $2</th><th>After step 2</th></tr>
+<tr><td>up, up</td><td>60.00</td><td>58.00</td><td>69.60</td></tr>
+<tr><td>up, down</td><td>60.00</td><td>58.00</td><td>46.40</td></tr>
+<tr><td>down, up</td><td>40.00</td><td>38.00</td><td>45.60</td></tr>
+<tr><td>down, down</td><td>40.00</td><td>38.00</td><td>30.40</td></tr>
+</table></div>
+
+<p>Up-down gives 46.40 but down-up gives 45.60. The paths no longer meet, so there are 4 end nodes instead of 3. With 3 steps and the dividend after step 1 there are 6 end nodes instead of 4, and every extra dividend multiplies the mess. The dollar amount is what hurts: $2 is a bigger share of a low price than of a high one.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Predict.</strong> A 2-step tree, \(S_0=50\), \(u=1.2\), \(d=0.8\), a $2 dividend with ex-date between step 1 and step 2. How many different stock prices are there at the end?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">3, a dividend just shifts the tree</button>
+    <button class="opt" data-key="b">4</button>
+    <button class="opt" data-key="c">2</button>
+    <button class="opt" data-key="d">6</button>
+  </div>
+  <div class="why">Each of the two step-1 nodes loses $2 and then branches into its own pair of prices: 69.60, 46.40, 45.60, 30.40. Four distinct values, so the tree does not recombine.</div>
+</div>
+
+<div class="quiz num" data-answer="46.4" data-tol="0.01">
+  <p class="q">Compute the stock price after "up then down" with the $2 ex-date between the steps (2 dp).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\((50\times1.2 - 2)\times 0.8 = 58\times 0.8 = 46.40\). The other order, "down then up", is \((40-2)\times1.2 = 45.60\).</div>
+</div>
+
+<h2>2 · The fix: split the stock into a riskless part and a risky part</h2>
+
+<p><strong>Intuition.</strong> If you know for certain that $2 is coming out of the stock, then $2 of today's price is not really "stock risk": it is a sure payment, as safe as a bond. Only the rest of the price moves randomly. So write
+
+\[S_t = S^*_t + PV_t(D)\qquad(\text{before the ex-date}),\qquad S_t = S^*_t\qquad(\text{after it}).\]</p>
+
+<p>Here \(S^*_t\) is the <strong>risky component</strong> and \(PV_t(D) = D\,e^{-r(t_{ex}-t)}\) is the <strong>riskless component</strong> (the present value at time \(t\) of the dividend still to come). The riskless part grows at \(r\) and ends up exactly \(D\) at the ex-date, where it is paid out. At that moment \(S\) drops by \(D\) but \(S^*\) does not move at all: the drop is entirely the riskless component leaving. So \(S^*\) has no jumps, and that is why a plain \(u\)/\(d\) tree works for it.</p>
+
+<div class="box">
+<strong>Lecture 8 recipe (slides 25-26).</strong>
+<ol class="steps">
+  <li>Keep only dividends whose ex-date is <strong>before expiry</strong>. A dividend after expiry never affects an option that is already dead: ignore it completely.</li>
+  <li>\(PV(D) = D\,e^{-r\,t_{ex}}\) (add up several dividends, each discounted from its own date), and \(S_0^* = S_0 - PV(D)\).</li>
+  <li>Build a normal tree from \(S_0^*\): \(u=e^{\sigma\sqrt{\Delta t}}\), \(d=1/u\), \(p=\dfrac{e^{r\Delta t}-d}{u-d}\). Here \(\sigma\) is the volatility of the <em>risky component</em> \(S^*\). Exam questions give you one \(\sigma\) (or \(u\) and \(d\) directly, as slide 26 does): use it as is.</li>
+  <li>Payoff at expiry from the end nodes of the \(S^*\) tree, exactly as for a no-dividend stock. Work back with \(e^{-r\Delta t}[\,p f_u+(1-p)f_d\,]\). (American options: one extra step, section 4.)</li>
+</ol>
+</div>
+
+<p><strong>Why the end nodes are the actual stock price.</strong> Any dividend we kept has an ex-date before expiry. By expiry its riskless component has grown to \(D\) and been paid, so the stock at expiry is \(S_T = S^*_T\) with nothing added. That is why the payoff is \(\max(S^*_T-K,0)\) for a call: no add-back at the end nodes.</p>
+
+<p>Lecture slide 26 is the same idea drawn out: \(S_0=52\), \(D=2.06\) in 3.5 months, \(r=10\%\), so \(PV(D)=2.06e^{-0.1\times3.5/12}=2\) and \(S_0^*=50\). The tree is drawn on 50, with the "actual" price in brackets (e.g. 58.14 at month 1 is 56.12 plus the PV of the dividend still to come, about 2.02). Slide 27 prices the 5-step version; the slide itself says 5 steps is not examinable, so skip its binomial-coefficient formula.</p>
+
+<div class="trap"><strong>What the lecture does not say.</strong> (1) The slides only treat a <em>European</em> put. The rule for American options in section 4 (value the early-exercise payoff at the actual price \(S^*+PV\) of dividends still to come) comes from the student notes in the workspace ("create a new tree by adding the PV of the dividends at each node") and from Hull. (2) Strictly \(\sigma\) is the volatility of \(S^*\), which is a bit larger than the quoted stock volatility because \(S^*&lt;S\). Exams just give one number; use it.</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Predict.</strong> Compared with the same option on a no-dividend stock, a known $2 dividend before expiry makes \(S_0^*\) smaller than \(S_0\). What does that do to a European call and a European put?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Both are worth less: a smaller starting price lowers every option</button>
+    <button class="opt" data-key="b">Call worth more, put worth less</button>
+    <button class="opt" data-key="c">Call worth less, put worth more</button>
+    <button class="opt" data-key="d">No change, the dividend is just a transfer to shareholders</button>
+  </div>
+  <div class="why">The stock holder gets the dividend but the option holder does not, and the stock price drops by it. A lower stock price is bad for calls (smaller \(S-K\)) and good for puts (bigger \(K-S\)). Same direction as the lower \(S_0^*\).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q">A 6-month option, stock \(S_0=62\), one $1 dividend with ex-date in 9 months. What is \(S_0^*\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(62 - e^{-r\times 0.75}\)</button>
+    <button class="opt" data-key="b">\(62 - 1\)</button>
+    <button class="opt" data-key="c">\(62 + 1\)</button>
+    <button class="opt" data-key="d">62: the dividend is after expiry, so ignore it</button>
+  </div>
+  <div class="why">The option has expired by month 6, so a month-9 dividend does not touch it. This is the "stock with two dividends, one after expiry" trap in past BSM questions (and Tute 8 Q6 part c).</div>
+</div>
+
+<h3>Derive it from this setup (about 4 marks)</h3>
+<div class="box">A stock pays one certain dividend \(D\) at time \(t_1&lt;T\) (the ex-date). The risk-free rate is \(r\) (continuous). Define \(S^*_t = S_t - De^{-r(t_1-t)}\) for \(t\le t_1\) and \(S^*_t=S_t\) for \(t\ge t_1\). (a) Show that \(S^*\) does not jump at \(t_1\) even though \(S\) does. (b) Show \(S^*_0=S_0-PV(D)\). (c) Explain why a tree built on \(S^*\) with factors \(u\) and \(d\) recombines.</div>
+<details><summary>Model answer</summary><div>
+<p>(a) Just before \(t_1\): \(S^*=S-De^{0}=S-D\). Just after \(t_1\): \(S^*=S\). The stock price falls by \(D\) at the ex-date, so the price just after equals the price just before minus \(D\), which is exactly the value of \(S^*\) just before. Hence \(S^*\) is continuous at \(t_1\): the whole drop is the riskless part leaving.</p>
+<p>(b) At \(t=0\), \(De^{-r(t_1-0)}=PV(D)\), so \(S^*_0=S_0-De^{-rt_1}=S_0-PV(D)\).</p>
+<p>(c) With no jumps, \(S^*\) only changes by the up/down factor each step, so \(S^*_{t+\Delta t}=S^*_t u\) or \(S^*_t d\) whatever happened before. Up then down gives \(S^*u d\), down then up gives \(S^*d u\): the same, so the tree recombines and has \(n+1\) nodes after \(n\) steps.</p>
+</div></details>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>Check.</strong> A stock pays a $2 dividend with ex-date 4 months from now. The risky component 1 month from now is 56.00. What is the actual stock price then (\(r=6\%\))?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">56.00</button>
+    <button class="opt" data-key="b">\(56.00+2e^{-0.06\times 3/12}=57.97\)</button>
+    <button class="opt" data-key="c">\(56.00+2=58.00\)</button>
+    <button class="opt" data-key="d">\(56.00-2=54.00\)</button>
+  </div>
+  <div class="why">Before the ex-date the stock is the risky part plus the PV of the dividend still to come. 3 months remain until the ex-date, so \(2e^{-0.015}=1.9702\) and the price is 57.97. (Option (c) forgets to discount.)</div>
+</div>
+
+<h2>3 · One setup, several scenarios (European)</h2>
+
+<p>Running example for the rest of the lesson. Stock \(S_0=\$50\), strike \(K=\$50\), \(r=6\%\), \(\sigma=30\%\), 6-month option, <strong>2 steps</strong> (\(\Delta t=0.25\)). A $2 dividend goes ex in <strong>4 months</strong>.</p>
+
+<ol class="steps">
+  <li>\(PV(D)=2e^{-0.06\times4/12}=2e^{-0.02}=1.9604\), so \(S_0^*=50-1.9604=48.0396\).</li>
+  <li>\(u=e^{0.3\sqrt{0.25}}=e^{0.15}=1.1618\), \(d=1/u=0.8607\), \(p=\dfrac{e^{0.015}-0.8607}{1.1618-0.8607}=0.5128\).</li>
+  <li>Risky-component tree, rounding each node to 4 dp:</li>
+</ol>
+
+<div class="tablewrap"><table class="ledger">
+<tr><th>Time</th><th>Down</th><th>Middle</th><th>Up</th></tr>
+<tr><td>0</td><td></td><td>48.0396</td><td></td></tr>
+<tr><td>3 months</td><td>41.3477</td><td></td><td>55.8124</td></tr>
+<tr><td>6 months (end)</td><td>35.5880</td><td>48.0378</td><td>64.8428</td></tr>
+</table></div>
+
+<p>(The middle end node is \(S_0^*ud\). With rounded \(u\) and \(d\) it differs from 48.0396 in the 4th decimal; it never changes a 2 dp answer, and in the lecture the same thing happens with 50 and 49.99.)</p>
+
+<p><strong>European call, \(K=50\).</strong> End payoffs: \(0,\ 0,\ 64.8428-50=14.8428\). One step back: down node \(0\), up node \(e^{-0.015}[0.5128\times14.8428+0.4872\times0]=7.4981\). Today: \(e^{-0.015}[0.5128\times7.4981]=3.7878\), so <strong>\(c=3.79\)</strong>.</p>
+<p><strong>European put, \(K=50\).</strong> End payoffs \(14.4120,\ 1.9622,\ 0\). One step back: down \(e^{-0.015}[0.5128\times1.9622+0.4872\times14.4120]=7.9082\), up \(e^{-0.015}[0.5128\times0+0.4872\times1.9622]=0.9418\). Today \(e^{-0.015}[0.5128\times0.9418+0.4872\times7.9082]=4.2713\), so <strong>\(p=4.27\)</strong>.</p>
+
+<div class="quiz num" data-answer="0.5128" data-tol="0.0002">
+  <p class="q"><strong>Check.</strong> What is \(p\) here (4 dp)? Note that the dividend has not changed it.</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(u=1.1618\), \(d=0.8607\), \(e^{0.015}=1.0151\): \(p=(1.0151-0.8607)/(1.1618-0.8607)=0.5128\). The dividend only changes the starting point \(S_0^*\), not \(u\), \(d\) or \(p\).</div>
+</div>
+
+<p>Now change one thing at a time, same tree otherwise (values to 2 dp; the American columns are explained in section 4):</p>
+
+<div class="tablewrap"><table class="ledger">
+<tr><th>Dividend</th><th>European call</th><th>European put</th><th>American call</th><th>American put</th></tr>
+<tr><td>none</td><td>4.46</td><td>2.99</td><td>4.46</td><td>3.34</td></tr>
+<tr><td>$1, ex in 4 months</td><td>4.13</td><td>3.63</td><td>4.13</td><td>3.63</td></tr>
+<tr><td>$2, ex in 4 months</td><td>3.79</td><td>4.27</td><td>3.94</td><td>4.27</td></tr>
+<tr><td>$4, ex in 4 months</td><td>3.11</td><td>5.56</td><td>3.80</td><td>5.56</td></tr>
+<tr><td>$2, ex in 8 months (after expiry)</td><td>4.46</td><td>2.99</td><td>4.46</td><td>3.34</td></tr>
+</table></div>
+
+<p><strong>Read the table (intuition).</strong> Bigger dividend: call down (about $0.33 per $1 of dividend), put up (about $0.64 per $1). Each moves by less than $1 because the option holder only feels the dividend through the drop in the stock; the two together move by about \(PV(D)\), which is what parity says. Dividend after expiry: nothing changes, the row equals the no-dividend row. Put and call move in opposite directions; at the same strike they differ by a parity-style amount that includes \(PV(D)\) (Lesson 14: \(c + PV(D)+Ke^{-rT}=p+S_0\)).</p>
+
+<div class="quiz num" data-answer="48.04" data-tol="0.01">
+  <p class="q"><strong>Quick one.</strong> A 6-month option, \(S_0=\$50\), \(r=6\%\), a $2 dividend with ex-date in 2 months. What is \(S_0^*\)? (2 dp)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(PV=2e^{-0.06\times2/12}=2e^{-0.01}=1.9801\), so \(S_0^*=50-1.9801=48.0199\approx48.02\). If you got 48.04 you used 4 months (the running example), not 2.</div>
+</div>
+
+<h2>4 · Optional, beyond the slides: American options with a dollar dividend</h2>
+
+<div class="trap"><strong>Lower priority.</strong> Lecture 8 (slides and handwritten notes) only values a <em>European</em> option on the \(S^*\) tree. This American rule comes from Hull and your student notes, so treat it as extra. Master sections 1–3 and Question 1 first.</div>
+
+<p>A European option only cares about the end nodes, where \(S=S^*\). An American holder can exercise now, at a node earlier than expiry, and what you receive then is based on the <strong>actual stock price</strong>, which includes the dividend that has not yet been paid:</p>
+
+<div class="box"><strong>Node rule.</strong> At each earlier node, actual stock price = \(S^*\) at that node + PV (at that time) of the dividends still to come. Exercise value = \(\max(S-K,0)\) or \(\max(K-S,0)\) using that actual price. Option value there = \(\max\{\text{hold},\ \text{exercise}\}\), where hold is the usual discounted \(p,\,1-p\) average of the next-step values. After the last ex-date there is nothing to add back and \(S=S^*\).</div>
+
+<p><strong>Running example, American call, \(K=50\).</strong> The ex-date is at 4 months, after the 3-month nodes. At month 3 the dividend is still to come, with PV \(2e^{-0.06\times1/12}=1.9900\).</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>3-month node</th><th>\(S^*\)</th><th>+ PV of dividend</th><th>Actual \(S\)</th><th>Exercise \(S-K\)</th><th>Hold</th><th>Value</th></tr>
+<tr><td>Down</td><td>41.3477</td><td>1.9900</td><td>43.3377</td><td>0</td><td>0.0000</td><td>0.0000</td></tr>
+<tr><td>Up</td><td>55.8124</td><td>1.9900</td><td>57.8024</td><td>7.8024</td><td>7.4981</td><td><strong>7.8024 (exercise)</strong></td></tr>
+</table></div>
+<p>At the up node exercising pays 7.8024 and keeping is worth 7.4981 (the same number as the European calculation). So exercise. Today: \(e^{-0.015}[0.5128\times7.8024]=3.9415\), <strong>\(C=3.94\)</strong> against \(c=3.79\). The early-exercise premium is 0.15.</p>
+
+<div class="trap"><strong>Trap.</strong> Comparing exercise with \(S^*\) alone: \(55.8124-50=5.81&lt;7.50\), so you would never exercise and would get \(C=c=3.79\). The add-back is what turns \(S-K\) from 5.81 into 7.80.</div>
+
+<p><strong>Why it is optimal to exercise a call right before the ex-date.</strong> If you keep the call through the ex-date, the stock drops by \(D\) and you get none of that dividend. If you exercise just before, you own the stock and collect \(D\). What you give up: the interest you would earn on the strike \(K\) you now pay early, and the "insurance" value of keeping the option alive (you can walk away if the stock falls). So you exercise only if \(D\) is big enough to beat those, and the only moment it can pay is the last node before an ex-date. In the table above that happens for $2 and $4 (premium 0.15 and 0.69), not for $1 or $0. No dividend: never (Lesson 15).</p>
+
+<p><strong>Same setup, put.</strong> For a put the dividend is good news: the stock is about to fall by \(D\), which raises \(K-S\). So the put holder prefers to <em>wait</em> through the ex-date. Compare the down node at month 3:</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Put, \(K=50\), down node at 3 months</th><th>Actual \(S\)</th><th>Exercise \(K-S\)</th><th>Hold</th><th>Decision</th></tr>
+<tr><td>Ex-date in <strong>4 months</strong> (dividend still to come)</td><td>43.3377</td><td>6.6623</td><td>7.9082</td><td>Hold</td></tr>
+<tr><td>Ex-date in <strong>2 months</strong> (already paid)</td><td>41.3307</td><td>8.6693</td><td>7.9253</td><td>Exercise</td></tr>
+</table></div>
+<p>Same node, same stock level after the drop, opposite decision: with the dividend still ahead, holding captures the drop for free. After the ex-date the usual "deep in-the-money put, collect interest on \(K\)" logic applies and exercise wins. American put values: 4.27 (ex in 4 months, equals European) and 4.64 (ex in 2 months, European 4.28).</p>
+
+<div class="box"><strong>Rule of thumb.</strong> <em>Calls:</em> the only early-exercise candidate is the node just before an ex-date, and it needs a big \(D\). <em>Puts:</em> dividend still ahead pushes you to hold; early exercise is a post-ex-date story, as in a no-dividend tree. At each node check hold against exercise at the <strong>actual</strong> price (\(S^*+\) PV of dividends still to come).</div>
+
+<div class="quiz num" data-answer="57.8" data-tol="0.01">
+  <p class="q"><strong>Check.</strong> In the running example (\(S^*_{up}=55.8124\) at month 3, \(D=2\) ex in month 4, \(r=6\%\)), what is the actual stock price at the up node? (2 dp)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(55.8124+2e^{-0.06/12}=55.8124+1.9900=57.8024\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Concept check.</strong> Which American option, on which node, is the standard early-exercise case with a known dividend?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A call, at the node just before an ex-dividend date</button>
+    <button class="opt" data-key="b">A call, at the node just after an ex-dividend date</button>
+    <button class="opt" data-key="c">A put, at the node just before an ex-dividend date</button>
+    <button class="opt" data-key="d">Any option at the first node</button>
+  </div>
+  <div class="why">A call holder wants to own the stock on the cum-dividend side to collect \(D\); after the ex-date there is nothing to collect and (with no later dividend) the call is never exercised early. A put holder is happy to wait through the drop.</div>
+</div>
+
+<div class="quiz num" data-answer="3.94" data-tol="0.01">
+  <p class="q"><strong>Check.</strong> American call value in the running example (2 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Up node value 7.8024 (exercise), down node 0. \(e^{-0.015}[0.5128\times7.8024+0.4872\times0]=3.9415\approx3.94\).</div>
+</div>
+
+<h2>5 · Cross-check: Tutorial 8 Q6 on a tree</h2>
+
+<p>Tutorial 8 Q6 is a BSM question, but it is the same dividend logic and a good test: stock $30, \(K=29\), \(r=5\%\), \(\sigma=25\%\), 4 months, a 50-cent dividend ex in 1.5 months. \(PV(D)=0.5e^{-0.05\times1.5/12}=0.4969\), \(S_0^*=29.5031\). (The ex-date can fall inside a step; only \(S_0^*\) matters.) Binomial values rounded to 2 dp:</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Steps</th><th>1</th><th>2</th><th>3</th><th>200</th><th>BSM exact</th><th>Tutorial solution (tables)</th></tr>
+<tr><td>European call</td><td>2.61</td><td>2.12</td><td>2.34</td><td>2.21</td><td>2.21</td><td>2.27</td></tr>
+<tr><td>European put</td><td>1.63</td><td>1.14</td><td>1.35</td><td>1.22</td><td>1.22</td><td>1.29</td></tr>
+</table></div>
+<p>With few steps the tree zigzags around the BSM value; as steps grow it converges to it (Lesson 25). The tutorial's 2.27 and 1.29 differ from the exact 2.21 and 1.22 because it rounds \(d_1,d_2\) to 2 dp and uses table values of \(N(\cdot)\): the exam's "round \(d\) to 2 dp" rule costs a few cents. Part (c): a second 50-cent dividend with ex-date in 6 months is after the 4-month expiry, so nothing changes (unrounded tree: 2.2061 vs 2.2060). The BSM side of this, with the same \(S_0-PV(D)\) substitution, is <a href="0032-bsm-with-dividends-yield-fx-and-known-dollar.html">Lesson 32</a>.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q">In the Tutorial 8 Q6 setup, a second 50-cent dividend with ex-date 6 months from now is added. The option expires in 4 months. How does the tree value change?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Call and put both fall</button>
+    <button class="opt" data-key="b">Call falls, put rises</button>
+    <button class="opt" data-key="c">No change: it is after expiry</button>
+    <button class="opt" data-key="d">Need a 3-step tree to see it</button>
+  </div>
+  <div class="why">Only dividends with an ex-date before expiry enter \(PV(D)\). The tutorial solution says the same.</div>
+</div>
+
+<h2>6 · Exam-style questions</h2>
+<p>Calculator-only, finals-style. Keep \(u,d,p\) and every node to 4 dp; final answers to 2 dp. Draw the tree first. Marks shown; about 10 in total.</p>
+
+<h3>Question 1 (European put, 4 marks)</h3>
+<div class="box">A stock trades at $72. Its volatility is 20% p.a. and the continuously compounded risk-free rate is 5% p.a. The stock will pay a dividend of $1.50 with ex-dividend date in 5 months and another $1.50 with ex-date in 8 months. Use a 2-step binomial tree (3 months per step) to value a European put with strike $70 and 6 months to expiry.</div>
+
+<div class="quiz num" data-answer="70.5309" data-tol="0.0005">
+  <p class="q"><strong>1a [1 mark].</strong> Find \(S_0^*\) (4 dp).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Only the month-5 dividend counts (month 8 is after expiry). \(PV=1.5e^{-0.05\times5/12}=1.5e^{-0.020833}=1.4691\); \(S_0^*=72-1.4691=70.5309\).</div>
+</div>
+<div class="quiz num" data-answer="0.5378" data-tol="0.0002">
+  <p class="q"><strong>1b [1 mark].</strong> Find \(p\) (4 dp).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(u=e^{0.2\sqrt{0.25}}=e^{0.1}=1.1052\), \(d=0.9048\), \(p=(e^{0.0125}-0.9048)/(1.1052-0.9048)=(1.0126-0.9048)/0.2004=0.5378\).</div>
+</div>
+<div class="quiz num" data-answer="2.55" data-tol="0.01">
+  <p class="q"><strong>1c [2 marks].</strong> Draw the tree and find the put value (2 dp).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(S^*\): 3 months 63.8164 (down), 77.9508 (up); 6 months 57.7411, 70.5299, 86.1512. Payoffs \(12.2589,\ 0,\ 0\). Down node: \(e^{-0.0125}[0.5378\times0+0.4622\times12.2589]=5.5957\); up node 0. Today: \(e^{-0.0125}[0.4622\times5.5957]=2.5542\approx2.55\). (Marks: tree, payoffs, backward steps.)</div>
+</div>
+
+<h3>Question 2 (optional, beyond the slides: American call, 4 marks + 2 marks written)</h3>
+<div class="box">A stock trades at $40, volatility 25% p.a., risk-free rate 4% p.a. continuously compounded. It will pay a $2.50 dividend with ex-date in 4 months. Use a 2-step tree (3 months per step) to value an American call with strike $38 and 6 months to expiry.</div>
+
+<div class="quiz num" data-answer="37.5331" data-tol="0.0005">
+  <p class="q"><strong>2a [1 mark].</strong> Find \(S_0^*\) (4 dp).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(PV=2.5e^{-0.04\times4/12}=2.4669\); \(S_0^*=40-2.4669=37.5331\).</div>
+</div>
+<div class="quiz num" data-answer="7.02" data-tol="0.01">
+  <p class="q"><strong>2b [1 mark].</strong> Here \(u=1.1331\), \(d=0.8825\), \(p=0.5090\). At the up node after 3 months, what is the exercise value of the call (2 dp)? (Hold value there is 5.1348.)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(S^*_{up}=37.5331\times1.1331=42.5288\). The ex-date is still 1 month away: add \(2.5e^{-0.04/12}=2.4917\), actual price 45.0205. Exercise \(=45.0205-38=7.0205>5.1348\): exercise.</div>
+</div>
+<div class="quiz num" data-answer="3.54" data-tol="0.01">
+  <p class="q"><strong>2c [2 marks].</strong> Find the American call value today (2 dp).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Down node: 0 (actual price 35.6147, below 38 and nothing to hold). Up node 7.0205. Today \(e^{-0.01}[0.5090\times7.0205+0.4910\times0]=0.99005\times3.5734=3.5379\approx3.54\). (European value on the same tree is 2.59, so the early-exercise premium is 0.95.)</div>
+</div>
+
+<h3>Question 3 (optional, written, 2 marks; goes with Question 2)</h3>
+<div class="box">In Question 2 the holder exercises at the up node after 3 months. (i) Why is exercising then, rather than at the 6-month end, optimal? (ii) The same exercise decision would be wrong if you had compared \(S^*_{up}-K\) with the hold value: why?</div>
+<details><summary>Model answer</summary><div>
+<p>(i) The stock is about to go ex-dividend and drop by $2.50, which the call holder would not receive. Exercising just before the ex-date means owning the stock and collecting the dividend; here that gain (plus the in-the-money payoff locked in) outweighs the interest lost on paying the strike early and the lost option to walk away. (ii) The stock price a holder actually receives on exercise at month 3 is the market price \(S^*\) plus the PV of the dividend still to come (45.02, not 42.53); using \(S^*\) alone gives exercise 4.53 < hold 5.13 and wrongly says "hold".</p>
+</div></details>
+
+<h3>Extra: 3-step exercise (no marks, answer revealed)</h3>
+<div class="box">A stock trades at $60, volatility 24% p.a., \(r=5\%\) continuously compounded. It pays $2 with ex-date in 4 months and $2 with ex-date in 10 months. Value a European call, strike $60, expiry 9 months, on a 3-step tree (3 months per step).</div>
+<div class="quiz num" data-answer="5.23" data-tol="0.01">
+  <p class="q">Call value (2 dp)?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Month 10 is after expiry: ignore it. \(PV=2e^{-0.05\times4/12}=1.9669\), \(S_0^*=58.0331\). \(u=e^{0.24\sqrt{0.25}}=1.1275\), \(d=0.8869\), \(p=0.5224\). \(S^*\) at 9 months: 40.4856, 51.4686, 65.4311, 83.1812; payoffs 0, 0, 5.4311, 23.1812. Month 6: 0, 2.8020, 14.5211. Month 3: 1.4456, 8.8132. Today 5.2287. The American call is also 5.23 (at the up node after 3 months: exercise 7.42 against hold 8.81).</div>
+</div>
+
+<div class="box"><strong>Dollar dividend on a tree = start at \(S_0^* = S_0 - PV(D)\) (dividends before expiry only), use the usual \(u,d,p\), payoff from the end nodes; for American options, at earlier nodes test exercise against \(S^*+\) PV of dividends still to come.</strong> Calls: only just before an ex-date. Puts: ex-date still ahead means hold.</div>
+
+<details><summary>Retrieval: close the page and write the recipe, the call-exercise node, and why \(S^*\) recombines from memory</summary><div>
+<p>\(S_0^*=S_0-\sum De^{-rt_{ex}}\) (ex-date before expiry); \(u=e^{\sigma\sqrt{\Delta t}}\), \(d=1/u\); payoffs at the end nodes of the \(S^*\) tree; American: exercise at actual price \(S^*+PV\); call exercise only just before an ex-date. \(S^*\) has no jump at the ex-date (the drop is the riskless part leaving), so \(ud=du\).</p>
+</div></details>
+
+<p><strong>Primary source:</strong> <a href="../lectures/Lecture%208_Dividends.pdf">Lecture 8 (Dividends)</a>, slides 25-27 (known dollar dividend, \(S_0^*\), the recombining tree; slide 27's 5-step calculation is illustration only). Background: Hull, <em>Options, Futures and Other Derivatives</em>, the sections on trees with dividends and on options on stocks paying known dividends (chapter numbers vary by edition; I have not checked them against your copy). The student notes (<a href="../Derivative%20Securities%20Notes.pdf">Derivative Securities Notes.pdf</a>, "Trees and Dividends") state the add-back step in one line.</p>
+
+<p><strong>Not covered here, flagged:</strong> a dividend quoted as a <em>percentage</em> of the price at the ex-date (a past practice final used one on a 3-period American put) simply multiplies every node after the ex-date by \((1-\delta)\) and recombines without the \(S^*\) trick; the lecture slides I have do not teach it for trees (yield is in <a href="0030-binomial-trees-with-dividend-yield-index-and-fx.html">Lesson 30</a>), so ask if you want it practised.</p>
+
+<p><strong>Homework (honest note).</strong> <a href="../tutes/Tutorial%208.pdf">Tutorial 8</a> has <em>no</em> dollar-dividend tree question: Q1-Q4 are index parity/BSM and FX, Q5 is the FX tree parameters (Lesson 30), Q6 is the BSM version of today's \(S_0-PV(D)\) rule (Lesson 32), Q7 is the Virgin case. So practice here is the exam-style set above. To revisit mechanics, redo <a href="../tutes/Tutorial%206.pdf">Tutorial 6</a> Q1 (three-period American put) and Q2, then replace \(S_0\) by \(S_0-PV(D)\) with a made-up dividend and see which nodes change. Optional: do Tutorial 8 Q6 as a 2-step tree and compare with the table above.</p>
+<p><strong>Spacing:</strong> tomorrow redo Question 2 cold in under 10 minutes; in three days, the 3-step extra.</p>
+
+<div class="ask">💬 Stuck, or want a fresh variant (a put with the dividend after step 1, two dividends in range, a 3-step American call)? Paste your working in the terminal and ask me follow-ups. I'm your teacher for this.</div>
+
+<div class="nav" id="next">
+  <span>Previous: <a href="0030-binomial-trees-with-dividend-yield-index-and-fx.html">Lesson 30, yield, index and FX trees</a></span>
+  <span>Reference: <a href="../reference/glossary.html">Glossary</a> · <a href="0018-two-step-trees-and-u-d-from-volatility.html">Lesson 18</a> · <a href="0019-american-options-on-trees.html">Lesson 19</a></span>
+  <span>Next: <a href="0032-bsm-with-dividends-yield-fx-and-known-dollar.html">Lesson 32, BSM with dividends</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

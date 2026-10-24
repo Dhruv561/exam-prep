@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portfolio Insurance and Topic 8 Capstone</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+.exq { border: 1px solid var(--rule); border-radius: 6px; padding: .2rem 1.1rem 1rem; margin: 1.4rem 0; background: var(--card); }
+.exq h3 { margin-top: 1rem; }
+.pt { display: flex; gap: .8rem; margin: .6rem 0; }
+.pt .mk { flex: none; font-family: Inter, system-ui, sans-serif; font-size: .78rem; font-weight: 600; color: var(--accent); width: 4.2rem; padding-top: .25rem; }
+.pt .tx { flex: 1; }
+.given { font-family: Inter, system-ui, sans-serif; font-size: .85rem; color: var(--muted); }
+.drills { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); margin: -.2rem 0 .6rem; }
+@media print { .exq { break-inside: avoid; } }
+</style>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 33 · Topic 8: Dividends (portfolio insurance + capstone)</div>
+<h1>Portfolio insurance with index puts, plus a Topic 8 capstone</h1>
+<p class="lede">The goal: protect a diversified share portfolio with index puts (how many, which strike, what it costs, why it works), then sit five mixed exam-style questions covering everything in Lecture 8.</p>
+
+<div class="mission">Why this matters for 5 Nov: Lecture 8 (dividends) sits in the 70% of marks from Topics 5-10. Past finals asked index and currency options with a yield, implied dividend yield with an arbitrage table, a dollar dividend inside the life, and a dividend after expiry to ignore. Portfolio insurance is the one Lecture 8 idea with a "show that it works" demand (slide 38), so expect a number-of-puts, a cost and a payoff check. The calculation is about 85% of the paper: this lesson is built to be done with a Casio fx-82 and the formula sheet.</div>
+
+<p>This lesson assumes <a href="0029-dividend-yields-index-and-fx-options-bounds-parity.html">Lesson 29</a> (yield, bounds, parity), <a href="0030-binomial-trees-with-dividend-yield-index-and-fx.html">Lesson 30</a> (trees with a yield), <a href="0031-binomial-trees-with-known-dollar-dividends.html">Lesson 31</a> (trees with dollar dividends), <a href="0032-bsm-with-dividends-yield-fx-and-known-dollar.html">Lesson 32</a> (BSM with dividends) and the rounding rule from <a href="0024-computing-bsm-call-and-put-prices.html">Lesson 24</a>. Terms are in the <a href="../reference/glossary.html">glossary</a>. Sources: Lecture 8 slides 36-41 (portfolio insurance) and 42-43 (practice questions); Hull, <em>Options, Futures and Other Derivatives</em>, the portfolio-insurance part of the chapter on options on stock indices and currencies (the lecture outline tags it "15.1", an older edition's numbering; check yours); Tutorial 8 Q4. Past exams were mined for <em>patterns only</em>; every capstone question is new.</p>
+
+<h2>Part 1 · Portfolio insurance</h2>
+
+<h2>1 · The idea (intuition first)</h2>
+<p>A fund manager holds a <strong>well diversified</strong> portfolio of shares that tracks an index (say the ASX 200). Her fear: the market falls and the portfolio falls with it. She does not want to sell the shares (taxes, costs, she wants the upside). A <strong>put option</strong> gives the right to sell at the strike price <em>K</em>; an <strong>index put</strong> pays when the index falls below <em>K</em>. If the portfolio moves in step with the index (same % changes), then the put's gain on a fall offsets the portfolio's loss. The portfolio is "insured": a floor on the downside, the upside kept, paid for by the put premium.</p>
+<p>Three things to decide, which are exactly the three questions on slide 38: <strong>how many</strong> puts, <strong>which strike</strong> (this sets the floor), and <strong>what does it cost</strong> (a BSM put with the index's yield).</p>
+
+<h2>2 · How many puts, and which strike</h2>
+<p>An index option is on a <strong>multiplier</strong> times the index (ASX 200: $25 per index point; the S&amp;P 500 option in Tutorial 8: $100 per point). One put covers <em>multiplier x index level</em> dollars of the index. To hedge a portfolio worth \(V\) you need</p>
+$$N = \frac{V}{\text{index level} \times \text{multiplier}}.$$
+<p><strong>Lecture example (slide 39).</strong> Portfolio $100 million, index 5,000, multiplier $25: one put covers \(5{,}000 \times 25 = \$125{,}000\), so \(N = 100{,}000{,}000/125{,}000 = 800\) puts.</p>
+
+<div class="quiz num" data-answer="400" data-tol="0.5">
+  <p class="q"><strong>Check.</strong> A $36 million portfolio mirrors an index at 1,800 with a $50 multiplier. How many puts?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">contracts</span></div>
+  <div class="why">\(36{,}000{,}000/(1{,}800 \times 50) = 36{,}000{,}000/90{,}000 = 400\).</div>
+</div>
+
+<h3>Strike: setting the floor (Tutorial 8 Q4 style)</h3>
+<p>At-the-money puts (\(K\) = today's index) give a floor equal to today's value, at the highest premium. Usually the manager accepts a loss up to some floor and wants a cheaper put. Because portfolio and index move by the same percentage, a portfolio that may fall by 10% corresponds to an index that falls by 10%:</p>
+$$K = \text{index level} \times \frac{\text{floor}}{\text{portfolio value}}.$$
+<p><strong>Tutorial 8 Q4:</strong> $60 million portfolio, S&amp;P 500 at 1,200, floor $54 million, $100 per point. \(K = 1{,}200 \times 54/60 = 1{,}080\) and \(N = 60{,}000{,}000/(1{,}200 \times 100) = 500\) contracts. (The tutorial solution says exactly this: puts struck at 1,080, 500 contracts.)</p>
+
+<div class="quiz num" data-answer="1620" data-tol="0.5">
+  <p class="q"><strong>Check.</strong> Same $36 million portfolio, index 1,800. The manager will tolerate a fall to $32.4 million. What strike?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">index points</span></div>
+  <div class="why">\(K = 1{,}800 \times 32.4/36 = 1{,}620\), i.e. 90% of today's index.</div>
+</div>
+
+<div class="box"><strong>Dividends: what the lecture does, and the fine print.</strong> A portfolio that mirrors the index also earns the index's dividend yield \(q\). The lecture (and Tutorial 8 Q4) <em>ignore</em> that cash when setting the floor: \(K\) = index x floor/value, and the "insured value" is the portfolio's price value plus the put payoff. That is the method to use on the exam unless a question says otherwise. Dividends do matter in one place: the put is priced with the yield \(q\) (next section), because the index is expected to grow at only \(r - q\). If a question did say the dividends are reinvested, the portfolio grows by an extra \(e^{qT}\), so the strike that guarantees a given floor would be lower, \(K = \text{index} \times \text{floor}/(\text{value} \times e^{qT})\) (for the example in section 3 it would be 2,205 instead of 2,250). That variant is not in the slides: treat it as background only.</div>
+
+<h2>3 · What it costs</h2>
+<p>The premium is the BSM put with a dividend yield (formula sheet: \(p = Ke^{-rT}N(-d_2) - S_0e^{-qT}N(-d_1)\), with \(d_1 = [\ln(S_0/K) + (r - q + \sigma^2/2)T]/(\sigma\sqrt{T})\)). The total cost is the put price per index point x multiplier x number of contracts.</p>
+<p><strong>Lecture example (slide 40).</strong> \(S_0 = K = 5{,}000\), \(\sigma = 25\%\), \(r = 9\%\), \(q = 5\%\), \(T = 0.25\). \(\sigma\sqrt{T} = 0.1250\); \(d_1 = (0.09 - 0.05 + 0.03125)(0.25)/0.125 = 0.1425 \approx 0.14\); \(d_2 = 0.1425 - 0.1250 = 0.0175 \approx 0.02\). \(N(-0.14) = 0.4443\), \(N(-0.02) = 0.4920\).</p>
+$$p = 5000e^{-0.0225}(0.4920) - 5000e^{-0.0125}(0.4443) = 2405.27 - 2193.90 = 211.36 \text{ per index point}.$$
+<p>Total cost \(= 211.36 \times 800 \times 25 = \$4{,}227{,}200\) as on the slide (which rounds the put to 2 dp first). Keeping \(p = 211.364\) unrounded inside gives \(\$4{,}227{,}279\): the difference is 0.002%. Follow the question's dp instruction; the course rule is multiply the contract size inside and round once at the end.</p>
+
+<p><strong>A fresh worked example (use this one for practice).</strong> A $30 million portfolio mirrors an index at 2,500. Options are on $50 per point. The manager wants a one-year floor of $27 million. \(\sigma = 20\%\), \(r = 4\%\), \(q = 2\%\).</p>
+<ol class="steps">
+<li>Contracts: \(N = 30{,}000{,}000/(2{,}500 \times 50) = 240\).</li>
+<li>Strike: \(K = 2{,}500 \times 27/30 = 2{,}250\).</li>
+<li>\(\sigma\sqrt{T} = 0.2000\). \(d_1 = [\ln(2500/2250) + (0.04 - 0.02 + 0.02)(1)]/0.2 = (0.1054 + 0.04)/0.2 = 0.7268 \approx 0.73\); \(d_2 = 0.7268 - 0.2 = 0.5268 \approx 0.53\).</li>
+<li>Table: \(N(-0.73) = 0.2327\), \(N(-0.53) = 0.2981\). \(Ke^{-rT} = 2250e^{-0.04} = 2161.7762\); \(S_0e^{-qT} = 2500e^{-0.02} = 2450.4967\).</li>
+<li>\(p = 2161.7762(0.2981) - 2450.4967(0.2327) = 644.43 - 570.23 = 74.19\) per index point (exact \(d\) would give 74.11).</li>
+<li>Total cost \(= 74.1949 \times 240 \times 50 = \$890{,}339\) (about 2.97% of the portfolio).</li>
+</ol>
+
+<div class="quiz num" data-answer="890339" data-tol="5">
+  <p class="q"><strong>Check.</strong> Using \(p = 74.1949\) per index point, the total cost of insuring the $30 million portfolio.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(74.1949 \times 240 \times 50 = \$890{,}339\). Rounding \(p\) to 74.19 first would give $890{,}280.</div>
+</div>
+
+<h2>4 · Show that the strategy works</h2>
+<p>Slide 41's check: the index drops to 4,000 (-20%). Portfolio \(= 4000/5000 \times 100\text{m} = 80\text{m}\); put payoff \(= 800 \times (5000 - 4000) \times 25 = 20\text{m}\); total \(= 100\)m, the insured value (or \(95.77\)m after the \(4.23\)m premium, slide 41).</p>
+<p>The same check for the fresh example, over a range of index levels at expiry (portfolio = $30m x \(S_T/2500\); put payoff = \(240 \times 50 \times \max(2250 - S_T, 0)\)):</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Index at T</th><th>Portfolio</th><th>240 puts pay</th><th>Insured total</th><th>After premium ($0.89m)</th></tr>
+<tr><td>1,750</td><td>21.00m</td><td>6.00m</td><td>27.00m</td><td>26.11m</td></tr>
+<tr><td>2,000</td><td>24.00m</td><td>3.00m</td><td>27.00m</td><td>26.11m</td></tr>
+<tr><td>2,250 (= K)</td><td>27.00m</td><td>0</td><td>27.00m</td><td>26.11m</td></tr>
+<tr><td>2,500</td><td>30.00m</td><td>0</td><td>30.00m</td><td>29.11m</td></tr>
+<tr><td>3,000</td><td>36.00m</td><td>0</td><td>36.00m</td><td>35.11m</td></tr>
+</table></div>
+<p>Below \(K\) every dollar the portfolio loses is paid back by the puts: flat at $27m. Above \(K\) the puts expire worthless and you keep the full upside. The <strong>effective floor</strong> after the premium is \(27.00 - 0.89 = \$26.11\)m. The lecture just subtracts the premium (95.77m); strictly the premium is paid today and has an opportunity cost, \(0.89\text{m} \times e^{0.04} = 0.93\)m, giving $26.07m. State the lecture version unless asked for the financed one.</p>
+
+<div class="insx" data-s0="2500" data-p0="30000000" data-mult="50" data-strike-pct="90" data-r="0.04" data-q="0.02" data-sigma="0.20" data-t="1"></div>
+<script src="../assets/div-insurance-payoff.js"></script>
+<p class="given">Drag the strike: a higher strike lifts the floor and the premium together; a lower strike cheapens the premium and lowers the floor. The widget uses exact (unrounded) BSM, so its premium differs slightly from the table method.</p>
+
+<h3>Derive it from this setup</h3>
+<p>Exam style: the question gives the set-up and you derive the result. <strong>Set-up:</strong> a portfolio worth \(V\) mirrors an index now at \(S_0\) (so it is worth \(V S_T/S_0\) when the index is \(S_T\), ignoring dividends). Options are on a multiplier \(m\); you buy \(N = V/(S_0 m)\) puts with strike \(K\). <strong>Show</strong> that the combined value at \(T\) is \(\max(VS_T/S_0,\ VK/S_0)\).</p>
+<details><summary>Derivation (try it first)</summary><div>
+<p>Put payoff at \(T\): \(N m \max(K - S_T, 0) = \dfrac{V}{S_0}\max(K - S_T, 0)\). Portfolio: \(\dfrac{V}{S_0}S_T\). Add:</p>
+$$\frac{V}{S_0}\big[S_T + \max(K - S_T, 0)\big].$$
+<p>If \(S_T \ge K\) the bracket is \(S_T\) (puts expire worthless). If \(S_T < K\) the bracket is \(S_T + K - S_T = K\). Hence the total is \(\dfrac{V}{S_0}\max(S_T, K)\): never below \(VK/S_0\) (the floor), equal to the portfolio when the index is above \(K\).</p>
+<p>Numbers: \(V = 36\)m, \(S_0 = 1{,}800\), \(m = 50\), \(K = 1{,}620\): \(N = 400\), \(V/S_0 = 20{,}000\), floor \(= 20{,}000 \times 1{,}620 = \$32.4\)m. ✓.</p>
+</div></details>
+
+<h2>5 · Which way does the cost move? (predict first)</h2>
+<p>For the fresh example (puts: base \(p = 74.19\); \(K = 2250\), \(\sigma = 20\%\), \(T = 1\), \(r = 4\%\), \(q = 2\%\)). Predict each, then open.</p>
+<details><summary>Reveal the drill (table-method prices for the one-year example)</summary><div>
+<div class="tablewrap"><table>
+<tr><th>Change (others fixed)</th><th>Put price</th><th>Why</th></tr>
+<tr><td>\(\sigma\) 20% to 30%</td><td>up (154.20)</td><td>Bigger swings, bigger chance of landing below \(K\)</td></tr>
+<tr><td>\(\sigma\) 20% to 15%</td><td>down (38.85)</td><td>Insurance on a calmer market is cheaper</td></tr>
+<tr><td>Raise \(K\) to 2,375 (floor 95%)</td><td>up (115.80)</td><td>More protection costs more</td></tr>
+<tr><td>Lower \(K\) to 2,125 (floor 85%)</td><td>down (43.94)</td><td>Less protection, cheaper</td></tr>
+<tr><td>\(T\) 1 year to 6 months</td><td>down (37.65)</td><td>Less time for a fall</td></tr>
+<tr><td>\(T\) 1 year to 2 years</td><td>up (127.25)</td><td>More time</td></tr>
+<tr><td>\(q\) 2% to 4%</td><td>up (86.33)</td><td>A higher yield lowers the index's growth \(r - q\)</td></tr>
+<tr><td>\(r\) 4% to 6%</td><td>down (61.86)</td><td>The strike is received later, so its PV falls</td></tr>
+</table></div>
+<p>(Table method; the direction is the same with exact \(d\). The cost moves with the put price one-for-one because \(N\) and the multiplier are fixed.)</p>
+</div></details>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>Check.</strong> The manager's insurance budget is cut in half. Which change lowers the premium and keeps the strategy intact?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Buy puts with a higher strike, to make the put more valuable</button>
+    <button class="opt" data-key="b">Buy half as many puts, leaving half the portfolio protected</button>
+    <button class="opt" data-key="c">Buy puts with a lower strike, accepting a lower floor</button>
+    <button class="opt" data-key="d">Buy calls instead, as they are cheaper than the puts</button>
+  </div>
+  <div class="why">(b) also cuts cost but leaves half the portfolio unprotected, so it changes the strategy. (c) is the standard trade: lower floor, lower premium. A higher strike costs more; calls do not insure against a fall.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>Check.</strong> Index volatility jumps while everything else is unchanged. For the same floor, the insured portfolio's cost:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">rises, because the put premium rises with volatility</button>
+    <button class="opt" data-key="b">falls, because the portfolio is also riskier</button>
+    <button class="opt" data-key="c">is unchanged, because the floor fixes the payoff</button>
+    <button class="opt" data-key="d">rises only if the dividend yield also rises</button>
+  </div>
+  <div class="why">The floor and payoff are unchanged but the put is dearer: the effective floor (after premium) falls.</div>
+</div>
+
+<h2>6 · Tie to put-call parity</h2>
+<p>Parity with a yield (Lesson 29): \(c + Ke^{-rT} = p + S_0e^{-qT}\). Read the right side as "index (dividends reinvested) + put" = the insured portfolio; read the left as "call + cash". Section 4's result \(\frac{V}{S_0}\max(S_T, K)\) is also a call plus cash: \(\max(S_T, K) = (S_T - K)^+ + K\). So <strong>an insured portfolio is the same payoff as a call plus a bond that pays \(K\)</strong>. Per index point in the fresh example: \(S_0e^{-qT} + p = 2450.50 + 74.19 = 2524.69\) and \(c + Ke^{-rT} = 362.92 + 2161.78 = 2524.69\). Two ways to build the same floor: hold the shares and buy puts, or hold cash and buy calls. Either is correct; parity says they cost the same, so the cost of insurance is also a statement about call prices.</p>
+
+<div class="box"><strong>Short answer practice (write 2-4 sentences, then open).</strong> "Why would a manager buy index puts rather than sell the portfolio when she fears a fall? Why does the puts' payoff match the portfolio's loss only approximately?"
+<details><summary>Model answer</summary><div>Selling the shares gives up the upside and costs transaction fees and tax; puts keep the upside and set a floor, paid for by the premium. The match is approximate because the portfolio only mirrors the index: it is diversified and has a beta near 1, but its returns will not match the index exactly (tracking error), and the puts protect the index level, not the individual shares. The lecture also ignores the dividends the portfolio earns and the financing cost of the premium.</div></details></div>
+
+<div class="box"><strong>Rule of thumb.</strong> Contracts = value / (index x multiplier). Strike = index x floor / value. Cost = BSM put with \(q\) x multiplier x contracts. Insured value at \(T\) = max(portfolio, floor); after premium, floor minus cost. More vol, higher \(K\) or longer \(T\) = dearer.</div>
+
+<h2>Part 2 · Topic 8 capstone</h2>
+<p>Five exam-style questions in the official format: marks shown, dp stated, a normal-table extract where you need one. Do them <strong>on paper</strong> with a Casio fx-82 and the formula sheet (the normal table is on pp.5-6), then open the solution and mark yourself line by line. Written parts: write 2-4 sentences before opening the model answer. The typed "headline" box checks your key number; the full solution is below it.</p>
+<div class="trap"><strong>Rounding rules used throughout</strong><br>BSM: \(d_2 = d_1 - \sigma\sqrt{T}\) from the unrounded \(d_1\); round \(d_1, d_2\) to 2 dp; \(N\) from the 4 dp table, no interpolation; contract size inside, round once at the end. Trees: 4 dp for \(u\), \(d\), \(p\); carry prices to 2 dp as shown. Where the table value and the exact value differ, the table value is the answer.</div>
+
+<!-- ===================== Q1 ===================== -->
+<div class="exq">
+<h3>Question 1 (8 marks): put-call parity with a dividend yield</h3>
+<div class="drills">Drills <a href="0029-dividend-yields-index-and-fx-options-bounds-parity.html">Lesson 29</a> (parity with \(q\), implied \(q\), arbitrage)</div>
+<p>An index stands at 3,200. European call and put options on the index have strike 3,100 and expire in six months. The continuously compounded risk-free rate is 4% a year. The call is quoted at 180.00 and the put at 75.00. Each index point is worth $25.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">The index's dividend yield is 3% a year, continuously compounded. Using the call price, find the fair put price per index point (2 dp).</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">Find the dividend yield implied by the two quoted prices, as a percentage to 2 dp.</span></div>
+<div class="pt"><span class="mk">(c) 3 marks</span><span class="tx">The actual yield is 3%. Describe the arbitrage with a table of cash flows at \(t=0\) and \(t=T\) (for \(S_T > K\) and \(S_T \le K\)), and give the profit per index point today (2 dp).</span></div>
+<div class="pt"><span class="mk">(d) 1 mark</span><span class="tx">Why does your strategy hold \(e^{-qT}\) shares (not one) and what must be assumed about dividends?</span></div>
+<div class="quiz num" data-answer="66.26" data-tol="0.01">
+  <p class="q">Headline check: (a), fair put per index point.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">points</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="3.56" data-tol="0.02">
+  <p class="q">Headline check: (b), implied dividend yield.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% a year</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> \(Ke^{-rT} = 3100e^{-0.02} = 3038.6159\); \(S_0e^{-qT} = 3200e^{-0.015} = 3152.3582\). Parity: \(p = c + Ke^{-rT} - S_0e^{-qT} = 180 + 3038.6159 - 3152.3582 = 66.2577 \approx 66.26\) points ($1,656 per contract).</p>
+<p><strong>(b) 2 marks.</strong> \(180 + 3038.6159 = 75 + 3200e^{-0.5q}\), so \(3200e^{-0.5q} = 3143.6159\) and \(e^{-0.5q} = 0.98238\). \(q = -\ln(0.98238)/0.5 = 0.035554\), i.e. <strong>3.56%</strong>.</p>
+<p><strong>(c) 3 marks.</strong> With \(q = 3\%\): \(c + Ke^{-rT} = 3218.6159\) but \(p + S_0e^{-qT} = 75 + 3152.3582 = 3227.3582\). The put side is dearer (the quoted put is too high), so sell the put and short the shares; buy the call and lend.</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Position</th><th>t = 0</th><th>T, \(S_T > 3100\)</th><th>T, \(S_T \le 3100\)</th></tr>
+<tr><td>Buy call</td><td>-180.00</td><td>\(S_T - 3100\)</td><td>0</td></tr>
+<tr><td>Lend \(Ke^{-rT}\)</td><td>-3038.62</td><td>+3100</td><td>+3100</td></tr>
+<tr><td>Sell put</td><td>+75.00</td><td>0</td><td>\(-(3100 - S_T)\)</td></tr>
+<tr><td>Short \(e^{-qT}\) shares (dividends paid by borrowing more shares)</td><td>+3152.36</td><td>\(-S_T\)</td><td>\(-S_T\)</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>+8.74</strong></td><td>0</td><td>0</td></tr>
+</table></div>
+<p>Profit today \(= 3227.3582 - 3218.6159 = 8.7423 \approx 8.74\) per index point (no risk, nothing at \(T\)).</p>
+<p><strong>(d) 1 mark.</strong> Dividends are assumed reinvested (for a short seller: the dividends owed are met by shorting more shares), so \(e^{-qT}\) shares grow to exactly one share at \(T\), which is what cancels \(S_T\). (Past marking schemes take a mark off if reinvestment is not stated.)</p>
+<div class="trap"><strong>Common slips</strong><br>Using \(S_0\) (not \(S_0e^{-qT}\)) in parity; solving for \(q\) with \(\ln\) but dropping the \(1/T\); trading in the wrong direction (check which side of parity is bigger); forgetting to say "dividends reinvested".</div>
+</div></details>
+</div>
+
+<!-- ===================== Q2 ===================== -->
+<div class="exq">
+<h3>Question 2 (8 marks): two-step tree with a dividend yield (American index put)</h3>
+<div class="drills">Drills <a href="0030-binomial-trees-with-dividend-yield-index-and-fx.html">Lesson 30</a> (\(p = (e^{(r-q)\Delta t}-d)/(u-d)\), American check)</div>
+<p>An index is at 1,000 with volatility 20% a year. The risk-free rate is 5% and the index's dividend yield is 2% a year, both continuously compounded. Use a two-step tree for a one-year American put with strike 1,050. Round \(u\), \(d\), \(p\) to 4 dp and prices to 2 dp.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Calculate \(u\), \(d\) and the risk-neutral probability \(p\).</span></div>
+<div class="pt"><span class="mk">(b) 3 marks</span><span class="tx">Draw the tree and find the value of the <em>European</em> put.</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">Find the value of the <em>American</em> put. Show where early exercise is optimal.</span></div>
+<div class="pt"><span class="mk">(d) 1 mark</span><span class="tx">Explain in a sentence why \(p\) uses \(e^{(r-q)\Delta t}\) and not \(e^{r\Delta t}\).</span></div>
+<div class="quiz num" data-answer="0.518" data-tol="0.001">
+  <p class="q">Headline check: (a), the probability \(p\).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="97.4" data-tol="0.1">
+  <p class="q">Headline check: (c), American put value.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">points</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> \(\Delta t = 0.5\). \(u = e^{0.2\sqrt{0.5}} = e^{0.1414} = 1.1519\); \(d = 1/u = 0.8681\). \(e^{(r-q)\Delta t} = e^{0.015} = 1.0151\).</p>
+$$p = \frac{1.0151 - 0.8681}{1.1519 - 0.8681} = \frac{0.1470}{0.2838} = 0.5180.$$
+<p><strong>(b) 3 marks.</strong> Nodes: \(S_u = 1151.90\), \(S_d = 868.10\); \(S_{uu} = 1326.87\), \(S_{ud} = 999.96\), \(S_{dd} = 753.60\). Payoffs at \(T\): \(f_{uu} = 0\), \(f_{ud} = 50.04\), \(f_{dd} = 296.40\). Discount factor \(e^{-0.025} = 0.9753\).</p>
+<p>\(f_u = 0.9753[0.5180(0) + 0.4820(50.04)] = 23.52\). \(f_d = 0.9753[0.5180(50.04) + 0.4820(296.40)] = 164.62\). \(f_0 = 0.9753[0.5180(23.52) + 0.4820(164.62)] = 0.9753 \times 91.53 = \mathbf{89.27}\) points.</p>
+<p><strong>(c) 2 marks.</strong> At the down node (index 868.10) exercising gives \(1050 - 868.10 = 181.90\), more than holding (164.62), so exercise: \(f_d = 181.90\). At the up node holding (23.52) beats exercising (0). \(f_0 = 0.9753[0.5180(23.52) + 0.4820(181.90)] = 0.9753 \times 99.86 = \mathbf{97.40}\) points. Early exercise adds 8.13.</p>
+<p><strong>(d) 1 mark.</strong> The index holder also receives dividends worth \(q\); under risk-neutral valuation total return is \(r\), so the price (capital gain) grows at \(r - q\): \(pS_u + (1-p)S_d = S_0e^{(r-q)\Delta t}\). (Using \(e^{r\Delta t}\) would give \(p = 0.554\) and a European put of 79.61: too low.)</p>
+<div class="trap"><strong>Common slips</strong><br>\(e^{r\Delta t}\) in \(p\); \(\Delta t = 1\) instead of 0.5; discounting the final answer once (\(e^{-rT}\)) after you already discounted each step; forgetting the early-exercise comparison at <em>each</em> node (the up node and the root too).</div>
+</div></details>
+</div>
+
+<!-- ===================== Q3 ===================== -->
+<div class="exq">
+<h3>Question 3 (8 marks): two-step tree with a known dollar dividend</h3>
+<div class="drills">Drills <a href="0031-binomial-trees-with-known-dollar-dividends.html">Lesson 31</a> (strip the PV of the dividend, recombining tree, "actual price in brackets")</div>
+<p>A stock is $40 with volatility 30% a year; the risk-free rate is 5% a year, continuously compounded. It will pay a dividend of $1.50 in four months. Value a six-month <em>European</em> put with strike $40 using a two-step tree (each step three months). Round \(u\), \(d\), \(p\) to 4 dp and stock prices to 2 dp; give the option value to 2 dp.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Calculate the present value of the dividend and the stock price \(S_0^*\) you will build the tree from. Why is the tree built this way?</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">Calculate \(u\), \(d\) and \(p\) and the stock-price nodes of the tree for \(S^*\).</span></div>
+<div class="pt"><span class="mk">(c) 3 marks</span><span class="tx">Find the value of the put.</span></div>
+<div class="pt"><span class="mk">(d) 1 mark</span><span class="tx">What is the actual stock price at the up node after three months?</span></div>
+<div class="quiz num" data-answer="1.4752" data-tol="0.005">
+  <p class="q">Headline check: (a), the PV of the dividend.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="3.46" data-tol="0.02">
+  <p class="q">Headline check: (c), the put value.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> \(PV(D) = 1.50e^{-0.05 \times 4/12} = 1.50 \times 0.98347 = 1.4752\). \(S_0^* = 40 - 1.4752 = 38.52\). The stock falls by the dividend on the ex-date, which makes a tree on \(S_0\) non-recombining. Splitting the stock into a riskless part (the PV of the dividend) and a risky part \(S^*\) lets us use an ordinary recombining tree for \(S^*\).</p>
+<p><strong>(b) 2 marks.</strong> \(\Delta t = 0.25\): \(u = e^{0.3\sqrt{0.25}} = e^{0.15} = 1.1618\); \(d = 1/u = 0.8607\); \(p = (e^{0.0125} - 0.8607)/(1.1618 - 0.8607) = (1.01258 - 0.8607)/0.3011 = 0.5044\).</p>
+<p>\(S^*\) nodes: \(S_u^* = 38.52 \times 1.1618 = 44.76\); \(S_d^* = 38.52 \times 0.8607 = 33.16\); \(S_{uu}^* = 52.00\); \(S_{ud}^* = 38.52\); \(S_{dd}^* = 28.54\).</p>
+<p><strong>(c) 3 marks.</strong> At expiry the dividend has been paid, so \(S^*_T\) is the actual price. Payoffs \(\max(40 - S_T, 0)\): \(f_{uu} = 0\), \(f_{ud} = 40 - 38.52 = 1.48\), \(f_{dd} = 40 - 28.54 = 11.46\). With \(e^{-0.0125} = 0.98758\):</p>
+<p>\(f_u = 0.98758[0.5044(0) + 0.4956(1.48)] = 0.72\); \(f_d = 0.98758[0.5044(1.48) + 0.4956(11.46)] = 6.34\); \(f_0 = 0.98758[0.5044(0.72) + 0.4956(6.34)] = 0.98758 \times 3.51 = \mathbf{\$3.46}\). (Check: \(e^{-0.025}[2(0.5044)(0.4956)(1.48) + 0.4956^2(11.46)] = 3.46\). With no dividend the put would be worth only $2.48: a dividend raises a put.)</p>
+<p><strong>(d) 1 mark.</strong> Before the ex-date the actual price includes the dividend still to come, discounted to that date: \(PV_{3m}(D) = 1.50e^{-0.05 \times 1/12} = 1.49\). Actual up-node price \(= 44.76 + 1.49 = \$46.25\) (down node: \(33.16 + 1.49 = \$34.65\)). This only matters if early exercise is considered at that date (American option).</p>
+<div class="trap"><strong>Common slips</strong><br>Building the tree on \(S_0 = 40\) and subtracting $1.50 at the node; discounting the dividend at face value; adding the PV back at expiry (it is gone by then); using the actual (bracket) prices for the European payoff.</div>
+</div></details>
+</div>
+
+<!-- ===================== Q4 ===================== -->
+<div class="exq">
+<h3>Question 4 (9 marks): BSM with a dollar dividend and with a currency</h3>
+<div class="drills">Drills <a href="0032-bsm-with-dividends-yield-fx-and-known-dollar.html">Lesson 32</a> (subtract PV(D) inside the life only; \(r_f\) as the yield) and the rounding rule in <a href="0024-computing-bsm-call-and-put-prices.html">Lesson 24</a></div>
+<p>(i) A stock is $62 with volatility 28% a year. The risk-free rate is 4.5% a year, continuously compounded. It pays a dividend of $1.00 in two months and another $1.00 in eight months. Consider a six-month European call with strike $60. (ii) The AUD/USD spot rate is 0.6600 (USD per AUD), volatility 9% a year, the USD rate is 4.5% and the AUD rate is 3.5% a year (both continuously compounded). Consider a nine-month European call to buy one AUD for USD 0.68.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">For (i): which dividend(s) matter, and what stock price goes into the BSM formula (4 dp)?</span></div>
+<div class="pt"><span class="mk">(b) 3 marks</span><span class="tx">Calculate the BSM price of the call in (i), to 2 dp.</span></div>
+<div class="pt"><span class="mk">(c) 1 mark</span><span class="tx">Use put-call parity to price the matching put in (i), to 2 dp.</span></div>
+<div class="pt"><span class="mk">(d) 3 marks</span><span class="tx">Calculate the BSM price of the call in (ii), to 4 dp.</span></div>
+<details><summary>Normal-table values you may need</summary><div class="given">\(N(0.30)=0.6179\), \(N(0.10)=0.5398\), \(N(-0.25)=0.4013\), \(N(-0.33)=0.3707\).</div></details>
+<div class="quiz num" data-answer="6.03" data-tol="0.02">
+  <p class="q">Headline check: (b), the call in (i).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="0.0143" data-tol="0.0002">
+  <p class="q">Headline check: (d), the AUD call, USD per AUD.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> Only the dividend in two months is inside the six-month life; the eight-month one is paid after expiry, so ignore it. \(PV(D) = 1.00e^{-0.045 \times 2/12} = 0.9925\); \(S_0 - PV(D) = 62 - 0.9925 = 61.0075\).</p>
+<p><strong>(b) 3 marks.</strong> \(\sigma\sqrt{T} = 0.28\sqrt{0.5} = 0.1980\); \(Ke^{-rT} = 60e^{-0.0225} = 58.6651\).</p>
+$$d_1 = \frac{\ln(61.0075/60) + (0.045 + 0.28^2/2)(0.5)}{0.1980} = \frac{0.0167 + 0.0421}{0.1980} = 0.2967 \approx 0.30,\quad d_2 = 0.2967 - 0.1980 = 0.0987 \approx 0.10.$$
+<p>\(c = 61.0075(0.6179) - 58.6651(0.5398) = 37.6965 - 31.6674 = 6.0291 \approx \$6.03\). (Exact \(d\): $5.98; write the table answer. Ignoring both dividends would give $6.65.)</p>
+<p><strong>(c) 1 mark.</strong> \(p = c + Ke^{-rT} - [S_0 - PV(D)] = 6.0291 + 58.6651 - 61.0075 = 3.6867 \approx \$3.69\).</p>
+<p><strong>(d) 3 marks.</strong> The foreign (AUD) rate plays the role of the yield. \(\sigma\sqrt{T} = 0.09\sqrt{0.75} = 0.0779\).</p>
+$$d_1 = \frac{\ln(0.66/0.68) + (0.045 - 0.035 + 0.09^2/2)(0.75)}{0.0779} = \frac{-0.0299 + 0.0105}{0.0779} = -0.2479 \approx -0.25,\quad d_2 = -0.2479 - 0.0779 = -0.3258 \approx -0.33.$$
+<p>\(S_0e^{-r_fT} = 0.66e^{-0.02625} = 0.6429\); \(Ke^{-rT} = 0.68e^{-0.03375} = 0.6574\). \(c = 0.6429(0.4013) - 0.6574(0.3707) = 0.2580 - 0.2437 = 0.0143\) USD per AUD (exact \(d\): 0.0138).</p>
+<div class="trap"><strong>Common slips</strong><br>Subtracting both dividends; subtracting the dividend at face value ($1.00); using the USD rate where \(r_f\) belongs; flipping the exchange rate (the option is on AUD, the underlying), or using \(r\) twice in \(d_1\).</div>
+</div></details>
+</div>
+
+<!-- ===================== Q5 ===================== -->
+<div class="exq">
+<h3>Question 5 (8 marks): portfolio insurance</h3>
+<div class="drills">Drills Part 1 of this lesson (Lecture 8 slides 38-41, Tutorial 8 Q4)</div>
+<p>A fund holds a well diversified portfolio worth $90 million that mirrors an index currently at 7,500. Index puts are on $25 times the index. The fund wants protection against the portfolio falling below $81 million in six months' time. The index has volatility 22% a year and a dividend yield of 3.5% a year; the risk-free rate is 5% a year (both continuously compounded). Use the table method for \(d_1\), \(d_2\).</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">How many put contracts should be bought, and at what strike?</span></div>
+<div class="pt"><span class="mk">(b) 3 marks</span><span class="tx">What is the total cost of the insurance, to the nearest dollar?</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">Let the index at expiry be \(S_T\). Show that the value of the portfolio plus puts is \(\max(12{,}000\,S_T,\ 81\text{m})\). Check at \(S_T = 5{,}400\), and give the insured value after the cost of the puts.</span></div>
+<div class="pt"><span class="mk">(d) 1 mark</span><span class="tx">The index's volatility rises. State the effect on the cost and on the effective floor, with a reason.</span></div>
+<details><summary>Normal-table values you may need</summary><div class="given">\(N(-0.80)=0.2119\), \(N(-0.65)=0.2578\), \(N(0.80)=0.7881\), \(N(0.65)=0.7422\).</div></details>
+<div class="quiz num" data-answer="480" data-tol="0.5">
+  <p class="q">Headline check: (a), the number of contracts.</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="1626066" data-tol="10">
+  <p class="q">Headline check: (b), total cost.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> \(N = 90{,}000{,}000/(7500 \times 25) = 480\) contracts. The portfolio may fall 10% (81/90), so the strike is \(K = 7500 \times 81/90 = 6{,}750\).</p>
+<p><strong>(b) 3 marks.</strong> \(\sigma\sqrt{T} = 0.22\sqrt{0.5} = 0.1556\).</p>
+$$d_1 = \frac{\ln(7500/6750) + (0.05 - 0.035 + 0.22^2/2)(0.5)}{0.1556} = \frac{0.1054 + 0.0196}{0.1556} = 0.8033 \approx 0.80,\quad d_2 = 0.8033 - 0.1556 = 0.6477 \approx 0.65.$$
+<p>\(Ke^{-rT} = 6750e^{-0.025} = 6583.34\); \(S_0e^{-qT} = 7500e^{-0.0175} = 7369.89\). \(p = 6583.34(0.2578) - 7369.89(0.2119) = 1697.19 - 1561.68 = 135.51\) points. Total \(= 135.5055 \times 480 \times 25 = \$1{,}626{,}066\) (about 1.81% of the portfolio; exact \(d\) would give about 147.99 points, i.e. $1.78m). If you round the put to 135.51 first you get $1,626,120; write what the dp instruction asks for.</p>
+<p><strong>(c) 2 marks.</strong> Portfolio at \(T\) \(= 90\text{m} \times S_T/7500 = 12{,}000S_T\). Puts: \(480 \times 25 \times \max(6750 - S_T, 0) = 12{,}000\max(6750 - S_T, 0)\). Sum \(= 12{,}000[S_T + \max(6750 - S_T, 0)] = 12{,}000\max(S_T, 6750) = \max(12{,}000S_T,\ 81\text{m})\). At \(S_T = 5{,}400\): portfolio \(= \$64.8\)m, puts \(= 12{,}000 \times 1{,}350 = \$16.2\)m, total \(= \$81.0\)m. After the cost: \(81{,}000{,}000 - 1{,}626{,}066 = \$79{,}373{,}934\) (about $79.37m).</p>
+<p><strong>(d) 1 mark.</strong> Higher volatility makes the puts dearer (bigger chance of ending below \(K\)), so the cost rises; the floor before cost is unchanged ($81m) but the effective floor after cost falls.</p>
+<div class="trap"><strong>Common slips</strong><br>Strike 7,500 (ignoring the 10% allowance); using $90m/7,500 without the multiplier (gives 12,000 contracts); using \(r\) in \(d_1\) instead of \(r - q\); \(N(d_1)\) in a put formula; forgetting that the "after cost" figure subtracts the premium from the floor (lecture method).</div>
+</div></details>
+</div>
+
+<h2>Which lesson do I revisit?</h2>
+<div class="tablewrap"><table>
+<tr><th>Lost marks on</th><th>Questions</th><th>Reopen</th></tr>
+<tr><td>Parity with \(q\), implied \(q\), arbitrage table, "dividends reinvested"</td><td>Q1</td><td><a href="0029-dividend-yields-index-and-fx-options-bounds-parity.html">Lesson 29</a></td></tr>
+<tr><td>\(p = (e^{(r-q)\Delta t}-d)/(u-d)\), American early-exercise check at each node</td><td>Q2</td><td><a href="0030-binomial-trees-with-dividend-yield-index-and-fx.html">Lesson 30</a></td></tr>
+<tr><td>PV of dividend, tree on \(S^*\), actual prices in brackets</td><td>Q3</td><td><a href="0031-binomial-trees-with-known-dollar-dividends.html">Lesson 31</a></td></tr>
+<tr><td>BSM with \(S_0 - PV(D)\), currency options, parity</td><td>Q4</td><td><a href="0032-bsm-with-dividends-yield-fx-and-known-dollar.html">Lesson 32</a>, <a href="0024-computing-bsm-call-and-put-prices.html">Lesson 24</a></td></tr>
+<tr><td>Contracts, strike from the floor, cost, payoff check, direction of cost</td><td>Q5</td><td>Part 1 of this lesson</td></tr>
+</table></div>
+
+<h2>Homework</h2>
+<ul>
+<li><strong>Tutorial 8 Q4</strong> (portfolio insurance: $60m, S&amp;P 500 at 1,200, floor $54m, $100 per point): do it first without peeking; the answer is 500 contracts struck at 1,080. Then <em>also</em> price the puts for a one-year option with \(\sigma = 20\%\), \(r = 5\%\), \(q = 2\%\) and say what the floor is after the cost.</li>
+<li><strong>Tutorial 8 Q7</strong> (optional; the Virgin case, one implied volatility for all strikes vs the smile): this belongs with <a href="0026-implied-volatility-smiles-and-vix.html">Lesson 26</a>, not with dividends. It is a written/interpretation task: the call and put smiles both fall then rise with the strike, so one constant \(\sigma\) cannot fit.</li>
+<li><strong>Timed attempt (suggested):</strong> sit Q2 and Q5 in one go in 35 minutes (16 marks; the paper's pace is about 2.7 minutes a mark, so 35 minutes buys about 13 marks of paper-time: be strict). Do the remaining questions untimed. All five questions together are 41 marks, about 110 minutes at exam pace.</li>
+<li>Tutorial 8 Q1-Q3, Q5, Q6 are covered in Lessons 29-32 (their lessons assign them).</li>
+</ul>
+
+<div class="ask">Unsure why a number came out differently, or want more questions on one pattern (a currency tree, an American call with a dividend, the effective floor)? Paste your working in the terminal and ask me. Recommended primary source: Lecture 8 slides 36-41, then Tutorial 8 Q4 and its solution; for the theory, the portfolio-insurance part of Hull's chapter on options on stock indices and currencies.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0032-bsm-with-dividends-yield-fx-and-known-dollar.html">Lesson 32, BSM with dividends</a></span>
+  <span><a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0034-delta-what-it-measures-and-the-first-hedge.html">Lesson 34, Topic 9: delta</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>
