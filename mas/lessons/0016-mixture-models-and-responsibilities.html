@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mixture Models and Responsibilities</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/mixture-responsibility.js"></script>
+<style>
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .model { font-size: .95rem; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  .keys { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .8rem; background: var(--card); border: 1px solid var(--rule); border-radius: 4px; padding: .1rem .35rem; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 16 · Topic 4: mixture models &amp; EM (1 of 6)</div>
+<h1>Mixture models: the generative story and responsibilities</h1>
+<p class="lede">A mixture model says each data point first picks a hidden group, then draws its value from that group's distribution. Run the story forwards and you get the likelihood. Run it backwards with Bayes' rule and you get the probability that a point came from each group. The win: given a fitted two-component mixture and an \(x\), compute that probability to 2 d.p. on the FX-82 and classify the point.</p>
+
+<div class="mission">Why this matters for 10 Nov: the mixture/EM question was worth 10–12 marks in every paper from 2020 to 2022. One year had a fully numeric version: a two-component Poisson mixture with fixed rates, a choice between two EM estimates, then \(P(Z_i=1\mid X_i)\) for one observation and its cluster. The other years asked you to derive \(Q(\theta,\theta^0)\) and the M-step. This lesson covers everything EM is built on: the joint \(p(x,z)\), the log-of-a-sum likelihood, and the responsibilities.</div>
+
+<p>Assumed from <a href="0014-probability-toolkit.html">Lesson 14</a>: joint, marginal and conditional distributions, Bayes' rule and Adam's/Eve's laws. Lesson 14 introduced responsibilities in one section. This lesson starts from the model and adds Poisson mixtures, classification boundaries, the observed-data log-likelihood with numbers, and R code. Reference pages: <a href="../reference/probability-toolkit.html">probability toolkit</a>, <a href="../reference/glossary.html">glossary</a>. About 35–40 minutes, on paper with an FX-82.</p>
+
+<h2>1 · The generative story</h2>
+<p>The lecture's model (<a href="../lectures/MixtureModel_LMS-1.pdf#page=8">Mixture slides 8–11</a>), for \(i=1,\dots,n\) independently:</p>
+<div class="box model">
+$$Z_i\sim\text{Categorical}(\pi_1,\dots,\pi_K),\qquad \pi_k&gt;0,\ \ \textstyle\sum_k\pi_k=1,$$
+$$X_i\mid Z_i=k\ \sim\ f_k\qquad(f_k\text{: the }k\text{th mixture component})$$
+<p style="margin-bottom:0">\(Z_i\) is the <strong>latent variable</strong>, the hidden label. \(\pi_k=P(Z_i=k)\) is the <strong>mixing proportion</strong> (the slides also say "mixture weight"). \(f_k\) is the <strong>mixture component</strong>: \(N(\mu_k,\sigma_k^2)\) for a Gaussian mixture model (GMM), Poisson(\(\lambda_k\)) for counts. The formula sheet gives Categorical(\(\pi_1,\pi_2\)) as \(f(z)=\pi_z\) for \(z=1,2\).</p>
+</div>
+<p>It's a two-stage process: <strong>choose a component, then draw from it</strong>. Only \(X_i\) is recorded. With \(K=2\) you often see \(Z_i\sim\text{Categorical}(\pi,1-\pi)\), one free proportion. The lecturer's EM demo simulates a three-component GMM with \(\pi=(0.2,0.3,0.5)\), means \((-10,0,6)\) and all variances 2, in two vectorised lines (<a href="../extra-notes/EM-updated.qmd">EM-updated.qmd</a>, "Simulate data"):</p>
+<pre class="rout"><span class="cmd">&gt; pi.true &lt;- c(0.2, 0.3, 0.5); mu.true &lt;- c(-10, 0, 6); sigma2.true &lt;- c(2, 2, 2)
+&gt; Z &lt;- sample(1:3, 1000, replace = TRUE, prob = pi.true)
+&gt; X &lt;- rnorm(1000, mean = <b>mu.true[Z]</b>, sd = sqrt(sigma2.true[Z]))</span></pre>
+<p><code>sample(1:3, …, prob = pi.true)</code> draws 1000 labels, which is \(Z_i\sim\text{Categorical}(\pi)\). Indexing <code>mu.true[Z]</code> gives a vector of 1000 means, one for each draw's own component. The lecture's book-price and height examples do the same thing in a loop with <code>rbinom(1, 1, p)</code> and an <code>if</code> (<a href="../extra-notes/Mixture_Model-1.pdf#page=1">Mixture_Model notes, p. 1</a>). The tute's Poisson version swaps <code>rnorm</code> for <code>rpois</code>.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> In the code above, the first four labels are <code>Z[1:4] = c(3, 1, 3, 2)</code>. Which means does <code>rnorm</code> use for <code>X[1:4]</code>?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\((-10,\ 0,\ 6,\ 6)\), the means in their stored order</button>
+    <button class="opt" data-key="b">\((0.5,\ 0.2,\ 0.5,\ 0.3)\), the mixing proportions</button>
+    <button class="opt" data-key="c">\((6,\ -10,\ 6,\ 0)\), each draw's own component mean</button>
+    <button class="opt" data-key="d">\((1,\ 1,\ 1,\ 1)\), the overall mixture mean</button>
+  </div>
+  <div class="why"><code>mu.true[Z]</code> looks up position <code>Z[i]</code> for each \(i\): <code>mu.true[c(3,1,3,2)]</code> \(=(6,-10,6,0)\). That is \(X_i\mid Z_i=k\sim N(\mu_k,\sigma_k^2)\) for all \(i\) at once. (d) is \(\sum_k\pi_k\mu_k=-2+0+3=1\), the mean of the mixture, but each single draw uses its own component's mean.</div>
+</div>
+
+<div class="trap"><strong>Trap</strong><br>A mixture is <em>not</em> the weighted sum \(\pi_1X_1+\pi_2X_2\). With \(X_a\sim N(9,1)\), \(X_b\sim N(20,1)\), the sum \(0.5X_a+0.5X_b\) is \(N(14.5,\ 0.5)\), a Normal. The 50/50 mixture is bimodal with peaks at 9 and 20 (<a href="../lectures/MixtureModel_LMS-1.pdf#page=15">Mixture slide 15</a>). Mixture: pick one, then sample. Linear combination: sample both, then average.</div>
+
+<h2>2 · Joint, marginal, and why the MLE is hard</h2>
+<p>Write \(\theta\) for all the parameters. For one observation, use the product rule and then the law of total probability (<a href="../annotated-slides/MixtureModel_LMS-annotated.pdf#page=20">annotated slides, p. 20</a>):</p>
+$$\begin{aligned}
+P(X_i=x_i,Z_i=k)&amp;=P(X_i=x_i\mid Z_i=k)\,P(Z_i=k)\\
+&amp;=f_k(x_i)\,\pi_k\\[6pt]
+P(X_i=x_i)&amp;=\sum_{k=1}^K P(X_i=x_i,Z_i=k)\\
+&amp;=\sum_{k=1}^K\pi_k f_k(x_i)\qquad\text{(mixture density)}
+\end{aligned}$$
+<p>The observations are independent, so the <strong>observed-data (incomplete) likelihood</strong> is a product of these sums (<a href="../lectures/MixtureModel_LMS-1.pdf#page=12">slides 12–13</a>):</p>
+$$\begin{aligned}
+L(\theta)&amp;=\prod_{i=1}^n\Big[\sum_{k=1}^K\pi_kf_k(x_i)\Big]\\
+\ell(\theta)&amp;=\sum_{i=1}^n\log\Big[\sum_{k=1}^K\pi_kf_k(x_i)\Big]
+\end{aligned}$$
+<p><strong>Why there's no closed form.</strong> For a GMM, use \(\partial f_k/\partial\mu_k=f_k\,(x_i-\mu_k)/\sigma_k^2\) and differentiate (<a href="../lectures/EM_LMS-1.pdf#page=6">EM slides 6–8</a>):</p>
+$$\begin{aligned}
+\frac{\partial\ell}{\partial\mu_k}
+&amp;=\sum_{i=1}^n\frac{1}{\sum_j\pi_jf_j(x_i)}\cdot\frac{\partial}{\partial\mu_k}\pi_kf_k(x_i)\quad\text{(chain rule)}\\
+&amp;=\sum_{i=1}^n\frac{\pi_kf_k(x_i)}{\sum_j\pi_jf_j(x_i)}\cdot\frac{x_i-\mu_k}{\sigma_k^2}\\
+&amp;=\sum_{i=1}^n\gamma_{ik}\,\frac{x_i-\mu_k}{\sigma_k^2}\qquad(\gamma_{ik}\text{: see §4})
+\end{aligned}$$
+<p>Setting this to 0 looks like it gives \(\mu_k=\sum_i\gamma_{ik}x_i/\sum_i\gamma_{ik}\). But \(\gamma_{ik}\) contains \(\mu_k\), both in its numerator and in the sum below it, so the equation is not solved. The log cannot pass through the sum. EM's trick is to hold \(\gamma_{ik}\) fixed, solve, recompute \(\gamma_{ik}\), and repeat.</p>
+
+<p><strong>If the labels were observed</strong> (the <strong>complete data</strong> \((X,Z)\)), indicators select one factor per observation and the log does split (<a href="../extra-notes/EM-updated.qmd">EM-updated.qmd</a>, "Why introduce the latent labels?"):</p>
+$$\begin{aligned}
+P(X,Z\mid\theta)&amp;=\prod_{i=1}^n P(x_i,Z_i\mid\theta)\\
+&amp;=\prod_{i=1}^n\prod_{k=1}^K\big[\pi_kf_k(x_i)\big]^{I(Z_i=k)}\\
+\log P(X,Z\mid\theta)&amp;=\sum_{i=1}^n\sum_{k=1}^K I(Z_i=k)\log\big[\pi_kf_k(x_i)\big]\\
+&amp;=\sum_{i=1}^n\sum_{k=1}^K I(Z_i=k)\big[\log\pi_k+\log f_k(x_i)\big]
+\end{aligned}$$
+<p>Each component's parameters now sit in their own terms, so each MLE is the usual one-sample MLE fitted to that group: \(\hat\pi_k=n_k/n\), \(\hat\mu_k=\) group mean, and so on. EM replaces the unknown \(I(Z_i=k)\) by its expectation \(\gamma_{ik}\) (<a href="0014-probability-toolkit.html">Lesson 14</a>, §3).</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> Why can't you get closed-form MLEs by maximising the observed-data log-likelihood \(\ell(\theta)\) directly?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The log can't pass through the sum, so every score equation involves all components</button>
+    <button class="opt" data-key="b">The likelihood has no maximum at all, because the labels \(Z_i\) are never observed</button>
+    <button class="opt" data-key="c">The component densities are not differentiable with respect to their own parameters</button>
+    <button class="opt" data-key="d">The proportions must sum to one, and constrained problems never have closed forms</button>
+  </div>
+  <div class="why">\(\log\sum_k\pi_kf_k(x_i)\) does not split into one term per component, so \(\partial\ell/\partial\mu_k\) carries the weight \(\gamma_{ik}\), which itself depends on \(\mu_k\) (<a href="../lectures/EM_LMS-1.pdf#page=7">EM slide 7</a>). (b) is false: an MLE exists, and EM finds a (local) maximum. (d) is false: the sum-to-one constraint is handled with a Lagrange multiplier in the M-step, and the complete-data version has the closed form \(n_k/n\).</div>
+</div>
+
+<div class="quiz num" data-answer="0.33" data-tol="0.005">
+  <p class="q"><strong>3.</strong> <em>(Retrieval: MLE, Lesson 1.)</em> A two-component Poisson mixture, but this time the labels are recorded. Six policies: \((Z_i,x_i)=(1,0),(2,3),(1,1),(2,4),(1,0),(2,2)\). Give the complete-data MLE \(\hat\lambda_1\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">With labels known, the \(\lambda_1\) terms of the complete-data log-likelihood are \(\sum_{i:Z_i=1}(x_i\log\lambda_1-\lambda_1)\). Setting the derivative to zero gives the group mean: \(\hat\lambda_1=(0+1+0)/3=\)<strong>0.33</strong>. Similarly \(\hat\lambda_2=9/3=3\) and \(\hat\pi_1=3/6=0.5\). EM's M-step gives the same formulas with each \(I(Z_i=k)\) replaced by \(\gamma_{ik}\), so they become weighted means.</div>
+</div>
+
+<h2>3 · Mean and variance of a mixture</h2>
+<p>Condition on the label and use Adam's and Eve's laws (<a href="0014-probability-toolkit.html">Lesson 14</a>, §4). For a Poisson mixture, \(\mathbb E(X\mid Z)=\operatorname{Var}(X\mid Z)=\lambda_Z\). Write \(\bar\lambda=\sum_k\pi_k\lambda_k\):</p>
+$$\begin{aligned}
+\mathbb EX&amp;=\mathbb E\big[\mathbb E(X\mid Z)\big]\\
+&amp;=\mathbb E[\lambda_Z]\\
+&amp;=\textstyle\sum_k\pi_k\lambda_k\ =\ \bar\lambda\\[6pt]
+\operatorname{Var}X&amp;=\mathbb E\big[\operatorname{Var}(X\mid Z)\big]+\operatorname{Var}\big[\mathbb E(X\mid Z)\big]\\
+&amp;=\mathbb E[\lambda_Z]+\operatorname{Var}[\lambda_Z]\\
+&amp;=\bar\lambda+\textstyle\sum_k\pi_k(\lambda_k-\bar\lambda)^2\\
+&amp;=\bar\lambda+\pi_1\pi_2(\lambda_1-\lambda_2)^2\qquad(K=2)
+\end{aligned}$$
+<p><strong>Running Poisson example</strong> (car insurance claims per policy per year): 80% of drivers are low-risk, Poisson(0.4); 20% are high-risk, Poisson(2.5).</p>
+$$\begin{aligned}
+\mathbb EX&amp;=0.8(0.4)+0.2(2.5)\\
+&amp;=0.82\\[6pt]
+\operatorname{Var}X&amp;=0.82+0.8(0.2)(0.4-2.5)^2\\
+&amp;=0.82+0.16(4.41)\\
+&amp;=0.82+0.7056\\
+&amp;=1.53
+\end{aligned}$$
+<p><strong>A Poisson mixture always has variance above its mean</strong>: it's overdispersed. For a GMM, \(\operatorname{Var}X=\sum_k\pi_k\sigma_k^2+\sum_k\pi_k(\mu_k-\bar\mu)^2\), within plus between.</p>
+
+<div class="quiz num" data-answer="21.04" data-tol="0.01">
+  <p class="q"><strong>4.</strong> Tute week 6's mixture: \(Z_i\sim\text{Categorical}(0.3,0.7)\), \(X_i\mid Z_i=1\sim\text{Pois}(2)\), \(X_i\mid Z_i=2\sim\text{Pois}(10)\). Compute \(\operatorname{Var}X\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}\mathbb EX&amp;=0.3(2)+0.7(10)=7.6\\ \operatorname{Var}X&amp;=7.6+0.3(0.7)(2-10)^2\\&amp;=7.6+0.21(64)\\&amp;=7.6+13.44\\&amp;=\textbf{21.04}\end{aligned}$$
+  A single Poisson with mean 7.6 would have variance 7.6. The extra 13.44 is the "between" term: the two rates differ.</div>
+</div>
+
+<div class="quiz num" data-answer="2.77" data-tol="0.01">
+  <p class="q"><strong>5.</strong> <em>(Retrieval: overdispersion, Lessons 10–12.)</em> You fit an intercept-only quasi-Poisson GLM to a very large sample from the Q4 mixture. Roughly what will \(\hat\phi=X^2/(n-p)\) be (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">With an intercept only, \(\hat\mu_i=\bar x\), so \(X^2/(n-1)=\sum(x_i-\bar x)^2/\bar x/(n-1)\approx\operatorname{Var}X/\mathbb EX\). That gives \(21.04/7.6=\)<strong>2.77</strong>. A hidden mixture of rates is exactly the "unobserved heterogeneity" that causes overdispersion. Quasi-Poisson fixes the SEs (×\(\sqrt{2.77}\)), while a mixture model explains where the extra variance comes from.</div>
+</div>
+
+<h2>4 · Responsibilities: Bayes' rule backwards</h2>
+<p>Once the parameters are estimated, run the story backwards: given \(x_i\), which component produced it? (<a href="../lectures/MixtureModel_LMS-1.pdf#page=14">Mixture slide 14</a>.) Bayes' rule, one step per line:</p>
+<div class="box">
+$$\begin{aligned}
+P(Z_i=k\mid X_i=x_i)&amp;=\frac{P(X_i=x_i,\ Z_i=k)}{P(X_i=x_i)}\qquad\text{(definition)}\\
+&amp;=\frac{P(X_i=x_i\mid Z_i=k)\,P(Z_i=k)}{P(X_i=x_i)}\\
+&amp;=\frac{\pi_k\,f_k(x_i)}{P(X_i=x_i)}\\
+&amp;=\frac{\pi_k\,f_k(x_i)}{\sum_{j=1}^K\pi_j\,f_j(x_i)}\qquad\text{(total probability)}
+\end{aligned}$$
+<p style="margin-bottom:0">This is the <strong>responsibility</strong> \(\gamma_{ik}\), also called the posterior component probability (<a href="../lectures/Mixture%20Models_%20An%20Intuitive%20Introduction.pdf#page=11">Intuitive Introduction, p. 11</a>). Numerator: the joint. Denominator: the same quantity summed over \(k\). So \(\sum_k\gamma_{ik}=1\). The <strong>prior</strong> \(\pi_k\) is updated by the <strong>likelihood</strong> \(f_k(x_i)\).</p>
+</div>
+<p><strong>Classification rule</strong> (tute week 6; 2020 exam wording): assign \(x_i\) to cluster 1 if \(P(Z_i=1\mid X_i)&gt;0.5\), and to cluster 2 otherwise. With \(K=2\) this is the same as \(\pi_1f_1(x_i)&gt;\pi_2f_2(x_i)\), because both share the denominator. With \(K\ge3\), pick the largest \(\gamma_{ik}\).</p>
+
+<h3>Worked example: Normal (the tangible win)</h3>
+<p>A fitted GMM for commute times (minutes): \(\hat\pi_1=0.6\), component 1 is \(N(20,4^2)\), component 2 is \(N(32,5^2)\). A commute takes \(x=27\). Find \(P(Z=1\mid X=27)\) and classify it.</p>
+<p>Both Normal densities contain \(\frac1{\sqrt{2\pi}}\), so it cancels between the numerator and the denominator. The \(\frac1{\sigma_k}\) factors <strong>stay</strong>, because they differ.</p>
+$$\begin{aligned}
+\pi_1f_1(27)&amp;\propto\frac{0.6}{4}\,e^{-(27-20)^2/(2\cdot16)}\\
+&amp;=0.15\,e^{-49/32}\\
+&amp;=0.15\,e^{-1.53125}\\
+&amp;=0.15\times0.216265\\
+&amp;=0.032440\\[6pt]
+\pi_2f_2(27)&amp;\propto\frac{0.4}{5}\,e^{-(27-32)^2/(2\cdot25)}\\
+&amp;=0.08\,e^{-25/50}\\
+&amp;=0.08\times0.606531\\
+&amp;=0.048522\\[6pt]
+\gamma_1&amp;=\frac{0.032440}{0.032440+0.048522}\\
+&amp;=\frac{0.032440}{0.080962}\\
+&amp;=0.40
+\end{aligned}$$
+<p>\(P(Z=1\mid X=27)=0.40\) and \(P(Z=2\mid X=27)=0.60\). Since \(0.40&lt;0.5\), assign it to <strong>cluster 2</strong>, even though cluster 1 has the larger mixing proportion. On the FX-82, enter it in one go and check that \(\gamma_1+\gamma_2=1\):</p>
+<p><span class="keys">0.15e^(−49÷32) ÷ (0.15e^(−49÷32) + 0.08e^(−0.5))</span> → 0.4006…</p>
+
+<div class="mixresp" data-mode="normal" data-pi1="0.6" data-mu1="20" data-s1="4" data-mu2="32" data-s2="5" data-x="27"></div>
+<p class="phase-key" style="font-family:Inter,system-ui,sans-serif">Top: the two weighted densities \(\pi_kf_k\) (the widget keeps the \(1/\sqrt{2\pi}\)). Bottom: \(\gamma_1(x)\), which crosses 0.5 where the two curves cross. Raise π₁ and the boundary moves right. Make σ₂ much larger than σ₁ and \(\gamma_1\) falls again in the far left tail, so cluster 2 claims both tails.</p>
+
+<div class="quiz num" data-answer="0.70" data-tol="0.005">
+  <p class="q"><strong>6.</strong> Same fitted commute model. Compute \(P(Z=1\mid X=25)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}\pi_1f_1&amp;\propto0.15\,e^{-25/32}\\&amp;=0.15\times0.457833\\&amp;=0.068675\\ \pi_2f_2&amp;\propto0.08\,e^{-49/50}\\&amp;=0.08\times0.375311\\&amp;=0.030025\\ \gamma_1&amp;=\frac{0.068675}{0.068675+0.030025}\\&amp;=\textbf{0.70}\end{aligned}$$
+  Cluster 1. Moving from 27 to 25 sends the label from 0.40 to 0.70: near the boundary, the responsibility changes fast.</div>
+</div>
+
+<h3>Worked example: Poisson</h3>
+<p>Claims model from §3, \(\pi=(0.8,0.2)\), \(\lambda=(0.4,2.5)\). A policy makes \(x=2\) claims. The \(x!\) is the same in both terms, so it cancels:</p>
+$$\begin{aligned}
+\pi_1f_1(2)&amp;\propto0.8\times0.4^2\,e^{-0.4}\\
+&amp;=0.128\times0.670320\\
+&amp;=0.085801\\[6pt]
+\pi_2f_2(2)&amp;\propto0.2\times2.5^2\,e^{-2.5}\\
+&amp;=1.25\times0.082085\\
+&amp;=0.102606\\[6pt]
+\gamma_1&amp;=\frac{0.085801}{0.085801+0.102606}\\
+&amp;=\frac{0.085801}{0.188407}\\
+&amp;=0.46
+\end{aligned}$$
+<p>\(0.46&lt;0.5\), so this policy goes to the high-risk cluster. <strong>Where does the boundary sit?</strong> Assign to cluster 1 when \(\pi_1f_1(x)&gt;\pi_2f_2(x)\). Take logs and solve for \(x\):</p>
+$$\begin{aligned}
+0.8(0.4)^xe^{-0.4}&amp;&gt;0.2(2.5)^xe^{-2.5}\\
+\log0.8+x\log0.4-0.4&amp;&gt;\log0.2+x\log2.5-2.5\\
+x(\log2.5-\log0.4)&amp;&lt;\log\tfrac{0.8}{0.2}+2.5-0.4\\
+x\log6.25&amp;&lt;\log4+2.1\\
+x&amp;&lt;\frac{1.3863+2.1}{1.8326}\\
+x&amp;&lt;1.90
+\end{aligned}$$
+<p>So 0 or 1 claims → low-risk; 2 or more → high-risk. A count can't be 1.90, so the rule is a whole-number cutoff.</p>
+
+<div class="mixresp" data-mode="poisson" data-pi1="0.8" data-l1="0.4" data-l2="2.5" data-x="2"></div>
+
+<div class="quiz num" data-answer="0.84" data-tol="0.005">
+  <p class="q"><strong>7.</strong> Claims model. Compute \(P(Z=1\mid X=1)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}\pi_1f_1&amp;\propto0.8(0.4)e^{-0.4}\\&amp;=0.32\times0.670320\\&amp;=0.214502\\ \pi_2f_2&amp;\propto0.2(2.5)e^{-2.5}\\&amp;=0.5\times0.082085\\&amp;=0.041042\\ \gamma_1&amp;=\frac{0.214502}{0.214502+0.041042}\\&amp;=\textbf{0.84}\end{aligned}$$
+  Low-risk, as the cutoff \(x&lt;1.90\) predicts. If you kept the \(1/x!\), it's \(1/1!=1\) here; for \(x=2\) it cancels anyway.</div>
+</div>
+
+<div class="quiz num" data-answer="2.72" data-tol="0.01">
+  <p class="q"><strong>8.</strong> Same-mean, different-variance mixture (a past-paper shape). Sensor errors are \(N(0,1)\) for a working sensor (\(\pi_1=0.9\)) and \(N(0,9)\) for a faulty one (\(\pi_2=0.1\)). The rule flags an error \(x\) as "faulty" when \(P(Z=2\mid x)&gt;0.5\). Find the cutoff \(c\) such that it flags exactly when \(|x|&gt;c\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Flag when \(\pi_2f_2(x)&gt;\pi_1f_1(x)\). Keep the \(1/\sigma_k\):
+  $$\begin{aligned}\tfrac{0.1}{3}e^{-x^2/18}&amp;&gt;\tfrac{0.9}{1}e^{-x^2/2}\\ \tfrac{x^2}{2}-\tfrac{x^2}{18}&amp;&gt;\log\tfrac{0.9\times3}{0.1}\\ \tfrac49x^2&amp;&gt;\log27\\ \tfrac49x^2&amp;&gt;3.2958\\ x^2&amp;&gt;7.4156\\ |x|&amp;&gt;\textbf{2.72}\end{aligned}$$
+  Only \(x^2\) appears, so the responsibility depends on \(|x|\): the wide component claims both tails. (Check: at \(x=2.5\), \(P(Z=2\mid x)=0.37\), so not flagged.) Forgetting the \(1/\sigma_k\) gives \(\sqrt{\log 9/(4/9)}=2.22\).</div>
+</div>
+
+<div class="trap"><strong>Traps</strong><br>
+Dropping \(1/\sigma_k\) when the variances differ (only factors common to <em>every</em> term cancel) · forgetting \(\pi_k\) and comparing \(f_k\) alone · R's <code>dnorm(x, mean, sd)</code> takes the SD, so \(N(\mu,2)\) is <code>sd = sqrt(2)</code> · an observation whose label is <strong>known</strong> (the 2022-style twist "these observations come from component 1") has \(P(Z_i=1)=1\) with no Bayes' rule, and only the unlabelled ones get responsibilities.</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>In the commute example, \(\hat\pi_1=0.6\) favours component 1, yet \(x=27\) goes to component 2. Why? What would a responsibility of 0.50 mean?</p>
+<details><summary>Model answer</summary><div>
+<p>The responsibility combines the prior weight \(\pi_k\) with how well each component explains the value. 27 is 1.75 SDs from 20 but only 1 SD from 32, so \(f_2(27)\) is large enough to beat the 0.6 : 0.4 prior. A responsibility of 0.50 means \(x\) sits on the decision boundary where \(\pi_1f_1=\pi_2f_2\): the data can't tell the components apart there, and reporting the probability is more honest than reporting a hard label.</p></div></details>
+</div>
+
+<h2>5 · Reading the R</h2>
+<p>The claims model, simulated and then clustered the way tute week 6 Q2 and the lecturer's "Computing the probability of each book being paperback or hardback" do it (<a href="../extra-notes/Mixture_Model-1.pdf#page=4">Mixture_Model notes, pp. 4–5</a>). We pretend the fitted values equal the truth.</p>
+<pre class="rout"><span class="cmd">&gt; set.seed(30027)
+&gt; n &lt;- 500
+&gt; pi.hat &lt;- c(0.8, 0.2); lambda &lt;- c(0.4, 2.5)
+&gt; Z &lt;- sample(1:2, n, replace = TRUE, prob = pi.hat)
+&gt; X &lt;- rpois(n, lambda = lambda[Z])
+&gt; table(Z)</span>
+Z
+  1   2
+386 114
+<span class="cmd">&gt; head(cbind(Z, X))</span>
+     Z X
+[1,] 2 0
+[2,] 1 0
+[3,] 2 7
+[4,] 1 0
+[5,] 1 0
+[6,] 1 1
+<span class="cmd">&gt; M &lt;- cbind(dpois(X, lambda[1]) * pi.hat[1], dpois(X, lambda[2]) * pi.hat[2])
+&gt; <b>CP &lt;- M / rowSums(M)</b>
+&gt; round(CP[1:6, ], 3)</span>
+      [,1]  [,2]
+[1,] 0.970 0.030
+[2,] 0.970 0.030
+[3,] 0.000 1.000
+[4,] 0.970 0.030
+[5,] 0.970 0.030
+[6,] 0.839 0.161
+<span class="cmd">&gt; cluster &lt;- ifelse(CP[, 1] &gt; 0.5, 1, 2)
+&gt; table(true = Z, cluster)</span>
+    cluster
+true   1   2
+   1 370  16
+   2  33  81
+<span class="cmd">&gt; sum(log(rowSums(M)))</span>
+[1] -648.7918</pre>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>9.</strong> Column 1 of <code>M</code> is <code>dpois(X, lambda[1]) * pi.hat[1]</code>. What does the highlighted line <code>CP &lt;- M / rowSums(M)</code> compute?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Each column divided by its total: the share of the data in each cluster</button>
+    <button class="opt" data-key="b">Each row divided by its total: the responsibilities \(P(Z_i=k\mid x_i)\)</button>
+    <button class="opt" data-key="c">Each row's sum: the mixture density \(P(X_i=x_i)\) at the fitted values</button>
+    <button class="opt" data-key="d">Each entry's likelihood given the true label: \(P(X_i=x_i\mid Z_i)\)</button>
+  </div>
+  <div class="why"><code>M[i, k]</code> \(=\pi_kf_k(x_i)=P(X_i=x_i,Z_i=k)\), the joint. <code>rowSums(M)</code> is \(\sum_k\pi_kf_k(x_i)=P(X_i=x_i)\), and R divides each row by its own sum. So <code>CP[i, k]</code> is Bayes' rule from §4. Row 6 (\(x=1\)) gives 0.839, which is your Q7 answer. (c) describes <code>rowSums(M)</code> itself, the denominator.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>10.</strong> What does the last line, <code>sum(log(rowSums(M)))</code>, compute?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The complete-data log-likelihood, using the simulated labels \(Z\)</button>
+    <button class="opt" data-key="b">The sum of all log responsibilities, a measure of clustering quality</button>
+    <button class="opt" data-key="c">The expected complete-data log-likelihood, the Q-function of EM</button>
+    <button class="opt" data-key="d">The observed-data log-likelihood \(\ell(\theta)\) at the fitted values</button>
+  </div>
+  <div class="why">\(\sum_i\log\big[\sum_k\pi_kf_k(x_i)\big]=\ell(\theta)\), the "incomplete log-likelihood" that the lecturer's <code>compute.log.lik</code> returns (<a href="../extra-notes/EM-updated.qmd">EM-updated.qmd</a>, "Computing the incomplete log-likelihood"). It never uses <code>Z</code>, so it's not (a). EM tracks this number: it never decreases between iterations, and it's how you choose between runs (§6).</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>From the table, how many policies are misclassified, and why is observation 1 (true \(Z=2\), \(x=0\)) one of them? Does that mean the method failed?</p>
+<details><summary>Model answer</summary><div>
+<p>\(16+33=49\) of 500 (9.8%). Observation 1 really is high-risk but made 0 claims, which a Poisson(2.5) driver does with probability \(e^{-2.5}=0.08\). Given only \(x=0\), the low-risk explanation is far more likely (\(\gamma_1=0.97\)). The method is working as designed: overlapping components make some errors unavoidable, and the responsibilities say how uncertain each assignment is.</p></div></details>
+</div>
+
+<h2>6 · Exam-style practice</h2>
+<p><strong>Setup</strong> (written in the shape of a past paper; fresh numbers). Counts \(x=(0,\ 3,\ 5,\ 1)\) follow a two-component Poisson mixture: \(Z_i\sim\text{Categorical}(\pi,1-\pi)\), \(X_i\mid Z_i=1\sim\text{Poisson}(1)\), \(X_i\mid Z_i=2\sim\text{Poisson}(4)\). Only \(\pi\) is unknown. Two EM runs from different starting values (one stopped early) report \(\hat\pi=0.3\) and \(\hat\pi=0.6\). Pick the one with the higher \(\ell(\pi)\).</p>
+<p>The component pmf values you'll need, which don't depend on \(\pi\):</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>\(x\)</th><th>\(f_1(x)=e^{-1}/x!\)</th><th>\(f_2(x)=4^xe^{-4}/x!\)</th></tr>
+<tr><td>0</td><td>0.367879</td><td>0.018316</td></tr>
+<tr><td>3</td><td>0.061313</td><td>0.195367</td></tr>
+<tr><td>5</td><td>0.003066</td><td>0.156293</td></tr>
+<tr><td>1</td><td>0.367879</td><td>0.073263</td></tr>
+</table></div>
+<p>Here you <em>can't</em> cancel \(x!\): the log-likelihood needs the actual densities, not ratios. At \(\pi=0.3\) the four terms \(\log[0.3f_1+0.7f_2]\) are \(-2.0941,\ -1.8634,\ -2.2043,\ -1.8223\), so \(\ell(0.3)=-7.98\).</p>
+
+<div class="quiz num" data-answer="-7.77" data-tol="0.01">
+  <p class="q"><strong>11.</strong> Compute \(\ell(0.6)=\sum_i\log[0.6f_1(x_i)+0.4f_2(x_i)]\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why"><div class="tablewrap"><table class="ledger">
+  <tr><th>\(x\)</th><th>\(0.6f_1\)</th><th>\(0.4f_2\)</th><th>sum</th><th>log</th></tr>
+  <tr><td>0</td><td>0.220728</td><td>0.007326</td><td>0.228054</td><td>−1.4782</td></tr>
+  <tr><td>3</td><td>0.036788</td><td>0.078147</td><td>0.114935</td><td>−2.1634</td></tr>
+  <tr><td>5</td><td>0.001839</td><td>0.062517</td><td>0.064357</td><td>−2.7433</td></tr>
+  <tr><td>1</td><td>0.220728</td><td>0.029305</td><td>0.250033</td><td>−1.3862</td></tr>
+  </table></div>
+  Add the last column: \(\ell(0.6)=\)<strong>−7.77</strong>. Since \(-7.77&gt;-7.98\), use \(\hat\pi=0.6\) (R gives \(-7.771\)). The common slip is \(\sum_i\sum_k\log(\pi_kf_k)\): the log goes <em>outside</em> the inner sum.</div>
+</div>
+
+<div class="quiz num" data-answer="0.32" data-tol="0.005">
+  <p class="q"><strong>12.</strong> Using \(\hat\pi=0.6\), compute \(P(Z_2=1\mid X_2=3)\) (2 d.p.). Which cluster is \(x_2=3\) assigned to?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">The joint values are already in Q11's \(x=3\) line:
+  $$\begin{aligned}P(Z_2=1\mid X_2=3)&amp;=\frac{0.6(0.061313)}{0.6(0.061313)+0.4(0.195367)}\\&amp;=\frac{0.036788}{0.114935}\\&amp;=\textbf{0.32}\end{aligned}$$
+  \(P(Z_2=2\mid X_2=3)=0.68&gt;0.5\), so cluster 2. Write both probabilities and the rule in your answer: the marks are for the working and the conclusion.</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Why choose the run with the larger \(\ell\), and not the one with the larger \(\hat\pi\) or the later start?</p>
+<details><summary>Model answer</summary><div>
+<p>The MLE is by definition the value that maximises the observed-data log-likelihood \(\ell(\theta)\). EM only guarantees that \(\ell\) never decreases, so different starting values can stop at different local maxima, or stop early. We compare the runs on the criterion EM is maximising and keep the one with the higher \(\ell\): here \(-7.77&gt;-7.98\), so \(\hat\pi=0.6\). The lecturer's demo does the same, comparing "the final incomplete log-likelihoods" across starts (<a href="../extra-notes/EM-updated.qmd">EM-updated.qmd</a>).</p></div></details>
+</div>
+
+<h2>7 · Next: the EM algorithm</h2>
+<p>§2 showed that you'd know how to fit each component if you knew the labels, and §4 showed how to compute the labels' probabilities if you knew the parameters. EM alternates between the two. The <strong>E-step</strong> computes \(\gamma_{ik}\) at the current \(\theta^0\), which turns the complete-data log-likelihood into \(Q(\theta,\theta^0)=\sum_i\sum_k\gamma_{ik}[\log\pi_k+\log f_k(x_i;\theta)]\). The <strong>M-step</strong> maximises \(Q\), which gives weighted versions of Q3's group MLEs. <a href="0017-em-algorithm-q-function.html">Lesson 17</a> derives \(Q\) and the M-step line by line, the way the 2021–2022 papers ask for it.</p>
+
+<h2>8 · Score yourself</h2>
+<div class="tablewrap"><table>
+<tr><th>If you missed…</th><th>Go back to</th></tr>
+<tr><td>Q1, Q9, Q10</td><td>§1 indexing <code>mu[Z]</code>; §5 joint → <code>rowSums</code> → divide</td></tr>
+<tr><td>Q2, Q3, Q11</td><td>§2: observed vs complete likelihood; the log sits outside \(\sum_k\)</td></tr>
+<tr><td>Q4, Q5</td><td>§3 Eve's law: within + \(\pi_1\pi_2(\lambda_1-\lambda_2)^2\)</td></tr>
+<tr><td>Q6–Q8, Q12</td><td>§4: keep \(\pi_k\) and \(1/\sigma_k\); cancel only shared constants</td></tr>
+</table></div>
+
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) \(Z_i\sim\text{Cat}(\pi)\), \(X_i\mid Z_i=k\sim f_k\). (2) \(P(x_i,Z_i=k)=\pi_kf_k(x_i)\); \(P(x_i)=\sum_k\pi_kf_k(x_i)\). (3) \(\ell=\sum_i\log\sum_k\pi_kf_k(x_i)\): no closed form. (4) Complete: \(\sum_i\sum_kI(Z_i=k)[\log\pi_k+\log f_k(x_i)]\). (5) \(\gamma_{ik}=\pi_kf_k(x_i)/\sum_j\pi_jf_j(x_i)\); assign to 1 if \(\gamma_{i1}&gt;0.5\). (6) \(\operatorname{Var}X=\) within + between. (7) R: <code>M[,k] = dpois(X, lambda[k])*pi[k]</code>; <code>CP = M/rowSums(M)</code>; <code>sum(log(rowSums(M)))</code> \(=\ell\).</p></div></details>
+
+<h2>9 · Homework</h2>
+<ol>
+  <li><strong>Tute week 6, Q2, by hand</strong> (<code>tutes/2026_MAST30027_week6_questions.qmd</code>). Don't write the R. Instead: (a) find the whole-number cutoff below which \(P(Z_i=1\mid X_i)&gt;0.5\) for \(\hat\pi_1=0.3\), \(\hat\lambda=(2,10)\); (b) compute \(P(Z=1\mid X=4)\) and \(P(Z=1\mid X=5)\) (2 d.p.); (c) write the expression for the probability that a random observation is misclassified, in terms of Poisson cdfs.</li>
+  <li><strong>Lecturer's heights example</strong> (<a href="../lectures/Mixture%20Models_%20An%20Intuitive%20Introduction.pdf#page=8">Intuitive Introduction, p. 8</a>): 75% female \(N(160,6^2)\), 25% male \(N(175,6^2)\). Compute \(P(\text{female}\mid168)\) by hand. Then show that with equal variances the boundary is linear in \(x\) and find it (2 d.p.).</li>
+  <li><strong>Stretch.</strong> Three components from the EM demo: \(\pi=(0.2,0.3,0.5)\), \(N(-2.5,2),N(0,2),N(2.5,2)\). Compute all three responsibilities for \(x=1\) and say which cluster gets it.</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1. (a) \(0.3\cdot2^xe^{-2}&gt;0.7\cdot10^xe^{-10}\) ⇔ \(x\log5&lt;\log\frac37+8=7.1527\) ⇔ \(x&lt;4.44\): \(x\le4\) → cluster 1. (b) \(0.67\) and \(0.29\) (R: 0.6715, 0.2902). (c) \(0.3\,P(\text{Pois}(2)\ge5)+0.7\,P(\text{Pois}(10)\le4)\) = <code>0.3*(1-ppois(4,2)) + 0.7*ppois(4,10)</code> = 0.036, so about 36 of 1000 misclassified on average.</p>
+<p>2. \(\gamma_F=\dfrac{0.75e^{-64/72}}{0.75e^{-64/72}+0.25e^{-49/72}}=\mathbf{0.71}\) (the \(1/6\) cancels). Boundary: \(\log3=\frac{(x-160)^2-(x-175)^2}{72}=\frac{30x-5025}{72}\), so \(x=\frac{5025+72\log3}{30}=\mathbf{170.14}\). Female if \(x&lt;170.14\): the boundary moves 2.64 cm past the midpoint 167.5, towards the smaller group.</p>
+<p>3. Equal variances, so only \(\pi_ke^{-(1-\mu_k)^2/4}\) matter: \(0.2e^{-3.0625}=0.009352\), \(0.3e^{-0.25}=0.233640\), \(0.5e^{-0.5625}=0.284895\). Sum 0.527887, so \(\gamma=(0.02,\ 0.44,\ 0.54)\). Cluster 3, the largest. Clusters 2 and 3 are close (0.44 vs 0.54) because these components overlap strongly.</p></div></details>
+
+<p><strong>Primary source:</strong> the lecture slides, <a href="../lectures/MixtureModel_LMS-1.pdf">Mixture Models</a> (16 slides: the generative model on 8–12, clustering on 14, mixture vs linear combination on 15), with the lecturer's handwriting in <a href="../annotated-slides/MixtureModel_LMS-annotated.pdf#page=20">the annotated version</a>. Then <a href="../extra-notes/Mixture_Model-1.pdf">Mixture_Model notes</a> for the R, and <a href="../lectures/EM_LMS-1.pdf#page=6">EM slides 6–8</a> for why the MLE needs EM. Gentler: <a href="../lectures/Mixture%20Models_%20An%20Intuitive%20Introduction.pdf">Mixture Models: An Intuitive Introduction</a>.</p>
+
+<div class="ask">💬 Ask me in the terminal if a responsibility won't come out, or if you want more drills (three components, a Binomial or Exponential mixture, a known-label twist). Paste your Q11–Q12 working and I'll mark it the way an exam marker would.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0015-kernels-and-conjugacy.html">Lesson 15, Kernels &amp; conjugacy</a> · Reference: <a href="../reference/probability-toolkit.html">Probability toolkit</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0017-em-algorithm-q-function.html">Lesson 17, The EM algorithm and the Q-function</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EM Cheat Sheet</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  body.ref table { font-size: .84rem; margin: .6rem 0; }
+  body.ref th, body.ref td { padding: .28rem .45rem; vertical-align: top; }
+  body.ref p, body.ref li { margin: .35rem 0; }
+  body.ref .box { padding: .6rem .9rem; margin: .7rem 0; }
+  body.ref .trap { padding: .5rem .8rem; margin: .7rem 0; }
+  .src { font-family: Inter, system-ui, sans-serif; font-size: .72rem; color: var(--muted); }
+  .a4 { font-family: Inter, system-ui, sans-serif; font-size: .7rem; font-weight: 600; color: var(--trap); white-space: nowrap; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.4rem; }
+  .cols > div, .cols3 > div { min-width: 0; }
+  .cols3 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.4rem; }
+  table.rcode td:first-child { white-space: nowrap; }
+  table.rcode code { font-size: .78rem; }
+  ol.algo { padding-left: 1.3rem; margin: .3rem 0; }
+  @page { size: A4; margin: 9mm 10mm; }
+  @media print {
+    html { font-size: 7.6pt; }
+    body.ref main { max-width: none; }
+    body.ref ul, ol.algo { padding-left: 1.2rem; margin: .2rem 0; }
+    body.ref p, body.ref li { margin: .15rem 0; line-height: 1.4; }
+    body.ref .box { padding: .3rem .6rem; margin: .4rem 0; }
+    body.ref .trap { padding: .3rem .6rem; margin: .4rem 0; }
+    body.ref th, body.ref td { padding: .15rem .35rem; }
+    body.ref h1 { font-size: 1.5rem; margin: 0 0 .2rem; }
+    body.ref .lede { font-size: .95rem; margin: 0 0 .4rem; }
+    body.ref h2 { margin-top: .7rem; padding-top: .3rem; font-size: 1.05rem; }
+    body.ref table { font-size: .8rem; }
+    .katex-display { margin: .3rem 0; }
+    .cols3 { grid-template-columns: 1fr 1fr 1fr; break-inside: avoid; }
+  }
+</style>
+</head>
+<body class="ref">
+<main>
+<div class="kicker">MAST30027 · Reference</div>
+<h1>Mixture models and the EM algorithm</h1>
+<p class="lede">Topic 4 on two printed pages. The formula sheet gives only pdfs and means, so every EM formula below is <span class="a4">A4</span> material. EM is a 10–12-mark question: write \(Q(\theta,\theta^0)\), give the E-step, derive the M-step, often with a twist. Each heading links to its lesson. Notation: current values \(\theta^0\), new values \(\hat\theta\), \(\gamma_{ik}:=P(Z_i=k\mid X_i,\theta^0)\), \(N_k=\sum_i\gamma_{ik}\). The lecturer's 2026 notes write \(\theta^{(t)},r_{ik}^{(t)}\) for the same things.</p>
+
+<div class="cols">
+<div>
+<h2>Model and three log-likelihoods <span class="kicker">· <a href="../lessons/0016-mixture-models-and-responsibilities.html">L16</a>, <a href="../lessons/0017-em-algorithm-q-function.html">L17</a></span></h2>
+<p>\(Z_i\sim\text{Categorical}(\pi_1,\dots,\pi_K)\), \(X_i\mid Z_i=k\sim f(\cdot\,;\theta_k)\). For \(K=2\), use \(\text{Cat}(\pi,1-\pi)\). Free parameters: \(\pi_1,\dots,\pi_{K-1}\) plus the component parameters. <span class="src"><a href="../lectures/MixtureModel_LMS-1.pdf#page=12">Mixture slides 12–15</a>; <a href="../lectures/EM_LMS-1.pdf#page=6">EM slides 6–7</a></span></p>
+<table>
+<tr><th>Name</th><th>Formula</th></tr>
+<tr><td>Incomplete (observed-data) \(\ell(\theta)\)</td><td>\(\sum_{i}\log\Big[\sum_{k}\pi_kf(x_i;\theta_k)\Big]\). Log of a sum: no closed-form MLE.</td></tr>
+<tr><td>Complete(-data) log-lik</td><td>\(\sum_i\sum_kI(Z_i=k)\big[\log\pi_k+\log f(x_i;\theta_k)\big]\). Easy, but \(Z\) unknown.</td></tr>
+<tr><td>\(Q(\theta,\theta^0)\)</td><td>\(E_{Z\mid X,\theta^0}[\log P(X,Z\mid\theta)]\): \(\theta^0\) fixes the weights, \(\theta\) is free.</td></tr>
+</table>
+</div>
+<div>
+<h2>E-step: responsibilities <span class="kicker">· <a href="../lessons/0016-mixture-models-and-responsibilities.html">L16</a></span></h2>
+<div class="box">
+$$\gamma_{ik}=P(Z_i=k\mid X_i,\theta^0)=\frac{\pi_k^0f(x_i;\theta_k^0)}{\sum_{k'}\pi_{k'}^0f(x_i;\theta_{k'}^0)}$$
+</div>
+<p>This is Bayes' rule: joint \(\div\) marginal. \(\sum_k\gamma_{ik}=1\), so \(\sum_{i,k}\gamma_{ik}=n\). Cancel only factors common to <em>every</em> term (\(x_i!\), \(\frac1{\sqrt{2\pi}}\); \(1/\sigma_k\) only if the variances are equal). <span class="src"><a href="../lectures/EM_LMS-1.pdf#page=8">EM slide 8</a></span></p>
+<p><strong>Classify:</strong> assign \(x_i\) to \(\arg\max_k\gamma_{ik}\). For \(K=2\): component 1 iff \(\gamma_{i1}&gt;0.5\iff\pi_1f_1(x_i)&gt;\pi_2f_2(x_i)\). With equal \(\sigma\), the boundary is at \(\frac{\mu_1+\mu_2}2+\frac{\sigma^2\log(\pi_2/\pi_1)}{\mu_1-\mu_2}\). Report \(\gamma\) itself when asked "how confident".</p>
+</div>
+</div>
+
+<h2>The EM algorithm <span class="kicker">· <a href="../lessons/0017-em-algorithm-q-function.html">L17</a></span></h2>
+<div class="box">
+<ol class="algo">
+  <li><strong>Initialise</strong> \(\theta^0\) and evaluate \(\ell(\theta^0)\).</li>
+  <li><strong>E-step:</strong> using \(\theta^0\), compute \(\gamma_{ik}=E_{Z\mid X,\theta^0}[I(Z_i=k)]\) for all \(i,k\). This gives \(Q(\theta,\theta^0)\).</li>
+  <li><strong>M-step:</strong> \(\hat\theta=\arg\max_\theta Q(\theta,\theta^0)\), holding \(\gamma_{ik}\) fixed as numbers.</li>
+  <li>Evaluate \(\ell(\hat\theta)\). <strong>Stop</strong> if \(|\ell(\hat\theta)-\ell(\theta^0)|&lt;\varepsilon\) (or after max iterations); else set \(\theta^0\leftarrow\hat\theta\) and go to 2.</li>
+</ol>
+<p><strong>Ascent:</strong> \(\ell(\hat\theta)\ge Q(\hat\theta,\theta^0)+C\ge Q(\theta^0,\theta^0)+C=\ell(\theta^0)\), with \(C=-\sum_Zq(Z)\log q(Z)\) and \(q=P(Z\mid X,\theta^0)\). By Jensen, equality holds at \(\theta^0\). So \(\ell\) never decreases: a falling \(\ell\) trace means a bug. <strong>Local maxima:</strong> run from several starts and keep the run with the <strong>largest final \(\ell\)</strong>. Runs with the same \(\ell\) and permuted labels are label switching (the same fit). Equal starts (\(\mu_1^0=\mu_2^0\)) stay stuck: the components never separate. <span class="src"><a href="../lectures/EM_LMS-1.pdf#page=16">slides 16–17</a>, <a href="../lectures/EM_LMS-1.pdf#page=22">22–23</a></span></p>
+</div>
+
+<h2>\(Q(\theta,\theta^0)\), general \(K\) <span class="kicker">· <a href="../lessons/0017-em-algorithm-q-function.html">L17</a></span> <span class="src">· write these lines in the exam</span></h2>
+$$\begin{aligned}
+P(X,Z\mid\theta)&=\prod_{i=1}^n\prod_{k=1}^K\big[\pi_kf(x_i;\theta_k)\big]^{I(Z_i=k)}\\
+\log P(X,Z\mid\theta)&=\sum_{i=1}^n\sum_{k=1}^KI(Z_i=k)\big[\log\pi_k+\log f(x_i;\theta_k)\big]\\
+Q(\theta,\theta^0)&=\sum_{i=1}^n\sum_{k=1}^KE_{Z\mid X,\theta^0}[I(Z_i=k)]\big[\log\pi_k+\log f(x_i;\theta_k)\big]\quad\text{(linearity)}\\
+&=\sum_{i=1}^n\sum_{k=1}^K\gamma_{ik}\big[\log\pi_k+\log f(x_i;\theta_k)\big]\quad\text{(}E[I]=P\text{)}
+\end{aligned}$$
+<p>Then expand \(\log f\). Normal: \(-\tfrac12\log(2\pi\sigma_k^2)-\tfrac{(x_i-\mu_k)^2}{2\sigma_k^2}\) · Poisson: \(x_i\log\lambda_k-\lambda_k-\log x_i!\) · Exponential: \(\log\lambda_k-\lambda_kx_i\). For \(K=2\), write it out with \(\log\pi\) and \(\log(1-\pi)\). Keep constants such as \(-\log x_i!\) in \(Q\) (or write "+ const"). <span class="src"><a href="../lectures/EM_LMS-1.pdf#page=18">slides 18–20</a>; <a href="../tutes/2026_MAST30027_week7_sol.html">tute wk 7 Q2</a></span></p>
+
+<h2>M-step results <span class="kicker">· <a href="../lessons/0018-m-step-derivations.html">L18</a></span> <span class="src">· differentiate \(Q\), set to 0, use \(\gamma\) as fixed weights; all verified numerically</span></h2>
+<table>
+<tr><th>Model</th><th>Update</th><th>Reading</th></tr>
+<tr><td>Any: \(\pi_k\)</td><td>\(\hat\pi_k=\dfrac{N_k}{n}=\dfrac1n\sum_i\gamma_{ik}\)</td><td>average responsibility</td></tr>
+<tr><td>GMM \(\mu_k\)</td><td>\(\hat\mu_k=\dfrac{\sum_i\gamma_{ik}x_i}{\sum_i\gamma_{ik}}\)</td><td>weighted mean</td></tr>
+<tr><td>GMM \(\sigma_k^2\)</td><td>\(\hat\sigma_k^2=\dfrac{\sum_i\gamma_{ik}(x_i-\hat\mu_k)^2}{\sum_i\gamma_{ik}}\)</td><td>uses the <strong>new</strong> \(\hat\mu_k\)</td></tr>
+<tr><td>GMM shared \(\sigma^2\)</td><td>\(\hat\sigma^2=\dfrac1n\sum_i\sum_k\gamma_{ik}(x_i-\hat\mu_k)^2\)</td><td>pooled over \(k\)</td></tr>
+<tr><td>GMM, means fixed at 0</td><td>\(\hat\sigma_k^2=\dfrac{\sum_i\gamma_{ik}x_i^2}{\sum_i\gamma_{ik}}\)</td><td>no \(\mu\) update</td></tr>
+<tr><td>Poisson \(\lambda_k\)</td><td>\(\hat\lambda_k=\dfrac{\sum_i\gamma_{ik}x_i}{\sum_i\gamma_{ik}}\)</td><td>same as \(\hat\mu_k\)</td></tr>
+<tr><td>Exponential rate \(\lambda_k\)</td><td>\(\hat\lambda_k=\dfrac{\sum_i\gamma_{ik}}{\sum_i\gamma_{ik}x_i}\)</td><td>1 / weighted mean</td></tr>
+<tr><td>Exp(\(\lambda\)) / Exp(\(2\lambda\)), tied</td><td>\(\hat\lambda=\dfrac{n}{\sum_i(\gamma_{i1}+2\gamma_{i2})x_i}\)</td><td>one equation, both terms</td></tr>
+</table>
+
+<div class="cols3">
+<div>
+<p><strong>\(\mu_k\)</strong> (only component \(k\) contains \(\mu_k\)):</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\mu_k}&=\sum_i\gamma_{ik}\frac{x_i-\mu_k}{\sigma_k^2}=0\\
+\sum_i\gamma_{ik}x_i&=\mu_k\sum_i\gamma_{ik}\\
+\hat\mu_k&=\frac{\sum_i\gamma_{ik}x_i}{N_k}
+\end{aligned}$$
+<p><strong>\(K=2\)</strong> (no Lagrange):</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\pi}&=\frac{N_1}{\pi}-\frac{N_2}{1-\pi}=0\\
+N_1(1-\pi)&=N_2\pi\\
+\hat\pi&=\frac{N_1}{N_1+N_2}=\frac{N_1}{n}
+\end{aligned}$$
+</div>
+<div>
+<p><strong>\(\sigma_k^2\)</strong> (treat \(v=\sigma_k^2\) as the variable):</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial v}&=\sum_i\gamma_{ik}\Big[-\frac1{2v}+\frac{(x_i-\mu_k)^2}{2v^2}\Big]=0\\
+v\sum_i\gamma_{ik}&=\sum_i\gamma_{ik}(x_i-\mu_k)^2\\
+\hat\sigma_k^2&=\frac{\sum_i\gamma_{ik}(x_i-\hat\mu_k)^2}{N_k}
+\end{aligned}$$
+</div>
+<div>
+<p><strong>\(\pi_k\), general \(K\)</strong> (Lagrange, constraint \(\sum_k\pi_k=1\)):</p>
+$$\begin{aligned}
+\mathcal L&=\sum_kN_k\log\pi_k+\alpha\Big(1-\sum_k\pi_k\Big)\\
+\frac{\partial\mathcal L}{\partial\pi_k}&=\frac{N_k}{\pi_k}-\alpha=0\\
+\pi_k&=N_k/\alpha\\
+1=\sum_k\pi_k&=\frac{\sum_kN_k}{\alpha}=\frac n\alpha\\
+\hat\pi_k&=N_k/n
+\end{aligned}$$
+</div>
+</div>
+<p class="src">Intuitive version of the same results: <a href="../lectures/EM_LMS-1.pdf#page=9">EM slide 9</a>, eqs (3)–(5). Lecturer's worked notes: <a href="../lectures/Formal%20derivation%20of%20the%20EM%20algorithm%20for%20a%20two-component%20GMM.pdf">two-component</a> and <a href="../lectures/Formal%20derivation%20of%20the%20EM%20algorithm%20for%20a%20three-component%20GMM.pdf">three-component</a> GMM derivations.</p>
+
+<h2>Twist recipe <span class="kicker">· <a href="../lessons/0019-em-exam-twists.html">L19</a></span> <span class="src">· rewrite the complete likelihood first, then redo \(Q\) and the M-step</span></h2>
+<table>
+<tr><th>Twist</th><th>Change to \(Q\)</th><th>Change to the M-step</th></tr>
+<tr><td>\(x_{n+1..n+m}\) "known to come from component 2" (no \(Z\))</td><td>\(+\sum_{j}\log f(x_j;\theta_2)\), weight 1, <strong>no</strong> \(\log(1-\pi)\)</td><td>\(\hat\mu_2=\frac{\sum_{i\le n}\gamma_{i2}x_i+\sum_jx_j}{N_2+m}\); \(\hat\pi=N_1/n\) (unlabelled only)</td></tr>
+<tr><td>Labels <em>observed</em>, \(Z_j=2\)</td><td>\(+\sum_j\big[\log(1-\pi)+\log f(x_j;\theta_2)\big]\), weight 1</td><td>same \(\hat\mu_2\); \(\hat\pi=\frac{N_1}{n+m}\)</td></tr>
+<tr><td>Known / fixed parameter (e.g. \(\sigma^2=2\), \(\mu_k=0\), \(\pi\) given)</td><td>treat it as a constant</td><td>drop its update; it still appears in \(\gamma_{ik}\)</td></tr>
+<tr><td>Tied parameter (shared \(\sigma^2\); \(\lambda\) and \(2\lambda\))</td><td>the same symbol appears in several components</td><td>one derivative summing over <strong>all</strong> \(k\) that contain it</td></tr>
+<tr><td>Zero-inflation: \(Z_i=1\Rightarrow X_i=0\), \(Z_i=2\Rightarrow\text{Pois}(\lambda)\)</td><td>\(\gamma_{i1}=\frac{\pi^0}{\pi^0+(1-\pi^0)e^{-\lambda^0}}\) if \(x_i=0\), else \(0\)</td><td>\(\hat\pi=N_1/n\), \(\hat\lambda=\frac{\sum_i\gamma_{i2}x_i}{N_2}=\frac{\sum_ix_i}{N_2}\)</td></tr>
+</table>
+
+<div class="trap"><strong>Traps</strong><br>
+\(\hat\pi\) is \(N_k/n\), not \(N_k/n_k\) or \(1/K\) · \(\hat\sigma_k^2\) divides by \(N_k\), not \(n\), and uses the new \(\hat\mu_k\) · the Exponential rate is \(N_k/\sum\gamma x\) (inverted), not the weighted mean · don't drop \(1/\sigma_k\) from \(\gamma\) when the variances differ · forgetting \(\pi_k\) in \(\gamma\) (comparing \(f_k\) alone) · known-component points with no \(Z\) get <strong>no</strong> \(\pi\) term and don't count in \(\hat\pi\)'s denominator · in \(Q\), \(\gamma_{ik}\) uses \(\theta^0\), the density uses \(\theta\): never mix the two · EM stops on the change in the <strong>incomplete</strong> \(\ell\), not \(Q\) · compare EM runs by final \(\ell\), never by how close they are to the start · \(\gamma_{ik}\) is not a parameter: never differentiate it.</div>
+
+<h2>Reading the lecturer's R <span class="kicker">· <a href="../lessons/0020-reading-em-r-code.html">L20</a></span> <span class="src">· <a href="../extra-notes/EM-updated.pdf">EM-updated</a> (3-comp GMM, \(\sigma^2=2\) known); matrices are \(n\times K\), row \(i\) = observation, column \(k\) = component</span></h2>
+<div class="tablewrap"><table class="rcode">
+<tr><th>R</th><th>Maths</th></tr>
+<tr><td><code>Z = sample(1:3, n, replace=TRUE, prob=pi)</code></td><td>\(Z_i\sim\text{Cat}(\pi_1,\pi_2,\pi_3)\)</td></tr>
+<tr><td><code>rnorm(n, mean=mu[Z], sd=sqrt(sigma2[Z]))</code></td><td>\(X_i\mid Z_i=k\sim N(\mu_k,\sigma_k^2)\); <code>sd</code>, not the variance</td></tr>
+<tr><td><code>L[,k] = dnorm(X, mu.curr[k], sqrt(2))*pi.curr[k]</code></td><td><code>prob.x.z[i,k]</code> \(=\pi_kf(x_i;\mu_k,2)=P(X_i=x_i,Z_i=k)\)</td></tr>
+<tr><td><code>rowSums(prob.x.z)</code></td><td>\(P(X_i=x_i\mid\theta)=\sum_k\pi_kf(x_i;\mu_k,2)\)</td></tr>
+<tr><td><code>P_ik = prob.x.z / rowSums(prob.x.z)</code></td><td>\(\gamma_{ik}\): the <strong>E-step</strong></td></tr>
+<tr><td><code>colSums(P_ik)</code> · <code>sum(P_ik)</code></td><td>\(N_k\) · \(n\) (each row sums to 1)</td></tr>
+<tr><td><code>pi.new = colSums(P_ik)/sum(P_ik)</code></td><td>\(\hat\pi_k=N_k/n\)</td></tr>
+<tr><td><code>mu.new = colSums(P_ik*X)/colSums(P_ik)</code></td><td>\(\hat\mu_k=\sum_i\gamma_{ik}x_i/N_k\) (<code>P_ik*X</code> scales row \(i\) by \(x_i\))</td></tr>
+<tr><td><code>ill = sum(log(rowSums(prob.x.z)))</code></td><td>incomplete \(\ell(\theta)=\sum_i\log\sum_k\pi_kf(x_i;\mu_k,2)\)</td></tr>
+<tr><td><code>while((delta.ll &gt; epsilon) &amp; (n.iter &lt;= max.iter))</code></td><td>stopping rule; <code>delta.ll</code> = last \(\ell\) − previous \(\ell\)</td></tr>
+<tr><td><code>EM.out$pi.new</code> → <code>pi.curr</code></td><td>\(\theta^0\leftarrow\hat\theta\)</td></tr>
+<tr><td><code>dpois(X, lambda.curr[k])*pi.curr[k]</code></td><td>Poisson version of <code>prob.x.z</code> (tute wk 7)</td></tr>
+<tr><td><code>colSums(P_ik*outer(X, mu.new, "-")^2)/colSums(P_ik)</code></td><td>\(\hat\sigma_k^2\), if the variances are unknown (not in her file)</td></tr>
+<tr><td><code>apply(P_ik, 1, which.max)</code></td><td>hard classification \(\arg\max_k\gamma_{ik}\)</td></tr>
+</table></div>
+
+<div class="cols">
+<div>
+<h2>Mixture mean and variance <span class="kicker">· <a href="../lessons/0016-mixture-models-and-responsibilities.html">L16</a></span></h2>
+<p>Condition on \(Z\) (Adam's and Eve's laws). Write \(\bar\mu=\sum_k\pi_k\mu_k\).</p>
+$$\begin{aligned}
+\mathbb EX&=\mathbb E[\mathbb E(X\mid Z)]\\
+&=\textstyle\sum_k\pi_k\mu_k=\bar\mu\\
+\operatorname{Var}X&=\mathbb E[\operatorname{Var}(X\mid Z)]+\operatorname{Var}[\mathbb E(X\mid Z)]\\
+&=\textstyle\sum_k\pi_k\sigma_k^2+\sum_k\pi_k(\mu_k-\bar\mu)^2\\
+&=\textstyle\sum_k\pi_k\sigma_k^2+\pi_1\pi_2(\mu_1-\mu_2)^2\ \ (K=2)
+\end{aligned}$$
+<p>Poisson mixture: \(\operatorname{Var}X=\bar\lambda+\sum_k\pi_k(\lambda_k-\bar\lambda)^2&gt;\mathbb EX\), so it is overdispersed. A mixture is <strong>not</strong> \(\pi_1X_1+\pi_2X_2\): pick a component, then sample.</p>
+</div>
+<div>
+<h2>For your A4 sheet <span class="a4">A4</span></h2>
+<ol class="algo">
+  <li>\(\ell(\theta)=\sum_i\log\sum_k\pi_kf(x_i;\theta_k)\) vs complete \(\sum_i\sum_kI(Z_i=k)[\log\pi_k+\log f]\)</li>
+  <li>\(Q=\sum_i\sum_k\gamma_{ik}[\log\pi_k+\log f(x_i;\theta_k)]\), with \(E[I(Z_i=k)\mid X,\theta^0]=\gamma_{ik}\)</li>
+  <li>\(\gamma_{ik}=\pi_k^0f(x_i;\theta_k^0)\big/\sum_{k'}\pi_{k'}^0f(x_i;\theta_{k'}^0)\); classify by \(\arg\max_k\)</li>
+  <li>Algorithm: init → E → M → stop when \(\Delta\ell&lt;\varepsilon\); multiple starts, keep max \(\ell\)</li>
+  <li>\(\hat\pi_k=N_k/n\) (Lagrange: \(N_k/\pi_k=\alpha\), \(\alpha=n\))</li>
+  <li>\(\hat\mu_k,\hat\lambda_k^{\text{Pois}}=\sum\gamma x/N_k\); \(\hat\sigma_k^2=\sum\gamma(x-\hat\mu_k)^2/N_k\); \(\hat\lambda_k^{\text{Exp}}=N_k/\sum\gamma x\)</li>
+  <li>Twists: known component with no \(Z\) → \(+\log f\), no \(\pi\); tied parameter → sum the derivative over \(k\)</li>
+  <li>\(\operatorname{Var}X=\sum\pi_k\sigma_k^2+\sum\pi_k(\mu_k-\bar\mu)^2\)</li>
+</ol>
+</div>
+</div>
+</main>
+</body>
+</html>

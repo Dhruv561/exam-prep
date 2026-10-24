@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M-step Derivations</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  .keys { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .8rem; background: var(--card); border: 1px solid var(--rule); border-radius: 4px; padding: .1rem .35rem; }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .4rem 1rem .6rem; margin: 1.2rem 0; }
+  .answer-box > p:first-child { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); margin-bottom: .2rem; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 18 · Topic 4: mixture models &amp; EM (3 of 6)</div>
+<h1>M-step derivations</h1>
+<p class="lede">Once the E-step has turned every responsibility \(\gamma_{ik}\) into a number, \(Q(\theta,\theta^0)\) is an ordinary function of \(\theta\), and the M-step is ordinary calculus: differentiate, set to zero, solve. Every answer comes out as a weighted version of a familiar MLE. The win: derive all the GMM M-step updates from \(Q\) without notes (weighted mean, weighted variance, \(\hat\pi\)), then run one full EM iteration on five points with the FX-82.</p>
+
+<div class="mission">Why this matters for 10 Nov: in 2021 and 2022 the EM question (10–12 marks) went "derive \(Q\)" then "derive the M-step", and the M-step was where most of the marks were. Each paper changed the model slightly (a known mean, a shared parameter, some observations with a known component), so memorising the three GMM formulas isn't enough. You need the derivation pattern so you can rerun it on a model you haven't seen before. This lesson drills that pattern on six models.</div>
+
+<p>Assumed from <a href="0017-em-algorithm-q-function.html">Lesson 17</a>: \(Q(\theta,\theta^0)=\sum_i\sum_k\gamma_{ik}[\log\pi_k+\log f(x_i;\mu_k,\sigma_k^2)]\) with \(\gamma_{ik}=P(Z_i=k\mid X_i=x_i,\theta^0)\) fixed; the two-component form with \(\log\pi\) and \(\log(1-\pi)\); the E-step by hand. Reference pages: <a href="../reference/glossary.html">glossary</a>, <a href="../reference/probability-toolkit.html">probability toolkit</a>, <a href="../reference/likelihood-cheatsheet.html">likelihood cheat sheet</a>. About 35–40 minutes, on paper with an FX-82.</p>
+
+<h2>1 · The M-step is a weighted MLE</h2>
+<p>Start from the two-component \(Q\) (Lesson 17's exam answer) with \(\theta=(\pi,\mu_1,\mu_2,\sigma_1^2,\sigma_2^2)\). Write \(\gamma_{i1}=P(Z_i=1\mid X_i,\theta^0)\) and \(\gamma_{i2}=1-\gamma_{i1}\):</p>
+$$\begin{aligned}
+Q(\theta,\theta^0)=\sum_{i=1}^n\Big\{&amp;\gamma_{i1}\Big[\log\pi-\tfrac12\log(2\pi)-\tfrac12\log\sigma_1^2-\frac{(x_i-\mu_1)^2}{2\sigma_1^2}\Big]\\
++\ &amp;\gamma_{i2}\Big[\log(1-\pi)-\tfrac12\log(2\pi)-\tfrac12\log\sigma_2^2-\frac{(x_i-\mu_2)^2}{2\sigma_2^2}\Big]\Big\}
+\end{aligned}$$
+<p>Two facts make every M-step short:</p>
+<ol class="steps">
+  <li><strong>The \(\gamma\)'s are constants.</strong> They were computed from \(\theta^0\), so \(\partial\gamma_{ik}/\partial\mu_1=0\). This is exactly what the lecture's "cheat" on <a href="../lectures/EM_LMS-1.pdf#page=8">slide 8</a> pretended, and EM makes it legitimate: "During the M-step, these probabilities are treated as fixed" (<a href="../lectures/Formal%20derivation%20of%20the%20EM%20algorithm%20for%20a%20two-component%20GMM.pdf#page=3">formal two-component derivation, p. 3</a>).</li>
+  <li><strong>\(Q\) splits into separate pieces.</strong> Grouping terms by parameter:</li>
+</ol>
+$$\begin{aligned}
+Q(\theta,\theta^0)&amp;=\underbrace{\sum_i\big[\gamma_{i1}\log\pi+\gamma_{i2}\log(1-\pi)\big]}_{Q_\pi:\ \text{only }\pi}\\
+&amp;\quad+\underbrace{\sum_i\gamma_{i1}\Big[-\tfrac12\log\sigma_1^2-\frac{(x_i-\mu_1)^2}{2\sigma_1^2}\Big]}_{Q_1:\ \text{only }\mu_1,\sigma_1^2}\\
+&amp;\quad+\underbrace{\sum_i\gamma_{i2}\Big[-\tfrac12\log\sigma_2^2-\frac{(x_i-\mu_2)^2}{2\sigma_2^2}\Big]}_{Q_2:\ \text{only }\mu_2,\sigma_2^2}\\
+&amp;\quad+\text{const}
+\end{aligned}$$
+<p>The constant is \(-\tfrac12\log(2\pi)\sum_i(\gamma_{i1}+\gamma_{i2})=-\tfrac n2\log(2\pi)\). Each piece can be maximised on its own. Compare the complete-data log-likelihood, where \(I(Z_i=1)\) sits in place of \(\gamma_{i1}\): with the labels known, the MLEs would be the proportion, mean and variance of the points labelled 1. With \(\gamma_{i1}\) in its place, every point counts toward component 1 with weight \(\gamma_{i1}\). So <strong>every M-step answer is the complete-data MLE with each \(I(Z_i=k)\) replaced by \(\gamma_{ik}\)</strong>. Use this to check your answers, but derive them in the exam: the marks are for the derivation.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> To find \(\hat\mu_1\), which terms of \(Q(\theta,\theta^0)\) do you need to differentiate?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">All of \(Q\), because each \(\gamma_{i1}\) also depends on \(\mu_1\) through Bayes' rule</button>
+    <button class="opt" data-key="b">Only \(Q_\pi\), because the mixing proportion decides which points belong to component 1</button>
+    <button class="opt" data-key="c">Only \(Q_1\), since no other piece has \(\mu_1\) in it and the \(\gamma\)'s are fixed numbers</button>
+    <button class="opt" data-key="d">Both \(Q_1\) and \(Q_2\), because each data point appears once in each of these two pieces</button>
+  </div>
+  <div class="why">\(\gamma_{i1}\) was computed from \(\mu_1^0\), not from the free \(\mu_1\), so it is a constant here. That rules out (a). That's the whole difference between differentiating \(Q\) and differentiating \(\ell\) (Lesson 16's dead end). \(\mu_1\) appears only inside \((x_i-\mu_1)^2\) in \(Q_1\). Every point does appear in both \(Q_1\) and \(Q_2\), as in (d), but \(Q_2\) contains \(\mu_2\), not \(\mu_1\).</div>
+</div>
+
+<h2>2 · The means: a weighted mean</h2>
+<p>Following the lecturer's appendix (<a href="../extra-notes/EM_GMM_2026%20derivations.pdf#page=5">EM_GMM_2026 derivations, pp. 5–6</a>). Keep the terms in \(\mu_1\):</p>
+$$\begin{aligned}
+Q_{\mu_1}&amp;=-\frac{1}{2\sigma_1^2}\sum_{i=1}^n\gamma_{i1}(x_i-\mu_1)^2\\[4pt]
+\frac{\partial Q}{\partial\mu_1}&amp;=-\frac{1}{2\sigma_1^2}\sum_{i=1}^n\gamma_{i1}\cdot2(x_i-\mu_1)\cdot(-1)\qquad\text{(chain rule)}\\
+&amp;=\frac{1}{\sigma_1^2}\sum_{i=1}^n\gamma_{i1}(x_i-\mu_1)
+\end{aligned}$$
+<p>Set it to zero. \(\sigma_1^2&gt;0\), so multiply it away:</p>
+$$\begin{aligned}
+\sum_{i=1}^n\gamma_{i1}(x_i-\mu_1)&amp;=0\\
+\sum_{i=1}^n\gamma_{i1}x_i-\mu_1\sum_{i=1}^n\gamma_{i1}&amp;=0\qquad(\mu_1\text{ doesn't depend on }i)\\
+\hat\mu_1&amp;=\frac{\sum_{i=1}^n\gamma_{i1}x_i}{\sum_{i=1}^n\gamma_{i1}}
+\end{aligned}$$
+<p>By symmetry \(\hat\mu_2=\sum_i\gamma_{i2}x_i/\sum_i\gamma_{i2}\). The denominator \(N_1=\sum_i\gamma_{i1}\) is the <strong>effective number of points</strong> in component 1 (<a href="../lectures/EM_LMS-1.pdf#page=9">slide 9</a>), so \(\hat\mu_1\) is a weighted average of the data. In an exam write \(P(Z_i=1\mid X_i,\theta^0)\) in place of \(\gamma_{i1}\), or define \(\gamma_{i1}\) once at the top.</p>
+
+<h2>3 · The variances: differentiate with respect to \(\sigma^2\)</h2>
+<p>The parameter is \(\sigma_1^2\), so treat \(v=\sigma_1^2\) as one variable. Then \(\log\sigma_1^2=\log v\) and \(1/\sigma_1^2=1/v\), and both derivatives are one-liners. Keep the terms in \(\sigma_1^2\):</p>
+$$\begin{aligned}
+Q_{\sigma_1^2}&amp;=-\frac12\sum_{i=1}^n\gamma_{i1}\Big[\log\sigma_1^2+\frac{(x_i-\mu_1)^2}{\sigma_1^2}\Big]\\[4pt]
+\frac{\partial Q}{\partial\sigma_1^2}&amp;=-\frac12\sum_{i=1}^n\gamma_{i1}\Big[\frac{1}{\sigma_1^2}-\frac{(x_i-\mu_1)^2}{(\sigma_1^2)^2}\Big]
+\end{aligned}$$
+<p>Set it to zero, then multiply by \(-2(\sigma_1^2)^2\):</p>
+$$\begin{aligned}
+\sum_{i=1}^n\gamma_{i1}\Big[\frac{1}{\sigma_1^2}-\frac{(x_i-\mu_1)^2}{(\sigma_1^2)^2}\Big]&amp;=0\\
+\sum_{i=1}^n\gamma_{i1}\big[\sigma_1^2-(x_i-\mu_1)^2\big]&amp;=0\\
+\sigma_1^2\sum_{i=1}^n\gamma_{i1}&amp;=\sum_{i=1}^n\gamma_{i1}(x_i-\mu_1)^2\\
+\hat\sigma_1^2&amp;=\frac{\sum_{i=1}^n\gamma_{i1}(x_i-\hat\mu_1)^2}{\sum_{i=1}^n\gamma_{i1}}
+\end{aligned}$$
+<p><strong>Why \(\hat\mu_1\) goes in the last line.</strong> The M-step needs the point where <em>both</em> partial derivatives are zero. The \(\mu_1\) equation gave \(\hat\mu_1\) without involving \(\sigma_1^2\), so substitute it into the \(\sigma_1^2\) equation. The lecturer's notes write "using the newly updated mean \(\mu_k^{(t+1)}\)" (<a href="../extra-notes/EM_GMM_2026%20derivations.pdf#page=7">p. 7</a>). In code, this is why the \(\mu\) update comes before the \(\sigma^2\) update.</p>
+
+<div class="trap"><strong>Traps</strong>
+<ul style="margin:.4rem 0 0">
+  <li><strong>Old mean in the variance.</strong> Using \(\mu_1^0\) instead of \(\hat\mu_1\) doesn't give the maximiser of \(Q\). In §6's example, \(\hat\sigma_2^2\) would come out as 2.04 instead of 1.81.</li>
+  <li><strong>Differentiating with respect to \(\sigma\).</strong> This isn't wrong, since you end up at the same \(\hat\sigma^2\). But now \(\log\sigma^2=2\log\sigma\) and \(\sigma^{-2}\) need the chain rule, and that's where sign and factor-of-2 slips happen. The question defines \(\theta\) with \(\sigma_k^2\), so differentiate with respect to \(\sigma_k^2\).</li>
+  <li><strong>Dividing by \(n\).</strong> The denominator is \(\sum_i\gamma_{i1}\) (the effective count), not \(n\). Only \(\hat\pi\) divides by \(n\).</li>
+</ul></div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>2.</strong> Which is \(\dfrac{\partial}{\partial\sigma^2}\Big[-\tfrac12\log\sigma^2-\dfrac{(x-\mu)^2}{2\sigma^2}\Big]\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(-\dfrac{1}{\sigma}+\dfrac{(x-\mu)^2}{\sigma^3}\)</button>
+    <button class="opt" data-key="b">\(-\dfrac{1}{2\sigma^2}+\dfrac{(x-\mu)^2}{2\sigma^4}\)</button>
+    <button class="opt" data-key="c">\(-\dfrac{1}{2\sigma^2}-\dfrac{(x-\mu)^2}{2\sigma^4}\)</button>
+    <button class="opt" data-key="d">\(-\dfrac{1}{\sigma^2}+\dfrac{(x-\mu)^2}{\sigma^4}\)</button>
+  </div>
+  <div class="why">With \(v=\sigma^2\), the bracket is \(-\tfrac12\log v-\tfrac12(x-\mu)^2v^{-1}\). Its derivative is \(-\frac{1}{2v}+\frac12(x-\mu)^2v^{-2}\), which is (b). Option (a) is the derivative with respect to \(\sigma\): the right zero, but the wrong derivative for the parameter as stated. (c) drops the sign from differentiating \(v^{-1}\). (d) loses both factors of \(\tfrac12\), which happens to give the same root but isn't the derivative.</div>
+</div>
+
+<h2>4 · The mixing proportion</h2>
+<h3>Two components: substitute \(\pi_2=1-\pi\) (what the exam needs)</h3>
+<p>Every past two-component question parametrises with Categorical\((\pi,1-\pi)\), so there's one free parameter and no constraint left. This is the tute week 7 solution's route and the lecturer's handwritten note (<a href="../extra-notes/EM-GMM-M-step_pi-2.pdf">EM-GMM-M-step_pi</a>, top half):</p>
+$$\begin{aligned}
+Q_\pi&amp;=\sum_{i=1}^n\big[\gamma_{i1}\log\pi+\gamma_{i2}\log(1-\pi)\big]\\[4pt]
+\frac{\partial Q}{\partial\pi}&amp;=\sum_{i=1}^n\Big[\frac{\gamma_{i1}}{\pi}-\frac{\gamma_{i2}}{1-\pi}\Big]\qquad\Big(\tfrac{d}{d\pi}\log(1-\pi)=-\tfrac{1}{1-\pi}\Big)\\
+&amp;=\frac{(1-\pi)\sum_i\gamma_{i1}-\pi\sum_i\gamma_{i2}}{\pi(1-\pi)}
+\end{aligned}$$
+<p>Set the numerator to zero:</p>
+$$\begin{aligned}
+(1-\pi)\sum_{i=1}^n\gamma_{i1}-\pi\sum_{i=1}^n\gamma_{i2}&amp;=0\\
+\sum_{i=1}^n\gamma_{i1}-\pi\sum_{i=1}^n(\gamma_{i1}+\gamma_{i2})&amp;=0\\
+\sum_{i=1}^n\gamma_{i1}-n\pi&amp;=0\qquad(\gamma_{i1}+\gamma_{i2}=1\text{ for each }i)\\
+\hat\pi&amp;=\frac1n\sum_{i=1}^n\gamma_{i1}
+\end{aligned}$$
+<p>The step people miss is the third line. Write the reason next to it: the two responsibilities for a point sum to 1 because they are a posterior pmf over its label.</p>
+
+<h3>\(K\) components: Lagrange multiplier (the lecturer's general version)</h3>
+<p>With \(K\) free \(\pi_k\)'s you have to maximise subject to \(\sum_k\pi_k=1\). From the lecturer's appendix (<a href="../extra-notes/EM_GMM_2026%20derivations.pdf#page=4">EM_GMM_2026 derivations, pp. 4–5</a>; also <a href="../extra-notes/EM-Derivation_for_GMM_v2.pdf#page=2">EM derivation v2, p. 2</a>, and the general recipe in <a href="../extra-notes/lagrange_multipliers_summary.pdf">lagrange_multipliers_summary</a>):</p>
+$$\begin{aligned}
+\mathcal L&amp;=\sum_{i=1}^n\sum_{k=1}^K\gamma_{ik}\log\pi_k+\lambda\Big(\sum_{k=1}^K\pi_k-1\Big)\\[4pt]
+\frac{\partial\mathcal L}{\partial\pi_k}&amp;=\frac{\sum_i\gamma_{ik}}{\pi_k}+\lambda=0\\
+\pi_k&amp;=-\frac1\lambda\sum_{i=1}^n\gamma_{ik}
+\end{aligned}$$
+<p>Sum over \(k\) to find \(\lambda\):</p>
+$$\begin{aligned}
+\sum_{k=1}^K\pi_k&amp;=-\frac1\lambda\sum_{k=1}^K\sum_{i=1}^n\gamma_{ik}\\
+1&amp;=-\frac1\lambda\sum_{i=1}^n\underbrace{\sum_{k=1}^K\gamma_{ik}}_{=1}\\
+1&amp;=-\frac n\lambda\\
+\lambda&amp;=-n
+\end{aligned}$$
+<p>So \(\hat\pi_k=\frac1n\sum_i\gamma_{ik}\), which matches the two-component answer. (This \(\lambda\) is a multiplier, not a Poisson rate.)</p>
+<p><strong>Which one does the exam need?</strong> For two components, the direct substitution above, because \(\theta\) contains only \(\pi\) (or \(p\)) and there's no constraint left to enforce. Both 2021 and 2022 were two-component. For three components, either route earns the marks. The lecturer's handwritten note does \(K=3\) by substituting \(\pi_3=1-\pi_1-\pi_2\), setting \(\partial Q/\partial\pi_1=\partial Q/\partial\pi_2=0\), and adding the two equations (bottom half of the <a href="../extra-notes/EM-GMM-M-step_pi-2.pdf">note</a>). Lagrange is shorter for \(K\ge3\). Know one of them well.</p>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>3.</strong> In the two-component \(\hat\pi\) derivation, which fact turns \(\sum_i\gamma_{i1}-\pi\sum_i(\gamma_{i1}+\gamma_{i2})=0\) into \(\hat\pi=\frac1n\sum_i\gamma_{i1}\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The current proportion \(\pi^0\) equals the average of all of the \(\gamma_{i1}\)</button>
+    <button class="opt" data-key="b">The responsibilities \(\gamma_{i1}\) sum to one when added over all the \(n\) points</button>
+    <button class="opt" data-key="c">The Lagrange multiplier for the constraint on the proportions equals \(-n\)</button>
+    <button class="opt" data-key="d">For every point \(i\), its two responsibilities \(\gamma_{i1}+\gamma_{i2}\) add to one</button>
+  </div>
+  <div class="why">\(\gamma_{i1}+\gamma_{i2}=P(Z_i=1\mid X_i,\theta^0)+P(Z_i=2\mid X_i,\theta^0)=1\), so the sum is \(\sum_{i=1}^n1=n\). The sum over <em>points</em>, as in (b), is \(N_1\), which is generally not 1. (a) is false in general: \(\hat\pi\ne\pi^0\) unless EM has converged. (c) is the \(K\)-component route, which isn't used in this derivation.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>4.</strong> In the Lagrange derivation, why is \(\sum_{k=1}^K\sum_{i=1}^n\gamma_{ik}=n\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Swap the sums: each point's \(\gamma_{ik}\) sum to 1 over \(k\), and there are \(n\) points</button>
+    <button class="opt" data-key="b">Each component's \(\gamma_{ik}\) sum to 1 over \(i\), and there are \(n\) of the components</button>
+    <button class="opt" data-key="c">The constraint \(\sum_k\pi_k=1\) forces the responsibilities to sum to the sample size</button>
+    <button class="opt" data-key="d">The multiplier \(\lambda\) was chosen as \(-n\), which then makes the double sum equal \(n\)</button>
+  </div>
+  <div class="why">\(\sum_k\sum_i\gamma_{ik}=\sum_i\big(\sum_k\gamma_{ik}\big)=\sum_i1=n\). The R demo uses the same fact: <code>pi.new = colSums(P_ik)/sum(P_ik)</code>, "sum(P_ik) is equivalent to sample size" (<a href="../extra-notes/EM-updated.qmd">EM-updated.qmd</a>). (d) has the logic backwards: \(\lambda=-n\) is derived <em>from</em> this sum.</div>
+</div>
+
+<h2>5 · Is it a maximum? (briefly)</h2>
+<p>The lecture slides, the 2026 derivations and the tute solution all stop at "set the derivative to zero". None of them checks the second-order condition, so past exams haven't asked for it. If a question says "show this is a maximum", one line per parameter is enough:</p>
+$$\begin{aligned}
+\frac{\partial^2Q}{\partial\mu_1^2}&amp;=-\frac{\sum_i\gamma_{i1}}{\sigma_1^2}&lt;0\\[4pt]
+\frac{\partial^2Q}{\partial\pi^2}&amp;=-\frac{\sum_i\gamma_{i1}}{\pi^2}-\frac{\sum_i\gamma_{i2}}{(1-\pi)^2}&lt;0\\[4pt]
+\frac{\partial^2Q}{\partial(\sigma_1^2)^2}\Big|_{\hat\sigma_1^2}&amp;=\frac{N_1}{2\hat\sigma_1^4}-\frac{N_1\hat\sigma_1^2}{\hat\sigma_1^6}\\
+&amp;=-\frac{N_1}{2\hat\sigma_1^4}&lt;0
+\end{aligned}$$
+<p>In the last line, \(\sum_i\gamma_{i1}(x_i-\hat\mu_1)^2=N_1\hat\sigma_1^2\) by the update itself. Each second derivative is negative because the \(\gamma\)'s are non-negative. This is the same check as Lesson 1's \(\ell''(\hat\theta)&lt;0\), with weights.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>5.</strong> <em>(Retrieval: Lesson 1.)</em> For an iid Poisson sample, \(\ell''(\lambda)=-\sum_ix_i/\lambda^2\). For the tute week 7 Poisson mixture, what is \(\partial^2Q/\partial\lambda_1^2\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(-\sum_i x_i/\lambda_1^2\), the same as in Lesson 1, because the weights have no effect on curvature</button>
+    <button class="opt" data-key="b">\(-\sum_i\gamma_{i1}x_i/\lambda_1^2\), so the curvature is negative and the stationary point is a maximum</button>
+    <button class="opt" data-key="c">\(-\sum_i\gamma_{i1}/\lambda_1^2\), because the \(x_i\) cancel out when the derivative is taken twice</button>
+    <button class="opt" data-key="d">It can't be found, because every \(\gamma_{i1}\) depends on \(\lambda_1\) through Bayes' rule</button>
+  </div>
+  <div class="why">\(Q_{\lambda_1}=\sum_i\gamma_{i1}(x_i\log\lambda_1-\lambda_1)\) gives \(\partial Q/\partial\lambda_1=\sum_i\gamma_{i1}x_i/\lambda_1-\sum_i\gamma_{i1}\), and differentiating again gives \(-\sum_i\gamma_{i1}x_i/\lambda_1^2&lt;0\). It is Lesson 1's Poisson curvature with each \(x_i\) weighted by \(\gamma_{i1}\), which supports §1's "weighted MLE" rule. (d) mixes up \(Q\) with \(\ell\): in \(Q\) the \(\gamma\)'s are constants.</div>
+</div>
+
+<h2>6 · One full EM iteration by hand</h2>
+<p>Data \(x=(0,\ 1,\ 2,\ 3,\ 5)\), \(n=5\). Current values \(\theta^0\): \(\pi^0=0.5\), \(\mu_1^0=1\), \(\mu_2^0=3\), \((\sigma_1^2)^0=(\sigma_2^2)^0=1\). We update all five parameters.</p>
+
+<p><strong>E-step.</strong> The weights are equal and so are the variances, so \(0.5\) and \(\frac1{\sqrt{2\pi}}\) cancel. Divide top and bottom by the numerator:</p>
+$$\begin{aligned}
+\gamma_{i1}&amp;=\frac{0.5\,e^{-(x_i-1)^2/2}}{0.5\,e^{-(x_i-1)^2/2}+0.5\,e^{-(x_i-3)^2/2}}\\
+&amp;=\frac{1}{1+e^{[(x_i-1)^2-(x_i-3)^2]/2}}\\
+&amp;=\frac{1}{1+e^{(4x_i-8)/2}}\qquad\big((x-1)^2-(x-3)^2=4x-8\big)\\
+&amp;=\frac{1}{1+e^{2x_i-4}}
+\end{aligned}$$
+<p>FX-82: <span class="keys">1÷(1+e^(2×0−4))</span> → 0.9820, then edit the 0 for each \(x_i\).</p>
+
+<div class="tablewrap"><table class="ledger">
+<tr><th>\(x_i\)</th><th>\(e^{2x_i-4}\)</th><th>\(\gamma_{i1}\)</th><th>\(\gamma_{i2}\)</th><th>\(\gamma_{i1}x_i\)</th><th>\(\gamma_{i2}x_i\)</th></tr>
+<tr><td>0</td><td>0.018316</td><td>0.9820</td><td>0.0180</td><td>0</td><td>0</td></tr>
+<tr><td>1</td><td>0.135335</td><td>0.8808</td><td>0.1192</td><td>0.8808</td><td>0.1192</td></tr>
+<tr><td>2</td><td>1</td><td>0.5000</td><td>0.5000</td><td>1.0000</td><td>1.0000</td></tr>
+<tr><td>3</td><td>7.389056</td><td>0.1192</td><td>0.8808</td><td>0.3576</td><td>2.6424</td></tr>
+<tr><td>5</td><td>403.428793</td><td>0.0025</td><td>0.9975</td><td>0.0124</td><td>4.9876</td></tr>
+<tr><td><strong>Sum</strong></td><td></td><td><strong>2.4845</strong></td><td><strong>2.5155</strong></td><td><strong>2.2508</strong></td><td><strong>8.7492</strong></td></tr>
+</table></div>
+<p>Check: the \(\gamma_{i1}\) column and the \(\gamma_{i2}\) column add to \(n=5\).</p>
+
+<p><strong>M-step: proportion and means.</strong></p>
+$$\begin{aligned}
+\hat\pi&amp;=\frac{2.4845}{5}=0.4969\approx\mathbf{0.50}\\
+\hat\mu_1&amp;=\frac{2.2508}{2.4845}=0.9059\approx\mathbf{0.91}\\
+\hat\mu_2&amp;=\frac{8.7492}{2.5155}=3.4781\approx\mathbf{3.48}
+\end{aligned}$$
+<p><strong>M-step: variances</strong> (using the new means 0.9059 and 3.4781):</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>\(x_i\)</th><th>\((x_i-\hat\mu_1)^2\)</th><th>\(\gamma_{i1}(x_i-\hat\mu_1)^2\)</th><th>\((x_i-\hat\mu_2)^2\)</th><th>\(\gamma_{i2}(x_i-\hat\mu_2)^2\)</th></tr>
+<tr><td>0</td><td>0.8207</td><td>0.8059</td><td>12.0972</td><td>0.2176</td></tr>
+<tr><td>1</td><td>0.0088</td><td>0.0078</td><td>6.1410</td><td>0.7320</td></tr>
+<tr><td>2</td><td>1.1970</td><td>0.5985</td><td>2.1848</td><td>1.0924</td></tr>
+<tr><td>3</td><td>4.3851</td><td>0.5227</td><td>0.2286</td><td>0.2013</td></tr>
+<tr><td>5</td><td>16.7614</td><td>0.0414</td><td>2.3162</td><td>2.3104</td></tr>
+<tr><td><strong>Sum</strong></td><td></td><td><strong>1.9764</strong></td><td></td><td><strong>4.5538</strong></td></tr>
+</table></div>
+$$\begin{aligned}
+\hat\sigma_1^2&amp;=\frac{1.9764}{2.4845}=0.7955\approx\mathbf{0.80}\\
+\hat\sigma_2^2&amp;=\frac{4.5538}{2.5155}=1.8103\approx\mathbf{1.81}
+\end{aligned}$$
+<p>So \(\hat\theta=(0.50,\ 0.91,\ 3.48,\ 0.80,\ 1.81)\). The point \(x=5\) pulled component 2 to the right and widened it, while component 1 tightened around 0 and 1. Carry 4 d.p. through every column and round only the final answers.</p>
+
+<p><strong>R check.</strong> The lecturer's <code>mixture.EM</code> / <code>EM.iter</code> (<a href="../extra-notes/EM-1.pdf#page=3">EM.pdf, pp. 3–4</a>) with the variance fixed at 2. The version below differs only in that it also updates <code>sigma2</code> (one extra M-step line and an extra argument), and it is run for one iteration (<code>max.iter=1</code>):</p>
+<pre class="rout"><span class="cmd">EM.iter &lt;- function(X, pi.curr, mu.curr, sigma2.curr) {
+  # E-step
+  prob.x.z = compute.prob.x.z(X, pi.curr, mu.curr, sigma2.curr)$prob.x.z
+  P_ik = prob.x.z / rowSums(prob.x.z)
+  # M-step
+  pi.new = colSums(P_ik)/sum(P_ik)
+  mu.new = colSums(P_ik*X)/colSums(P_ik)
+  sigma2.new = colSums(P_ik*(outer(X, mu.new, "-"))^2) /
+               colSums(P_ik)
+  return(list(P_ik=P_ik, pi.new=pi.new, mu.new=mu.new,
+              sigma2.new=sigma2.new))
+}
+&gt; X &lt;- c(0, 1, 2, 3, 5)
+&gt; out &lt;- EM.iter(X, pi.curr=c(0.5, 0.5), mu.curr=c(1, 3),
++                sigma2.curr=c(1, 1))
+&gt; print(round(out$P_ik, 4))</span>
+       [,1]   [,2]
+[1,] 0.9820 0.0180
+[2,] 0.8808 0.1192
+[3,] 0.5000 0.5000
+[4,] 0.1192 0.8808
+[5,] 0.0025 0.9975
+<span class="cmd">&gt; print(lapply(out[-1], round, 4))</span>
+$pi.new
+[1] 0.4969 0.5031
+
+$mu.new
+[1] 0.9059 3.4781
+
+$sigma2.new
+[1] 0.7955 1.8103
+
+<span class="cmd">&gt; EM1 &lt;- mixture.EM(X, pi.init=c(0.5, 0.5), mu.init=c(1, 3),
++                   sigma2.init=c(1, 1), max.iter=1)
+&gt; round(EM1$log_liks, 4)</span>
+[1] -10.0928  -9.4658
+<span class="cmd">&gt; EM &lt;- mixture.EM(X, pi.init=c(0.5, 0.5), mu.init=c(1, 3),
++                  sigma2.init=c(1, 1))
+&gt; length(EM$log_liks)</span>
+[1] 88
+<span class="cmd">&gt; lapply(EM[1:3], round, 4)</span>
+$pi.curr
+[1] 0.2962 0.7038
+
+$mu.curr
+[1] 0.4292 2.9452
+
+$sigma2.curr
+[1] 0.2637 2.2199</pre>
+<p>How to read it:</p>
+<ul>
+<li>Every hand number matches. <code>outer(X, mu.new, "-")</code> is the \(n\times2\) matrix of \(x_i-\hat\mu_k\), so the <code>sigma2.new</code> line uses the <em>new</em> means, as §3 requires.</li>
+<li>One iteration raised the incomplete \(\ell\) from −10.09 to −9.47, as Lesson 17's ascent property says it must.</li>
+<li>Running to convergence took 88 iterations (87 updates) and ended at a different place, with component 1 a narrow cluster over \(\{0,1\}\). With five points, EM's first step is a long way from the MLE. Exam questions ask for one iteration.</li>
+</ul>
+
+<div class="quiz num" data-answer="3.48" data-tol="0.005">
+  <p class="q"><strong>6.</strong> Without looking at the ledger: from \(\gamma_{i2}=(0.0180,\ 0.1192,\ 0.5,\ 0.8808,\ 0.9975)\) and \(x=(0,1,2,3,5)\), compute \(\hat\mu_2\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}\sum_i\gamma_{i2}x_i&amp;=0+0.1192+1.0+2.6424+4.9875\\&amp;=8.7491\\ \sum_i\gamma_{i2}&amp;=0.0180+0.1192+0.5+0.8808+0.9975\\&amp;=2.5155\\ \hat\mu_2&amp;=\frac{8.7491}{2.5155}\\&amp;=\textbf{3.48}\end{aligned}$$
+  This is a weighted mean, so it divides by the effective count 2.5155, not by \(n=5\). Dividing by 5 gives 1.75, which isn't even between the two right-hand points that dominate component 2.</div>
+</div>
+
+<div class="quiz num" data-answer="1.81" data-tol="0.005">
+  <p class="q"><strong>7.</strong> With \(\hat\mu_2=3.4781\), compute \(\hat\sigma_2^2\) (2 d.p.). Use the \(\gamma_{i2}\) from Q6.</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}\sum_i\gamma_{i2}(x_i-3.4781)^2&amp;=0.0180(12.0972)+0.1192(6.1410)\\&amp;\quad+0.5(2.1848)+0.8808(0.2286)\\&amp;\quad+0.9975(2.3162)\\&amp;=0.2178+0.7320+1.0924+0.2013+2.3104\\&amp;=4.5539\\ \hat\sigma_2^2&amp;=\frac{4.5539}{2.5155}\\&amp;=\textbf{1.81}\end{aligned}$$
+  Using the old mean \(\mu_2^0=3\) gives 2.04. That is the "old mean in the variance" trap: \(Q\) is maximised at the pair \((\hat\mu_2,\hat\sigma_2^2)\), so the variance has to be centred at \(\hat\mu_2\).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>8.</strong> <em>(Retrieval: R reading, Lessons 16–17.)</em> In <code>pi.new = colSums(P_ik)/sum(P_ik)</code>, what is <code>sum(P_ik)</code>?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The incomplete log-likelihood \(\ell(\theta^0)\) at the current parameter values</button>
+    <button class="opt" data-key="b">The effective number of points \(N_1=\sum_i\gamma_{i1}\) for component one only</button>
+    <button class="opt" data-key="c">The sample size \(n\), because every row of <code>P_ik</code> adds to one across \(k\)</button>
+    <button class="opt" data-key="d">The number of mixture components \(K\), because every column adds to one</button>
+  </div>
+  <div class="why"><code>P_ik</code> is \(n\times K\) with rows \((\gamma_{i1},\dots,\gamma_{iK})\), each summing to 1, so the grand total is \(n\) (here 5). <code>colSums(P_ik)</code> is \((N_1,\dots,N_K)\), so <code>pi.new</code> is \(N_k/n\). The incomplete \(\ell\) is <code>sum(log(rowSums(prob.x.z)))</code>, which uses the <em>unnormalised</em> joint probabilities. The columns of <code>P_ik</code> sum to \(N_k\), not 1, which rules out (d).</div>
+</div>
+
+<h2>7 · Variations: rerun the derivation pattern</h2>
+<p>The derivation is always the same: (1) keep the terms of \(Q\) that contain the parameter, (2) differentiate, treating the \(\gamma\)'s as constants, (3) set to zero and solve, using \(\gamma_{i1}+\gamma_{i2}=1\) where it appears. Variations change only step 1.</p>
+
+<h3>A · Common variance \(\sigma^2\) (pooled)</h3>
+<p>If \(X_i\mid Z_i=k\sim N(\mu_k,\sigma^2)\) with one \(\sigma^2\), it appears in <em>both</em> components' terms (Lesson 17 homework 3). The \(\mu_k\) and \(\pi\) updates don't change.</p>
+$$\begin{aligned}
+Q_{\sigma^2}&amp;=-\frac12\sum_{i=1}^n\sum_{k=1}^2\gamma_{ik}\Big[\log\sigma^2+\frac{(x_i-\mu_k)^2}{\sigma^2}\Big]\\
+\frac{\partial Q}{\partial\sigma^2}&amp;=-\frac12\sum_{i=1}^n\sum_{k=1}^2\gamma_{ik}\Big[\frac1{\sigma^2}-\frac{(x_i-\mu_k)^2}{(\sigma^2)^2}\Big]=0\\
+\sigma^2\sum_{i}\sum_{k}\gamma_{ik}&amp;=\sum_{i}\sum_{k}\gamma_{ik}(x_i-\mu_k)^2\\
+n\sigma^2&amp;=\sum_{i}\sum_{k}\gamma_{ik}(x_i-\mu_k)^2\qquad(\textstyle\sum_k\gamma_{ik}=1)\\
+\hat\sigma^2&amp;=\frac1n\sum_{i=1}^n\big[\gamma_{i1}(x_i-\hat\mu_1)^2+\gamma_{i2}(x_i-\hat\mu_2)^2\big]
+\end{aligned}$$
+<p>This is the pooled weighted variance. It divides by \(n\) because both components' weights are pooled.</p>
+
+<div class="quiz num" data-answer="1.31" data-tol="0.005">
+  <p class="q"><strong>9.</strong> Same data and \(\theta^0\) as §6, but the model has one common variance. The means update to the same values as before, because their update doesn't involve \(\sigma^2\). Compute \(\hat\sigma^2\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Reuse the two column sums from §6's variance ledger:
+  $$\begin{aligned}\hat\sigma^2&amp;=\frac{1.9764+4.5538}{5}\\&amp;=\frac{6.5302}{5}\\&amp;=\textbf{1.31}\end{aligned}$$
+  That's \(\frac{N_1}{n}\hat\sigma_1^2+\frac{N_2}{n}\hat\sigma_2^2\), a weighted average of the two separate variances (0.80 and 1.81). The E-step was the same because \((\sigma_1^2)^0=(\sigma_2^2)^0\) already. Dividing by \(N_1\) or \(N_2\) would be the separate-variance formula, which is wrong for this model.</div>
+</div>
+
+<h3>B · Poisson components (tute week 7 Q2(b))</h3>
+<p>From Lesson 17 §4, \(Q=\sum_i\{\gamma_{i1}[\log\pi_1+x_i\log\lambda_1-\lambda_1-\log x_i!]+\gamma_{i2}[\log(1-\pi_1)+x_i\log\lambda_2-\lambda_2-\log x_i!]\}\). The \(\pi_1\) part is exactly as in §4, so \(\hat\pi_1=\frac1n\sum_i\gamma_{i1}\). For \(\lambda_1\):</p>
+$$\begin{aligned}
+Q_{\lambda_1}&amp;=\sum_{i=1}^n\gamma_{i1}\big(x_i\log\lambda_1-\lambda_1\big)\\
+\frac{\partial Q}{\partial\lambda_1}&amp;=\frac{\sum_i\gamma_{i1}x_i}{\lambda_1}-\sum_{i=1}^n\gamma_{i1}=0\\
+\hat\lambda_1&amp;=\frac{\sum_{i=1}^n\gamma_{i1}x_i}{\sum_{i=1}^n\gamma_{i1}}
+\end{aligned}$$
+<p>and the same with \(\gamma_{i2}\) for \(\hat\lambda_2\). This is the weighted sample mean again, because the Poisson MLE is \(\bar x\). The \(-\log x_i!\) terms vanish when you differentiate.</p>
+
+<div class="quiz num" data-answer="0.63" data-tol="0.005">
+  <p class="q"><strong>10.</strong> <em>(Retrieval: Lesson 16's data.)</em> \(x=(0,3,5,1)\), Poisson mixture with \(\theta^0=(\pi_1^0,\lambda_1^0,\lambda_2^0)=(0.3,\ 1,\ 4)\). The E-step gives \(\gamma_{i1}=(0.8959,\ 0.1186,\ 0.0083,\ 0.6827)\). Compute \(\hat\lambda_1\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}\sum_i\gamma_{i1}x_i&amp;=0.8959(0)+0.1186(3)+0.0083(5)+0.6827(1)\\&amp;=0+0.3558+0.0415+0.6827\\&amp;=1.0800\\ \sum_i\gamma_{i1}&amp;=0.8959+0.1186+0.0083+0.6827\\&amp;=1.7055\\ \hat\lambda_1&amp;=\frac{1.0800}{1.7055}\\&amp;=\textbf{0.63}\end{aligned}$$
+  Component 1 is effectively the points \(x=0\) and \(x=1\), with a little weight from 3 and 5, so its rate drops from 1 to 0.63. (Similarly \(\hat\lambda_2=3.45\) and \(\hat\pi_1=0.43\), the 0.43 in Lesson 17's bound figure.)</div>
+</div>
+
+<h3>C · A parameter shared by both components (finishing Lesson 17 §8)</h3>
+<p>Lesson 17's bulbs: \(X_i\mid Z_i=1\sim\text{Exp}(\lambda)\), \(X_i\mid Z_i=2\sim\text{Exp}(2\lambda)\), \(\theta=(\pi,\lambda)\). \(\hat\pi=\frac1n\sum_i\gamma_{i1}\) as in §4. For \(\lambda\), <strong>both</strong> components contribute:</p>
+$$\begin{aligned}
+Q_\lambda&amp;=\sum_{i=1}^n\Big\{\gamma_{i1}\big[\log\lambda-\lambda x_i\big]+\gamma_{i2}\big[\log\lambda-2\lambda x_i\big]\Big\}\\
+\frac{\partial Q}{\partial\lambda}&amp;=\sum_{i=1}^n\Big\{\gamma_{i1}\Big[\frac1\lambda-x_i\Big]+\gamma_{i2}\Big[\frac1\lambda-2x_i\Big]\Big\}\\
+&amp;=\frac1\lambda\sum_{i=1}^n(\gamma_{i1}+\gamma_{i2})-\sum_{i=1}^n(\gamma_{i1}+2\gamma_{i2})x_i\\
+&amp;=\frac n\lambda-\sum_{i=1}^n(\gamma_{i1}+2\gamma_{i2})x_i=0\\
+\hat\lambda&amp;=\frac{n}{\sum_{i=1}^n(\gamma_{i1}+2\gamma_{i2})x_i}
+\end{aligned}$$
+<p>(\(\log2\) from \(\log(2\lambda)\) is a constant and drops out.) A component-2 lifetime counts double, because line 2's lifetimes are on half the time scale.</p>
+
+<div class="quiz num" data-answer="0.88" data-tol="0.005">
+  <p class="q"><strong>11.</strong> Lesson 17's numbers: \(x=(0.2,\ 1.5,\ 0.6)\) and \(\gamma_{i1}=(0.2893,\ 0.5990,\ 0.3779)\). Compute \(\hat\lambda\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\gamma_{i1}+2\gamma_{i2}=2-\gamma_{i1}\):
+  $$\begin{aligned}\sum_i(2-\gamma_{i1})x_i&amp;=1.7107(0.2)+1.4010(1.5)+1.6221(0.6)\\&amp;=0.3421+2.1015+0.9733\\&amp;=3.4169\\ \hat\lambda&amp;=\frac{3}{3.4169}\\&amp;=\textbf{0.88}\end{aligned}$$
+  With \(\hat\pi=(0.2893+0.5990+0.3779)/3=0.42\), the incomplete \(\ell\) rises from −2.32 to −2.29, which answers Lesson 17's part (e) numerically. If you treat the components separately and average two rates, you are solving a different model.</div>
+</div>
+
+<h2>8 · Exam-style practice</h2>
+<p><strong>Setup</strong> (fresh model, past-paper shape; 12 marks). A tilt sensor is bolted to each of \(n\) machines. If it was mounted the right way round, it reads \(+\mu\) plus noise. If it was mounted reversed, it reads \(-\mu\) plus noise. Nobody recorded which. For \(i=1,\dots,n\):</p>
+$$\begin{aligned}
+Z_i&amp;\sim\text{Categorical}(\pi,1-\pi)\\
+X_i\mid Z_i=1&amp;\sim N(\mu,\sigma^2)\\
+X_i\mid Z_i=2&amp;\sim N(-\mu,\sigma^2)
+\end{aligned}$$
+<p>with \(\mu&gt;0\) and \(\theta=(\pi,\mu,\sigma^2)\). Twist: <strong>\(\mu\) and \(\sigma^2\) are both shared by the two components</strong>, with opposite signs on \(\mu\).</p>
+<ol type="a">
+  <li>Derive \(Q(\theta,\theta^0)\), with the log densities expanded. <span class="marks">[3]</span></li>
+  <li>Show that the E-step simplifies to \(P(Z_i=1\mid X_i,\theta^0)=\dfrac{\pi^0}{\pi^0+(1-\pi^0)\,e^{-2\mu^0x_i/(\sigma^2)^0}}\). <span class="marks">[2]</span></li>
+  <li>Derive the M-step updates \(\hat\pi\), \(\hat\mu\) and \(\hat\sigma^2\). Show that \(\hat\sigma^2=\frac1n\sum_ix_i^2-\hat\mu^2\). <span class="marks">[5]</span></li>
+  <li>With \(x=(2.5,\ -1.0,\ 0.5,\ 3.0,\ -2.0)\) and \(\theta^0=(0.6,\ 2,\ 4)\), carry out one EM iteration. Give \(\hat\pi\), \(\hat\mu\) and \(\hat\sigma^2\) to 2 d.p. <span class="marks">[2]</span></li>
+</ol>
+<p>Do it on paper (about 25 minutes), then check (d) with Q12–Q13 and everything with the full answer.</p>
+
+<div class="quiz num" data-answer="1.37" data-tol="0.005">
+  <p class="q"><strong>12.</strong> Part (d): compute \(\hat\mu\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(2\mu^0/(\sigma^2)^0=4/4=1\), so \(\gamma_{i1}=0.6/(0.6+0.4e^{-x_i})\):
+  <div class="tablewrap"><table class="ledger">
+  <tr><th>\(x_i\)</th><th>\(0.4e^{-x_i}\)</th><th>\(\gamma_{i1}\)</th><th>\((2\gamma_{i1}-1)x_i\)</th></tr>
+  <tr><td>2.5</td><td>0.032834</td><td>0.9481</td><td>2.2406</td></tr>
+  <tr><td>−1.0</td><td>1.087313</td><td>0.3556</td><td>0.2888</td></tr>
+  <tr><td>0.5</td><td>0.242612</td><td>0.7121</td><td>0.2121</td></tr>
+  <tr><td>3.0</td><td>0.019915</td><td>0.9679</td><td>2.8072</td></tr>
+  <tr><td>−2.0</td><td>2.955622</td><td>0.1687</td><td>1.3250</td></tr>
+  </table></div>
+  $$\begin{aligned}\hat\mu&amp;=\frac15(2.2406+0.2888+0.2121+2.8072+1.3250)\\&amp;=\frac{6.8737}{5}\\&amp;=\textbf{1.37}\end{aligned}$$
+  A negative reading that is probably reversed (\(\gamma_{i1}&lt;0.5\)) gets a negative weight, which flips its sign, so it adds evidence for a <em>larger</em> \(\mu\). A point with \(\gamma_{i1}=0.5\) would add nothing.</div>
+</div>
+
+<div class="quiz num" data-answer="2.21" data-tol="0.005">
+  <p class="q"><strong>13.</strong> Part (d): compute \(\hat\sigma^2\) (2 d.p.), using \(\hat\mu=1.3747\).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Use the shortcut from part (c):
+  $$\begin{aligned}\sum_ix_i^2&amp;=6.25+1+0.25+9+4\\&amp;=20.5\\ \hat\sigma^2&amp;=\frac{20.5}{5}-1.3747^2\\&amp;=4.1-1.8898\\&amp;=\textbf{2.21}\end{aligned}$$
+  The long way, \(\frac15\sum_i[\gamma_{i1}(x_i-\hat\mu)^2+\gamma_{i2}(x_i+\hat\mu)^2]\), gives the same 2.2101 but takes ten squared terms. Spotting the shortcut is worth time in the exam.</div>
+</div>
+
+<details><summary>Full model answer (all parts)</summary><div>
+<p><strong>(a)</strong> Complete-data likelihood with indicators, then log:</p>
+$$\begin{aligned}
+P(X,Z\mid\theta)&amp;=\prod_{i=1}^n\big[\pi f(x_i;\mu,\sigma^2)\big]^{I(Z_i=1)}\big[(1-\pi)f(x_i;-\mu,\sigma^2)\big]^{I(Z_i=2)}\\[6pt]
+\log P(X,Z\mid\theta)&amp;=\sum_{i=1}^n\Big\{I(Z_i=1)\Big[\log\pi-\tfrac12\log(2\pi\sigma^2)-\frac{(x_i-\mu)^2}{2\sigma^2}\Big]\\
+&amp;\qquad+I(Z_i=2)\Big[\log(1-\pi)-\tfrac12\log(2\pi\sigma^2)-\frac{(x_i+\mu)^2}{2\sigma^2}\Big]\Big\}
+\end{aligned}$$
+<p>Only the indicators are random given \(X\). Linearity and \(E_{Z\mid X,\theta^0}[I(Z_i=k)]=P(Z_i=k\mid X_i,\theta^0)=:\gamma_{ik}\) give</p>
+$$\begin{aligned}
+Q(\theta,\theta^0)&amp;=\sum_{i=1}^n\Big\{\gamma_{i1}\Big[\log\pi-\tfrac12\log(2\pi\sigma^2)-\frac{(x_i-\mu)^2}{2\sigma^2}\Big]\\
+&amp;\qquad+\gamma_{i2}\Big[\log(1-\pi)-\tfrac12\log(2\pi\sigma^2)-\frac{(x_i+\mu)^2}{2\sigma^2}\Big]\Big\}
+\end{aligned}$$
+<p><strong>(b)</strong> Bayes' rule at \(\theta^0\). The \(\frac{1}{\sqrt{2\pi(\sigma^2)^0}}\) factors are equal and cancel. Then divide top and bottom by \(e^{-(x_i-\mu^0)^2/(2(\sigma^2)^0)}\):</p>
+$$\begin{aligned}
+\gamma_{i1}&amp;=\frac{\pi^0e^{-(x_i-\mu^0)^2/(2(\sigma^2)^0)}}{\pi^0e^{-(x_i-\mu^0)^2/(2(\sigma^2)^0)}+(1-\pi^0)e^{-(x_i+\mu^0)^2/(2(\sigma^2)^0)}}\\
+&amp;=\frac{\pi^0}{\pi^0+(1-\pi^0)e^{-[(x_i+\mu^0)^2-(x_i-\mu^0)^2]/(2(\sigma^2)^0)}}\\
+&amp;=\frac{\pi^0}{\pi^0+(1-\pi^0)e^{-4\mu^0x_i/(2(\sigma^2)^0)}}\qquad\big((x+\mu)^2-(x-\mu)^2=4\mu x\big)\\
+&amp;=\frac{\pi^0}{\pi^0+(1-\pi^0)e^{-2\mu^0x_i/(\sigma^2)^0}}
+\end{aligned}$$
+<p>and \(\gamma_{i2}=1-\gamma_{i1}\).</p>
+<p><strong>(c)</strong> \(\pi\) appears only in \(\sum_i[\gamma_{i1}\log\pi+\gamma_{i2}\log(1-\pi)]\), the same as in §4, so \(\hat\pi=\frac1n\sum_i\gamma_{i1}\). For \(\mu\), both components contribute:</p>
+$$\begin{aligned}
+Q_\mu&amp;=-\frac1{2\sigma^2}\sum_{i=1}^n\big[\gamma_{i1}(x_i-\mu)^2+\gamma_{i2}(x_i+\mu)^2\big]\\
+\frac{\partial Q}{\partial\mu}&amp;=\frac1{\sigma^2}\sum_{i=1}^n\big[\gamma_{i1}(x_i-\mu)-\gamma_{i2}(x_i+\mu)\big]\\
+&amp;=\frac1{\sigma^2}\Big[\sum_{i=1}^n(\gamma_{i1}-\gamma_{i2})x_i-\mu\sum_{i=1}^n(\gamma_{i1}+\gamma_{i2})\Big]\\
+&amp;=\frac1{\sigma^2}\Big[\sum_{i=1}^n(\gamma_{i1}-\gamma_{i2})x_i-n\mu\Big]=0\\
+\hat\mu&amp;=\frac1n\sum_{i=1}^n(\gamma_{i1}-\gamma_{i2})x_i\\
+&amp;=\frac1n\sum_{i=1}^n(2\gamma_{i1}-1)x_i
+\end{aligned}$$
+<p>For \(\sigma^2\) (pooled, as in §7A):</p>
+$$\begin{aligned}
+Q_{\sigma^2}&amp;=-\frac12\sum_{i=1}^n\Big[\log\sigma^2+\frac{\gamma_{i1}(x_i-\mu)^2+\gamma_{i2}(x_i+\mu)^2}{\sigma^2}\Big]\qquad(\gamma_{i1}+\gamma_{i2}=1)\\
+\frac{\partial Q}{\partial\sigma^2}&amp;=-\frac12\Big[\frac{n}{\sigma^2}-\frac{\sum_i[\gamma_{i1}(x_i-\mu)^2+\gamma_{i2}(x_i+\mu)^2]}{(\sigma^2)^2}\Big]=0\\
+\hat\sigma^2&amp;=\frac1n\sum_{i=1}^n\big[\gamma_{i1}(x_i-\hat\mu)^2+\gamma_{i2}(x_i+\hat\mu)^2\big]
+\end{aligned}$$
+<p>Simplify. Expand one summand, using \(\gamma_{i1}+\gamma_{i2}=1\):</p>
+$$\begin{aligned}
+\gamma_{i1}(x_i-\hat\mu)^2+\gamma_{i2}(x_i+\hat\mu)^2&amp;=x_i^2-2\hat\mu(\gamma_{i1}-\gamma_{i2})x_i+\hat\mu^2\\[4pt]
+\sum_{i=1}^n\big[\cdots\big]&amp;=\sum_ix_i^2-2\hat\mu\sum_i(\gamma_{i1}-\gamma_{i2})x_i+n\hat\mu^2\\
+&amp;=\sum_ix_i^2-2\hat\mu\cdot n\hat\mu+n\hat\mu^2\qquad(\text{the }\hat\mu\text{ equation})\\
+&amp;=\sum_ix_i^2-n\hat\mu^2\\[4pt]
+\hat\sigma^2&amp;=\frac1n\sum_{i=1}^nx_i^2-\hat\mu^2
+\end{aligned}$$
+<p>(Concavity in \(\mu\), if asked: \(\partial^2Q/\partial\mu^2=-n/\sigma^2&lt;0\).)</p>
+<p><strong>(d)</strong> \(\gamma_{i1}=0.6/(0.6+0.4e^{-x_i})=(0.9481,\ 0.3556,\ 0.7121,\ 0.9679,\ 0.1687)\) (Q12's table).</p>
+$$\begin{aligned}
+\hat\pi&amp;=\frac{3.1524}{5}=\mathbf{0.63}\\
+\hat\mu&amp;=\frac{6.8737}{5}=\mathbf{1.37}\\
+\hat\sigma^2&amp;=4.1-1.3747^2=\mathbf{2.21}
+\end{aligned}$$
+<p>R check (same model written with <code>dnorm</code>):</p>
+<pre class="rout"><span class="cmd">&gt; x &lt;- c(2.5, -1.0, 0.5, 3.0, -2.0); p &lt;- 0.6; mu &lt;- 2; s2 &lt;- 4
+&gt; a &lt;- p*dnorm(x, mu, sqrt(s2))
+&gt; b &lt;- (1-p)*dnorm(x, -mu, sqrt(s2))
+&gt; g &lt;- a/(a+b); print(round(g, 6))</span>
+[1] 0.948116 0.355595 0.712071 0.967875 0.168747
+<span class="cmd">&gt; n &lt;- length(x); p1 &lt;- mean(g); m1 &lt;- sum((2*g-1)*x)/n
+&gt; v1 &lt;- sum(g*(x-m1)^2 + (1-g)*(x+m1)^2)/n
+&gt; print(round(c(sumg=sum(g), p1=p1, sumw=sum((2*g-1)*x),
++               m1=m1, v1=v1), 6))</span>
+    sumg       p1     sumw       m1       v1
+3.152404 0.630481 6.873723 1.374745 2.210077
+<span class="cmd">&gt; ll &lt;- function(p, m, s2) sum(log(p*dnorm(x, m, sqrt(s2)) +
++                                   (1-p)*dnorm(x, -m, sqrt(s2))))
+&gt; print(round(c(ll(p, mu, s2), ll(p1, m1, v1)), 4))</span>
+[1] -10.9382 -10.2838</pre>
+<p>\(\ell\) rose from −10.94 to −10.28, as it must.</p>
+<p><strong>Marks guide.</strong> (a) indicators as exponents [1], linearity with \(E[I]=P\) [1], expanded log densities with \(-\mu\) in component 2 [1]. (b) cancel the equal normalising constants [1], difference of squares [1]. (c) \(\hat\pi\) [1], \(\hat\mu\) with both components' derivative terms [2], \(\hat\sigma^2\) pooled plus the simplification [2]. (d) \(\gamma\)'s and all three numbers [2].</p></div></details>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Why does the M-step have closed-form solutions when maximising \(\ell(\theta)\) directly does not?</p>
+<details><summary>Model answer</summary><div>
+<p>\(\ell(\theta)=\sum_i\log\sum_k\pi_kf(x_i;\theta_k)\) has a log of a sum, so its derivative has every parameter in the denominator, and setting it to zero gives equations with no closed-form solution. In \(Q(\theta,\theta^0)\) the log acts directly on each \(\pi_kf(x_i;\theta_k)\), and the weights \(\gamma_{ik}\) are fixed numbers computed from \(\theta^0\). \(Q\) therefore splits into separate weighted complete-data log-likelihoods, and each one is maximised by a weighted version of the usual MLE.</p></div></details>
+</div>
+
+<h2>9 · Score yourself</h2>
+<div class="tablewrap"><table>
+<tr><th>If you missed…</th><th>Go back to</th></tr>
+<tr><td>Q1, Q5</td><td>§1, §5: the \(\gamma\)'s are constants; \(Q\) splits by parameter; curvature is weighted</td></tr>
+<tr><td>Q2, Q7</td><td>§3: differentiate with respect to \(v=\sigma^2\); use \(\hat\mu\), not \(\mu^0\)</td></tr>
+<tr><td>Q3, Q4, Q8</td><td>§4: \(\gamma_{i1}+\gamma_{i2}=1\) gives \(n\); Lagrange gives \(\lambda=-n\)</td></tr>
+<tr><td>Q6, Q9–Q11</td><td>§6–7: weighted mean divides by \(N_k\); pooled variance divides by \(n\); shared parameter pulls in both components</td></tr>
+<tr><td>Q12, Q13</td><td>§8: shared \(\mu\) with opposite signs; \(\hat\sigma^2=\overline{x^2}-\hat\mu^2\)</td></tr>
+</table></div>
+
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) \(\hat\pi=\frac1n\sum_i\gamma_{i1}\), from \(\sum_i[\gamma_{i1}/\pi-\gamma_{i2}/(1-\pi)]=0\) and \(\gamma_{i1}+\gamma_{i2}=1\). (2) \(\hat\mu_k=\sum_i\gamma_{ik}x_i/\sum_i\gamma_{ik}\). (3) \(\hat\sigma_k^2=\sum_i\gamma_{ik}(x_i-\hat\mu_k)^2/\sum_i\gamma_{ik}\), differentiating with respect to \(\sigma_k^2\). (4) Common variance: \(\frac1n\sum_i\sum_k\gamma_{ik}(x_i-\hat\mu_k)^2\). (5) Poisson: \(\hat\lambda_k=\sum_i\gamma_{ik}x_i/\sum_i\gamma_{ik}\). (6) Lagrange: \(\sum_i\gamma_{ik}/\pi_k+\lambda=0\), sum over \(k\), \(\lambda=-n\). (7) Pattern: keep terms in the parameter → differentiate with \(\gamma\) fixed → solve, using \(\sum_k\gamma_{ik}=1\).</p></div></details>
+
+<h2>10 · Homework</h2>
+<ol>
+  <li><strong>Tute week 7, Q2(b)</strong> (<code>tutes/2026_MAST30027_week7_questions.qmd</code>): the full E-step and M-step for the Poisson mixture, on a blank page. Compare with <code>2026_MAST30027_week7_sol.html</code>. Then read (don't write) its <code>EM.iter</code> and match each line to a formula.</li>
+  <li><strong>Lecture exercise</strong> (<a href="../lectures/EM_LMS-1.pdf#page=20">slide 20</a>): "In the M-step, show that the new parameter estimates which maximize the expected complete log-likelihood are equivalent to the closed form solutions in equations (3), (4), and (5)." Do it for \(K\) components, with Lagrange for \(\pi_k\).</li>
+  <li><strong>Three components by substitution.</strong> With \(\pi_3=1-\pi_1-\pi_2\), derive \(\hat\pi_1\) and \(\hat\pi_2\) by solving \(\partial Q/\partial\pi_1=\partial Q/\partial\pi_2=0\). Check against the bottom half of the lecturer's <a href="../extra-notes/EM-GMM-M-step_pi-2.pdf">handwritten note</a>.</li>
+  <li><strong>Exponential components, separate rates.</strong> \(X_i\mid Z_i=k\sim\text{Exp}(\lambda_k)\), \(\theta=(\pi,\lambda_1,\lambda_2)\). Derive \(\hat\lambda_k\). Then, taking \(x=(0.2,1.5,0.6)\) and \(\gamma_{i1}=(0.2893,0.5990,0.3779)\) as given, compute \(\hat\lambda_1,\hat\lambda_2\) (2 d.p.).</li>
+  <li><strong>Stretch: zero-inflated counts.</strong> Component 1 is "always 0" (\(P(X_i=0\mid Z_i=1)=1\)); component 2 is Poisson\((\lambda)\). Write the E-step for \(x_i=0\) and for \(x_i&gt;0\), and derive \(\hat\pi\) and \(\hat\lambda\).</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1. \(\hat\pi_1=\frac1n\sum_i\gamma_{i1}\), \(\hat\lambda_k=\sum_i\gamma_{ik}x_i/\sum_i\gamma_{ik}\), as in §7B and the tute solution.</p>
+<p>2. §2, §3 and the Lagrange part of §4 with a general \(k\). These match the slide-9 formulas, except that \(\gamma_{ik}\) is now computed at \(\theta^0\), so the "cheat" is legitimate.</p>
+<p>3. \(\partial Q/\partial\pi_1=\sum_i[\gamma_{i1}/\pi_1-\gamma_{i3}/(1-\pi_1-\pi_2)]=0\) gives \((1-\pi_1-\pi_2)N_1=\pi_1N_3\). Similarly \((1-\pi_1-\pi_2)N_2=\pi_2N_3\). Add them: \((1-\pi_1-\pi_2)(N_1+N_2)=(\pi_1+\pi_2)N_3\). With \(N_1+N_2=n-N_3\), this gives \(1-\pi_1-\pi_2=N_3/n\), so \(\hat\pi_1=N_1/n\) and \(\hat\pi_2=N_2/n\).</p>
+<p>4. \(Q_{\lambda_1}=\sum_i\gamma_{i1}(\log\lambda_1-\lambda_1x_i)\), so</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\lambda_1}&amp;=\frac{\sum_i\gamma_{i1}}{\lambda_1}-\sum_i\gamma_{i1}x_i=0\\
+\hat\lambda_1&amp;=\frac{\sum_i\gamma_{i1}}{\sum_i\gamma_{i1}x_i}\\
+&amp;=\frac{1.2662}{1.1831}=1.07\\
+\hat\lambda_2&amp;=\frac{\sum_i\gamma_{i2}}{\sum_i\gamma_{i2}x_i}\\
+&amp;=\frac{1.7338}{1.1169}=1.55
+\end{aligned}$$
+<p>This is the reciprocal of the weighted mean, as the Exponential MLE is \(1/\bar x\).</p>
+<p>5. For \(x_i&gt;0\), \(\gamma_{i1}=0\), because the first component can't produce a positive value. For \(x_i=0\), \(\gamma_{i1}=\pi^0/(\pi^0+(1-\pi^0)e^{-\lambda^0})\). Then \(\hat\pi=\frac1n\sum_i\gamma_{i1}\) and \(\hat\lambda=\sum_i\gamma_{i2}x_i/\sum_i\gamma_{i2}\). The point-mass component has no parameter, so its log-density term is \(\log1=0\).</p></div></details>
+
+<p><strong>Primary source:</strong> the lecturer's <a href="../extra-notes/EM_GMM_2026%20derivations.pdf#page=4">EM_GMM_2026 derivations</a>, pp. 4–7 (appendix: Lagrange for \(\pi_k\), then \(\mu_k\), then \(\sigma_k^2\), one step per line, in exactly this lesson's notation with \(r_{ik}^{(t)}\) for \(\gamma_{ik}\)). Then the <a href="../lectures/Formal%20derivation%20of%20the%20EM%20algorithm%20for%20a%20two-component%20GMM.pdf#page=3">formal two-component derivation</a> (pp. 3–6, with \(\pi_2=1-\pi_1\)), the handwritten <a href="../extra-notes/EM-GMM-M-step_pi-2.pdf">EM-GMM-M-step_pi</a> (\(K=2\) and \(K=3\) by substitution), <a href="../lectures/EM_LMS-1.pdf#page=8">EM slides 8–9 and 20</a>, and the R in <a href="../extra-notes/EM-updated.qmd">EM-updated.qmd</a> ("The M-step", "M-step: pi.new"). Tute week 7 solution for the Poisson version.</p>
+
+<div class="ask">💬 Ask me in the terminal if a derivative step doesn't click, or if you want more M-step drills (a Binomial mixture, a known-variance component, three components). Paste your §8 working and I'll mark it the way an exam marker would.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0017-em-algorithm-q-function.html">Lesson 17, The EM algorithm &amp; Q-function</a> · Reference: <a href="../reference/probability-toolkit.html">Probability toolkit</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/em-cheatsheet.html">EM cheat sheet</a></span>
+  <span>Next: <a href="0019-em-exam-twists.html">Lesson 19, EM exam twists</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

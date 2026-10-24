@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The EM Algorithm and the Q-function</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  .keys { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .8rem; background: var(--card); border: 1px solid var(--rule); border-radius: 4px; padding: .1rem .35rem; }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .4rem 1rem .6rem; margin: 1.2rem 0; }
+  .answer-box > p:first-child { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); margin-bottom: .2rem; }
+  figure.fig { margin: 1.4rem 0; }
+  figure.fig figcaption { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin-top: .4rem; }
+  svg.bound { width: 100%; height: auto; display: block; }
+  svg.bound .ax, svg.bound .tick { stroke: var(--muted); stroke-width: 1; }
+  svg.bound .tl { fill: var(--muted); font: 12px Inter, system-ui, sans-serif; }
+  svg.bound .lab { fill: var(--fg); font: 12.5px Inter, system-ui, sans-serif; }
+  svg.bound .ell { fill: none; stroke: var(--accent); stroke-width: 2.4; }
+  svg.bound .bnd { fill: none; stroke: var(--ok); stroke-width: 2; stroke-dasharray: 6 4; }
+  svg.bound .guide { stroke: var(--rule); stroke-width: 1.2; }
+  svg.bound .dot0 { fill: var(--fg); }
+  svg.bound .dot1 { fill: var(--accent); }
+  svg.bound .dotb { fill: var(--ok); }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 17 · Topic 4: mixture models &amp; EM (2 of 6)</div>
+<h1>The EM algorithm and the Q-function</h1>
+<p class="lede">EM fits a mixture by alternating two easy steps: compute the responsibilities at the current guess \(\theta^0\), then refit each component as if those probabilities were known labels. The formal object behind this is \(Q(\theta,\theta^0)\), the complete-data log-likelihood averaged over the hidden labels. The win: given a mixture model and \(\theta^0\), write \(Q(\theta,\theta^0)\) out in full, log densities expanded, the way an exam answer would, and do one E-step by hand on the FX-82.</p>
+
+<div class="mission">Why this matters for 10 Nov: in 2021 and 2022 the EM question (10–12 marks) began with "Derive \(Q(\theta,\theta^0)=E_{Z\mid X,\theta^0}[\log P(X,Z\mid\theta)]\)" for a two-component mixture with a twist, and the M-step built on it. A wrong \(Q\) loses the M-step marks too. In 2020 the same question was numeric: pick between two EM runs and compute a responsibility. This lesson covers part (a) of all of them, plus why EM works and how to choose between runs. The M-step derivations are <a href="0018-m-step-derivations.html">Lesson 18</a>.</div>
+
+<p>Assumed from <a href="0016-mixture-models-and-responsibilities.html">Lesson 16</a>: the generative story \(Z_i\sim\text{Categorical}(\pi)\), \(X_i\mid Z_i=k\sim f_k\); the observed-data (incomplete) log-likelihood \(\ell(\theta)=\sum_i\log\sum_k\pi_kf_k(x_i)\); the complete-data log-likelihood with indicators; and responsibilities \(\gamma_{ik}\) by Bayes' rule. Reference pages: <a href="../reference/glossary.html">glossary</a>, <a href="../reference/probability-toolkit.html">probability toolkit</a>. About 35–40 minutes, on paper with an FX-82.</p>
+
+<h2>1 · From the "cheat" to an algorithm</h2>
+<p>Lesson 16 hit a wall. Setting \(\partial\ell/\partial\mu_k=0\) gives \(\mu_k=\sum_i\gamma_{ik}x_i/\sum_i\gamma_{ik}\), but \(\gamma_{ik}\) itself contains \(\mu_k\). The lecture "cheats a bit and pretends that it doesn't" (<a href="../lectures/EM_LMS-1.pdf#page=8">EM slide 8</a>), and then makes two observations (<a href="../lectures/EM_LMS-1.pdf#page=10">slide 10</a>):</p>
+<ul>
+  <li>If we knew the parameters, we could compute the posteriors \(P(Z_i=k\mid X_i)\).</li>
+  <li>If we knew the posteriors, we could easily compute the parameter estimates.</li>
+</ul>
+<p>"Let's iterate!" The slide-16 version of the algorithm, with \(\theta^0\) for the current values:</p>
+<div class="box">
+<ol class="steps">
+  <li><strong>Initialise.</strong> Pick starting values \(\theta^0\). Evaluate the incomplete log-likelihood \(\ell(\theta^0)\).</li>
+  <li><strong>E-step.</strong> Using \(\theta^0\), compute the posterior of the latent variables, \(P(Z\mid X,\theta^0)\). For a mixture this means every \(\gamma_{ik}=P(Z_i=k\mid X_i=x_i,\theta^0)\).</li>
+  <li><strong>M-step.</strong> Set \(\hat\theta=\arg\max_\theta Q(\theta,\theta^0)\), where \(Q(\theta,\theta^0)=E_{Z\mid X,\theta^0}[\log P(X,Z\mid\theta)]\).</li>
+  <li><strong>Check.</strong> Evaluate \(\ell(\hat\theta)\). If it changed by less than a small \(\epsilon\), stop. Otherwise set \(\theta^0\leftarrow\hat\theta\) and go back to step 2.</li>
+</ol>
+</div>
+<p>The stopping rule uses the <strong>incomplete</strong> log-likelihood \(\ell(\theta)=\log P(X\mid\theta)\), the quantity we actually want to maximise. \(Q\) is only a tool for the M-step. The annotated slides add a maximum number of iterations as a second stopping rule (<a href="../annotated-slides/EM_LMS-1%204.pdf#page=36">annotated p. 36</a>).</p>
+
+<h2>2 · The general recipe: three log-likelihoods</h2>
+<p>The lecture's abstract view (<a href="../lectures/EM_LMS-1.pdf#page=14">slides 14–16</a>; <a href="../annotated-slides/EM_LMS-1%204.pdf#page=22">annotated p. 22</a>). Let \(X\) be <em>all</em> the observations and \(Z\) <em>all</em> the latent labels.</p>
+<div class="tablewrap"><table>
+<tr><th>Name</th><th>Formula</th><th>Role</th></tr>
+<tr><td>Incomplete (observed-data) log-likelihood</td><td>\(\ell(\theta)=\log P(X\mid\theta)=\log\sum_ZP(X,Z\mid\theta)\)</td><td>What we maximise. Log of a sum: hard.</td></tr>
+<tr><td>Complete(-data) log-likelihood</td><td>\(\log P(X,Z\mid\theta)\)</td><td>Easy to maximise, but contains the unknown \(Z\).</td></tr>
+<tr><td>Expected complete log-likelihood</td><td>\(Q(\theta,\theta^0)=E_{Z\mid X,\theta^0}[\log P(X,Z\mid\theta)]\)</td><td>Averages out \(Z\) with the current posterior. Maximised in the M-step.</td></tr>
+</table></div>
+<p><strong>Read \(Q(\theta,\theta^0)\) carefully.</strong> It has two arguments with different jobs. \(\theta^0\) is a set of <em>numbers</em> (the current estimate). It only decides the distribution we average over, \(P(Z\mid X,\theta^0)\). \(\theta\) is the <em>free variable</em> inside the log, the thing the M-step maximises over. In the slides' words: "since we don't know \(\log P(X,Z\mid\theta)\) … we consider its expectation under the posterior distribution of the latent variables" (<a href="../lectures/EM_LMS-1.pdf#page=15">slide 15</a>).</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>1.</strong> In \(Q(\theta,\theta^0)=E_{Z\mid X,\theta^0}[\log P(X,Z\mid\theta)]\), which argument does the M-step vary?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\theta\) varies; \(\theta^0\) stays fixed and only sets the averaging weights</button>
+    <button class="opt" data-key="b">\(\theta^0\) varies; \(\theta\) stays fixed and only sets the averaging weights</button>
+    <button class="opt" data-key="c">Both vary together, and the M-step maximises over the pair at once</button>
+    <button class="opt" data-key="d">Neither varies; \(Q\) is a single number computed before EM starts</button>
+  </div>
+  <div class="why">The expectation is over \(Z\sim P(Z\mid X,\theta^0)\), so \(\theta^0\) only fixes the weights \(\gamma_{ik}\) (numbers after the E-step). The M-step then solves \(\hat\theta=\arg\max_\theta Q(\theta,\theta^0)\) (<a href="../lectures/EM_LMS-1.pdf#page=16">slide 16</a>). If \(\theta^0\) moved too, the weights would contain the unknowns again and we'd be back at the log-of-a-sum problem.</div>
+</div>
+
+<h2>3 · Writing \(Q(\theta,\theta^0)\) for a GMM, step by step</h2>
+<p>This is the derivation on <a href="../lectures/EM_LMS-1.pdf#page=18">slides 18–19</a> and in the lecturer's <a href="../extra-notes/EM_GMM_2026%20derivations.pdf#page=1">EM_GMM_2026 derivations</a>, pp. 1–3. Take \(K\) components, \(\theta=(\pi_1,\dots,\pi_{K-1},\mu_1,\sigma_1^2,\dots,\mu_K,\sigma_K^2)\), and \(f(x_i;\mu_k,\sigma_k^2)\) the \(N(\mu_k,\sigma_k^2)\) density (Lesson 16's \(f_k(x_i)\)).</p>
+
+<p><strong>Step 1: complete-data likelihood.</strong> Each observation's contribution is a product over \(k\) where the indicator switches on exactly one factor:</p>
+$$\begin{aligned}
+P(X,Z\mid\theta)&amp;=\prod_{i=1}^n P(X_i=x_i,Z_i\mid\theta)\\
+&amp;=\prod_{i=1}^n\prod_{k=1}^K\big[P(Z_i=k\mid\theta)\,P(X_i\mid Z_i=k,\theta)\big]^{I(Z_i=k)}\\
+&amp;=\prod_{i=1}^n\prod_{k=1}^K\big[\pi_k\,f(x_i;\mu_k,\sigma_k^2)\big]^{I(Z_i=k)}
+\end{aligned}$$
+
+<p><strong>Step 2: complete-data log-likelihood.</strong> The log turns products into sums and the indicator exponent into a coefficient:</p>
+$$\begin{aligned}
+\log P(X,Z\mid\theta)&amp;=\sum_{i=1}^n\sum_{k=1}^K I(Z_i=k)\log\big[\pi_kf(x_i;\mu_k,\sigma_k^2)\big]\\
+&amp;=\sum_{i=1}^n\sum_{k=1}^K I(Z_i=k)\big[\log\pi_k+\log f(x_i;\mu_k,\sigma_k^2)\big]
+\end{aligned}$$
+
+<p><strong>Step 3: take the expectation over \(Z\mid X,\theta^0\).</strong> Only the indicators are random; everything in square brackets is a function of \(\theta\) and the data. Linearity of expectation moves \(E\) onto each indicator:</p>
+$$\begin{aligned}
+Q(\theta,\theta^0)&amp;=E_{Z\mid X,\theta^0}\big[\log P(X,Z\mid\theta)\big]\\
+&amp;=E_{Z\mid X,\theta^0}\Big[\sum_{i=1}^n\sum_{k=1}^K I(Z_i=k)\big[\log\pi_k+\log f(x_i;\mu_k,\sigma_k^2)\big]\Big]\\
+&amp;=\sum_{i=1}^n\sum_{k=1}^K E_{Z\mid X,\theta^0}\big[I(Z_i=k)\big]\big[\log\pi_k+\log f(x_i;\mu_k,\sigma_k^2)\big]\quad\text{(linearity)}
+\end{aligned}$$
+
+<p><strong>Step 4: the expectation of an indicator is a probability.</strong> \(I(Z_i=k)\) is 1 or 0, so (the lecturer's handwritten line, <a href="../annotated-slides/EM_LMS-1%204.pdf#page=33">annotated p. 33</a>):</p>
+$$\begin{aligned}
+E_{Z\mid X,\theta^0}\big[I(Z_i=k)\big]&amp;=1\cdot P(Z_i=k\mid X,\theta^0)+0\cdot P(Z_i\ne k\mid X,\theta^0)\\
+&amp;=P(Z_i=k\mid X_i=x_i,\theta^0)\\
+&amp;=\frac{\pi_k^0\,f(x_i;\mu_k^0,(\sigma_k^2)^0)}{\sum_{j=1}^K\pi_j^0\,f(x_i;\mu_j^0,(\sigma_j^2)^0)}\qquad\text{(Bayes' rule)}\\
+&amp;=\gamma_{ik}
+\end{aligned}$$
+<p>The second line uses independence across \(i\): \(Z_i\) depends on the data only through its own \(x_i\). The superscript 0 on every parameter in \(\gamma_{ik}\) is the whole point: these are <strong>numbers</strong> computed from \(\theta^0\), not functions of \(\theta\). The lecturer's 2026 notes write \(r_{ik}^{(t)}\) and \(\theta^{(t)}\) for the same things.</p>
+
+<p><strong>Step 5: substitute.</strong></p>
+$$\begin{aligned}
+Q(\theta,\theta^0)&amp;=\sum_{i=1}^n\sum_{k=1}^K P(Z_i=k\mid X_i=x_i,\theta^0)\big[\log\pi_k+\log f(x_i;\mu_k,\sigma_k^2)\big]\\
+&amp;=\sum_{i=1}^n\sum_{k=1}^K \gamma_{ik}\big[\log\pi_k+\log f(x_i;\mu_k,\sigma_k^2)\big]
+\end{aligned}$$
+<p>The one line to remember (<a href="../extra-notes/EM-updated.qmd">EM-updated.qmd</a>, "Notes"): <strong>\(I(Z_i=k)\ \to\ E_{Z\mid X,\theta^0}[I(Z_i=k)]=P(Z_i=k\mid X_i=x_i,\theta^0)\)</strong>. The complete-data log-likelihood with each indicator replaced by a responsibility.</p>
+
+<h3>The exam answer: two components, everything expanded</h3>
+<p>For \(K=2\) with \(Z_i\sim\text{Categorical}(\pi,1-\pi)\) and \(\theta=(\pi,\mu_1,\mu_2,\sigma_1^2,\sigma_2^2)\), use the Normal log density from the formula sheet:</p>
+$$\begin{aligned}
+\log f(x_i;\mu_k,\sigma_k^2)&amp;=\log\Big[\frac{1}{\sqrt{2\pi\sigma_k^2}}\,e^{-(x_i-\mu_k)^2/(2\sigma_k^2)}\Big]\\
+&amp;=-\tfrac12\log(2\pi)-\tfrac12\log\sigma_k^2-\frac{(x_i-\mu_k)^2}{2\sigma_k^2}
+\end{aligned}$$
+<p>Careful: the \(\pi\) in \(\log(2\pi)\) is 3.14159, not the mixing proportion. You may collect \(-\tfrac12\log(2\pi)\) into a constant \(c\) to avoid the clash.</p>
+<div class="answer-box">
+<p>What to write in the exam</p>
+$$\begin{aligned}
+Q(\theta,\theta^0)=\sum_{i=1}^n\Big\{&amp;P(Z_i=1\mid X_i,\theta^0)\Big[\log\pi-\tfrac12\log(2\pi)\\
+&amp;\qquad-\tfrac12\log\sigma_1^2-\frac{(x_i-\mu_1)^2}{2\sigma_1^2}\Big]\\
++\ &amp;P(Z_i=2\mid X_i,\theta^0)\Big[\log(1-\pi)-\tfrac12\log(2\pi)\\
+&amp;\qquad-\tfrac12\log\sigma_2^2-\frac{(x_i-\mu_2)^2}{2\sigma_2^2}\Big]\Big\}
+\end{aligned}$$
+<p style="margin-bottom:0">with \(P(Z_i=1\mid X_i,\theta^0)=\dfrac{\pi^0f(x_i;\mu_1^0,(\sigma_1^2)^0)}{\pi^0f(x_i;\mu_1^0,(\sigma_1^2)^0)+(1-\pi^0)f(x_i;\mu_2^0,(\sigma_2^2)^0)}\) and \(P(Z_i=2\mid X_i,\theta^0)=1-P(Z_i=1\mid X_i,\theta^0)\). The 2021 and 2022 papers said answers could leave \(P(Z_i=k\mid X_i,\theta^0)\) unexpanded, but write the Bayes' rule formula once anyway: it's the E-step, and it costs one line.</p>
+</div>
+<p><strong>Marks checklist.</strong> (1) complete likelihood with indicators as exponents; (2) log and split \(\log\pi_k+\log f\); (3) expectation passes through by linearity; (4) \(E[I(Z_i=k)]=P(Z_i=k\mid X_i,\theta^0)\), with the formula; (5) log density expanded; (6) the second component gets \(\log(1-\pi)\), not \(\log\pi_2\) with a new free parameter.</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> In Step 4, why is \(E_{Z\mid X,\theta^0}[I(Z_i=k)]\) equal to \(P(Z_i=k\mid X_i=x_i,\theta^0)\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">An indicator is 1 with that probability and 0 otherwise, so its mean is that probability</button>
+    <button class="opt" data-key="b">An indicator equals its own expectation, so the labels can be read straight from the data</button>
+    <button class="opt" data-key="c">The prior \(P(Z_i=k)=\pi_k^0\) is updated to the posterior because the expectation is linear</button>
+    <button class="opt" data-key="d">Jensen's inequality moves the expectation inside the log, which turns it into a probability</button>
+  </div>
+  <div class="why">\(E[I]=1\cdot P(I=1)+0\cdot P(I=0)=P(Z_i=k\mid X,\theta^0)\) (<a href="../annotated-slides/EM_LMS-1%204.pdf#page=33">annotated p. 33</a>). Linearity is what lets the expectation reach the indicators (Step 3); it doesn't produce the posterior, Bayes' rule does. Jensen belongs to the monotonicity proof (§6), not to writing \(Q\).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>3.</strong> A 2022-style twist. Observations \(x_1,\dots,x_{40}\) come from the two-component GMM above, but \(x_{41},\dots,x_{60}\) are <em>known</em> to come from component 2, so they have no \(Z_i\). How does \(x_{41}\) enter \(Q(\theta,\theta^0)\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">As both components' terms, each weighted by its responsibility at \(\theta^0\) as usual</button>
+    <button class="opt" data-key="b">As \(\log f(x_{41};\mu_2,\sigma_2^2)\) with weight 1, and with no \(\log(1-\pi)\) term</button>
+    <button class="opt" data-key="c">As \(\log(1-\pi)+\log f(x_{41};\mu_2,\sigma_2^2)\), weighted by its responsibility \(\gamma_{41,2}\)</button>
+    <button class="opt" data-key="d">Not at all, because an observation with a known label tells us nothing about \(\theta\)</button>
+  </div>
+  <div class="why">\(x_{41}\) is just a draw from \(N(\mu_2,\sigma_2^2)\): its likelihood factor is \(f(x_{41};\mu_2,\sigma_2^2)\), with no label and so no \(\pi\). Nothing is random about it given \(X\), so the expectation leaves \(\log f(x_{41};\mu_2,\sigma_2^2)\) unchanged:
+  $$\begin{aligned}Q(\theta,\theta^0)&amp;=\sum_{i=1}^{40}\sum_{k=1}^2\gamma_{ik}\big[\log\pi_k+\log f(x_i;\mu_k,\sigma_k^2)\big]\\&amp;\quad+\sum_{i=41}^{60}\log f(x_i;\mu_2,\sigma_2^2)\end{aligned}$$
+  (c) wrongly gives it a label to average over. If the problem instead said "\(Z_{41}=2\) is observed", the term would be \(\log(1-\pi)+\log f(x_{41};\mu_2,\sigma_2^2)\), still with weight 1. Read the model statement closely: "follows component 2" (no \(Z_i\) at all) is different from "\(Z_i=2\) is observed".</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Why does EM maximise \(Q(\theta,\theta^0)\) instead of the complete-data log-likelihood itself?</p>
+<details><summary>Model answer</summary><div>
+<p>The complete-data log-likelihood contains the indicators \(I(Z_i=k)\), which are unknown because the labels are never observed, so it can't be evaluated or maximised. \(Q\) replaces each indicator with its conditional expectation given the data and the current estimate, \(P(Z_i=k\mid X_i,\theta^0)\), which is a computable number. The log still acts directly on each density, so the M-step has closed-form solutions.</p></div></details>
+</div>
+
+<h2>4 · Same recipe, Poisson components</h2>
+<p>Tute week 7 Q2(a): \(Z_i\sim\text{Categorical}(\pi_1,1-\pi_1)\), \(X_i\mid Z_i=k\sim\text{Poisson}(\lambda_k)\), \(\theta=(\pi_1,\lambda_1,\lambda_2)\). Only Step 5's log density changes. <strong>Try it on paper first</strong> (3 minutes), then open the answer.</p>
+<details><summary>Model answer: \(Q(\theta,\theta^0)\) for the Poisson mixture</summary><div>
+<p>Poisson log pmf:</p>
+$$\begin{aligned}
+\log f(x_i;\lambda_k)&amp;=\log\Big[\frac{\lambda_k^{x_i}e^{-\lambda_k}}{x_i!}\Big]\\
+&amp;=x_i\log\lambda_k-\lambda_k-\log x_i!
+\end{aligned}$$
+<p>Complete data, then log, then expectation:</p>
+$$\begin{aligned}
+P(X,Z\mid\theta)&amp;=\prod_{i=1}^n\prod_{k=1}^2\big[\pi_kf(x_i;\lambda_k)\big]^{I(Z_i=k)}\qquad(\pi_2=1-\pi_1)\\[6pt]
+\log P(X,Z\mid\theta)&amp;=\sum_{i=1}^n\Big\{I(Z_i=1)\big[\log\pi_1+x_i\log\lambda_1-\lambda_1-\log x_i!\big]\\
+&amp;\qquad+I(Z_i=2)\big[\log(1-\pi_1)+x_i\log\lambda_2\\
+&amp;\qquad\qquad-\lambda_2-\log x_i!\big]\Big\}\\[6pt]
+Q(\theta,\theta^0)&amp;=\sum_{i=1}^n\Big\{P(Z_i=1\mid X_i,\theta^0)\big[\log\pi_1+x_i\log\lambda_1\\
+&amp;\qquad\qquad-\lambda_1-\log x_i!\big]\\
+&amp;\qquad+P(Z_i=2\mid X_i,\theta^0)\big[\log(1-\pi_1)+x_i\log\lambda_2\\
+&amp;\qquad\qquad-\lambda_2-\log x_i!\big]\Big\}
+\end{aligned}$$
+<p>with the E-step</p>
+$$\begin{aligned}
+P(Z_i=1\mid X_i,\theta^0)&amp;=\frac{\pi_1^0(\lambda_1^0)^{x_i}e^{-\lambda_1^0}/x_i!}{\pi_1^0(\lambda_1^0)^{x_i}e^{-\lambda_1^0}/x_i!+(1-\pi_1^0)(\lambda_2^0)^{x_i}e^{-\lambda_2^0}/x_i!}\\
+&amp;=\frac{\pi_1^0(\lambda_1^0)^{x_i}e^{-\lambda_1^0}}{\pi_1^0(\lambda_1^0)^{x_i}e^{-\lambda_1^0}+(1-\pi_1^0)(\lambda_2^0)^{x_i}e^{-\lambda_2^0}}\qquad(x_i!\text{ cancels})
+\end{aligned}$$
+<p>The \(-\log x_i!\) terms in \(Q\) contain no parameter, so they vanish when you differentiate in the M-step. Keep them in the written \(Q\) anyway (the tute solution does): \(Q\) is an expectation of the full log-likelihood, and dropping terms without saying "+ const" loses a mark.</p></div></details>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>4.</strong> <em>(Retrieval: quasi-likelihood, Lesson 11.)</em> Lesson 11 also had a "\(Q\)". How do the two differ?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Quasi \(Q\) integrates \((y-t)/(\phi v(t))\); EM's \(Q\) averages a complete log-likelihood</button>
+    <button class="opt" data-key="b">They are the same object: the expected log-likelihood under the posterior of the labels</button>
+    <button class="opt" data-key="c">Quasi \(Q\) needs a full distribution; EM's \(Q\) needs only a mean and variance function</button>
+    <button class="opt" data-key="d">EM's \(Q\) integrates \((y-t)/(\phi v(t))\); quasi \(Q\) averages a complete log-likelihood</button>
+  </div>
+  <div class="why">The quasi log-likelihood \(Q_i=\int_{y_i}^{\mu_i}\frac{y_i-t}{\phi v(t)}dt\) replaces a likelihood when only the mean and variance are specified (<a href="0011-quasi-likelihood-theory.html">Lesson 11</a>). EM's \(Q(\theta,\theta^0)=E_{Z\mid X,\theta^0}[\log P(X,Z\mid\theta)]\) needs a full model, including the latent labels. Same letter, unrelated objects: in an exam, the two arguments \((\theta,\theta^0)\) tell you it's EM.</div>
+</div>
+
+<h2>5 · The E-step by hand</h2>
+<p>A tiny GMM. Data \(x=(-0.5,\ 1.0,\ 2.5,\ 4.0)\). Current values \(\theta^0\): \(\pi^0=0.4\), component 1 is \(N(0,1)\), component 2 is \(N(3,4)\) (variance 4, so SD 2). Compute \(\gamma_{i1}=P(Z_i=1\mid X_i=x_i,\theta^0)\) for each point.</p>
+<p>The \(\frac1{\sqrt{2\pi}}\) cancels between numerator and denominator. The \(\frac1{\sigma_k}\) factors stay (Lesson 16's main trap): \(\frac{0.4}{1}=0.4\) and \(\frac{0.6}{2}=0.3\). So</p>
+$$\begin{aligned}
+\pi^0f(x;0,1)&amp;\propto0.4\,e^{-x^2/2}\\
+(1-\pi^0)f(x;3,4)&amp;\propto0.3\,e^{-(x-3)^2/8}
+\end{aligned}$$
+<p>For \(x_1=-0.5\):</p>
+$$\begin{aligned}
+0.4\,e^{-(-0.5)^2/2}&amp;=0.4\,e^{-0.125}\\
+&amp;=0.4\times0.882497\\
+&amp;=0.352999\\[6pt]
+0.3\,e^{-(-0.5-3)^2/8}&amp;=0.3\,e^{-12.25/8}\\
+&amp;=0.3\,e^{-1.53125}\\
+&amp;=0.3\times0.216265\\
+&amp;=0.064880\\[6pt]
+\gamma_{11}&amp;=\frac{0.352999}{0.352999+0.064880}\\
+&amp;=\frac{0.352999}{0.417879}\\
+&amp;=0.84
+\end{aligned}$$
+<p>The rest in a ledger (carry 4+ d.p. through, round only the final answer):</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>\(x_i\)</th><th>\(0.4e^{-x_i^2/2}\)</th><th>\(0.3e^{-(x_i-3)^2/8}\)</th><th>\(\gamma_{i1}\)</th><th>\(\gamma_{i2}=1-\gamma_{i1}\)</th></tr>
+<tr><td>−0.5</td><td>0.352999</td><td>0.064880</td><td>0.8447</td><td>0.1553</td></tr>
+<tr><td>1.0</td><td>0.242612</td><td>0.181959</td><td>0.5714</td><td>0.4286</td></tr>
+<tr><td>2.5</td><td>0.017575</td><td>0.290770</td><td>0.0570</td><td>0.9430</td></tr>
+<tr><td>4.0</td><td>0.000134</td><td>0.264749</td><td>0.0005</td><td>0.9995</td></tr>
+</table></div>
+<p>Check \(x=1.0\): both exponents are \(-0.5\), so \(\gamma_{21}=0.4/(0.4+0.3)=4/7=0.5714\). FX-82 entry for one row, typed in one go:</p>
+<p><span class="keys">0.4e^(−0.5²÷2) ÷ (0.4e^(−0.5²÷2) + 0.3e^(−3.5²÷8))</span> → 0.8447…</p>
+<p>(Type \((-0.5)^2\) as <span class="keys">(−0.5)²</span> with brackets: the FX-82 reads <span class="keys">−0.5²</span> as \(-(0.5^2)\). Above, the minus in front of the exponent is the formula's own minus sign.)</p>
+<p>With \(\gamma\) fixed, \(Q(\theta,\theta^0)\) is a fully known function of \(\theta\): for example, the \(\mu_1\) part is \(-\sum_i\gamma_{i1}(x_i-\mu_1)^2/(2\sigma_1^2)\), a weighted sum of squares. <strong>Teaser for Lesson 18:</strong> setting \(\partial Q/\partial\mu_1=0\) gives the weighted mean \(\hat\mu_1=\sum_i\gamma_{i1}x_i/\sum_i\gamma_{i1}=0.20\), and \(\hat\pi=\frac1n\sum_i\gamma_{i1}\). In R, the E-step is the <code>g</code> line, the M-step is the two weighted-average lines (read them, Lesson 18 derives them), and <code>sum(log(rowSums(M)))</code> is \(\ell\):</p>
+<pre class="rout"><span class="cmd">&gt; x &lt;- c(-0.5, 1, 2.5, 4); p &lt;- 0.4; mu &lt;- c(0, 3); s2 &lt;- c(1, 4)
+&gt; M &lt;- cbind(p*dnorm(x, mu[1], sqrt(s2[1])), (1-p)*dnorm(x, mu[2], sqrt(s2[2])))
+&gt; g &lt;- M[, 1] / rowSums(M); round(g, 4)</span>
+[1] 0.8447 0.5714 0.0570 0.0005
+<span class="cmd">&gt; sum(log(rowSums(M)))</span>
+[1] -7.909997
+<span class="cmd">&gt; p1 &lt;- mean(g); m1 &lt;- sum(g*x)/sum(g); m2 &lt;- sum((1-g)*x)/sum(1-g)
+&gt; v1 &lt;- sum(g*(x-m1)^2)/sum(g); v2 &lt;- sum((1-g)*(x-m2)^2)/sum(1-g)
+&gt; round(c(p1, m1, m2, v1, v2), 4)</span>
+[1] 0.3684 0.1992 2.6546 0.7386 1.8011
+<span class="cmd">&gt; sum(log(p1*dnorm(x, m1, sqrt(v1)) + (1-p1)*dnorm(x, m2, sqrt(v2))))</span>
+[1] -7.450534</pre>
+<p>One iteration moved \(\hat\pi\) to 0.37, \(\hat\mu_1\) to 0.20 and \(\hat\mu_2\) to 2.65, and raised \(\ell\) from −7.91 to −7.45. §6 explains why it can't go down.</p>
+
+<div class="quiz num" data-answer="0.36" data-tol="0.005">
+  <p class="q"><strong>5.</strong> <em>(Retrieval: responsibilities, Lesson 16.)</em> Same \(\theta^0\). A fifth point \(x_5=1.5\) arrives. Compute \(\gamma_{51}=P(Z_5=1\mid X_5=1.5,\theta^0)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}0.4\,e^{-1.5^2/2}&amp;=0.4\,e^{-1.125}\\&amp;=0.4\times0.324652\\&amp;=0.129861\\ 0.3\,e^{-(1.5-3)^2/8}&amp;=0.3\,e^{-0.28125}\\&amp;=0.3\times0.754840\\&amp;=0.226452\\ \gamma_{51}&amp;=\frac{0.129861}{0.129861+0.226452}\\&amp;=\frac{0.129861}{0.356313}\\&amp;=\textbf{0.36}\end{aligned}$$
+  1.5 is the midpoint of the two means, yet it leans to component 2. Component 2 is wider (SD 2), so its density falls off more slowly, and it also has the larger weight 0.6. Dropping the \(1/\sigma_k\) gives \(0.4e^{-1.125}/(0.4e^{-1.125}+0.6e^{-0.28125})=0.22\), which is wrong.</div>
+</div>
+
+<div class="quiz num" data-answer="0.49" data-tol="0.005">
+  <p class="q"><strong>6.</strong> Tute week 7's Poisson mixture with \(\theta^0=(\pi_1^0,\lambda_1^0,\lambda_2^0)=(0.6,\ 1.5,\ 4)\). Compute \(P(Z_i=1\mid X_i=3,\theta^0)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">The \(3!\) cancels:
+  $$\begin{aligned}0.6\times1.5^3e^{-1.5}&amp;=0.6\times3.375\times0.223130\\&amp;=0.451839\\ 0.4\times4^3e^{-4}&amp;=0.4\times64\times0.018316\\&amp;=0.468880\\ \gamma&amp;=\frac{0.451839}{0.451839+0.468880}\\&amp;=\frac{0.451839}{0.920719}\\&amp;=\textbf{0.49}\end{aligned}$$
+  Almost a coin flip: \(x=3\) sits between the rates 1.5 and 4, and the 0.6 prior roughly balances component 2's better fit. In \(Q\), this observation splits its weight almost evenly between the two components' terms.</div>
+</div>
+
+<div class="quiz num" data-answer="0.37" data-tol="0.005">
+  <p class="q"><strong>7.</strong> Back to the four-point GMM ledger. The M-step (Lesson 18) will set \(\hat\pi=\frac1n\sum_{i=1}^n\gamma_{i1}\). Compute it (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}\sum_i\gamma_{i1}&amp;=0.8447+0.5714+0.0570+0.0005\\&amp;=1.4737\\ \hat\pi&amp;=\frac{1.4737}{4}\\&amp;=\textbf{0.37}\end{aligned}$$
+  \(\sum_i\gamma_{i1}\) is the "effective number of points" in component 1 (\(N_k\) on <a href="../lectures/EM_LMS-1.pdf#page=9">slide 9</a>). The new proportion is the share of points the E-step assigned to component 1, which fell from \(\pi^0=0.4\) because the two right-hand points belong almost entirely to component 2.</div>
+</div>
+
+<h2>6 · Why \(\ell\) never goes down</h2>
+<p>"One property of the EM algorithm is that the incomplete log-likelihood increases at every step (why?)" (<a href="../lectures/EM_LMS-1.pdf#page=17">slide 17</a>). The proof is on <a href="../lectures/EM_LMS-1.pdf#page=22">slides 22–23</a>, labelled an advanced topic, and the lecturer wrote a cleaner version, <a href="../extra-notes/EM_Jensen_monotonicity_proof.pdf">EM_Jensen_monotonicity_proof</a>. Know the chain of three inequalities and why each holds. A 2–3 sentence explanation is the most likely exam use.</p>
+<p><strong>Tool: Jensen's inequality.</strong> \(\log\) is concave, so for a random variable \(Y&gt;0\), \(\log E[Y]\ge E[\log Y]\), with equality when \(Y\) is constant. (The slides state it for convex \(f\): \(E[f(X)]\ge f(E[X])\). Apply it to \(f=-\log\).)</p>
+<p><strong>Step A: a lower bound for every \(\theta\).</strong> Write \(q(Z)=P(Z\mid X,\theta^0)\), the E-step's posterior, a pmf over all label vectors \(Z\).</p>
+$$\begin{aligned}
+\ell(\theta)&amp;=\log\sum_ZP(X,Z\mid\theta)\\
+&amp;=\log\sum_Zq(Z)\,\frac{P(X,Z\mid\theta)}{q(Z)}\qquad\text{(multiply and divide)}\\
+&amp;=\log E_{q}\Big[\frac{P(X,Z\mid\theta)}{q(Z)}\Big]\\
+&amp;\ge E_{q}\Big[\log\frac{P(X,Z\mid\theta)}{q(Z)}\Big]\qquad\text{(Jensen)}\\
+&amp;=\sum_Zq(Z)\log P(X,Z\mid\theta)-\sum_Zq(Z)\log q(Z)\\
+&amp;=Q(\theta,\theta^0)+C,\qquad C=-\sum_Zq(Z)\log q(Z)
+\end{aligned}$$
+<p>\(C\) depends on \(\theta^0\) only, not on \(\theta\). So \(Q(\theta,\theta^0)+C\) is a curve in \(\theta\) that lies below \(\ell(\theta)\) everywhere.</p>
+<p><strong>Step B: the bound touches \(\ell\) at \(\theta^0\).</strong> By Bayes' rule the ratio inside the log is constant in \(Z\) when \(\theta=\theta^0\):</p>
+$$\begin{aligned}
+\frac{P(X,Z\mid\theta^0)}{q(Z)}&amp;=\frac{P(X,Z\mid\theta^0)}{P(Z\mid X,\theta^0)}\\
+&amp;=P(X\mid\theta^0)\qquad\text{(no }Z\text{ left)}
+\end{aligned}$$
+<p>Jensen holds with equality for a constant, so \(\ell(\theta^0)=Q(\theta^0,\theta^0)+C\).</p>
+<p><strong>Step C: chain them.</strong> Let \(\hat\theta=\arg\max_\theta Q(\theta,\theta^0)\).</p>
+$$\begin{aligned}
+\ell(\hat\theta)&amp;\ge Q(\hat\theta,\theta^0)+C\qquad\text{(Step A at }\theta=\hat\theta)\\
+&amp;\ge Q(\theta^0,\theta^0)+C\qquad\text{(}\hat\theta\text{ maximises }Q(\cdot,\theta^0))\\
+&amp;=\ell(\theta^0)\qquad\text{(Step B)}
+\end{aligned}$$
+
+<figure class="fig">
+<svg class="bound" viewBox="0 0 640 290" role="img" aria-label="Observed-data log-likelihood and the EM lower bound at pi0 = 0.3">
+<line class="ax" x1="58" y1="246" x2="624" y2="246"/><line class="ax" x1="58" y1="14" x2="58" y2="246"/>
+<line class="tick" x1="54" y1="246.0" x2="58" y2="246.0"/><text class="tl" x="50" y="250.0" text-anchor="end">−8.8</text>
+<line class="tick" x1="54" y1="168.7" x2="58" y2="168.7"/><text class="tl" x="50" y="172.7" text-anchor="end">−8.4</text>
+<line class="tick" x1="54" y1="91.3" x2="58" y2="91.3"/><text class="tl" x="50" y="95.3" text-anchor="end">−8.0</text>
+<line class="tick" x1="54" y1="14.0" x2="58" y2="14.0"/><text class="tl" x="50" y="18.0" text-anchor="end">−7.6</text>
+<line class="tick" x1="58.0" y1="246" x2="58.0" y2="250"/><text class="tl" x="58.0" y="263" text-anchor="middle">0.1</text>
+<line class="tick" x1="138.9" y1="246" x2="138.9" y2="250"/><text class="tl" x="138.9" y="263" text-anchor="middle">0.2</text>
+<line class="tick" x1="219.7" y1="246" x2="219.7" y2="250"/><text class="tl" x="219.7" y="263" text-anchor="middle">0.3</text>
+<line class="tick" x1="300.6" y1="246" x2="300.6" y2="250"/><text class="tl" x="300.6" y="263" text-anchor="middle">0.4</text>
+<line class="tick" x1="381.4" y1="246" x2="381.4" y2="250"/><text class="tl" x="381.4" y="263" text-anchor="middle">0.5</text>
+<line class="tick" x1="462.3" y1="246" x2="462.3" y2="250"/><text class="tl" x="462.3" y="263" text-anchor="middle">0.6</text>
+<line class="tick" x1="543.1" y1="246" x2="543.1" y2="250"/><text class="tl" x="543.1" y="263" text-anchor="middle">0.7</text>
+<line class="tick" x1="624.0" y1="246" x2="624.0" y2="250"/><text class="tl" x="624.0" y="263" text-anchor="middle">0.8</text>
+<text class="tl" x="341" y="284" text-anchor="middle">π (mixing proportion of component 1)</text>
+<path class="ell" d="M66.1,245.6 L70.1,238.8 L74.2,232.3 L78.2,225.9 L82.3,219.8 L86.3,213.9 L90.3,208.1 L94.4,202.5 L98.4,197.1 L102.5,191.8 L106.5,186.7 L110.6,181.7 L114.6,176.9 L118.6,172.2 L122.7,167.6 L126.7,163.1 L130.8,158.8 L134.8,154.6 L138.9,150.5 L142.9,146.5 L146.9,142.7 L151.0,138.9 L155.0,135.2 L159.1,131.6 L163.1,128.2 L167.2,124.8 L171.2,121.5 L175.2,118.3 L179.3,115.2 L183.3,112.1 L187.4,109.2 L191.4,106.3 L195.5,103.5 L199.5,100.8 L203.5,98.1 L207.6,95.5 L211.6,93.0 L215.7,90.6 L219.7,88.3 L223.8,86.0 L227.8,83.7 L231.8,81.6 L235.9,79.5 L239.9,77.4 L244.0,75.5 L248.0,73.6 L252.1,71.7 L256.1,69.9 L260.1,68.2 L264.2,66.5 L268.2,64.9 L272.3,63.4 L276.3,61.8 L280.4,60.4 L284.4,59.0 L288.4,57.7 L292.5,56.4 L296.5,55.2 L300.6,54.0 L304.6,52.8 L308.7,51.8 L312.7,50.7 L316.7,49.8 L320.8,48.8 L324.8,48.0 L328.9,47.1 L332.9,46.4 L337.0,45.6 L341.0,45.0 L345.0,44.3 L349.1,43.8 L353.1,43.2 L357.2,42.7 L361.2,42.3 L365.3,41.9 L369.3,41.6 L373.3,41.3 L377.4,41.1 L381.4,40.9 L385.5,40.7 L389.5,40.6 L393.6,40.6 L397.6,40.5 L401.6,40.6 L405.7,40.7 L409.7,40.8 L413.8,41.0 L417.8,41.2 L421.9,41.5 L425.9,41.9 L429.9,42.2 L434.0,42.7 L438.0,43.1 L442.1,43.7 L446.1,44.2 L450.2,44.9 L454.2,45.6 L458.2,46.3 L462.3,47.1 L466.3,47.9 L470.4,48.8 L474.4,49.7 L478.5,50.7 L482.5,51.8 L486.5,52.9 L490.6,54.0 L494.6,55.2 L498.7,56.5 L502.7,57.8 L506.8,59.2 L510.8,60.7 L514.8,62.2 L518.9,63.8 L522.9,65.4 L527.0,67.1 L531.0,68.8 L535.1,70.7 L539.1,72.6 L543.1,74.5 L547.2,76.5 L551.2,78.6 L555.3,80.8 L559.3,83.1 L563.4,85.4 L567.4,87.8 L571.4,90.3 L575.5,92.8 L579.5,95.5 L583.6,98.2 L587.6,101.0 L591.7,103.9 L595.7,106.9 L599.7,110.0 L603.8,113.2 L607.8,116.5 L611.9,119.9 L615.9,123.4 L620.0,127.1 L624.0,130.8"/>
+<path class="bnd" d="M90.3,246.0 L94.4,239.3 L98.4,230.7 L102.5,222.5 L106.5,214.7 L110.6,207.2 L114.6,200.0 L118.6,193.1 L122.7,186.5 L126.7,180.2 L130.8,174.1 L134.8,168.3 L138.9,162.7 L142.9,157.4 L146.9,152.2 L151.0,147.3 L155.0,142.5 L159.1,138.0 L163.1,133.6 L167.2,129.4 L171.2,125.4 L175.2,121.5 L179.3,117.8 L183.3,114.2 L187.4,110.8 L191.4,107.5 L195.5,104.4 L199.5,101.4 L203.5,98.5 L207.6,95.8 L211.6,93.1 L215.7,90.6 L219.7,88.3 L223.8,86.0 L227.8,83.8 L231.8,81.8 L235.9,79.8 L239.9,78.0 L244.0,76.3 L248.0,74.6 L252.1,73.1 L256.1,71.6 L260.1,70.3 L264.2,69.0 L268.2,67.9 L272.3,66.8 L276.3,65.8 L280.4,64.9 L284.4,64.1 L288.4,63.4 L292.5,62.8 L296.5,62.2 L300.6,61.8 L304.6,61.4 L308.7,61.1 L312.7,60.9 L316.7,60.7 L320.8,60.7 L324.8,60.7 L328.9,60.8 L332.9,61.0 L337.0,61.2 L341.0,61.5 L345.0,61.9 L349.1,62.4 L353.1,63.0 L357.2,63.6 L361.2,64.3 L365.3,65.1 L369.3,66.0 L373.3,67.0 L377.4,68.0 L381.4,69.1 L385.5,70.3 L389.5,71.5 L393.6,72.8 L397.6,74.2 L401.6,75.7 L405.7,77.3 L409.7,79.0 L413.8,80.7 L417.8,82.5 L421.9,84.4 L425.9,86.4 L429.9,88.4 L434.0,90.5 L438.0,92.8 L442.1,95.1 L446.1,97.5 L450.2,100.0 L454.2,102.5 L458.2,105.2 L462.3,107.9 L466.3,110.8 L470.4,113.7 L474.4,116.8 L478.5,119.9 L482.5,123.1 L486.5,126.4 L490.6,129.9 L494.6,133.4 L498.7,137.0 L502.7,140.8 L506.8,144.6 L510.8,148.6 L514.8,152.7 L518.9,156.9 L522.9,161.2 L527.0,165.7 L531.0,170.2 L535.1,174.9 L539.1,179.8 L543.1,184.7 L547.2,189.8 L551.2,195.1 L555.3,200.5 L559.3,206.0 L563.4,211.7 L567.4,217.6 L571.4,223.7 L575.5,229.9 L579.5,236.3 L583.6,242.8 L587.6,246.0"/>
+<line class="guide" x1="219.7" y1="88.3" x2="219.7" y2="246"/>
+<line class="guide" x1="321.9" y1="48.6" x2="321.9" y2="246"/>
+<circle class="dot0" cx="219.7" cy="88.3" r="4.5"/>
+<circle class="dotb" cx="321.9" cy="60.7" r="4"/>
+<circle class="dot1" cx="321.9" cy="48.6" r="4.5"/>
+<text class="lab" x="228" y="118">ℓ(π⁰) = Q(π⁰, π⁰) + C = −7.98</text>
+<text class="lab" x="330" y="30">ℓ(π¹) = −7.78</text>
+<line class="ell" x1="345" y1="190" x2="375" y2="190"/><text class="lab" x="383" y="194">ℓ(π), observed-data</text>
+<line class="bnd" x1="345" y1="214" x2="375" y2="214"/><text class="lab" x="383" y="218">Q(π, π⁰) + C, the bound</text>
+</svg>
+<figcaption>Lesson 16's data \(x=(0,3,5,1)\), Poisson(1) vs Poisson(4), only \(\pi\) unknown, current \(\pi^0=0.3\). The dashed bound \(Q(\pi,\pi^0)+C\) sits under \(\ell(\pi)\) and touches it at \(\pi^0\). The M-step jumps to the bound's peak, \(\pi^1=\frac14\sum_i\gamma_{i1}=0.43\), and \(\ell\) rises from −7.98 to −7.78. The next E-step redraws the bound to touch at 0.43, and so on up to the MLE \(\hat\pi=0.52\) (\(\ell=-7.74\)).</figcaption>
+</figure>
+<p>The same iteration in R: the lecturer's <code>mixture.EM</code> loop (<a href="../extra-notes/EM-1.pdf#page=3">EM.pdf, p. 3</a>, and §7 below) with only \(\pi\) updated, \(\epsilon=10^{-4}\):</p>
+<pre class="rout"><span class="cmd">&gt; print(round(log_liks, 4))</span>
+[1] -7.9841 -7.7790 -7.7436 -7.7382 -7.7374 -7.7373 -7.7373
+<span class="cmd">&gt; p.curr</span>
+[1] 0.5173228</pre>
+<p>Every step goes up, by less each time. The loop stopped once the gain <code>delta.ll</code> fell below \(\epsilon=10^{-4}\). Lesson 16's run that "stopped early" at \(\hat\pi=0.6\) had \(\ell=-7.77\), still short of this maximum.</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>8.</strong> In the chain \(\ell(\hat\theta)\ge Q(\hat\theta,\theta^0)+C\ge Q(\theta^0,\theta^0)+C=\ell(\theta^0)\), what justifies the <em>middle</em> inequality?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The M-step definition: \(\hat\theta\) maximises \(Q(\cdot,\theta^0)\), so it scores at least as high as \(\theta^0\)</button>
+    <button class="opt" data-key="b">Jensen's inequality, because the logarithm is a concave function</button>
+    <button class="opt" data-key="c">Bayes' rule, because \(P(X,Z\mid\theta^0)/P(Z\mid X,\theta^0)\) is constant</button>
+    <button class="opt" data-key="d">The entropy term \(C\) is never negative for any probability mass function</button>
+  </div>
+  <div class="why">The first \(\ge\) is Jensen (Step A), the final \(=\) is Bayes' rule making Jensen tight (Step B), and the middle \(\ge\) is the definition of the M-step: \(\hat\theta\) maximises \(Q(\theta,\theta^0)\) over \(\theta\), so in particular \(Q(\hat\theta,\theta^0)\ge Q(\theta^0,\theta^0)\). \(C\) is the same number on both sides, so its sign doesn't matter.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>9.</strong> A classmate's EM code prints <code>log_liks</code> as \(-52.31,\ -50.08,\ -49.62,\ -49.70,\ -49.55\). What should they conclude?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Nothing is wrong: EM often dips briefly while moving between two local maxima</button>
+    <button class="opt" data-key="b">EM has converged, since the change at step four is smaller than a typical \(\epsilon\)</button>
+    <button class="opt" data-key="c">The code has a bug, since a correct EM step can never lower the incomplete \(\ell\)</button>
+    <button class="opt" data-key="d">The starting value was poor, so they should rerun from a different \(\theta^0\)</button>
+  </div>
+  <div class="why">\(-49.62\to-49.70\) is a decrease of 0.08, far above round-off. §6 proves \(\ell(\hat\theta)\ge\ell(\theta^0)\) for any \(\theta^0\), so a correct E-step plus a correct M-step can't do this. The lecturer's demo plots <code>log_liks</code> precisely to check this (<a href="../extra-notes/EM-1.pdf#page=4">EM.pdf, p. 4</a>). Usual culprits: a typo in a \(\gamma\) or an update formula, or computing \(\ell\) with the wrong variance (SD vs variance in <code>dnorm</code>). (b) is wrong because <code>delta.ll</code> is negative, and the loop stops on <code>delta.ll &gt; epsilon</code> failing, which hides the bug.</div>
+</div>
+
+<h2>7 · Local maxima, multiple starts, stopping</h2>
+<p>\(\ell\) going up at every step does not mean EM reaches the global maximum. It climbs to <em>a</em> stationary point near where it started. Hence the slides: "The EM algorithm is sensitive to the initial values. In practice, we run EM algorithm multiple times with different initial values and pick estimators with the highest incomplete log-likelihood" (<a href="../lectures/EM_LMS-1.pdf#page=17">slide 17</a>).</p>
+<p>Simulated claims data (150 counts, two Poisson components), fitted with the tute week 7 model from three starts. <code>mixture.EM</code> is the lecturer's function with <code>dnorm</code> swapped for <code>dpois</code> and a \(\lambda\) update:</p>
+<pre class="rout"><span class="cmd">&gt; EM1 &lt;- mixture.EM(X, pi.init=0.5, lambda.init=c(1, 5))
+&gt; EM2 &lt;- mixture.EM(X, pi.init=0.5, lambda.init=c(8, 2))
+&gt; EM3 &lt;- mixture.EM(X, pi.init=0.9, lambda.init=c(3, 3))
+&gt; round(head(EM1$log_liks), 2)</span>
+[1] -338.47 -334.91 -332.47 -330.49 -329.00 -327.97
+<span class="cmd">&gt; fin &lt;- function(e) round(c(pi1 = e$pi.curr, lambda = e$lambda.curr,
++                            ill = tail(e$log_liks, 1)), 2)
+&gt; cbind(EM1 = fin(EM1), EM2 = fin(EM2), EM3 = fin(EM3))</span>
+            EM1     EM2     EM3
+pi1        0.74    0.26    0.90
+lambda1    1.66    6.95    3.01
+lambda2    6.95    1.66    3.01
+ill     -326.57 -326.57 -378.32</pre>
+<p>Three things to read off:</p>
+<ul>
+  <li><strong>EM1 and EM2 are the same fit with the labels swapped</strong> (<em>label switching</em>): \(0.74\leftrightarrow0.26=1-0.74\), and the \(\lambda\)s swap. Same \(\ell\). The lecturer's demo shows exactly this (<a href="../extra-notes/EM-1.pdf#page=6">EM.pdf, pp. 6–7</a>: "the same if labels for clusters are switched").</li>
+  <li><strong>EM3 got stuck.</strong> It started with \(\lambda_1^0=\lambda_2^0\). Then \(f_1=f_2\), so every \(\gamma_{i1}=\pi^0\), and the M-step gives both components the same weighted mean \(\bar x\). The components never separate: a stationary point of \(\ell\) that is not the maximum. Never start with identical components.</li>
+  <li><strong>Report EM1</strong> (or EM2): highest incomplete log-likelihood, −326.57 vs −378.32. In the lecturer's second demo the runs differ only slightly (−460.75, −460.75, −461.33) and she keeps the highest (<a href="../extra-notes/EM-1.pdf#page=10">EM.pdf, p. 10</a>).</li>
+</ul>
+<p><strong>Stopping rule in the lecturer's code</strong> (<a href="../extra-notes/EM-1.pdf#page=3">EM.pdf, p. 3</a>):</p>
+<pre class="rout"><span class="cmd">while((delta.ll &gt; epsilon) &amp; (n.iter &lt;= max.iter)){
+  ...
+  delta.ll = log_liks[length(log_liks)] - log_liks[length(log_liks)-1]
+  n.iter = n.iter + 1
+}</span></pre>
+<p><code>delta.ll</code> is \(\ell(\theta^{\text{new}})-\ell(\theta^{\text{old}})\), never negative for a correct EM, so no absolute value is needed. The loop stops when the gain falls to \(\epsilon\) or below, or after <code>max.iter</code> iterations.</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>10.</strong> From the three-run R output, which estimate should you report as the MLE, and why?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">EM1 (EM2 is the same fit relabelled), because it has the highest final \(\ell\)</button>
+    <button class="opt" data-key="b">EM3, because its \(\hat\pi_1=0.90\) is largest, so it explains the most data</button>
+    <button class="opt" data-key="c">The average of all three runs, since each one is an equally valid maximum</button>
+    <button class="opt" data-key="d">None of them, since disagreeing runs show that EM failed on this data set</button>
+  </div>
+  <div class="why">The MLE maximises \(\ell(\theta)\), so compare the runs on \(\ell\): \(-326.57&gt;-378.32\). EM1 and EM2 tie because they're one solution with the labels swapped (\(\pi_1\leftrightarrow1-\pi_1\), \(\lambda_1\leftrightarrow\lambda_2\)). Averaging runs mixes a good fit with a bad one, and with switched labels it would average 0.74 and 0.26 into nonsense. Different runs disagreeing is expected, not failure: that's why the lecturer runs several.</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Why does EM need several starting values, given that it never decreases \(\ell\)?</p>
+<details><summary>Model answer</summary><div>
+<p>EM is a hill-climbing method: each iteration increases the incomplete log-likelihood, but only until it reaches a stationary point near the starting value, which may be a local maximum (or, like EM3, a point where the components coincide) rather than the global one. Running EM from several different initial values and keeping the run with the highest final incomplete log-likelihood gives the best available estimate of the MLE. Runs that differ only by a relabelling of components have the same \(\ell\) and are equally good.</p></div></details>
+</div>
+
+<h2>8 · Exam-style practice</h2>
+<p><strong>Setup</strong> (fresh model, past-paper shape; about 12 marks). The lifetimes \(X_1,\dots,X_n\) (years) of bulbs from two production lines are independent. Line 2's bulbs fail at twice line 1's rate. For \(i=1,\dots,n\):</p>
+$$\begin{aligned}
+Z_i&amp;\sim\text{Categorical}(\pi,1-\pi)\\
+X_i\mid Z_i=1&amp;\sim\text{Exponential}(\lambda)\\
+X_i\mid Z_i=2&amp;\sim\text{Exponential}(2\lambda)
+\end{aligned}$$
+<p>with \(f(x;\lambda)=\lambda e^{-\lambda x}\), \(x&gt;0\) (formula sheet, rate form). The parameters are \(\theta=(\pi,\lambda)\). Note the twist: <strong>one \(\lambda\) appears in both components</strong>.</p>
+<ol type="a">
+  <li>Write the complete-data likelihood \(P(X,Z\mid\theta)\) using indicators. <span class="marks">[2]</span></li>
+  <li>Derive \(Q(\theta,\theta^0)=E_{Z\mid X,\theta^0}[\log P(X,Z\mid\theta)]\), with the log densities expanded. <span class="marks">[3]</span></li>
+  <li>Give the E-step: \(P(Z_i=1\mid X_i,\theta^0)\) in terms of \(\theta^0=(\pi^0,\lambda^0)\), simplified. <span class="marks">[2]</span></li>
+  <li>With \(n=3\), \(x=(0.2,\ 1.5,\ 0.6)\) and \(\theta^0=(0.4,\ 1)\), compute the three \(P(Z_i=1\mid X_i,\theta^0)\) and \(\ell(\theta^0)\), each to 2 d.p. <span class="marks">[3]</span></li>
+  <li>Without doing the M-step, what can you say about \(\ell(\theta^1)\), where \(\theta^1\) is the next EM iterate? Justify in one or two sentences. <span class="marks">[2]</span></li>
+</ol>
+
+<div class="quiz num" data-answer="0.60" data-tol="0.005">
+  <p class="q"><strong>11.</strong> Part (d): compute \(P(Z_2=1\mid X_2=1.5,\theta^0)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Component 2 has density \(2\lambda e^{-2\lambda x}\), so at \(\lambda^0=1\):
+  $$\begin{aligned}\pi^0f(1.5;\lambda^0)&amp;=0.4\times e^{-1.5}\\&amp;=0.4\times0.223130\\&amp;=0.089252\\ (1-\pi^0)f(1.5;2\lambda^0)&amp;=0.6\times2e^{-3}\\&amp;=1.2\times0.049787\\&amp;=0.059744\\ \gamma_{21}&amp;=\frac{0.089252}{0.089252+0.059744}\\&amp;=\frac{0.089252}{0.148996}\\&amp;=\textbf{0.60}\end{aligned}$$
+  A long lifetime favours the slower-failing line 1, despite its smaller weight 0.4. The common slip is forgetting the factor 2 in front of \(e^{-2\lambda x}\): the rate appears twice in the Exponential density.</div>
+</div>
+
+<div class="quiz num" data-answer="-2.32" data-tol="0.01">
+  <p class="q"><strong>12.</strong> Part (d): compute \(\ell(\theta^0)=\sum_{i=1}^3\log\big[0.4e^{-x_i}+1.2e^{-2x_i}\big]\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why"><div class="tablewrap"><table class="ledger">
+  <tr><th>\(x_i\)</th><th>\(0.4e^{-x_i}\)</th><th>\(1.2e^{-2x_i}\)</th><th>sum</th><th>log</th></tr>
+  <tr><td>0.2</td><td>0.327492</td><td>0.804384</td><td>1.131876</td><td>0.1239</td></tr>
+  <tr><td>1.5</td><td>0.089252</td><td>0.059744</td><td>0.148996</td><td>−1.9038</td></tr>
+  <tr><td>0.6</td><td>0.219525</td><td>0.361433</td><td>0.580958</td><td>−0.5431</td></tr>
+  </table></div>
+  \(\ell(\theta^0)=0.1239-1.9038-0.5431=\)<strong>−2.32</strong>. A log-density term can be positive (\(x=0.2\)): continuous densities can exceed 1. Here you can't drop constants: \(\ell\) needs the actual densities.</div>
+</div>
+
+<details><summary>Full model answer (all parts)</summary><div>
+<p><strong>(a)</strong> For each \(i\), exactly one indicator is 1:</p>
+$$\begin{aligned}
+P(X,Z\mid\theta)&amp;=\prod_{i=1}^n\big[P(Z_i=1)\,P(X_i\mid Z_i=1)\big]^{I(Z_i=1)}\\
+&amp;\qquad\times\big[P(Z_i=2)\,P(X_i\mid Z_i=2)\big]^{I(Z_i=2)}\\
+&amp;=\prod_{i=1}^n\big[\pi\lambda e^{-\lambda x_i}\big]^{I(Z_i=1)}\big[(1-\pi)\,2\lambda e^{-2\lambda x_i}\big]^{I(Z_i=2)}
+\end{aligned}$$
+<p><strong>(b)</strong> Take logs:</p>
+$$\begin{aligned}
+\log P(X,Z\mid\theta)&amp;=\sum_{i=1}^n\Big\{I(Z_i=1)\big[\log\pi+\log\lambda-\lambda x_i\big]\\
+&amp;\qquad+I(Z_i=2)\big[\log(1-\pi)+\log2+\log\lambda-2\lambda x_i\big]\Big\}
+\end{aligned}$$
+<p>Only the indicators are random given \(X\). By linearity, and \(E_{Z\mid X,\theta^0}[I(Z_i=k)]=P(Z_i=k\mid X_i,\theta^0)\):</p>
+$$\begin{aligned}
+Q(\theta,\theta^0)&amp;=E_{Z\mid X,\theta^0}\big[\log P(X,Z\mid\theta)\big]\\
+&amp;=\sum_{i=1}^n\Big\{P(Z_i=1\mid X_i,\theta^0)\big[\log\pi+\log\lambda-\lambda x_i\big]\\
+&amp;\qquad+P(Z_i=2\mid X_i,\theta^0)\big[\log(1-\pi)+\log2+\log\lambda-2\lambda x_i\big]\Big\}
+\end{aligned}$$
+<p><strong>(c)</strong> Bayes' rule at \(\theta^0\), then divide top and bottom by \(\lambda^0e^{-\lambda^0x_i}\):</p>
+$$\begin{aligned}
+P(Z_i=1\mid X_i,\theta^0)&amp;=\frac{\pi^0\lambda^0e^{-\lambda^0x_i}}{\pi^0\lambda^0e^{-\lambda^0x_i}+(1-\pi^0)\,2\lambda^0e^{-2\lambda^0x_i}}\\
+&amp;=\frac{\pi^0}{\pi^0+2(1-\pi^0)e^{-\lambda^0x_i}}
+\end{aligned}$$
+<p>and \(P(Z_i=2\mid X_i,\theta^0)=1-P(Z_i=1\mid X_i,\theta^0)\).</p>
+<p><strong>(d)</strong> With \(\pi^0=0.4\), \(\lambda^0=1\): \(P(Z_i=1\mid X_i,\theta^0)=0.4/(0.4+1.2e^{-x_i})\).</p>
+$$\begin{aligned}
+x_1=0.2:\quad&amp;\frac{0.4}{0.4+1.2\times0.818731}=\frac{0.4}{1.382477}=0.29\\
+x_2=1.5:\quad&amp;\frac{0.4}{0.4+1.2\times0.223130}=\frac{0.4}{0.667756}=0.60\\
+x_3=0.6:\quad&amp;\frac{0.4}{0.4+1.2\times0.548812}=\frac{0.4}{1.058574}=0.38
+\end{aligned}$$
+<p>\(\ell(\theta^0)=-2.32\) (Q12's table). R check: <code>a &lt;- 0.4*dexp(x, 1); b &lt;- 0.6*dexp(x, 2)</code> gives <code>a/(a+b)</code> \(=0.2893,\ 0.5990,\ 0.3779\) and <code>sum(log(a+b))</code> \(=-2.323033\).</p>
+<p><strong>(e)</strong> \(\ell(\theta^1)\ge\ell(\theta^0)=-2.32\). EM never decreases the incomplete log-likelihood: \(\ell(\theta)\ge Q(\theta,\theta^0)+C\) for all \(\theta\) with equality at \(\theta^0\) (Jensen), and the M-step chooses \(\theta^1\) to maximise \(Q(\theta,\theta^0)\), so \(\ell(\theta^1)\ge Q(\theta^1,\theta^0)+C\ge Q(\theta^0,\theta^0)+C=\ell(\theta^0)\).</p>
+<p><em>Lesson 18 finishes this question</em>: because \(\lambda\) appears in both components, \(\partial Q/\partial\lambda\) collects terms from both, which is the twist the M-step marks are for.</p></div></details>
+
+<h2>9 · Score yourself</h2>
+<div class="tablewrap"><table>
+<tr><th>If you missed…</th><th>Go back to</th></tr>
+<tr><td>Q1, Q4</td><td>§2: the roles of \(\theta\) and \(\theta^0\); EM's \(Q\) vs quasi \(Q\)</td></tr>
+<tr><td>Q2, Q3</td><td>§3 Steps 3–4: linearity, \(E[I]=P\); known-label observations have no \(\pi\) term</td></tr>
+<tr><td>Q5–Q7, Q11, Q12</td><td>§5: keep \(1/\sigma_k\) and rate factors; carry 4 d.p.; \(\ell\) needs full densities</td></tr>
+<tr><td>Q8, Q9</td><td>§6: Jensen → bound; Bayes → touches at \(\theta^0\); M-step → climbs</td></tr>
+<tr><td>Q10</td><td>§7: compare runs on \(\ell\); label switching; identical starts get stuck</td></tr>
+</table></div>
+
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) EM steps: initialise \(\theta^0\) and \(\ell(\theta^0)\) → E-step \(P(Z\mid X,\theta^0)\) → M-step \(\hat\theta=\arg\max_\theta Q(\theta,\theta^0)\) → stop if \(\ell\) changed by \(&lt;\epsilon\), else \(\theta^0\leftarrow\hat\theta\). (2) \(Q(\theta,\theta^0)=E_{Z\mid X,\theta^0}[\log P(X,Z\mid\theta)]\). (3) Five steps: indicators as exponents → log → linearity → \(E[I(Z_i=k)]=P(Z_i=k\mid X_i,\theta^0)\) → expand \(\log f\). (4) GMM: \(\sum_i\sum_k\gamma_{ik}[\log\pi_k-\frac12\log(2\pi)-\frac12\log\sigma_k^2-(x_i-\mu_k)^2/(2\sigma_k^2)]\). (5) Poisson: \(\sum_i\sum_k\gamma_{ik}[\log\pi_k+x_i\log\lambda_k-\lambda_k-\log x_i!]\). (6) Monotone: \(\ell(\theta)\ge Q(\theta,\theta^0)+C\), equality at \(\theta^0\), M-step raises \(Q\). (7) Multiple starts, keep highest incomplete \(\ell\); relabelled runs tie.</p></div></details>
+
+<h2>10 · Homework</h2>
+<ol>
+  <li><strong>Tute week 7, Q2(a) and the E-step half of Q2(b)</strong> (<code>tutes/2026_MAST30027_week7_questions.qmd</code>), on a blank page without looking at §4. Then compare with <code>2026_MAST30027_week7_sol.html</code> line by line. Skip the M-step part until Lesson 18, and read (don't write) the R for Q2(c).</li>
+  <li><strong>E-step by hand.</strong> Tute week 7's model with \(\theta^0=(\pi_1^0,\lambda_1^0,\lambda_2^0)=(0.5,\ 2,\ 8)\). Show that \(P(Z_i=1\mid X_i=x,\theta^0)=1/(1+4^xe^{-6})\), then evaluate it at \(x=4\) and \(x=6\) (2 d.p.).</li>
+  <li><strong>Common variance.</strong> Write \(Q(\theta,\theta^0)\), expanded, for a two-component GMM with one shared unknown variance: \(X_i\mid Z_i=k\sim N(\mu_k,\sigma^2)\), \(\theta=(\pi,\mu_1,\mu_2,\sigma^2)\). Which terms contain \(\sigma^2\)?</li>
+  <li><strong>Stretch.</strong> Write \(Q(\theta,\theta^0)\) for a <em>three</em>-component Poisson mixture with \(\theta=(\pi_1,\pi_2,\lambda_1,\lambda_2,\lambda_3)\), and the E-step for \(P(Z_i=3\mid X_i,\theta^0)\).</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1. Matches §4's model answer and the tute solution.</p>
+<p>2. Divide top and bottom by \(0.5\cdot2^xe^{-2}\):</p>
+$$\begin{aligned}
+P(Z_i=1\mid x,\theta^0)&amp;=\frac{0.5\cdot2^xe^{-2}}{0.5\cdot2^xe^{-2}+0.5\cdot8^xe^{-8}}\\
+&amp;=\frac{1}{1+4^xe^{-6}}\\
+x=4:\quad&amp;\frac1{1+256e^{-6}}=\frac1{1.634570}=0.61\\
+x=6:\quad&amp;\frac1{1+4096e^{-6}}=\frac1{11.153307}=0.09
+\end{aligned}$$
+<p>3. Same as §3 with \(\sigma_1^2=\sigma_2^2=\sigma^2\):</p>
+$$\begin{aligned}
+Q(\theta,\theta^0)=\sum_{i=1}^n\Big\{&amp;\gamma_{i1}\Big[\log\pi-\tfrac12\log(2\pi)-\tfrac12\log\sigma^2-\frac{(x_i-\mu_1)^2}{2\sigma^2}\Big]\\
++\ &amp;\gamma_{i2}\Big[\log(1-\pi)-\tfrac12\log(2\pi)-\tfrac12\log\sigma^2-\frac{(x_i-\mu_2)^2}{2\sigma^2}\Big]\Big\}
+\end{aligned}$$
+<p>\(\sigma^2\) appears in <em>both</em> components' terms (like \(\lambda\) in §8), so its M-step pools both. The E-step uses \((\sigma^2)^0\) for both components, and the \(1/\sigma\) factors cancel there because they're equal.</p>
+<p>4. With \(\pi_3=1-\pi_1-\pi_2\):</p>
+$$\begin{aligned}
+Q(\theta,\theta^0)&amp;=\sum_{i=1}^n\sum_{k=1}^3P(Z_i=k\mid X_i,\theta^0)\\
+&amp;\qquad\times\big[\log\pi_k+x_i\log\lambda_k-\lambda_k-\log x_i!\big]\\[6pt]
+P(Z_i=3\mid X_i,\theta^0)&amp;=\frac{(1-\pi_1^0-\pi_2^0)(\lambda_3^0)^{x_i}e^{-\lambda_3^0}}{\sum_{j=1}^3\pi_j^0(\lambda_j^0)^{x_i}e^{-\lambda_j^0}}
+\end{aligned}$$</div></details>
+
+<p><strong>Primary source:</strong> the lecture slides, <a href="../lectures/EM_LMS-1.pdf">Introduction to EM: GMM</a> (algorithm on 11–12 and 16, general view on 14–15, formal GMM derivation on 18–20, monotonicity proof on 22–23), with the lecturer's handwriting in <a href="../annotated-slides/EM_LMS-1%204.pdf#page=33">the annotated version</a> (p. 33: \(E[I]=P\)). Then the lecturer's <a href="../extra-notes/EM_GMM_2026%20derivations.pdf">EM_GMM_2026 derivations</a> (pp. 1–3), <a href="../extra-notes/EM_Jensen_monotonicity_proof.pdf">monotonicity proof</a>, <a href="../extra-notes/EM-Derivation_for_GMM_v2.pdf">EM derivation for GMM v2</a> (p. 1, same \(Q\) with \(p^0_{ij}\)), and the R demo <a href="../extra-notes/EM-1.pdf">EM.pdf</a> / <a href="../extra-notes/EM-updated.qmd">EM-updated.qmd</a> ("The E-step"). For a second explanation of the lower-bound picture: Bishop, <em>Pattern Recognition and Machine Learning</em>, §9.4 (cited on <a href="../lectures/EM_LMS-1.pdf#page=24">slide 24</a>).</p>
+
+<div class="ask">💬 Ask me in the terminal if a step of \(Q\) doesn't click, or if you want more drills (a Binomial or Exponential mixture, a shared parameter, a known-label twist). Paste your §8 working and I'll mark it the way an exam marker would.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0016-mixture-models-and-responsibilities.html">Lesson 16, Mixture models &amp; responsibilities</a> · Reference: <a href="../reference/probability-toolkit.html">Probability toolkit</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0018-m-step-derivations.html">Lesson 18, M-step derivations</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EM Exam Twists</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  .keys { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .8rem; background: var(--card); border: 1px solid var(--rule); border-radius: 4px; padding: .1rem .35rem; }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .4rem 1rem .6rem; margin: 1.2rem 0; }
+  .answer-box > p:first-child { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); margin-bottom: .2rem; }
+  .recipe > p:first-child { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); margin-bottom: .3rem; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); }
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .twocol > div { border: 1px solid var(--rule); border-radius: 6px; padding: .5rem .8rem; }
+  .twocol h4 { font-family: Inter, system-ui, sans-serif; font-size: .82rem; margin: .2rem 0 .3rem; }
+  @media (max-width: 640px) { .twocol { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 19 · Topic 4: mixture models &amp; EM (4 of 6)</div>
+<h1>EM exam twists</h1>
+<p class="lede">No past EM question is the plain textbook GMM. Each has one twist: a block of observations whose component is known, a parameter fixed or shared across components, non-normal components, or a third component. All of them yield to the same recipe. Write the complete-data likelihood with indicators, take logs, replace each indicator by its responsibility, then for each parameter collect <em>every</em> term that contains it before differentiating. The win: given any twisted mixture, write \(Q\) and the full M-step without having seen that model before.</p>
+
+<div class="mission">Why this matters for 10 Nov: the EM question (10–12 marks, two parts: derive \(Q(\theta,\theta^0)\), then the M-step) appeared in every paper from 2020 to 2022, and it was never the plain GMM. 2021: both components had a known mean, so only \(\pi\) and one variance were free. 2022: half the sample came from one known component. 2021 special: binomial components. 2020: Poisson components, numeric. The marks go for the twist: the extra terms in \(Q\), the right denominator in \(\hat\pi\), and the derivative that collects terms from both components.</div>
+
+<p>Assumed from <a href="0017-em-algorithm-q-function.html">Lesson 17</a> (writing \(Q\), the E-step by hand) and <a href="0018-m-step-derivations.html">Lesson 18</a> (the standard M-step: \(\hat\pi=\frac1n\sum_i\gamma_{i1}\), weighted means, weighted variances, Poisson \(\hat\lambda_k=\sum_i\gamma_{ik}x_i/\sum_i\gamma_{ik}\)). Notation as before: \(\gamma_{ik}=P(Z_i=k\mid X_i=x_i,\theta^0)\), which exam answers write as \(P(Z_i=k\mid X_i,\theta^0)\), and \(f(x_i;\mu_k,\sigma_k^2)\) for the \(N(\mu_k,\sigma_k^2)\) density. Reference pages: <a href="../reference/glossary.html">glossary</a>, <a href="../reference/em-cheatsheet.html">EM cheat sheet</a>. About 35–40 minutes with paper and an FX-82.</p>
+
+<h2>1 · The recipe</h2>
+<div class="box recipe">
+<p>Any mixture, any twist</p>
+<ol class="steps">
+  <li><strong>Complete-data likelihood with indicators.</strong> Every observation that <em>has</em> a label contributes \(\prod_k[\pi_kf_k(x_i)]^{I(Z_i=k)}\). An observation with no \(Z_i\) contributes its plain density \(f(x_i)\), with no \(\pi\). An observation with an <em>observed</em> \(Z_i=k\) contributes \(\pi_kf_k(x_i)\).</li>
+  <li><strong>Log it.</strong> Products become sums and the exponents become coefficients: \(I(Z_i=k)[\log\pi_k+\log f_k(x_i)]\). Expand \(\log f_k\) fully, with any constraint substituted in (\(\mu_2=0\), \(\sigma_2^2=9\sigma^2\), \(\pi_3=1-\pi_1-\pi_2\), and so on).</li>
+  <li><strong>Replace \(I(Z_i=k)\) by \(\gamma_{ik}=P(Z_i=k\mid X_i,\theta^0)\).</strong> Terms with no indicator pass through the expectation unchanged. That's \(Q(\theta,\theta^0)\).</li>
+  <li><strong>For each free parameter, list every term of \(Q\) that contains it</strong>: in every component, and in the no-label block. Differentiate, set to 0, solve. Simplify with \(\sum_k\gamma_{ik}=1\).</li>
+  <li><strong>Mixing proportions.</strong> \(K=2\): use \(\pi\) and \(1-\pi\). \(K\ge3\): substitute \(\pi_K=1-\sum_{k&lt;K}\pi_k\), or use a Lagrange multiplier. The denominator of \(\hat\pi_k\) counts the observations whose label carries information about \(\pi\), which is not always \(n\).</li>
+</ol>
+</div>
+<p>Step 4 is where the marks are. In the plain GMM, \(\mu_1\) appears only in component 1's terms, so it's easy to forget that a tied parameter can appear in several places. The lecturer's formal derivations write this step as "The terms involving \(\mu_1\) are …" (<a href="../lectures/Formal%20derivation%20of%20the%20EM%20algorithm%20for%20a%20two-component%20GMM.pdf#page=3">two-component GMM derivation, p. 3</a>). Make that sentence the first line of every M-step you write.</p>
+
+<h2>2 · Twist 1: some observations come from a known component</h2>
+<p><strong>Setup.</strong> A biomarker \(X\) is measured on \(n\) people. For \(i=1,\dots,m\) (clinic patients) health status is unrecorded:</p>
+$$\begin{aligned}
+Z_i&amp;\sim\text{Categorical}(\pi,1-\pi),\quad i=1,\dots,m\\
+X_i\mid Z_i=1&amp;\sim N(\mu_1,\sigma_1^2)\quad\text{(healthy)}\\
+X_i\mid Z_i=2&amp;\sim N(\mu_2,\sigma_2^2)\quad\text{(diseased)}
+\end{aligned}$$
+<p>For \(i=m+1,\dots,n\) the people are recruited healthy controls: \(X_i\sim N(\mu_1,\sigma_1^2)\), with no \(Z_i\) in the model. \(\theta=(\pi,\mu_1,\sigma_1^2,\mu_2,\sigma_2^2)\) and \(Z=(Z_1,\dots,Z_m)\).</p>
+
+<p><strong>Q.</strong> The controls' factor has no indicator and no \(\pi\):</p>
+$$\begin{aligned}
+P(X,Z\mid\theta)&amp;=\prod_{i=1}^m\prod_{k=1}^2\big[\pi_kf(x_i;\mu_k,\sigma_k^2)\big]^{I(Z_i=k)}\\
+&amp;\qquad\times\prod_{i=m+1}^n f(x_i;\mu_1,\sigma_1^2)\qquad(\pi_1=\pi,\ \pi_2=1-\pi)\\[6pt]
+\log P(X,Z\mid\theta)&amp;=\sum_{i=1}^m\sum_{k=1}^2 I(Z_i=k)\big[\log\pi_k+\log f(x_i;\mu_k,\sigma_k^2)\big]\\
+&amp;\qquad+\sum_{i=m+1}^n\log f(x_i;\mu_1,\sigma_1^2)\\[6pt]
+Q(\theta,\theta^0)&amp;=\sum_{i=1}^m\sum_{k=1}^2 \gamma_{ik}\big[\log\pi_k+\log f(x_i;\mu_k,\sigma_k^2)\big]\\
+&amp;\qquad+\sum_{i=m+1}^n\log f(x_i;\mu_1,\sigma_1^2)
+\end{aligned}$$
+<p>with \(\log f(x_i;\mu_k,\sigma_k^2)=-\frac12\log(2\pi)-\frac12\log\sigma_k^2-\frac{(x_i-\mu_k)^2}{2\sigma_k^2}\). The last sum is not random given \(X\), so the expectation leaves it alone. The E-step is the usual Bayes' rule, for \(i\le m\) only.</p>
+
+<p><strong>M-step for \(\pi\).</strong> The terms involving \(\pi\) sit in the first sum only:</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\pi}&amp;=\sum_{i=1}^m\Big[\frac{\gamma_{i1}}{\pi}-\frac{\gamma_{i2}}{1-\pi}\Big]=0\\
+(1-\pi)\sum_{i=1}^m\gamma_{i1}&amp;=\pi\sum_{i=1}^m\gamma_{i2}\\
+\sum_{i=1}^m\gamma_{i1}&amp;=\pi\sum_{i=1}^m(\gamma_{i1}+\gamma_{i2})\\
+&amp;=\pi m\qquad(\gamma_{i1}+\gamma_{i2}=1)\\
+\hat\pi&amp;=\frac1m\sum_{i=1}^m\gamma_{i1}
+\end{aligned}$$
+<p><strong>M-step for \(\mu_1\).</strong> The terms involving \(\mu_1\) are \(-\sum_{i\le m}\gamma_{i1}\frac{(x_i-\mu_1)^2}{2\sigma_1^2}\) <em>and</em> \(-\sum_{i&gt;m}\frac{(x_i-\mu_1)^2}{2\sigma_1^2}\):</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\mu_1}&amp;=\sum_{i=1}^m\gamma_{i1}\frac{x_i-\mu_1}{\sigma_1^2}+\sum_{i=m+1}^n\frac{x_i-\mu_1}{\sigma_1^2}=0\\
+\sum_{i=1}^m\gamma_{i1}x_i+\sum_{i=m+1}^nx_i&amp;=\mu_1\Big[\sum_{i=1}^m\gamma_{i1}+(n-m)\Big]\\
+\hat\mu_1&amp;=\frac{\sum_{i=1}^m\gamma_{i1}x_i+\sum_{i=m+1}^nx_i}{\sum_{i=1}^m\gamma_{i1}+(n-m)}
+\end{aligned}$$
+<p>The same steps for \(\sigma_1^2\) (the derivative of \(-\frac12\log\sigma_1^2-\frac{(x_i-\mu_1)^2}{2\sigma_1^2}\) is \(-\frac1{2\sigma_1^2}+\frac{(x_i-\mu_1)^2}{2\sigma_1^4}\)):</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\sigma_1^2}&amp;=\sum_{i=1}^m\gamma_{i1}\Big[-\frac{1}{2\sigma_1^2}+\frac{(x_i-\mu_1)^2}{2\sigma_1^4}\Big]\\
+&amp;\qquad+\sum_{i=m+1}^n\Big[-\frac{1}{2\sigma_1^2}+\frac{(x_i-\mu_1)^2}{2\sigma_1^4}\Big]=0\\
+\hat\sigma_1^2&amp;=\frac{\sum_{i=1}^m\gamma_{i1}(x_i-\hat\mu_1)^2+\sum_{i=m+1}^n(x_i-\hat\mu_1)^2}{\sum_{i=1}^m\gamma_{i1}+(n-m)}
+\end{aligned}$$
+<p>\(\mu_2\) and \(\sigma_2^2\) appear only in the first sum, so their updates are Lesson 18's, summed over \(i\le m\). <strong>Shortcut:</strong> in the \(\mu_1,\sigma_1^2\) updates the controls act like points with \(\gamma_{i1}=1\). In \(\hat\pi\) they don't count at all.</p>
+
+<h3>Variant: "\(Z_i=1\) is observed"</h3>
+<p>Change one sentence: for \(i&gt;m\) the people are drawn from the <em>same</em> population, and their status was recorded as healthy, so \(Z_i=1\) is <em>observed</em>. Now their complete-data factor is \(P(Z_i=1)P(X_i\mid Z_i=1)=\pi f(x_i;\mu_1,\sigma_1^2)\), and the \(\log\pi\) comes back:</p>
+<div class="twocol">
+<div><h4>No \(Z_i\) (recruited controls)</h4>
+$$\begin{aligned}&amp;+\sum_{i&gt;m}\log f(x_i;\mu_1,\sigma_1^2)\\ \hat\pi&amp;=\frac{\sum_{i\le m}\gamma_{i1}}{m}\end{aligned}$$</div>
+<div><h4>\(Z_i=1\) observed (same population)</h4>
+$$\begin{aligned}&amp;+\sum_{i&gt;m}\big[\log\pi+\log f(x_i;\mu_1,\sigma_1^2)\big]\\ \hat\pi&amp;=\frac{\sum_{i\le m}\gamma_{i1}+(n-m)}{n}\end{aligned}$$</div>
+</div>
+<p>The \(\mu_1\) and \(\sigma_1^2\) updates are identical in both versions. This is the distinction in <a href="0017-em-algorithm-q-function.html">Lesson 17</a>, Q3. The 2022 model said the extra observations "follow one of the two Normal distributions", which is the left-hand version.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> Fish lengths: \(x_1,\dots,x_{30}\) from a two-species GMM with \(P(Z_i=1)=\pi\), plus \(x_{31},\dots,x_{45}\) from a hatchery tank holding species 2 only (no \(Z_i\)). Which is the M-step for \(\pi\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\hat\pi=\frac1{45}\sum_{i=1}^{30}\gamma_{i1}\), since all 45 fish enter \(Q\)</button>
+    <button class="opt" data-key="b">\(\hat\pi=\frac1{45}\big[\sum_{i=1}^{30}\gamma_{i1}+15\big]\), counting the tank fish</button>
+    <button class="opt" data-key="c">\(\hat\pi=\frac1{30}\sum_{i=1}^{30}\gamma_{i1}\), since only 30 fish have a \(Z_i\)</button>
+    <button class="opt" data-key="d">\(\hat\pi=\frac1{30}\big[\sum_{i=1}^{30}\gamma_{i1}-15\big]\), removing the tank fish</button>
+  </div>
+  <div class="why">The tank fish contribute \(\log f(x_i;\mu_2,\sigma_2^2)\) with no \(\log\pi\) or \(\log(1-\pi)\), so \(\partial Q/\partial\pi=\sum_{i\le30}[\gamma_{i1}/\pi-\gamma_{i2}/(1-\pi)]\), which gives \(\sum_{i\le30}\gamma_{i1}=30\pi\). (a) divides by the wrong count, which biases \(\hat\pi\) down by a factor \(30/45\). (b) would be right for "\(Z_i=1\) observed", but these fish are species 2, and they have no label anyway.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>2.</strong> Same fish, but now \(x_{31},\dots,x_{45}\) are a random sample from the lake that a biologist identified as species 2, so \(Z_i=2\) is <em>observed</em>. What changes in the M-step?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\hat\mu_2\) gains the 15 fish but \(\hat\pi\) is unchanged at \(\sum_{i\le30}\gamma_{i1}/30\)</button>
+    <button class="opt" data-key="b">\(\hat\pi\) becomes \(\sum_{i\le30}\gamma_{i1}/45\), and \(\hat\mu_2\) is the same as before</button>
+    <button class="opt" data-key="c">\(\hat\pi\) becomes \(\big[\sum_{i\le30}\gamma_{i1}+15\big]/45\), and \(\hat\mu_2\) changes</button>
+    <button class="opt" data-key="d">Nothing changes, since an observed label and no label give the same \(Q\)</button>
+  </div>
+  <div class="why">Now each of the 15 adds \(\log(1-\pi)+\log f(x_i;\mu_2,\sigma_2^2)\). So the \(\pi\) part is \(\sum_{i\le30}[\gamma_{i1}\log\pi+\gamma_{i2}\log(1-\pi)]+15\log(1-\pi)\):
+  $$\begin{aligned}\frac{\textstyle\sum_{i\le30}\gamma_{i1}}{\pi}&amp;=\frac{\textstyle\sum_{i\le30}\gamma_{i2}+15}{1-\pi}\\ \textstyle\sum_{i\le30}\gamma_{i1}&amp;=\pi\,(30+15)\\ \hat\pi&amp;=\frac{\textstyle\sum_{i\le30}\gamma_{i1}}{45}\end{aligned}$$
+  The 15 species-2 fish count in the denominator but add nothing to the species-1 numerator. \(\hat\mu_2\) already included them in Q1's version. (c) is the formula for observed \(Z_i=1\).</div>
+</div>
+
+<h2>3 · Twist 2: constrained and tied parameters</h2>
+<h3>3a · Shared variance</h3>
+<p>\(X_i\mid Z_i=k\sim N(\mu_k,\sigma^2)\), one \(\sigma^2\) for both. \(Q\) is Lesson 17's homework 3. The terms involving \(\sigma^2\) are in <strong>both</strong> components:</p>
+$$\begin{aligned}
+Q_{\sigma^2}&amp;=\sum_{i=1}^n\Big\{\gamma_{i1}\Big[-\tfrac12\log\sigma^2-\frac{(x_i-\mu_1)^2}{2\sigma^2}\Big]\\
+&amp;\qquad+\gamma_{i2}\Big[-\tfrac12\log\sigma^2-\frac{(x_i-\mu_2)^2}{2\sigma^2}\Big]\Big\}\\[6pt]
+\frac{\partial Q}{\partial\sigma^2}&amp;=\sum_{i=1}^n\Big\{-\frac{\gamma_{i1}+\gamma_{i2}}{2\sigma^2}\\
+&amp;\qquad+\frac{\gamma_{i1}(x_i-\mu_1)^2+\gamma_{i2}(x_i-\mu_2)^2}{2\sigma^4}\Big\}\\
+&amp;=-\frac{n}{2\sigma^2}+\frac{1}{2\sigma^4}\sum_{i=1}^n\big[\gamma_{i1}(x_i-\mu_1)^2+\gamma_{i2}(x_i-\mu_2)^2\big]=0\\
+\hat\sigma^2&amp;=\frac1n\sum_{i=1}^n\big[\gamma_{i1}(x_i-\hat\mu_1)^2+\gamma_{i2}(x_i-\hat\mu_2)^2\big]
+\end{aligned}$$
+<p>The \(\hat\mu_k\) are unchanged (\(\sigma^2\) cancels from \(\partial Q/\partial\mu_k=0\)), so compute them first and plug them in. A <strong>known</strong> value (\(\mu_1=0\), or \(\sigma_1^2=1\)) is the opposite case: it is a number, not a parameter, so it gets no M-step, but it still appears in the E-step densities.</p>
+
+<h3>3b · A parameter tied across components</h3>
+<p><strong>Setup</strong> (a "contaminated normal"). Readings from an instrument are usually accurate but are sometimes disturbed, which triples the SD while keeping the same centre:</p>
+$$\begin{aligned}
+Z_i&amp;\sim\text{Categorical}(\pi,1-\pi)\\
+X_i\mid Z_i=1&amp;\sim N(\mu,\sigma^2)\\
+X_i\mid Z_i=2&amp;\sim N(\mu,9\sigma^2)
+\end{aligned}$$
+<p>\(\theta=(\pi,\mu,\sigma^2)\). Both \(\mu\) and \(\sigma^2\) appear in both components. Steps 1–3 of the recipe:</p>
+$$\begin{aligned}
+Q(\theta,\theta^0)=\sum_{i=1}^n\Big\{&amp;\gamma_{i1}\Big[\log\pi-\tfrac12\log(2\pi)-\tfrac12\log\sigma^2-\frac{(x_i-\mu)^2}{2\sigma^2}\Big]\\
++\ &amp;\gamma_{i2}\Big[\log(1-\pi)-\tfrac12\log(2\pi)-\tfrac12\log(9\sigma^2)\\
+&amp;\qquad-\frac{(x_i-\mu)^2}{18\sigma^2}\Big]\Big\}
+\end{aligned}$$
+<p>\(\hat\pi=\frac1n\sum_i\gamma_{i1}\) as usual: the \(\pi\) terms haven't changed.</p>
+<p><strong>\(\mu\).</strong> Terms involving \(\mu\): \(-\gamma_{i1}\frac{(x_i-\mu)^2}{2\sigma^2}\) and \(-\gamma_{i2}\frac{(x_i-\mu)^2}{18\sigma^2}\).</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\mu}&amp;=\sum_{i=1}^n\Big[\gamma_{i1}\frac{x_i-\mu}{\sigma^2}+\gamma_{i2}\frac{x_i-\mu}{9\sigma^2}\Big]\\
+&amp;=\frac1{\sigma^2}\sum_{i=1}^n w_i(x_i-\mu),\qquad w_i=\gamma_{i1}+\tfrac19\gamma_{i2}\\
+0&amp;=\sum_{i=1}^n w_ix_i-\mu\sum_{i=1}^n w_i\\
+\hat\mu&amp;=\frac{\sum_{i=1}^n w_ix_i}{\sum_{i=1}^n w_i}
+\end{aligned}$$
+<p>A weighted mean in which a point that probably belongs to the noisy component counts only \(\frac19\) as much. That's the robustness you'd want.</p>
+<p><strong>\(\sigma^2\).</strong> Write \(\log(9\sigma^2)=\log9+\log\sigma^2\), so both components give \(-\frac1{2\sigma^2}\) from the log term:</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\sigma^2}&amp;=\sum_{i=1}^n\Big\{\gamma_{i1}\Big[-\frac1{2\sigma^2}+\frac{(x_i-\mu)^2}{2\sigma^4}\Big]\\
+&amp;\qquad+\gamma_{i2}\Big[-\frac1{2\sigma^2}+\frac{(x_i-\mu)^2}{18\sigma^4}\Big]\Big\}\\
+&amp;=-\frac{n}{2\sigma^2}+\frac{1}{2\sigma^4}\sum_{i=1}^n w_i(x_i-\mu)^2=0\\
+\hat\sigma^2&amp;=\frac1n\sum_{i=1}^n w_i(x_i-\hat\mu)^2
+\end{aligned}$$
+<p>Note the denominator: \(n\), not \(\sum_iw_i\). It came from \(\sum_i(\gamma_{i1}+\gamma_{i2})\), the log terms, and not from the weights on the squares. This is the same "two contributions" idea as Lesson 17's Exponential(\(\lambda\))/Exponential(\(2\lambda\)) practice question, finished in Lesson 18.</p>
+
+<div class="quiz num" data-answer="1.44" data-tol="0.005">
+  <p class="q"><strong>3.</strong> Contaminated-normal model, one M-step. Data \(x=(1.2,\ 0.4,\ 6.0,\ 1.8)\) with E-step output \(\gamma_{i1}=(0.95,\ 0.97,\ 0.10,\ 0.90)\). Compute \(\hat\mu\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(w_i=\gamma_{i1}+\frac19(1-\gamma_{i1})\):
+  $$\begin{aligned}w&amp;=(0.9556,\ 0.9733,\ 0.2000,\ 0.9111)\\ \textstyle\sum_iw_i&amp;=3.04\\ \textstyle\sum_iw_ix_i&amp;=1.1467+0.3893+1.2000+1.6400\\&amp;=4.376\\ \hat\mu&amp;=\frac{4.376}{3.04}\\&amp;=\textbf{1.44}\end{aligned}$$
+  The outlier 6.0 keeps weight 0.20, not 0.10: the noisy component also has mean \(\mu\), so that point still says something about \(\mu\), just less. Then \(\hat\sigma^2=\frac14\sum_iw_i(x_i-1.44)^2=1.35\). The plain mean is 2.35 and the \(\gamma_{i1}\)-weighted mean is 1.28. Both are wrong here.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>4.</strong> A different tie: \(X_i\mid Z_i=1\sim N(\mu,1)\) and \(X_i\mid Z_i=2\sim N(2\mu,4)\), both variances known, \(\theta=(\pi,\mu)\). What is the M-step for \(\mu\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\hat\mu=\frac1n\sum_i(\gamma_{i1}+\tfrac12\gamma_{i2})x_i\)</button>
+    <button class="opt" data-key="b">\(\hat\mu=\frac1n\sum_i(\gamma_{i1}+2\gamma_{i2})x_i\)</button>
+    <button class="opt" data-key="c">\(\hat\mu=\sum_i(\gamma_{i1}+\gamma_{i2})x_i/\sum_i(\gamma_{i1}+4\gamma_{i2})\)</button>
+    <button class="opt" data-key="d">\(\hat\mu=\sum_i\gamma_{i1}x_i/\sum_i\gamma_{i1}\), from component 1</button>
+  </div>
+  <div class="why">Terms involving \(\mu\): \(-\gamma_{i1}(x_i-\mu)^2/2\) and \(-\gamma_{i2}(x_i-2\mu)^2/8\). The chain rule gives the second a factor 2:
+  $$\begin{aligned}\frac{\partial Q}{\partial\mu}&amp;=\sum_i\Big[\gamma_{i1}(x_i-\mu)+\gamma_{i2}\frac{2(x_i-2\mu)}{8}\Big]\\&amp;=\sum_i\Big[\gamma_{i1}x_i+\tfrac12\gamma_{i2}x_i\Big]-\mu\sum_i(\gamma_{i1}+\gamma_{i2})\\ \hat\mu&amp;=\frac1n\sum_i(\gamma_{i1}+\tfrac12\gamma_{i2})x_i\end{aligned}$$
+  A component-2 point estimates \(2\mu\), so it enters as \(x_i/2\). (d) ignores half the terms, the most common way to lose these marks.</div>
+</div>
+
+<h2>4 · Twist 3: non-normal components</h2>
+<p>The recipe doesn't care about the family. Only Step 2's expanded \(\log f\) changes. The formula sheet gives Exponential(rate) \(\lambda e^{-\lambda x}\), Poisson \(\lambda^xe^{-\lambda}/x!\) and Categorical, so expect those.</p>
+<h3>Zero-inflated Poisson: one component is a point mass</h3>
+<p><strong>Setup.</strong> Daily counts of a rare bird at a site. On some days the bird is absent from the region (count 0 for sure); otherwise the count is Poisson:</p>
+$$\begin{aligned}
+Z_i&amp;\sim\text{Categorical}(\pi,1-\pi)\\
+P(X_i=0\mid Z_i=1)&amp;=1\qquad\text{(structural zero)}\\
+X_i\mid Z_i=2&amp;\sim\text{Poisson}(\lambda)
+\end{aligned}$$
+<p>\(\theta=(\pi,\lambda)\). Component 1's pmf is \(f_1(x)=I(x=0)\), which has no parameter.</p>
+<p><strong>Q.</strong></p>
+$$\begin{aligned}
+P(X,Z\mid\theta)&amp;=\prod_{i=1}^n\big[\pi\,I(x_i=0)\big]^{I(Z_i=1)}\Big[(1-\pi)\frac{\lambda^{x_i}e^{-\lambda}}{x_i!}\Big]^{I(Z_i=2)}\\[6pt]
+\log P(X,Z\mid\theta)&amp;=\sum_{i=1}^n\Big\{I(Z_i=1)\log\pi\\
+&amp;\qquad+I(Z_i=2)\big[\log(1-\pi)+x_i\log\lambda-\lambda-\log x_i!\big]\Big\}\\[6pt]
+Q(\theta,\theta^0)&amp;=\sum_{i=1}^n\Big\{\gamma_{i1}\log\pi\\
+&amp;\qquad+\gamma_{i2}\big[\log(1-\pi)+x_i\log\lambda-\lambda-\log x_i!\big]\Big\}
+\end{aligned}$$
+<p>(\(\log I(x_i=0)\) dropped out: whenever \(I(Z_i=1)=1\), \(x_i=0\) and \(\log1=0\).)</p>
+<p><strong>E-step.</strong> Bayes' rule, split by whether \(x_i=0\):</p>
+$$\begin{aligned}
+\gamma_{i1}&amp;=\frac{\pi^0I(x_i=0)}{\pi^0I(x_i=0)+(1-\pi^0)(\lambda^0)^{x_i}e^{-\lambda^0}/x_i!}\\[4pt]
+x_i=0:\quad\gamma_{i1}&amp;=\frac{\pi^0}{\pi^0+(1-\pi^0)e^{-\lambda^0}}\\[4pt]
+x_i&gt;0:\quad\gamma_{i1}&amp;=0
+\end{aligned}$$
+<p>A positive count can't be a structural zero. Every zero gets the <em>same</em> responsibility, so you compute it only once.</p>
+<p><strong>M-step.</strong> \(\pi\) is in \(\gamma_{i1}\log\pi+\gamma_{i2}\log(1-\pi)\), as in Lesson 18, so \(\hat\pi=\frac1n\sum_i\gamma_{i1}\). For \(\lambda\), only component 2's terms count:</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\lambda}&amp;=\sum_{i=1}^n\gamma_{i2}\Big(\frac{x_i}{\lambda}-1\Big)=0\\
+\hat\lambda&amp;=\frac{\sum_{i=1}^n\gamma_{i2}x_i}{\sum_{i=1}^n\gamma_{i2}}\\
+&amp;=\frac{\sum_{i=1}^n x_i}{n-\sum_{i=1}^n\gamma_{i1}}\qquad(\gamma_{i2}x_i=x_i\text{ for all }i)
+\end{aligned}$$
+<p>The last line holds because \(\gamma_{i2}=1\) whenever \(x_i&gt;0\), and \(x_i=0\) otherwise. The denominator is the effective number of "Poisson days".</p>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>5.</strong> In the zero-inflated Poisson at \(\theta^0=(0.3,\ 1.5)\), what is \(\gamma_{i1}=P(Z_i=1\mid X_i=3,\theta^0)\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">0.30, because the data can't change the prior weight</button>
+    <button class="opt" data-key="b">0.66, the same value that every zero count receives</button>
+    <button class="opt" data-key="c">0.70, because a count of three is a Poisson count</button>
+    <button class="opt" data-key="d">0.00, because a structural zero can't produce a three</button>
+  </div>
+  <div class="why">The numerator is \(\pi^0I(3=0)=0\) and the denominator is positive, so \(\gamma_{i1}=0\) exactly and \(\gamma_{i2}=1\). Only zeros are ambiguous: \(0.3/(0.3+0.7e^{-1.5})=0.66\) is the value for \(x_i=0\). (c) gives \(\gamma_{i2}\) instead, and 0.70 is the prior \(1-\pi^0\), not a posterior.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>6.</strong> Waiting times: \(X_i\mid Z_i=1\sim\text{Exponential}(1)\) (rate known) and \(X_i\mid Z_i=2\sim\text{Exponential}(\lambda)\), \(\theta=(\pi,\lambda)\). What is the M-step for \(\lambda\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\hat\lambda=\sum_i\gamma_{i2}\big/\sum_i\gamma_{i2}x_i\)</button>
+    <button class="opt" data-key="b">\(\hat\lambda=\sum_i\gamma_{i2}x_i\big/\sum_i\gamma_{i2}\)</button>
+    <button class="opt" data-key="c">\(\hat\lambda=n\big/\sum_i\gamma_{i2}x_i\)</button>
+    <button class="opt" data-key="d">\(\hat\lambda=\sum_i\gamma_{i2}\big/\sum_ix_i\)</button>
+  </div>
+  <div class="why">Terms involving \(\lambda\): \(\gamma_{i2}[\log\lambda-\lambda x_i]\). Component 1's \(\log1-x_i\) has no \(\lambda\).
+  $$\begin{aligned}\frac{\partial Q}{\partial\lambda}&amp;=\sum_i\gamma_{i2}\Big(\frac1\lambda-x_i\Big)=0\\ \hat\lambda&amp;=\frac{\sum_i\gamma_{i2}}{\sum_i\gamma_{i2}x_i}\end{aligned}$$
+  The weighted version of the complete-data MLE \(1/\bar x\) for a rate. (b) is the Poisson-style weighted mean, which here estimates \(1/\lambda\). (c) counts component-1 points in the numerator.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>7.</strong> <em>(Retrieval: overdispersion, Lessons 10 and 16.)</em> The zero-inflated Poisson has \(E X=(1-\pi)\lambda\) and \(\operatorname{Var}X=(1-\pi)\lambda(1+\pi\lambda)\). You fit a plain Poisson GLM, intercept only, to many such counts with \(\pi=0.4\), \(\lambda=1.9\). What do you expect?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Residual deviance close to its df, since the mean is modelled correctly</button>
+    <button class="opt" data-key="b">Pearson \(\hat\phi\) near 1.76, so the Poisson standard errors are too small</button>
+    <button class="opt" data-key="c">Pearson \(\hat\phi\) near 0.57, so the Poisson standard errors are too large</button>
+    <button class="opt" data-key="d">A biased intercept, but correct standard errors and correct p-values</button>
+  </div>
+  <div class="why">\(\operatorname{Var}X/EX=1+\pi\lambda=1+0.4\times1.9=1.76\), so \(\hat\phi=X^2/(n-p)\approx1.76&gt;1\): overdispersion. As with any mixture, extra zeros inflate the variance relative to the mean. The intercept \(\log\bar x\) still estimates \(\log EX\), but the SEs are too small by about \(\sqrt{1.76}=1.33\), so p-values are too small (<a href="0010-overdispersion.html">Lesson 10</a>).</div>
+</div>
+
+<h2>5 · Twist 4: three components</h2>
+<p>Insurance claims from low-, mid- and high-risk drivers: \(Z_i\sim\text{Categorical}(\pi_1,\pi_2,\pi_3)\), \(X_i\mid Z_i=k\sim\text{Poisson}(\lambda_k)\), \(\theta=(\pi_1,\pi_2,\lambda_1,\lambda_2,\lambda_3)\) with \(\pi_3=1-\pi_1-\pi_2\). Lesson 17's homework 4 gave</p>
+$$\begin{aligned}
+Q(\theta,\theta^0)&amp;=\sum_{i=1}^n\sum_{k=1}^3\gamma_{ik}\big[\log\pi_k+x_i\log\lambda_k-\lambda_k-\log x_i!\big]
+\end{aligned}$$
+<p>with \(\gamma_{ik}=\pi_k^0(\lambda_k^0)^{x_i}e^{-\lambda_k^0}\big/\sum_{j=1}^3\pi_j^0(\lambda_j^0)^{x_i}e^{-\lambda_j^0}\). Write \(N_k=\sum_{i=1}^n\gamma_{ik}\), so \(N_1+N_2+N_3=n\).</p>
+<p><strong>\(\lambda_k\)</strong> is in component \(k\) only: \(\sum_i\gamma_{ik}(x_i/\lambda_k-1)=0\), so \(\hat\lambda_k=\sum_i\gamma_{ik}x_i/N_k\).</p>
+<p><strong>\(\pi\), method 1: substitute \(\pi_3=1-\pi_1-\pi_2\)</strong> and differentiate in \(\pi_1\) and \(\pi_2\). The \(\pi\) part is \(N_1\log\pi_1+N_2\log\pi_2+N_3\log(1-\pi_1-\pi_2)\):</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\pi_1}&amp;=\frac{N_1}{\pi_1}-\frac{N_3}{1-\pi_1-\pi_2}=0\\
+\frac{\partial Q}{\partial\pi_2}&amp;=\frac{N_2}{\pi_2}-\frac{N_3}{1-\pi_1-\pi_2}=0\\
+\frac{N_1}{\pi_1}&amp;=\frac{N_2}{\pi_2}=\frac{N_3}{\pi_3}=c\qquad\text{(call the common value }c)\\
+\pi_k&amp;=\frac{N_k}{c}\\
+1=\pi_1+\pi_2+\pi_3&amp;=\frac{N_1+N_2+N_3}{c}=\frac nc\\
+c&amp;=n,\qquad\hat\pi_k=\frac{N_k}{n}=\frac1n\sum_{i=1}^n\gamma_{ik}
+\end{aligned}$$
+<p><strong>Method 2: Lagrange multiplier</strong>, as in the lecturer's <a href="../lectures/Formal%20derivation%20of%20the%20EM%20algorithm%20for%20a%20three-component%20GMM.pdf#page=5">three-component derivation, p. 5</a>. Keep all three \(\pi_k\) free and add \(\lambda(1-\pi_1-\pi_2-\pi_3)\). (This \(\lambda\) is the multiplier, not a Poisson rate. Call it \(\eta\) on paper to avoid the clash.)</p>
+$$\begin{aligned}
+L&amp;=\sum_{k=1}^3N_k\log\pi_k+\eta(1-\pi_1-\pi_2-\pi_3)\\
+\frac{\partial L}{\partial\pi_k}&amp;=\frac{N_k}{\pi_k}-\eta=0\\
+\pi_k&amp;=\frac{N_k}{\eta}\\
+1=\sum_k\pi_k&amp;=\frac{\sum_kN_k}{\eta}=\frac{n}{\eta}\\
+\eta&amp;=n,\qquad\hat\pi_k=\frac{N_k}{n}
+\end{aligned}$$
+<p>Same answer. Either method earns full marks if every line is shown. Never differentiate \(\sum_kN_k\log\pi_k\) in each \(\pi_k\) <em>without</em> the constraint: you'd get \(N_k/\pi_k=0\), which has no solution.</p>
+
+<div class="quiz num" data-answer="0.47" data-tol="0.005">
+  <p class="q"><strong>8.</strong> Three-component E-step output for \(n=5\) drivers, columns \(\gamma_{i1},\gamma_{i2}\): \((0.80,0.15)\), \((0.10,0.60)\), \((0.05,0.25)\), \((0.30,0.30)\), \((0.02,0.08)\). Compute \(\hat\pi_3\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\gamma_{i3}=1-\gamma_{i1}-\gamma_{i2}\):
+  $$\begin{aligned}\gamma_{\cdot3}&amp;=(0.05,\ 0.30,\ 0.70,\ 0.40,\ 0.90)\\ N_3&amp;=2.35\\ \hat\pi_3&amp;=\frac{2.35}{5}\\&amp;=\textbf{0.47}\end{aligned}$$
+  Each row of responsibilities sums to 1, so the third column is never given separately. Check: \(N_1=1.27\), \(N_2=1.38\), and \(1.27+1.38+2.35=5=n\), which is why the Lagrange multiplier comes out as \(n\).</div>
+</div>
+
+<h2>6 · One iteration by hand: the zero-inflated Poisson</h2>
+<p>Ten days of counts \(x=(0,2,0,1,0,0,3,1,0,4)\): five zeros, \(\sum_ix_i=11\). Current values \(\theta^0=(\pi^0,\lambda^0)=(0.3,\ 1.5)\).</p>
+<p><strong>E-step.</strong> The non-zero days have \(\gamma_{i1}=0\). For each zero day:</p>
+$$\begin{aligned}
+\gamma_{i1}&amp;=\frac{0.3}{0.3+0.7e^{-1.5}}\\
+&amp;=\frac{0.3}{0.3+0.7\times0.223130}\\
+&amp;=\frac{0.3}{0.456191}\\
+&amp;=0.6576
+\end{aligned}$$
+<p><span class="keys">0.3 ÷ (0.3 + 0.7e^(−1.5))</span> → 0.6576…</p>
+<p><strong>M-step.</strong></p>
+$$\begin{aligned}
+\textstyle\sum_i\gamma_{i1}&amp;=5\times0.6576\\
+&amp;=3.2881\\
+\hat\pi&amp;=\frac{3.2881}{10}\\
+&amp;=0.33\\[6pt]
+\hat\lambda&amp;=\frac{\sum_ix_i}{n-\sum_i\gamma_{i1}}\\
+&amp;=\frac{11}{10-3.2881}\\
+&amp;=\frac{11}{6.7119}\\
+&amp;=1.64
+\end{aligned}$$
+<p>\(\hat\lambda\) rose above \(\bar x=1.1\): once about 3.3 of the zeros are put down to the bird's absence, the 11 birds are spread over only 6.7 "Poisson days". R check, the lecturer's loop body with <code>dpois</code> and a point mass:</p>
+<pre class="rout"><span class="cmd">&gt; x &lt;- c(0, 2, 0, 1, 0, 0, 3, 1, 0, 4); p &lt;- 0.3; lam &lt;- 1.5
+&gt; M &lt;- cbind(p*(x == 0), (1-p)*dpois(x, lam))
+&gt; g &lt;- M[, 1] / rowSums(M); round(g, 4)</span>
+ [1] 0.6576 0.0000 0.6576 0.0000 0.6576 0.6576 0.0000 0.0000 0.6576 0.0000
+<span class="cmd">&gt; sum(log(rowSums(M)))</span>
+[1] -14.41044
+<span class="cmd">&gt; p.new &lt;- mean(g); lam.new &lt;- sum((1-g)*x) / sum(1-g)
+&gt; round(c(p.new, lam.new), 4)</span>
+[1] 0.3288 1.6389
+<span class="cmd">&gt; sum(log(p.new*(x == 0) + (1-p.new)*dpois(x, lam.new)))</span>
+[1] -14.30859</pre>
+<p><code>p*(x == 0)</code> is the point-mass density \(\pi I(x_i=0)\): a TRUE/FALSE vector times a number. The incomplete \(\ell\) rose from −14.41 to −14.31. Iterated to convergence, this run settles at \(\hat\pi=0.41\), \(\hat\lambda=1.86\) (\(\ell=-14.22\)).</p>
+
+<div class="quiz num" data-answer="1.97" data-tol="0.005">
+  <p class="q"><strong>9.</strong> Same ten counts, but start from \(\theta^0=(0.5,\ 2)\). Do one EM iteration and give \(\hat\lambda\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}\gamma_{\text{zero}}&amp;=\frac{0.5}{0.5+0.5e^{-2}}\\&amp;=\frac1{1+0.135335}\\&amp;=0.8808\\ \textstyle\sum_i\gamma_{i1}&amp;=5\times0.8808\\&amp;=4.4040\\ \hat\lambda&amp;=\frac{11}{10-4.4040}\\&amp;=\frac{11}{5.5960}\\&amp;=\textbf{1.97}\end{aligned}$$
+  (\(\hat\pi=0.44\).) A start with more structural zeros pushes \(\hat\lambda\) higher. Using \(\bar x=1.1\), i.e. treating every day as Poisson, ignores the E-step entirely.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>10.</strong> <em>(Retrieval: monotonicity, Lesson 17.)</em> In the contaminated-normal model a student updates \(\mu\) with component 1's terms only, \(\sum_i\gamma_{i1}x_i/\sum_i\gamma_{i1}\), and keeps the other updates correct. Is \(\ell(\theta^1)\ge\ell(\theta^0)\) still guaranteed?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Yes, since EM increases \(\ell\) whatever update formulas are used</button>
+    <button class="opt" data-key="b">Yes, since Jensen's inequality alone makes the bound hold for any \(\theta\)</button>
+    <button class="opt" data-key="c">No, since that value need not satisfy \(Q(\theta^1,\theta^0)\ge Q(\theta^0,\theta^0)\)</button>
+    <button class="opt" data-key="d">No, since \(\ell\) can never be guaranteed to rise in a model with tied parameters</button>
+  </div>
+  <div class="why">The chain is \(\ell(\theta^1)\ge Q(\theta^1,\theta^0)+C\ge Q(\theta^0,\theta^0)+C=\ell(\theta^0)\). Jensen gives the first \(\ge\) for any \(\theta^1\), but the middle one needs \(\theta^1\) to (at least) not lower \(Q\), and a wrong derivative gives a point that maximises a different function. Tied parameters are fine (d): the guarantee needs the true maximiser of \(Q\), whatever the constraints. A falling <code>log_liks</code> trace is how you'd catch the error.</div>
+</div>
+
+<h2>7 · Where the marks go</h2>
+<div class="trap"><strong>Traps</strong>
+<ul>
+  <li><strong>Wrong denominator in \(\hat\pi\).</strong> Divide by the number of observations that have a \(Z_i\) (\(m\), not \(n\)) when some have no label. Observed labels count in both numerator and denominator.</li>
+  <li><strong>Known-component observations left out of \(\hat\mu_k,\hat\sigma_k^2\).</strong> They enter with weight 1. The denominator becomes \(\sum_i\gamma_{ik}+(n-m)\).</li>
+  <li><strong>A tied parameter differentiated in one component only.</strong> Write "the terms involving \(\theta_j\) are …" and list every component.</li>
+  <li><strong>Lost chain-rule factors.</strong> A mean of \(2\mu\) gives an extra 2, and a rate \(3\lambda\) gives \(x_i\log3+x_i\log\lambda-3\lambda\). Expand logs of products before differentiating.</li>
+  <li><strong>Known values given an M-step.</strong> \(\mu_1=0\) or \(\sigma_1^2=1\) is a number: plug it into the density and the E-step, and don't differentiate.</li>
+  <li><strong>Point mass handled wrongly.</strong> \(\gamma_{i1}=0\) for any \(x_i&gt;0\). Don't write \(\log0\) terms in \(Q\).</li>
+  <li><strong>\(K=3\) without the constraint.</strong> Use \(\pi_3=1-\pi_1-\pi_2\) or a Lagrange multiplier, and rename the multiplier if \(\lambda\) is already a rate.</li>
+  <li><strong>\(\theta^0\) and \(\theta\) mixed up.</strong> \(\gamma_{ik}\) uses \(\theta^0\) and is a fixed number in the M-step. Don't differentiate it.</li>
+  <li><strong>Silently dropped constants.</strong> Keep \(-\log x_i!\) and \(-\frac12\log(2\pi)\) in \(Q\), or write "+ const".</li>
+  <li><strong>Rounding too early.</strong> Carry 4 d.p. through the E-step and round only the final answer to 2 d.p.</li>
+</ul>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Why do the hatchery fish in Q1 change \(\hat\mu_2\) but not \(\hat\pi\)?</p>
+<details><summary>Model answer</summary><div>
+<p>The hatchery fish are known draws from \(N(\mu_2,\sigma_2^2)\), so each contributes \(\log f(x_i;\mu_2,\sigma_2^2)\) to \(Q\) with weight 1, which adds them to the \(\mu_2\) (and \(\sigma_2^2\)) estimating equations. They were not sampled from the lake's mixture, so the model gives them no label \(Z_i\) and no \(\log\pi\) or \(\log(1-\pi)\) term. They therefore carry no information about the proportion \(\pi\) of species in the lake.</p></div></details>
+</div>
+
+<h2>8 · Exam-style question</h2>
+<p><strong>Setup</strong> (fresh model; 12 marks, about 28 minutes). A call centre records the number of calls \(X_i\) in each of \(n\) ten-minute windows. Busy windows have three times the call rate of quiet ones. For windows \(i=1,\dots,m\) the type was not recorded:</p>
+$$\begin{aligned}
+Z_i&amp;\sim\text{Categorical}(\pi,1-\pi)\\
+X_i\mid Z_i=1&amp;\sim\text{Poisson}(\lambda)\quad\text{(quiet)}\\
+X_i\mid Z_i=2&amp;\sim\text{Poisson}(3\lambda)\quad\text{(busy)}
+\end{aligned}$$
+<p>Windows \(i=m+1,\dots,n\) fell during an advertised promotion and are known to be busy: \(X_i\sim\text{Poisson}(3\lambda)\), with no \(Z_i\). All \(X_i\) are independent, \(\theta=(\pi,\lambda)\), \(X=(X_1,\dots,X_n)\), \(Z=(Z_1,\dots,Z_m)\). Your answers may contain \(P(Z_i=k\mid X_i,\theta^0)\).</p>
+<ol type="a">
+  <li>Derive \(Q(\theta,\theta^0)=E_{Z\mid X,\theta^0}[\log P(X,Z\mid\theta)]\), with the log pmfs expanded. <span class="marks">[4]</span></li>
+  <li>Derive the M-step for \(\pi\). <span class="marks">[2]</span></li>
+  <li>Derive the M-step for \(\lambda\). <span class="marks">[3]</span></li>
+  <li>\(m=4\) with \(x_{1:4}=(1,\ 4,\ 2,\ 6)\), and \(n-m=2\) promotion windows with \(x_5=5\), \(x_6=7\). With \(\theta^0=(0.5,\ 1.5)\), compute \(P(Z_i=1\mid X_i,\theta^0)\) for \(i=1,\dots,4\), then \(\hat\pi\) and \(\hat\lambda\) (2 d.p.). <span class="marks">[3]</span></li>
+</ol>
+
+<div class="quiz num" data-answer="0.69" data-tol="0.005">
+  <p class="q"><strong>11.</strong> Part (d): compute \(P(Z_3=1\mid X_3=2,\theta^0)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Divide top and bottom by \(\pi^0(\lambda^0)^{x}e^{-\lambda^0}/x!\):
+  $$\begin{aligned}\gamma_{i1}&amp;=\frac{1}{1+\frac{1-\pi^0}{\pi^0}\,3^{x_i}e^{-2\lambda^0}}\\&amp;=\frac1{1+3^{x_i}e^{-3}}\\ \gamma_{31}&amp;=\frac1{1+9\times0.049787}\\&amp;=\frac1{1.448084}\\&amp;=\textbf{0.69}\end{aligned}$$
+  The \(\lambda^{x}\) factors cancel to \(3^{x}\) and the \(e^{-\lambda}\) factors to \(e^{-2\lambda^0}\). A count of 2 sits closer to the quiet rate 1.5 than to the busy rate 4.5.</div>
+</div>
+
+<div class="quiz num" data-answer="1.73" data-tol="0.005">
+  <p class="q"><strong>12.</strong> Part (d): with \(\gamma_{i1}=(0.8700,\ 0.1987,\ 0.6906,\ 0.0268)\), compute \(\hat\lambda\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">From (c), \(\hat\lambda=\sum_{i=1}^6x_i\big/\big[\sum_{i\le4}(3-2\gamma_{i1})+3\times2\big]\):
+  $$\begin{aligned}\textstyle\sum_{i\le4}\gamma_{i1}&amp;=1.7861\\ \textstyle\sum_{i\le4}(3-2\gamma_{i1})&amp;=12-3.5723\\&amp;=8.4277\\ \hat\lambda&amp;=\frac{25}{8.4277+6}\\&amp;=\frac{25}{14.4277}\\&amp;=\textbf{1.73}\end{aligned}$$
+  The denominator is the "exposure" in quiet-window units: a quiet window counts 1, a busy one 3. Leaving out the promotion windows, or their 3, is the twist's lost mark.</div>
+</div>
+
+<details><summary>Full model answer (all parts)</summary><div>
+<p><strong>(a)</strong> <em>[1 mark: complete likelihood.]</em> The mixture windows get indicators; the promotion windows contribute their Poisson\((3\lambda)\) pmf with no \(\pi\).</p>
+$$\begin{aligned}
+P(X,Z\mid\theta)&amp;=\prod_{i=1}^m\Big[\pi\frac{\lambda^{x_i}e^{-\lambda}}{x_i!}\Big]^{I(Z_i=1)}\Big[(1-\pi)\frac{(3\lambda)^{x_i}e^{-3\lambda}}{x_i!}\Big]^{I(Z_i=2)}\\
+&amp;\qquad\times\prod_{i=m+1}^n\frac{(3\lambda)^{x_i}e^{-3\lambda}}{x_i!}
+\end{aligned}$$
+<p><em>[1 mark: log, with \(\log(3\lambda)^{x_i}=x_i\log3+x_i\log\lambda\).]</em></p>
+$$\begin{aligned}
+\log P(X,Z\mid\theta)&amp;=\sum_{i=1}^m\Big\{I(Z_i=1)\big[\log\pi+x_i\log\lambda-\lambda-\log x_i!\big]\\
+&amp;\qquad+I(Z_i=2)\big[\log(1-\pi)+x_i\log3+x_i\log\lambda\\
+&amp;\qquad\qquad-3\lambda-\log x_i!\big]\Big\}\\
+&amp;\quad+\sum_{i=m+1}^n\big[x_i\log3+x_i\log\lambda-3\lambda-\log x_i!\big]
+\end{aligned}$$
+<p><em>[2 marks: expectation by linearity, \(E_{Z\mid X,\theta^0}[I(Z_i=k)]=P(Z_i=k\mid X_i,\theta^0)\); the last sum is not random.]</em></p>
+$$\begin{aligned}
+Q(\theta,\theta^0)&amp;=\sum_{i=1}^m\Big\{P(Z_i=1\mid X_i,\theta^0)\big[\log\pi+x_i\log\lambda-\lambda-\log x_i!\big]\\
+&amp;\qquad+P(Z_i=2\mid X_i,\theta^0)\big[\log(1-\pi)+x_i\log3+x_i\log\lambda\\
+&amp;\qquad\qquad-3\lambda-\log x_i!\big]\Big\}\\
+&amp;\quad+\sum_{i=m+1}^n\big[x_i\log3+x_i\log\lambda-3\lambda-\log x_i!\big]
+\end{aligned}$$
+<p>with, by Bayes' rule,</p>
+$$\begin{aligned}
+P(Z_i=1\mid X_i,\theta^0)&amp;=\frac{\pi^0(\lambda^0)^{x_i}e^{-\lambda^0}}{\pi^0(\lambda^0)^{x_i}e^{-\lambda^0}+(1-\pi^0)(3\lambda^0)^{x_i}e^{-3\lambda^0}}\\
+P(Z_i=2\mid X_i,\theta^0)&amp;=1-P(Z_i=1\mid X_i,\theta^0)
+\end{aligned}$$
+<p><strong>(b)</strong> Write \(\gamma_{ik}=P(Z_i=k\mid X_i,\theta^0)\). The terms involving \(\pi\) are \(\sum_{i\le m}[\gamma_{i1}\log\pi+\gamma_{i2}\log(1-\pi)]\):</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\pi}&amp;=\sum_{i=1}^m\Big[\frac{\gamma_{i1}}{\pi}-\frac{\gamma_{i2}}{1-\pi}\Big]=0\\
+(1-\pi)\sum_{i=1}^m\gamma_{i1}&amp;=\pi\sum_{i=1}^m\gamma_{i2}\\
+\sum_{i=1}^m\gamma_{i1}&amp;=\pi\sum_{i=1}^m(\gamma_{i1}+\gamma_{i2})\\
+&amp;=\pi m\\
+\hat\pi&amp;=\frac1m\sum_{i=1}^mP(Z_i=1\mid X_i,\theta^0)
+\end{aligned}$$
+<p><strong>(c)</strong> The terms involving \(\lambda\) are in <em>both</em> components and in the promotion windows:</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\lambda}&amp;=\sum_{i=1}^m\Big[\gamma_{i1}\Big(\frac{x_i}{\lambda}-1\Big)+\gamma_{i2}\Big(\frac{x_i}{\lambda}-3\Big)\Big]\\
+&amp;\qquad+\sum_{i=m+1}^n\Big(\frac{x_i}{\lambda}-3\Big)\\
+&amp;=\frac1\lambda\sum_{i=1}^m(\gamma_{i1}+\gamma_{i2})x_i+\frac1\lambda\sum_{i=m+1}^nx_i\\
+&amp;\qquad-\sum_{i=1}^m(\gamma_{i1}+3\gamma_{i2})-3(n-m)\\
+&amp;=\frac1\lambda\sum_{i=1}^nx_i-\sum_{i=1}^m(\gamma_{i1}+3\gamma_{i2})-3(n-m)=0\\
+\hat\lambda&amp;=\frac{\sum_{i=1}^nx_i}{\sum_{i=1}^m(\gamma_{i1}+3\gamma_{i2})+3(n-m)}
+\end{aligned}$$
+<p>It's a maximum: \(\partial^2Q/\partial\lambda^2=-\sum_ix_i/\lambda^2&lt;0\).</p>
+<p><strong>(d)</strong> With \(\pi^0=0.5\) the prior ratio is 1, and \(e^{-2\lambda^0}=e^{-3}=0.049787\), so \(\gamma_{i1}=1/(1+3^{x_i}e^{-3})\):</p>
+$$\begin{aligned}
+x_1=1:\quad&amp;\frac1{1+3\times0.049787}=\frac1{1.149361}=0.87\\
+x_2=4:\quad&amp;\frac1{1+81\times0.049787}=\frac1{5.032753}=0.20\\
+x_3=2:\quad&amp;\frac1{1+9\times0.049787}=\frac1{1.448084}=0.69\\
+x_4=6:\quad&amp;\frac1{1+729\times0.049787}=\frac1{37.294773}=0.03
+\end{aligned}$$
+$$\begin{aligned}
+\hat\pi&amp;=\frac{0.8700+0.1987+0.6906+0.0268}{4}\\
+&amp;=\frac{1.7861}{4}\\
+&amp;=0.45\\[6pt]
+\hat\lambda&amp;=\frac{1+4+2+6+5+7}{(12-2\times1.7861)+6}\\
+&amp;=\frac{25}{14.4277}\\
+&amp;=1.73
+\end{aligned}$$
+<p>(Using \(\gamma_{i1}+3\gamma_{i2}=3-2\gamma_{i1}\).) R check:</p>
+<pre class="rout"><span class="cmd">&gt; xm &lt;- c(1, 4, 2, 6); xk &lt;- c(5, 7); p &lt;- 0.5; lam &lt;- 1.5
+&gt; a &lt;- p*dpois(xm, lam); b &lt;- (1-p)*dpois(xm, 3*lam)
+&gt; g &lt;- a/(a + b); round(g, 4)</span>
+[1] 0.8700 0.1987 0.6906 0.0268
+<span class="cmd">&gt; p.new &lt;- mean(g)
+&gt; lam.new &lt;- sum(c(xm, xk)) / (sum(g + 3*(1-g)) + 3*length(xk))
+&gt; round(c(p.new, lam.new), 4)</span>
+[1] 0.4465 1.7328</pre>
+<p>The incomplete log-likelihood rises from −12.47 to −12.18 over this iteration.</p></div></details>
+
+<h2>9 · Score yourself</h2>
+<div class="tablewrap"><table>
+<tr><th>If you missed…</th><th>Go back to</th></tr>
+<tr><td>Q1, Q2</td><td>§2: no \(Z_i\) means no \(\log\pi\); an observed \(Z_i\) brings \(\log\pi_k\) back; count the denominator</td></tr>
+<tr><td>Q3, Q4</td><td>§3: list every term containing the parameter; chain rule on \(2\mu\); \(\log(9\sigma^2)\) splits</td></tr>
+<tr><td>Q5, Q6, Q9</td><td>§4, §6: point mass gives \(\gamma_{i1}=0\) for \(x_i&gt;0\); rates invert the weighted mean</td></tr>
+<tr><td>Q8</td><td>§5: \(\gamma_{i3}=1-\gamma_{i1}-\gamma_{i2}\); substitution or Lagrange gives \(N_k/n\)</td></tr>
+<tr><td>Q7, Q10</td><td>Lesson 10 (overdispersion); Lesson 17 §6 (why the M-step must maximise \(Q\))</td></tr>
+<tr><td>Q11, Q12</td><td>§8 (c)–(d): simplify the E-step ratio first; include the known windows</td></tr>
+</table></div>
+
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) The five recipe steps. (2) Known-component block: \(+\sum_{i&gt;m}\log f(x_i;\cdot)\), \(\hat\pi=\sum_{i\le m}\gamma_{i1}/m\), \(\hat\mu_1=[\sum_{i\le m}\gamma_{i1}x_i+\sum_{i&gt;m}x_i]/[\sum_{i\le m}\gamma_{i1}+n-m]\). (3) Shared \(\sigma^2\): \(\frac1n\sum_i[\gamma_{i1}(x_i-\hat\mu_1)^2+\gamma_{i2}(x_i-\hat\mu_2)^2]\). (4) ZIP: \(\gamma_{i1}=\pi^0/(\pi^0+(1-\pi^0)e^{-\lambda^0})\) for zeros, 0 otherwise; \(\hat\lambda=\sum_ix_i/(n-\sum_i\gamma_{i1})\). (5) \(K=3\): \(N_k/\pi_k=c\Rightarrow c=n\).</p></div></details>
+
+<h2>10 · Homework</h2>
+<ol>
+  <li><strong>Symmetric means.</strong> \(X_i\mid Z_i=1\sim N(\mu,1)\), \(X_i\mid Z_i=2\sim N(-\mu,1)\), \(\theta=(\pi,\mu)\). Derive \(Q\) and the M-step for \(\mu\).</li>
+  <li><strong>Exponential with one fixed rate.</strong> \(X_i\mid Z_i=1\sim\text{Exponential}(2)\), \(X_i\mid Z_i=2\sim\text{Exponential}(\lambda)\), \(\theta=(\pi,\lambda)\). (a) Derive \(Q\) and the M-step. (b) Show that at \(\theta^0=(0.5,\ 0.5)\), \(P(Z_i=2\mid X_i=x,\theta^0)=1/(1+4e^{-1.5x})\). (c) For \(x=(0.1,\ 0.3,\ 2.5,\ 4.0)\) do one iteration (2 d.p.).</li>
+  <li><strong>Zero-inflated binomial.</strong> Seeds planted in pots of different sizes: \(X_i\) germinate out of a known \(m_i\). With probability \(\pi\) a pot's soil is sterile (\(X_i=0\) for sure); otherwise \(X_i\sim\text{Binomial}(m_i,p)\). \(\theta=(\pi,p)\). Derive \(Q\), the E-step and the M-step. (The binomial pmf is <em>not</em> on the formula sheet: \(\binom{m}{x}p^x(1-p)^{m-x}\).)</li>
+  <li><strong>Three components, shared variance.</strong> \(K=3\) GMM with \(X_i\mid Z_i=k\sim N(\mu_k,\sigma^2)\). Give the M-step for \(\sigma^2\) and for \(\pi_2\), using the Lagrange method.</li>
+  <li><strong>Observed labels, Poisson.</strong> \(i\le m\): two-component Poisson mixture \((\pi,\lambda_1,\lambda_2)\). \(i&gt;m\): \(Z_i\) observed, \(n_1\) of them equal 1 and \(n_2=n-m-n_1\) equal 2. Give \(\hat\pi\), \(\hat\lambda_1\), \(\hat\lambda_2\).</li>
+  <li><strong>Tute week 7, Q2(b)</strong> (the Poisson M-step), on a blank page, then check against <code>tutes/2026_MAST30027_week7_sol.html</code>. Then read, don't write, the R in Q2(c) and match each line to your M-step.</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p><strong>1.</strong> The terms involving \(\mu\) are \(-\gamma_{i1}(x_i-\mu)^2/2-\gamma_{i2}(x_i+\mu)^2/2\).</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\mu}&amp;=\sum_i\big[\gamma_{i1}(x_i-\mu)-\gamma_{i2}(x_i+\mu)\big]\\
+&amp;=\sum_i(\gamma_{i1}-\gamma_{i2})x_i-\mu\sum_i(\gamma_{i1}+\gamma_{i2})=0\\
+\hat\mu&amp;=\frac1n\sum_i(\gamma_{i1}-\gamma_{i2})x_i
+\end{aligned}$$
+<p>Component-2 points enter with a minus sign, because they estimate \(-\mu\). \(\hat\pi=\frac1n\sum_i\gamma_{i1}\).</p>
+<p><strong>2.</strong> (a)</p>
+$$\begin{aligned}
+Q&amp;=\sum_i\Big\{\gamma_{i1}\big[\log\pi+\log2-2x_i\big]\\
+&amp;\qquad+\gamma_{i2}\big[\log(1-\pi)+\log\lambda-\lambda x_i\big]\Big\}\\
+\hat\pi&amp;=\frac1n\sum_i\gamma_{i1},\qquad\hat\lambda=\frac{\sum_i\gamma_{i2}}{\sum_i\gamma_{i2}x_i}
+\end{aligned}$$
+<p>(b) Divide top and bottom by \(0.5\times0.5e^{-0.5x}\):</p>
+$$\begin{aligned}
+P(Z_i=2\mid x,\theta^0)&amp;=\frac{0.5\times0.5e^{-0.5x}}{0.5\times2e^{-2x}+0.5\times0.5e^{-0.5x}}\\
+&amp;=\frac{1}{1+4e^{-1.5x}}
+\end{aligned}$$
+<p>(c) \(\gamma_{i2}=(0.2251,\ 0.2816,\ 0.9140,\ 0.9902)\), \(\sum_i\gamma_{i2}=2.4109\), \(\sum_i\gamma_{i2}x_i=6.3528\). So \(\hat\pi=1-2.4109/4=0.40\) and \(\hat\lambda=2.4109/6.3528=0.38\) (R: 0.3973, 0.3795).</p>
+<p><strong>3.</strong></p>
+$$\begin{aligned}
+Q&amp;=\sum_i\Big\{\gamma_{i1}\log\pi+\gamma_{i2}\Big[\log(1-\pi)+\log\tbinom{m_i}{x_i}\\
+&amp;\qquad+x_i\log p+(m_i-x_i)\log(1-p)\Big]\Big\}\\[4pt]
+\gamma_{i1}&amp;=\frac{\pi^0}{\pi^0+(1-\pi^0)(1-p^0)^{m_i}}\ \text{ if }x_i=0,\quad 0\text{ otherwise}\\[4pt]
+\hat\pi&amp;=\frac1n\sum_i\gamma_{i1}\\
+\frac{\partial Q}{\partial p}&amp;=\sum_i\gamma_{i2}\Big[\frac{x_i}{p}-\frac{m_i-x_i}{1-p}\Big]=0\\
+\hat p&amp;=\frac{\sum_i\gamma_{i2}x_i}{\sum_i\gamma_{i2}m_i}=\frac{\sum_ix_i}{\sum_i\gamma_{i2}m_i}
+\end{aligned}$$
+<p>Here the zero responsibility depends on \(m_i\): a big pot with no germination is more likely to be sterile.</p>
+<p><strong>4.</strong> \(\hat\sigma^2=\frac1n\sum_i\sum_{k=1}^3\gamma_{ik}(x_i-\hat\mu_k)^2\), and \(\hat\pi_2=\frac1n\sum_i\gamma_{i2}\) (Lagrange: \(N_k/\pi_k=\eta\), \(\eta=n\)).</p>
+<p><strong>5.</strong> Labelled points add \(\log\pi\) or \(\log(1-\pi)\) and enter their own component with weight 1:</p>
+$$\begin{aligned}
+\hat\pi&amp;=\frac{\sum_{i\le m}\gamma_{i1}+n_1}{n}\\
+\hat\lambda_1&amp;=\frac{\sum_{i\le m}\gamma_{i1}x_i+\sum_{i&gt;m,\,Z_i=1}x_i}{\sum_{i\le m}\gamma_{i1}+n_1}
+\end{aligned}$$
+<p>\(\hat\lambda_2\) is the same with component 2 and \(n_2\).</p>
+<p><strong>6.</strong> \(\hat\pi_1=\frac1n\sum_i\gamma_{i1}\), \(\hat\lambda_k=\sum_i\gamma_{ik}x_i/\sum_i\gamma_{ik}\). Compare with the tute solution.</p></div></details>
+
+<p><strong>Primary source:</strong> the lecturer's <a href="../lectures/Formal%20derivation%20of%20the%20EM%20algorithm%20for%20a%20two-component%20GMM.pdf">Formal derivation of the EM algorithm for a two-component GMM</a> (complete likelihood p. 1, \(Q\) p. 2, "the terms involving …" M-step pp. 3–5). Read it with a pen and, at each "the terms involving" line, ask what would change under §2–§5's twists. Then the <a href="../lectures/Formal%20derivation%20of%20the%20EM%20algorithm%20for%20a%20three-component%20GMM.pdf#page=5">three-component version</a> (p. 5: the Lagrange multiplier for \(\pi\)) and <a href="../lectures/EM_LMS-1.pdf#page=18">EM slides 18–20</a>.</p>
+
+<div class="ask">💬 Ask me in the terminal if a twist doesn't click, or if you want a fresh twisted model to try cold (a mixture of a Gamma and an Exponential, a known-variance twist, or K=3 with one fixed component). Paste your working for §8 or any homework and I'll mark it the way an exam marker would.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0018-m-step-derivations.html">Lesson 18, M-step derivations</a> · Reference: <a href="../reference/em-cheatsheet.html">EM cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0020-reading-em-r-code.html">Lesson 20, Reading EM R code</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

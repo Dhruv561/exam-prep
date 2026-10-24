@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topic 4 Mixed Review</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  .keys { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .8rem; background: var(--card); border: 1px solid var(--rule); border-radius: 4px; padding: .1rem .35rem; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 21 · Topic 4: mixture models &amp; EM (6 of 6)</div>
+<h1>Topic 4 mixed review: an EM question cold, at exam pace</h1>
+<p class="lede">Lessons 16–20 taught each piece of the EM question on its own. This lesson puts them back together under time pressure, on a model you haven't seen: a Poisson mixture where every unit has its own exposure. Then comes an R-output mixture question, and twelve short items that mix EM with MLE, GLMs, overdispersion and conjugacy. The win: <strong>finish a full 12-mark EM question cold in about 25 minutes</strong>, with every line a marker wants to see.</p>
+
+<div class="mission">Why this matters for 10 Nov: the EM question was worth 10–12 marks on every paper from 2020 to 2022, and each year it had a model the students hadn't practised (known means in 2021, a known-component block in 2022, binomial components in the 2021 special, a numeric Poisson version in 2020). At about 2.3 minutes per mark, 12 marks is roughly 28 minutes. The skill being tested is the recipe on a new model, not a memorised formula. The lecturer also said R output will be read, not written, so the second question is a printout of her own <code>mixture.EM</code> functions.</div>
+
+<div class="trap"><strong>Rules for this lesson</strong><br>Close Lessons 16–20, the <a href="../reference/em-cheatsheet.html">EM cheat sheet</a> and the slides. Paper, pen and an FX-82 only. Set a 25-minute timer for Part A. Write your answer before you open any fold. Every wrong first try is useful: the table in §6 says which lesson to go back to.</div>
+
+<h2>1 · Recall first (5 minutes)</h2>
+<p>On a blank page, write from memory:</p>
+<ol>
+  <li>The four steps of the EM algorithm, and what quantity the stopping rule checks.</li>
+  <li>The complete-data log-likelihood for a \(K\)-component mixture, with indicators.</li>
+  <li>The definition of \(Q(\theta,\theta^0)\) and the one fact that turns the complete-data log-likelihood into \(Q\).</li>
+  <li>The responsibility \(P(Z_i=k\mid X_i,\theta^0)\) by Bayes' rule. Which constants cancel, and which never do?</li>
+  <li>The M-step for \(\pi\) in a two-component model, with the step people usually skip.</li>
+  <li>The four-step recipe for a twisted model: what changes for a block with no \(Z_i\), and for a parameter shared by both components.</li>
+  <li>The chain of inequalities that shows \(\ell\) never decreases.</li>
+  <li>How to choose between EM runs, and two ways a run can look finished when it isn't.</li>
+</ol>
+<details><summary>Check your page</summary><div>
+<p>1. Initialise \(\theta^0\), evaluate \(\ell(\theta^0)\) → E-step: \(P(Z\mid X,\theta^0)\) → M-step: \(\hat\theta=\arg\max_\theta Q(\theta,\theta^0)\) → stop if the <em>incomplete</em> \(\ell\) changed by less than \(\epsilon\), else \(\theta^0\leftarrow\hat\theta\) (<a href="../lectures/EM_LMS-1.pdf#page=16">EM slide 16</a>; <a href="0017-em-algorithm-q-function.html">Lesson 17</a>).<br>
+2. \(\log P(X,Z\mid\theta)=\sum_i\sum_kI(Z_i=k)[\log\pi_k+\log f(x_i;\theta_k)]\).<br>
+3. \(Q(\theta,\theta^0)=E_{Z\mid X,\theta^0}[\log P(X,Z\mid\theta)]\). Linearity, then \(E_{Z\mid X,\theta^0}[I(Z_i=k)]=P(Z_i=k\mid X_i,\theta^0)\) (<a href="../lectures/EM_LMS-1.pdf#page=18">slides 18–19</a>).<br>
+4. \(\gamma_{ik}=\pi_k^0f(x_i;\theta_k^0)/\sum_j\pi_j^0f(x_i;\theta_j^0)\). Factors common to every term cancel (\(x_i!\), \(1/\sqrt{2\pi}\)); \(\pi_k^0\) and unequal \(1/\sigma_k\) never do (<a href="0016-mixture-models-and-responsibilities.html">Lesson 16</a>).<br>
+5. \(\sum_i[\gamma_{i1}/\pi-\gamma_{i2}/(1-\pi)]=0\) → \(\sum_i\gamma_{i1}=\pi\sum_i(\gamma_{i1}+\gamma_{i2})=n\pi\), using \(\gamma_{i1}+\gamma_{i2}=1\) (<a href="0018-m-step-derivations.html">Lesson 18</a>).<br>
+6. Indicators → log → replace \(I\) by \(\gamma\) → for each parameter, list <em>every</em> term containing it. A no-\(Z\) block adds \(\log f\) with weight 1 and no \(\pi\) term; a shared parameter collects terms from every component (<a href="0019-em-exam-twists.html">Lesson 19</a>).<br>
+7. \(\ell(\hat\theta)\ge Q(\hat\theta,\theta^0)+C\ge Q(\theta^0,\theta^0)+C=\ell(\theta^0)\): Jensen, the M-step, Bayes' rule.<br>
+8. Keep the run with the highest final incomplete \(\ell\); relabelled runs tie. Looks finished but isn't: it hit <code>max.iter</code> (<code>length(log_liks)</code> \(=\) <code>max.iter</code> \(+1\)), or it is stuck at equal starting components (<a href="0020-reading-em-r-code.html">Lesson 20</a>).</p>
+<p style="margin-bottom:0">Fewer than 6 of 8 fully right? Reread the <a href="../reference/em-cheatsheet.html">EM cheat sheet</a> once, close it, then start Part A.</p></div></details>
+
+<h2>2 · Part A: exam-length EM question (12 marks, 25 minutes)</h2>
+<div class="box">
+<p><strong>Question A</strong> (12 marks). A hospital network monitors \(n\) wards for bloodstream infections. Ward \(i\) records \(X_i\) infections over \(t_i\) hundred patient-days. The exposures \(t_i\) are known. Some wards are <em>standard</em> and some are <em>high-risk</em>, but the type is not recorded. For \(i=1,\dots,n\), independently,</p>
+$$\begin{aligned}
+Z_i&amp;\sim\text{Categorical}(\pi,1-\pi)\\
+X_i\mid Z_i=1&amp;\sim\text{Poisson}(t_i\lambda_1)\quad\text{(standard)}\\
+X_i\mid Z_i=2&amp;\sim\text{Poisson}(t_i\lambda_2)\quad\text{(high-risk)}
+\end{aligned}$$
+<p>where \(\lambda_k\) is the infection rate per hundred patient-days. The Poisson\((\mu)\) pmf is \(f(x;\mu)=\mu^xe^{-\mu}/x!\). We aim to obtain the MLE of \(\theta=(\pi,\lambda_1,\lambda_2)\) by EM. Let \(X=(X_1,\dots,X_n)\) and \(Z=(Z_1,\dots,Z_n)\). Your answers may contain \(P(Z_i=k\mid X_i,\theta^0)\) once you have given its formula.</p>
+<p>(a) Write down the complete-data likelihood \(P(X,Z\mid\theta)\) and the complete-data log-likelihood, with the log pmfs expanded. <span class="marks">[2]</span><br>
+(b) Derive \(Q(\theta,\theta^0)=E_{Z\mid X,\theta^0}[\log P(X,Z\mid\theta)]\). <span class="marks">[2]</span><br>
+(c) Give the E-step. Show that \(P(Z_i=1\mid X_i,\theta^0)\) does not depend on the factor \(t_i^{x_i}/x_i!\), and simplify it. <span class="marks">[2]</span><br>
+(d) Derive the M-step updates for \(\pi\), \(\lambda_1\) and \(\lambda_2\). <span class="marks">[4]</span><br>
+(e) Six wards give</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>ward \(i\)</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr>
+<tr><th>\(t_i\)</th><td>2</td><td>4</td><td>1</td><td>5</td><td>3</td><td>2</td></tr>
+<tr><th>\(x_i\)</th><td>1</td><td>9</td><td>0</td><td>4</td><td>7</td><td>2</td></tr>
+</table></div>
+<p style="margin-bottom:0">With \(\theta^0=(\pi^0,\lambda_1^0,\lambda_2^0)=(0.6,\ 0.5,\ 2)\), carry out one EM iteration. Give the six \(P(Z_i=1\mid X_i,\theta^0)\) and \(\hat\pi\), \(\hat\lambda_1\), \(\hat\lambda_2\), each to 2 d.p. <span class="marks">[2]</span></p>
+</div>
+<p>Pace guide: (a)–(b) 6 minutes, (c) 4, (d) 8, (e) 7. If you're stuck on (d), the recipe's step 4 is the way in: "the terms of \(Q\) involving \(\lambda_1\) are …".</p>
+
+<div class="quiz num" data-answer="0.65" data-tol="0.005">
+  <p class="q"><strong>A1.</strong> Part (e): compute \(P(Z_6=1\mid X_6=2,\theta^0)\) for ward 6 (\(t_6=2\)) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">From (c), \(P(Z_i=1\mid X_i,\theta^0)=1\big/\big[1+\tfrac{0.4}{0.6}\,4^{x_i}e^{-1.5t_i}\big]\), since \(\lambda_2^0/\lambda_1^0=4\) and \(\lambda_2^0-\lambda_1^0=1.5\).
+  $$\begin{aligned}\tfrac23\cdot4^2e^{-1.5\times2}&amp;=\tfrac23\times16\times0.049787\\&amp;=0.531062\\ P(Z_6=1\mid X_6,\theta^0)&amp;=\frac1{1.531062}\\&amp;=\textbf{0.65}\end{aligned}$$
+  Ward 6's raw rate \(2/2=1\) sits between 0.5 and 2, so it is the least certain of the six. Forgetting the exposure (using \(e^{-1.5}\) instead of \(e^{-3}\)) gives 0.48, the wrong side of 0.5.</div>
+</div>
+
+<div class="quiz num" data-answer="0.69" data-tol="0.005">
+  <p class="q"><strong>A2.</strong> Part (e): the six responsibilities are \(\gamma_{i1}=(0.8828,\ 0.0023,\ 0.8705,\ 0.9137,\ 0.0082,\ 0.6531)\). Compute \(\hat\lambda_1\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\hat\lambda_1=\sum_i\gamma_{i1}x_i\big/\sum_i\gamma_{i1}t_i\), from (d):
+  $$\begin{aligned}\textstyle\sum_i\gamma_{i1}x_i&amp;=0.8828+0.0207+0+3.6550+0.0572+1.3063\\&amp;=5.9220\\ \textstyle\sum_i\gamma_{i1}t_i&amp;=1.7656+0.0092+0.8705+4.5687+0.0245+1.3063\\&amp;=8.5449\\ \hat\lambda_1&amp;=\frac{5.9220}{8.5449}\\&amp;=\textbf{0.69}\end{aligned}$$
+  The denominator is the effective <em>exposure</em> of the standard wards, not the effective number of wards. Dividing by \(\sum_i\gamma_{i1}=3.3307\) gives 1.78, a rate per ward rather than per hundred patient-days.</div>
+</div>
+
+<div class="quiz num" data-answer="2.02" data-tol="0.005">
+  <p class="q"><strong>A3.</strong> Part (e): compute \(\hat\lambda_2\) (2 d.p.). Shortcut: \(\sum_ix_i=23\) and \(\sum_it_i=17\).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Since \(\gamma_{i2}=1-\gamma_{i1}\), the component-2 sums are the totals minus the component-1 sums:
+  $$\begin{aligned}\textstyle\sum_i\gamma_{i2}x_i&amp;=23-5.9220\\&amp;=17.0780\\ \textstyle\sum_i\gamma_{i2}t_i&amp;=17-8.5449\\&amp;=8.4551\\ \hat\lambda_2&amp;=\frac{17.0780}{8.4551}\\&amp;=\textbf{2.02}\end{aligned}$$
+  This saves six multiplications. R gives 2.0198. And \(\hat\pi=3.3307/6=0.56\).</div>
+</div>
+
+<p>Now open the parts one at a time and mark yourself with the bracketed marks.</p>
+
+<details><summary>Part (a): complete-data likelihood and log-likelihood [2]</summary><div>
+<p>Each ward has exactly one indicator equal to 1, so it contributes one factor <em>[1]</em>:</p>
+$$\begin{aligned}
+P(X,Z\mid\theta)&amp;=\prod_{i=1}^n\big[P(Z_i=1)\,P(X_i\mid Z_i=1)\big]^{I(Z_i=1)}\\
+&amp;\qquad\times\big[P(Z_i=2)\,P(X_i\mid Z_i=2)\big]^{I(Z_i=2)}\\
+&amp;=\prod_{i=1}^n\Big[\pi\,\frac{(t_i\lambda_1)^{x_i}e^{-t_i\lambda_1}}{x_i!}\Big]^{I(Z_i=1)}\\
+&amp;\qquad\times\Big[(1-\pi)\,\frac{(t_i\lambda_2)^{x_i}e^{-t_i\lambda_2}}{x_i!}\Big]^{I(Z_i=2)}
+\end{aligned}$$
+<p>Take logs, with \(\log(t_i\lambda_k)^{x_i}=x_i\log t_i+x_i\log\lambda_k\) <em>[1]</em>:</p>
+$$\begin{aligned}
+\log P(X,Z\mid\theta)&amp;=\sum_{i=1}^n\Big\{I(Z_i=1)\big[\log\pi+x_i\log t_i+x_i\log\lambda_1\\
+&amp;\qquad\qquad-t_i\lambda_1-\log x_i!\big]\\
+&amp;\qquad+I(Z_i=2)\big[\log(1-\pi)+x_i\log t_i+x_i\log\lambda_2\\
+&amp;\qquad\qquad-t_i\lambda_2-\log x_i!\big]\Big\}
+\end{aligned}$$
+</div></details>
+
+<details><summary>Part (b): \(Q(\theta,\theta^0)\) [2]</summary><div>
+<p>Given \(X\), only the indicators are random. Linearity moves the expectation onto them <em>[1]</em>, and the expectation of an indicator is a probability <em>[1]</em>:</p>
+$$\begin{aligned}
+E_{Z\mid X,\theta^0}\big[I(Z_i=k)\big]&amp;=1\cdot P(Z_i=k\mid X,\theta^0)+0\\
+&amp;=P(Z_i=k\mid X_i,\theta^0)\qquad\text{(independence over }i)
+\end{aligned}$$
+$$\begin{aligned}
+Q(\theta,\theta^0)&amp;=E_{Z\mid X,\theta^0}\big[\log P(X,Z\mid\theta)\big]\\
+&amp;=\sum_{i=1}^n\Big\{P(Z_i=1\mid X_i,\theta^0)\big[\log\pi+x_i\log t_i\\
+&amp;\qquad\qquad+x_i\log\lambda_1-t_i\lambda_1-\log x_i!\big]\\
+&amp;\qquad+P(Z_i=2\mid X_i,\theta^0)\big[\log(1-\pi)+x_i\log t_i\\
+&amp;\qquad\qquad+x_i\log\lambda_2-t_i\lambda_2-\log x_i!\big]\Big\}
+\end{aligned}$$
+<p>Keep \(x_i\log t_i\) and \(-\log x_i!\) (or write "+ const"). They contain no parameter, so they drop out in (d), but silently deleting them costs a mark on some papers.</p></div></details>
+
+<details><summary>Part (c): the E-step [2]</summary><div>
+<p>Bayes' rule at \(\theta^0\) <em>[1]</em>, writing \(f(x;\mu)\) for the Poisson pmf:</p>
+$$\begin{aligned}
+P(Z_i=1\mid X_i,\theta^0)&amp;=\frac{P(X_i\mid Z_i=1,\theta^0)\,P(Z_i=1\mid\theta^0)}{\sum_{k=1}^2P(X_i\mid Z_i=k,\theta^0)\,P(Z_i=k\mid\theta^0)}\\
+&amp;=\frac{\pi^0f(x_i;t_i\lambda_1^0)}{\pi^0f(x_i;t_i\lambda_1^0)+(1-\pi^0)f(x_i;t_i\lambda_2^0)}
+\end{aligned}$$
+<p>Each term has the same factor \(t_i^{x_i}/x_i!\):</p>
+$$\begin{aligned}
+f(x_i;t_i\lambda_k^0)&amp;=\frac{(t_i\lambda_k^0)^{x_i}e^{-t_i\lambda_k^0}}{x_i!}\\
+&amp;=\frac{t_i^{x_i}}{x_i!}\,(\lambda_k^0)^{x_i}e^{-t_i\lambda_k^0}
+\end{aligned}$$
+<p>so it cancels:</p>
+$$\begin{aligned}
+P(Z_i=1\mid X_i,\theta^0)&amp;=\frac{\pi^0(\lambda_1^0)^{x_i}e^{-t_i\lambda_1^0}}{\pi^0(\lambda_1^0)^{x_i}e^{-t_i\lambda_1^0}+(1-\pi^0)(\lambda_2^0)^{x_i}e^{-t_i\lambda_2^0}}
+\end{aligned}$$
+<p>Divide top and bottom by the numerator <em>[1]</em>:</p>
+$$\begin{aligned}
+P(Z_i=1\mid X_i,\theta^0)&amp;=\frac{1}{1+\dfrac{1-\pi^0}{\pi^0}\Big(\dfrac{\lambda_2^0}{\lambda_1^0}\Big)^{x_i}e^{-t_i(\lambda_2^0-\lambda_1^0)}}\\[4pt]
+P(Z_i=2\mid X_i,\theta^0)&amp;=1-P(Z_i=1\mid X_i,\theta^0)
+\end{aligned}$$
+<p>\(t_i^{x_i}\) cancels because both components see the same exposure. \(t_i\) does <em>not</em> cancel from the exponentials: a long-exposure ward with a middling count is strong evidence, a short one is weak.</p></div></details>
+
+<details><summary>Part (d): the M-step [4]</summary><div>
+<p>Write \(\gamma_{ik}=P(Z_i=k\mid X_i,\theta^0)\). These are fixed numbers in the M-step.</p>
+<p><strong>\(\pi\)</strong> <em>[1]</em>. The terms involving \(\pi\) are \(\sum_i[\gamma_{i1}\log\pi+\gamma_{i2}\log(1-\pi)]\):</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\pi}&amp;=\sum_{i=1}^n\Big[\frac{\gamma_{i1}}{\pi}-\frac{\gamma_{i2}}{1-\pi}\Big]=0\\
+(1-\pi)\sum_{i=1}^n\gamma_{i1}&amp;=\pi\sum_{i=1}^n\gamma_{i2}\\
+\sum_{i=1}^n\gamma_{i1}&amp;=\pi\sum_{i=1}^n(\gamma_{i1}+\gamma_{i2})\\
+&amp;=n\pi\qquad(\gamma_{i1}+\gamma_{i2}=1)\\
+\hat\pi&amp;=\frac1n\sum_{i=1}^nP(Z_i=1\mid X_i,\theta^0)
+\end{aligned}$$
+<p><strong>\(\lambda_1\)</strong> <em>[2]</em>. The terms involving \(\lambda_1\) are \(\sum_i\gamma_{i1}(x_i\log\lambda_1-t_i\lambda_1)\), in component 1 only:</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\lambda_1}&amp;=\sum_{i=1}^n\gamma_{i1}\Big(\frac{x_i}{\lambda_1}-t_i\Big)\\
+&amp;=\frac1{\lambda_1}\sum_{i=1}^n\gamma_{i1}x_i-\sum_{i=1}^n\gamma_{i1}t_i=0\\
+\hat\lambda_1&amp;=\frac{\sum_{i=1}^nP(Z_i=1\mid X_i,\theta^0)\,x_i}{\sum_{i=1}^nP(Z_i=1\mid X_i,\theta^0)\,t_i}
+\end{aligned}$$
+<p>It is a maximum: \(\partial^2Q/\partial\lambda_1^2=-\sum_i\gamma_{i1}x_i/\lambda_1^2&lt;0\).</p>
+<p><strong>\(\lambda_2\)</strong> <em>[1]</em>. The same steps with component 2's terms:</p>
+$$\begin{aligned}
+\hat\lambda_2&amp;=\frac{\sum_{i=1}^nP(Z_i=2\mid X_i,\theta^0)\,x_i}{\sum_{i=1}^nP(Z_i=2\mid X_i,\theta^0)\,t_i}
+\end{aligned}$$
+<p>Check against the complete-data MLE: with the labels known, the MLE of a Poisson rate with exposures is (total count)/(total exposure) for that group. EM replaces each \(I(Z_i=k)\) by \(\gamma_{ik}\). With every \(t_i=1\) this is tute week 7's \(\hat\lambda_k=\sum_i\gamma_{ik}x_i/\sum_i\gamma_{ik}\).</p></div></details>
+
+<details><summary>Part (e): one iteration [2]</summary><div>
+<p>\(\dfrac{1-\pi^0}{\pi^0}=\dfrac{0.4}{0.6}=\dfrac23\), \(\dfrac{\lambda_2^0}{\lambda_1^0}=4\), \(\lambda_2^0-\lambda_1^0=1.5\), so</p>
+$$\begin{aligned}
+P(Z_i=1\mid X_i,\theta^0)&amp;=\frac{1}{1+\tfrac23\,4^{x_i}e^{-1.5t_i}}
+\end{aligned}$$
+<p>FX-82 for ward 1: <span class="keys">1 ÷ (1 + 2÷3 × 4^1 × e^(−1.5×2))</span> → 0.8828, then edit \(x_i\) and \(t_i\).</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>\(i\)</th><th>\(t_i\)</th><th>\(x_i\)</th><th>\(\tfrac23 4^{x_i}e^{-1.5t_i}\)</th><th>\(\gamma_{i1}\)</th><th>\(\gamma_{i1}x_i\)</th><th>\(\gamma_{i1}t_i\)</th></tr>
+<tr><td>1</td><td>2</td><td>1</td><td>0.1328</td><td>0.8828</td><td>0.8828</td><td>1.7656</td></tr>
+<tr><td>2</td><td>4</td><td>9</td><td>433.19</td><td>0.0023</td><td>0.0207</td><td>0.0092</td></tr>
+<tr><td>3</td><td>1</td><td>0</td><td>0.1488</td><td>0.8705</td><td>0</td><td>0.8705</td></tr>
+<tr><td>4</td><td>5</td><td>4</td><td>0.0944</td><td>0.9137</td><td>3.6550</td><td>4.5687</td></tr>
+<tr><td>5</td><td>3</td><td>7</td><td>121.34</td><td>0.0082</td><td>0.0572</td><td>0.0245</td></tr>
+<tr><td>6</td><td>2</td><td>2</td><td>0.5311</td><td>0.6531</td><td>1.3063</td><td>1.3063</td></tr>
+<tr><td><strong>Sum</strong></td><td>17</td><td>23</td><td></td><td><strong>3.3307</strong></td><td><strong>5.9220</strong></td><td><strong>8.5449</strong></td></tr>
+</table></div>
+<p>To 2 d.p. the responsibilities are \((0.88,\ 0.00,\ 0.87,\ 0.91,\ 0.01,\ 0.65)\) <em>[1]</em>.</p>
+$$\begin{aligned}
+\hat\pi&amp;=\frac{3.3307}{6}=\mathbf{0.56}\\
+\hat\lambda_1&amp;=\frac{5.9220}{8.5449}=\mathbf{0.69}\\
+\hat\lambda_2&amp;=\frac{23-5.9220}{17-8.5449}\\
+&amp;=\frac{17.0780}{8.4551}=\mathbf{2.02}
+\end{aligned}$$
+<p><em>[1]</em> for all three. R check (the lecturer's loop body with <code>dpois(x, t*lambda)</code>):</p>
+<pre class="rout"><span class="cmd">&gt; t &lt;- c(2, 4, 1, 5, 3, 2); x &lt;- c(1, 9, 0, 4, 7, 2)
+&gt; p &lt;- 0.6; l1 &lt;- 0.5; l2 &lt;- 2
+&gt; a &lt;- p*dpois(x, t*l1); b &lt;- (1-p)*dpois(x, t*l2)
+&gt; g &lt;- a/(a+b); round(g, 4)</span>
+[1] 0.8828 0.0023 0.8705 0.9137 0.0082 0.6531
+<span class="cmd">&gt; p1 &lt;- mean(g); L1 &lt;- sum(g*x)/sum(g*t); L2 &lt;- sum((1-g)*x)/sum((1-g)*t)
+&gt; round(c(p1, L1, L2), 4)</span>
+[1] 0.5551 0.6931 2.0198
+<span class="cmd">&gt; ll &lt;- function(p, l1, l2) sum(log(p*dpois(x, t*l1) + (1-p)*dpois(x, t*l2)))
+&gt; round(c(ll(p, l1, l2), ll(p1, L1, L2)), 4)</span>
+[1] -12.3616 -12.0129</pre>
+<p>\(\ell\) rose from −12.36 to −12.01, as it must. Run to convergence, EM settles at \(\hat\theta=(0.56,\ 0.74,\ 2.01)\) with \(\ell=-12.00\).</p>
+<p><strong>Marks guide (12).</strong> (a) indicators as exponents with \(\pi\), \(1-\pi\) [1]; logs with \(x_i\log(t_i\lambda_k)\) split [1]. (b) linearity [1]; \(E[I]=P\) and the full \(Q\) [1]. (c) Bayes' rule with \(\theta^0\) everywhere [1]; the cancellation and simplified form [1]. (d) \(\hat\pi\) with \(\gamma_{i1}+\gamma_{i2}=1\) [1]; \(\hat\lambda_1\) derivative and solution [2]; \(\hat\lambda_2\) [1]. (e) responsibilities [1]; three estimates [1]. Typical losses: \(\sum_i\gamma_{ik}\) in the \(\hat\lambda\) denominator (−1), \(\lambda^0\) and \(\lambda\) mixed in \(Q\) (−1), \(t_i\) dropped from the exponential in (c) (−1, and (e) goes wrong).</p></div></details>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>A classmate says: "Just divide each count by its exposure and fit tute week 7's model to the rates \(x_i/t_i\)." Why is that wrong, and what does the correct \(\hat\lambda_1\) do differently?</p>
+<details><summary>Model answer</summary><div>
+<p>The rates \(x_i/t_i\) are not Poisson (they aren't even integers, and their variance is \(\lambda_k/t_i\), not \(\lambda_k\)), so the Poisson mixture likelihood for them is wrong, and the responsibilities would ignore how much evidence each ward carries. The correct update \(\hat\lambda_1=\sum_i\gamma_{i1}x_i/\sum_i\gamma_{i1}t_i\) is a ratio of weighted totals, so a ward with five times the exposure counts five times as much. It is the weighted version of the rate-model MLE (total count)/(total exposure) from the Poisson GLM with <code>offset(log(t))</code> (<a href="0007-poisson-gamma-glms.html">Lesson 7</a>).</p></div></details>
+</div>
+
+<h2>3 · Part B: R-output mixture question (12 marks, about 20 minutes)</h2>
+<div class="box">
+<p><strong>Question B</strong> (12 marks). Daily temperature anomalies \(X_1,\dots,X_{150}\) (°C) at a coastal station are thought to come from two weather regimes. An analyst fits \(Z_i\sim\text{Categorical}(\pi_1,\pi_2)\), \(X_i\mid Z_i=k\sim N(\mu_k,2)\) (variance known, 2), using the lecturer's <code>mixture.EM</code>, <code>EM.iter</code>, <code>compute.log.lik</code> and <code>compute.prob.x.z</code> from <a href="../extra-notes/EM-updated.qmd">EM-updated.qmd</a>, unchanged (including <code>dnorm(X, mean=mu.curr[k], sd=sqrt(2))*pi.curr[k]</code>). The data were simulated, so the true labels <code>Z</code> are available for checking.</p>
+<pre class="rout"><span class="cmd">&gt; EM1 &lt;- mixture.EM(X, pi.init=c(0.5,0.5), mu.init=c(-1,1))
+&gt; EM2 &lt;- mixture.EM(X, pi.init=c(0.5,0.5), mu.init=c(4,-3))
+&gt; EM3 &lt;- mixture.EM(X, pi.init=c(0.4,0.6), mu.init=c(1,1))
+&gt; EM4 &lt;- mixture.EM(X, pi.init=c(0.9,0.1), mu.init=c(-1,0), max.iter=3)
+&gt; fin &lt;- function(e) round(c(pi = e$pi.curr, mu = e$mu.curr,
++          ill = tail(e$log_liks, 1), n.ll = length(e$log_liks)), 4)
+&gt; cbind(EM1 = fin(EM1), EM2 = fin(EM2), EM3 = fin(EM3), EM4 = fin(EM4))</span>
+           EM1       EM2       EM3       EM4
+pi1     0.2863    0.7137    0.4000    0.5846
+pi2     0.7137    0.2863    0.6000    0.4154
+mu1    -2.1092    2.4676    1.1571   -0.3280
+mu2     2.4677   -2.1093    1.1571    3.2470
+ill  -340.4358 -340.4358 -429.7943 -364.6746
+n.ll   16.0000   16.0000    3.0000    4.0000
+<span class="cmd">&gt; round(EM4$log_liks, 4)</span>
+[1] -568.5457 -391.5751 -374.0468 -364.6746
+<span class="cmd">&gt; round(mean(X), 4)</span>
+[1] 1.1571
+<span class="cmd">&gt; xnew &lt;- c(-0.5, 0.4, 1.2)
+&gt; prob.x.z &lt;- compute.prob.x.z(xnew, EM1$pi.curr, EM1$mu.curr)$prob.x.z
+&gt; round(prob.x.z, 4)</span>
+       [,1]   [,2]
+[1,] 0.0423 0.0223
+[2,] 0.0167 0.0691
+[3,] 0.0052 0.1347
+<span class="cmd">&gt; P_ik &lt;- compute.prob.x.z(X, EM1$pi.curr, EM1$mu.curr)$prob.x.z
+&gt; P_ik &lt;- P_ik / rowSums(P_ik)
+&gt; cluster &lt;- ifelse(P_ik[, 1] &gt; 0.5, 1, 2)
+&gt; table(true = Z, cluster)</span>
+    cluster
+true   1   2
+   1  38   9
+   2   3 100</pre>
+<p>(a) Inside <code>EM.iter</code>, what does <code>P_ik = prob.x.z / rowSums(prob.x.z)</code> compute, and what is <code>sum(P_ik)</code> for these data? <span class="marks">[2]</span><br>
+(b) Which run's estimates would you report as the MLE? Explain what happened in each of the other three runs, quoting numbers from the output. <span class="marks">[4]</span><br>
+(c) Using the printed <code>prob.x.z</code>, compute \(P(Z=1\mid X=-0.5)\) at EM1's estimates, and classify all three new days. <span class="marks">[2]</span><br>
+(d) Using EM1's estimates, find the anomaly \(c\) below which a day is assigned to regime 1. <span class="marks">[2]</span><br>
+(e) From the table, give the misclassification rate. Why can't any rule based on \(x\) alone get it to zero? <span class="marks">[2]</span></p>
+</div>
+
+<div class="quiz num" data-answer="0.65" data-tol="0.005">
+  <p class="q"><strong>B1.</strong> Part (c): compute \(P(Z=1\mid X=-0.5)\) at EM1's estimates (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Row 1 of <code>prob.x.z</code> holds the joints \(\hat\pi_kf(-0.5;\hat\mu_k,2)\). Divide by the row total:
+  $$\begin{aligned}P(Z=1\mid X=-0.5)&amp;=\frac{0.0423}{0.0423+0.0223}\\&amp;=\frac{0.0423}{0.0646}\\&amp;=\textbf{0.65}\end{aligned}$$
+  Above 0.5, so regime 1 (R's unrounded value: 0.6550). Rows 2 and 3 give 0.19 and 0.04, so 0.4 and 1.2 go to regime 2. Consistent with B2: −0.5 lies below the boundary −0.22, while 0.4 and 1.2 lie above it.</div>
+</div>
+
+<div class="quiz num" data-answer="-0.22" data-tol="0.006">
+  <p class="q"><strong>B2.</strong> Part (d): compute the boundary \(c\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Assign to regime 1 when \(\hat\pi_1f(x;\hat\mu_1,2)&gt;\hat\pi_2f(x;\hat\mu_2,2)\). The \(1/\sqrt{4\pi}\) cancels (equal variances); take logs:
+  $$\begin{aligned}\log\hat\pi_1-\frac{(x-\hat\mu_1)^2}{4}&amp;&gt;\log\hat\pi_2-\frac{(x-\hat\mu_2)^2}{4}\\ (x-\hat\mu_2)^2-(x-\hat\mu_1)^2&amp;&gt;4\log\frac{\hat\pi_2}{\hat\pi_1}\\ 2x(\hat\mu_1-\hat\mu_2)+\hat\mu_2^2-\hat\mu_1^2&amp;&gt;4\log\frac{\hat\pi_2}{\hat\pi_1}\\ x&amp;&lt;\frac{\hat\mu_1+\hat\mu_2}{2}+\frac{2\log(\hat\pi_2/\hat\pi_1)}{\hat\mu_1-\hat\mu_2}\end{aligned}$$
+  (the inequality flips because \(\hat\mu_1-\hat\mu_2&lt;0\)). Numbers:
+  $$\begin{aligned}c&amp;=\frac{-2.1092+2.4677}{2}+\frac{2\log(0.7137/0.2863)}{-2.1092-2.4677}\\&amp;=0.17925+\frac{2(0.91340)}{-4.5769}\\&amp;=0.17925-0.39914\\&amp;=\textbf{−0.22}\end{aligned}$$
+  The boundary moves 0.40 left of the midpoint, towards the smaller regime, because regime 2 has the larger weight.</div>
+</div>
+
+<details><summary>Part (a) [2]</summary><div>
+<p><code>prob.x.z[i, k]</code> is the joint \(\pi_k^0f(x_i;\mu_k^0,2)=P(X_i=x_i,Z_i=k\mid\theta^0)\), and <code>rowSums</code> is \(P(X_i=x_i\mid\theta^0)\). So <code>P_ik[i, k]</code> \(=P(Z_i=k\mid X_i=x_i,\theta^0)\), the responsibility, by Bayes' rule: the E-step <em>[1]</em>. Each row of <code>P_ik</code> sums to 1, so <code>sum(P_ik)</code> \(=n=150\), which is why <code>pi.new = colSums(P_ik)/sum(P_ik)</code> is \(N_k/n\) <em>[1]</em>.</p></div></details>
+
+<details><summary>Part (b) [4]</summary><div>
+<p><strong>Report EM1</strong> (EM2 is the same fit): its final incomplete log-likelihood −340.44 is the highest, and the MLE maximises \(\ell\) <em>[1]</em>. \(\hat\pi=(0.29,0.71)\), \(\hat\mu=(-2.11,2.47)\).</p>
+<ul>
+<li><strong>EM2: label switching</strong> <em>[1]</em>. Same \(\ell\) (−340.4358), with \(\hat\pi\) and \(\hat\mu\) in swapped order. Equally good: report either, but don't average them.</li>
+<li><strong>EM3: stuck at equal starts</strong> <em>[1]</em>. \(\mu_1^0=\mu_2^0=1\), so \(f(x_i;1,2)\) is the same for both components and every \(\gamma_{ik}=\pi_k^0\). The M-step returns \(\hat\pi=(0.4,0.6)\) unchanged and both means equal to \(\bar x=1.1571\) (matches <code>mean(X)</code>). After that nothing moves: <code>n.ll</code> \(=3\) means two iterations, the second with gain 0, so the loop stopped. Its \(\ell=-429.79\) is far below EM1's: a stationary point, not the MLE.</li>
+<li><strong>EM4: stopped by <code>max.iter</code></strong> <em>[1]</em>. <code>n.ll</code> \(=4=\) <code>max.iter</code> \(+1\), and the trace is still rising fast (−374.05 → −364.67, a gain of 9.4). It hadn't converged, so its lower \(\ell=-364.67\) says nothing about a different local maximum.</li>
+</ul>
+<p>EM1 and EM2 took 15 iterations (<code>n.ll</code> \(=16&lt;101\)), so they stopped because the gain fell below \(\epsilon=10^{-5}\).</p></div></details>
+
+<details><summary>Part (c) [2]</summary><div>
+$$\begin{aligned}
+P(Z=1\mid X=-0.5)&amp;=\frac{0.0423}{0.0423+0.0223}=0.65\\
+P(Z=1\mid X=0.4)&amp;=\frac{0.0167}{0.0167+0.0691}=0.19\\
+P(Z=1\mid X=1.2)&amp;=\frac{0.0052}{0.0052+0.1347}=0.04
+\end{aligned}$$
+<p><em>[1]</em> for the responsibility. Rule: regime 1 if \(P(Z=1\mid X)&gt;0.5\). So −0.5 → regime 1; 0.4 and 1.2 → regime 2 <em>[1]</em>. Write the rule and both probabilities: the marks are for the working.</p></div></details>
+
+<details><summary>Part (d) [2]</summary><div>
+<p>The derivation is in B2's explanation: setting up \(\hat\pi_1f_1&gt;\hat\pi_2f_2\) with the constants cancelled <em>[1]</em>, solving to \(c=-0.22\) <em>[1]</em>. Consistent with (c): −0.5 is below −0.22, and 0.4 is above it.</p></div></details>
+
+<details><summary>Part (e) [2]</summary><div>
+<p>Misclassified: \(9+3=12\) of 150, so \(8\%\) (accuracy 92%) <em>[1]</em>. The two regimes overlap: \(N(-2.1,2)\) and \(N(2.5,2)\) are only about 3.2 SDs apart, so some regime-1 days fall right of \(c\) and some regime-2 days left of it. Given only \(x\), the rule already picks the more probable regime at every \(x\); the errors are draws from the tails, not a failure of EM <em>[1]</em>. (The table needs the true labels, which only exist because the data were simulated.)</p></div></details>
+
+<h2>4 · Part C: interleaved practice</h2>
+<p>Mixed on purpose: Topic 4 with Topics 1–3 and the Lesson 14–15 toolkit. Several items reuse Part A's six wards, \(\sum x_i=23\), \(\sum t_i=17\), now fitted in other ways.</p>
+
+<div class="quiz num" data-answer="0.28" data-tol="0.005">
+  <p class="q"><strong>1.</strong> <em>(Topic 1.)</em> Ignore the mixture: suppose all six wards share one rate, \(X_i\sim\text{Poisson}(t_i\lambda)\) independently. The MLE is \(\hat\lambda=\sum x_i/\sum t_i\). Using the Fisher information \(I(\lambda)\), give the asymptotic standard error of \(\hat\lambda\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\ell(\lambda)=\sum_i[x_i\log(t_i\lambda)-t_i\lambda-\log x_i!]\), so
+  $$\begin{aligned}\ell'(\lambda)&amp;=\frac{\sum_ix_i}{\lambda}-\sum_it_i\\ \ell''(\lambda)&amp;=-\frac{\sum_ix_i}{\lambda^2}\\ I(\lambda)=-E[\ell''(\lambda)]&amp;=\frac{\sum_it_i\lambda}{\lambda^2}=\frac{\sum_it_i}{\lambda}\\ \text{SE}&amp;=\sqrt{\hat\lambda/\textstyle\sum_it_i}=\sqrt{1.3529/17}\\&amp;=\textbf{0.28}\end{aligned}$$
+  \(\hat\lambda=23/17=1.35\). The expectation uses \(E X_i=t_i\lambda\): the course's \(I(\lambda)\) is for the whole sample (<a href="0001-mle-fisher-information.html">Lesson 1</a>).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> <em>(Topic 2.)</em> Which R call fits Q1's single-rate model, and how do you get \(\hat\lambda\) from it?</p>
+  <div class="opts">
+    <button class="opt" data-key="a"><code>glm(x/t ~ 1, family = poisson)</code>, then the intercept itself</button>
+    <button class="opt" data-key="b"><code>glm(x ~ log(t), family = poisson)</code>, then exp of the intercept</button>
+    <button class="opt" data-key="c"><code>glm(x ~ offset(log(t)), family = poisson)</code>, then exp of the intercept</button>
+    <button class="opt" data-key="d"><code>glm(x ~ offset(t), family = poisson)</code>, then exp of the intercept</button>
+  </div>
+  <div class="why">\(\log E X_i=\log t_i+\log\lambda\), so \(\log t_i\) enters with coefficient fixed at 1 (an offset) and the intercept is \(\beta_0=\log\lambda\). R gives \(\hat\beta_0=0.30228\) and \(e^{0.30228}=1.3529=23/17\) ✓. (b) estimates a coefficient for \(\log t\) instead of fixing it at 1. (a) models non-integer rates as Poisson, Part A's explain-box error. (d) puts \(t\), not \(\log t\), on the log scale (<a href="0007-poisson-gamma-glms.html">Lesson 7</a>).</div>
+</div>
+
+<div class="quiz num" data-answer="1.65" data-tol="0.01">
+  <p class="q"><strong>3.</strong> <em>(Topic 3.)</em> For Q1's single-rate fit the fitted means are \(\hat\mu_i=t_i\hat\lambda=(2.7059,\ 5.4118,\ 1.3529,\ 6.7647,\ 4.0588,\ 2.7059)\). Compute the Pearson estimate \(\hat\phi\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(X^2=\sum_i(x_i-\hat\mu_i)^2/\hat\mu_i\), with \(v(\mu)=\mu\):
+  $$\begin{aligned}X^2&amp;=1.0755+2.3791+1.3529+1.1299+2.1313+0.1842\\&amp;=8.2529\\ \hat\phi&amp;=\frac{X^2}{n-p}=\frac{8.2529}{6-1}\\&amp;=\textbf{1.65}\end{aligned}$$
+  Above 1: a hidden mix of two rates is unobserved heterogeneity, the textbook cause of overdispersion (<a href="0010-overdispersion.html">Lesson 10</a>). With \(n=6\) this is weak evidence on its own, which Q5 confirms from another angle.</div>
+</div>
+
+<div class="quiz num" data-answer="0.27" data-tol="0.005">
+  <p class="q"><strong>4.</strong> <em>(Topic 3.)</em> The Poisson fit in Q2 reports SE 0.2085 for the intercept \(\log\hat\lambda\). What SE would the quasi-Poisson fit report (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}\text{SE}_{\text{quasi}}&amp;=\text{SE}_{\text{Poisson}}\times\sqrt{\hat\phi}\\&amp;=0.2085\times\sqrt{1.6506}\\&amp;=0.2085\times1.2848\\&amp;=\textbf{0.27}\end{aligned}$$
+  R's quasi-Poisson fit prints 0.2679 with the same estimate 0.3023. Check: the Poisson SE is \(1/\sqrt{\sum x_i}=1/\sqrt{23}=0.2085\), the delta-method version of Q1's SE on the log scale (<a href="0012-quasi-poisson-binomial-output.html">Lesson 12</a>).</div>
+</div>
+
+<div class="quiz num" data-answer="30.01" data-tol="0.02">
+  <p class="q"><strong>5.</strong> <em>(Topic 1 + 4.)</em> Run to convergence, Part A's mixture reaches \(\ell=-12.0029\). Compute its AIC (2 d.p.). The single-rate fit has AIC 27.12. Which model does AIC prefer?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\theta=(\pi,\lambda_1,\lambda_2)\), so \(p=3\):
+  $$\begin{aligned}\text{AIC}&amp;=-2\ell+2p\\&amp;=-2(-12.0029)+2(3)\\&amp;=24.0058+6\\&amp;=\textbf{30.01}\end{aligned}$$
+  \(30.01&gt;27.12\), so AIC prefers the single rate (\(\hat\ell=-12.56\), \(p=1\)). Two extra parameters buy only 0.56 in \(\ell\): with six wards there isn't enough data to support two regimes. More components always raise \(\ell\), so \(\ell\) alone can't choose \(K\) (<a href="0003-deviance-lrt-aic.html">Lesson 3</a>, <a href="0020-reading-em-r-code.html">Lesson 20</a>).</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Q3 says the single-rate model is overdispersed, but Q5's AIC prefers it over the mixture. Is that a contradiction?</p>
+<details><summary>Model answer</summary><div>
+<p>No. \(\hat\phi=1.65\) says the counts vary more than one Poisson rate allows, and a mixture is one possible explanation of that extra variation. But with only six wards, the improvement in fit (0.56 in \(\ell\)) is smaller than AIC's penalty for two extra parameters (2 in AIC units each), so the data can't distinguish "two rates" from "one rate plus noise". With more wards, the same pattern would push AIC towards the mixture. Quasi-Poisson would fix the SEs without saying where the extra variance comes from.</p></div></details>
+</div>
+
+<div class="quiz num" data-answer="1.39" data-tol="0.005">
+  <p class="q"><strong>6.</strong> <em>(Lesson 15, conjugacy.)</em> Bayesian version of Q1: prior \(\lambda\sim\text{Gamma}(2,1)\) (shape, rate), \(X_i\mid\lambda\sim\text{Poisson}(t_i\lambda)\). Give the posterior mean of \(\lambda\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Keep only what depends on \(\lambda\):
+  $$\begin{aligned}p(\lambda\mid x)&amp;\propto\lambda^{2-1}e^{-\lambda}\prod_i(t_i\lambda)^{x_i}e^{-t_i\lambda}\\&amp;\propto\lambda^{2+\sum x_i-1}e^{-(1+\sum t_i)\lambda}\\&amp;=\lambda^{25-1}e^{-18\lambda}\end{aligned}$$
+  A Gamma(25, 18) kernel, so \(E[\lambda\mid x]=25/18=\textbf{1.39}\) (formula sheet: Gamma mean \(a/b\)). Each exposure unit adds 1 to the rate parameter, each event adds 1 to the shape (<a href="0015-kernels-and-conjugacy.html">Lesson 15</a>).</div>
+</div>
+
+<div class="quiz num" data-answer="4.19" data-tol="0.01">
+  <p class="q"><strong>7.</strong> <em>(Lesson 14, Eve's law.)</em> Take the converged fit as \(\pi=0.56\), \(\lambda_1=0.74\), \(\lambda_2=2.01\). For a new ward of unknown type with \(t=2\), compute \(\operatorname{Var}X\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Given \(Z\), \(X\sim\text{Poisson}(2\lambda_Z)\), so \(E(X\mid Z)=\operatorname{Var}(X\mid Z)=2\lambda_Z\).
+  $$\begin{aligned}\bar\lambda&amp;=0.56(0.74)+0.44(2.01)=1.2988\\ E X&amp;=2\bar\lambda=2.5976\\ \operatorname{Var}X&amp;=E[2\lambda_Z]+\operatorname{Var}[2\lambda_Z]\\&amp;=2\bar\lambda+4\pi(1-\pi)(\lambda_1-\lambda_2)^2\\&amp;=2.5976+4(0.2464)(1.6129)\\&amp;=2.5976+1.5897\\&amp;=\textbf{4.19}\end{aligned}$$
+  The between-regime term scales with \(t^2\), the within term with \(t\): longer exposures look <em>more</em> overdispersed (ratio 1.61 here) (<a href="0014-probability-toolkit.html">Lesson 14</a>).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>8.</strong> <em>(Lesson 19 twist.)</em> Add wards 7 and 8 to Part A, drawn from the same network, whose type was audited and <em>recorded</em> as high-risk (\(Z_7=Z_8=2\) observed). How does the M-step change?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\hat\pi=\sum_{i\le6}\gamma_{i1}/6\); \(\hat\lambda_2\) adds both wards' counts and exposures</button>
+    <button class="opt" data-key="b">\(\hat\pi=\sum_{i\le6}\gamma_{i1}/8\); \(\hat\lambda_2\) adds both wards' counts and exposures</button>
+    <button class="opt" data-key="c">\(\hat\pi=(\sum_{i\le6}\gamma_{i1}+2)/8\); \(\hat\lambda_2\) stays exactly as in Part A</button>
+    <button class="opt" data-key="d">\(\hat\pi=\sum_{i\le6}\gamma_{i1}/8\); \(\hat\lambda_2\) adds both wards' counts but not exposures</button>
+  </div>
+  <div class="why">An observed \(Z_j=2\) contributes \(\log(1-\pi)+x_j\log(t_j\lambda_2)-t_j\lambda_2-\log x_j!\) with weight 1. The \(\pi\) equation becomes \(\sum_{i\le6}\gamma_{i1}/\pi=(\sum_{i\le6}\gamma_{i2}+2)/(1-\pi)\), so \(\sum_{i\le6}\gamma_{i1}=8\pi\). And \(\hat\lambda_2=(\sum_{i\le6}\gamma_{i2}x_i+x_7+x_8)/(\sum_{i\le6}\gamma_{i2}t_i+t_7+t_8)\). (a) is right only if the two wards had no \(Z\) at all (e.g. a separate high-risk register); (c) would be for observed \(Z_j=1\) (<a href="0019-em-exam-twists.html">Lesson 19</a> §2).</div>
+</div>
+
+<div class="quiz num" data-answer="0.88" data-tol="0.005">
+  <p class="q"><strong>9.</strong> <em>(Lesson 18–19.)</em> Repair times \(X_i\mid Z_i=k\sim\text{Exponential}(\lambda_k)\), separate rates. Data \(x=(0.5,\ 2.0,\ 3.5)\) with E-step output \(\gamma_{i1}=(0.9,\ 0.4,\ 0.1)\). Compute \(\hat\lambda_1\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Terms involving \(\lambda_1\): \(\sum_i\gamma_{i1}(\log\lambda_1-\lambda_1x_i)\).
+  $$\begin{aligned}\frac{\partial Q}{\partial\lambda_1}&amp;=\frac{\sum_i\gamma_{i1}}{\lambda_1}-\sum_i\gamma_{i1}x_i=0\\ \hat\lambda_1&amp;=\frac{\sum_i\gamma_{i1}}{\sum_i\gamma_{i1}x_i}\\&amp;=\frac{1.4}{0.45+0.8+0.35}=\frac{1.4}{1.6}\\&amp;=\textbf{0.88}\end{aligned}$$
+  (0.875, which rounds to 0.88.) The Exponential rate MLE is \(1/\bar x\), so the weighted version is inverted. The Poisson-style weighted mean \(1.6/1.4=1.14\) estimates \(1/\lambda_1\). Similarly \(\hat\lambda_2=1.6/4.4=0.36\).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>10.</strong> <em>(Topic 2.)</em> The Exponential(rate \(\lambda\)) density \(\lambda e^{-\lambda x}\) is an exponential family with \(\phi=1\). Which is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\theta=-\lambda\), \(b(\theta)=-\log(-\theta)\), \(v(\mu)=\mu\)</button>
+    <button class="opt" data-key="b">\(\theta=\log\lambda\), \(b(\theta)=e^\theta\), \(v(\mu)=\mu\)</button>
+    <button class="opt" data-key="c">\(\theta=\lambda\), \(b(\theta)=\log\theta\), \(v(\mu)=1/\mu\)</button>
+    <button class="opt" data-key="d">\(\theta=-\lambda\), \(b(\theta)=-\log(-\theta)\), \(v(\mu)=\mu^2\)</button>
+  </div>
+  <div class="why">\(\lambda e^{-\lambda x}=\exp\{x(-\lambda)-(-\log\lambda)\}\), so \(\theta=-\lambda\) and \(b(\theta)=-\log\lambda=-\log(-\theta)\). Then \(b'(\theta)=-1/\theta=1/\lambda=\mu\) and \(b''(\theta)=1/\theta^2=\mu^2\), so \(v(\mu)=\mu^2\): the Gamma family's variance function, and canonical link \(\theta=-1/\mu\). (b) is the Poisson. (a) has the right \(\theta\) and \(b\) but the wrong \(b''\) (<a href="0005-exponential-families.html">Lesson 5</a>).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>11.</strong> <em>(Lesson 17.)</em> With \(\hat\theta=\arg\max_\theta Q(\theta,\theta^0)\), which statement does the EM lower-bound argument guarantee?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\ell(\hat\theta)-\ell(\theta^0)\ge Q(\hat\theta,\theta^0)-Q(\theta^0,\theta^0)\ge0\), at every iteration</button>
+    <button class="opt" data-key="b">\(\ell(\hat\theta)\) reaches the global maximum of \(\ell\) once enough iterations run</button>
+    <button class="opt" data-key="c">\(Q(\hat\theta,\theta^0)\ge\ell(\hat\theta)\), with equality holding only once EM has converged</button>
+    <button class="opt" data-key="d">\(\ell(\hat\theta)-\ell(\theta^0)=Q(\hat\theta,\theta^0)-Q(\theta^0,\theta^0)\) exactly, at every iteration</button>
+  </div>
+  <div class="why">Jensen gives \(\ell(\hat\theta)\ge Q(\hat\theta,\theta^0)+C\) and Bayes' rule makes it tight at \(\theta^0\): \(\ell(\theta^0)=Q(\theta^0,\theta^0)+C\). Subtract: \(\ell(\hat\theta)-\ell(\theta^0)\ge Q(\hat\theta,\theta^0)-Q(\theta^0,\theta^0)\), which is \(\ge0\) by the M-step. So \(\ell\) gains at least as much as \(Q\). (b) is false: local maxima and stuck starts (Part B's EM3). (c) has the bound upside down. (d) would need the bound to be tight at \(\hat\theta\) too (<a href="../lectures/EM_LMS-1.pdf#page=22">EM slides 22–23</a>).</div>
+</div>
+
+<div class="quiz num" data-answer="0.30" data-tol="0.005">
+  <p class="q"><strong>12.</strong> <em>(Lesson 16.)</em> A fitted GMM: \(\pi_1=0.3\), component 1 \(N(0,1)\), component 2 \(N(2,9)\). Compute \(P(Z=1\mid X=1.5)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">The \(1/\sqrt{2\pi}\) cancels; the \(1/\sigma_k\) don't (SDs 1 and 3):
+  $$\begin{aligned}\pi_1f_1&amp;\propto\frac{0.3}{1}e^{-1.5^2/2}\\&amp;=0.3\times0.324652=0.097396\\ \pi_2f_2&amp;\propto\frac{0.7}{3}e^{-(1.5-2)^2/18}\\&amp;=0.233333\times0.986207=0.230115\\ P(Z=1\mid X=1.5)&amp;=\frac{0.097396}{0.097396+0.230115}\\&amp;=\textbf{0.30}\end{aligned}$$
+  So cluster 2. Dropping the \(1/\sigma_k\) gives 0.12, still cluster 2 but the wrong number, and the marks are for the number.</div>
+</div>
+
+<h2>5 · Before you score: what a full-mark answer looks like</h2>
+<p>Compare your Part A page with these five habits. Each is worth about a mark on a 12-mark question.</p>
+<ol class="steps">
+  <li>Indicators as exponents in the complete likelihood, with \(\pi\) and \(1-\pi\) (never a free \(\pi_2\) for \(K=2\)).</li>
+  <li>The sentence "given \(X\), only the indicators are random; by linearity and \(E[I(Z_i=k)]=P(Z_i=k\mid X_i,\theta^0)\) …".</li>
+  <li>Superscript 0 on every parameter in the E-step; none in the log densities of \(Q\).</li>
+  <li>"The terms of \(Q\) involving \(\lambda_1\) are …" before every derivative.</li>
+  <li>The reason next to the step that uses \(\gamma_{i1}+\gamma_{i2}=1\).</li>
+</ol>
+
+<h2>6 · Score yourself</h2>
+<p>Use first attempts only. Part A: out of 12 with the marks guide; Part B: out of 12; Part C: out of 12.</p>
+<div class="tablewrap"><table>
+<tr><th>If you missed…</th><th>Skill</th><th>Revisit</th></tr>
+<tr><td>Recall 1–3, A (a)–(b), C11</td><td>The algorithm, three log-likelihoods, building \(Q\), monotonicity</td><td><a href="0017-em-algorithm-q-function.html">Lesson 17</a> §1–3, §6</td></tr>
+<tr><td>A (c), A1, B1, B (c), C12</td><td>Responsibilities: what cancels, \(\pi_k\) and \(1/\sigma_k\) stay, exposure stays in the exponent</td><td><a href="0016-mixture-models-and-responsibilities.html">Lesson 16</a> §4; <a href="0017-em-algorithm-q-function.html">Lesson 17</a> §5</td></tr>
+<tr><td>A (d), A2, A3, C9</td><td>M-step derivations; the right denominator</td><td><a href="0018-m-step-derivations.html">Lesson 18</a> §2, §4, §7</td></tr>
+<tr><td>C8, recall 6</td><td>Twists: observed vs absent labels, tied parameters</td><td><a href="0019-em-exam-twists.html">Lesson 19</a> §1–3</td></tr>
+<tr><td>B (a), (b), (e), C5</td><td>Reading <code>mixture.EM</code> output: which run, label switching, stuck, <code>max.iter</code>; AIC for \(K\)</td><td><a href="0020-reading-em-r-code.html">Lesson 20</a> §4–6</td></tr>
+<tr><td>B (d), B2</td><td>Classification boundary</td><td><a href="0016-mixture-models-and-responsibilities.html">Lesson 16</a> §4; <a href="../reference/em-cheatsheet.html">EM cheat sheet</a></td></tr>
+<tr><td>C1, C5</td><td>MLE, Fisher information, AIC</td><td><a href="0001-mle-fisher-information.html">Lesson 1</a>; <a href="0003-deviance-lrt-aic.html">Lesson 3</a></td></tr>
+<tr><td>C2, C10</td><td>Offsets; exponential-family form and \(v(\mu)\)</td><td><a href="0007-poisson-gamma-glms.html">Lesson 7</a>; <a href="0005-exponential-families.html">Lesson 5</a></td></tr>
+<tr><td>C3, C4</td><td>Pearson \(\hat\phi\), quasi SEs</td><td><a href="0010-overdispersion.html">Lesson 10</a>; <a href="0012-quasi-poisson-binomial-output.html">Lesson 12</a></td></tr>
+<tr><td>C6, C7</td><td>Conjugate Gamma–Poisson; Eve's law for mixtures</td><td><a href="0015-kernels-and-conjugacy.html">Lesson 15</a>; <a href="0014-probability-toolkit.html">Lesson 14</a> §4</td></tr>
+</table></div>
+<p><strong>Topic 4 is done when:</strong> Part A ≥ 10/12 inside 25 minutes, Part B ≥ 10/12, and Part C ≥ 10/12 first try. Otherwise, do the revisits, then redo only the parts you missed.</p>
+
+<h2>7 · Spaced review plan to 10 Nov</h2>
+<p>Retrieval spaced over growing gaps sticks far better than rereading. DS and DE come first until 5 Nov, so the Topic 4 slots before then are short.</p>
+<div class="tablewrap"><table>
+<tr><th>When</th><th>What (closed book, timed)</th><th>Time</th></tr>
+<tr><td>Sun 25 Oct (+1 day)</td><td>Part A (c)–(e) again on a blank page; recall list §1</td><td>15 min</td></tr>
+<tr><td>Tue 27 Oct (+3 days)</td><td>Part B (b)–(d) from the printout only; homework 3 below</td><td>15 min</td></tr>
+<tr><td>Sat 31 Oct (+1 week)</td><td>Ask me for a fresh EM question (new twist) and do it in 25 min</td><td>30 min</td></tr>
+<tr><td>Fri 6 Nov</td><td>Sit the 2020–2022 EM questions cold as part of the past-paper runs (they've been kept unseen for this)</td><td>30 min each</td></tr>
+<tr><td>Sun 8 Nov</td><td>Write the EM lines of your A4 sheet from memory; compare with the <a href="../reference/em-cheatsheet.html">cheat sheet</a>'s 8 suggested lines</td><td>20 min</td></tr>
+<tr><td>Mon 9 Nov</td><td>One last pass: redo whichever of Parts A–C scored lowest</td><td>25 min</td></tr>
+</table></div>
+
+<h2>8 · Homework (by hand, no R)</h2>
+<ol>
+  <li><strong>Tute week 7, Q1 and Q2(c), printout version.</strong> Open <code>tutes/2026_MAST30027_week7_sol.html</code> and read (don't write) its code and output for Q1 and Q2(c). Then answer: (a) In the simulation loop, what does <code>Z[i] &lt;- rbinom(1, 1, pi_2)</code> followed by <code>if(Z[i] == 0) … else …</code> do, and why does <code>mean(Z)</code> \(=0.24\) estimate the proportion of component <em>2</em>? (b) EM1 and EM2 report \(\hat\pi=(0.29,0.71)\), \(\hat\lambda=(7.12,2.05)\) and \((0.71,0.29)\), \((2.05,7.12)\), both with \(\ell=-229.834\). Explain. (c) EM3 starts at \(\lambda^0=(5,5)\) and ends at \(\hat\pi=(0.3,0.7)\), \(\hat\lambda=(3.5,3.5)\). Show that 3.5 is \(\bar x\) using the printed group means 2.171 and 7.708 and \(\text{mean}(Z)=0.24\), and say why \(\hat\pi\) never moved. (d) At EM2's estimates, compute \(P(Z_i=1\mid X_i=4)\) (2 d.p.) and classify the observation.</li>
+  <li><strong>Lecturer's three-component derivation, cold.</strong> Reproduce \(Q\), the E-step and all M-step updates of <a href="../lectures/Formal%20derivation%20of%20the%20EM%20algorithm%20for%20a%20three-component%20GMM.pdf">Formal derivation of the EM algorithm for a three-component GMM</a> in 20 minutes on a blank page, then check line by line. Use Lagrange for the \(\pi_k\).</li>
+  <li><strong>Part A with a known block.</strong> Keep Part A's model for wards \(1,\dots,m\), and add wards \(m+1,\dots,n\) from a national register of standard wards: \(X_i\sim\text{Poisson}(t_i\lambda_1)\), no \(Z_i\). Write the extra term in \(Q\), and derive \(\hat\pi\) and \(\hat\lambda_1\).</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1. (a) <code>rbinom(1, 1, pi_2)</code> is a Bernoulli(0.2) draw: \(Z_i=1\) means component 2 (Poisson(8)) and \(Z_i=0\) means component 1 (Poisson(2)), the tute's 0/1 coding of Categorical(0.8, 0.2). The mean of a 0/1 vector is the share of 1s, i.e. of component-2 draws. (b) Label switching: one fit with the components numbered the other way, so the same \(\ell\); either can be reported (the solution keeps EM1). (c) \(\bar x=0.76(2.171)+0.24(7.708)=1.650+1.850=3.50\). With \(\lambda_1^0=\lambda_2^0\), \(f_1(x_i)=f_2(x_i)\), so \(\gamma_{i1}=\pi_1^0=0.3\) for every \(i\): \(\hat\pi_1=0.3\) and both \(\hat\lambda_k=\bar x\). A stuck stationary point, \(\ell=-258.38\), far below −229.83. (d) The \(4!\) cancels:</p>
+$$\begin{aligned}
+0.71\times2.05^4e^{-2.05}&amp;=0.71\times17.661\times0.128735\\
+&amp;=1.6142\\
+0.29\times7.12^4e^{-7.12}&amp;=0.29\times2569.9\times0.000809\\
+&amp;=0.6028\\
+P(Z_i=1\mid X_i=4)&amp;=\frac{1.6142}{1.6142+0.6028}\\
+&amp;=0.73
+\end{aligned}$$
+<p>Component 1 (the Poisson(2.05) component in EM2's labelling). R with the rounded estimates: 0.7281.</p>
+<p>2. Check against the PDF, especially: \(\pi_3=1-\pi_1-\pi_2\) or the multiplier; \(\hat\sigma_k^2\) uses \(\hat\mu_k\); the multiplier comes out as \(n\).</p>
+<p>3. Extra term: \(\sum_{i=m+1}^n\big[x_i\log t_i+x_i\log\lambda_1-t_i\lambda_1-\log x_i!\big]\), weight 1, no \(\log\pi\). So</p>
+$$\begin{aligned}
+\hat\pi&amp;=\frac1m\sum_{i=1}^m\gamma_{i1}\\
+\hat\lambda_1&amp;=\frac{\sum_{i=1}^m\gamma_{i1}x_i+\sum_{i=m+1}^nx_i}{\sum_{i=1}^m\gamma_{i1}t_i+\sum_{i=m+1}^nt_i}
+\end{aligned}$$
+<p>\(\hat\lambda_2\) is unchanged (sums over \(i\le m\) only). The register wards are not sampled from the network's mixture, so they say nothing about \(\pi\).</p></div></details>
+
+<p><strong>Primary source:</strong> the lecture slides, <a href="../lectures/EM_LMS-1.pdf#page=16">Introduction to EM: GMM, slides 16–20</a> (algorithm, multiple starts, the formal GMM derivation), with the lecturer's handwriting in <a href="../annotated-slides/EM_LMS-1%204.pdf#page=33">the annotated version, p. 33</a>. Then her <a href="../extra-notes/EM_GMM_2026%20derivations.pdf">EM_GMM_2026 derivations</a> (every step on its own line, the format to copy), and <a href="../extra-notes/EM-updated.qmd">EM-updated.qmd</a> for the R. One-page summary: <a href="../reference/em-cheatsheet.html">EM cheat sheet</a>.</p>
+
+<div class="ask">💬 Ask me in the terminal about anything that felt shaky. Paste or photograph your Part A page and I'll mark it out of 12 the way an exam marker would, line by line. If you want another cold EM question (a binomial or Gamma mixture, a three-component twist, a censored-data EM), ask and I'll write one at the same level. I'm your teacher for this.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0020-reading-em-r-code.html">Lesson 20, Reading the EM R code</a> · Reference: <a href="../reference/em-cheatsheet.html">EM cheat sheet</a> · <a href="../reference/probability-toolkit.html">Probability toolkit</a> · <a href="../reference/likelihood-cheatsheet.html">Likelihood cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: Lesson 22, Topic 5: Bayesian inference (coming)</span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>
