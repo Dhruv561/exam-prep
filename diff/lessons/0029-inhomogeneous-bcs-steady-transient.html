@@ -49,26 +49,87 @@
 
 <h2>1 · The recipe (Lecture 23, Problem 3)</h2>
 <p>Separation of variables needs <em>homogeneous</em> BCs: $X(0)T(t)=5$ for all $t$ is impossible. So peel off a time-independent piece that carries the non-zero data.</p>
+<p>General problem: $u_t=\alpha u_{xx}+q(x)$ on $0&lt;x&lt;L$, non-zero BCs, $u(x,0)=f(x)$. Write $u(x,t)=u_S(x)+u_T(x,t)$.</p>
 <div class="box">
 <ol class="steps">
-<li><strong>Steady state.</strong> Put $u=u_S(x)$ into the PDE ($u_t=0$): $\alpha u_S''+(\text{source})=0$. Solve the ODE, impose the <em>inhomogeneous</em> BCs.</li>
-<li><strong>Transient BCs.</strong> $u_T=u-u_S$. Subtract: every BC becomes $\dots=0$ (same type, same end).</li>
-<li><strong>Transient IC.</strong> $u_T(x,0)=f(x)-u_S(x)=:g(x)$.</li>
-<li><strong>SoV on $u_T$</strong>: homogeneous heat equation, homogeneous BCs. Three cases, eigen-table, $T_n$, superpose, match $g$ (by inspection or half-range integral).</li>
-<li><strong>Answer.</strong> $u=u_S+u_T$. Every $T_n\to0$, so $u\to u_S$ as $t\to\infty$.</li>
+<li><strong>Find $u_S$.</strong> It doesn't depend on $t$, so $u_t=0$. Then solve an ODE and apply the original BCs:
+$$\begin{aligned}
+&0=\alpha u_S''+q(x) &&\text{set } u_t=0\\
+&u_S''=-\frac{q(x)}{\alpha} &&\text{rearrange}\\
+&u_S'=-\frac1\alpha\int q\,dx+A &&\text{integrate once}\\
+&u_S=-\frac1\alpha\iint q\,dx\,dx+Ax+B &&\text{integrate again}\\
+&\text{BC at }x=0\;\Rightarrow\;\text{equation 1 in }A,B &&u_S(0)=\text{value or }u_S'(0)=\text{slope}\\
+&\text{BC at }x=L\;\Rightarrow\;\text{equation 2 in }A,B &&\text{same at }x=L\\
+&\text{solve for }A,B\;\Rightarrow\;u_S(x) &&
+\end{aligned}$$
+No source ($q=0$): $u_S''=0$, so $u_S=Ax+B$.</li>
+<li><strong>PDE for $u_T$.</strong> Subtract the $u_S$ equation from the PDE:
+$$\begin{aligned}
+&u_T=u-u_S &&\text{definition}\\
+&(u_T)_t=u_t &&u_S\text{ has no }t\\
+&\phantom{(u_T)_t}=\alpha u_{xx}+q &&\text{original PDE}\\
+&\phantom{(u_T)_t}=\alpha (u_T)_{xx}+\big(\alpha u_S''+q\big) &&u_{xx}=(u_T)_{xx}+u_S''\\
+&\phantom{(u_T)_t}=\alpha (u_T)_{xx} &&\alpha u_S''+q=0\text{ from step 1}
+\end{aligned}$$
+The source drops out only if it depends on $x$ alone.</li>
+<li><strong>BCs for $u_T$.</strong> At each end, subtract the $u_S$ value from the $u$ value. The BC type stays the same:
+$$\begin{aligned}
+&u_T(0,t)=u(0,t)-u_S(0)=T_0-T_0=0 &&\text{Dirichlet end}\\
+&\partial_xu_T(L,t)=u_x(L,t)-u_S'(L)=c-c=0 &&\text{Neumann end}
+\end{aligned}$$</li>
+<li><strong>IC for $u_T$.</strong>
+$$\begin{aligned}
+&u_T(x,0)=u(x,0)-u_S(x) &&\text{set }t=0\\
+&\phantom{u_T(x,0)}=f(x)-u_S(x)=:g(x) &&\text{simplify}
+\end{aligned}$$</li>
+<li><strong>Solve for $u_T$ by SoV</strong> (Lesson 28):
+$$\begin{aligned}
+&X_n,\;k_n &&\text{eigen-table, from }u_T\text{'s BCs}\\
+&T_n=e^{-\alpha k_n^2t} &&\text{time ODE}\\
+&u_T=\sum_n b_n\,e^{-\alpha k_n^2t}X_n(x) &&\text{superpose}\\
+&\sum_n b_nX_n(x)=g(x) &&\text{set }t=0\\
+&b_n &&\text{match terms, or half-range integral}
+\end{aligned}$$</li>
+<li><strong>Answer.</strong>
+$$\begin{aligned}
+&u(x,t)=u_S(x)+u_T(x,t) &&\text{add}\\
+&\lim_{t\to\infty}u=u_S(x) &&\text{every }e^{-\alpha k_n^2t}\to0
+\end{aligned}$$</li>
 </ol>
 </div>
-<p>Why the source disappears from $u_T$: $u_t=\alpha u_{xx}+q(x)$ and $0=\alpha u_S''+q$. Subtract: $(u_T)_t=\alpha (u_T)_{xx}$. The source must depend on $x$ only for this to work.</p>
 
 <p><strong>Example A (inhomogeneous Dirichlet, IC by matching).</strong> $u_t=2u_{xx}$, $0&lt;x&lt;\pi$; $u(0,t)=1$, $u(\pi,t)=3$; $u(x,0)=1+\frac{2x}{\pi}+4\sin2x-\sin5x$.</p>
-<details><summary>Steps 1–3</summary><div>
-<p>$u_S''=0\Rightarrow u_S=Ax+B$. $u_S(0)=1\Rightarrow B=1$; $u_S(\pi)=3\Rightarrow A=\frac2\pi$. So $u_S=1+\frac{2x}{\pi}$.</p>
-<p>$u_T(0,t)=1-u_S(0)=0$, $u_T(\pi,t)=3-u_S(\pi)=0$. $g(x)=4\sin2x-\sin5x$.</p>
+<details><summary>Step 1: $u_S$</summary><div>
+$$\begin{aligned}
+&2u_S''=0\;\Rightarrow\;u_S''=0 &&\text{set }u_t=0\\
+&u_S'=A &&\text{integrate}\\
+&u_S=Ax+B &&\text{integrate}\\
+&u_S(0)=B=1 &&\text{BC at }x=0\\
+&u_S(\pi)=A\pi+1=3\;\Rightarrow\;A=\tfrac2\pi &&\text{BC at }x=\pi\\
+&u_S=1+\frac{2x}{\pi} &&\text{substitute}
+\end{aligned}$$
 </div></details>
-<details><summary>Steps 4–5</summary><div>
-<p>Dirichlet–Dirichlet, $L=\pi$: $X_n=\sin nx$, $T_n=e^{-2n^2t}$, $u_T=\sum b_ne^{-2n^2t}\sin nx$. At $t=0$: $\sum b_n\sin nx=4\sin2x-\sin5x$, so by orthogonality $b_2=4$, $b_5=-1$, all others $0$.</p>
-$$u=1+\frac{2x}{\pi}+4e^{-8t}\sin2x-e^{-50t}\sin5x.$$
-<p>Midpoint: $\sin\pi=0$, $\sin\frac{5\pi}2=1$, so $u(\frac\pi2,t)=2-e^{-50t}\to2$.</p>
+<details><summary>Steps 2–4: PDE, BCs, IC for $u_T$</summary><div>
+$$\begin{aligned}
+&(u_T)_t=2(u_T)_{xx} &&\text{no source, so same PDE}\\
+&u_T(0,t)=1-u_S(0)=1-1=0 &&\text{left BC}\\
+&u_T(\pi,t)=3-u_S(\pi)=3-3=0 &&\text{right BC}\\
+&u_T(x,0)=\Big(1+\tfrac{2x}{\pi}+4\sin2x-\sin5x\Big)-\Big(1+\tfrac{2x}{\pi}\Big) &&f-u_S\\
+&\phantom{u_T(x,0)}=4\sin2x-\sin5x &&\text{simplify}
+\end{aligned}$$
+</div></details>
+<details><summary>Steps 5–6: solve for $u_T$, then $u$</summary><div>
+$$\begin{aligned}
+&X_n=\sin nx,\;k_n=n &&\text{Dirichlet–Dirichlet},\;L=\pi\\
+&T_n=e^{-2n^2t} &&\alpha=2\\
+&u_T=\sum_{n\ge1}b_ne^{-2n^2t}\sin nx &&\text{superpose}\\
+&\sum_{n\ge1}b_n\sin nx=4\sin2x-\sin5x &&t=0\\
+&b_2=4,\;b_5=-1,\;\text{all other }b_n=0 &&\text{match terms}\\
+&u_T=4e^{-8t}\sin2x-e^{-50t}\sin5x &&\text{substitute}\\
+&u=1+\frac{2x}{\pi}+4e^{-8t}\sin2x-e^{-50t}\sin5x &&u_S+u_T\\
+&u(\tfrac\pi2,t)=2+4e^{-8t}\sin\pi-e^{-50t}\sin\tfrac{5\pi}2=2-e^{-50t} &&\text{midpoint}\\
+&u(\tfrac\pi2,t)\to2 &&t\to\infty
+\end{aligned}$$
 </div></details>
 
 <div id="plot-a"></div>
@@ -141,7 +202,17 @@ $$u=1+\frac{2x}{\pi}+4e^{-8t}\sin2x-e^{-50t}\sin5x.$$
 
 <h2>3 · Source term: polynomial steady state</h2>
 <p>$u_t=\alpha u_{xx}+q(x)$ with polynomial $q$: $u_S''=-q/\alpha$, integrate twice. A constant source gives a parabola, a linear source a cubic. (The 2021 paper phrased it as "trial $\sum_{n=0}^3 a_nx^n$": same thing.)</p>
-<p><strong>Example B.</strong> $u_t=u_{xx}+2$, $u(0,t)=u(1,t)=0$: $u_S''=-2\Rightarrow u_S=-x^2+Ax+B$; $B=0$, $-1+A=0$. So $u_S=x(1-x)$: the generated heat leaves through both cold ends, hottest in the middle.</p>
+<p><strong>Example B.</strong> $u_t=u_{xx}+2$, $u(0,t)=u(1,t)=0$.</p>
+$$\begin{aligned}
+&0=u_S''+2 &&\text{set }u_t=0\\
+&u_S''=-2 &&\text{rearrange}\\
+&u_S'=-2x+A &&\text{integrate}\\
+&u_S=-x^2+Ax+B &&\text{integrate}\\
+&u_S(0)=B=0 &&\text{BC at }x=0\\
+&u_S(1)=-1+A=0\;\Rightarrow\;A=1 &&\text{BC at }x=1\\
+&u_S=x-x^2=x(1-x) &&\text{substitute}
+\end{aligned}$$
+<p>The generated heat leaves through both cold ends, so the rod is hottest in the middle.</p>
 
 <div class="trap"><strong>Divide by $\alpha$</strong><br>
 $u_t=3u_{xx}+6$ gives $3u_S''=-6$, i.e. $u_S''=-2$, not $-6$. And the sign: $u_S''=-q/\alpha$ (a positive source makes $u_S$ concave down).</div>
@@ -165,8 +236,28 @@ $d$ cancels. As $t\to\infty$, $u\to bx+C$ with $C$ chosen so that $bx+C$ has <st
 
 <p><strong>Example C.</strong> $u_t=u_{xx}$, $0&lt;x&lt;\pi$, $u_x(0,t)=u_x(\pi,t)=1$, $u(x,0)=1+x+4\cos2x$.</p>
 <details><summary>Solution</summary><div>
-<p>$u_S=x+d$. $u_T(x,0)=1-d+4\cos2x$, BCs $\partial_xu_T=0$ at both ends, $u_T=\frac{a_0}2+\sum a_ne^{-n^2t}\cos nx$. Matching: $\frac{a_0}2=1-d$, $a_2=4$.</p>
-$$u=x+d+(1-d)+4e^{-4t}\cos2x=1+x+4e^{-4t}\cos2x\;\to\;1+x.$$
+<p><strong>$u_S$:</strong></p>
+$$\begin{aligned}
+&u_S''=0 &&\text{set }u_t=0\\
+&u_S=Ax+d &&\text{integrate twice}\\
+&u_S'(0)=A=1 &&\text{BC at }x=0\\
+&u_S'(\pi)=A=1\;\checkmark &&\text{BC at }x=\pi\text{: no new info}\\
+&u_S=x+d,\;d\text{ arbitrary} &&\text{substitute}
+\end{aligned}$$
+<p><strong>$u_T$:</strong></p>
+$$\begin{aligned}
+&\partial_xu_T(0,t)=1-1=0,\quad\partial_xu_T(\pi,t)=1-1=0 &&\text{BCs}\\
+&u_T(x,0)=(1+x+4\cos2x)-(x+d)=(1-d)+4\cos2x &&f-u_S\\
+&u_T=\tfrac{a_0}2+\sum_{n\ge1}a_ne^{-n^2t}\cos nx &&\text{Neumann–Neumann},\;L=\pi\\
+&\tfrac{a_0}2=1-d,\;a_2=4,\;\text{other }a_n=0 &&\text{match at }t=0\\
+&u_T=(1-d)+4e^{-4t}\cos2x &&\text{substitute}
+\end{aligned}$$
+<p><strong>$u$:</strong></p>
+$$\begin{aligned}
+&u=(x+d)+(1-d)+4e^{-4t}\cos2x &&u_S+u_T\\
+&\phantom{u}=1+x+4e^{-4t}\cos2x &&d\text{ cancels}\\
+&u\to1+x &&t\to\infty
+\end{aligned}$$
 </div></details>
 
 <div class="trap"><strong>Unequal fluxes: no steady state</strong><br>
@@ -208,11 +299,30 @@ $u_x(0,t)=1$, $u_x(\pi,t)=2$ with no source: $u_S'=A$ can't equal both $1$ and $
 </div>
 <details><summary>P1 solution</summary><div>
 <p>(a) $u(0,t)=2$, $u(1,t)=0$, $u(x,0)=2$.</p>
-<p>(b) $u_S''=0$, $u_S(0)=2$, $u_S(1)=0$: $u_S=2-2x$.</p>
-<p>(c) $(u_T)_t=(u_T)_{xx}$, $u_T(0,t)=u_T(1,t)=0$, $u_T(x,0)=2-(2-2x)=2x$.</p>
-<p>(d) $u_T=\sum b_ne^{-n^2\pi^2t}\sin n\pi x$ with
-$$b_n=2\int_0^1 2x\sin n\pi x\,dx=4\Big[-\frac{x\cos n\pi x}{n\pi}\Big]_0^1+\frac{4}{n\pi}\int_0^1\cos n\pi x\,dx=\frac{4(-1)^{n+1}}{n\pi}.$$
-$$u(x,t)=2-2x+\frac4\pi\sum_{n=1}^\infty\frac{(-1)^{n+1}}{n}e^{-n^2\pi^2t}\sin n\pi x.$$</p>
+<p>(b)</p>
+$$\begin{aligned}
+&u_S''=0 &&\text{set }u_t=0\\
+&u_S=Ax+B &&\text{integrate twice}\\
+&u_S(0)=B=2 &&\text{BC at }x=0\\
+&u_S(1)=A+2=0\;\Rightarrow\;A=-2 &&\text{BC at }x=1\\
+&u_S=2-2x &&\text{substitute}
+\end{aligned}$$
+<p>(c)</p>
+$$\begin{aligned}
+&(u_T)_t=(u_T)_{xx} &&\text{PDE}\\
+&u_T(0,t)=2-u_S(0)=2-2=0 &&\text{left BC}\\
+&u_T(1,t)=0-u_S(1)=0-0=0 &&\text{right BC}\\
+&u_T(x,0)=2-(2-2x)=2x &&f-u_S
+\end{aligned}$$
+<p>(d)</p>
+$$\begin{aligned}
+&u_T=\sum_{n\ge1}b_ne^{-n^2\pi^2t}\sin n\pi x &&\text{Dirichlet–Dirichlet},\;L=1\\
+&b_n=2\int_0^1 2x\sin n\pi x\,dx &&\text{half-range sine}\\
+&\phantom{b_n}=4\Big[-\frac{x\cos n\pi x}{n\pi}\Big]_0^1+\frac{4}{n\pi}\int_0^1\cos n\pi x\,dx &&\text{IBP}\\
+&\phantom{b_n}=-\frac{4(-1)^n}{n\pi}+\frac{4}{n\pi}\Big[\frac{\sin n\pi x}{n\pi}\Big]_0^1 &&\cos n\pi=(-1)^n\\
+&\phantom{b_n}=\frac{4(-1)^{n+1}}{n\pi}+0 &&\sin n\pi=0\\
+&u(x,t)=2-2x+\frac4\pi\sum_{n=1}^\infty\frac{(-1)^{n+1}}{n}e^{-n^2\pi^2t}\sin n\pi x &&u_S+u_T
+\end{aligned}$$
 <p>(e) $\sin\frac{n\pi}2=0$ for even $n$; for $n=2m-1$ it is $(-1)^{m+1}$ and $(-1)^{n+1}=1$:
 $$u(\tfrac12,t)=1+\frac4\pi\sum_{m=1}^\infty\frac{(-1)^{m+1}}{2m-1}e^{-(2m-1)^2\pi^2t}\to1,\qquad u(\tfrac12,t)\approx1+\tfrac4\pi e^{-\pi^2t}.$$
 (Check $t=0$: $1+\frac4\pi\cdot\frac\pi4=2$ ✓.)</p>
@@ -231,8 +341,21 @@ $$u_x(0,t)=-1,\qquad u(\pi,t)=0,\qquad u(x,0)=\pi-x+3\cos\tfrac x2-\cos\tfrac{5x
 (f) Sketch $u$ at $t=0$, $t_1$, $t_2$, $\infty$. <span class="marks">[2]</span></p>
 </div>
 <details><summary>P2 solution</summary><div>
-<p>(a) $u_S=Ax+B$, $u_S'(0)=A=-1$, $u_S(\pi)=-\pi+B=0$. $u_S=\pi-x$.</p>
-<p>(b) $\partial_xu_T(0,t)=-1-(-1)=0$, $u_T(\pi,t)=0$, $u_T(x,0)=3\cos\frac x2-\cos\frac{5x}2$.</p>
+<p>(a)</p>
+$$\begin{aligned}
+&u_S''=0 &&\text{set }u_t=0\\
+&u_S=Ax+B &&\text{integrate twice}\\
+&u_S'(0)=A=-1 &&\text{BC at }x=0\\
+&u_S(\pi)=-\pi+B=0\;\Rightarrow\;B=\pi &&\text{BC at }x=\pi\\
+&u_S=\pi-x &&\text{substitute}
+\end{aligned}$$
+<p>(b)</p>
+$$\begin{aligned}
+&\partial_xu_T(0,t)=u_x(0,t)-u_S'(0)=-1-(-1)=0 &&\text{left BC}\\
+&u_T(\pi,t)=u(\pi,t)-u_S(\pi)=0-0=0 &&\text{right BC}\\
+&u_T(x,0)=\Big(\pi-x+3\cos\tfrac x2-\cos\tfrac{5x}2\Big)-(\pi-x) &&f-u_S\\
+&\phantom{u_T(x,0)}=3\cos\tfrac x2-\cos\tfrac{5x}2 &&\text{simplify}
+\end{aligned}$$
 <p>(c) $X\dot T=3X''T\Rightarrow\frac{\dot T}{3T}=\frac{X''}{X}=\lambda$: $\dot T-3\lambda T=0$, $X''-\lambda X=0$, with $X'(0)=0$, $X(\pi)=0$ (else $T\equiv0$).</p>
 <ul>
 <li>$\lambda=k^2&gt;0$: $X=A\cosh kx+B\sinh kx$. $X'(0)=kB=0\Rightarrow B=0$; $X(\pi)=A\cosh k\pi=0\Rightarrow A=0$. Trivial.</li>
@@ -256,8 +379,27 @@ $$u=\pi-x+3e^{-3t/4}\cos\tfrac x2-e^{-75t/4}\cos\tfrac{5x}2.$$</p>
 (e) Where is the steady temperature highest? <span class="marks">[1]</span></p>
 </div>
 <details><summary>P3 solution</summary><div>
-<p>(a) $u_S''=2a_2+6a_3x=-6x\Rightarrow a_2=0$, $a_3=-1$. $u_S(0)=a_0=1$; $u_S(1)=1+a_1-1=0\Rightarrow a_1=0$. $u_S=1-x^3$.</p>
-<p>(b) $(u_T)_t=u_t=u_{xx}+6x=(u_T)_{xx}+u_S''+6x=(u_T)_{xx}$ since $u_S''=-6x$. BCs: $u_T(0,t)=1-1=0$, $u_T(1,t)=0-0=0$. IC: $1+x-x^3-(1-x^3)=x$.</p>
+<p>(a)</p>
+$$\begin{aligned}
+&0=u_S''+6x\;\Rightarrow\;u_S''=-6x &&\text{set }u_t=0\\
+&u_S''=2a_2+6a_3x &&\text{differentiate trial twice}\\
+&2a_2+6a_3x=-6x &&\text{equate}\\
+&2a_2=0\;\Rightarrow\;a_2=0 &&\text{constant terms}\\
+&6a_3=-6\;\Rightarrow\;a_3=-1 &&x\text{ terms}\\
+&u_S(0)=a_0=1 &&\text{BC at }x=0\\
+&u_S(1)=1+a_1+0-1=0\;\Rightarrow\;a_1=0 &&\text{BC at }x=1\\
+&u_S=1-x^3 &&\text{substitute}
+\end{aligned}$$
+<p>(b)</p>
+$$\begin{aligned}
+&(u_T)_t=u_t &&u_S\text{ has no }t\\
+&\phantom{(u_T)_t}=u_{xx}+6x &&\text{PDE}\\
+&\phantom{(u_T)_t}=(u_T)_{xx}+u_S''+6x &&u=u_S+u_T\\
+&\phantom{(u_T)_t}=(u_T)_{xx}-6x+6x=(u_T)_{xx} &&u_S''=-6x\\
+&u_T(0,t)=1-u_S(0)=1-1=0 &&\text{left BC}\\
+&u_T(1,t)=0-u_S(1)=0-0=0 &&\text{right BC}\\
+&u_T(x,0)=(1+x-x^3)-(1-x^3)=x &&f-u_S
+\end{aligned}$$
 <p>(c) $u_T=\sum b_ne^{-n^2\pi^2t}\sin n\pi x$, $b_n=2\int_0^1x\sin n\pi x\,dx=\frac{2(-1)^{n+1}}{n\pi}$ (one IBP, as in P1).
 $$u=1-x^3+\frac2\pi\sum_{n=1}^\infty\frac{(-1)^{n+1}}{n}e^{-n^2\pi^2t}\sin n\pi x.$$</p>
 <p>(d) Yes: every term has $e^{-n^2\pi^2t}\to0$, so $u\to u_S=1-x^3$. $u(\frac12,t)\to\frac78$.</p>
@@ -273,11 +415,30 @@ $$u=1-x^3+\frac2\pi\sum_{n=1}^\infty\frac{(-1)^{n+1}}{n}e^{-n^2\pi^2t}\sin n\pi 
 (e) If instead $u_x(2,t)=4$, does a steady state exist? <span class="marks">[1]</span></p>
 </div>
 <details><summary>P4 solution</summary><div>
-<p>(a) $u_S''=0$ ✓; $u_S'=3$ at both ends ✓, any $d$.</p>
-<p>(b) $(u_T)_t=2(u_T)_{xx}$, $\partial_xu_T(0,t)=\partial_xu_T(2,t)=0$, $u_T(x,0)=f-3x-d$. Neumann–Neumann, $L=2$:
-$$u_T=\tfrac{a_0}2+\sum_{n\ge1}a_ne^{-2(n\pi/2)^2t}\cos\tfrac{n\pi x}2=\tfrac{a_0}2+\sum_{n\ge1}a_ne^{-n^2\pi^2t/2}\cos\tfrac{n\pi x}2.$$</p>
-<p>(c) $6\cos^2\frac{\pi x}2=3+3\cos\pi x$ (double angle), so $f=3x+2+3\cos\pi x$ and $u_T(x,0)=(2-d)+3\cos\pi x$. $\cos\pi x$ is $n=2$. Match: $\frac{a_0}2=2-d$, $a_2=3$.
-$$u=3x+d+(2-d)+3e^{-2\pi^2t}\cos\pi x=3x+2+3e^{-2\pi^2t}\cos\pi x.$$</p>
+<p>(a)</p>
+$$\begin{aligned}
+&u_S''=0\;\checkmark &&\text{steady ODE}\\
+&u_S'(0)=3,\;u_S'(2)=3\;\checkmark &&\text{both BCs, any }d
+\end{aligned}$$
+<p>(b)</p>
+$$\begin{aligned}
+&(u_T)_t=2(u_T)_{xx} &&\text{PDE}\\
+&\partial_xu_T(0,t)=3-3=0,\quad\partial_xu_T(2,t)=3-3=0 &&\text{BCs}\\
+&u_T(x,0)=f(x)-3x-d &&f-u_S\\
+&k_n=\tfrac{n\pi}2,\;X_n=\cos\tfrac{n\pi x}2,\;n\ge0 &&\text{Neumann–Neumann},\;L=2\\
+&T_n=e^{-2(n\pi/2)^2t}=e^{-n^2\pi^2t/2} &&\alpha=2\\
+&u_T=\tfrac{a_0}2+\sum_{n\ge1}a_ne^{-n^2\pi^2t/2}\cos\tfrac{n\pi x}2 &&\text{superpose}
+\end{aligned}$$
+<p>(c)</p>
+$$\begin{aligned}
+&6\cos^2\tfrac{\pi x}2=3+3\cos\pi x &&\text{double angle}\\
+&f=3x+2+3\cos\pi x &&\text{rewrite IC}\\
+&u_T(x,0)=(3x+2+3\cos\pi x)-(3x+d)=(2-d)+3\cos\pi x &&f-u_S\\
+&\cos\pi x=\cos\tfrac{2\pi x}2\;\Rightarrow\;n=2 &&\text{identify mode}\\
+&\tfrac{a_0}2=2-d,\;a_2=3,\;\text{other }a_n=0 &&\text{match at }t=0\\
+&u=(3x+d)+(2-d)+3e^{-2\pi^2t}\cos\pi x &&u_S+u_T\\
+&\phantom{u}=3x+2+3e^{-2\pi^2t}\cos\pi x &&d\text{ cancels}
+\end{aligned}$$
 <p>(d) $u(1,t)=5-3e^{-2\pi^2t}\to5$. Mean of $f$ on $(0,2)$: $\frac12\int_0^2(3x+2+3\cos\pi x)\,dx=\frac12(6+4+0)=5$; mean of $3x+C$ is $3+C$, so $C=2$ ✓ and $u_S(1)=5$.</p>
 <p>(e) No: $u_S'$ would need to be $3$ at $x=0$ and $4$ at $x=2$, impossible for a line. Net heat flows in; no steady state.</p>
 </div></details>
