@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Case: Binomial Trees on Brent Futures Options</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 47 · Case study (Week 7): Virgin Australia fuel hedging</div>
+<h1>Case: how good is a binomial tree on Brent futures options?</h1>
+<p class="lede">The goal: price three real Brent call options on futures with a two-step tree, see why the error grows with maturity and shrinks with more steps, and write the theory answers (no drift, early exercise, why a model never equals the market) that this case invites.</p>
+
+<div class="mission">Why this matters for 5 Nov: case studies are examinable, the paper has no MCQ, and cases are likely to come as short written answers plus a calculation. This case is half each: a hand-built tree (3 marks of arithmetic you already know from <a href="0021-binomial-trees-for-futures-options.html">Lesson 21</a>) and an "interpret the table" paragraph (2-4 marks). Below: the case in one paragraph, the method, then four exam-style questions (29 marks) with model answers.</div>
+
+<p>Assumes <a href="0020-futures-options-basics-and-parity.html">Lesson 20</a> (futures options, parity, bounds), <a href="0021-binomial-trees-for-futures-options.html">Lesson 21</a> (the futures tree), <a href="0025-bsm-as-the-limit-of-the-binomial-tree.html">Lesson 25</a> (tree becomes BSM as steps grow) and <a href="0027-blacks-model-futures-options-and-fx.html">Lesson 27</a>. Terms: <a href="../reference/glossary.html">glossary</a>. Source: <a href="../cases/Week%207%20Case_Binomial%20on%20Futures%20Options.pdf">Week 7 case (PDF)</a>, Lecture 6 "Options on Futures" slides 3-23.</p>
+
+<h2>1 · The case in one paragraph</h2>
+<p>Airlines carry big fuel risk: in H1 FY2026 Virgin Australia spent A$554.7m on fuel (about 21% of operating costs). It hedges Brent crude and jet-fuel refining margins, partly with options. By April 2026 Virgin had hedged about 92% of Brent exposure and 71% of refining-margin exposure; the unhedged part was expected to add A$30-40m to second-half fuel costs. Qantas hedged about 90% of crude but stayed exposed to refining margins and raised second-half fuel costs by A$600-800m. Virgin's own OTC option prices are private, so the case prices <strong>ICE Brent call futures options</strong> (market data 2 Sep 2026, \(r = 3.87\%\)) as a proxy:</p>
+
+<div class="tablewrap"><table>
+<tr><th></th><th>Option A</th><th>Option B</th><th>Option C</th></tr>
+<tr><td>Futures</td><td>Nov 2026</td><td>Dec 2026</td><td>Jan 2027</td></tr>
+<tr><td>\(F_0\)</td><td>95.63</td><td>92.09</td><td>88.98</td></tr>
+<tr><td>Strike \(K\)</td><td>95.00</td><td>92.00</td><td>89.00</td></tr>
+<tr><td>Days to expiry</td><td>23</td><td>54</td><td>83</td></tr>
+<tr><td>Implied vol \(\sigma\)</td><td>45.94%</td><td>46.88%</td><td>45.57%</td></tr>
+<tr><td>Market price</td><td>4.67</td><td>6.70</td><td>7.72</td></tr>
+</table></div>
+<p>The options are American (Lecture 6 slide 3), so the tree checks early exercise at every node. Use \(T = \text{days}/365\).</p>
+
+<h2>2 · The method (Lecture 6 slides 17-23)</h2>
+<p><strong>Predict first:</strong> for a stock tree \(p = (e^{r\Delta t} - d)/(u-d)\). A futures price costs nothing to hold. What should \(p\) become?</p>
+<details><summary>Reveal</summary><div>
+<p>A futures position needs no investment, so under risk-neutral probabilities its expected change is zero: \(pF_0u + (1-p)F_0d = F_0\). Solving gives</p>
+$$p = \frac{1-d}{u-d}.$$
+<p>The option is still discounted at \(e^{-r\Delta t}\) each step (the premium is paid now). Same as a stock paying a dividend yield \(q = r\) (slide 22).</p>
+</div></details>
+
+<div class="box"><strong>Recipe (each step).</strong>
+$$\Delta t = \frac{T}{N},\quad u = e^{\sigma\sqrt{\Delta t}},\quad d = \frac1u,\quad p = \frac{1-d}{u-d}.$$
+Work back from the terminal payoffs \(\max(F-K,0)\). At every node: continuation value \(= e^{-r\Delta t}[p f_u + (1-p) f_d]\); compare with immediate exercise \(F-K\); keep the larger (American).</div>
+
+<p>Check on the lecture example (slide 17): \(F_0 = 30\), \(K = 29\), up to 33 (payoff 4), down to 28 (payoff 0), \(r = 6\%\), one month. \(u = 1.1\), \(d = 0.9333\), \(p = 0.0667/0.1667 = 0.4\), so \(f = e^{-0.06/12}(0.4 \times 4) = 1.592\), matching the slide.</p>
+
+<div class="trap"><strong>Common slips</strong><br>Using \(p = (e^{r\Delta t}-d)/(u-d)\) (the stock formula); forgetting to discount; forgetting to compare with \(F-K\) at the interior nodes; \(\Delta t\) as the whole \(T\); using \(T\) in months or days rather than years.</div>
+
+<!-- ===================== Q1 ===================== -->
+<div class="exq">
+<h3>Question 1 (8 marks): a two-step tree for Option A</h3>
+<div class="drills">Drills <a href="0021-binomial-trees-for-futures-options.html">Lesson 21</a> (Lecture 6 slides 17-23; case part 1.1)</div>
+<p>Option A: American call on the Nov 2026 Brent future, \(F_0 = 95.63\), \(K = 95\), \(\sigma = 45.94\%\), \(T = 23/365\) years, \(r = 3.87\%\). Use a two-step tree.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Find \(\Delta t\), \(u\), \(d\) and the risk-neutral probability \(p\). Give \(p\) to 4 dp.</span></div>
+<div class="pt"><span class="mk">(b) 3 marks</span><span class="tx">Find the price of the option at time 0, to 2 dp.</span></div>
+<div class="pt"><span class="mk">(c) 3 marks</span><span class="tx">At the up node (\(F = 103.75\)), find the value of exercising immediately, to 2 dp. Then state, with numbers, whether early exercise is optimal there, and what happens at the other interior node.</span></div>
+<div class="quiz num" data-answer="0.4796" data-tol="0.0002">
+  <p class="q">Headline check: (a), \(p\) to 4 dp.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">p</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="4.35" data-tol="0.006">
+  <p class="q">Headline check: (b), option price to 2 dp.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="8.75" data-tol="0.006">
+  <p class="q">Headline check: (c), exercise value at the up node to 2 dp.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> \(\Delta t = 23/365/2 = 0.031507\). \(\sigma\sqrt{\Delta t} = 0.4594 \times 0.17750 = 0.08154\). \(u = e^{0.08154} = 1.0850\), \(d = 0.9217\), and</p>
+$$p = \frac{1-d}{u-d} = \frac{1-0.9217}{1.0850-0.9217} = 0.4796$$
+<p>(keep unrounded \(u, d\) on the calculator; rounded values give 0.4795).</p>
+<p><strong>(b) 3 marks.</strong> Futures prices: \(F_u = 103.75\), \(F_d = 88.14\), \(F_{uu} = 112.57\), \(F_{ud} = 95.63\), \(F_{dd} = 81.24\). Payoffs: 17.57, 0.63, 0. Per-step discount \(e^{-0.0387 \times 0.031507} = 0.99878\).</p>
+<p>Up node: \(0.99878(0.4796 \times 17.57 + 0.5204 \times 0.63) = 8.744\). Down node: \(0.99878(0.4796 \times 0.63) = 0.302\). Time 0: \(0.99878(0.4796 \times 8.755 + 0.5204 \times 0.302) = 4.35\).</p>
+<p><strong>(c) 3 marks.</strong> Exercise at the up node: \(103.75 - 95 = 8.75\) (8.755 unrounded). Continuation: 8.744. So \(8.75 > 8.74\): exercise early, and the node's value is 8.755 (this is the value used at time 0 in (b)). At the down node, exercise is 0 (\(88.14 < 95\)) against continuation 0.302: do not exercise. Early exercise changes the price by under a cent here because the edge is tiny.</p>
+<div class="trap"><strong>Common slips</strong><br>Using \(p\) from the stock formula (\(\approx 0.49\)); not comparing exercise with continuation at the up node; discounting twice at the end; \(T = 23\) instead of \(23/365\).</div>
+</div></details>
+</div>
+
+<!-- ===================== Q2 ===================== -->
+<div class="exq">
+<h3>Question 2 (8 marks): more steps for Option C</h3>
+<div class="drills">Drills <a href="0025-bsm-as-the-limit-of-the-binomial-tree.html">Lesson 25</a> (case parts 1.2, 2.1, 2.2)</div>
+<p>Option C: American call on the Jan 2027 Brent future, \(F_0 = 88.98\), \(K = 89\), \(\sigma = 45.57\%\), \(T = 83/365\), \(r = 3.87\%\), market price 7.72. A simulator gives the binomial values below (you build the \(N = 2\) tree in part (a) to check the first row).</p>
+<div class="tablewrap"><table>
+<tr><th>\(N\)</th><th>2</th><th>4</th><th>8</th><th>16</th></tr>
+<tr><td>Binomial value</td><td>6.78</td><td>7.19</td><td>7.41</td><td>7.52</td></tr>
+</table></div>
+<div class="pt"><span class="mk">(a) 3 marks</span><span class="tx">Build the two-step tree for \(N = 2\) (\(u = 1.1661\), \(d = 0.8576\), \(p = 0.4617\), \(\Delta t = 0.11370\)) and find the option value, to 2 dp. Check it equals the table.</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">Find the absolute % pricing error at \(N = 16\) (|model − market| / market × 100), to 2 dp.</span></div>
+<div class="pt"><span class="mk">(c) 3 marks</span><span class="tx">Across \(N = 2, 4, 8, 16\) the error falls. In 3-4 sentences: describe the pattern, say why a two-step tree is coarse for a long-dated option (and why Option A had a smaller error than Option C at \(N = 2\): 6.84% vs 12.13%), and say whether more steps must make the model equal the market price.</span></div>
+<div class="quiz num" data-answer="6.78" data-tol="0.006">
+  <p class="q">Headline check: (a), \(N = 2\) value to 2 dp.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="2.59" data-tol="0.03">
+  <p class="q">Headline check: (b), error at \(N = 16\) in % to 2 dp (from the rounded table value).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 3 marks.</strong> \(F_{uu} = 88.98 \times 1.1661^2 = 120.99\), payoff 31.99. \(F_{ud} = 88.98\), payoff 0 (it is 0.02 <em>below</em> \(K\)). \(F_{dd}\), payoff 0. Up node \(F_u = 103.76\): continuation \(e^{-0.0387 \times 0.1137}(0.4617 \times 31.99) = 14.71\); exercise \(103.76 - 89 = 14.76\), so early exercise, value 14.76. Down node: 0. Time 0:</p>
+$$0.99561 \times 0.4617 \times 14.76 = 6.78.$$
+<p><strong>(b) 2 marks.</strong> Error \(= 7.52 - 7.72 = -0.20\), so \(0.20/7.72 \times 100 = 2.59\%\) (2.57% with the unrounded 7.5218).</p>
+<table class="ledger">
+<tr><th>\(N\)</th><th>Value</th><th>Model − market</th><th>Abs. % error</th></tr>
+<tr><td>2</td><td>6.78</td><td>−0.94</td><td>12.13%</td></tr>
+<tr><td>4</td><td>7.19</td><td>−0.53</td><td>6.86%</td></tr>
+<tr><td>8</td><td>7.41</td><td>−0.31</td><td>4.01%</td></tr>
+<tr><td>16</td><td>7.52</td><td>−0.20</td><td>2.57%</td></tr>
+</table>
+<p><strong>(c) 3 marks (model answer).</strong> The value rises with \(N\) (6.78 → 7.52) and the steps get smaller (+0.41, +0.22, +0.11), so the estimate settles; the error falls from 12% to under 3%. A two-step tree has only three terminal prices and two exercise dates, so it approximates a continuous price distribution crudely. Each step is a larger fraction of the option's life when \(T\) is long (\(\Delta t = 0.114\) years for C against 0.032 for A), so more of the distribution is lost; this is why the error rose from A to B to C (6.84%, 11.78%, 12.13%). More steps do <strong>not</strong> force equality with the market: the tree converges to the model's own continuous-time value (the limit of Lesson 25), and the market price also reflects bid-ask spreads, the implied-volatility and day-count conventions behind the quoted \(\sigma\), and demand and supply, which no tree reproduces.</p>
+<div class="trap"><strong>Common slips</strong><br>Dividing the error by the model value instead of the market price; forgetting the absolute value; saying "more steps gives exactly the market price".</div>
+</div></details>
+</div>
+
+<!-- ===================== Q3 ===================== -->
+<div class="exq">
+<h3>Question 3 (5 marks): parity and bounds on the Brent options</h3>
+<div class="drills">Drills <a href="0020-futures-options-basics-and-parity.html">Lesson 20</a> (Lecture 6 slides 7-13)</div>
+<p>Treat the market prices as European for this question (the case options are American, so the answers are approximate; parity is exact only for European options).</p>
+<div class="pt"><span class="mk">(a) 3 marks</span><span class="tx">Use futures put-call parity to find the price of a put on the Option C futures (same \(K\), \(T\)), to 2 dp.</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">Find the lower bound for the European call on Option A (to 2 dp) and say whether the market price of 4.67 respects it.</span></div>
+<div class="quiz num" data-answer="7.74" data-tol="0.006">
+  <p class="q">Headline check: (a), put price to 2 dp.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<div class="quiz num" data-answer="0.63" data-tol="0.006">
+  <p class="q">Headline check: (b), lower bound to 2 dp.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">See the full solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 3 marks.</strong> Parity: \(c + Ke^{-rT} = p + F_0e^{-rT}\), so \(p = c + (K - F_0)e^{-rT}\). \(e^{-0.0387 \times 83/365} = 0.99124\). \(p = 7.72 + (89 - 88.98)(0.99124) = 7.72 + 0.0198 = 7.74\).</p>
+<p><strong>(b) 2 marks.</strong> \(c \ge (F_0 - K)e^{-rT} = 0.63 \times e^{-0.0387 \times 23/365} = 0.63 \times 0.99756 = 0.63\). The price 4.67 is far above it: the rest is time value (intrinsic value is only 0.63). For an American option the bound is \(C \ge F_0 - K = 0.63\).</p>
+<div class="trap"><strong>Common slips</strong><br>Using \(S_0\) or \(Ke^{-rT} - F_0\) (futures parity discounts <em>both</em> \(K\) and \(F_0\)); wrong sign on \((K - F_0)\); not discounting the lower bound.</div>
+</div></details>
+</div>
+
+<!-- ===================== Q4 ===================== -->
+<div class="exq">
+<h3>Question 4 (8 marks): written answers</h3>
+<div class="drills">Drills Lecture 6 slides 13-23 and the case background. Write 2-3 sentences each, then reveal.</div>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Why does the risk-neutral probability in a futures-option tree equal \((1-d)/(u-d)\), with no \(r\) in it, when the stock tree uses \((e^{r\Delta t}-d)/(u-d)\)?</span></div>
+<details><summary>Model answer (a)</summary><div>A futures contract needs no initial investment, so in a risk-neutral world its expected profit is zero and its expected growth rate is zero (not \(r\)): \(pF_0u + (1-p)F_0d = F_0\), giving \(p = (1-d)/(u-d)\). A stock must earn \(r\) on average, which puts \(e^{r\Delta t}\) in \(p\). Equivalently the futures price behaves like a stock paying a yield \(q = r\) (growth \(r - q = 0\)). The option is still discounted at \(e^{-r\Delta t}\) because its premium is paid up front.</div></details>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">The Brent futures prices are 95.63, 92.09, 88.98 for Nov, Dec, Jan (falling with maturity). Is a futures call that expires before its futures contract worth more or less than a spot call with the same \(K\) and \(T\) in such a market? Why?</span></div>
+<details><summary>Model answer (b)</summary><div>Less. A falling curve is an inverted market: the futures price is below the spot price. A European call futures option that matures before the futures pays \(\max(F_T - K, 0)\), and \(F_T < S_T\) in an inverted market, so it is worth less than the spot call (Lecture 6 slide 14: more in a normal market, less in an inverted market). If the futures matures with the option, \(F_T = S_T\) and the two are equal. (Whether the Brent spot is above these futures is assumed from the shape of the curve; the case gives no spot price.)</div></details>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">The tree for Option A found early exercise optimal at the up node. Why can early exercise of an American call on a futures be optimal?</span></div>
+<details><summary>Model answer (c)</summary><div>On exercise the holder gets \(F - K\) in cash at once (credited to the margin account, where it earns interest) and a futures position that costs nothing to hold. A European call is only bounded below by \((F-K)e^{-rT}\), which is less than \(F - K\), so a European value can sit below intrinsic. An American holder will not accept less than \(F - K\), so in deep in-the-money nodes the early cash beats the continuation value (8.755 versus 8.744 in the tree) and exercising is optimal. The edge is small here because the node is not very deep in the money and \(\Delta t\) is short.</div></details>
+<div class="pt"><span class="mk">(d) 2 marks</span><span class="tx">Virgin hedged 92% of Brent but only 71% of refining margins; Qantas hedged about 90% of crude and still raised fuel costs by A$600-800m. What does this say about hedging jet-fuel cost with Brent options or futures? Name the risk.</span></div>
+<details><summary>Model answer (d)</summary><div>Basis risk: Brent crude is not jet fuel. The jet-fuel price is crude plus a refining margin, and the margin moved a lot (jet fuel more than doubled), so a Brent hedge leaves the margin component unhedged. A hedge ratio close to 100% on the wrong underlying still leaves a large exposure; Virgin's wider margin cover is why its unhedged cost (A$30-40m) was far smaller. Options (rather than futures) also keep the benefit if fuel prices fall, at the cost of the premium.</div></details>
+</div>
+
+<h2>What the case wants you to remember</h2>
+<ul>
+<li>Futures tree: \(p = (1-d)/(u-d)\), discount at \(r\); compare with \(F - K\) at every node (American).</li>
+<li>Error grows with maturity at fixed \(N\) and falls with \(N\); the model value never has to equal the market price.</li>
+<li>Parity and bounds for futures options discount both \(K\) and \(F_0\).</li>
+<li>Hedging with Brent leaves refining-margin (basis) risk.</li>
+</ul>
+
+<h2>Flags: beyond the case and slides</h2>
+<ul>
+<li>The case's reference answers (4.35, 5.91, 6.78) reproduce only with an <em>American</em> tree and \(T = \text{days}/365\); with the rounded 0.063/0.147/0.227 years Option B gives 5.89.</li>
+<li>The case gives no answers for part 2 (N = 4, 8, 16); the values 7.19, 7.41, 7.52 are my calculation with the same method (check against the simulator).</li>
+<li>Beyond the case: an odd-\(N\) tree gives a much larger value (N = 3: 8.28, N = 4: 7.19) because the middle terminal node sits on the strike differently; convergence is not monotone across odd and even \(N\). Not examined; use the \(N\) the question gives. A 100-step tree gives about 7.6 and Black's formula about 7.62, still below 7.72 (my calculation, not in the case).</li>
+<li>The jump from the inverted-market statement in 4(b) to the spot price is an inference (no spot price in the case).</li>
+</ul>
+
+<div class="ask">Unsure about a node, or want the same question on Option B (three steps) or a put? Paste your working in the terminal and ask me. Recommended primary source: the Week 7 case PDF, then Lecture 6 slides 17-23.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0046-case-gamestop-options-and-short-squeeze.html">Lesson 46</a></span>
+  <span><a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0048-case-bsm-in-practice.html">Lesson 48</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

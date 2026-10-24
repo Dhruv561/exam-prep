@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Case: BSM and the Brent Volatility Smile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 48 · Case study: Virgin Australia and Brent options (BSM)</div>
+<h1>Case: from one implied volatility to the Brent smile</h1>
+<p class="lede">The goal: use real-looking Brent futures-option data to (1) price an option with Black's model, (2) explain where implied volatility comes from, (3) show what goes wrong when one volatility is used for every strike, and (4) tie it to an airline's fuel hedge.</p>
+
+<div class="mission">Why this matters for 5 Nov: the exam info sheet says case studies are examinable, with derivations and theory alongside calculations. This case is the BSM one: a 3-mark "explain implied volatility" and a 2-decimal-place BSM price are both fair game. It joins <a href="0026-implied-volatility-smiles-and-vix.html">Lesson 26</a> (implied vol, smiles) to <a href="0027-blacks-model-futures-options-and-fx.html">Lesson 27</a> (Black's model).</div>
+
+<p>Assumes Lessons <a href="0024-computing-bsm-call-and-put-prices.html">24</a>, <a href="0026-implied-volatility-smiles-and-vix.html">26</a> and <a href="0027-blacks-model-futures-options-and-fx.html">27</a>. Source: <em>BSM Case Lec Part</em> (Virgin Australia; Brent Dec '26 options, Barchart snapshot 17 Sept 2026) and Lecture 7 slides 32-36 (implied vol, smiles). Terms in the <a href="../reference/glossary.html">glossary</a>.</p>
+
+<h2>1 · The story in one minute</h2>
+<p>Fuel is a large airline cost. Virgin Australia hedges Brent crude and refining margins, but its own OTC option contracts are not public. So the case uses <strong>exchange-traded ICE Brent futures options</strong> as a stand-in whose prices we can see. Different strikes = different levels of fuel-price protection. The case asks:</p>
+<ol class="steps">
+<li>From one near-the-money call, back out a volatility (the <strong>anchor</strong>).</li>
+<li>Use that one volatility at every strike. Does it match market prices?</li>
+<li>Find the implied volatility at every strike. The pattern is the <strong>smile</strong>.</li>
+</ol>
+
+<h2>2 · Market set-up</h2>
+<div class="tablewrap"><table>
+<tr><th>Input</th><th>Value</th></tr>
+<tr><td>Futures price \(F_0\) (Dec '26 Brent)</td><td>101.10</td></tr>
+<tr><td>Time to expiry \(T\)</td><td>\(41/365 = 0.1123\) yr</td></tr>
+<tr><td>Risk-free rate \(r\)</td><td>4.00% p.a. (assumed)</td></tr>
+<tr><td>Market price</td><td>mid-price = (bid + ask)/2</td></tr>
+</table></div>
+<p>Because the underlying is a <em>futures</em> contract, use Black's model (a stock option with no dividend yield, discounting the whole payoff):</p>
+$$c = e^{-rT}\big[F_0N(d_1) - KN(d_2)\big],\qquad p = e^{-rT}\big[KN(-d_2) - F_0N(-d_1)\big],$$
+$$d_1 = \frac{\ln(F_0/K) + \tfrac12\sigma^2T}{\sigma\sqrt T},\qquad d_2 = d_1 - \sigma\sqrt T.$$
+<p>Smile construction rule: use <strong>OTM puts below \(F_0\)</strong> and <strong>OTM calls above \(F_0\)</strong>. Deep in-the-money quotes are illiquid, with wide bid-ask spreads, so they are noisy.</p>
+
+<h2>3 · Where implied volatility comes from</h2>
+<p>Anchor option: the 101 call, bid 7.01, ask 7.12, mid <strong>7.065</strong>. The price is observed; \(\sigma\) is the only unknown. The call price increases with \(\sigma\), so there is exactly one \(\sigma\) that gives 7.065. It cannot be isolated algebraically, so search (Goal Seek, or bracket and interpolate as in Lesson 26).</p>
+<div class="box"><strong>Case answer:</strong> \(\sigma_{anchor}\approx 52.22\%\). At that value \(\sigma\sqrt T = 0.5222\times0.3352 = 0.1750\), \(d_1 \approx 0.0932\), \(d_2 \approx -0.0819\), and the BSM call is 7.065.</div>
+<p><strong>Check by hand</strong> (the case's \(d\) values, \(N\) to 4 dp): \(N(0.0932)=0.5371\), \(N(-0.0819)=0.4674\), \(e^{-rT}=e^{-0.04\times41/365}=0.9955\):</p>
+$$c = 0.9955\,[\,101.10(0.5371) - 101(0.4674)\,] = 0.9955\times7.093 = 7.06.$$
+<div class="trap"><strong>Rounding bites here</strong><br>With the exam's 2-dp rule, \(d_1=0.09\), \(d_2=-0.08\), \(N=0.5359,\,0.4681\), and the price comes out 6.87, not 7.065. The call is two large terms (about 54.2 and 47.3) subtracted, so a small error in each \(N\) is magnified. Volatility is high (52%) and the option is at the money, so this is the worst case. Expect small gaps between table and calculator answers; a question that gives you \(d_1,d_2\) at 4 dp avoids it.</div>
+<p><strong>Why "implied" and not "observed"?</strong> Volatility is not quoted anywhere; you can only see option prices. Implied volatility is the \(\sigma\) that, put into the model, reproduces the observed price. It is the market's view <em>conditional on the model</em>, a forward-looking number, not a historical standard deviation of past returns.</p>
+
+<div class="quiz num" data-answer="6.97" data-tol="0.01">
+  <p class="q"><strong>Check.</strong> Put-call parity for futures options: \(c - p = e^{-rT}(F_0 - K)\) (<a href="0020-futures-options-basics-and-parity.html">Lesson 20</a>). With the 101 call at 7.065, the 101 put value, to 2 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">price</span></div>
+  <div class="why">\(p = 7.065 - 0.9955\times(101.10-101) = 7.065 - 0.0996 = 6.9654\approx 6.97\). The put and call at the same strike have the same implied volatility, so one \(\sigma\) is enough at each strike: that is why the smile can use puts below \(F_0\) and calls above it.</div>
+</div>
+
+<h2>4 · What the single-volatility test imposes</h2>
+<p>Using 52.22% at every strike says: <strong>volatility is the same for all strikes</strong> (same underlying, same maturity). That is BSM's constant-volatility assumption. If it held, every strike's implied volatility would equal 52.22%, and the "smile" would be a flat line.</p>
+<p>Test it. At \(\sigma=52.22\%\) (so \(\sigma\sqrt T=0.1750\)), price one OTM put and one OTM call, then compare with market mid-prices.</p>
+<div class="given"><strong>Illustrative quotes (not from the case):</strong> 85 put mid <strong>2.10</strong>; 120 call mid <strong>1.95</strong>. These are made up for practice, shaped like a typical commodity smile. The case's own full option chain is not in the lecture part.</div>
+<div class="tablewrap"><table>
+<tr><th>Option</th><th>Model price at 52.22%</th><th>Market mid</th><th>Implied vol</th></tr>
+<tr><td>101 call (anchor)</td><td>7.06</td><td>7.065</td><td>52.22%</td></tr>
+<tr><td>85 put (OTM)</td><td>1.37 (exact); 1.48 (2 dp tables)</td><td>2.10</td><td>61.3%</td></tr>
+<tr><td>120 call (OTM)</td><td>1.66 (exact); 1.79 (2 dp tables)</td><td>1.95</td><td>55.4%</td></tr>
+</table></div>
+<p>The flat 52.22% <em>underprices both wings</em>. The market charges more for far-out protection than constant-volatility BSM says, so those options' implied volatilities are above the at-the-money level: a <strong>smile</strong> (higher in both wings, lowest near \(F_0\)).</p>
+<div class="box"><strong>Reading the wings.</strong> Out-of-the-money puts (low strikes): the market sees a higher chance of a large fall than the normal-returns model gives, so puts are worth more, and implied vol is higher. Out-of-the-money calls (high strikes): a higher chance of a large rise, so the same for calls (Lecture 7 slide 36). Either way the real distribution of returns has fatter tails than BSM's lognormal one.</div>
+
+<h2>5 · Link to the airline</h2>
+<p>A fuel buyer wants protection against a <em>price rise</em>: it buys calls (or equivalent). If Virgin's budget priced a high-strike Brent call at the anchor volatility, it would <strong>underestimate the hedge cost</strong> (market implied volatility there is higher than at the money). Higher strike = cheaper premium but less protection; the smile means the premium falls less than a flat-volatility model suggests. The case's OTC contracts are not public, hence the exchange proxy.</p>
+
+<h2>6 · Exam-style questions</h2>
+<p>Use a Casio fx-82 and the rules from the exam sheet: \(d\) to 2 dp, \(N\) to 4 dp, no interpolation. Typed answers are marked within a tolerance that accepts both the table and the calculator method.</p>
+
+<div class="exq">
+<h3>Question 1 (11 marks): the anchor option</h3>
+<div class="drills">Drills <a href="0026-implied-volatility-smiles-and-vix.html">Lesson 26</a>, <a href="0027-blacks-model-futures-options-and-fx.html">Lesson 27</a> (case section 4)</div>
+<p>Dec '26 Brent futures: \(F_0=101.10\), \(T=41/365\), \(r=4\%\). The 101 call has bid 7.01 and ask 7.12.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">State the market price used and write down which BSM-for-futures inputs are known and which is unknown when you back out implied volatility.</span></div>
+<div class="pt"><span class="mk">(b) 3 marks</span><span class="tx">At \(\sigma=52.22\%\) the case finds \(d_1=0.0932\) and \(d_2=-0.0819\). Using \(N(0.0932)=0.5371\) and \(N(-0.0819)=0.4674\), find the call value to 2 dp. Does it match (a)'s market price?</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">Explain why 52.22% is called an implied rather than an observed volatility.</span></div>
+<div class="pt"><span class="mk">(d) 2 marks</span><span class="tx">If this volatility is used for options at every other strike, which BSM assumption is imposed?</span></div>
+<div class="pt"><span class="mk">(e) 2 marks</span><span class="tx">Find the value of the 101 put (same expiry) from the call's market price, to 2 dp.</span></div>
+<div class="quiz num" data-answer="7.06" data-tol="0.02">
+  <p class="q">Headline check: (b), call value to 2 dp.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">price</span></div>
+  <div class="why">See the solution below.</div>
+</div>
+<div class="quiz num" data-answer="6.97" data-tol="0.01">
+  <p class="q">Headline check: (e), put value to 2 dp.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">price</span></div>
+  <div class="why">See the solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> Mid-price \((7.01+7.12)/2 = 7.065\). Known: \(F_0=101.10\), \(K=101\), \(T=41/365\), \(r=4\%\). Unknown: \(\sigma\) (solve so that the BSM call equals 7.065).</p>
+<p><strong>(b) 3 marks.</strong> \(e^{-rT}=0.9955\). \(c = 0.9955[101.10(0.5371) - 101(0.4674)] = 0.9955(54.301 - 47.207) = 0.9955\times7.094 = 7.06\). It matches 7.065 up to rounding of \(N\); that is what "implied" means.</p>
+<p><strong>(c) 2 marks.</strong> Only the option price is observed. \(\sigma\) is found by working backwards through the model until the model price equals the market price, so it depends on the model and is the market's forward-looking expectation, not a measured quantity.</p>
+<p><strong>(d) 2 marks.</strong> BSM's constant-volatility assumption: \(\sigma\) is the same across strikes for one underlying and maturity.</p>
+<p><strong>(e) 2 marks.</strong> Parity: \(p = c - e^{-rT}(F_0-K) = 7.065 - 0.9955(0.10) = 6.97\).</p>
+<div class="trap"><strong>Common slips</strong><br>Using the ask or bid instead of the mid; using \(S_0\) logic (no dividend adjustment is needed here; the underlying is the futures price, so \(F_0\) replaces \(S_0\) and \(r\) only discounts); quoting \(T=41\) instead of \(41/365\); forgetting \(e^{-rT}\) outside the bracket.</div>
+</div></details>
+</div>
+
+<div class="exq">
+<h3>Question 2 (11 marks): testing the constant-volatility assumption</h3>
+<div class="drills">Drills <a href="0024-computing-bsm-call-and-put-prices.html">Lesson 24</a>, <a href="0026-implied-volatility-smiles-and-vix.html">Lesson 26</a> (case sections 5 and 6)</div>
+<p>Same \(F_0\), \(T\), \(r\), and use \(\sigma=52.22\%\) at all strikes, so \(\sigma\sqrt T=0.1750\). Market mid-prices (illustrative): 85 put 2.10; 120 call 1.95. Note \(e^{-rT}=0.9955\).</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Find \(d_1\) for the 85 put, to 2 dp.</span></div>
+<div class="pt"><span class="mk">(b) 3 marks</span><span class="tx">Find the model value of the 85 put at 52.22%. Which is larger, the model value or the market mid?</span></div>
+<div class="pt"><span class="mk">(c) 3 marks</span><span class="tx">Find the model value of the 120 call at 52.22%, and compare it with the market mid.</span></div>
+<div class="pt"><span class="mk">(d) 3 marks</span><span class="tx">Is the implied volatility of each option above or below 52.22%? Describe the shape this gives across strikes and name it.</span></div>
+<div class="quiz num" data-answer="1.08" data-tol="0.011">
+  <p class="q">Headline check: (a), \(d_1\) for the 85 put.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">\(d_1\)</span></div>
+  <div class="why">See the solution below.</div>
+</div>
+<div class="quiz num" data-answer="1.42" data-tol="0.08">
+  <p class="q">Headline check: (b), 85 put model value to 2 dp (table or calculator).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">price</span></div>
+  <div class="why">See the solution below.</div>
+</div>
+<div class="quiz num" data-answer="1.725" data-tol="0.08">
+  <p class="q">Headline check: (c), 120 call model value to 2 dp (table or calculator).</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">price</span></div>
+  <div class="why">See the solution below.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p><strong>(a) 2 marks.</strong> \(\ln(101.10/85)=0.1735\). \(d_1 = (0.1735 + 0.5\times0.5222^2\times0.1123)/0.1750 = (0.1735+0.0153)/0.1750 = 1.08\). Then \(d_2 = 1.08-0.175 = 0.90\) (0.9035 unrounded).</p>
+<p><strong>(b) 3 marks.</strong> Put: \(N(-d_2)=N(-0.90)=0.1841\), \(N(-d_1)=N(-1.08)=0.1401\).</p>
+$$p = 0.9955[\,85(0.1841) - 101.10(0.1401)\,] = 0.9955(15.649 - 14.164) = 1.48.$$
+<p>With unrounded \(d\) (calculator) the value is 1.37; both are accepted (rounding effect, as in the anchor option). The market mid 2.10 is <strong>larger</strong> than the model, either way.</p>
+<p><strong>(c) 3 marks.</strong> \(d_1 = (\ln(101.10/120) + 0.0153)/0.1750 = (-0.1714+0.0153)/0.1750 = -0.89\), \(d_2=-1.07\). \(N(-0.89)=0.1867\), \(N(-1.07)=0.1423\).</p>
+$$c = 0.9955[\,101.10(0.1867) - 120(0.1423)\,] = 0.9955(18.876 - 17.076)=1.79.$$
+<p>Calculator: 1.66. The market 1.95 is above the model in both cases.</p>
+<p><strong>(d) 3 marks.</strong> Both market prices exceed the 52.22% model prices, and the price rises with \(\sigma\), so both implied volatilities are above 52.22% (about 61% for the 85 put and 55% for the 120 call). With implied volatility lowest near \(F_0\) and higher at both low and high strikes, the shape is a <strong>volatility smile</strong>. BSM's flat line is rejected.</p>
+</div></details>
+</div>
+
+<div class="exq">
+<h3>Question 3 (8 marks): theory and the airline</h3>
+<div class="drills">Drills <a href="0023-what-bsm-assumes-and-why-it-works.html">Lesson 23</a>, <a href="0026-implied-volatility-smiles-and-vix.html">Lesson 26</a>, case sections 1 and 6</div>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Why does the case use exchange-traded Brent futures options for Virgin Australia, and why is the underlying a futures price rather than a spot price?</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">Why does the smile construction use OTM puts below \(F_0\) and OTM calls above it?</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">An analyst prices a high-strike Brent call for the airline at the anchor volatility (52.22%). Does this over- or understate the true market price, and what is the consequence for the fuel budget?</span></div>
+<div class="pt"><span class="mk">(d) 2 marks</span><span class="tx">Name two reasons why a market smile contradicts the BSM model.</span></div>
+<details><summary>Model answers (write yours first)</summary><div>
+<p><strong>(a)</strong> Virgin's OTC contracts are private (premiums and terms not disclosed), so listed ICE Brent options give observable prices as a proxy. The option is written on the Dec '26 <em>futures</em> contract, so Black's model uses \(F_0\) as the underlying (no yield or storage cost needed; \(r\) only discounts).</p>
+<p><strong>(b)</strong> OTM options are the most liquid and informative at each strike; deep ITM quotes are illiquid with wide spreads. By parity the put and call at the same strike share an implied volatility, so nothing is lost.</p>
+<p><strong>(c)</strong> It <strong>understates</strong> the price: market implied volatility at high strikes is above the anchor, and price rises with \(\sigma\). The budget would be too low for the cost of protection against a large rise in fuel prices.</p>
+<p><strong>(d)</strong> (1) Constant volatility fails: implied volatility varies with strike (and maturity). (2) Returns are not lognormal: real prices have fatter tails (more large moves), so far-OTM options are worth more than BSM says. (Demand for protection and event risk also push prices; Lecture 7 slide 35 lists supply and demand, hedging needs and uncertainty.)</p>
+</div></details>
+</div>
+
+<h2>7 · What to remember</h2>
+<ul>
+<li><strong>Method:</strong> mid-price \(\to\) Black's model with \(F_0\) \(\to\) search for \(\sigma\) (implied volatility).</li>
+<li><strong>Test:</strong> same \(\sigma\) for all strikes = constant-volatility assumption. Compare model and market prices; market higher means implied vol higher.</li>
+<li><strong>Shape:</strong> implied vol high in both wings, low at the money: smile.</li>
+<li><strong>Rounding:</strong> high \(\sigma\) near the money magnifies \(N\) rounding errors.</li>
+</ul>
+
+<div class="box"><strong>Not in the case or slides (flags).</strong> (1) The 85 put (2.10) and 120 call (1.95) quotes are invented for practice; the lecture part of the case gives only the anchor. Only the anchor inputs (101.10, 41/365, 4%, 7.065, 52.22%) and the case's \(d_1,d_2\) are from the case. (2) The case describes Virgin and Qantas hedging in a "2026 fuel-price shock"; I cannot verify those facts. (3) "Fat tails" as the reason for the smile is standard theory (Lecture 7 slide 36 gives higher chance of large moves); the slides' commodity example is the currency smile, so a Brent smile shape is an assumption here (real Brent smiles can be skewed). (4) The 2-dp table-method prices (6.87, 1.48, 1.79) differ from calculator values (7.065, 1.37, 1.66) by more than usual; the exam would not set a question this sensitive without giving the \(d\) values.</div>
+
+<div class="ask">Unsure why price is increasing in \(\sigma\), how parity gives the put, or why the smile is not a smirk here? Paste your working in the terminal and ask me. Recommended primary source: <em>BSM Case Lec Part</em> sections 4 to 6, then Lecture 7 slides 32-36.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0047-case-binomial-on-futures-options.html">Lesson 47, case: binomial on futures options</a></span>
+  <span><a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="../reference/options-cheatsheet.html">Options cheat sheet</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

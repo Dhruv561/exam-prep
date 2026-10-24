@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Case Study: GameStop Short Squeeze</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 46 · Case study: GameStop (Week 4)</div>
+<h1>GameStop: short squeeze, put-call parity and limits to arbitrage</h1>
+<p class="lede">The goal: tell the GameStop story in four sentences, then explain why a $19.51 "arbitrage" on a put was not exploited, and use the same bounds on fresh data.</p>
+
+<div class="mission">Why this matters for 5 Nov: cases are examinable and the exam is about 15% theory. Expect "what happened / why / which concept does it show" in 2-4 marks, plus a put-call parity bound calculation with a one-line explanation of why it may fail. The case adds one idea to <a href="0014-put-call-parity.html">no-arbitrage pricing</a>: it needs arbitrageurs to be able to trade.</div>
+
+<h2>1 · What happened</h2>
+<ul>
+<li><strong>Setup.</strong> GameStop (GME) is a store-based video game retailer hurt by digital downloads and COVID. By late 2020 many institutions were <strong>short</strong> (bearish). Reported short interest peaked above <strong>138%</strong> of shares outstanding in December 2020.</li>
+<li><strong>Bull case.</strong> An activist e-commerce investor took a stake; retail investors on online forums argued for a digital turnaround and bought shares <strong>and call options</strong>.</li>
+<li><strong>Feedback loop.</strong> Buying raised the price; shorts lost money and bought shares to close; that buying raised the price again, drawing in more buyers and media attention.</li>
+<li><strong>Result.</strong> In just over two weeks the closing price rose more than <strong>17 times</strong>: the <em>GameStop short squeeze</em>.</li>
+</ul>
+<p><strong>Short squeeze (definition).</strong> A rising price on a heavily shorted stock makes shorts incur losses and buy shares to close out; the extra demand pushes the price up further, which squeezes the remaining shorts. It is self-reinforcing.</p>
+<p class="given">Why shorts <em>must</em> buy: a short seller has sold borrowed shares and must return them. Losses on a short are unlimited (price can rise without bound), and margin calls force closing. Short interest over 100% is possible because the same share can be lent and sold short more than once. These two explanations are standard background, not stated in the case.</p>
+
+<div class="quiz num" data-answer="320000" data-tol="1">
+  <p class="q"><strong>Check (illustrative numbers, not from the case).</strong> A trader shorts 1,000 shares at $20. The price rises 17-fold to $340 and the trader closes out. What is the loss, in dollars?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(1{,}000 \times (340 - 20) = 320{,}000\). The trader received only \(20{,}000\) from the sale, so the loss is 16 times the proceeds: the loss on a short is unbounded.</div>
+</div>
+
+<h2>2 · Why long calls were the sensible bullish trade (case Q6.1)</h2>
+<p>The brief: you expect the turnaround to lift the price, but you do not want to risk the whole share price.</p>
+<table>
+<tr><th>Position</th><th>View</th><th>Fits?</th></tr>
+<tr><td>Long call</td><td>Bullish, loss capped at the premium</td><td><strong>Yes</strong></td></tr>
+<tr><td>Long put</td><td>Bearish</td><td>No: wrong direction</td></tr>
+<tr><td>Short put</td><td>Mildly bullish; gain capped at premium, loss up to \(K\) minus premium if the stock collapses</td><td>No: caps the upside, and has large downside</td></tr>
+<tr><td>Short call</td><td>Bearish; unlimited loss</td><td>No: wrong direction</td></tr>
+</table>
+<p>Long call: payoff \(\max(S_T-K,0)\) gives unlimited upside and a worst case of the premium paid (Lecture 4 payoffs).</p>
+
+<h2>3 · The put-call parity episode</h2>
+<p>Lecture 4, slide 34 (American options, no dividends, \(D=0\)):</p>
+$$S_0 - K \;<\; C - P \;<\; S_0 - Ke^{-rT}.$$
+<p>Rearranged for the put (the form used in the case, with \(r \approx 0\)):</p>
+$$C - S_0 + Ke^{-rT} \;<\; P \;<\; C - S_0 + K.$$
+<p>Case data, 27 January 2021: \(S_0 = 347.51\), \(K = 200\), \(C = 216\), \(P = 88\). Upper bound \(= 216 - 347.51 + 200 = 68.49\). The put at 88 is <strong>19.51 above</strong> the bound.</p>
+
+<div class="quiz num" data-answer="19.51" data-tol="0.01">
+  <p class="q"><strong>Check.</strong> By how much does the observed put price exceed the upper bound? (2 dp)</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(88 - 68.49 = 19.51\).</div>
+</div>
+
+<h3>The arbitrage that "should" work</h3>
+<p>The put is overpriced, so sell it and buy the cheap side. Cash flows today:</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Trade</th><th>Cash today</th></tr>
+<tr><td>Sell the put</td><td>+88.00</td></tr>
+<tr><td>Buy the call</td><td>-216.00</td></tr>
+<tr><td>Short the share</td><td>+347.51</td></tr>
+<tr><td>Buy a bond / lend \(K\) (\(r\approx0\))</td><td>-200.00</td></tr>
+<tr><td><strong>Net</strong></td><td><strong>+19.51</strong></td></tr>
+</table></div>
+<p>Later, whatever the price (including the put being exercised early against you), the call, the bond and the short stock cover your obligations: a locked-in profit of at least 19.51.</p>
+
+<h3>Why was it not exploited?</h3>
+<p>The trade needs you to <strong>short GME</strong>. In the squeeze (case section 4):</p>
+<ul>
+<li><strong>Hard to borrow:</strong> demand to borrow shares was extreme.</li>
+<li><strong>Borrow cost</strong> could be very high, wiping out the 19.51.</li>
+<li><strong>Volatility</strong> created large losses and <strong>margin pressure</strong> on the short position.</li>
+<li><strong>Trading and margin restrictions</strong> made it hard to set up or keep the position.</li>
+</ul>
+<p>So 19.51 was an <em>apparent</em> arbitrage, not a risk-free profit. <strong>Key lesson:</strong> put-call parity was not "wrong". No-arbitrage relationships hold because arbitrageurs can trade freely at reasonable cost; when short-selling constraints, borrowing costs, liquidity problems and extreme volatility bite, a gap can persist.</p>
+
+<div class="quiz num" data-answer="68.3" data-tol="0.3">
+  <p class="q"><strong>Check (illustrative, not in the case).</strong> You short at 347.51 for 30 days and pay a borrow fee at an annual rate \(f\) on the share price: cost \(= 347.51 \times f \times 30/365\). At what annual fee \(f\) does the cost equal the 19.51 profit? Answer as a percentage to 1 dp.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% p.a.</span></div>
+  <div class="why">\(f = 19.51 / (347.51 \times 30/365) = 0.683 = 68.3\%\) a year. Reported borrow fees on heavily shorted stocks can reach such levels, so a profit this size can disappear (the 30 days and the fee basis are my assumptions).</div>
+</div>
+
+<h2>Exam-style questions</h2>
+<p>Case questions are written answers: say what happened, why, and name the concept. Marks below follow the rough exam style (1 mark per distinct point). Write your answer first, then open the model answer.</p>
+
+<!-- ===================== Q1 ===================== -->
+<div class="exq">
+<h3>Question 1 (5 marks): the squeeze</h3>
+<div class="drills">Drills the case, sections 1-3</div>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Define a short squeeze.</span></div>
+<div class="pt"><span class="mk">(b) 3 marks</span><span class="tx">Explain how the GameStop price rose more than 17 times in just over two weeks. Refer to the feedback loop.</span></div>
+<details><summary>Model answer and marking points</summary><div>
+<p><strong>(a)</strong> (1) A heavily shorted stock's price rises, so short sellers lose money and buy shares to close out. (1) That buying pushes the price up further, hurting the remaining shorts: self-reinforcing.</p>
+<p><strong>(b)</strong> (1) Crowded trade: short interest above 138% of shares outstanding, so a lot of latent forced buying. (1) Bullish view (activist stake, retail investors on online forums, e-commerce turnaround) led to buying of shares and call options. (1) Feedback loop: price up, shorts cover, more demand, price up, more investors and media attention.</p>
+</div></details>
+</div>
+
+<!-- ===================== Q2 ===================== -->
+<div class="exq">
+<h3>Question 2 (8 marks): put-call parity during the squeeze</h3>
+<div class="drills">Drills Lecture 4 slide 34 (Lesson 14), the case section 4</div>
+<p>On 27 January 2021 GME traded at \(S_0=347.51\). An American call and an American put with strike \(K=200\) traded at 216 and 88. Assume \(r\approx0\) and no dividends.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Calculate the upper bound on the American put from put-call parity, to 2 dp.</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">Describe the arbitrage strategy and the profit per share.</span></div>
+<div class="pt"><span class="mk">(c) 4 marks</span><span class="tx">Why was the apparent arbitrage not immediately eliminated? Does this mean put-call parity is wrong?</span></div>
+<div class="quiz num" data-answer="68.49" data-tol="0.01">
+  <p class="q">Headline check: (a), the upper bound.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(C - S_0 + K = 216 - 347.51 + 200 = 68.49\).</div>
+</div>
+<details><summary>Model answer and marking points</summary><div>
+<p><strong>(a) 2 marks.</strong> \(P < C + K - S_0 = 216 + 200 - 347.51 = \mathbf{68.49}\). (1 for the formula, 1 for the number.)</p>
+<p><strong>(b) 2 marks.</strong> The put (88) is above 68.49, so sell the put, buy the call, short the share, and lend \(K=200\) (buy a bond). Net cash now \(88 - 216 + 347.51 - 200 = \mathbf{19.51}\) per share. (1 for the position, 1 for the profit.)</p>
+<p><strong>(c) 4 marks.</strong> The trade requires shorting GME, which was difficult in the squeeze: (1) shares were hard to borrow; (1) borrowing cost could be so high it reduces or removes the 19.51; (1) extreme volatility gives large losses and margin pressure on the short; (1, optional, any of these) trading and margin restrictions. The 19.51 is an apparent, not a risk-free, profit. Put-call parity is not wrong: it assumes arbitrageurs can trade freely at reasonable cost, and this was severely challenged. (Credit this final point as the "concept" mark.)</p>
+</div></details>
+</div>
+
+<!-- ===================== Q3 ===================== -->
+<div class="exq">
+<h3>Question 3 (4 marks): trading the turnaround</h3>
+<div class="drills">Drills the case Q6.1, Lecture 4 payoffs</div>
+<p>It is late 2020. You believe GameStop's online turnaround will lift the share price substantially, but you do not want to risk the full cost of buying the shares. Which of long call, long put, short put or short call best reflects your view and risk preference? Explain.</p>
+<details><summary>Model answer and marking points</summary><div>
+<p>(1) <strong>Long call.</strong> (1) Payoff \(\max(S_T-K,0)\) rises with the share price, matching the bullish view, with potentially large upside. (1) Maximum loss is the premium paid, much less than the share price: the risk preference. (1) Rule out the rest: long put and short call profit from falls (wrong view); a short put gains at most the premium and can lose up to \(K\) minus premium, so it does not capture a large rise.</p>
+</div></details>
+</div>
+
+<!-- ===================== Q4 ===================== -->
+<div class="exq">
+<h3>Question 4 (6 marks): bounds in normal conditions</h3>
+<div class="drills">Drills the case Q6.2, Lecture 4 slide 34</div>
+<p class="given">The case asks you to use August 2026 GME data from its Excel file, which is not in this workspace. The numbers below are <strong>made up by me</strong> to practise the same steps; use the real worksheet when you have it.</p>
+<p>A non-dividend-paying stock trades at \(S_0=25\). American options with \(K=25\) and \(T=0.25\) have \(C=2.40\) and \(P=2.30\). The risk-free rate is 4% a year, continuously compounded.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Calculate the lower bound for the American put, to 2 dp.</span></div>
+<div class="pt"><span class="mk">(b) 1 mark</span><span class="tx">State the upper bound and say whether the put lies inside the no-arbitrage range.</span></div>
+<div class="pt"><span class="mk">(c) 3 marks</span><span class="tx">Compare with the January 2021 GME example. What do you notice and what might explain the difference?</span></div>
+<div class="quiz num" data-answer="2.15" data-tol="0.01">
+  <p class="q">Headline check: (a), the lower bound.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(C - S_0 + Ke^{-rT} = 2.40 - 25 + 25e^{-0.01} = 2.40 - 25 + 24.7512 = 2.15\).</div>
+</div>
+<div class="quiz num" data-answer="2.4" data-tol="0.01">
+  <p class="q">Headline check: (b), the upper bound.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">\(C - S_0 + K = 2.40 - 25 + 25 = 2.40\).</div>
+</div>
+<details><summary>Model answer and marking points</summary><div>
+<p><strong>(a) 2 marks.</strong> From \(S_0-K < C-P < S_0-Ke^{-rT}\): \(P > C - S_0 + Ke^{-rT} = 2.40 - 25 + 24.7512 = \mathbf{2.15}\). (1 formula, 1 number.)</p>
+<p><strong>(b) 1 mark.</strong> Upper bound \(C - S_0 + K = 2.40\). The range is \(2.15 < P < 2.40\); \(P = 2.30\) lies <strong>inside</strong>, so no arbitrage.</p>
+<p><strong>(c) 3 marks.</strong> (1) In the normal case the put sits inside the bounds; in January 2021 it was 19.51 above the upper bound. (1) Normally arbitrage is easy and cheap (short selling available), so any breach is quickly traded away. (1) In the squeeze, borrowing was hard and costly, volatility and margin risk were extreme, so the arbitrage was not risk-free and the gap persisted.</p>
+<p class="given">Note: with \(r\approx0\) (as in the case) the two bounds nearly coincide, so the "range" is very narrow; with \(r>0\) it widens slightly, as here.</p>
+</div></details>
+</div>
+
+<h2>Which part do I revisit?</h2>
+<div class="tablewrap"><table>
+<tr><th>Lost marks on</th><th>Questions</th><th>Reopen</th></tr>
+<tr><td>Squeeze definition, feedback loop</td><td>Q1</td><td>Sections 1 above</td></tr>
+<tr><td>Parity bounds, arbitrage legs, signs</td><td>Q2(a)(b), Q4(a)(b)</td><td><a href="0014-put-call-parity.html">Lesson 14</a>, section 3 above</td></tr>
+<tr><td>Why arbitrage failed (limits to arbitrage)</td><td>Q2(c), Q4(c)</td><td>Section 3, "Why was it not exploited?"</td></tr>
+<tr><td>Option payoff choice</td><td>Q3</td><td>Section 2 above</td></tr>
+</table></div>
+
+<h2>Homework</h2>
+<ul>
+<li>From memory, write the four reasons the arbitrage failed in one line each, then check against section 3.</li>
+<li>Do case Q6.2 with the real August 2026 worksheet once you have it (part (c) is the written comparison).</li>
+<li>Optional: the film <em>Dumb Money</em> (2023), suggested in the case.</li>
+</ul>
+
+<div class="ask">Stuck on a bound, or want more "explain why this happened" questions in the style of the exam? Paste your answer in the terminal and ask me to mark it against the points above. Recommended primary source: the Week 4 GameStop case (<code>cases/Week 4 GameStop case.pdf</code>) and Lecture 4 slides 32-34.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0045-case-oil-futures-backwardation-and-rolling.html">Lesson 45, oil futures case</a></span>
+  <span><a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0047-case-binomial-on-futures-options.html">Lesson 47, binomial on futures options case</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Case Study: Hershey and Cocoa Hedging</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 44 · Case study 1 of 5 · Topics 1-2 (futures, hedging)</div>
+<h1>Hershey and cocoa: hedging is not profit-seeking</h1>
+<p class="lede">The goal: write a full-mark answer on the Hershey case (what happened, why, which concept it shows), and do the few numbers the case supports.</p>
+
+<div class="mission">Why this matters for 5 Nov: the lecturer says case studies are examinable and the exam is short-answer, so expect "explain / critique" parts worth 2-4 marks each, sometimes with a small calculation. Hershey was asked in Tutorial 2 Q7 in exactly this two-part form. Marks come from naming the concept (hedge vs speculation, partial hedge, rolling, mark-to-market vs economic result, basis) and linking it to a case fact.</div>
+
+<p>Background lessons: <a href="0002-forwards-vs-futures.html">Lesson 2</a> (daily settlement), <a href="0003-hedging-and-basis-risk.html">Lesson 3</a> (long hedge, basis, rolling, arguments for and against hedging), <a href="0004-cross-hedging-and-the-minimum-variance-hedge-ratio.html">Lesson 4</a>. Terms: <a href="../reference/glossary.html">glossary</a>. Source: the Week 2 mini case (<em>Week 2 Case_Hershey.pdf</em>) and Tutorial 2 Q7 with its solution. Case prices are the case's figures; numbers in the practice questions are <strong>illustrative and not from the case</strong>.</p>
+
+<h2>1 · The case in five lines</h2>
+<div class="tablewrap"><table>
+<tr><th>When</th><th>Cocoa (US$/tonne)</th><th>What happened</th></tr>
+<tr><td>2024</td><td>about 2,500-3,000 to over 10,000</td><td>Poor harvests (Ghana, Côte d'Ivoire) cut supply. Rivals' costs jumped. Hershey booked about US$460m pre-tax gains on cocoa futures and options bought earlier.</td></tr>
+<tr><td>2025</td><td>10,710 (Jan) to 5,815 (Dec)</td><td>Prices fell. Hershey kept rolling hedges, some opened at high prices. Long futures showed mark-to-market losses.</td></tr>
+<tr><td>2026</td><td>about 4,395 (June)</td><td>Cheaper market cocoa, but Hershey still reported cocoa cost pressure.</td></tr>
+</table></div>
+<p><strong>The strategy:</strong> a <em>rolling</em> hedge on <em>part</em> of expected purchases, 3 to 24 months ahead, using long futures and options. A company that <em>will buy</em> an input uses a <strong>long hedge</strong> (Lecture 2, slide 4): it fixes the purchase price at roughly \(F_0\).</p>
+
+<h2>2 · Four ideas the case tests</h2>
+<ol>
+<li><strong>Hedge, not bet.</strong> Gains on the derivative offset higher input cost. Net outcome is the point, not the derivative's P&amp;L. With a long hedge, effective cost \(= S_1 - (F_1 - F_0) = F_0 + \text{basis}_1\) (slide 13).</li>
+<li><strong>Partial and rolling.</strong> A partial hedge removes part of the risk and keeps part of any favourable move. Rolling means new hedges are set at <em>current</em> prices, so cost locked in follows the market with a lag.</li>
+<li><strong>Mark-to-market vs economic result.</strong> When prices fall, long futures lose value (daily settlement), while the cheaper cocoa to be bought is not yet received. The loss is the hedge doing its job, not a failure.</li>
+<li><strong>Lag.</strong> Inventory bought earlier and fixed-price contracts mean the cost seen in the accounts follows spot prices with a delay (Tutorial 2 Q7.2).</li>
+</ol>
+<div class="given"><strong>Not in the case or slides, so treat as extension:</strong> that the futures and options are on ICE cocoa (the case names no exchange); margin-call cash needs of long futures (Lecture 2 / Lesson 2 concept, not stated in the case); a cocoa cross-hedge. Questions 4 and 5 use these as <em>applications</em> of lecture concepts and say so.</div>
+
+<h2>3 · Practice</h2>
+<p>Write each answer first (2-4 sentences, like the exam), then reveal. Numeric answers: type a number.</p>
+
+<!-- ================= Q1 ================= -->
+<div class="exq">
+<h3>Question 1 (6 marks): hedge or profit?</h3>
+<div class="drills">Drills Tutorial 2 Q7.1</div>
+<div class="pt"><span class="mk">(a) 3 marks</span><span class="tx">In 2024 Hershey reported about US$460m of derivative gains while cocoa soared. Does this mean the programme was designed to make a profit? Explain.</span></div>
+<div class="pt"><span class="mk">(b) 3 marks</span><span class="tx">A shareholder says: "If gains are a sign of success, 2025's mark-to-market losses show the programme failed." Critique this view.</span></div>
+<details><summary>Model answer and marking points</summary><div>
+<p><strong>(a)</strong> No. Hershey is a <em>buyer</em> of cocoa, so it took <em>long</em> positions to lock in future purchase costs (a long hedge) [1]. The derivative gains offset the higher cost of physical cocoa, so the <em>combined</em> cost was steadier [1]. The aim was earnings stability, not profit; had prices fallen the same positions would have lost [1].</p>
+<p><strong>(b)</strong> Judge the hedge on the combined position, not the futures leg alone [1]. When prices fell, long futures lost value while the physical cocoa became cheaper, so the loss offsets a saving elsewhere [1]. Hershey still locked in costs at the price levels where hedges were opened, so its costs fell less than spot, which is the price of certainty; reduced volatility, not a profit, was the test [1].</p>
+<p><em>Slip:</em> "Hershey speculated successfully" or "hedging should always make money".</p>
+</div></details>
+</div>
+
+<!-- ================= Q2 ================= -->
+<div class="exq">
+<h3>Question 2 (6 marks): why costs stay high</h3>
+<div class="drills">Drills Tutorial 2 Q7.2 · case Section 1.1 (2025-2026)</div>
+<p>By June 2026 spot cocoa was about US$4,395 per tonne, well below the 2024 peak, yet Hershey still reported cocoa cost pressure.</p>
+<div class="pt"><span class="mk">(a) 4 marks</span><span class="tx">Give two reasons, using the case's facts.</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">Give one disadvantage of a rolling hedge and one of a partial hedge.</span></div>
+<details><summary>Model answer and marking points</summary><div>
+<p><strong>(a)</strong> (i) Hedges rolled while prices were high locked in costs well above pre-surge levels [1]; as spot fell, the long positions showed mark-to-market losses [1]. (ii) Hershey hedged only part of its needs and works through inventory and purchase contracts agreed earlier at higher prices, so lower spot prices pass into costs with a lag [1]; the unhedged part also moved with the market [1] (Tutorial 2 Q7.2).</p>
+<p><strong>(b)</strong> Rolling: each roll resets the locked-in price at current levels and adds uncertainty about the next roll's price (rollover risk) [1]. Partial: the unhedged share is still exposed to price rises; the hedge does not eliminate the risk [1].</p>
+</div></details>
+</div>
+
+<!-- ================= Q3 ================= -->
+<div class="exq">
+<h3>Question 3 (8 marks): numbers behind the story</h3>
+<div class="drills">Drills <a href="0003-hedging-and-basis-risk.html">Lesson 3</a> (long hedge: cost \(= F_0 + b_1\)) · case price figures; all positions below are illustrative</div>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Using the case's prices, by what percentage did cocoa fall from US$10,710 (Jan 2025) to US$4,395 (June 2026)? One decimal place.</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">Suppose a long position in 100 tonnes of cocoa futures was opened at US$10,710 and the price is US$5,815 in December 2025. What is the mark-to-market gain/loss, nearest dollar? (Negative if a loss.)</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">A chocolate maker plans to buy cocoa later. It buys futures at US$9,800/t. At purchase, spot is US$5,900 and the futures price is US$5,850. Find its effective purchase price per tonne.</span></div>
+<div class="pt"><span class="mk">(d) 2 marks</span><span class="tx">A firm needs 500 tonnes. It hedges 60% (300 t) at a futures price of US$3,000; spot rises to US$10,200 and the futures to US$10,100. Find its total cost, nearest dollar, and the average cost per tonne.</span></div>
+<div class="quiz num" data-answer="59.0" data-tol="0.06">
+  <p class="q">(a) Percentage fall.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">%</span></div>
+  <div class="why">\((10{,}710 - 4{,}395)/10{,}710 = 6{,}315/10{,}710 = 0.5896 \approx 59.0\%\).</div>
+</div>
+<div class="quiz num" data-answer="-489500" data-tol="1">
+  <p class="q">(b) Mark-to-market result on 100 tonnes.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Long loses when price falls: \((5{,}815 - 10{,}710)\times 100 = -4{,}895 \times 100 = -\$489{,}500\). Offsetting saving: the cocoa to be bought is cheaper, but only when it is actually bought.</div>
+</div>
+<div class="quiz num" data-answer="9850" data-tol="1">
+  <p class="q">(c) Effective price per tonne.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$/t</span></div>
+  <div class="why">Cost \(= S_1 - (F_1 - F_0) = 5{,}900 - (5{,}850 - 9{,}800) = 5{,}900 + 3{,}950 = 9{,}850\). Equivalent: \(F_0 + b_1 = 9{,}800 + 50\). It is far above spot: locking at a high price costs you when prices later fall.</div>
+</div>
+<div class="quiz num" data-answer="2970000" data-tol="1">
+  <p class="q">(d) Total cost of 500 tonnes.</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$</span></div>
+  <div class="why">Physical: \(500 \times 10{,}200 = 5{,}100{,}000\). Futures gain: \(300 \times (10{,}100 - 3{,}000) = 2{,}130{,}000\). Net \(= \$2{,}970{,}000\), i.e. \(\$5{,}940\)/t (hedged 300 t at \(3{,}000+100\), unhedged 200 t at 10,200). The unhedged 40% still took the full surge.</div>
+</div>
+<details><summary>Full solution (open after attempting)</summary><div>
+<p>All four are in the "Why" boxes above. Marks: (a) 1 method + 1 answer; (b) 1 sign, 1 value; (c) 1 formula, 1 value; (d) 1 futures gain, 1 total.</p>
+<div class="trap"><strong>Common slips</strong><br>(a) dividing by 4,395 (gives 143.7%); (b) reporting +489,500 because "cocoa got cheaper"; (c) using \(S_1 + (F_1 - F_0)\); (d) hedging 100% by mistake, or forgetting the unhedged 200 tonnes.</div>
+</div></details>
+</div>
+
+<!-- ================= Q4 ================= -->
+<div class="exq">
+<h3>Question 4 (6 marks): what would you do?</h3>
+<div class="drills">Drills <a href="0002-forwards-vs-futures.html">Lesson 2</a> and <a href="0003-hedging-and-basis-risk.html">Lesson 3</a> (extension: not in the case)</div>
+<p>You are the junior risk analyst. In June 2026 cocoa is US$4,395/t; Hershey's older hedges are at much higher prices. The CFO asks: (i) should we hedge 100% of the next 24 months now? (ii) should we use options rather than futures for some of it?</p>
+<div class="pt"><span class="mk">(a) 3 marks</span><span class="tx">Give one argument for and one against hedging 100% of the next 24 months, with a recommendation.</span></div>
+<div class="pt"><span class="mk">(b) 3 marks</span><span class="tx">Compare options and futures for this long hedge. State one benefit and one cost of each.</span></div>
+<details><summary>Model answer and marking points</summary><div>
+<p><strong>(a)</strong> For: removes price risk and makes budgets predictable [1]. Against: demand and volumes are uncertain, so a full hedge risks over-hedging, and if rivals do not hedge and prices drop, Hershey is locked in above the market (relative risk) [1]; futures also lock in no benefit from falls. Recommend a partial, layered programme (as in the case) [1]. Accept a reasoned alternative.</p>
+<p><strong>(b)</strong> Futures: no upfront cost, fix price exactly, but lose on falls and need daily cash margin [1.5]. Calls: floor the cost at the strike and keep the benefit of falls, but pay a premium upfront [1.5]. (The case says Hershey used both; the margin point is Lecture 1/2, not stated in the case.)</p>
+</div></details>
+</div>
+
+<!-- ================= Q5 ================= -->
+<div class="exq">
+<h3>Question 5 (6 marks): basis, cash and risk</h3>
+<div class="drills">Drills <a href="0003-hedging-and-basis-risk.html">Lesson 3</a>, <a href="0004-cross-hedging-and-the-minimum-variance-hedge-ratio.html">Lesson 4</a> (extension: applies lecture concepts, not stated in the case)</div>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Hershey's hedge reduced but "did not completely eliminate" exposure. Name two sources of leftover risk that a futures hedge of cocoa could have.</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">Cocoa falls 40% and Hershey holds long futures. What cash problem can this cause, and why is it not the same as an economic loss?</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">Which delivery month should Hershey choose for a purchase planned for mid-September, and why?</span></div>
+<details><summary>Model answer and marking points</summary><div>
+<p><strong>(a)</strong> Basis risk: spot and futures prices at purchase differ, or the cocoa bought is a different grade or location than the contract's [1]; uncertain quantity or size mismatch (contracts are lumpy; volume may differ from forecast), and partial coverage [1]. Rollover risk also counts.</p>
+<p><strong>(b)</strong> Daily settlement forces cash payments on the losing long futures now, while the saving on cheaper cocoa arrives later [1] (the Metallgesellschaft-style liquidity risk). Economically the loss offsets a lower cost on the physical purchase, so it is a timing and accounting issue, not a net loss [1].</p>
+<p><strong>(c)</strong> The first contract month after the purchase date (e.g. December), avoiding the delivery-month volatility and early expiry [2] (Lecture 2, slide 15).</p>
+</div></details>
+</div>
+
+<h2>Memory hook</h2>
+<div class="given"><strong>Case checklist (answer shell):</strong> (1) who is hedging, long or short? (2) hedge not speculation: net outcome; (3) partial and rolling: what stays exposed; (4) mark-to-market vs economic; (5) lag in costs (inventory, contracts); (6) basis, cash margin, over-hedging. Bring in one case number.</div>
+
+<h2>Homework</h2>
+<ul>
+<li>Re-read the case and Tutorial 2 Q7 solution; write both answers from memory in under 5 minutes (about 3 marks per part).</li>
+<li>Redo Q3(d) with a 30% hedge: total cost \(=5{,}100{,}000 - 150 \times 7{,}100 = \$4{,}035{,}000\). Compare cost per tonne with 60% and 100% hedges.</li>
+<li>Next: <a href="0045-case-oil-futures-backwardation-and-rolling.html">Lesson 45 (oil futures case)</a>.</li>
+</ul>
+
+<div class="ask">Unsure how much case detail to include, or whether your answer sounds like hedging rather than speculating? Paste your written answer in the terminal and ask me to mark it. Recommended primary source: <em>Week 2 Case_Hershey.pdf</em>, then Tutorial 2 Q7 and Lecture 2 slides 4-15.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0043-topic-10-capstone-exam-style-practice.html">Lesson 43, Topic 10 capstone</a></span>
+  <span><a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0045-case-oil-futures-backwardation-and-rolling.html">Lesson 45, oil futures case</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

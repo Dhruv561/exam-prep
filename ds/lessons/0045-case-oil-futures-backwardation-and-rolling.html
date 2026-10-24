@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Case: Oil Futures and Expected Spot Prices</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-money>
+<main>
+
+<div class="kicker">Lesson 45 · Case study: Oil futures (Week 3)</div>
+<h1>Oil futures: do futures prices forecast spot, and why did WTI go negative?</h1>
+<p class="lede">The goal: answer the three questions the Week 3 case asks, in exam-length written form, and tie each to a formula from Lecture 3 (cost of carry, convenience yield).</p>
+
+<div class="mission">Why this matters for 5 Nov: the final says case studies and derivations are examinable, and the paper has no MCQ, so a case is a short written answer (what happened, why, which concept). This case is the cleanest link between Lecture 3's pricing formulas and a real market event.</div>
+
+<p>Assumes <a href="../reference/glossary.html">glossary</a> terms: cost of carry, convenience yield. Sources: <em>Week 3 Oil Futures case</em> (Parts 1-3); Lecture 3 slides 27-34 (commodities, convenience yield). Prev: Lesson 44. Next: Lesson 46.</p>
+
+<h2>1 · The case in one page</h2>
+<div class="tablewrap"><table>
+<tr><th>Part</th><th>Question</th><th>Answer in one line</th></tr>
+<tr><td>1. Investment assets</td><td>Investors expect the index to rise a lot. Should \(F_0\) rise?</td><td>Not directly. \(F_0 = S_0e^{(r-q)T}\) is enforced by arbitrage; expectations matter only through today's \(S_0\).</td></tr>
+<tr><td>2. Commodities</td><td>Is \(F_0\) the expected future spot?</td><td>No. \(F_0 = S_0e^{(r+u-y)T}\) has no expected spot in it. Expectations act <em>indirectly</em> via \(S_0\), \(u\), \(y\).</td></tr>
+<tr><td>3. 20 Apr 2020</td><td>May WTI settled at about \(-\$37.63\). Did the market expect negative oil?</td><td>No. Storage at Cushing was nearly full; forced sellers near expiry paid others to take delivery. Longer-dated futures stayed positive.</td></tr>
+</table></div>
+
+<h3>Part 1 · why arbitrage pins the price</h3>
+<p>If \(F_0\) is above \(S_0e^{(r-q)T}\): buy the index (borrow at \(r\)), short the future. The trade pushes \(F_0\) down and \(S_0\) up. A forecast of a higher future spot does not enter the trade, so it cannot move \(F_0\) except by moving \(S_0\).</p>
+
+<h3>Part 2 · expectations enter through \(S_0\), \(u\), \(y\)</h3>
+<p>Expected fall in oil production: spot rises (oil valued more today) and the convenience yield \(y\) rises (physical oil is worth more when supply is tight). Slide 33: \(F_0 = S_0e^{(r+u-y)T}\). A higher \(y\) <em>lowers</em> \(F_0\) relative to \(S_0\); a higher \(S_0\) raises it. So the net effect on \(F_0\) depends on which dominates, which is why \(F_0\) is not a clean forecast.</p>
+
+<h3>Why consumption commodities only get an inequality</h3>
+<p>Slides 30-33: holders of oil in inventory (refiners) keep it for use, not as an investment. They will not sell the physical oil to buy a futures contract, because a future cannot be refined. So the cash-and-carry arbitrage (sell the stock, buy forward) does not happen and only the bound holds:</p>
+$$F_0 \le S_0e^{(r+u)T} \quad\Rightarrow\quad F_0 = S_0e^{(r+u-y)T}\ \text{with } y \ge 0 \text{ the convenience yield.}$$
+<div class="trap"><strong>Direction trap</strong>Bound is \(F_0 \le\), not \(\ge\). Reason: if \(F_0\) were above the bound, anyone can buy the commodity, store it, short the future: arbitrage works because it needs only <em>buying</em> the physical. The reverse arbitrage needs <em>selling</em> inventory, which refiners will not do.</div>
+
+<h3>Part 3 · what broke on 20 April 2020</h3>
+<ul>
+<li><strong>Demand collapse</strong> (COVID: travel and industry) while production continued: oversupply, inventories build.</li>
+<li><strong>Storage nearly full</strong> at Cushing, Oklahoma (the WTI delivery point).</li>
+<li><strong>Expiry approaching</strong>: a long who cannot store or take delivery must close before the last trading day. Everyone needs the opposite side, so the seller can <em>demand</em> a payment: price \(&lt;0\).</li>
+<li>Longer-dated contracts stayed positive, and oil recovered. So the negative price said "delivering in May is a burden", not "oil is worth less than zero forever".</li>
+</ul>
+<p><strong>Why didn't storage costs push the price <em>up</em>?</strong> Cost-of-carry says higher \(u\) raises \(F_0\). That assumes storage is <em>available at some price</em> so arbitrage can run. In April 2020 storage was unavailable, so the arbitrage link broke. Holding more oil became a burden, i.e. an effective convenience yield that was extremely negative for marginal inventory.</p>
+<div class="given"><strong>Flags.</strong> The case does not discuss Metallgesellschaft, stack-and-roll, or contango/backwardation by name; the Lecture 3 slides do not either. Metallgesellschaft (liquidity from daily margin calls when rolling short-dated futures against long-dated exposures) is a Lecture 2 / Hull topic: see <a href="0002-forwards-vs-futures.html">the earlier futures lessons</a> if present, not this case. The exact settlement price and date in Part 3 are the case's figures; I have not checked them externally.</div>
+
+<h2>2 · Quick calculations</h2>
+<p>Numbers are invented for practice (the case has none). Give answers to the stated dp; no table needed.</p>
+
+<div class="quiz num" data-answer="4060.45" data-tol="0.02">
+  <p class="q"><strong>Index future.</strong> Index 4,000, \(r = 5\%\), \(q = 2\%\) (continuous), \(T = 0.5\). \(F_0\) to 2 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">index points</span></div>
+  <div class="why">\(4000e^{(0.05-0.02)(0.5)} = 4000e^{0.015} = 4060.45\).</div>
+</div>
+<div class="quiz num" data-answer="39.55" data-tol="0.03">
+  <p class="q">The futures actually trades at 4,100. You do the arbitrage (short the future, buy the index with borrowed money). Profit at \(T\) per index unit, 2 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">points</span></div>
+  <div class="why">\(4100 - 4060.45 = 39.55\), locked in. This is why a forecast cannot hold \(F_0\) away from \(S_0e^{(r-q)T}\).</div>
+</div>
+<div class="quiz num" data-answer="82.85" data-tol="0.02">
+  <p class="q"><strong>Oil upper bound.</strong> \(S_0 = \$80\), \(r = 5\%\), storage \(u = 2\%\) of spot (continuous), \(T = 0.5\). Upper bound \(S_0e^{(r+u)T}\), 2 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">$/barrel</span></div>
+  <div class="why">\(80e^{0.07\times0.5} = 80e^{0.035} = 82.85\).</div>
+</div>
+<div class="quiz num" data-answer="9.52" data-tol="0.03">
+  <p class="q">The market future is \(\$79.00\). Implied convenience yield \(y\) from \(F_0 = S_0e^{(r+u-y)T}\), in % to 2 dp?</p>
+  <div class="numrow"><input aria-label="Your answer"><span class="unit">% p.a.</span></div>
+  <div class="why">\(\ln(79/80) = -0.012578 = (0.07 - y)(0.5)\), so \(0.07 - y = -0.025157\), \(y = 0.0952 = 9.52\%\).</div>
+</div>
+
+<h2>3 · Exam-style questions (25 marks)</h2>
+<p>Write your answer first (3-6 lines), then open the model answer and tick marking points. Aim at about 1.5 minutes a mark.</p>
+
+<div class="exq">
+<h3>Question 1 (6 marks): index futures and expectations</h3>
+<div class="drills">Case Part 1; Lecture 3</div>
+<p>The S&amp;P-type index is 4,000. The risk-free rate is 5% and the dividend yield 2%, both continuous. Futures expire in six months.</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Calculate the theoretical futures price (2 dp).</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">Investors become convinced the index will be 20% higher in six months. Must the futures price rise? Explain.</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">The futures trades at 4,100. Describe the arbitrage and its profit per unit.</span></div>
+<details><summary>Model answer</summary><div>
+<p><strong>(a)</strong> \(4000e^{0.03\times0.5} = 4060.45\) (1 formula, 1 value).</p>
+<p><strong>(b)</strong> Not necessarily (1). \(F_0 = S_0e^{(r-q)T}\) is held by arbitrage and contains no expected future spot; expectations can only matter indirectly if they move today's \(S_0\) (1).</p>
+<p><strong>(c)</strong> Futures too high: short the future, buy the index financed by borrowing at \(r\); receive dividends; deliver at \(T\) (1). Profit \(4100 - 4060.45 = 39.55\) per unit (1).</p>
+</div></details>
+</div>
+
+<div class="exq">
+<h3>Question 2 (8 marks): crude oil and the convenience yield</h3>
+<div class="drills">Case Part 2; Lecture 3 slides 30-33</div>
+<p>Crude oil spot is \(\$80\). The risk-free rate is 5% and storage costs 2% of spot per year (continuous). A six-month future trades at \(\$79\).</p>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Calculate the upper bound for the futures price (2 dp). Is \(\$79\) consistent with it?</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">Calculate the implied convenience yield (% to 2 dp).</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">Explain why oil, unlike gold, gives only an inequality \(F_0 \le S_0e^{(r+u)T}\), not an equality.</span></div>
+<div class="pt"><span class="mk">(d) 2 marks</span><span class="tx">Traders now expect a sharp fall in future oil production. Explain how this can affect today's futures price even though expected spot does not appear in the formula.</span></div>
+<details><summary>Model answer</summary><div>
+<p><strong>(a)</strong> \(80e^{0.07\times0.5} = 82.85\) (1). \(79 \le 82.85\): consistent (1).</p>
+<p><strong>(b)</strong> \(79 = 80e^{(0.07-y)0.5}\) gives \(y = 9.52\%\) (2; 1 for the set-up, 1 for the value).</p>
+<p><strong>(c)</strong> Refiners hold inventory for consumption, not investment (1); they will not sell physical oil to buy a future (cannot be refined), so the arbitrage that would force equality does not occur; the difference is the convenience yield (1).</p>
+<p><strong>(d)</strong> Expectation of shortage raises \(S_0\) (1) and raises the convenience yield \(y\) (physical oil more valuable now), so \(S_0\), \(y\) both change and move \(F_0 = S_0e^{(r+u-y)T}\) (1). Expected spot works indirectly.</p>
+</div></details>
+</div>
+
+<div class="exq">
+<h3>Question 3 (7 marks): the negative WTI price</h3>
+<div class="drills">Case Part 3</div>
+<p>On 20 April 2020 the May WTI futures contract settled at about \(-\$37.63\) a barrel.</p>
+<div class="pt"><span class="mk">(a) 3 marks</span><span class="tx">Explain what caused the price to go negative.</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">Did this show that the market expected a negative oil price in the future? Justify.</span></div>
+<div class="pt"><span class="mk">(c) 2 marks</span><span class="tx">The cost-of-carry model says higher storage costs raise futures prices. Why did that not happen?</span></div>
+<details><summary>Model answer</summary><div>
+<p><strong>(a)</strong> Any 3: COVID cut demand while production continued (oversupply); inventories rose and Cushing storage was nearly full; contract near expiry with physical delivery at Cushing; traders with no storage or wish to take delivery had to close, willing to pay others to take the oil: forced liquidation.</p>
+<p><strong>(b)</strong> No (1): the price reflected short-term physical constraints (storage, imminent delivery); longer-dated futures stayed positive and prices recovered (1). The futures price is not a forecast of the future spot price.</p>
+<p><strong>(c)</strong> The model assumes storage is available at a market price so arbitrage can operate (1). In April 2020 storage was close to unavailable, so taking delivery was a liability and the link between spot and futures through storage broke (1).</p>
+</div></details>
+</div>
+
+<div class="exq">
+<h3>Question 4 (4 marks): convenience yield in 2020</h3>
+<div class="drills">Case Part 3 discussion; Lecture 3 slide 33</div>
+<div class="pt"><span class="mk">(a) 2 marks</span><span class="tx">Define the convenience yield and say when it is normally positive.</span></div>
+<div class="pt"><span class="mk">(b) 2 marks</span><span class="tx">Interpret the April 2020 episode using the convenience yield.</span></div>
+<details><summary>Model answer</summary><div>
+<p><strong>(a)</strong> The benefit from holding the physical commodity rather than the future (1): e.g. flexibility to keep a refinery running, avoid stock-outs. It measures how far \(F_0\) is below \(S_0e^{(r+u)T}\) (1).</p>
+<p><strong>(b)</strong> Extra barrels became a burden, not a benefit (1), so the effective convenience yield on marginal inventory was extremely negative for those traders, which pushes \(F_0\) <em>up</em> in the formula, but the expiring contract still fell because storage could not be bought. Flag: this is the case's "one way to interpret" it, not a slide result (1).</p>
+</div></details>
+</div>
+
+<h2>Homework</h2>
+<ul>
+<li>Close the page and write the three one-line answers from the Part 1-3 table from memory.</li>
+<li>Write \(F_0\) for: investment asset with income/yield \(q\), with storage \(u\), consumption commodity with \(y\) (slides 28-33).</li>
+<li>Tutorial 3 items on commodity forwards, if not already done.</li>
+</ul>
+
+<div class="ask">Unsure how a case answer should be structured, or want more case-style questions? Paste your attempt in the terminal and ask me. Primary source: the Week 3 Oil Futures case, then Lecture 3 slides 27-34.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0044-case-hershey-cocoa-hedging.html">Lesson 44</a></span>
+  <span><a href="../reference/options-cheatsheet.html">Options cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0046-case-gamestop-options-and-short-squeeze.html">Lesson 46</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>
