@@ -21,6 +21,12 @@
 - [CMU 36-700 lecture 12 (Balakrishnan): asymptotics of the MLE](https://www.stat.cmu.edu/~siva/teaching/700/lec12.pdf)
   Short notes covering asymptotic normality, observed vs expected information, and Wald intervals. Use for: why plugging in θ̂ is OK.
 
+- Blitzstein & Hwang, *Introduction to Probability* (2nd ed.), free PDF: [probabilitybook.net](https://probabilitybook.net), course [stat110.net](https://stat110.net)
+  Clear, rigorous intro probability. Use for: Ch 2 (Bayes' rule), Ch 4 (indicators / fundamental bridge), Ch 7 (joint, marginal, conditional), Ch 9 (Adam's and Eve's laws) (lesson 14).
+- [Murphy (2007), "Conjugate Bayesian analysis of the Gaussian distribution"](https://www.cs.ubc.ca/~murphyk/Papers/bayesGauss.pdf)
+  Compact derivations of Normal conjugate updates. Use for: §2.3 (known variance, unknown mean, pp. 2–3), §4.3 (precision updates, p. 11) (lesson 15).
+- [Wikipedia: Table of conjugate distributions](https://en.wikipedia.org/wiki/Conjugate_prior#Table_of_conjugate_distributions): quick lookup; its Geometric row counts failures (lesson 15 uses trials).
+
 - Past exams: `exams/` and `exams/official exams/`. **Reserved for the user to sit timed: patterns only.**
 
 ## Wisdom (Communities)

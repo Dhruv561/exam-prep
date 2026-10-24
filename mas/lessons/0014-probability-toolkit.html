@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Probability Toolkit Refresher</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .where { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  table.calc td { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 14 · Prereq refresher I (before Topic 4: mixtures &amp; EM)</div>
+<h1>The probability toolkit for EM and Bayes</h1>
+<p class="lede">Five tools from first-year probability, each practised in the exact shape that EM, Gibbs, Monte Carlo and CAVI use. The win: you can compute an EM responsibility and a mixture's mean and variance by hand, and say why the indicators turn into \(\gamma\) in the E-step.</p>
+
+<div class="mission">Why this matters for 10 Nov: every paper from 2020 to 2022 had an EM question for a 2-component mixture (10–12 marks) and a Bayesian question (14–17 marks). Both are built from these tools: factorise a joint, apply Bayes' rule to a latent label, take the expectation of an indicator, and take expectations of squares. This lesson takes about 35 minutes. Kernels, completing the square and conjugate priors are in the companion <a href="0015-kernels-and-conjugacy.html">Lesson 15</a>.</div>
+
+<table>
+<tr><th>Tool</th><th>Where it's used later</th></tr>
+<tr><td>1 · Joint = conditional × marginal</td><td>Complete-data likelihood (EM); \(p(x,\mu,\tau)\) for Gibbs and CAVI</td></tr>
+<tr><td>2 · Bayes' rule for a label</td><td>E-step responsibilities \(\gamma_{ik}\); clustering a new point</td></tr>
+<tr><td>3 · \(\mathbb E[\text{indicator}]=\) probability</td><td>The Q-function \(Q(\theta,\theta^0)\)</td></tr>
+<tr><td>4 · Adam's and Eve's laws</td><td>Mixture mean/variance; Poisson–Gamma overdispersion; posterior predictive</td></tr>
+<tr><td>5 · \(\mathbb E\) of a function</td><td>CAVI's \(\mathbb E_\mu[(x_i-\mu)^2]\); Monte Carlo estimates; rejection acceptance rate</td></tr>
+</table>
+
+<h2>1 · Joint, marginal, conditional</h2>
+<p>Three rules do all the work:</p>
+$$p(x,z)=p(x\mid z)\,p(z),\qquad p(x)=\sum_z p(x,z)\ \Big(\text{or }\textstyle\int\Big),\qquad p(z\mid x)=\frac{p(x,z)}{p(x)}.$$
+<p><strong>Mixture as a latent-variable model.</strong> \(Z_i\sim\text{Categorical}(\pi_1,\dots,\pi_K)\), \(X_i\mid Z_i=k\sim f_k\), with pairs \((X_i,Z_i)\) independent across \(i\) (<a href="../lectures/MixtureModel_LMS-1.pdf#page=9">Mixture slides 9–12</a>). Then \(P(X_i=x_i,Z_i=k)=\pi_kf_k(x_i)\), and summing out the label gives the mixture density:</p>
+$$p(x_i)=\sum_{k=1}^K\pi_kf_k(x_i),\qquad \ell(\theta)=\sum_{i=1}^n\log\Big[\sum_{k=1}^K\pi_kf_k(x_i)\Big].$$
+<p>The sum inside the log is what blocks a closed-form MLE (<a href="../lectures/EM_LMS-1.pdf#page=6">EM slide 6</a>). If we also knew the labels, the <strong>complete-data likelihood</strong> uses indicators to pick out the one component that applies:</p>
+<div class="box">
+$$P(X,Z\mid\theta)=\prod_{i=1}^n\prod_{k=1}^K\big[\pi_kf_k(x_i)\big]^{I(Z_i=k)}$$ $$\Longrightarrow\ \log P(X,Z\mid\theta)=\sum_{i=1}^n\sum_{k=1}^K I(Z_i=k)\big[\log\pi_k+\log f_k(x_i)\big].$$
+<p>For each \(i\) exactly one indicator is 1, so the product over \(k\) is just \(\pi_{z_i}f_{z_i}(x_i)\). Now the log hits each density directly (<a href="../lectures/EM_LMS-1.pdf#page=18">EM slide 18</a>).</p>
+</div>
+<p><strong>Hierarchical Bayes.</strong> Write the joint as a chain of conditionals, from the data up, with an iid product for the data:</p>
+$$p(x,\mu,\tau)=\Big[\prod_{i=1}^n p(x_i\mid\mu,\tau)\Big]\,p(\mu)\,p(\tau)\quad\text{(independent priors)},$$ $$\text{or}\quad p(x,\mu,\tau)=\Big[\prod_i p(x_i\mid\mu,\tau)\Big]\,p(\mu\mid\tau)\,p(\tau)$$
+<p>when the prior on \(\mu\) depends on \(\tau\), as in the course's CAVI example (<a href="../lectures/VI-2.pdf#page=20">VI slide 20</a>; <a href="../extra-notes/CAVI_normal_gamma_derivations.pdf#page=1">CAVI notes eq. (5)</a>). The product over \(i\) is <strong>conditional independence</strong>: the \(x_i\) are independent <em>given</em> the parameters, not marginally. Because they share \(\mu\), learning \(x_1\) tells you about \(\mu\) and so about \(x_2\).</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> Model: \(\lambda\sim\text{Gamma}(a,b)\) (shape, rate) and, given \(\lambda\), counts \(X_1,\dots,X_n\) are iid Poisson(\(\lambda\)). Which is the joint density \(p(x_1,\dots,x_n,\lambda)\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\prod_i \big[p(x_i\mid\lambda)\,p(\lambda)\big]\)</button>
+    <button class="opt" data-key="b">\(\sum_i p(x_i\mid\lambda)\;p(\lambda)\)</button>
+    <button class="opt" data-key="c">\(\prod_i p(x_i\mid\lambda)\;p(\lambda)\)</button>
+    <button class="opt" data-key="d">\(\prod_i p(\lambda\mid x_i)\;p(x_i)\)</button>
+  </div>
+  <div class="why">\(p(x,\lambda)=p(x\mid\lambda)p(\lambda)\), and conditional independence gives \(p(x\mid\lambda)=\prod_ip(x_i\mid\lambda)\). There's one \(\lambda\), so the prior appears once: (a) puts in \(p(\lambda)^n\). The same pattern (likelihood product × each prior once) starts every Gibbs full conditional, as in the insect-egg example \(p(x,p,N)=p(x\mid p,N)\,p(N)\,p(p)\) (<a href="../lectures/MC_methods_LMS-2.pdf#page=36">MC slide 36</a>).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>2.</strong> In a 2-component mixture, observation \(i\) has \(Z_i=2\). What does its factor \(\prod_{k=1}^2[\pi_kf_k(x_i)]^{I(Z_i=k)}\) equal?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\pi_1f_1(x_i)+\pi_2f_2(x_i)\), the sum of both</button>
+    <button class="opt" data-key="b">\(\pi_2f_2(x_i)\), the second term only</button>
+    <button class="opt" data-key="c">\(\pi_1f_1(x_i)\cdot\pi_2f_2(x_i)\), the product of both</button>
+    <button class="opt" data-key="d">\(f_2(x_i)\), the density without weight</button>
+  </div>
+  <div class="why">\(I(Z_i=1)=0\) and \(I(Z_i=2)=1\), so the factor is \([\pi_1f_1]^0[\pi_2f_2]^1=\pi_2f_2(x_i)=P(X_i=x_i,Z_i=2)\). (a) is the <em>marginal</em> \(p(x_i)\), which is what you get when the label is unknown and summed out.</div>
+</div>
+
+<h2>2 · Bayes' rule for a label: the responsibility</h2>
+<p>Apply the three rules to \(Z_i\). The course writes \(P(Z_i=k\mid X,\theta^0)\); we shorten it to \(\gamma_{ik}\):</p>
+<div class="box">
+$$\gamma_{ik}=P(Z_i=k\mid X,\theta^0)=\frac{\pi_k^0\,f_k(x_i;\theta^0)}{\sum_{j=1}^K\pi_j^0\,f_j(x_i;\theta^0)},\qquad \sum_k\gamma_{ik}=1.$$
+<p style="margin-bottom:0">Numerator = joint \(P(x_i,Z_i=k)\); denominator = marginal \(p(x_i)\). Conditioning on all of \(X\) is the same as conditioning on \(x_i\), because the pairs \((X_i,Z_i)\) are independent (<a href="../lectures/MixtureModel_LMS-1.pdf#page=14">Mixture slide 14</a>, <a href="../lectures/EM_LMS-1.pdf#page=8">EM slide 8</a>).</p>
+</div>
+
+<p><strong>Worked example.</strong> \(\pi_1=0.4\), \(X\mid Z=1\sim N(10,2^2)\), \(X\mid Z=2\sim N(16,3^2)\). Find \(\gamma_{1}\) for \(x=13\).</p>
+<ol class="steps">
+  <li>Write each numerator: \(\pi_kf_k(x)=\pi_k\cdot\frac{1}{\sqrt{2\pi}\,\sigma_k}e^{-(x-\mu_k)^2/(2\sigma_k^2)}\).</li>
+  <li>Cancel what is common to every term: \(\frac1{\sqrt{2\pi}}\). <strong>Keep \(1/\sigma_k\)</strong>, because the variances differ.
+  $$\text{comp 1: }\frac{0.4}{2}e^{-9/8}=0.2(0.32465)=0.064930,$$ $$\text{comp 2: }\frac{0.6}{3}e^{-9/18}=0.2(0.60653)=0.121306.$$</li>
+  <li>Normalise: \(\gamma_1=\dfrac{0.064930}{0.064930+0.121306}=\dfrac{0.064930}{0.186236}=\mathbf{0.35}\); \(\gamma_2=0.65\).</li>
+</ol>
+<p>Although \(x=13\) sits exactly halfway between the means, component 2 is more likely because it is wider and has the larger weight.</p>
+
+<div class="trap"><strong>Traps</strong><br>Dropping \(1/\sigma_k\) when the variances differ (only constants common to <em>every</em> term cancel) · forgetting \(\pi_k\) · using \(\sigma^2\) where R's <code>dnorm(x, mean, sd)</code> wants the SD · a "known" label: if observation \(i\) is known to come from component 1, then \(\gamma_{i1}=1\) and \(\gamma_{i2}=0\) whatever \(x_i\) is. Bayes' rule only applies to labels you don't observe.</div>
+
+<div class="quiz num" data-answer="0.91" data-tol="0.005">
+  <p class="q"><strong>3.</strong> \(\pi_1=0.7\), \(X\mid Z=1\sim N(1,1)\), \(X\mid Z=2\sim N(4,1)\). Compute \(P(Z=1\mid X=2)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Equal variances, so \(\frac{1}{\sqrt{2\pi}\sigma}\) cancels completely and only \(\pi_k e^{-(x-\mu_k)^2/2}\) is left:
+  $$\gamma_1=\frac{0.7e^{-1/2}}{0.7e^{-1/2}+0.3e^{-4/2}}=\frac{0.7(0.60653)}{0.42457+0.3(0.13534)}=\frac{0.42457}{0.42457+0.04060}=\mathbf{0.91}.$$</div>
+</div>
+
+<div class="quiz num" data-answer="0.38" data-tol="0.005">
+  <p class="q"><strong>4.</strong> \(\pi_1=0.5\), \(X\mid Z=1\sim N(20,1^2)\), \(X\mid Z=2\sim N(24,4^2)\). Compute \(\gamma_1\) for \(x=22\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\pi\)'s are equal and cancel; \(\frac1{\sqrt{2\pi}}\) cancels; \(1/\sigma_k\) stays:
+  $$\gamma_1=\frac{\frac11e^{-4/2}}{\frac11e^{-4/2}+\frac14e^{-4/32}}=\frac{0.13534}{0.13534+0.25(0.88250)}=\frac{0.13534}{0.35596}=\mathbf{0.38}.$$
+  Dropping the \(1/\sigma_k\) gives 0.13, a wrong answer that looks plausible.</div>
+</div>
+
+<div class="quiz num" data-answer="0.68" data-tol="0.005">
+  <p class="q"><strong>5.</strong> Waiting times follow a mixture of exponentials (formula sheet: \(f(x;\lambda)=\lambda e^{-\lambda x}\)): \(\pi_1=0.7\) with rate 2, \(\pi_2=0.3\) with rate 0.5. Compute \(\gamma_1\) for \(x=1\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Nothing cancels here: the rate multiplies the exponential.
+  $$\gamma_1=\frac{0.7(2)e^{-2}}{0.7(2)e^{-2}+0.3(0.5)e^{-0.5}}=\frac{1.4(0.13534)}{0.18947+0.15(0.60653)}=\frac{0.18947}{0.18947+0.09098}=\mathbf{0.68}.$$</div>
+</div>
+
+<p>Here is the same computation in R, as it might appear on the exam. Same mixture as the worked example:</p>
+<pre class="rout"><span class="cmd">&gt; x &lt;- c(9.1, 12.4, 15.8)
+&gt; pi1 &lt;- 0.4; pi2 &lt;- 0.6; m1 &lt;- 10; s1 &lt;- 2; m2 &lt;- 16; s2 &lt;- 3
+&gt; gamma1 &lt;- pi1*dnorm(x,m1,s1)/(pi1*dnorm(x,m1,s1)+pi2*dnorm(x,m2,s2))
+&gt; round(gamma1, 4)</span>
+[1] 0.9272 0.5000 0.0147</pre>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>6.</strong> What does the vector <code>gamma1</code> contain?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The mixture density of each observation, evaluated at the parameters</button>
+    <button class="opt" data-key="b">The posterior probability each observation is assigned to component 2</button>
+    <button class="opt" data-key="c">The joint probability of each observation together with label 1</button>
+    <button class="opt" data-key="d">The posterior probability that each observation came from component 1</button>
+  </div>
+  <div class="why">Numerator \(\pi_1f_1(x_i)=P(x_i,Z_i=1)\) (option c is only the numerator); denominator is \(p(x_i)\) (option a). The ratio is \(P(Z_i=1\mid x_i)=\gamma_{i1}\), computed for all three \(x_i\) at once because <code>dnorm</code> is vectorised. Component 2's are <code>1 - gamma1</code>. In the lecturer's EM code the same thing is <code>P_ik = prob.x.z / rowSums(prob.x.z)</code> (<a href="../extra-notes/EM-updated.pdf#page=8">EM-updated notes p. 8</a>).</div>
+</div>
+
+<div class="quiz num" data-answer="0.93" data-tol="0.005">
+  <p class="q"><strong>7.</strong> Check R's first entry by hand: compute \(\gamma_{11}\) for \(x_1=9.1\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\((9.1-10)^2/8=0.10125\) and \((9.1-16)^2/18=47.61/18=2.645\).
+  $$\gamma_{11}=\frac{0.2e^{-0.10125}}{0.2e^{-0.10125}+0.2e^{-2.645}}=\frac{0.18074}{0.18074+0.01420}=\mathbf{0.93}\ (0.9272).$$
+  (\(\pi_k/\sigma_k=0.2\) for both components here, so it cancels too.)</div>
+</div>
+
+<h2>3 · The expectation of an indicator is a probability</h2>
+<p>An indicator takes only the values 0 and 1, so</p>
+$$\mathbb E[I(A)]=1\cdot P(A)+0\cdot P(A^c)=P(A),$$ $$\text{so}\qquad \mathbb E_{Z\mid X,\theta^0}\big[I(Z_i=k)\big]=P(Z_i=k\mid X,\theta^0)=\gamma_{ik}.$$
+<p>The complete-data log-likelihood from §1 is a sum of (indicator) × (things that don't involve \(Z\)). Expectation is linear, so it passes through both sums and lands on each indicator:</p>
+<div class="box">
+$$Q(\theta,\theta^0)=\mathbb E_{Z\mid X,\theta^0}\Big[\sum_i\sum_k I(Z_i=k)\big\{\log\pi_k+\log f_k(x_i)\big\}\Big]$$ $$=\sum_{i=1}^n\sum_{k=1}^K\gamma_{ik}\big[\log\pi_k+\log f_k(x_i;\theta)\big].$$
+<p style="margin-bottom:0">That's the whole E-step: <strong>replace each \(I(Z_i=k)\) by \(\gamma_{ik}\)</strong>, computed at the current \(\theta^0\) and then held fixed. The \(\theta\) inside \(\{\cdot\}\) stays free, because that's what the M-step maximises (<a href="../lectures/EM_LMS-1.pdf#page=19">EM slide 19</a>; <a href="../extra-notes/Formal%20derivation%20of%20the%20EM%20algorithm%20for%20a%20two-component%20GMM.pdf#page=2">formal 2-component derivation pp. 2–3</a>; <a href="../extra-notes/EM-updated.pdf#page=5">EM-updated notes p. 5</a>). Deriving the M-step is the next topic.</p>
+</div>
+<p>Linearity also gives counts. The number of points in component \(k\), \(N_k=\sum_iI(Z_i=k)\), has \(\mathbb E[N_k\mid X]=\sum_i\gamma_{ik}\). That is the "effective number of points" \(N_k\) on <a href="../lectures/EM_LMS-1.pdf#page=9">EM slide 9</a>.</p>
+
+<div class="quiz num" data-answer="3.44" data-tol="0.01">
+  <p class="q"><strong>8.</strong> Use the R output above (\(\gamma_{i1}=0.9272,\ 0.5000,\ 0.0147\)). Two more observations, \(x_4=10.6\) and \(x_5=11.3\), come from a labelled batch known to be from component 1. Find the expected number of the five observations in component 1, given the data (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">The labels are known, so \(I(Z_4=1)=I(Z_5=1)=1\) are constants, not random: \(\gamma_{41}=\gamma_{51}=1\), and you don't compute anything from their \(x\) values.
+  $$\mathbb E[N_1\mid X]=0.9272+0.5000+0.0147+1+1=\mathbf{3.44}.$$
+  If you ran Bayes' rule on \(x_4,x_5\) anyway you'd get 3.00 (0.83 and 0.73 for them), which is wrong. In the Q-function their terms are fixed by the known label: no \(\gamma\) is computed for them.</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Why can the E-step replace \(I(Z_i=k)\) by \(\gamma_{ik}\) inside the complete-data log-likelihood? Why can't the same trick be used on the observed-data log-likelihood \(\sum_i\log\sum_k\pi_kf_k(x_i)\)?</p>
+<details><summary>Model answer</summary><div>
+<p>The complete-data log-likelihood is <em>linear</em> in the indicators: \(\sum_i\sum_kI(Z_i=k)[\log\pi_k+\log f_k(x_i)]\), and the brackets don't involve \(Z\). By linearity of expectation, \(\mathbb E\) moves inside the sums and \(\mathbb E[I(Z_i=k)\mid X,\theta^0]=P(Z_i=k\mid X,\theta^0)=\gamma_{ik}\). The observed-data log-likelihood has no indicators to average: \(Z\) has already been summed out <em>inside</em> the log, and \(\log\) of a sum doesn't split, which is why it has no closed-form maximiser.</p></div></details>
+</div>
+
+<h2>4 · Adam's and Eve's laws</h2>
+<div class="box">
+$$\textbf{Adam: }\ \mathbb E[X]=\mathbb E\big[\mathbb E(X\mid Z)\big],$$ $$\textbf{Eve: }\ \operatorname{Var}X=\mathbb E\big[\operatorname{Var}(X\mid Z)\big]+\operatorname{Var}\big[\mathbb E(X\mid Z)\big].$$
+<p style="margin-bottom:0">Eve: total variance = average within-group variance + variance of the group means. For a <strong>mixture</strong>, with \(\bar\mu=\sum_k\pi_k\mu_k\):
+$$\mathbb E X=\sum_k\pi_k\mu_k,$$ $$\operatorname{Var}X=\sum_k\pi_k\sigma_k^2+\sum_k\pi_k(\mu_k-\bar\mu)^2,$$ $$K=2:\ \ \text{between}=\pi_1\pi_2(\mu_1-\mu_2)^2.$$</p>
+</div>
+<p><strong>Worked example</strong> (same mixture as §2): \(\mathbb EX=0.4(10)+0.6(16)=13.6\). Within: \(0.4(4)+0.6(9)=7\). Between: \(0.4(10-13.6)^2+0.6(16-13.6)^2=5.184+3.456=8.64\), or by the shortcut \(0.24(36)=8.64\). So \(\operatorname{Var}X=\mathbf{15.64}\). Note that \(0.4X_1+0.6X_2\) would be normal with variance \(0.16(4)+0.36(9)=3.88\). A mixture is <em>not</em> that linear combination (<a href="../lectures/MixtureModel_LMS-1.pdf#page=15">Mixture slide 15</a>).</p>
+
+<div class="quiz num" data-answer="2.89" data-tol="0.005">
+  <p class="q"><strong>9.</strong> Using the mixture from Q3 (\(\pi_1=0.7\), \(N(1,1)\) and \(N(4,1)\)), compute \(\operatorname{Var}X\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Within \(=0.7(1)+0.3(1)=1\). Between \(=\pi_1\pi_2(\mu_1-\mu_2)^2=0.21(9)=1.89\). Total \(\mathbf{2.89}\), with \(\mathbb EX=0.7+1.2=1.9\). The answer 1 (within only) forgets that the means differ.</div>
+</div>
+
+<p><strong>Poisson–Gamma: where overdispersion comes from.</strong> Let \(\lambda\sim\text{Gamma}(a,b)\) (shape, rate) and \(X\mid\lambda\sim\text{Poisson}(\lambda)\). The formula sheet gives \(\mathbb E\lambda=a/b\). You must memorise \(\operatorname{Var}\lambda=a/b^2\) yourself, because it isn't on the sheet. Then</p>
+$$\mathbb EX=\mathbb E[\lambda]=\frac ab,\qquad \operatorname{Var}X=\underbrace{\mathbb E[\operatorname{Var}(X\mid\lambda)]}_{\mathbb E\lambda=a/b}+\underbrace{\operatorname{Var}[\mathbb E(X\mid\lambda)]}_{\operatorname{Var}\lambda=a/b^2}=\mu+\frac{\mu^2}{a}&gt;\mu.$$
+<p>A rate that varies between units inflates the variance above the Poisson mean. That is the cause of overdispersion from <a href="0010-overdispersion.html">Lesson 10</a> (<a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=3">slide 3</a>). The marginal of \(X\) is <a href="https://en.wikipedia.org/wiki/Negative_binomial_distribution#Gamma%E2%80%93Poisson_mixture">negative binomial</a>, with \(\operatorname{Var}=\mu+\alpha\mu^2\), \(\alpha=1/a\).</p>
+
+<div class="quiz num" data-answer="4.5" data-tol="0.005">
+  <p class="q"><strong>10.</strong> \(\lambda\sim\text{Gamma}(6,2)\) (shape, rate), \(X\mid\lambda\sim\text{Poisson}(\lambda)\). Compute \(\operatorname{Var}X\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\mathbb E[\operatorname{Var}(X\mid\lambda)]=\mathbb E\lambda=6/2=3\); \(\operatorname{Var}[\mathbb E(X\mid\lambda)]=\operatorname{Var}\lambda=6/2^2=1.5\). Total \(\mathbf{4.50}\), against a mean of 3. A simulation agrees:
+<pre class="rout"><span class="cmd">&gt; lam &lt;- rgamma(1e5, 6, 2)      # shape 6, rate 2
+&gt; x &lt;- rpois(1e5, lam)
+&gt; c(mean(lam), mean(x), var(x))</span>
+[1] 3.007977 3.006850 4.498208</pre></div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences, exam style)</strong></p>
+<p>A Bayesian model has \(y_i\mid\lambda\sim\text{Poisson}(\lambda)\) iid with a Gamma prior on \(\lambda\), but the counts' sample variance is several times their mean. How would you change the model, and why does the change help?</p>
+<details><summary>Model answer</summary><div>
+<p>Give each unit its own rate: \(y_i\mid\lambda_i\sim\text{Poisson}(\lambda_i)\), \(\lambda_i\mid\beta\sim\text{Gamma}(a,\beta)\) iid, with a prior on \(\beta\) (and/or \(a\)). This is a random effect, and it's equivalent to a negative binomial likelihood. By Eve's law, \(\operatorname{Var}y_i=\mathbb E\lambda_i+\operatorname{Var}\lambda_i&gt;\mathbb Ey_i\), so the model can now produce variance above the mean. A single shared \(\lambda\) forces \(\operatorname{Var}(y_i\mid\lambda)=\lambda\), the Poisson mean. For regression data, put \(\log\lambda_i=x_i^T\beta+\varepsilon_i\) with a normal random effect \(\varepsilon_i\).</p></div></details>
+</div>
+
+<h2>5 · Expectations of functions: CAVI and Monte Carlo</h2>
+<p>The CAVI update for \(q_\tau\) needs \(\mathbb E_{q_\mu}[(x_i-\mu)^2]\), where \(\mu\) is random with mean \(m\) and variance \(s^2\) and \(x_i\) is a fixed number (<a href="../lectures/VI-2.pdf#page=21">VI slides 21–22</a>). Expand the square, or use \(\operatorname{Var}=\mathbb E[\cdot^2]-(\mathbb E\cdot)^2\):</p>
+<div class="box">
+$$\mathbb E[(c-\mu)^2]=c^2-2c\,\mathbb E\mu+\mathbb E\mu^2$$ $$=c^2-2cm+(m^2+s^2)=(c-m)^2+s^2.$$
+<p style="margin-bottom:0">The \(+s^2\) is easy to forget: the uncertainty in \(\mu\) adds to every squared error (<a href="../extra-notes/CAVI_normal_gamma_derivations.pdf#page=5">CAVI notes eqs. (43)–(45)</a>). Similarly, if \(q_\tau=\text{Gamma}(a,b)\), then \(\mathbb E[\tau]=a/b\) (formula sheet). Terms like \(\frac n2\log\tau\) are left alone when you update \(q_\tau\) itself, because \(\tau\) is the variable. Never replace \(\mathbb E[\log\tau]\) with \(\log\mathbb E\tau\): they are not equal (Jensen).</p>
+</div>
+
+<div class="quiz num" data-answer="6.6" data-tol="0.005">
+  <p class="q"><strong>11.</strong> The current factor is \(q_\mu(\mu)=N(m=5,\ s^2=0.2)\) and the data are \(x=(4,6,7)\). Compute \(\sum_{i=1}^3\mathbb E_{q_\mu}[(x_i-\mu)^2]\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\sum(x_i-m)^2+ns^2=(1+1+4)+3(0.2)=\mathbf{6.60}\). Without \(s^2\) you'd get 6.00. In CAVI, half of this goes into the Gamma rate: \(b^*=b_0+\tfrac12(6.6)+\tfrac{\lambda_0}2\mathbb E[(\mu-\mu_0)^2]\). With \(b_0=\lambda_0=1,\ \mu_0=4\) that is \(1+3.3+\tfrac12(1+0.2)=4.9\) (<a href="../lectures/VI-2.pdf#page=21">VI slide 21</a>). Deriving that formula is the VI lesson's job.</div>
+</div>
+
+<p><strong>Monte Carlo = a sample mean.</strong> If \(X_1,\dots,X_N\) are iid draws from \(p\), then \(\frac1N\sum g(X_j)\approx\mathbb E[g(X)]\) (law of large numbers). With \(g=I(X\in A)\), the same average estimates a probability, which is §3 again (<a href="../lectures/MC_methods_LMS-2.pdf#page=3">MC slide 3</a>). In <strong>rejection sampling</strong> with envelope \(k\,h\), a candidate is accepted with probability (area under \(f\)) / (area under \(kh\)) \(=1/k\), so you need \(k\) tries on average (<a href="../lectures/MC_methods_LMS-2.pdf#page=25">MC slide 25</a>).</p>
+<pre class="rout"><span class="cmd">&gt; mean(lam &gt; 4)</span>
+[1] 0.19307
+<span class="cmd">&gt; u &lt;- runif(1e5); y &lt;- runif(1e5, 0, 1.5)
+&gt; mean(y &lt; 6*u*(1-u))</span>
+[1] 0.6655</pre>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>12.</strong> With <code>lam</code> drawn from Gamma(6, 2) as in Q10, what does <code>mean(lam &gt; 4)</code> compute?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">A Monte Carlo estimate of the probability that λ exceeds 4</button>
+    <button class="opt" data-key="b">A Monte Carlo estimate of the mean of λ above 4</button>
+    <button class="opt" data-key="c">The exact tail probability that a Gamma(6, 2) variable exceeds 4</button>
+    <button class="opt" data-key="d">The proportion of the Poisson counts in x that exceed 4</button>
+  </div>
+  <div class="why"><code>lam &gt; 4</code> is a vector of indicators (TRUE = 1), and their mean is \(\frac1N\sum I(\lambda_j&gt;4)\approx P(\lambda&gt;4)\). It's an estimate: the exact value (<code>pgamma(4, 6, 2, lower.tail = FALSE)</code>) is 0.1912. It uses <code>lam</code>, not <code>x</code>.</div>
+</div>
+
+<div class="quiz num" data-answer="0.67" data-tol="0.005">
+  <p class="q"><strong>13.</strong> The second printout runs rejection sampling for \(f(x)=6x(1-x)\) on \((0,1)\) with a uniform envelope of height 1.5. What acceptance probability is it estimating, exactly (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(f\) is largest at \(x=\tfrac12\), where \(f=1.5\), so \(k=1.5\) with \(h=U(0,1)\). The area under \(f\) is 1 and the rectangle's area is \(1\times1.5\), so \(P(\text{accept})=1/1.5=\mathbf{0.67}\). R's 0.6655 is the Monte Carlo estimate. On average a sample takes 1.5 candidates.</div>
+</div>
+
+<details><summary>Optional: γ on the log scale (when densities are tiny)</summary><div>
+<p>For two components, divide the top and bottom by the numerator:</p>
+$$\gamma_{i1}=\frac{1}{1+e^{d}},\qquad d=\log\frac{\pi_2f_2(x_i)}{\pi_1f_1(x_i)}=\log\frac{\pi_2\sigma_1}{\pi_1\sigma_2}-\frac{(x_i-\mu_2)^2}{2\sigma_2^2}+\frac{(x_i-\mu_1)^2}{2\sigma_1^2}.$$
+<p>Worked example: \(d=\log\frac{0.6(2)}{0.4(3)}-\frac{9}{18}+\frac98=0-0.5+1.125=0.625\), so \(\gamma_1=1/(1+e^{0.625})=1/2.8682=0.35\) ✓. Here you only ever exponentiate a <em>difference</em>, so the FX-82 never underflows, even when each \(e^{-(\cdot)}\) on its own would print as 0. With \(K\) components, compute \(\ell_k=\log\pi_k+\log f_k(x_i)\), subtract the largest, then exponentiate and normalise (the "log-sum-exp" trick, which is also how EM code computes the incomplete log-likelihood \(\sum_i\log\sum_k\)).</p></div></details>
+
+<h2>6 · Mixed practice</h2>
+<p>Shuffled on purpose. Work on paper first.</p>
+
+<div class="quiz num" data-answer="0.90" data-tol="0.005">
+  <p class="q"><strong>14.</strong> \(Z\sim\text{Categorical}(0.5,0.3,0.2)\) and \(X\mid Z=k\sim N(\mu_k,1)\) with \(\mu=(1,3,6)\). Compute \(P(Z=2\mid X=3.5)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Equal variances, so use \(\pi_ke^{-(x-\mu_k)^2/2}\): \(0.5e^{-3.125}=0.02197\), \(0.3e^{-0.125}=0.26475\), \(0.2e^{-3.125}=0.00879\). Sum \(0.29551\); \(\gamma_2=0.26475/0.29551=\mathbf{0.90}\). With \(K=3\) the denominator has three terms: you can't use "\(1-\gamma_1\)".</div>
+</div>
+
+<div class="quiz num" data-answer="1.85" data-tol="0.005">
+  <p class="q"><strong>15.</strong> Using the exponential mixture from Q5 (\(\pi=(0.7,0.3)\), rates 2 and 0.5; Exponential(\(\lambda\)) has variance \(1/\lambda^2\)), compute \(\operatorname{Var}X\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Component means: 0.5 and 2, so \(\mathbb EX=0.35+0.6=0.95\). Within: \(0.7(0.25)+0.3(4)=1.375\). Between: \(0.21(0.5-2)^2=0.4725\). Total \(\mathbf{1.85}\) (1.8475). The common slip is using the rate, not \(1/\text{rate}\), as the mean.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>16.</strong> In the Poisson–Gamma model of Q1, are \(X_1\) and \(X_2\) independent?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Yes, because they are iid draws from one Poisson</button>
+    <button class="opt" data-key="b">Only conditionally on λ; marginally they are positively correlated</button>
+    <button class="opt" data-key="c">No, because the Gamma prior makes them negatively correlated</button>
+    <button class="opt" data-key="d">Yes, because their covariance is zero under Adam's law</button>
+  </div>
+  <div class="why">They are iid <em>given</em> \(\lambda\). Marginally they share the unknown \(\lambda\): \(\operatorname{Cov}(X_1,X_2)=\mathbb E[\operatorname{Cov}(X_1,X_2\mid\lambda)]+\operatorname{Cov}(\lambda,\lambda)=0+\operatorname{Var}\lambda&gt;0\). A large \(x_1\) suggests a large \(\lambda\), so it predicts a large \(x_2\). This is why the posterior learns from the data.</div>
+</div>
+
+<div class="quiz num" data-answer="18.25" data-tol="0.01">
+  <p class="q"><strong>17.</strong> A posterior is \(\theta\mid x\sim N(52,\ 1.5^2)\), and a new observation is \(\tilde x\mid\theta\sim N(\theta,\ 4^2)\). Find the variance of the posterior predictive distribution of \(\tilde x\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Eve's law, conditioning on \(\theta\): \(\operatorname{Var}\tilde x=\mathbb E[\operatorname{Var}(\tilde x\mid\theta)]+\operatorname{Var}[\mathbb E(\tilde x\mid\theta)]=16+2.25=\mathbf{18.25}\) (SD 4.27), centred at 52 by Adam's law. This is the lecture's "posterior variance + sampling variance" (<a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=20">Intro Bayes slide 20</a>).</div>
+</div>
+
+<div class="quiz num" data-answer="0.82" data-tol="0.005">
+  <p class="q"><strong>18.</strong> A CAVI step gives \(q_\tau(\tau)=\text{Gamma}(4,\ 4.9)\) (shape, rate). The next \(q_\mu\) update needs \(\mathbb E_{q_\tau}[\tau]\). Compute it (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Formula sheet, shape–rate: \(\mathbb E\tau=a/b=4/4.9=\mathbf{0.82}\). Using \(b/a\) (the scale convention) gives 1.23. The update is then \(s^{2*}=1/[(\lambda_0+n)\mathbb E\tau]\) (<a href="../lectures/VI-2.pdf#page=22">VI slide 22</a>).</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>After EM has converged, a new observation \(x_0\) arrives. How do you assign it to a cluster, and how do you express your uncertainty about the assignment?</p>
+<details><summary>Model answer</summary><div>
+<p>Plug the MLEs into Bayes' rule: \(P(Z_0=k\mid x_0)=\hat\pi_kf_k(x_0;\hat\theta_k)/\sum_j\hat\pi_jf_j(x_0;\hat\theta_j)\) for each \(k\) (<a href="../lectures/MixtureModel_LMS-1.pdf#page=14">Mixture slide 14</a>). Assign \(x_0\) to the component with the largest posterior probability. Report the probabilities themselves as the uncertainty: a value near 0.5 means \(x_0\) lies where the components overlap and the label is genuinely uncertain.</p></div></details>
+</div>
+
+<h2>7 · Homework (official course material)</h2>
+<ol>
+  <li><strong>Tute week 8 Q1(a) and (c)</strong> (<code>tutes/2026_MAST30027_week8_questions.qmd</code>): find \(p(\bar x,\theta)\) and show \(\bar X\sim N(\mu,\sigma^2/n+\tau^2)\). Then check the mean and variance in one line each with Adam's and Eve's laws, without integrating. (Part (b) needs completing the square: do it after <a href="0015-kernels-and-conjugacy.html">Lesson 15</a>.)</li>
+  <li><strong>Tute week 9 Q1, by hand</strong>: for the beta-binomial with \(n=10\), \(\theta\sim\text{Beta}(2,3)\), find \(\mathbb EX\) and \(\operatorname{Var}X\) by Adam's and Eve's laws (use \(\mathbb E\theta=0.4\), \(\operatorname{Var}\theta=0.04\)). Compare with the tute solution's simulated pmf: is the variance bigger than a Binomial(10, 0.4)'s?</li>
+  <li><strong>Tute week 9 Q2(a)</strong>: the rejection sampler for the truncated exponential \(p(z)=e^{-z}/(1-e^{-1})\) on \((0,1)\). Also give its acceptance probability and the expected number of candidates per sample.</li>
+  <li><strong>Tute week 7 Q2(a)</strong> (stretch, a preview of the EM lesson): write the complete-data log-likelihood for the 2-component Poisson mixture with indicators, then take \(\mathbb E_{Z\mid X,\theta^0}\) to get \(Q(\theta,\theta^0)\). Write \(\gamma_{i1}\) in full.</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1. \(p(\bar x,\theta)=p(\bar x\mid\theta)p(\theta)\) with \(\bar X\mid\theta\sim N(\theta,\sigma^2/n)\), \(\theta\sim N(\mu,\tau^2)\). Adam: \(\mathbb E\bar X=\mathbb E\theta=\mu\). Eve: \(\operatorname{Var}\bar X=\mathbb E[\sigma^2/n]+\operatorname{Var}\theta=\sigma^2/n+\tau^2\). Normality comes from the integral, done in the <a href="../tutes/2026_MAST30027_week8_sol.html">week 8 solution</a>.</p>
+<p>2. \(\mathbb EX=\mathbb E[10\theta]=4\). \(\operatorname{Var}X=\mathbb E[10\theta(1-\theta)]+\operatorname{Var}(10\theta)\). \(\mathbb E\theta^2=0.04+0.16=0.2\), so \(10(0.4-0.2)+100(0.04)=2+4=\mathbf{6}\). Binomial(10, 0.4) has variance 2.4: the random \(\theta\) adds 4. That's overdispersion again (the simulated pmf in the solution is visibly wider).</p>
+<p>3. Envelope height \(k=\max p=1/(1-e^{-1})=1.582\) at \(z=0\). Draw \(X\sim U(0,1)\), \(Y\sim U(0,k)\), accept if \(Y\le p(X)\). Acceptance \(=1/k=1-e^{-1}=0.63\); expected \(1.58\) candidates per sample (<a href="../tutes/2026_MAST30027_week9_sol.html">week 9 solution</a>).</p>
+<p>4. \(\log P(X,Z\mid\theta)=\sum_i\big\{I(Z_i=1)[x_i\log\lambda_1-\lambda_1-\log x_i!+\log\pi_1]+I(Z_i=2)[x_i\log\lambda_2-\lambda_2-\log x_i!+\log(1-\pi_1)]\big\}\). Replace each indicator by \(\gamma_{ik}\), with \(\gamma_{i1}=\dfrac{\pi_1^0(\lambda_1^0)^{x_i}e^{-\lambda_1^0}}{\pi_1^0(\lambda_1^0)^{x_i}e^{-\lambda_1^0}+(1-\pi_1^0)(\lambda_2^0)^{x_i}e^{-\lambda_2^0}}\) (the \(x_i!\) cancels) and \(\gamma_{i2}=1-\gamma_{i1}\) (<a href="../tutes/2026_MAST30027_week7_sol.html">week 7 solution</a>).</p></div></details>
+
+<p><strong>Spacing:</strong> tomorrow, redo Q4, Q8, Q11 and the first "Explain" box from a blank page. Before the EM lesson, redo the worked example in §2 in under 3 minutes.</p>
+
+<p><strong>Primary source:</strong> Blitzstein &amp; Hwang, <em>Introduction to Probability</em>, 2nd ed. (free PDF via <a href="https://probabilitybook.net">probabilitybook.net</a>; course site <a href="https://stat110.net">stat110.net</a>). Read Ch. 9 (Conditional Expectation): the sections on properties (Adam's law), conditional variance (Eve's law) and the "Adam and Eve examples". Then use Ch. 2's section on Bayes' rule and the law of total probability, Ch. 4's section on indicator r.v.s and the fundamental bridge, and Ch. 7's section on joint, marginal and conditional distributions. Course versions: <a href="../lectures/MixtureModel_LMS-1.pdf#page=8">Mixture slides 8–15</a>, <a href="../lectures/EM_LMS-1.pdf#page=14">EM slides 14–19</a>, <a href="../lectures/MC_methods_LMS-2.pdf#page=20">MC slides 20–25</a>. Earlier lessons: likelihoods in <a href="0001-mle-fisher-information.html">Lesson 1</a>, overdispersion in <a href="0010-overdispersion.html">Lesson 10</a>. One-page summary: <a href="../reference/probability-toolkit.html">probability toolkit sheet</a>.</p>
+
+<div class="ask">💬 Ask me (your teacher, Claude, in the terminal) follow-up questions about anything that felt shaky, especially Q4 (which constants cancel), Q8 (known labels) and the "why do indicators become γ" box. Paste your homework working and I'll mark it.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0013-topic3-review.html">Lesson 13, Topic 3 review</a> · Reference: <a href="../reference/probability-toolkit.html">Probability toolkit</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next / companion: <a href="0015-kernels-and-conjugacy.html">Lesson 15, kernels and conjugacy</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

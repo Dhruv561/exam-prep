@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kernels &amp; Conjugacy Sheet</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  body.ref table { font-size: .84rem; margin: .6rem 0; }
+  body.ref th, body.ref td { padding: .28rem .45rem; }
+  body.ref p, body.ref li { margin: .35rem 0; }
+  body.ref .box { padding: .6rem .9rem; margin: .7rem 0; }
+  body.ref .trap { padding: .5rem .8rem; margin: .7rem 0; }
+  .src { font-family: Inter, system-ui, sans-serif; font-size: .72rem; color: var(--muted); }
+  .sheet { font-family: Inter, system-ui, sans-serif; font-size: .7rem; font-weight: 600; color: var(--ok); white-space: nowrap; }
+  .a4 { font-family: Inter, system-ui, sans-serif; font-size: .7rem; font-weight: 600; color: var(--trap); white-space: nowrap; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.4rem; }
+  @page { size: A4; margin: 9mm 10mm; }
+  @media print {
+    html { font-size: 7.6pt; }
+    body.ref main { max-width: none; }
+    body.ref ul { padding-left: 1.2rem; margin: .2rem 0; }
+    body.ref p, body.ref li { margin: .15rem 0; line-height: 1.4; }
+    body.ref .box { padding: .3rem .6rem; margin: .4rem 0; }
+    body.ref .trap { padding: .3rem .6rem; margin: .4rem 0; }
+    body.ref th, body.ref td { padding: .15rem .35rem; }
+    body.ref h1 { font-size: 1.5rem; margin: 0 0 .2rem; }
+    body.ref .lede { font-size: .95rem; margin: 0 0 .4rem; }
+    body.ref h2 { margin-top: .7rem; padding-top: .3rem; font-size: 1.05rem; }
+    body.ref table { font-size: .8rem; }
+    .katex-display { margin: .3rem 0; }
+  }
+</style>
+</head>
+<body class="ref">
+<main>
+<div class="kicker">MAST30027 · Reference</div>
+<h1>Kernels, completing the square and conjugate priors</h1>
+<p class="lede">The algebra under every Gibbs, MH and CAVI question, on one printed page. <span class="sheet">SHEET</span> = on the exam's formula sheet, so leave it off your A4. <span class="a4">A4</span> = not provided: copy it onto your notes. Taught in <a href="../lessons/0015-kernels-and-conjugacy.html">Lesson 15</a>.</p>
+
+<h2>The master move</h2>
+<div class="box">\(p(\theta\mid\text{rest})\propto p(\text{everything})\) <em>as a function of \(\theta\)</em>: drop every factor with no \(\theta\), add exponents, match a kernel below. What counts as constant depends on the variable: \(\tau^{n/2}\) (from \(\prod\sqrt{\tau/2\pi}\)) is a constant for \(\mu\) but <strong>not</strong> for \(\tau\). Support: \((0,\infty)\) suggests Gamma/Inv-Gamma, \((0,1)\) Beta, \(\mathbb R\) Normal. <span class="src"><a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=8">Intro Bayes slide 8</a>; <a href="../lectures/MCMC-3.pdf#page=21">MCMC slides 21–22</a></span></div>
+
+<h2>Kernel ID</h2>
+<table>
+<tr><th>Family (sheet parametrisation)</th><th>Kernel</th><th>Read off</th><th>Mean</th><th></th></tr>
+<tr><td>Gamma(shape \(a\), rate \(b\))</td><td>\(\tau^{a-1}e^{-b\tau}\)</td><td>\(a\) = power + 1, \(b\) = coeff. of \(-\tau\)</td><td>\(a/b\)</td><td><span class="sheet">SHEET</span> · Var \(a/b^2\) <span class="a4">A4</span></td></tr>
+<tr><td>Inv-Gamma(shape \(a\), scale \(b\)), in \(\sigma^2\)</td><td>\((\sigma^2)^{-a-1}e^{-b/\sigma^2}\)</td><td>\(a\) = −power − 1, \(b\) = coeff. of \(-1/\sigma^2\)</td><td>\(\frac{b}{a-1}\)</td><td><span class="sheet">SHEET</span></td></tr>
+<tr><td>Normal(mean, variance)</td><td>\(e^{-\frac A2\mu^2+B\mu}\)</td><td>\(N(B/A,\ 1/A)\), precision \(A\)</td><td>\(B/A\)</td><td><span class="sheet">SHEET</span> pdf · kernel rule <span class="a4">A4</span></td></tr>
+<tr><td>Exponential(rate \(\lambda\))</td><td>\(e^{-\lambda x}\)</td><td>= Gamma(1, \(\lambda\))</td><td>\(1/\lambda\)</td><td><span class="sheet">SHEET</span></td></tr>
+<tr><td>Poisson, read in \(\lambda\)</td><td>\(\lambda^{\sum y}e^{-n\lambda}\)</td><td>Gamma kernel: shape \(\sum y+1\), rate \(n\)</td><td>\(\lambda\)</td><td><span class="sheet">SHEET</span></td></tr>
+<tr><td>Beta(\(\alpha,\beta\)) on \((0,1)\)</td><td>\(\theta^{\alpha-1}(1-\theta)^{\beta-1}\)</td><td>each exponent + 1</td><td>\(\frac{\alpha}{\alpha+\beta}\)</td><td><span class="a4">A4</span></td></tr>
+</table>
+<p>\(\tau\sim\text{Gamma}(a,b)\iff\sigma^2=1/\tau\sim\text{Inv-Gamma}(a,b)\), with the same numbers.</p>
+
+<div class="cols">
+<div>
+<h2>Completing the square <span class="a4">A4</span></h2>
+$$-\tfrac A2\mu^2+B\mu=-\tfrac A2\big(\mu-\tfrac BA\big)^2+\tfrac{B^2}{2A}$$
+<p>Expand, collect: \(\mu^2\) coefficient \(=-A/2\), \(\mu\) coefficient \(=B\). Then \(N(B/A,1/A)\). <span class="src"><a href="../extra-notes/CAVI_normal_gamma_derivations.pdf#page=3">CAVI derivations p. 3</a></span></p>
+<p><strong>Normal–Normal</strong> (\(\tau\) known, \(\mu\sim N(m_0,1/\kappa_0)\)): \(A=\kappa_0+n\tau\), \(B=\kappa_0m_0+\tau\sum x_i\). Precisions add; the mean is the precision-weighted average of \(m_0\) and \(\bar x\). Slide form: prior \(N(\mu,\sigma^2/n_0)\Rightarrow N\big(\frac{n_0\mu+n\bar x}{n_0+n},\frac{\sigma^2}{n_0+n}\big)\). <span class="src"><a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=11">slide 11</a></span></p>
+</div>
+<div>
+<h2>Normalising-constant integrals <span class="a4">A4</span></h2>
+$$\int_0^\infty\tau^{a-1}e^{-b\tau}d\tau=\frac{\Gamma(a)}{b^a}\qquad\int_{\mathbb R}e^{-\frac A2\mu^2+B\mu}d\mu=\sqrt{\tfrac{2\pi}A}\,e^{\frac{B^2}{2A}}$$
+$$\int_0^1\theta^{\alpha-1}(1-\theta)^{\beta-1}d\theta=B(\alpha,\beta)=\tfrac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}$$
+<p>Use for the evidence \(p(x)=\int p(x\mid\theta)p(\theta)d\theta\), e.g. Poisson–Gamma: \(p(y)=\frac{\Gamma(a+y)}{\Gamma(a)y!}\frac{b^a}{(b+1)^{a+y}}\) (neg. binomial). Beta–Binomial: \(\binom mx\frac{B(\alpha+x,\beta+m-x)}{B(\alpha,\beta)}\). \(p(x)\) has no \(\theta\), so it cancels in \(\propto\) and in MH ratios.</p>
+</div>
+</div>
+
+<h2>Conjugate pairs <span class="a4">A4</span> <span class="src">· rebuild any row: likelihood kernel × prior kernel, add exponents</span></h2>
+<table>
+<tr><th>Likelihood (\(n\) iid)</th><th>Prior</th><th>Posterior</th></tr>
+<tr><td>\(N(\mu,1/\tau)\), \(\tau\) known</td><td>\(\mu\sim N(m_0,1/\kappa_0)\)</td><td>\(N\big(\frac{\kappa_0m_0+n\tau\bar x}{\kappa_0+n\tau},\ \frac1{\kappa_0+n\tau}\big)\)</td></tr>
+<tr><td>\(N(\mu,1/\tau)\), \(\mu\) known (precision)</td><td>Gamma\((a,b)\)</td><td>Gamma\(\big(a+\frac n2,\ b+\frac12\sum(x_i-\mu)^2\big)\)</td></tr>
+<tr><td>\(N(\mu,\sigma^2)\), \(\mu\) known (variance)</td><td>Inv-Gamma\((a,b)\)</td><td>Inv-Gamma\(\big(a+\frac n2,\ b+\frac12\sum(x_i-\mu)^2\big)\)</td></tr>
+<tr><td>Poisson(\(\lambda\))</td><td>Gamma\((a,b)\)</td><td>Gamma\((a+\sum y_i,\ b+n)\)</td></tr>
+<tr><td>Exponential(rate \(\lambda\))</td><td>Gamma\((a,b)\)</td><td>Gamma\((a+n,\ b+\sum x_i)\)</td></tr>
+<tr><td>Bernoulli / Binomial(\(m_i,\theta\))</td><td>Beta\((\alpha,\beta)\)</td><td>Beta\((\alpha+\sum y_i,\ \beta+\sum(m_i-y_i))\)</td></tr>
+<tr><td>Geometric (trials) \(\theta(1-\theta)^{x-1}\)</td><td>Beta\((\alpha,\beta)\)</td><td>Beta\((\alpha+n,\ \beta+\sum x_i-n)\)</td></tr>
+</table>
+<p class="src">Murphy (2007) §2.3 eq. 19, §4.3 eqs. 116–118 (<a href="https://www.cs.ubc.ca/~murphyk/Papers/bayesGauss.pdf">PDF</a>). Prior \(\mu\mid\tau\sim N(\mu_0,\frac1{\lambda_0\tau})\) (VI lecture) adds \(\tau^{1/2}\): the shape gets \(+\frac{n+1}2\) and the rate gets \(+\frac{\lambda_0}2(\mu-\mu_0)^2\). <a href="../lectures/VI-2.pdf#page=21">VI slide 21</a></p>
+
+<div class="cols">
+<div>
+<h2>Where it's used <span class="a4">A4</span></h2>
+<ul>
+  <li><strong>Gibbs:</strong> each full conditional = the joint, read in one parameter. If it isn't a known kernel, use an MH step (or a finite sum for a discrete parameter). <span class="src"><a href="../lectures/MCMC-3.pdf#page=13">MCMC slide 13</a></span></li>
+  <li><strong>MH:</strong> \(A=\min\Big(1,\frac{\pi(\theta^*)q(\theta^*,\theta)}{\pi(\theta)q(\theta,\theta^*)}\Big)\). \(\pi\) is unnormalised (\(p(x)\) cancels). \(q\) cancels <em>only</em> if symmetric. Log-normal walk: \(q\) ratio \(=\theta^*/\theta\). Independence \(q=g(\cdot)\): ratio \(=g(\theta)/g(\theta^*)\). <span class="src"><a href="../lectures/MCMC-3.pdf#page=5">slides 5, 8, 10</a></span></li>
+  <li><strong>CAVI:</strong> \(\log q_j^*=\mathbb E_{-j}[\log p(x,\theta)]+\)const. Same kernel as Gibbs, with \((x_i-\mu)^2\to(x_i-\mathbb E\mu)^2+\operatorname{Var}\mu\) and \(\tau\to\mathbb E\tau=a^*/b^*\). <span class="src"><a href="../lectures/VI-2.pdf#page=19">VI slides 19–22</a></span></li>
+</ul>
+</div>
+<div>
+<h2>R traps (reading code)</h2>
+<ul>
+  <li><code>rgamma(n, shape, rate)</code>: the 3rd positional argument is the <strong>rate</strong>; <code>scale = 1/rate</code>. Lecturer: <code>rgamma(1, a1 + cfreq[M], b1 + M)</code> = Gamma(shape, rate). <span class="src"><a href="../extra-notes/Gibbs_example_coal-1.pdf#page=2">coal p. 2</a></span></li>
+  <li><code>rnorm(n, mean, sd)</code>: sd, not variance. So the full conditional \(N(B/A,1/A)\) is <code>rnorm(1, B/A, sqrt(1/A))</code>.</li>
+  <li><code>1/rgamma(1, a, b)</code> = one draw from Inv-Gamma(\(a,b\)).</li>
+  <li><code>exp(logpost(prop) - logpost(cur))</code> = \(\pi(\theta^*)/\pi(\theta)\), computed on the log scale. <span class="src"><a href="../extra-notes/Metropolis–Hastings%20example-1.pdf#page=6">MH example p. 6</a></span></li>
+</ul>
+</div>
+</div>
+
+<div class="trap"><strong>Traps</strong><br>Dropping \(\tau^{n/2}\) when the target is \(\tau\) · reading the power as the shape (shape = power + 1) · Exponential–Gamma: \(n\) goes to the shape and \(\sum x\) to the rate · Inv-Gamma mean is \(b/(a-1)\), not \(b/a\) · forgetting the proposal ratio in MH · the rate vs scale mix-up in <code>rgamma</code> · \(\operatorname{Var}\mu\) goes in the CAVI <em>rate</em>, never the shape.</div>
+</main>
+</body>
+</html>

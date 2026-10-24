@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kernels and Conjugacy</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<script src="../assets/conjugate-plotter.js"></script>
+<style>
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .sheet { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .04em; color: var(--ok); }
+  .nosheet { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .04em; color: var(--trap); }
+  .model { font-size: .95rem; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 15 · Prereq refresher II: the Bayesian toolkit</div>
+<h1>Kernels, completing the square and conjugate priors</h1>
+<p class="lede">The goal: look at prior × likelihood, drop everything that doesn't involve the parameter, and name the posterior with its parameters, including by completing the square. That one move is the whole of a Gibbs full conditional, the reason Metropolis–Hastings never needs \(p(x)\), and the last line of every CAVI update.</p>
+
+<div class="mission">Why this matters for 10 Nov: the Bayesian question (14–17 marks in 2020–2022) has the same three parts every year: a Gibbs full conditional ("identify the distribution name and its parameters"), a numeric MH acceptance probability with an asymmetric proposal, and a CAVI update \(q^*(\tau)\) in terms of \(\mathbb E[\mu]\) and \(\operatorname{Var}[\mu]\). All three end in kernel matching. The formula sheet gives the Normal, Gamma, Inverse-Gamma, Exponential and Poisson densities, so the families are on the page. Spotting them inside a messy product is the part you have to practise.</div>
+
+<p>Assumed from <a href="0014-probability-toolkit.html">Lesson 14</a>: joint, marginal and conditional densities, Bayes' rule, and \(\mathbb E[(x-\mu)^2]=(x-\mathbb E\mu)^2+\operatorname{Var}\mu\). The kernel idea is the one from exponential families (<a href="0005-exponential-families.html">Lesson 5</a>): a density is a constant times a part that carries the variable. One-page summary: <a href="../reference/kernels-conjugacy.html">kernels and conjugacy cheat sheet</a>. About 40 minutes. Work on paper with an FX-82.</p>
+
+<h2>1 · "∝" depends on which variable you're looking at</h2>
+<p>This lesson uses one running model, <strong>(M)</strong>. It's the shape of every past Gibbs/CAVI question, with fresh priors:</p>
+<div class="box model">
+$$x_i\mid\mu,\tau\ \overset{iid}{\sim}\ N\!\left(\mu,\tfrac1\tau\right),\ i=1,\dots,n$$
+$$\mu\sim N\!\left(m_0,\tfrac1{\kappa_0}\right),\qquad \tau\sim\text{Gamma}(a,b)\ \text{(rate)},\qquad \mu,\tau\ \text{independent.}$$
+$$p(x,\mu,\tau)=\underbrace{(2\pi)^{-n/2}\,\tau^{n/2}e^{-\frac\tau2\sum_i(x_i-\mu)^2}}_{p(x\mid\mu,\tau)}\cdot\underbrace{\sqrt{\tfrac{\kappa_0}{2\pi}}\,e^{-\frac{\kappa_0}2(\mu-m_0)^2}}_{p(\mu)}\cdot\underbrace{\tfrac{b^a}{\Gamma(a)}\tau^{a-1}e^{-b\tau}}_{p(\tau)}$$
+</div>
+<p>\(\tau\) is the <em>precision</em> (\(1/\sigma^2\)), as in the VI lecture (<a href="../lectures/VI-2.pdf#page=20">VI slide 20</a>). A full conditional is the joint read as a function of one parameter: \(p(\mu\mid\tau,x)=p(x,\mu,\tau)/p(\tau,x)\propto p(x,\mu,\tau)\), because the denominator has no \(\mu\) in it. So <strong>any factor without the variable you're looking at is a constant</strong>, and you can drop it:</p>
+<ul>
+  <li>Looking at \(\mu\): keep \(e^{-\frac\tau2\sum(x_i-\mu)^2}\,e^{-\frac{\kappa_0}2(\mu-m_0)^2}\). Here \(\tau^{n/2}\) and \(\tau^{a-1}e^{-b\tau}\) are constants.</li>
+  <li>Looking at \(\tau\): keep \(\tau^{n/2}e^{-\frac\tau2\sum(x_i-\mu)^2}\,\tau^{a-1}e^{-b\tau}\). Here the whole prior on \(\mu\) is a constant.</li>
+</ul>
+<p>This is exactly how the lecture gets the coal-mining full conditionals: write the joint, "collect like terms", read off each Gamma (<a href="../lectures/MCMC-3.pdf#page=21">MCMC slides 21–22</a>).</p>
+<div class="trap"><strong>Trap</strong><br>A factor is only constant <em>for that variable</em>. \(\tau^{n/2}\) (from the \(\sqrt{\tau}\) in each Normal density) disappears for \(\mu\) but changes the Gamma shape for \(\tau\). Dropping it is the most common lost mark.</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>1.</strong> In model (M), you want \(p(\tau\mid\mu,x)\). Which factor of the joint must you <em>keep</em>?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\tau^{n/2}\), from the product of the \(n\) Normal densities</button>
+    <button class="opt" data-key="b">\(\sqrt{\kappa_0/2\pi}\), from the Normal prior density on \(\mu\)</button>
+    <button class="opt" data-key="c">\(b^a/\Gamma(a)\), the normalising constant of the Gamma prior</button>
+    <button class="opt" data-key="d">\((2\pi)^{-n/2}\), from the product of the \(n\) Normal densities</button>
+  </div>
+  <div class="why">Only factors involving \(\tau\) survive. \(\tau^{n/2}\) does: each \(N(\mu,1/\tau)\) density has \(\sqrt{\tau/2\pi}\) in front. The other three contain no \(\tau\). (They would all go for \(p(\mu\mid\tau,x)\) too, together with \(\tau^{n/2}\).)</div>
+</div>
+
+<h2>2 · Kernel recognition</h2>
+<p>A <strong>kernel</strong> is a density with its constant removed. Match the part that carries the variable and read the parameters off. Check the support first: \((0,\infty)\) suggests Gamma or Inverse-Gamma, \((0,1)\) Beta, \(\mathbb R\) Normal.</p>
+<div class="tablewrap"><table>
+<tr><th>Family (sheet parametrisation)</th><th>Kernel in the variable</th><th>Read off</th><th>Sheet?</th></tr>
+<tr><td>Gamma(shape \(a\), rate \(b\)), \(\mathbb E=a/b\)</td><td>\(\tau^{a-1}e^{-b\tau}\)</td><td>shape = power + 1; rate = coefficient of \(-\tau\)</td><td><span class="sheet">YES</span></td></tr>
+<tr><td>Inverse-Gamma(shape \(a\), scale \(b\)), \(\mathbb E=\frac{b}{a-1}\)</td><td>\((\sigma^2)^{-a-1}e^{-b/\sigma^2}\)</td><td>shape = −power − 1; scale = coefficient of \(-1/\sigma^2\)</td><td><span class="sheet">YES</span></td></tr>
+<tr><td>Normal(mean, variance)</td><td>\(\exp\!\left(-\tfrac A2\mu^2+B\mu\right)\)</td><td>\(N(B/A,\ 1/A)\): precision = \(A\) (§3)</td><td><span class="sheet">YES</span></td></tr>
+<tr><td>Exponential(rate \(\lambda\))</td><td>\(e^{-\lambda x}\) in \(x\)</td><td>= Gamma(1, \(\lambda\))</td><td><span class="sheet">YES</span></td></tr>
+<tr><td>Poisson likelihood, <em>as a function of</em> \(\lambda\)</td><td>\(\lambda^{\sum y_i}e^{-n\lambda}\)</td><td>a Gamma kernel in \(\lambda\): shape \(\sum y_i+1\), rate \(n\)</td><td><span class="sheet">YES</span> (pmf)</td></tr>
+<tr><td>Beta(\(\alpha,\beta\)), \(\mathbb E=\frac{\alpha}{\alpha+\beta}\)</td><td>\(\theta^{\alpha-1}(1-\theta)^{\beta-1}\) on \((0,1)\)</td><td>each exponent + 1</td><td><span class="nosheet">NO: A4</span></td></tr>
+</table></div>
+<p>Inverse-Gamma is written in \(\sigma^2\), the variance, as on the sheet: \(f(x)=\frac{b^a}{\Gamma(a)}x^{-a-1}e^{-b/x}\). If \(\tau\sim\text{Gamma}(a,b)\) then \(\sigma^2=1/\tau\sim\text{Inv-Gamma}(a,b)\), with the same two numbers.</p>
+
+<div class="quiz num" data-answer="1.88" data-tol="0.01">
+  <p class="q"><strong>2.</strong> A full conditional comes out as \(p(\tau\mid\cdot)\propto\tau^{3.5}e^{-2.4\tau}\), \(\tau&gt;0\). Name it and give its mean (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Power \(3.5=a-1\Rightarrow a=4.5\); rate \(b=2.4\). Gamma(4.5, 2.4), so \(\mathbb E\tau=4.5/2.4=1.875=\)<strong>1.88</strong>. The usual slip is shape 3.5.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> As a function of \(\sigma^2&gt;0\), \((\sigma^2)^{-6}\exp(-3/\sigma^2)\) is the kernel of which distribution?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Inverse-Gamma with shape 5 and scale 3</button>
+    <button class="opt" data-key="b">Inverse-Gamma with shape 6 and scale 3</button>
+    <button class="opt" data-key="c">Inverse-Gamma with shape 5 and scale 1/3</button>
+    <button class="opt" data-key="d">Gamma with shape 5 and rate 3</button>
+  </div>
+  <div class="why">\(-a-1=-6\Rightarrow a=5\); the coefficient of \(-1/\sigma^2\) is the scale, 3. Mean \(3/(5-1)=0.75\). A Gamma kernel would have \(e^{-3\sigma^2}\), not \(e^{-3/\sigma^2}\).</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>4.</strong> As a function of \(\mu\in\mathbb R\), \(\exp(-2\mu^2+6\mu)\) is the kernel of:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(N(\text{mean }1.5,\ \text{variance }4)\)</button>
+    <button class="opt" data-key="b">\(N(\text{mean }3,\ \text{variance }0.25)\)</button>
+    <button class="opt" data-key="c">\(N(\text{mean }1.5,\ \text{variance }0.25)\)</button>
+    <button class="opt" data-key="d">\(N(\text{mean }6,\ \text{variance }0.5)\)</button>
+  </div>
+  <div class="why">Match \(-\frac A2\mu^2+B\mu\): \(A/2=2\Rightarrow A=4\), \(B=6\). Mean \(B/A=1.5\), variance \(1/A=0.25\). Section 3 shows why.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>5.</strong> With \(S=\sum_i(x_i-\mu)^2\), you reach \(p(\tau\mid\mu,x)\propto\tau^{n/2}e^{-\tau S/2}\cdot\tau^{a-1}e^{-b\tau}\). The Gamma <em>shape</em> is:</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(a+n/2-1\)</button>
+    <button class="opt" data-key="b">\(a+n/2\)</button>
+    <button class="opt" data-key="c">\(a+n\)</button>
+    <button class="opt" data-key="d">\(n/2+1\)</button>
+  </div>
+  <div class="why">Add the powers: \(\tau^{a+n/2-1}\), and the power is shape − 1, so the shape is \(a+n/2\). (a) reads the power as the shape; (d) forgets the prior. The rate is \(b+S/2\).</div>
+</div>
+
+<h2>3 · Completing the square</h2>
+<p>Every Normal full conditional reduces to \(\exp(-\frac A2\mu^2+B\mu)\). The one identity you need:</p>
+$$-\frac A2\mu^2+B\mu=-\frac A2\Big(\mu^2-\frac{2B}{A}\mu\Big)=-\frac A2\Big(\mu-\frac BA\Big)^2+\frac{B^2}{2A},$$
+<p>and \(e^{B^2/(2A)}\) has no \(\mu\), so \(\exp(-\frac A2\mu^2+B\mu)\propto\exp\!\big(-\frac{(\mu-B/A)^2}{2\cdot(1/A)}\big)\): <strong>\(N(B/A,\ 1/A)\)</strong>. Recipe: expand the squares, collect the \(\mu^2\) coefficient (\(=-A/2\)) and the \(\mu\) coefficient (\(=B\)), and discard the rest. (<a href="../extra-notes/CAVI_normal_gamma_derivations.pdf#page=3">CAVI derivations, p. 3</a> writes it as \(A\mu^2-2B\mu\); same thing.)</p>
+
+<p><strong>Normal–Normal, \(\tau\) known.</strong> In model (M), hold \(\tau\) fixed:</p>
+$$\begin{aligned}&-\frac\tau2\sum_i(x_i-\mu)^2-\frac{\kappa_0}2(\mu-m_0)^2\\&=-\frac12(\kappa_0+n\tau)\mu^2+\Big(\kappa_0m_0+\tau\sum_ix_i\Big)\mu+\text{const},\\ &\Rightarrow\ A=\kappa_0+n\tau,\qquad B=\kappa_0m_0+n\tau\bar x,\end{aligned}$$
+$$\mu\mid\tau,x\sim N\!\left(\frac{\kappa_0m_0+n\tau\bar x}{\kappa_0+n\tau},\ \frac1{\kappa_0+n\tau}\right).$$
+<p><strong>Precisions add</strong>: posterior precision = prior precision \(\kappa_0\) + data precision \(n\tau\). The posterior mean is the precision-weighted average of \(m_0\) and \(\bar x\). The lecture writes the prior as \(N(\mu,\sigma^2/n_0)\), which gives \(N\big(\frac{n_0\mu+n\bar x}{n_0+n},\frac{\sigma^2}{n_0+n}\big)\), the same result (<a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=11">Intro Bayes slides 11–13</a>; handwritten derivation in <a href="../extra-notes/Posterior_Normal_mean-2.pdf">Posterior_Normal_mean</a>).</p>
+
+<div class="conjplot" data-mode="normal" data-m0="50" data-s0="2" data-sigma="3" data-n="5" data-xbar="53.2"></div>
+<p class="phase-key" style="font-family:Inter,system-ui,sans-serif">Slide n up: the posterior moves to x̄ and narrows. Slide the prior sd down: the prior wins. The posterior is always narrower than both.</p>
+
+<p>For Q6–7: a bag-filling machine's mean fill \(\mu\) (g) has prior \(N(50,4)\) (variance 4). Fills are \(N(\mu,9)\) with known variance 9. Five bags give \(\bar x=53.2\).</p>
+<div class="quiz num" data-answer="52.21" data-tol="0.01">
+  <p class="q"><strong>6.</strong> Posterior mean of \(\mu\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Precisions: prior \(\kappa_0=1/4=0.25\); data \(n\tau=5/9=0.5556\); \(A=0.8056\).
+  $$\frac{0.25(50)+0.5556(53.2)}{0.8056}=\frac{12.5+29.5556}{0.8056}=\textbf{52.21}.$$
+  Slide form: \(n_0=\sigma^2/4=2.25\), \(\frac{2.25(50)+5(53.2)}{7.25}=52.21\) ✓.</div>
+</div>
+<div class="quiz num" data-answer="1.24" data-tol="0.01">
+  <p class="q"><strong>7.</strong> Posterior variance of \(\mu\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(1/A=1/0.8056=\)<strong>1.24</strong> (sd 1.11). Smaller than the prior variance 4 and smaller than \(\sigma^2/n=1.8\). Slide form: \(9/7.25=1.24\) ✓.</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Why is 52.21 between 50 and 53.2, and nearer 53.2?</p>
+<details><summary>Model answer</summary><div>
+<p>The posterior mean is a weighted average of the prior mean and \(\bar x\), with weights equal to their precisions: \(0.25/0.806=0.31\) on 50 and \(0.556/0.806=0.69\) on 53.2. The five observations together are more precise (variance 1.8) than the prior (variance 4), so they get more weight. As \(n\to\infty\) the weight on \(\bar x\to1\) and the posterior tends to \(N(\bar x,\sigma^2/n)\) (<a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=13">slide 13</a>).</p></div></details>
+</div>
+
+<h2>4 · Integrating with normalising constants</h2>
+<p>A density integrates to 1, so the integral of a kernel is 1 ÷ its constant. Use these instead of integrating:</p>
+$$\int_0^\infty\tau^{a-1}e^{-b\tau}d\tau=\frac{\Gamma(a)}{b^a},\qquad \int_{-\infty}^{\infty}e^{-\frac A2\mu^2+B\mu}d\mu=\sqrt{\frac{2\pi}{A}}\,e^{B^2/(2A)},$$
+$$\int_0^1\theta^{\alpha-1}(1-\theta)^{\beta-1}d\theta=B(\alpha,\beta)=\frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}.$$
+<p>The middle one is the Normal constant \(\sqrt{2\pi/A}\) times the \(e^{B^2/(2A)}\) left over from completing the square.</p>
+<p><strong>Use 1: the marginal likelihood (evidence)</strong> \(p(x)=\int p(x\mid\theta)p(\theta)\,d\theta\) (<a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=10">Intro Bayes slide 10</a>). Poisson–Gamma, one count \(y\), prior \(\lambda\sim\text{Gamma}(a,b)\):</p>
+$$\begin{aligned}p(y)&=\int_0^\infty\frac{\lambda^ye^{-\lambda}}{y!}\frac{b^a}{\Gamma(a)}\lambda^{a-1}e^{-b\lambda}d\lambda=\frac{b^a}{\Gamma(a)\,y!}\int_0^\infty\lambda^{a+y-1}e^{-(b+1)\lambda}d\lambda\\&=\frac{\Gamma(a+y)}{\Gamma(a)\,y!}\cdot\frac{b^a}{(b+1)^{a+y}}.\end{aligned}$$
+<p>That is a negative binomial pmf: the Gamma-mixed Poisson, the overdispersed count model from <a href="0010-overdispersion.html">Lesson 10</a>.</p>
+<p><strong>Use 2: why you almost never need it.</strong> \(p(\theta\mid x)=p(x\mid\theta)p(\theta)/p(x)\) and \(p(x)\) has no \(\theta\), so \(p(\theta\mid x)\propto p(x\mid\theta)p(\theta)\) (<a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=8">slide 8</a>). Recognise the kernel and the constant comes free. In MH, \(\pi(\theta^*)/\pi(\theta)\) has the same \(p(x)\) on top and bottom, so it cancels. That's why MH only needs \(\pi\) "up to a constant" (<a href="../lectures/MCMC-3.pdf#page=8">MCMC slide 8</a>; <a href="../extra-notes/Metropolis–Hastings%20example-1.pdf#page=4">annotated MH example, p. 4</a>).</p>
+
+<div class="quiz num" data-answer="0.125" data-tol="0.002">
+  <p class="q"><strong>8.</strong> With \(\lambda\sim\text{Gamma}(2,1)\) and one Poisson count, find the prior predictive probability \(p(y=3)\) (3 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\dfrac{\Gamma(5)}{\Gamma(2)\,3!}\cdot\dfrac{1^2}{2^{5}}=\dfrac{24}{1\cdot6}\cdot\dfrac1{32}=\)<strong>0.125</strong>. (R: <code>dnbinom(3, 2, 0.5)</code> = 0.125 ✓.)</div>
+</div>
+
+<div class="quiz num" data-answer="112.82" data-tol="0.05">
+  <p class="q"><strong>9.</strong> Evaluate \(\displaystyle\int_{-\infty}^\infty e^{-2\mu^2+6\mu}\,d\mu\) without integrating (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(A=4\), \(B=6\): \(\sqrt{2\pi/4}\,e^{36/8}=1.2533\times e^{4.5}=1.2533\times90.017=\)<strong>112.82</strong>.</div>
+</div>
+
+<h2>5 · Conjugate priors: derive, then use the table</h2>
+<p>A prior is <strong>conjugate</strong> to a likelihood if the posterior is in the same family as the prior. You derive it in three lines: prior × likelihood, drop constants, match the kernel. Normal data with known mean \(\mu\), \(S=\sum_i(x_i-\mu)^2\):</p>
+$$\begin{aligned}\text{precision: }p(\tau\mid x)&\propto\tau^{n/2}e^{-\tau S/2}\cdot\tau^{a-1}e^{-b\tau}=\tau^{(a+n/2)-1}e^{-(b+S/2)\tau}\\&\Rightarrow\ \text{Gamma}\big(a+\tfrac n2,\ b+\tfrac S2\big).\\[4pt] \text{variance: }p(\sigma^2\mid x)&\propto(\sigma^2)^{-n/2}e^{-S/(2\sigma^2)}\cdot(\sigma^2)^{-a-1}e^{-b/\sigma^2}\\&=(\sigma^2)^{-(a+n/2)-1}e^{-(b+S/2)/\sigma^2}\ \Rightarrow\ \text{Inv-Gamma}\big(a+\tfrac n2,\ b+\tfrac S2\big).\end{aligned}$$
+<p>The same update in both parametrisations: the shape gains \(n/2\) and the rate (or scale) gains half the sum of squares. (Murphy 2007, §4.3, eqs. 116–118.)</p>
+
+<div class="tablewrap"><table>
+<tr><th>Likelihood (\(n\) iid)</th><th>Prior</th><th>Posterior</th></tr>
+<tr><td>\(N(\mu,1/\tau)\), \(\tau\) known</td><td>\(\mu\sim N(m_0,1/\kappa_0)\)</td><td>\(N\!\left(\frac{\kappa_0m_0+n\tau\bar x}{\kappa_0+n\tau},\ \frac1{\kappa_0+n\tau}\right)\)</td></tr>
+<tr><td>\(N(\mu,1/\tau)\), \(\mu\) known</td><td>\(\tau\sim\text{Gamma}(a,b)\)</td><td>\(\text{Gamma}\big(a+\frac n2,\ b+\frac12\sum(x_i-\mu)^2\big)\)</td></tr>
+<tr><td>\(N(\mu,\sigma^2)\), \(\mu\) known</td><td>\(\sigma^2\sim\text{Inv-Gamma}(a,b)\)</td><td>\(\text{Inv-Gamma}\big(a+\frac n2,\ b+\frac12\sum(x_i-\mu)^2\big)\)</td></tr>
+<tr><td>Poisson(\(\lambda\))</td><td>\(\lambda\sim\text{Gamma}(a,b)\)</td><td>\(\text{Gamma}\big(a+\sum y_i,\ b+n\big)\)</td></tr>
+<tr><td>Exponential(rate \(\lambda\))</td><td>\(\lambda\sim\text{Gamma}(a,b)\)</td><td>\(\text{Gamma}\big(a+n,\ b+\sum x_i\big)\)</td></tr>
+<tr><td>Bernoulli(\(\theta\)) / Binomial(\(m_i,\theta\))</td><td>\(\theta\sim\text{Beta}(\alpha,\beta)\)</td><td>\(\text{Beta}\big(\alpha+\sum y_i,\ \beta+\sum(m_i-y_i)\big)\)</td></tr>
+<tr><td>Geometric, trials: \(\theta(1-\theta)^{x-1}\)</td><td>\(\theta\sim\text{Beta}(\alpha,\beta)\)</td><td>\(\text{Beta}\big(\alpha+n,\ \beta+\sum x_i-n\big)\)</td></tr>
+</table></div>
+<p>Don't memorise the right-hand column: rebuild any row in three lines by adding exponents. Poisson: \(\lambda^{\sum y}e^{-n\lambda}\cdot\lambda^{a-1}e^{-b\lambda}\). Watch the Exponential row: the data's \(\sum x_i\) goes to the <em>rate</em>, and the shape gains \(n\) (one \(\lambda\) per observation).</p>
+
+<div class="conjplot" data-mode="poisson" data-a="2" data-b="1" data-n="4" data-sum="20"></div>
+
+<div class="quiz num" data-answer="2.56" data-tol="0.01">
+  <p class="q"><strong>10.</strong> Five measurements \(8, 11, 13, 9, 10\) are \(N(10,\sigma^2)\) with known mean 10. Prior \(\sigma^2\sim\text{Inv-Gamma}(3,4)\). Give the posterior mean of \(\sigma^2\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(S=4+1+9+1+0=15\). Posterior Inv-Gamma\((3+5/2,\ 4+15/2)=\)Inv-Gamma\((5.5,\ 11.5)\). Mean (sheet) \(\frac{b}{a-1}=\frac{11.5}{4.5}=\)<strong>2.56</strong>.</div>
+</div>
+
+<h2>6 · Bridge drills: the three exam shapes</h2>
+<p>A preview only: the algorithms come in later lessons. The point is that each one ends in sections 1–5.</p>
+
+<h3>6a · Gibbs full conditionals</h3>
+<p>Gibbs samples each parameter from its full conditional given the data and the current values of the others (<a href="../lectures/MCMC-3.pdf#page=13">MCMC slide 13</a>). In model (M), section 1 gave the factors and sections 3 and 5 named them:</p>
+$$\mu\mid\tau,x\sim N\!\left(\frac{\kappa_0m_0+\tau\sum x_i}{\kappa_0+n\tau},\ \frac1{\kappa_0+n\tau}\right),$$
+$$\tau\mid\mu,x\sim\text{Gamma}\!\left(a+\frac n2,\ b+\frac12\sum_i(x_i-\mu)^2\right).$$
+<p>Data for 6a and 6c: \(x=(3.1,\ 4.5,\ 2.8,\ 3.6)\), \(n=4\), \(\sum x_i=14\). Hyperparameters \(m_0=5\), \(\kappa_0=1\), \(a=2\), \(b=1\).</p>
+
+<div class="quiz num" data-answer="3.67" data-tol="0.01">
+  <p class="q"><strong>11.</strong> The current value is \(\tau=2\). Give the mean of \(p(\mu\mid\tau=2,x)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(A=\kappa_0+n\tau=1+8=9\); \(B=\kappa_0m_0+\tau\sum x_i=5+28=33\). \(N(33/9,\ 1/9)=N(\)<strong>3.67</strong>\(,\ 0.11)\).</div>
+</div>
+<div class="quiz num" data-answer="1.83" data-tol="0.005">
+  <p class="q"><strong>12.</strong> The current value is \(\mu=3.5\). \(p(\tau\mid\mu=3.5,x)\) is Gamma(shape, rate). Give the rate (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\sum(x_i-3.5)^2=0.16+1+0.49+0.01=1.66\). Rate \(=1+1.66/2=\)<strong>1.83</strong>, shape \(2+4/2=4\). Gamma(4, 1.83), mean 2.19.</div>
+</div>
+
+<p>The sampler in R (read, don't write):</p>
+<pre class="rout"><span class="cmd">&gt; set.seed(30027)
+&gt; x &lt;- c(3.1, 4.5, 2.8, 3.6); n &lt;- length(x)
+&gt; m0 &lt;- 5; k0 &lt;- 1; a &lt;- 2; b &lt;- 1
+&gt; mu &lt;- 3.5; tau &lt;- 2; out &lt;- matrix(NA, 5000, 2)
+&gt; for (t in 1:5000) {
++   mu  &lt;- rnorm(1, mean = (k0*m0 + tau*sum(x))/(k0 + n*tau), sd = sqrt(1/(k0 + n*tau)))
++   <b>tau &lt;- rgamma(1, shape = a + n/2, rate = b + sum((x - mu)^2)/2)</b>
++   out[t, ] &lt;- c(mu, tau)
++ }
+&gt; colMeans(out[-(1:500), ])</span>
+[1] 3.724007 1.895736</pre>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>13.</strong> What does the highlighted line compute?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">One draw of τ from its Gamma prior, before seeing any data</button>
+    <button class="opt" data-key="b">One draw of τ from its full conditional, given the μ just drawn</button>
+    <button class="opt" data-key="c">One draw of τ from its full conditional, given the starting μ</button>
+    <button class="opt" data-key="d">The posterior mean of τ, given the μ just drawn and x</button>
+  </div>
+  <div class="why">It is \(\tau\mid\mu,x\sim\text{Gamma}(a+n/2,\ b+\frac12\sum(x_i-\mu)^2)\), and <code>mu</code> was overwritten on the line above, so it uses the newest \(\mu\): that's the Gibbs order (<a href="../lectures/MCMC-3.pdf#page=13">slide 13</a>). <code>rgamma(1, …)</code> is one random draw, not a mean.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>14.</strong> R's <code>rgamma(n, shape, rate = 1, scale = 1/rate)</code>. Which replacement for the highlighted line is <em>wrong</em>?</p>
+  <div class="opts">
+    <button class="opt" data-key="a"><code>rgamma(1, a + n/2, b + sum((x - mu)^2)/2)</code></button>
+    <button class="opt" data-key="b"><code>rgamma(1, a + n/2, scale = 1/(b + sum((x - mu)^2)/2))</code></button>
+    <button class="opt" data-key="c"><code>rgamma(1, a + n/2, scale = b + sum((x - mu)^2)/2)</code></button>
+    <button class="opt" data-key="d"><code>rgamma(1, rate = b + sum((x - mu)^2)/2, shape = a + n/2)</code></button>
+  </div>
+  <div class="why">The third positional argument is the <em>rate</em>, so (a) is right; the lecturer's coal code does exactly this: <code>rgamma(1, a1 + cfreq[M], b1 + M)</code> (<a href="../extra-notes/Gibbs_example_coal-1.pdf#page=2">coal notes, p. 2</a>). (b) gives scale = 1/rate, also right. (c) uses the rate as a scale, so it draws from a distribution with mean \((a+n/2)\times\)rate instead of \((a+n/2)/\)rate. Same trap for <code>rnorm</code>: its third argument is the <em>sd</em>, hence the <code>sqrt</code> in the μ line.</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>What do 3.724 and 1.896 estimate? Why isn't the first one 3.67 from Q11?</p>
+<details><summary>Model answer</summary><div>
+<p>They are the averages of the draws after discarding 500 as burn-in, so they estimate the posterior means \(\mathbb E[\mu\mid x]\) and \(\mathbb E[\tau\mid x]\). 3.67 was the mean of \(\mu\) <em>conditional</em> on \(\tau=2\). The marginal posterior mean averages the conditional mean \(\frac{5+14\tau}{1+4\tau}\) over the posterior of \(\tau\) (iterated expectation, <a href="0014-probability-toolkit.html">Lesson 14</a>).</p></div></details>
+</div>
+
+<h3>6b · Metropolis–Hastings: constants cancel, proposals don't</h3>
+$$A=\min\left(1,\ \frac{\pi(\theta^*)\,q(\theta^*,\theta)}{\pi(\theta)\,q(\theta,\theta^*)}\right),\qquad q(\theta,\theta^*)=\text{density of proposing }\theta^*\text{ from }\theta$$
+<p>(<a href="../lectures/MCMC-3.pdf#page=5">MCMC slide 5</a>). Only a symmetric proposal (random walk) cancels the \(q\) terms (<a href="../lectures/MCMC-3.pdf#page=10">slide 10</a>). Anything else, keep them.</p>
+<p>Setup for Q15 and mixed Q3: counts \(y=(2,4,1)\) are Poisson(\(\lambda\)), with prior \(\lambda\sim\text{Inv-Gamma}(1,1)\). Then \(\pi(\lambda)\propto\lambda^{7}e^{-3\lambda}\cdot\lambda^{-2}e^{-1/\lambda}=\lambda^5e^{-3\lambda-1/\lambda}\). It's not a kernel on the sheet (no conjugacy), so we use MH. The constant is unknown, and it doesn't matter.</p>
+
+<div class="quiz num" data-answer="0.68" data-tol="0.01">
+  <p class="q"><strong>15.</strong> Proposal: a log-normal random walk, \(\log\lambda^*\sim N(\log\lambda,\ 0.5^2)\), i.e. \(q(\lambda,\lambda^*)=\dfrac{1}{\lambda^*\,0.5\sqrt{2\pi}}\exp\!\Big(-\dfrac{(\log\lambda^*-\log\lambda)^2}{2(0.25)}\Big)\). Current \(\lambda=2\), proposed \(\lambda^*=1.5\). Find the acceptance probability (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Target ratio:
+  $$\frac{\pi(1.5)}{\pi(2)}=\Big(\frac{1.5}{2}\Big)^5e^{-4.5-0.6667+6+0.5}=0.23730\times e^{1.3333}=0.23730\times3.7937=0.9003.$$
+  Proposal ratio: the exponentials are equal (the squared difference is symmetric), leaving the Jacobian \(1/\lambda^*\):
+  $$\frac{q(\lambda^*,\lambda)}{q(\lambda,\lambda^*)}=\frac{1/\lambda}{1/\lambda^*}=\frac{\lambda^*}{\lambda}=0.75.$$
+  \(A=\min(1,\ 0.9003\times0.75)=\)<strong>0.68</strong>. Leaving out the proposal ratio gives 0.90: the classic lost mark.</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Why could we use \(\lambda^5e^{-3\lambda-1/\lambda}\) without its normalising constant, and why does this "random walk" still need a proposal ratio?</p>
+<details><summary>Model answer</summary><div>
+<p>The posterior is \(\pi(\lambda)=p(y\mid\lambda)p(\lambda)/p(y)\), and the constant (with \(p(y)\), \(\prod y_i!\) and the prior constant) appears in both \(\pi(\lambda^*)\) and \(\pi(\lambda)\), so it cancels in the ratio. The walk is symmetric on the log scale, but the density of \(\lambda^*\) itself carries a \(1/\lambda^*\) factor, so \(q(\lambda,\lambda^*)\ne q(\lambda^*,\lambda)\). Without the correction the chain would favour small \(\lambda\) and target the wrong distribution.</p></div></details>
+</div>
+
+<h3>6c · CAVI: the same kernel, with expectations</h3>
+<p>Mean-field \(q(\mu,\tau)=q_\mu(\mu)q_\tau(\tau)\), and \(\log q^*_\tau(\tau)=\mathbb E_\mu[\log p(x,\mu,\tau)]+\text{const}\) (<a href="../lectures/VI-2.pdf#page=19">VI slide 19</a>). Take logs of the τ-factors from section 1 and average over \(q_\mu\):</p>
+$$\log q^*_\tau(\tau)=\Big(a+\frac n2-1\Big)\log\tau-\tau\Big(b+\frac12\sum_i\mathbb E_\mu[(x_i-\mu)^2]\Big)+\text{const}$$
+<p>so \(q^*_\tau=\text{Gamma}\big(a+\frac n2,\ b+\frac12\sum_i\mathbb E_\mu[(x_i-\mu)^2]\big)\), with \(\mathbb E_\mu[(x_i-\mu)^2]=(x_i-\mathbb E\mu)^2+\operatorname{Var}\mu\) (<a href="0014-probability-toolkit.html">Lesson 14</a>). It's the Gibbs conditional with \((x_i-\mu)^2\) replaced by its expectation.</p>
+
+<div class="quiz num" data-answer="2.09" data-tol="0.005">
+  <p class="q"><strong>16.</strong> Same data and hyperparameters as 6a. The current \(q_\mu\) has \(\mathbb E\mu=3.6\) and \(\operatorname{Var}\mu=0.12\). Give the rate of the updated \(q^*_\tau\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\sum(x_i-3.6)^2=0.25+0.81+0.64+0=1.70\); add \(n\operatorname{Var}\mu=4(0.12)=0.48\): total \(2.18\). Rate \(=1+2.18/2=\)<strong>2.09</strong>, shape 4. So \(\mathbb E_q\tau=4/2.09=1.91\), which the next \(q_\mu\) update uses.</div>
+</div>
+
+<h2>7 · Mixed practice</h2>
+<p>Interleaved on purpose: decide which tool you need before computing.</p>
+
+<div class="quiz num" data-answer="4.40" data-tol="0.01">
+  <p class="q"><strong>M1.</strong> Daily counts \(4, 7, 3, 6\) are Poisson(\(\lambda\)) with prior \(\lambda\sim\text{Gamma}(2,1)\). Give the posterior mean (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\lambda^{20}e^{-4\lambda}\cdot\lambda^{1}e^{-\lambda}=\lambda^{21}e^{-5\lambda}\): Gamma(22, 5), mean <strong>4.40</strong>. A compromise between the prior mean 2 and \(\bar y=5\).</div>
+</div>
+
+<div class="quiz num" data-answer="0.38" data-tol="0.005">
+  <p class="q"><strong>M2.</strong> The number of attempts until the first success, \(p(x\mid\theta)=\theta(1-\theta)^{x-1}\), is recorded three times: \(3, 1, 4\). Prior \(\theta\sim\text{Beta}(2,3)\). Give the posterior mean (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Likelihood \(\theta^3(1-\theta)^{(3-1)+(1-1)+(4-1)}=\theta^3(1-\theta)^5\); times \(\theta^1(1-\theta)^2\) gives \(\theta^4(1-\theta)^7\): Beta(5, 8). Mean \(5/13=\)<strong>0.38</strong>. Beta is not on the sheet: its mean \(\alpha/(\alpha+\beta)\) goes on your A4.</div>
+</div>
+
+<div class="quiz num" data-answer="0.56" data-tol="0.01">
+  <p class="q"><strong>M3.</strong> Same target as Q15, \(\pi(\lambda)\propto\lambda^5e^{-3\lambda-1/\lambda}\), but now the proposal ignores the current value: \(\lambda^*\sim\text{Gamma}(3,1)\). Current \(\lambda=2\), proposed \(\lambda^*=1\). Find the acceptance probability (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\frac{\pi(1)}{\pi(2)}=\frac1{32}e^{-3-1+6+0.5}=\frac{e^{2.5}}{32}=\frac{12.182}{32}=0.3807\). The proposal density depends only on where you land: \(q(\cdot,\lambda^*)\propto\lambda^{*2}e^{-\lambda^*}\). The ratio is \(\frac{q(\lambda^*,\lambda)}{q(\lambda,\lambda^*)}=\frac{2^2e^{-2}}{1^2e^{-1}}=4e^{-1}=1.4715\) (the Gamma constants cancel). \(A=\min(1,\ 0.3807\times1.4715)=\)<strong>0.56</strong>.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>M4.</strong> In the lecture's VI example the prior is \(\mu\mid\tau\sim N(\mu_0,\frac1{\lambda_0\tau})\), and the shape of \(q^*_\tau\) is \(a_0+\frac{n+1}2\) (<a href="../lectures/VI-2.pdf#page=21">VI slide 21</a>). In model (M) it is \(a+\frac n2\). Why the extra \(\frac12\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The mean-field factor \(q_\mu\) contributes one extra half power of \(\tau\)</button>
+    <button class="opt" data-key="b">Taking expectations of \((x_i-\mu)^2\) adds a variance term to the shape</button>
+    <button class="opt" data-key="c">The Gamma prior on \(\tau\) is counted once for each of the parameters</button>
+    <button class="opt" data-key="d">The prior density of \(\mu\) has a \(\sqrt{\lambda_0\tau}\) factor, which involves \(\tau\)</button>
+  </div>
+  <div class="why">\(N(\mu_0,1/(\lambda_0\tau))\) has \(\sqrt{\lambda_0\tau/2\pi}\) in front, so \(p(\mu\mid\tau)\) contributes \(\tau^{1/2}\) and a term \(\frac{\lambda_0}2\mathbb E[(\mu-\mu_0)^2]\) to the rate (<a href="../extra-notes/VI_normal.pdf#page=1">VI_normal, p. 1</a>). In (M) the prior on \(\mu\) has no \(\tau\), so it is a constant for \(\tau\) (section 1). (b) is wrong because \(\operatorname{Var}\mu\) goes into the <em>rate</em>.</div>
+</div>
+
+<div class="quiz num" data-answer="0.88" data-tol="0.005">
+  <p class="q"><strong>M5.</strong> Six waiting times are Exponential(rate \(\lambda\)) with \(\sum x_i=7.5\). Prior \(\lambda\sim\text{Gamma}(1,0.5)\). Give the posterior mean (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\lambda^6e^{-7.5\lambda}\cdot\lambda^0e^{-0.5\lambda}\): Gamma(7, 8), mean \(7/8=0.875\approx\)<strong>0.88</strong>. If you got Gamma(8.5, 6.5), you swapped \(n\) and \(\sum x_i\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>M6.</strong> A full conditional comes out as \(p(\lambda\mid\cdot)\propto\lambda^{9}e^{-4\lambda}\cdot\lambda^{-3}e^{-2/\lambda}\), \(\lambda&gt;0\). Which is right?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">No family on the sheet matches; sample this step with MH</button>
+    <button class="opt" data-key="b">It is Gamma(7, 4), because the \(e^{-2/\lambda}\) term is constant</button>
+    <button class="opt" data-key="c">It is Inverse-Gamma(2, 2), since that factor has the \(1/\lambda\) term</button>
+    <button class="opt" data-key="d">It is Gamma(10, 4) times an Inverse-Gamma(2, 2) density</button>
+  </div>
+  <div class="why">\(\lambda^6e^{-4\lambda-2/\lambda}\) has both \(e^{-4\lambda}\) and \(e^{-2/\lambda}\): neither Gamma nor Inverse-Gamma. \(e^{-2/\lambda}\) involves \(\lambda\), so it can't be dropped. When a full conditional isn't standard, use an MH step inside the Gibbs sweep (Metropolis-within-Gibbs), or a finite sum if the support is discrete, like \(m\) in the coal model (<a href="../lectures/MCMC-3.pdf#page=23">slide 23</a>). A product of two kernels in the <em>same</em> variable is just one kernel.</div>
+</div>
+
+<div class="explain">
+<p><strong>M7. Explain (2–3 sentences)</strong></p>
+<p>Prove that the posterior variance in the Normal–Normal model is always smaller than both the prior variance and \(\sigma^2/n\).</p>
+<details><summary>Model answer</summary><div>
+<p>The posterior precision is \(\kappa_0+n\tau\), the prior precision plus the data precision. Both are positive, so the sum is bigger than each one, and its reciprocal, the posterior variance, is smaller than \(1/\kappa_0\) and \(1/(n\tau)=\sigma^2/n\). The posterior combines two independent sources of information, so it is more certain than either alone (<a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=13">slide 13</a>).</p></div></details>
+</div>
+
+<h2>8 · Score yourself</h2>
+<div class="tablewrap"><table>
+<tr><th>If you missed…</th><th>Go back to</th></tr>
+<tr><td>Q1, Q5, M4, M6</td><td>§1: what is constant for which variable</td></tr>
+<tr><td>Q2–Q4, Q10, M1, M2, M5</td><td>§2 kernel table and §5 conjugacy derivation</td></tr>
+<tr><td>Q6, Q7, Q9, Q11, M7</td><td>§3 completing the square (\(A\), \(B\))</td></tr>
+<tr><td>Q8, Q15, M3</td><td>§4 (constants cancel) and §6b (proposal ratio)</td></tr>
+<tr><td>Q12–Q14, Q16</td><td>§6a/6c, and the <code>rgamma</code> rate trap</td></tr>
+</table></div>
+
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) \(p(\theta\mid\cdot)\propto\) joint; drop factors without \(\theta\). (2) Gamma \(\tau^{a-1}e^{-b\tau}\); Inv-Gamma \((\sigma^2)^{-a-1}e^{-b/\sigma^2}\); Beta \(\theta^{\alpha-1}(1-\theta)^{\beta-1}\). (3) \(e^{-\frac A2\mu^2+B\mu}\Rightarrow N(B/A,1/A)\). (4) \(\int\tau^{a-1}e^{-b\tau}=\Gamma(a)/b^a\); \(\int e^{-\frac A2\mu^2+B\mu}=\sqrt{2\pi/A}\,e^{B^2/2A}\); \(\int\theta^{\alpha-1}(1-\theta)^{\beta-1}=B(\alpha,\beta)\). (5) Precision: Gamma\((a+\frac n2,b+\frac S2)\); variance: Inv-Gamma, same numbers; Poisson: \((a+\sum y,b+n)\); Exponential: \((a+n,b+\sum x)\). (6) MH: \(p(x)\) cancels; \(q\) cancels only if symmetric. (7) CAVI: replace \((x_i-\mu)^2\) by \((x_i-\mathbb E\mu)^2+\operatorname{Var}\mu\).</p></div></details>
+
+<h2>9 · Homework (from the tutes)</h2>
+<ol>
+  <li><strong>Tute week 8, Q1(b)–(c)</strong> (<code>tutes/2026_MAST30027_week8_questions.qmd</code>). (b): use the \(A,B\) recipe in precision form (\(A=n/\sigma^2+1/\tau^2\)) instead of the solution's long expansion. (c): get \(p(\bar x)\) with the Normal integral of §4, not by guessing.</li>
+  <li><strong>Tute week 9, Q1, by hand.</strong> The tute estimates the beta-binomial pmf by simulation. Derive it exactly with the Beta integral: \(p_X(x)=\binom nx\frac{B(a+x,\,b+n-x)}{B(a,b)}\). Evaluate \(p_X(3)\) for \(n=10,a=2,b=3\) (2 d.p.) and compare with your simulated estimate.</li>
+  <li><strong>Tute week 11, Q1(a).</strong> Show \(X_1\mid X_2=x_2\) is Normal by keeping only the terms of the bivariate Normal exponent that involve \(x_1\) and completing the square. It's the same skill as a Gibbs step in the tute's bivariate Normal sampler.</li>
+  <li><strong>Stretch (VI slide 20).</strong> For the lecture's model, \(\mu\mid\tau\sim N(\mu_0,\frac1{\lambda_0\tau})\), \(\tau\sim\text{Gamma}(a_0,b_0)\), integrate \(\mu\) out of \(p(x,\mu,\tau)\) with the Normal integral and confirm that \(\tau\mid x\sim\text{Gamma}\big(a_0+\frac n2,\ b_0+\frac12\sum(x_i-\bar x)^2+\frac{n\lambda_0(\bar x-\mu_0)^2}{2(\lambda_0+n)}\big)\) (<a href="../lectures/VI-2.pdf#page=20">VI slide 20</a>).</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1. (b) \(A=\frac n{\sigma^2}+\frac1{\tau^2}=\frac{n\tau^2+\sigma^2}{\sigma^2\tau^2}\), \(B=\frac{n\bar x}{\sigma^2}+\frac\mu{\tau^2}\); \(B/A=\frac{n\tau^2\bar x+\sigma^2\mu}{n\tau^2+\sigma^2}\), \(1/A=\frac{\sigma^2\tau^2}{n\tau^2+\sigma^2}\) ✓. (c) \(p(\bar x)=\frac{\sqrt n}{2\pi\sigma\tau}e^{-\frac{n\bar x^2}{2\sigma^2}-\frac{\mu^2}{2\tau^2}}\sqrt{\frac{2\pi}A}e^{B^2/2A}\). Simplify the exponent to \(-\frac{(\bar x-\mu)^2}{2(\tau^2+\sigma^2/n)}\), giving \(N(\mu,\ \tau^2+\sigma^2/n)\).</p>
+<p>2. \(p_X(x)=\binom nx\frac1{B(a,b)}\int_0^1\theta^{a+x-1}(1-\theta)^{b+n-x-1}d\theta=\binom nx\frac{B(a+x,b+n-x)}{B(a,b)}\). \(p_X(3)=120\times\frac{B(5,10)}{B(2,3)}=120\times\frac{4!\,9!/14!}{1!\,2!/4!}=\)<strong>0.14</strong> (R: 0.1439).</p>
+<p>3. With \(\Sigma^{-1}=\frac1{|\Sigma|}\begin{pmatrix}\sigma_2^2&amp;-\sigma_{12}\\-\sigma_{12}&amp;\sigma_1^2\end{pmatrix}\), the \(x_1\) terms of \(-\frac12(x-\mu)^T\Sigma^{-1}(x-\mu)\) are \(-\frac{\sigma_2^2}{2|\Sigma|}x_1^2+\frac{\sigma_2^2\mu_1+\sigma_{12}(x_2-\mu_2)}{|\Sigma|}x_1\). So \(A=\sigma_2^2/|\Sigma|\): variance \(1/A=|\Sigma|/\sigma_2^2=\sigma_1^2-\sigma_{12}^2/\sigma_2^2\), mean \(B/A=\mu_1+\sigma_{12}(x_2-\mu_2)/\sigma_2^2\) ✓.</p>
+<p>4. Keep the \(\mu\) terms: \(A=\tau(n+\lambda_0)\), \(B=\tau(n\bar x+\lambda_0\mu_0)\). The integral gives \(\sqrt{2\pi/A}\propto\tau^{-1/2}\), cancelling the \(\tau^{1/2}\) from \(p(\mu\mid\tau)\). That leaves \(\tau^{a_0+n/2-1}\), and the exponent \(-\frac\tau2[\sum x_i^2+\lambda_0\mu_0^2-\frac{(n\bar x+\lambda_0\mu_0)^2}{n+\lambda_0}]\) simplifies to the stated rate.</p></div></details>
+
+<p><strong>Primary source:</strong> Kevin P. Murphy, <a href="https://www.cs.ubc.ca/~murphyk/Papers/bayesGauss.pdf">"Conjugate Bayesian analysis of the Gaussian distribution"</a> (2007): §2.3 (pp. 2–3) derives the Normal-mean posterior by completing the square, with precisions adding (eq. 19); §4.3 (p. 11) gives the Gamma prior on the precision, Gamma\((\alpha+n/2,\ \beta+\frac12\sum(x_i-\mu)^2)\) (eqs. 116–118). In the course: <a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=8">Intro Bayes slides 8–17</a>, <a href="../lectures/MCMC-3.pdf#page=21">MCMC slides 21–22</a> (coal full conditionals) and <a href="../extra-notes/CAVI_normal_gamma_derivations.pdf">CAVI derivations</a> (§3–4). Conjugate pairs at a glance: <a href="https://en.wikipedia.org/wiki/Conjugate_prior#Table_of_conjugate_distributions">Wikipedia, table of conjugate distributions</a> (its geometric counts failures, so its update is \(\beta+\sum x\)).</p>
+
+<div class="ask">💬 Ask me in the terminal if a kernel won't match, or if you want more full conditionals to practise (a new hierarchical model, Poisson–Gamma with a hyperprior, a Beta–Binomial Gibbs step). I'm your teacher for this. Paste your Q15 working and I'll mark it like an exam marker would.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0014-probability-toolkit.html">Lesson 14, Probability toolkit</a> · Reference: <a href="../reference/kernels-conjugacy.html">Kernels &amp; conjugacy cheat sheet</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Earlier: <a href="0005-exponential-families.html">Lesson 5, Exponential families</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

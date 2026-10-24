@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Probability Toolkit Sheet</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  body.ref table { font-size: .84rem; margin: .6rem 0; }
+  body.ref th, body.ref td { padding: .28rem .45rem; }
+  body.ref p, body.ref li { margin: .35rem 0; }
+  body.ref .box { padding: .6rem .9rem; margin: .7rem 0; }
+  body.ref .trap { padding: .5rem .8rem; margin: .7rem 0; }
+  .src { font-family: Inter, system-ui, sans-serif; font-size: .72rem; color: var(--muted); }
+  @page { size: A4; margin: 9mm 10mm; }
+  @media print {
+    html { font-size: 7.6pt; }
+    body.ref main { max-width: none; }
+    body.ref ul { padding-left: 1.2rem; margin: .2rem 0; }
+    body.ref p, body.ref li { margin: .15rem 0; line-height: 1.4; }
+    body.ref .box { padding: .3rem .6rem; margin: .4rem 0; }
+    body.ref .trap { padding: .3rem .6rem; margin: .4rem 0; }
+    body.ref th, body.ref td { padding: .15rem .35rem; }
+    body.ref h1 { font-size: 1.5rem; margin: 0 0 .2rem; }
+    body.ref .lede { font-size: .95rem; margin: 0 0 .4rem; }
+    body.ref h2 { margin-top: .7rem; padding-top: .3rem; font-size: 1.05rem; }
+    body.ref table { font-size: .8rem; }
+    .katex-display { margin: .3rem 0; }
+  }
+</style>
+</head>
+<body class="ref">
+<main>
+<div class="kicker">MAST30027 · Reference</div>
+<h1>Probability toolkit for EM and Bayes</h1>
+<p class="lede">The prerequisites for Topics 4–6 on one printed page. Taught in <a href="../lessons/0014-probability-toolkit.html">Lesson 14</a>; kernels, completing the square and conjugacy are in <a href="../lessons/0015-kernels-and-conjugacy.html">Lesson 15</a>. The formula sheet gives pdfs and means only; anything marked ★ is <strong>not</strong> on it.</p>
+
+<h2>1 · Joint, marginal, conditional</h2>
+<p>\(p(x,z)=p(x\mid z)p(z)\) · \(p(x)=\sum_zp(x,z)\) (or \(\int\)) · \(p(z\mid x)=p(x,z)/p(x)\). <strong>Conditional independence:</strong> iid given the parameters means \(p(x\mid\theta)=\prod_ip(x_i\mid\theta)\), but marginally the \(x_i\) are dependent (\(\operatorname{Cov}=\operatorname{Var}\) of the shared parameter, for Poisson–Gamma).</p>
+<div class="box">
+<p><strong>Mixture:</strong> \(Z_i\sim\text{Cat}(\pi_1,\dots,\pi_K)\), \(X_i\mid Z_i=k\sim f_k\). \(P(x_i,Z_i=k)=\pi_kf_k(x_i)\); \(p(x_i)=\sum_k\pi_kf_k(x_i)\); \(\ell(\theta)=\sum_i\log\sum_k\pi_kf_k(x_i)\) (sum inside the log, so no closed form). <span class="src"><a href="../lectures/MixtureModel_LMS-1.pdf#page=12">Mixture slide 12</a>, <a href="../lectures/EM_LMS-1.pdf#page=6">EM slide 6</a></span></p>
+$$\text{Complete data: }P(X,Z\mid\theta)=\prod_i\prod_k[\pi_kf_k(x_i)]^{I(Z_i=k)},\qquad \log P(X,Z\mid\theta)=\sum_i\sum_kI(Z_i=k)[\log\pi_k+\log f_k(x_i)].$$
+<p style="margin-bottom:0"><strong>Hierarchical Bayes:</strong> \(p(x,\mu,\tau)=\prod_ip(x_i\mid\mu,\tau)\,p(\mu)\,p(\tau)\) (independent priors) or \(\prod_ip(x_i\mid\mu,\tau)\,p(\mu\mid\tau)\,p(\tau)\) (VI example). Each prior appears once. <span class="src"><a href="../lectures/VI-2.pdf#page=20">VI slide 20</a>, <a href="../lectures/MC_methods_LMS-2.pdf#page=36">MC slide 36</a></span></p>
+</div>
+
+<h2>2 · Responsibility = Bayes' rule for a label</h2>
+<div class="box">
+$$\gamma_{ik}=P(Z_i=k\mid X,\theta^0)=\frac{\pi_k^0f_k(x_i;\theta^0)}{\sum_j\pi_j^0f_j(x_i;\theta^0)}\qquad K=2:\ \gamma_{i1}=\frac{1}{1+e^{d}},\ d=\log\frac{\pi_2f_2(x_i)}{\pi_1f_1(x_i)}=\log\frac{\pi_2\sigma_1}{\pi_1\sigma_2}-\frac{(x_i-\mu_2)^2}{2\sigma_2^2}+\frac{(x_i-\mu_1)^2}{2\sigma_1^2}$$
+</div>
+<table>
+<tr><th>Components</th><th>Cancels</th><th>Keep</th></tr>
+<tr><td>Normal, equal \(\sigma\)</td><td>\(\frac1{\sqrt{2\pi}\sigma}\)</td><td>\(\pi_ke^{-(x-\mu_k)^2/2\sigma^2}\)</td></tr>
+<tr><td>Normal, unequal \(\sigma_k\)</td><td>\(\frac1{\sqrt{2\pi}}\)</td><td>\(\frac{\pi_k}{\sigma_k}e^{-(x-\mu_k)^2/2\sigma_k^2}\)</td></tr>
+<tr><td>Poisson(\(\lambda_k\))</td><td>\(1/x!\)</td><td>\(\pi_k\lambda_k^{x}e^{-\lambda_k}\)</td></tr>
+<tr><td>Exponential(rate \(\lambda_k\))</td><td>nothing</td><td>\(\pi_k\lambda_ke^{-\lambda_kx}\)</td></tr>
+</table>
+<p>Example: \(\pi_1=0.4\), \(N(10,2^2)\) vs \(N(16,3^2)\), \(x=13\): \(\frac{0.4}2e^{-9/8}=0.0649\), \(\frac{0.6}3e^{-1/2}=0.1213\), so \(\gamma_1=0.35\). R: <code>pi1*dnorm(x,m1,s1)/(pi1*dnorm(x,m1,s1)+pi2*dnorm(x,m2,s2))</code> gives \(\gamma_{i1}\) for every \(x_i\) (<code>dnorm</code> takes the <strong>SD</strong>). <span class="src"><a href="../lectures/MixtureModel_LMS-1.pdf#page=14">Mixture slide 14</a></span></p>
+<div class="trap"><strong>Traps</strong><br>Only constants common to <em>every</em> term cancel · don't forget \(\pi_k\) · \(K=3\): three terms below the line, so \(1-\gamma_1\) is not \(\gamma_2\) · a <strong>known label</strong> (an observation known to come from component 1) has \(\gamma_{i1}=1\), \(\gamma_{i2}=0\): don't apply Bayes' rule to it.</div>
+
+<h2>3 · Indicator expectation → Q-function</h2>
+<p>\(\mathbb E[I(A)]=P(A)\), so \(\mathbb E_{Z\mid X,\theta^0}[I(Z_i=k)]=\gamma_{ik}\). The complete log-likelihood is linear in the indicators, so by linearity:</p>
+<div class="box">
+$$Q(\theta,\theta^0)=\mathbb E_{Z\mid X,\theta^0}[\log P(X,Z\mid\theta)]=\sum_i\sum_k\gamma_{ik}\big[\log\pi_k+\log f_k(x_i;\theta)\big],\qquad \mathbb E[N_k\mid X]=\sum_i\gamma_{ik}.$$
+<p style="margin-bottom:0">E-step: indicators → \(\gamma_{ik}\) (at \(\theta^0\), then fixed). This can't be done to \(\log\sum_k\), where \(Z\) is already summed out inside the log. <span class="src"><a href="../lectures/EM_LMS-1.pdf#page=18">EM slides 18–19</a></span></p>
+</div>
+
+<h2>4 · Adam's and Eve's laws</h2>
+<div class="box">
+$$\mathbb EX=\mathbb E[\mathbb E(X\mid Z)],\qquad \operatorname{Var}X=\mathbb E[\operatorname{Var}(X\mid Z)]+\operatorname{Var}[\mathbb E(X\mid Z)]\quad(\text{within}+\text{between})$$
+</div>
+<table>
+<tr><th>Use</th><th>Result</th></tr>
+<tr><td>Mixture, \(\bar\mu=\sum\pi_k\mu_k\)</td><td>\(\operatorname{Var}X=\sum\pi_k\sigma_k^2+\sum\pi_k(\mu_k-\bar\mu)^2\); for \(K=2\) the between part is \(\pi_1\pi_2(\mu_1-\mu_2)^2\). Not the same as \(\operatorname{Var}(\pi_1X_1+\pi_2X_2)\)</td></tr>
+<tr><td>Poisson–Gamma, \(\lambda\sim\text{Gamma}(a,b)\) (rate)</td><td>\(\mathbb EX=a/b=\mu\); \(\operatorname{Var}X=a/b+a/b^2=\mu+\mu^2/a&gt;\mu\): overdispersion, marginally negative binomial. Fix for a Bayesian model: unit-level \(\lambda_i\) (random effect)</td></tr>
+<tr><td>Posterior predictive</td><td>\(\operatorname{Var}\tilde x=\operatorname{Var}(\theta\mid x)+\sigma^2\), mean \(\mathbb E(\theta\mid x)\) <span class="src"><a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=20">Intro Bayes slide 20</a></span></td></tr>
+<tr><td>Beta-binomial, \(X\mid\theta\sim\text{Bin}(n,\theta)\)</td><td>\(\mathbb EX=n\mathbb E\theta\); \(\operatorname{Var}X=n(\mathbb E\theta-\mathbb E\theta^2)+n^2\operatorname{Var}\theta\)</td></tr>
+</table>
+<p>★ Variances not on the formula sheet: Gamma \(a/b^2\) · Inv-Gamma \(b^2/[(a-1)^2(a-2)]\) · Exponential \(1/\lambda^2\) · Poisson \(\lambda\) · Beta(\(\alpha,\beta\)) mean \(\frac{\alpha}{\alpha+\beta}\), variance \(\frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}\).</p>
+
+<h2>5 · Expectations of functions: CAVI, Monte Carlo, rejection</h2>
+<div class="box">
+$$\mathbb E[(c-\mu)^2]=(c-\mathbb E\mu)^2+\operatorname{Var}\mu\qquad\Rightarrow\qquad\mathbb E_{q_\mu}[(x_i-\mu)^2]=(x_i-m)^2+s^2,\quad \mathbb E_{q_\mu}[(\mu-\mu_0)^2]=(m-\mu_0)^2+s^2$$
+<p style="margin-bottom:0">\(q_\tau=\text{Gamma}(a,b)\) (rate): \(\mathbb E\tau=a/b\), not \(b/a\). \(\mathbb E[\log\tau]\ne\log\mathbb E\tau\). When updating \(q_\tau\), its own \(\log\tau\) and \(\tau\) terms stay as they are. <span class="src"><a href="../lectures/VI-2.pdf#page=21">VI slides 21–22</a>, <a href="../extra-notes/CAVI_normal_gamma_derivations.pdf#page=5">CAVI notes (43)–(45)</a></span></p>
+</div>
+<ul>
+  <li><strong>Monte Carlo:</strong> \(\frac1N\sum_jg(X_j)\approx\mathbb E\,g(X)\); with \(g=I(X\in A)\) it estimates \(P(A)\). <code>mean(rgamma(1e5, 3, 2))</code> \(\approx3/2\) (R's order is shape, rate); <code>mean(lam &gt; 4)</code> \(\approx P(\lambda&gt;4)\).</li>
+  <li><strong>Rejection</strong> with envelope \(kh\ge f\): \(P(\text{accept})=1/k\) (area under \(f\) over area under \(kh\)); the number of tries is Geometric with mean \(k\). Uniform envelope on \([a,b]\): \(k=(b-a)\max f\). <span class="src"><a href="../lectures/MC_methods_LMS-2.pdf#page=25">MC slide 25</a></span></li>
+  <li><strong>Log scale:</strong> compute \(\ell_k=\log\pi_k+\log f_k(x_i)\), subtract \(\max_k\ell_k\), exponentiate and normalise. Exponentiating only differences means nothing underflows.</li>
+</ul>
+<p class="src">General source: Blitzstein &amp; Hwang, <em>Introduction to Probability</em> (2nd ed., <a href="https://probabilitybook.net">probabilitybook.net</a>), Ch. 2 (Bayes' rule), Ch. 4 (indicators), Ch. 7 (joint distributions), Ch. 9 (Adam's and Eve's laws). <a href="glossary.html">Glossary</a>.</p>
+</main>
+</body>
+</html>
