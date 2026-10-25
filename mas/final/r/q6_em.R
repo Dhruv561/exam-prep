@@ -1,0 +1,17 @@
+# Q6: EM for paired-measurement mixture, sigma^2 = 1 known
+x1 <- c(1.5, 0.4, 1.8, 2.0, -0.3, 2.4)
+x2 <- c(2.5, 1.1, 2.6, 1.4,  0.6, 1.7)
+th <- list(pi = 0.4, mu1 = 0, mu2 = 3)
+s <- x1 + x2
+f1 <- dnorm(x1, th$mu1, 1) * dnorm(x2, th$mu1, 1)
+f2 <- dnorm(x1, th$mu2, 1) * dnorm(x2, th$mu2, 1)
+g1 <- th$pi * f1 / (th$pi * f1 + (1-th$pi) * f2)
+cat("sums s_j:", s, "\n")
+cat("exponents k1:", -(x1^2+x2^2)/2, "\n exponents k2:", -((x1-3)^2+(x2-3)^2)/2, "\n")
+cat("gamma_j1:", g1, "\n")
+cat("gamma_11 =", g1[1], "\n")
+pi_new <- mean(g1)
+mu1_new <- sum(g1*s)/(2*sum(g1))
+mu2_new <- sum((1-g1)*s)/(2*sum(1-g1))
+cat("sum g:", sum(g1), " pi.new", pi_new, " mu1.new", mu1_new, " mu2.new", mu2_new, "\n")
+cat("sum g*s", sum(g1*s), " sum(1-g)*s", sum((1-g1)*s), "\n")

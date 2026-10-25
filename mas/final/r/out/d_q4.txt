@@ -1,0 +1,46 @@
+> mA <- glm(count ~ depth + sst + zone + offset(log(km)), family = poisson, data = bird)
+
+> mB <- glm(count ~ depth + offset(log(km)), family = poisson, data = bird)
+
+> summary(mA)
+
+Call:
+glm(formula = count ~ depth + sst + zone + offset(log(km)), family = poisson, 
+    data = bird)
+
+Coefficients:
+             Estimate Std. Error z value Pr(>|z|)    
+(Intercept)  1.034161   0.317044   3.262 0.001107 ** 
+depth       -0.006366   0.001689  -3.770 0.000164 ***
+sst          0.029598   0.018056   1.639 0.101165    
+zoneshelf    0.321462   0.096314   3.338 0.000845 ***
+zoneslope    0.145690   0.082450   1.767 0.077228 .  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 245.24  on 35  degrees of freedom
+Residual deviance: 222.13  on 31  degrees of freedom
+AIC: 403.81
+
+Number of Fisher Scoring iterations: 5
+
+
+> (phiA <- sum(residuals(mA, type = "pearson")^2 / mA$df.residual))
+[1] 7.16976
+
+> (phiB <- sum(residuals(mB, type = "pearson")^2 / mB$df.residual))
+[1] 6.747001
+
+> anova(mB, mA, test = "Chisq")
+Analysis of Deviance Table
+
+Model 1: count ~ depth + offset(log(km))
+Model 2: count ~ depth + sst + zone + offset(log(km))
+  Resid. Df Resid. Dev Df Deviance Pr(>Chi)   
+1        34     234.27                        
+2        31     222.13  3   12.131 0.006947 **
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+

@@ -1,0 +1,51 @@
+# Builds the verbatim R console snippets typeset in the exam (real output, shown exactly as R prints it)
+show <- function(code, env = parent.frame()) {
+  lines <- strsplit(code, "\n")[[1]]
+  cat("> ", lines[1], "\n", sep = "")
+  if (length(lines) > 1) for (l in lines[-1]) cat("+ ", l, "\n", sep = "")
+  v <- withVisible(eval(parse(text = code), env))
+  if (v$visible) print(v$value)
+  cat("\n")
+}
+## ---- Q3
+r <- readRDS("out/q3.rds"); orch <- r$orch
+sink("out/d_q3.txt")
+show("fit1 <- glm(cbind(inf, ok) ~ rain + spray, family = binomial, data = orch)")
+show("fit0 <- glm(cbind(inf, ok) ~ rain, family = binomial, data = orch)")
+show("summary(fit1)")
+show("vcov(fit1)")
+show("anova(fit0, fit1, test = \"Chisq\")")
+sink()
+## ---- Q4
+q <- readRDS("out/q4.rds"); mA <- q$mA; mB <- q$mB; bird <- q$bird
+sink("out/d_q4.txt")
+show("mA <- glm(count ~ depth + sst + zone + offset(log(km)), family = poisson, data = bird)")
+show("mB <- glm(count ~ depth + offset(log(km)), family = poisson, data = bird)")
+show("summary(mA)")
+show("(phiA <- sum(residuals(mA, type = \"pearson\")^2 / mA$df.residual))")
+show("(phiB <- sum(residuals(mB, type = \"pearson\")^2 / mB$df.residual))")
+show("anova(mB, mA, test = \"Chisq\")")
+sink()
+## ---- Q5
+set.seed(515)
+age <- 1:8; mean_y <- 1/(0.35 + 0.07*age)
+cost <- round(rgamma(8, shape = 8, rate = 8/mean_y), 2); cost[7] <- round(cost[7]*0.45, 2)
+age[8] <- 14; cost[8] <- round(1/(0.35+0.07*14) * 1.4, 2)
+d <- data.frame(age, cost)
+sink("out/d_q5.txt")
+show("t(d)")
+show("m <- glm(cost ~ age, family = Gamma, data = d)")
+show("summary(m)")
+show("round(hatvalues(m), 3)")
+show("round(residuals(m, type = \"pearson\"), 3)")
+sink()
+## ---- Q9
+source("q9_diagnostics.R", echo = FALSE)
+sink("out/d_q9.txt")
+show("round(apply(ch[1:300, ], 2, sd), 2)")
+show("round(sd(as.vector(ch[1:300, ])), 2)")
+show("round(apply(ch[301:1200, ], 2, sd), 2)")
+show("round(sd(as.vector(ch[301:1200, ])), 2)")
+show("round(acf(ch[301:1200, 1], plot = FALSE)$acf[2], 2)")
+sink()
+x <- readLines("out/d_q9.txt"); x <- x[!(x == "" )]; writeLines(x, "out/d_q9.txt")

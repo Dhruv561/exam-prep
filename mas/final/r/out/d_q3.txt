@@ -1,0 +1,44 @@
+> fit1 <- glm(cbind(inf, ok) ~ rain + spray, family = binomial, data = orch)
+
+> fit0 <- glm(cbind(inf, ok) ~ rain, family = binomial, data = orch)
+
+> summary(fit1)
+
+Call:
+glm(formula = cbind(inf, ok) ~ rain + spray, family = binomial, 
+    data = orch)
+
+Coefficients:
+             Estimate Std. Error z value Pr(>|z|)    
+(Intercept)  -1.67973    0.36348  -4.621 3.81e-06 ***
+rain          0.29876    0.05337   5.597 2.18e-08 ***
+spraysprayed -0.64442    0.21965  -2.934  0.00335 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 48.463  on 15  degrees of freedom
+Residual deviance: 14.437  on 13  degrees of freedom
+AIC: 80.444
+
+Number of Fisher Scoring iterations: 4
+
+
+> vcov(fit1)
+             (Intercept)         rain spraysprayed
+(Intercept)   0.13211643 -0.017971204  0.018175543
+rain         -0.01797120  0.002848834 -0.005853401
+spraysprayed  0.01817554 -0.005853401  0.048244417
+
+> anova(fit0, fit1, test = "Chisq")
+Analysis of Deviance Table
+
+Model 1: cbind(inf, ok) ~ rain
+Model 2: cbind(inf, ok) ~ rain + spray
+  Resid. Df Resid. Dev Df Deviance Pr(>Chi)   
+1        14     23.372                        
+2        13     14.437  1   8.9356 0.002797 **
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+

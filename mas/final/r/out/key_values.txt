@@ -1,0 +1,43 @@
+== Q1 ==
+theta.hat 0.57  var 0.0012255  sd 0.03500714 
+I(theta.hat) 815.9935 
+== Q3 ==
+exp(spray) 0.5249665  exp(rain) 1.348182 
+eta 0.06590291  se 0.13358  p 0.5164698  CI eta -0.1959138 0.3277197  CI p 0.4511776 0.5812044 
+LRT 8.935591  p 0.00279667 
+GOF dev 14.43674 df 13  crit 22.36203  p 0.3438209  dev/df 1.110519 
+Wald z spray -2.933905  z^2 8.6078 
+== Q4 ==
+phiA 7.16976  dDev 12.13127  F 0.5640015  crit F(3,31) 2.911334  p 0.642831  chisq p 0.00694676 
+quasi SE depth 0.004521762  t -1.40778  CI beta -0.01558784 0.002856547  CI 10m 0.8556632 1.028977  est 10m 0.9383273 
+Poisson wald CI 10m (wrong) 0.9077782 0.9699044 
+resid dev/df 7.165627  chisq crit df31 44.98534  p gof 9.128066e-31 
+logLik from AIC -196.9064 
+== Q5 ==
+mu 2.222222 1.818182 1.538462 
+z 0.414 0.58575 0.83525 
+W 4.938272 3.305785 2.366864 
+XtWX 10.61092 8.039513 8.039513 12.77324 
+XtWz 5.957731 5.89021 
+beta1 0.40542 0.2059642 
+det 70.90208 
+Cook8 (rounded inputs) 0.4065052  Cook7 0.4527311  Cook 4/n 0.5 
+std Pearson 8 0.7704428  7: -1.977581 
+== Q6 ==
+gamma11 0.0321251  =1/(1+1.5e^3) 0.0321251 
+sum g 2.216325  pi.hat 0.3693875  mu1.hat 0.5897579  sum g s 2.61419 
+using rounded g11: 0.3693833 0.5897419 
+mu2.hat 1.993539 
+== Q7 ==
+Sxx Sxy Syy 14 16 18.5  post mean 1.066667  precision factor 15 
+lik ratio 2.050734 
+prior ratio 0.1169116 
+post ratio 0.2397546  proposal ratio 1.568738  alpha 0.376112 
+SSE at bc: 0.5  at bn: 0.26 
+q* tau: shape 5 rate 2.875  mean 1.73913  E[beta^2] 1.23 
+== Q8 ==
+x* 1.618034  M 2.203901  1/M 0.453741 
+ratio at 0.5 : 0.7274957  accept prob 0.3300946 ; at 2: 0.9074819 
+== Q9 ==
+Rhat burn 1.142857  Rhat late 1.002188 
+ESS 37.5  MCSE 0.3739554  naive 0.07633333  inflation 4.898979 

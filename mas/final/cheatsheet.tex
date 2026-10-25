@@ -1,0 +1,421 @@
+% MAST30027 Modern Applied Statistics -- exam notes (1 x double-sided A4)
+% Formula-sheet content (pdf/pmf + mean of Normal, Exp, Gamma, Inv-Gamma, Poisson, Categorical) deliberately omitted.
+\documentclass{article}
+\usepackage[a4paper,portrait,margin=6.5mm]{geometry}
+\usepackage{newtxtext,newtxmath}
+\usepackage{fontspec}
+\setmonofont{lmmonoltcond10-regular.otf}[BoldFont=lmmonoltcond10-regular.otf,FakeBold=0.35]
+\usepackage{mathtools}
+\usepackage{multicol,tabularx,array,enumitem,xcolor}
+\usepackage[most]{tcolorbox}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}\clubpenalty=0 \widowpenalty=0
+\setlength{\columnsep}{1.8mm}
+\setlength{\tabcolsep}{1.1pt}
+\renewcommand{\arraystretch}{0.98}
+\setlength{\multicolsep}{0pt}
+\raggedcolumns
+
+% topic colours
+\definecolor{cLik}{HTML}{1F5FAD}
+\definecolor{cGLM}{HTML}{0E7C6B}
+\definecolor{cR}{HTML}{4A4A4A}
+\definecolor{cQ}{HTML}{C0561A}
+\definecolor{cEM}{HTML}{7A3E9D}
+\definecolor{cBay}{HTML}{B22234}
+\definecolor{cMC}{HTML}{2E7D32}
+\definecolor{cGen}{HTML}{6D5A00}
+
+\newtcolorbox{tb}[2]{breakable,enhanced,colback=#1!5,colframe=#1!85!black,
+  coltitle=white,title={#2},fonttitle=\bfseries,boxrule=0.35pt,arc=0.5mm,
+  left=0.7pt,right=0.7pt,top=0.2pt,bottom=0.2pt,toptitle=-0.2pt,bottomtitle=-0.2pt,
+  boxsep=0.6pt,before skip=1.2pt,after skip=1.2pt,
+  before upper={\setlength{\abovedisplayskip}{0.4pt}\setlength{\belowdisplayskip}{0.4pt}%
+  \setlength{\abovedisplayshortskip}{0pt}\setlength{\belowdisplayshortskip}{0.4pt}\predisplaypenalty=0 \clubpenalty=0 \widowpenalty=0 \interlinepenalty=0}}
+\newcommand{\h}[1]{{\bfseries #1}\ }
+\newcommand{\say}[1]{{\color{cMC!75!black}\textbf{Say:}} \emph{#1}}
+\newcommand{\trap}{{\color{cBay}\textbf{Traps:}}\ }
+\setlist{nosep,leftmargin=7pt,labelsep=1.5pt,itemsep=0pt,topsep=0pt}
+\newenvironment{steps}{\begin{enumerate}[label=\arabic*.,leftmargin=7pt,labelsep=1.2pt]}{\end{enumerate}}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}[1]{>{\ttfamily\fontsize{5.6}{6.1}\selectfont\raggedright\arraybackslash}p{#1\linewidth}}
+\newcommand{\E}{\mathbb E}
+\newcommand{\V}{\operatorname{Var}}
+\newcommand{\I}{\mathcal I}
+\newcommand{\tsp}{^{\mathsf T}}
+\newcommand{\rc}[1]{\texttt{#1}}
+\newcommand{\sep}{\ \textbullet\ }
+
+\begin{document}
+\fontsize{6.6}{7.15}\selectfont
+\begin{multicols*}{3}
+
+%======================= PAGE 1 ==============================
+{\centering\bfseries\fontsize{7}{7.6}\selectfont MAST30027 Modern Applied Statistics -- exam notes\par}
+{\centering\fontsize{5.6}{6.1}\selectfont 9 Qs / 78 marks / 3 h $\approx$2.3 min/mark. Answers 2 dp, keep 4 dp inside. FX-82 has no $\Phi,\chi^2,F$ tails: use printed \rc{q*()} values.\par}
+
+\begin{tb}{cLik}{1 \textbullet\ MLE $\to$ Fisher information $\to$ asymptotic distribution (Q1, 7--10 marks)}
+\begin{steps}
+\item $\ell(\theta)=\sum_i\log f(x_i;\theta)$; drop $\theta$-free terms ($+c$); collect $\sum x_i,\sum x_i^2,\sum\log x_i$. State support.
+\item Score $\ell'(\theta)=0\Rightarrow\hat\theta$; check $\ell''(\hat\theta)<0$.
+\item $J(\theta)=-\ell''(\theta)$ (observed). $\I(\theta)=\E[J(\theta;X)]$, \textbf{whole sample} (contains $n$): replace $\sum X_i\to n\E X$, $\sum X_i^2\to n\E X^2$. If $\ell''$ has no data, write ``$J=\I$, no expectation needed''.
+\item $\hat\theta\ \dot\sim\ N\big(\theta,\I(\theta)^{-1}\big)$; est.\ var $1/\I(\hat\theta)$; Wald CI $\hat\theta\pm1.96/\sqrt{\I(\hat\theta)}$.
+\end{steps}
+\h{Reparametrise:} MLE invariant ($\widehat{g(\theta)}=g(\hat\theta)$); information not: redo, or $\I_\eta=\I_\theta(d\theta/d\eta)^2$. CI for $g(\theta)$: map endpoints (monotone $g$); better built on an unbounded scale ($\log$, logit) then back-transformed.
+\h{Vector $\theta$:} $\I=-\E[\partial^2\ell/\partial\theta\partial\theta\tsp]$, $\V\hat\theta\approx\I^{-1}$; $\begin{psmallmatrix}a&b\\b&d\end{psmallmatrix}^{-1}\!=\!\frac{1}{ad-b^2}\begin{psmallmatrix}d&-b\\-b&a\end{psmallmatrix}$. LR region $\{\theta:2[\ell(\hat\theta)-\ell(\theta)]\le\chi^2_k(.95)\}$, $k=\dim\theta$.\\[0.3pt]
+\begin{tabularx}{\linewidth}{@{}L|c|c@{}}
+\textbf{$n$ iid model} & \textbf{MLE} & \textbf{$\I$ (whole sample)}\\\hline
+Bernoulli$(p)$ & $\bar x$ & $n/[p(1-p)]$\\
+$Y_i\sim$Bin$(m_i,p)$ & $\sum y_i/\sum m_i$ & $\sum m_i/[p(1-p)]$\\
+\quad same, in logit $\eta=\log\frac p{1-p}$ & $\log\frac{\hat p}{1-\hat p}$ & $\sum m_i\,p(1-p)$\\
+Poisson$(\lambda)$ & $\bar x$ & $n/\lambda$\\
+Exp(rate $\lambda$) & $1/\bar x$ & $n/\lambda^2$\\
+Exp(mean $\theta$), $f=\theta^{-1}e^{-x/\theta}$ & $\bar x$ & $n/\theta^2$\\
+$N(\mu,\sigma^2)$, $\sigma^2$ known & $\bar x$ & $n/\sigma^2$\\
+$N(\mu_0,1/\tau)$, $\mu_0$ known, precision & $n/\sum(x_i-\mu_0)^2$ & $n/(2\tau^2)$\\
+$N(\mu_0,v)$, $\mu_0$ known, variance & $\sum(x_i-\mu_0)^2/n$ & $n/(2v^2)$\\
+Gamma(shape $a$ known, rate $b$) & $a/\bar x$ & $na/b^2$\\
+Geometric $p(1-p)^x$, $x\ge0$ & $1/(1+\bar x)$ & $n/[p^2(1-p)]$\\
+$\theta x^{\theta-1}$ on $(0,1)$ & $-n/\sum\log x_i$ & $n/\theta^2$\\
+\end{tabularx}
+\h{Moments:} Exp(rate $\lambda$) $\E X^2=2/\lambda^2$ \sep Gamma$(a,b)$ $\E X^2=\frac{a(a+1)}{b^2}$, $\E\frac1X=\frac b{a-1}$ \sep Poisson $\E X^2=\lambda+\lambda^2$ \sep $N$: $\E(X-\mu)^2=\sigma^2$, $\E(X-\mu)^4=3\sigma^4$ \sep $\theta x^{\theta-1}$: $\E[-\log X]=\frac1\theta$ \sep Pareto $\alpha x_m^\alpha x^{-\alpha-1}$: $\E\log\frac X{x_m}=\frac1\alpha$ \sep lognormal $\E Y^k=e^{km+k^2\sigma^2/2}$.\\
+\trap course $\I$ already has $n$ (don't divide again) \sep use the parameter named (rate/mean, precision/variance) \sep $\ell''$ with data needs $\E$.
+\end{tb}
+
+\begin{tb}{cLik}{2 \textbullet\ Binomial regression (logit) and CIs}
+$Y_i\sim$Bin$(m_i,p_i)$ indep., $g(p_i)=\eta_i=x_i\tsp\beta$ (name dist., independence, link, $\eta$).
+$\ell(\beta)=c+\sum_i[y_i\eta_i-m_i\log(1+e^{\eta_i})]$; score $\sum_i(y_i-m_ip_i)x_i$; $\I(\beta)=J(\beta)=X\tsp WX$, $W=\text{diag}(m_ip_i(1-p_i))$ (canonical: no $y$ in Hessian; probit/cloglog $J\ne\I$).\\
+\h{Links} $\eta=g(p)\leftrightarrow p=g^{-1}(\eta)$: logit $\log\frac p{1-p}\leftrightarrow\frac{1}{1+e^{-\eta}}$ ($p=\frac12$ at $x=-\beta_0/\beta_1$, slope there $\beta_1/4$) \sep probit $\Phi^{-1}(p)\leftrightarrow\Phi(\eta)$ \sep cloglog $\log(-\log(1-p))\leftrightarrow1-\exp(-e^\eta)$ (asymmetric; ``$\ge1$ Poisson event'').\\
+\h{CI for $p$ (or $\mu$) at $x_0$:} (1) $\hat\eta_0=x_0\tsp\hat\beta$ (+offset); (2) se$=\sqrt{x_0\tsp Vx_0}$, $V$=\rc{vcov}: $V_{00}+2x_0V_{01}+x_0^2V_{11}$ (all variances $+\,2\times$ every covariance); (3) $g^{-1}(\hat\eta_0\pm1.96\,\text{se})$. Never $\hat p\pm1.96\,\text{se}(\hat p)$; asymmetric is correct.\\
+\h{Odds ratio} for $+\Delta$ in $x_j$: $e^{\hat\beta_j\Delta}$, CI $\exp\{\Delta(\hat\beta_j\pm1.96\,\text{se}_j)\}$; \%change $=(OR-1)100$. Two non-baseline levels: $\V(\hat\beta_a-\hat\beta_b)=V_{aa}+V_{bb}-2V_{ab}$. $e^\beta$ = OR only for logit (log link: rate ratio). Case--control: logit only shifts intercept $\Rightarrow$ ORs valid, $\hat p$ not population risks.\\
+\say{CI on $\eta$ then transform: $\hat\eta_0$ is linear in $\hat\beta$ so approx.\ normal; $g^{-1}$ monotone keeps 95\% coverage and $p$ in $(0,1)$.}
+\say{Offset: expected count $\propto$ exposure, $\mu_i=t_i\lambda_i$, so $\log t_i$ enters with coefficient 1; $e^{\beta_j}$ = rate ratio per unit exposure.}
+\end{tb}
+
+\begin{tb}{cLik}{3 \textbullet\ Deviance, LRT, AIC (every GLM)}
+$D=2[\ell_{\rm sat}-\ell(\hat\beta)]$ on $n-p$ df; scaled $D/\phi$ ($=D$ binomial/Poisson); $0\log0=0$.
+Binomial $d_i=2[y_i\log\frac{y_i}{\hat\mu_i}+(m_i-y_i)\log\frac{m_i-y_i}{m_i-\hat\mu_i}]$ \sep Poisson $d_i=2[y_i\log\frac{y_i}{\hat\mu_i}-(y_i-\hat\mu_i)]$ ($y_i{=}0$: $2\hat\mu_i$) \sep Normal $(y_i-\hat\mu_i)^2$ \sep Gamma $-2[\log\frac{y_i}{\hat\mu_i}-\frac{y_i-\hat\mu_i}{\hat\mu_i}]$.\\
+\h{Counting:} $n=$ null df$+1$; $p=n-$resid df (incl.\ intercept; $k$-level factor $=k-1$; offset not counted).\\
+\h{GOF} ($\phi=1$ only): $D\approx\chi^2_{n-p}$ if all $m_i\hat p_i,m_i(1-\hat p_i)\ge5$ (Poisson $\hat\mu_i\ge5$). Invalid for 0/1 or sparse data, or $\phi$ estimated. $\E\chi^2_k=k$, so $D/\text{df}\approx1$ is reassuring.\\
+\h{LRT} A$\subset$B: $D_A-D_B\approx\chi^2_s$, $s=\text{df}_A-\text{df}_B$; fine for 0/1 data. Factor = one block on $k-1$ df (dummy $z$s don't answer ``does it matter''). Wald $z=\hat\beta/\text{se}$, $z^2\approx$LR; disagree $\Rightarrow$ trust LRT. Different links/non-nested: AIC only.\\
+\h{AIC}$=2p-2\hat\ell$, smaller better; $\text{AIC}_B-\text{AIC}_A=2s+D_B-D_A$ (extra term worth it iff $\Delta D>2$ per param).
+\[\hat\ell=p-\tfrac{\text{AIC}}2,\qquad \ell_{\rm sat}=\hat\ell+\tfrac D2\]
+($\ell_{\rm sat}$ is the same for every model on the data: a check.) 
+Gamma/normal: R counts $\phi$, $\hat\ell=(p+1)-\text{AIC}/2$. Quasi: AIC NA (use Poisson fit).\\
+\say{Adequate: $D=\_$ on $n-p$ df $<\chi^2_{n-p}(.95)=\_$; valid as all fitted counts $\ge5$, so no evidence of lack of fit. (Sparse/0-1 data: test not valid, say so.)}\\
+\say{Prefer B: LRT $D_A-D_B=\_$ on $s$ df $>\chi^2_s(.95)=\_$ (p$=\_$), reject $H_0$: extra coefs $=0$; and AIC$_B<$AIC$_A$.} (``two quantitative reasons'')
+\end{tb}
+
+\begin{tb}{cR}{4 \textbullet\ R output decoder (read only)}
+\h{\rc{summary(glm(cbind(y,m-y)\textasciitilde x+f, family=binomial))}}: R models proportions $y/m$ with weight $m$. \rc{Estimate}, \rc{Std.\ Error} $=\hat\beta_j,\sqrt{V_{jj}}$ (link scale) \sep \rc{z value}$=\hat\beta/$se, \rc{Pr(>|z|)} two-sided ($\phi=1$ families) \sep \rc{t value}/\rc{Pr(>|t|)}: $\phi$ estimated (quasi, Gamma, normal), $n-p$ df \sep \rc{fB} = dummy, level B vs baseline (first level) \sep \rc{(Dispersion parameter ... taken to be 1)}: $\phi$ \emph{assumed}; quasi/Gamma print Pearson $\hat\phi=X^2/(n-p)$ \sep \rc{Null deviance: $D_0$ on $n-1$} (intercept only) \sep \rc{Residual deviance: $D$ on $n-p$} \sep \rc{AIC}$=2p-2\hat\ell$ (NA quasi) \sep \rc{Fisher Scoring iterations} = IWLS steps.\\
+\begin{tabularx}{\linewidth}{@{}C{0.33}|L@{}}
+anova(A,B,test="Chisq") & rows: \rc{Resid.\ Df} $n-p_A$, $n-p_B$; \rc{Resid.\ Dev} $D_A$, $D_B$; \rc{Df}$=s$, \rc{Deviance}$=D_A-D_B$, \rc{Pr(>Chi)}$=P(\chi^2_s>\Delta D)$\\
+anova(A,B,test="F") & + \rc{F}$=(\Delta D/s)/\hat\phi_B$, \rc{Pr(>F)} on $(s,n-p_B)$; on quasi fits (or Poisson fit + \rc{dispersion=phihat}: $\infty$ denom.\ df)\\
+anova(m,test=..) & sequential (order matters): row $x$ = drop in $D$ when $x$ \emph{added} to terms above; \rc{NULL} row = null deviance\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}C{0.33}|L@{}}
+drop1(m,test="Chisq") & row $x$ = model \emph{without} $x$: its \rc{Deviance}, \rc{AIC}; \rc{LRT}$=D_{-x}-D_{\rm full}$; \rc{<none>} = full model. Slides: drop1/step don't work for quasi (F uses $D/(n-p)$): quote \rc{anova}\\
+predict(m,nd,\newline\ type="link",se.fit=TRUE) & \rc{\$fit}$=\hat\eta_0$, \rc{\$se.fit}$=$se$(\hat\eta_0)$ (quasi: already $\times\sqrt{\hat\phi}$; \rc{\$residual.scale}$=\sqrt{\hat\phi}$). CI: $g^{-1}(\text{fit}\pm1.96\,\text{se.fit})$\\
+type="response" & $\hat\mu_0=g^{-1}(\hat\eta_0)$; its se is delta-method: don't build the CI from it\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}C{0.33}|L@{}}
+pchisq(D,df,lower.tail=F) & upper-tail p (GOF if $D$ = resid dev); \rc{qchisq(.95,df)}, \rc{qf(.95,s,d)} = 5\% crit.\\
+sum(residuals(m,\newline\ "pearson")\^{}2)/\newline\ m\$df.residual & $\hat\phi=X^2/(n-p)$; two printed $\Rightarrow$ F uses bigger model's\\
+fitted(m); vcov(m) & $\hat\mu_i$ (binomial: $\hat p_i$, so $m_i\hat p_i$ = expected count); $V=\I(\hat\beta)^{-1}$\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}C{0.33}|L@{}}
+offset(log(t)) & $\log\mu_i=\log t_i+x_i\tsp\beta$, coef fixed at 1, not in $p$; $e^{\beta_j}$ = rate ratios\\
+hatvalues; rstudent;\newline\ cooks.distance & $h_{ii}$; jack-knife residual; Cook's $C_i$\\
+\end{tabularx}
+\end{tb}
+
+\begin{tb}{cR}{5 \textbullet\ What to look for where}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.26\linewidth}|L|>{\raggedright\arraybackslash}p{0.2\linewidth}@{}}
+\textbf{Cue} & \textbf{Compute} & \textbf{Where}\\\hline
+$\hat\ell$ fitted/saturated & $p-\text{AIC}/2$; then $+D/2$ & AIC, resid dev, df\\
+$n$, $p$ & null df$+1$; $n-$resid df & deviance lines\\
+model adequate? & $D$ vs $\chi^2_{n-p}(.95)$; fitted counts $\ge5$? & resid dev, \rc{qchisq}\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.26\linewidth}|L|>{\raggedright\arraybackslash}p{0.2\linewidth}@{}}
+better model, 2 reasons & LRT $\Delta D$ vs $\chi^2_s$; AIC & 2 summaries/anova\\
+evidence of OD & $D/\text{df}\gg1$; $\hat\phi\gg1$; GOF p tiny & resid dev, phi line\\
+SE allowing for OD & se$\times\sqrt{\hat\phi}$ (that model's) & Std.\ Error, phi\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.26\linewidth}|L|>{\raggedright\arraybackslash}p{0.2\linewidth}@{}}
+Poisson SE from quasi & quasi se$\,\div\sqrt{\hat\phi}$; estimate same & quasi summary\\
+quasi $t$ value & $z/\sqrt{\hat\phi}=\hat\beta/(\text{se}\sqrt{\hat\phi})$ & \\
+F (hidden row) & $(\Delta D/s)/\hat\phi_B$ vs $F_{s,n-p_B}$ & anova + big $\hat\phi$\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.26\linewidth}|L|>{\raggedright\arraybackslash}p{0.2\linewidth}@{}}
+predicted mean/prob, CI & $\hat\eta$ by hand (offset!), CI on $\eta$, then $g^{-1}$ & coefs+vcov / se.fit\\
+effect of $+\Delta x$ & $e^{\beta\Delta}$; CI via endpoints & Estimate, se\\
+rate per $t$ units & $\hat\mu=t\,e^{x\tsp\hat\beta}$ (set $t$ in offset) & newdata\\
+\end{tabularx}
+\end{tb}
+
+\begin{tb}{cGLM}{6 \textbullet\ Exponential family, canonical link, $v(\mu)$ (8--10 marks)}
+\[\begin{gathered}f(y;\theta,\phi)=\exp\Big[\frac{y\theta-b(\theta)}{a(\phi)}+c(y,\phi)\Big],\quad a(\phi)=\phi\\ \E Y=b'(\theta),\qquad \V Y=a(\phi)b''(\theta)=a(\phi)v(\mu)\end{gathered}\]
+\begin{steps}
+\item Take logs; \textbf{say support doesn't depend on the parameter} (Unif$(0,\theta)$, shifted exp: not EF).
+\item Term $y\times h(\text{param})$: $\theta=h$ (param must multiply $y$, not $y^2,\log y,e^y$).
+\item Factor scale out of $y$-term \& param-only term: $a(\phi)$.
+\item Param-only term $=-b/a(\phi)$: \textbf{rewrite $b$ in $\theta$} (invert $\theta(\mu)$). Rest $=c(y,\phi)$ (known consts OK).
+\item Check $b'(\theta)=\mu$. $v(\mu)=b''(\theta)$ at $\theta=\theta(\mu)$; $\V Y=a(\phi)v(\mu)$ ($\ne v$ unless $\phi=1$).
+\item Canonical link $g=(b')^{-1}$: solve $\mu=b'(\theta)$, $g(\mu)=\theta(\mu)$.
+\end{steps}
+\begin{tabularx}{\linewidth}{@{}L|c|c|c|c@{}}
+dist & $\theta(\mu)=$ canon.\ $g$ & $b(\theta)$ & $\phi$ & $v(\mu)$\\\hline
+$N(\mu,\sigma^2)$ & $\mu$ & $\theta^2/2$ & $\sigma^2$ & 1\\
+Poisson & $\log\mu$ & $e^\theta$ & 1 & $\mu$\\
+Bernoulli & $\log\frac{\mu}{1-\mu}$ & $\log(1+e^\theta)$ & 1 & $\mu(1-\mu)$\\
+Bin$(m)$ count & $\log\frac{\mu}{m-\mu}$ & $m\log(1+e^\theta)$ & 1 & $\mu(1-\frac\mu m)$\\
+Bin prop.\ $Y/m$ & logit $\mu$ & $\log(1+e^\theta)$ & $1/m$ & $\mu(1-\mu)$\\
+Exp(rate $\lambda$) & $-1/\mu$ & $-\log(-\theta)$ & 1 & $\mu^2$\\
+Gamma$(\mu,\nu)$ & $-1/\mu$ & $-\log(-\theta)$ & $1/\nu$ & $\mu^2$\\
+Inv.\ Gauss. & $-1/(2\mu^2)$ & $-\sqrt{-2\theta}$ & $1/\lambda$ & $\mu^3$\\
+Geom.\ $p(1{-}p)^y$ & $\log\frac{\mu}{1+\mu}$ & $-\log(1-e^\theta)$ & 1 & $\mu(1+\mu)$\\
+NegBin, $r$ known & $\log\frac{\mu}{\mu+r}$ & $-r\log(1-e^\theta)$ & 1 & $\mu+\frac{\mu^2}r$\\
+mean of $k$ Pois.\ & $\log\mu$ & $e^\theta$ & $1/k$ & $\mu$\\
+\end{tabularx}
+Natural $\theta$: Exp $-\lambda$; Geom $\log(1-p)$; Bernoulli logit $p$. Gamma$(\mu,\nu)$ = mean, shape; R's ``inverse'' link is $1/\mu$. Gamma: $\log f=\frac{y(-1/\mu)-\log\mu}{1/\nu}+\nu\log\nu+(\nu-1)\log y-\log\Gamma(\nu)$. Lemma proof: $\E\ell'=0$, $\E\ell''=-\E(\ell')^2$ (one obs).\\
+\h{Canonical link $\Rightarrow$} $\ell=\sum[y_ix_i\tsp\beta-b(x_i\tsp\beta)]/\phi+c$: $X\tsp y$ sufficient; score $X\tsp(y-\mu)/a(\phi)$; Hessian has no $y$ so $J=\I$, Newton--Raphson = Fisher scoring. Log link often preferred over $-1/\mu$, $\log\frac{\mu}{\mu+r}$: any $\eta\in\mathbb R$ valid, multiplicative effects.
+\end{tb}
+
+\begin{tb}{cGLM}{7 \textbullet\ GLM fitting (IWLS), unknown $\phi$, diagnostics}
+GLM: indep.\ $Y_i$ from one EF (common $\phi$), $\eta_i=x_i\tsp\beta$, monotone differentiable $g(\mu_i)=\eta_i$; $\phi$ not modelled.
+\[\begin{gathered}U_j=\sum_i\frac{(y_i-\mu_i)x_{ij}}{a(\phi)v(\mu_i)g'(\mu_i)},\qquad W_{ii}=\frac1{g'(\mu_i)^2v(\mu_i)}\\ z_i=\eta_i+(y_i-\mu_i)g'(\mu_i),\qquad \hat\beta^{\rm new}=(X\tsp WX)^{-1}X\tsp Wz\end{gathered}\]
+Start $\hat\mu=y$; iterate (= Fisher scoring). $\V\hat\beta=a(\phi)(X\tsp\hat WX)^{-1}$: $\phi$ cancels in update, not variance $\Rightarrow$ SE$\,\propto\sqrt{\hat\phi}$. Canonical $W_{ii}=v(\mu_i)$ (Poisson-log $\mu_i$, logit $m_ip_i(1-p_i)$); Gamma-log $W=1$. $W^{-1}\propto\V z_i$ (delta method).\\
+\h{$\phi$ unknown} (Gamma $\V Y=\phi\mu^2$, CV$=\sqrt\phi$; normal): $\hat\phi=X^2/(n-p)$, $X^2=\sum(y_i-\hat\mu_i)^2/v(\hat\mu_i)$ (Pearson, \emph{not} $D/(n-p)$); $t$ tests, F tests, no deviance GOF ($\hat\phi$ uses same residuals).\\
+\h{Residuals:} Pearson $r_P=\frac{y-\hat\mu}{\sqrt{v(\hat\mu)}}$, $\sum r_P^2=X^2$ \sep deviance $r_D=\text{sign}(y-\hat\mu)\sqrt{d_i}$, $\sum r_D^2=D$ (R default) \sep standardised $r/\sqrt{(1-h_{ii})\hat\phi}$ \sep jack-knife \rc{rstudent}: large $\Rightarrow$ outlier. \h{Leverage} $h_{ii}$: diag of IWLS hat matrix, $\sum h_{ii}=p$, flag $>2p/n$ (potential only). \h{Cook's} $C_i\approx\frac{r_P^2h_{ii}}{p\hat\phi(1-h_{ii})^2}$: needs leverage \emph{and} residual; refit without $i$ to confirm. \h{Plots} $r_D$ vs $\hat\eta$: trend $\Rightarrow$ wrong mean/link; changing spread $\Rightarrow$ wrong $v(\mu)$; bands = discrete $y$. Half-normal: tail jump.
+\end{tb}
+
+\begin{tb}{cQ}{8 \textbullet\ Overdispersion and quasi-likelihood}
+\h{Def:} actual $\V Y_i>$ model's (Poisson $\mu_i$; binomial $m_ip_i(1-p_i)$). Causes: dependent trials/events (clustering); $p$ or rate varying between units (missing covariates). Large $D$ can also be wrong mean structure/outliers: check residuals vs $\hat\eta$ first. 0/1 data can't show it.\\
+\h{Quantitative reasons:} (i) resid $D\gg$ resid df; (ii) GOF \rc{pchisq(D,df,lower=F)} tiny (counts $\ge5$); (iii) $\hat\phi=X^2/(n-p)\gg1$.\\
+\say{Ignoring OD: $\hat\beta$ unaffected ($\phi$ cancels from score) but true $\V\hat\beta$ is $\phi\times$ reported: SEs too small, $z$ too big, p-values too small, CIs too narrow, $\chi^2$ LRTs too significant $\Rightarrow$ predictors wrongly declared significant/kept.}\\
+\h{Quasi-likelihood:} specify only $g(\mu_i)=x_i\tsp\beta$, $\E Y_i=\mu_i$, $\V Y_i=\phi v(\mu_i)$ (IWLS needs only $g,v$). $u_i=\frac{Y_i-\mu_i}{\phi v(\mu_i)}$: $\E u_i=0$, $\V u_i=\frac1{\phi v}=-\E\frac{\partial u_i}{\partial\mu_i}$ (acts like a score).
+\[\begin{gathered}Q_i=\int_{y_i}^{\mu_i}\frac{y_i-t}{\phi v(t)}dt\le0,\qquad Q=\sum_i Q_i\\ \frac{D_Q}{\phi}=-2\sum_i Q_i\ \ (Q_{\rm sat}=0),\qquad D_Q=-2\sum_i\int_{y_i}^{\mu_i}\frac{y_i-t}{v(t)}dt\end{gathered}\]
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.2\linewidth}|L|>{\raggedright\arraybackslash}p{0.14\linewidth}@{}}
+$v(\mu)$ & $\phi Q_i$ (definite integral; slides drop $\mu$-free terms) & $D_Q=$\\\hline
+$\mu$ (q-Poisson) & $y\log\frac\mu y-(\mu-y)$ \ [slides: $\frac1\phi(y\log\mu-\mu)$] & Poisson dev.\\
+$\frac{\mu(m-\mu)}m$ (q-binomial) & $y\log\frac\mu y+(m-y)\log\frac{m-\mu}{m-y}$ & binomial dev.\\
+$\mu^2$ & $-\frac y\mu+1-\log\frac\mu y$ & Gamma dev.\\
+\end{tabularx}
+$\hat\phi=X^2/(n-p)$ (moment est.; $Q$ has no finite max in $\phi$). Consistent, asympt.\ normal, less efficient than the true MLE.\\
+\h{Quasi-Poisson/binomial output:} same $\hat\beta$, fitted values, predictions, deviances; SE$_q=\sqrt{\hat\phi}\,$SE$_{\phi=1}$; $t=z/\sqrt{\hat\phi}$; AIC NA; no GOF; compare nested models by
+\[F=\frac{(D_A-D_B)/s}{\hat\phi_B}\approx F_{s,\,n-p_B},\qquad\hat\phi_B=\frac{X^2_B}{n-p_B}\]
+($\hat\phi$ from the bigger model B: $\hat\phi_A$ is inflated by the lack of fit being tested; F not $\chi^2$ because $\phi$ is estimated: $\frac{\chi^2_s/s}{\chi^2_{n-p}/(n-p)}$.)\\
+\say{Poisson: $\V Y_i=\mu_i$ ($\phi=1$), full distribution. Quasi-Poisson: only $\E Y_i=\mu_i$, $\V Y_i=\phi\mu_i$, $\phi$ estimated by $X^2/(n-p)$. Same $\hat\beta$ and deviance; SEs $\times\sqrt{\hat\phi}$; F tests not $\chi^2$; no likelihood so no AIC.}\\
+\say{Which model? $\chi^2$ LRT keeps the term (p$=\_$) but with $\hat\phi=\_$, $F=\_$ on $(s,n-p_B)$, p$>0.05$: allowing for OD prefer the smaller model.}\\
+\say{Non-standard response by quasi? Yes: link $g$ keeping $\mu$ in range, $\V Y=\phi v(\mu)$ from the mean--variance relation, fit by IWLS (\rc{quasi(link=,variance=)}), $\hat\phi=X^2/(n-p)$, SEs$\times\sqrt{\hat\phi}$, F tests.}\\
+\h{Alternatives:} negative binomial ($\V=\mu+\mu^2/r$); Bayesian: unit random effect $\lambda_i\sim$Gamma (marginal NegBin, $\V y_i=\E\lambda_i+\V\lambda_i>\E y_i$) or $\log\lambda_i=x_i\tsp\beta+\varepsilon_i$.\\
+\trap two $\hat\phi$ printed: F uses big model's, SE uses that model's own \sep F df $(s,n-p_B)$ \sep never rescale the estimate \sep $\hat\phi$ is Pearson, not $D/$df.
+\end{tb}
+
+\begin{tb}{cGen}{16 \textbullet\ Reading R code: argument traps}
+\begin{tabularx}{\linewidth}{@{}C{0.4}|L@{}}
+rnorm(n,mean,sd) & \textbf{sd} not var: $N(\frac BA,\frac1A)$ = \rc{rnorm(1,B/A,sqrt(1/A))}\\
+rgamma(n,shape,rate) & 3rd positional = \textbf{rate} (scale $=1/$rate); \rc{1/rgamma(1,a,b)} = IG$(a,b)$\\
+dnorm(x,m,sd,log=TRUE) & $\log f$; sums = log-lik; differences = log ratios\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}C{0.4}|L@{}}
+exp(lpost(prop)-lpost(cur)) & $\pi^*/\pi^c$; no $q$ term $\Rightarrow$ symmetric proposal\\
+if(runif(1)<ratio) & accept w.p.\ $\min\{1,\text{ratio}\}$ (or \rc{log(runif(1))<lr})\\
+runif(1)<=f(x)/M & rejection accept (uniform $g$)\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}C{0.4}|L@{}}
+sample(1:n,1,prob=w) & discrete draw; $w$ normalised internally\\
+cumsum(y); mean(th>c) & $c_m$; MC estimate of $P(\theta>c|x)$\\
+1-mean(duplicated(ch)) & acceptance rate (also \rc{mean(diff(x)!=0)})\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}C{0.4}|L@{}}
+apply(chs,2,sd); sd(c(chs)) & within-chain sds ($W$ = mean); pooled $B$\\
+acf(x,plot=F)\$acf[2];\newline\ ch[-(1:b),] & $\hat\rho_1$; drop burn-in\\
+proposal=rnorm(3,mean=param,\newline\ sd=c(.1,.5,.3)) & symmetric RW, one sd per parameter $\Rightarrow$ $q$-ratio 1\\
+posterior(p)=likelihood(p)+prior(p) & log target $=\sum$\rc{dnorm(y,pred,sd,log=T)} + log priors\\
+if(runif(1)<probab) chain[i+1,]=\newline\ proposal else chain[i,] & accept, else repeat current value\\
+rgamma(1,a1+cfreq[M],b1+M) & coal Gibbs: $\lambda_1|\cdot\sim$Ga(shape, rate)\\
+sample(1:n,1,prob=(la1/la2)\^{}\newline cfreq*exp((la2-la1)*(1:n))) & discrete conditional of $M$ over $m=1..n$\\
+x<-runif(1,a,b); y<-runif(1,0,K);\newline\ if(y<fx(x)) return(x) & rejection with uniform envelope height $K$\\
+\end{tabularx}
+\end{tb}
+
+\begin{tb}{cGen}{17 \textbullet\ Distribution facts NOT on the formula sheet}
+Bernoulli$(p)$ $p^y(1-p)^{1-y}$, $\E=p$, $\V=p(1-p)$ \sep Bin$(m,p)$ $\binom my p^y(1-p)^{m-y}$, $mp$, $mp(1-p)$ \sep Geometric (fails) $p(1-p)^y$: $\E=\frac{1-p}p$, $\V=\frac{1-p}{p^2}$ (trials $\theta(1-\theta)^{x-1}$: $\E=\frac1\theta$) \sep NegBin$(\mu,r)$ $\frac{\Gamma(y+r)}{\Gamma(r)y!}(\frac r{r+\mu})^r(\frac\mu{r+\mu})^y$, $\V=\mu+\frac{\mu^2}r$; Poisson--Gamma$(a,b)$ marginal $\frac{\Gamma(a+y)}{\Gamma(a)y!}\frac{b^a}{(b+1)^{a+y}}$, $\E=\frac ab$, $\V=\frac ab+\frac a{b^2}$ \sep Beta$(\alpha,\beta)$ $\frac{\theta^{\alpha-1}(1-\theta)^{\beta-1}}{B(\alpha,\beta)}$, $B=\frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}$, $\E=\frac\alpha{\alpha+\beta}$, $\V=\frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}$ \sep Multinomial $\frac{n!}{\prod n_k!}\prod\pi_k^{n_k}$, $\E n_k=n\pi_k$, $\V=n\pi_k(1-\pi_k)$ \sep Dirichlet$(\alpha)$ $\propto\prod\pi_k^{\alpha_k-1}$, $\E\pi_k=\alpha_k/\sum\alpha$ \sep \textbf{Variances:} Normal $\omega^2$, Exp $1/\lambda^2$, Gamma $a/b^2$, Inv-Gamma $\frac{b^2}{(a-1)^2(a-2)}$ ($a>2$), Poisson $\lambda$, Categorical$(\pi_1,\pi_2)$ $\pi_1\pi_2$ \sep $\chi^2_k=$Ga$(\frac k2,\frac12)$: mean $k$, var $2k$ \sep $\Gamma(n)=(n-1)!$, $\Gamma(\frac12)=\sqrt\pi$ \sep $\E X=\E[\E(X|Z)]$, $\V X=\E[\V(X|Z)]+\V[\E(X|Z)]$.
+\end{tb}
+
+\begin{tb}{cGen}{18 \textbullet\ 5\% critical values; general traps}
+$\chi^2_{df}(.95)$: 1: 3.84, 2: 5.99, 3: 7.81, 4: 9.49, 5: 11.07, 6: 12.59, 7: 14.07, 8: 15.51, 9: 16.92, 10: 18.31, 20: 31.41, 25: 37.65, 30: 43.77, 50: 67.50.
+$F_{s,d}(.95)$ for $d=$10, 20, 30, 60, $\infty$: $s{=}1$: 4.96, 4.35, 4.17, 4.00, 3.84; $s{=}2$: 4.10, 3.49, 3.32, 3.15, 3.00; $s{=}3$: 3.71, 3.10, 2.92, 2.76, 2.60. $z$: 1.645 (90\%), 1.96 (95\%), 2.576 (99\%).\\
+\trap sheet Normal is (mean, \emph{variance}): convert precision/sd \sep Gamma rate vs scale \sep IG mean $\frac b{a-1}$; $1/\E\tau\ne\E\sigma^2$ \sep always give name \emph{and} parameters \sep explain parts: 1--2 sentences quoting the number that justifies it.
+\end{tb}
+
+
+%======================= PAGE 2 ==============================
+
+\begin{tb}{cEM}{9 \textbullet\ Mixtures and EM (10--12 marks): $Q$, E-step, M-step}
+$Z_i\sim$Cat$(\pi_1..\pi_K)$ ($K{=}2$: $\pi,1-\pi$), $X_i|Z_i{=}k\sim f(\cdot;\theta_k)$; pick component then sample (not $\pi_1X_1+\pi_2X_2$).
+\h{Incomplete} $\ell(\theta)=\sum_i\log\sum_k\pi_kf(x_i;\theta_k)$: log of a sum, no closed form.
+\[\begin{aligned}
+P(X,Z\mid\theta)&=\textstyle\prod_{i}\prod_{k}[\pi_kf(x_i;\theta_k)]^{I(Z_i=k)}\\
+\log P(X,Z\mid\theta)&=\textstyle\sum_i\sum_kI(Z_i{=}k)[\log\pi_k+\log f(x_i;\theta_k)]\\
+Q(\theta,\theta^0)&=E_{Z|X,\theta^0}[\log P(X,Z|\theta)]\\
+&=\textstyle\sum_i\sum_kE[I(Z_i{=}k)|X,\theta^0][\,\cdots\,]\\
+&=\textstyle\sum_i\sum_k\gamma_{ik}[\log\pi_k+\log f(x_i;\theta_k)]
+\end{aligned}\]
+(line 2 = complete log-lik; line 4 by linearity; line 5 since $E[I(Z_i{=}k)|X,\theta^0]=P(Z_i{=}k|X_i,\theta^0)$.) 
+Expand $\log f$: Normal $-\frac12\log(2\pi\sigma_k^2)-\frac{(x_i-\mu_k)^2}{2\sigma_k^2}$ \sep Poisson $x_i\log\lambda_k-\lambda_k-\log x_i!$ \sep Exp $\log\lambda_k-\lambda_kx_i$ \sep Bin$(m)$ $x_i\log p_k+(m-x_i)\log(1-p_k)$+c. $K{=}2$: $\gamma_{i1}\log\pi+\gamma_{i2}\log(1-\pi)$.\\
+\h{E-step} (Bayes' rule at $\theta^0$): $\gamma_{ik}=P(Z_i{=}k|X_i,\theta^0)=\frac{\pi_k^0f(x_i;\theta_k^0)}{\sum_j\pi_j^0f(x_i;\theta_j^0)}$, $\sum_k\gamma_{ik}=1$, $N_k=\sum_i\gamma_{ik}$, $\sum_kN_k=n$. Cancel only factors common to all terms ($x!$, $\frac1{\sqrt{2\pi}}$; $\frac1\sigma$ only if equal). $K{=}2$: $\gamma_{i1}=1/(1+e^d)$, $d=\log\frac{\pi_2f_2}{\pi_1f_1}$.\\
+\h{Algorithm:} init $\theta^0$, $\ell(\theta^0)$ $\to$ E-step $\to$ M-step $\hat\theta=\arg\max_\theta Q(\theta,\theta^0)$ ($\gamma$ fixed) $\to$ $\ell(\hat\theta)$; stop if $|\Delta\ell|<\varepsilon$ (incomplete $\ell$, not $Q$) or max.iter; else $\theta^0\leftarrow\hat\theta$.\\
+\h{M-step} (differentiate $Q$, set 0; $\gamma$ = weights):\\
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.255\linewidth}|L@{}}
+$\pi_k$ (any) & $\hat\pi_k=N_k/n$. $K{=}2$: $\frac{N_1}{\pi}-\frac{N_2}{1-\pi}=0$. $K{\ge}3$: Lagrange $\frac{N_k}{\pi_k}=\alpha$, $\alpha=n$\\
+Normal $\mu_k$; $\sigma_k^2$ & $\hat\mu_k=\frac{\sum_i\gamma_{ik}x_i}{N_k}$; $\hat\sigma_k^2=\frac{\sum_i\gamma_{ik}(x_i-\hat\mu_k)^2}{N_k}$ (diff.\ wrt $v=\sigma^2$, new $\hat\mu_k$)\\
+shared $\sigma^2$ & $\hat\sigma^2=\frac1n\sum_i\sum_k\gamma_{ik}(x_i-\hat\mu_k)^2$\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.255\linewidth}|L@{}}
+means known (e.g.\ 0) & $\hat\sigma_k^2=\sum_i\gamma_{ik}(x_i-\mu_k)^2/N_k$; no $\mu$ update\\
+Poisson $\lambda_k$ & $\hat\lambda_k=\sum_i\gamma_{ik}x_i/N_k$\\
+Poisson$(t_i\lambda_k)$ & $\hat\lambda_k=\sum_i\gamma_{ik}x_i/\sum_i\gamma_{ik}t_i$ (E-step keeps $e^{-t_i\lambda_k}$)\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.255\linewidth}|L@{}}
+Exp rate $\lambda_k$ & $\hat\lambda_k=N_k/\sum_i\gamma_{ik}x_i$ (inverted!)\\
+Bin$(m,p_k)$ & $\hat p_k=\sum_i\gamma_{ik}x_i/(m\,N_k)$\\
+tied Pois $\lambda$ / $c\lambda$ & $\hat\lambda=\sum_ix_i/\sum_i(\gamma_{i1}+c\gamma_{i2})$\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.255\linewidth}|L@{}}
+tied Exp $\lambda$ / $c\lambda$ & $\hat\lambda=n/\sum_i(\gamma_{i1}+c\gamma_{i2})x_i$\\
+$N(\mu,\sigma^2)$ / $N(\mu,c\sigma^2)$ & $w_i=\gamma_{i1}+\gamma_{i2}/c$: $\hat\mu=\sum w_ix_i/\sum w_i$, $\hat\sigma^2=\frac1n\sum w_i(x_i-\hat\mu)^2$\\
+ZIP: $Z{=}1\Rightarrow X{=}0$ & $\gamma_{i1}=\frac{\pi^0}{\pi^0+(1-\pi^0)e^{-\lambda^0}}$ if $x_i{=}0$ else 0; $\hat\lambda=\frac{\sum x_i}{n-N_1}$\\
+\end{tabularx}
+\h{Twists} (rewrite complete likelihood first, then $Q$, then M-step):
+\begin{itemize}
+\item $x_{m+1..n}$ \emph{known from comp.\ 2, no $Z$}: $Q\mathrel{+}=\sum_j\log f(x_j;\theta_2)$, weight 1, no $\log\pi$. $\hat\mu_2=\frac{\sum_{i\le m}\gamma_{i2}x_i+\sum_jx_j}{N_2+(n-m)}$; $\hat\pi=\frac1m\sum_{i\le m}\gamma_{i1}$.
+\item \emph{labels observed} $Z_j=2$: $+\sum_j[\log(1-\pi)+\log f(x_j;\theta_2)]$: same $\hat\mu_2$, $\hat\pi=\frac1n\sum_{i\le m}\gamma_{i1}$.
+\item known/fixed parameter: a constant (no update) but still in $\gamma$ \sep tied parameter: one derivative summing every component containing it.
+\end{itemize}
+\h{Classify:} $\arg\max_k\gamma_{ik}$; $K{=}2$: comp.\ 1 iff $\pi_1f_1(x)>\pi_2f_2(x)$; equal $\sigma$: boundary $\frac{\mu_1+\mu_2}2+\frac{\sigma^2\log(\pi_2/\pi_1)}{\mu_1-\mu_2}$; report $\gamma$ as the confidence. \h{Moments:} $\E X=\sum\pi_k\mu_k=\bar\mu$; $\V X=\sum\pi_k\sigma_k^2+\sum\pi_k(\mu_k-\bar\mu)^2$ ($K{=}2$: $+\pi_1\pi_2(\mu_1-\mu_2)^2$); Poisson mixture $\V X>\E X$.\\
+\h{Why EM never decreases $\ell$} ($q(Z)=P(Z|X,\theta^0)$, Jensen):
+\[\begin{aligned}
+\ell(\theta)&=\textstyle\log\sum_Zq(Z)\frac{P(X,Z|\theta)}{q(Z)}\\
+&\ge\textstyle\sum_Zq(Z)\log P(X,Z|\theta)-\sum_Zq(Z)\log q(Z)\\
+&=Q(\theta,\theta^0)+C\qquad(=\text{ at }\theta=\theta^0:\ \text{ratio}=P(X|\theta^0))\\
+\ell(\hat\theta)&\ge Q(\hat\theta,\theta^0)+C\ \ge\ Q(\theta^0,\theta^0)+C=\ell(\theta^0)
+\end{aligned}\]
+\say{E-step makes $Q(\cdot,\theta^0)+C$ a lower bound on $\ell$ touching it at $\theta^0$; M-step raises $Q$, so $\ell$ cannot fall.}
+\say{EM climbs to a stationary point near its start (local max): run several starts, keep the largest final incomplete $\ell$. Same $\ell$ with swapped labels = label switching. Equal starts ($\mu_1^0{=}\mu_2^0$) give $\gamma_{ik}=\pi_k^0$, never separate. Hitting max.iter $\ne$ converged. Decreasing $\ell$ = bug.}
+\say{Why $Q$: the log acts on each $\pi_kf_k$ with fixed weights, so $Q$ splits into weighted complete-data log-likelihoods with closed-form maximisers.}\\
+\begin{tabularx}{\linewidth}{@{}C{0.47}|L@{}}
+\multicolumn{2}{@{}l}{\textbf{Lecturer's EM code} ($n\times K$ matrices: row $i$, column $k$)}\\\hline
+Z=sample(1:K,n,TRUE,prob=pi) & $Z_i\sim$Cat$(\pi)$\\
+X=rnorm(n,mu[Z],sqrt(sigma2[Z])) & $X_i|Z_i$ (sd!)\\
+prob.x.z[,k]=\newline\ dnorm(X,mu[k],sqrt(2))*pi[k] & $\pi_kf_k(x_i)=P(x_i,Z_i{=}k)$\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}C{0.47}|L@{}}
+rowSums(prob.x.z) & $\sum_k\pi_kf_k(x_i)=P(x_i|\theta)$\\
+P\_ik=prob.x.z/rowSums(prob.x.z) & $\gamma_{ik}$ (E-step); colSums $=N_k$\\
+pi.new=colSums(P\_ik)/sum(P\_ik) & $\hat\pi_k=N_k/n$\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}C{0.47}|L@{}}
+mu.new=colSums(P\_ik*X)/\newline\ colSums(P\_ik) & $\hat\mu_k$\\
+sum(log(rowSums(prob.x.z))) & incomplete $\ell$\\
+while((delta.ll>epsilon)\&\newline\ (n.iter<=max.iter)) & stop rule; \rc{length(log\_liks)}=iters+1\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}C{0.47}|L@{}}
+apply(P\_ik,1,which.max) & hard classification\\
+\end{tabularx}
+\trap $\hat\pi=N_k/n$ not $N_k/n_k$ \sep $\hat\sigma^2_k$ divides by $N_k$ \sep $\gamma$ uses $\theta^0$, density in $Q$ uses $\theta$ \sep never differentiate $\gamma$ \sep forgetting $\pi_k$ (or unequal $1/\sigma_k$) in $\gamma$ \sep $K{=}3$: $1-\gamma_1\ne\gamma_2$.
+\end{tb}
+
+\begin{tb}{cBay}{10 \textbullet\ Bayes: kernels and conjugacy}
+$p(\theta|x)=\frac{p(x|\theta)p(\theta)}{p(x)}\propto p(x|\theta)p(\theta)$. Drop factors free of $\theta$ ($p(x)$, $x_i!$, $\sqrt{2\pi}$, $\frac{b^a}{\Gamma(a)}$); \textbf{keep} $\tau^{n/2}$, $\sqrt{\kappa_0\tau}$ when the target is $\tau$. Joint prior $p(\mu,\tau)=p(\mu|\tau)p(\tau)$.\\
+\h{Kernels:} $\tau^{s}e^{-r\tau}\to$Gamma$(s{+}1,r)$, var $\frac a{b^2}$ \sep $(\sigma^2)^{-s}e^{-r/\sigma^2}\to$IG$(s{-}1,r)$, mean $\frac b{a-1}$ \sep $e^{-\frac A2\mu^2+B\mu}\to N(\frac BA,\frac1A)$ \sep $\theta^s(1-\theta)^r\to$Beta$(s{+}1,r{+}1)$ \sep $\lambda^{\sum y}e^{-n\lambda}\to$Gamma$(\sum y{+}1,n)$. $-\frac A2\mu^2+B\mu=-\frac A2(\mu-\frac BA)^2+\frac{B^2}{2A}$. $\tau\sim$Ga$(a,b)\iff1/\tau\sim$IG$(a,b)$. $\int_0^\infty\tau^{a-1}e^{-b\tau}=\frac{\Gamma(a)}{b^a}$; $\int e^{-\frac A2\mu^2+B\mu}=\sqrt{\frac{2\pi}A}e^{\frac{B^2}{2A}}$; $\int_0^1\theta^{\alpha-1}(1-\theta)^{\beta-1}=B(\alpha,\beta)$.\\
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.36\linewidth}|L@{}}
+\textbf{likelihood; prior} & \textbf{posterior} ($S_\mu=\sum(x_i-\mu)^2$, $S=\sum(x_i-\bar x)^2$)\\\hline
+$N(\mu,\frac1\tau)$, $\tau$ known; $\mu\sim N(m_0,\frac1{\kappa_0})$ & $N\big(\frac{\kappa_0m_0+n\tau\bar x}{\kappa_0+n\tau},\frac1{\kappa_0+n\tau}\big)$, precisions add\\
+$\mu$ known; $\tau\sim$Ga$(a,b)$ / $\sigma^2\sim$IG$(a,b)$ & Ga / IG$(a+\frac n2,\ b+\frac{S_\mu}2)$\\
+Poisson [exposure $t_i$]; Ga$(a,b)$ & Ga$(a+\sum y_i,\ b+n)$ [$b+\sum t_i$]\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.36\linewidth}|L@{}}
+Exp(rate $\lambda$); Ga$(a,b)$ & Ga$(a+n,\ b+\sum x_i)$\\
+Bin$(m_i,\theta)$; Beta$(\alpha,\beta)$ & Beta$(\alpha+\sum y_i,\ \beta+\sum(m_i-y_i))$\\
+Geometric (trials) $\theta(1-\theta)^{x-1}$; Beta & Beta$(\alpha+n,\ \beta+\sum x_i-n)$\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.36\linewidth}|L@{}}
+Multinomial counts $n_k$; Dirichlet$(\alpha)$ & Dirichlet$(\alpha_k+n_k)$\\
+$\mu|\tau\sim N(m_0,\frac1{\kappa_0\tau})$, $\tau\sim$Ga$(a,b)$ & $\mu|\tau,x\sim N\big(\frac{\kappa_0m_0+n\bar x}{\kappa_0+n},\frac1{(\kappa_0+n)\tau}\big)$; $\tau|x\sim$Ga$\big(a+\frac n2,\ b+\frac S2+\frac{n\kappa_0(\bar x-m_0)^2}{2(n+\kappa_0)}\big)$\\
+\end{tabularx}
+\h{Shrinkage:} post.\ mean $=w\,$(prior mean)$+(1-w)\,$MLE; Normal $w=\frac{\kappa_0}{\kappa_0+n\tau}$, Poisson--Gamma $w=\frac b{b+n}$; $n\to\infty$: $\to N(\hat\theta,\cdot)$, prior irrelevant; post.\ var $<$ prior var and $<$ MLE var.
+\h{Summaries:} mean; 95\% credible = central (Normal: mean$\pm1.96$sd). Predictive $p(\tilde x|x)=\int p(\tilde x|\theta)p(\theta|x)d\theta$; Normal $N(m_n,\frac1{\kappa_n}+\frac1\tau)$; simulate $\theta^{(t)}$, then $\tilde x^{(t)}|\theta^{(t)}$.\\
+\say{Credible: $P(\theta\in I|x)=0.95$, $\theta$ random, data fixed. Confidence: over repeated samples 95\% of intervals cover the fixed $\theta$.}
+\say{Vague prior: proper, nearly flat ($N(0,10^6)$, Ga$(.001,.001)$), data dominate. Informative: real prior knowledge, $\kappa_0$ comparable to $n\tau$, shifts/narrows the posterior. Improper ($p(\mu)\propto1$, $p(\tau)\propto\frac1\tau$): $\int=\infty$, must check the posterior is proper.} $p(\tau)\propto\frac1\tau\Rightarrow$Ga$(\frac n2,\frac S2)$ ($S>0$); Poisson $p(\lambda)\propto\frac1\lambda\Rightarrow$Ga$(\sum y,n)$ needs $\sum y>0$; $p(\mu)\propto1\Rightarrow N(\bar x,\frac1{n\tau})$. BUGS \rc{dnorm(m,prec)}: precision.
+\end{tb}
+
+\begin{tb}{cBay}{11 \textbullet\ Gibbs sampler: full conditionals}
+(1) Joint = likelihood $\times$ every prior (each once). (2) For $\theta_j$: others constant; keep every factor containing $\theta_j$. (3) Kernel: quadratic in exp $\to$ Normal; $\theta^se^{-r\theta}\to$ Gamma; finite set $\to$ weights$\,\div\,$total. (4) State \textbf{name + both parameters}.
+Scheme: initial values; for $t=1..T$ draw each $\theta_j\sim p(\theta_j|\theta_{-j},x)$ using the \emph{newest} values; discard burn-in; average. = MH with $\alpha=1$.\\
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.25\linewidth}|L@{}}
+model ($x_i\sim N(\mu,\frac1\tau)$) & conditionals\\\hline
+indep.\ $\mu\sim N(m_0,\frac1{\kappa_0})$, $\tau\sim$Ga$(a,b)$ & $\mu|\cdot\sim N\big(\frac{\kappa_0m_0+\tau\sum x_i}{\kappa_0+n\tau},\frac1{\kappa_0+n\tau}\big)$; $\tau|\cdot\sim$Ga$(a+\frac n2,b+\frac12\sum(x_i-\mu)^2)$\\
+joint $\mu|\tau\sim N(m_0,\frac1{\kappa_0\tau})$ & $\mu|\cdot\sim N(\frac{\kappa_0m_0+n\bar x}{\kappa_0+n},\frac1{(\kappa_0+n)\tau})$; $\tau|\cdot\sim$Ga$(a+\frac{n+1}2,b+\frac12[\sum(x_i-\mu)^2+\kappa_0(\mu-m_0)^2])$\\
++ source $y_{1..m}\sim N(k\mu,\frac1{c\tau})$ & $\mu$: $A=\kappa_0+(n+ck^2m)\tau$, $B=\kappa_0m_0+\tau(\sum x_i+ck\sum y_j)$, $N(\frac BA,\frac1A)$; $\tau$: Ga$(a+\frac{n+m}2,b+\frac12[\sum(x_i-\mu)^2+c\sum(y_j-k\mu)^2])$\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.25\linewidth}|L@{}}
+$\sigma^2\sim$IG$(a,b)$ & IG$(a+\frac n2,b+\frac12\sum(x_i-\mu)^2)$; R \rc{1/rgamma(1,..)}\\
+hierarchical $\theta_j|\mu\sim N(\mu,\frac1{\tau_\theta})$, $y_{ij}\sim N(\theta_j,\frac1\tau)$ & $\mu|\cdot\sim N(\frac{\kappa_0m_0+\tau_\theta\sum_j\theta_j}{\kappa_0+J\tau_\theta},\frac1{\kappa_0+J\tau_\theta})$ (no $y$); $\theta_j|\cdot\sim N(\frac{n_j\tau\bar y_j+\tau_\theta\mu}{n_j\tau+\tau_\theta},\frac1{n_j\tau+\tau_\theta})$; $\tau_\theta\sim$Ga$(c+\frac J2,d+\frac12\sum_j(\theta_j-\mu)^2)$\\
+Poisson changepoint $M$ ($c_m=\sum_{i\le m}y_i$) & $\lambda_1|\cdot\sim$Ga$(a_1+c_M,b_1+M)$, $\lambda_2|\cdot\sim$Ga$(a_2+c_n-c_M,b_2+n-M)$, $P(M{=}m|\cdot)\propto(\frac{\lambda_1}{\lambda_2})^{c_m}e^{(\lambda_2-\lambda_1)m}$\\
+\end{tabularx}\par\nointerlineskip
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.25\linewidth}|L@{}}
+Bin$(N,p)$, $p\sim$Beta, $N\sim$Poi$(\lambda)$ & $p|\cdot\sim$Beta$(\alpha+x,\beta+N-x)$; $N-x|\cdot\sim$Poi$(\lambda(1-p))$\\
+\end{tabularx}
+\say{Gibbs limitation: strong posterior correlation $\Rightarrow$ narrow conditionals, one-coordinate moves zig-zag slowly, high autocorrelation, small ESS (MH can propose joint moves); needs conditionals you can sample.}
+\end{tb}
+
+\begin{tb}{cBay}{12 \textbullet\ Metropolis--Hastings (the $\alpha$ ledger)}
+Propose $\theta^*\sim q(\cdot|\theta^c)$; $u\sim U(0,1)$; accept if $u<\alpha$, else repeat $\theta^c$. $\pi=p(x|\theta)p(\theta)$ unnormalised ($p(x)$ cancels).
+\[\alpha=\min\Big\{1,\ \frac{\pi(\theta^*)}{\pi(\theta^c)}\cdot\frac{q(\theta^c|\theta^*)}{q(\theta^*|\theta^c)}\Big\}\quad\text{(reverse/forward)}\]
+\h{Ledger} (one line per factor, 4 dp, round once): (i) likelihood ratio incl.\ $(\tau^*/\tau^c)^{n/2}$; (ii) each prior ratio (keep $\sqrt\tau$ of $p(\mu|\tau)$); (iii) proposal ratio per proposed parameter; multiply; $\min\{1,\cdot\}$. Logs: accept iff $\log u<\log\pi^*-\log\pi^c+\log q(c|*)-\log q(*|c)$.
+\h{Reverse density} starts at $\theta^*$, lands on $\theta^c$: a rate/variance set by $\theta^c$ going forward is set by $\theta^*$ in reverse. E.g.\ Exp(rate $1/\tau^c$): ratio $=\frac{(1/\tau^*)e^{-\tau^c/\tau^*}}{(1/\tau^c)e^{-\tau^*/\tau^c}}$.
+Symmetric RW ($N(\theta^c,s^2)$, $U[\theta^c\pm\epsilon]$): ratio 1, $\alpha=\min\{1,\frac{\pi^*}{\pi^c}\}$ \sep independence $g$: $\alpha=\min\{1,\frac{\pi^*/g^*}{\pi^c/g^c}\}$ \sep $\log\tau^*\sim N(\log\tau^c,s^2)$: extra $\tau^*/\tau^c$ \sep Gibbs: $\alpha=1$.\\
+\say{Stationary distribution = the target $\pi$ (normalised); with symmetric $q$, read $\pi$ off $\alpha=\min\{1,\pi^*/\pi^c\}$.} \say{Acceptance too high (tiny steps) or too low (stuck, flat trace) both mix slowly; aim $\approx0.2$--$0.5$.}\\
+\trap no proposal ratio for asymmetric $q$ ($\approx$2 marks) \sep forward/reverse swapped \sep dropping $\tau^{n/2}$ \sep rounding mid-ledger.
+\end{tb}
+
+\begin{tb}{cMC}{13 \textbullet\ Monte Carlo, inversion, rejection}
+MC: $\E g(\theta)\approx\frac1N\sum g(\theta^{(s)})$; $P(A)\approx$ mean of indicators; SE $=\text{sd}(g)/\sqrt N$ or $\sqrt{\hat p(1-\hat p)/N}$ (independent draws; not the posterior sd).
+Inversion: $F^{-1}(U)\sim F$; solve $u=F(x)$; Exp(rate $\lambda$): $x=-\log(1-u)/\lambda$. Discrete: \rc{x<-0; while(F(x)<U) x<-x+1}.\\
+\h{Rejection} (target $\tilde f\propto f$, $Z=\int\tilde f$; proposal $g$): $X\sim g$, $U\sim U(0,1)$; accept if $U\le\frac{\tilde f(X)}{Mg(X)}$ [slides: $Y\sim U(0,kh(X))$, accept $Y<f(X)$]. Smallest $M=\sup\tilde f/g$: set $\frac{d}{dx}\log\frac{\tilde f}{g}=0$, check max/endpoints. $P(\text{acc})=Z/M$ ($1/M$ if normalised); tries $\sim$Geom, mean $M/Z$. Uniform on $[a,b]$: $M=(b-a)\max\tilde f$. Gamma$(m,\lambda)$ via Exp$(\mu)$: best $\mu=\lambda/m$, $k^*=\frac{m^me^{-(m-1)}}{\Gamma(m)}$ ($m>1$). Prior as proposal: accept if $U\le p(x|\theta)/p(x|\hat\theta_{\rm MLE})$.\\
+\say{Rejection needs only $\tilde f$ and gives independent exact draws, but needs an envelope; in high dimensions $M$ is huge and nearly all draws are rejected $\Rightarrow$ MCMC.}
+\end{tb}
+
+\begin{tb}{cMC}{14 \textbullet\ MCMC diagnostics}
+Trace: converged = ``hairy caterpillar'', no trend, constant spread; chains from \emph{overdispersed} starts overlap. Burn-in = discard iterations before chains overlap and stabilise.
+$\hat R=B/W$: $B$ = sd of pooled post-burn-in draws (all chains), $W$ = mean within-chain sd; $\hat R<1.05$ accept; $\hat R\gg1$ not converged ($\to1$ as $T\to\infty$): run longer / better proposal.
+Lag-$k$ autocorrelation $\rho_k$ (ACF). ESS$=\frac{n}{1+2\sum_{i\ge1}\rho_i}\approx n\frac{1-\rho_1}{1+\rho_1}$; MCMC SE $=s/\sqrt{\text{ESS}}$ (not $s/\sqrt n$); aim ESS$>4000$. Thinning (every $k$th): saves memory, loses information, never raises ESS.\\
+\say{Burn-in from trace: discard up to the iteration where the chains from different starts merge and stop trending (e.g.\ first $\_$ of $\_$); use the rest.}
+\say{Run several chains from widely separated starts. Informal: trace plots overlap, stationary, no trend; ACF decays fast. Formal: BGR $\hat R=B/W<1.05$ on post-burn-in draws. Passing doesn't prove convergence: all chains may miss a region.}
+\end{tb}
+
+\begin{tb}{cMC}{15 \textbullet\ Variational inference (CAVI)}
+$q^*=\arg\min_{q\in\mathcal D}\text{KL}(q\|p(\theta|x))$, KL$=E_q[\log q-\log p(\theta|x)]\ge0$ (not symmetric). ELBO$(q)=E_q[\log p(\theta,x)]-E_q[\log q]$; $\log p(x)=\text{ELBO}+\text{KL}$, so ELBO$\le\log p(x)$; max ELBO $\iff$ min KL, no $p(x)$ needed. Mean field $q=\prod_jq_j(\theta_j)$ (assumption on the approximation, not the model).\\
+\textbf{CAVI:} $q_j^*(\theta_j)\propto\exp\{E_{-j}[\log p(\theta,x)]\}$; ELBO never decreases; local optimum; stop when $\Delta$ELBO small; several starts, keep highest ELBO. Recipe: log joint line by line, keep terms with $\theta_j$, take $E_{-j}$, expand, name. $E_\mu[(c-\mu)^2]=(c-E\mu)^2+V\mu$; $E\tau=a^*/b^*$.\\
+\h{Joint prior} $\mu|\tau\sim N(m_0,\frac1{\kappa_0\tau})$, $\tau\sim$Ga$(a,b)$ (lecture):
+\[\begin{aligned}q^*_\mu&=N\Big(\frac{\kappa_0m_0+n\bar x}{\kappa_0+n},\ \frac1{(\kappa_0+n)E\tau}\Big)\\
+q^*_\tau&=\text{Ga}(a^*,b^*),\qquad a^*=a+\tfrac{n+1}2\\
+b^*&=b+\tfrac12\big[\textstyle\sum(x_i-E\mu)^2+nV\mu\big]+\tfrac{\kappa_0}2\big[(E\mu-m_0)^2+V\mu\big]\end{aligned}\]
+\h{Independent} $\mu\sim N(m_0,\frac1{\kappa_0})$: $q^*_\mu=N\big(\frac{\kappa_0m_0+E\tau\,n\bar x}{\kappa_0+nE\tau},\frac1{\kappa_0+nE\tau}\big)$, $q^*_\tau=$Ga$\big(a+\frac n2,\ b+\frac12[\sum(x_i-E\mu)^2+nV\mu]\big)$. Iterate $q_\mu\to q_\tau\to\cdots$.
+IG prior on $\sigma^2$: $q^*_{\sigma^2}$ = IG with the same $b^*$; uses $E[1/\sigma^2]=a^*/b^*$.\\
+\say{VI vs MCMC: VI optimises: fast, deterministic, scales to big data/many models, but mean-field ignores posterior dependence, underestimates variance, no exactness guarantee. MCMC: slower, needs convergence checks, asymptotically exact.}
+\end{tb}
+
+\begin{tb}{cGen}{19 \textbullet\ Worked mini-examples (fresh numbers, checked in R)}
+\h{CI for $p$:} logit fit, $\hat\eta_0=0.80$, se$=0.25$: $0.80\pm1.96(0.25)=(0.31,1.29)$; $\hat p=\frac{1}{1+e^{-0.8}}=0.69$, CI $(\frac1{1+e^{-0.31}},\frac1{1+e^{-1.29}})=(0.58,0.78)$: asymmetric.\\
+\h{Quasi F:} $D_A=60.0$ (40 df), $D_B=48.0$ (38 df), $\hat\phi_B=1.5$: $F=\frac{12/2}{1.5}=4.00$ on $(2,38)$, $F_{.95}=3.24$, p$=0.03$: keep the term.\\
+\h{E-step:} $\pi^0=0.4$, $N(0,1)$ vs $N(3,1)$, $x=1$: $\gamma_1=\frac{0.4e^{-0.5}}{0.4e^{-0.5}+0.6e^{-2}}=\frac{0.2426}{0.2426+0.0812}=0.75$.\\
+\h{MH ledger:} $y_1..y_4$ Poisson$(\lambda)$, $\sum y=10$, $\lambda\sim$Ga$(2,1)$ $\Rightarrow\pi(\lambda)\propto\lambda^{11}e^{-5\lambda}$; $\lambda^c=2$, $\lambda^*\sim$Exp(rate $1/\lambda^c$), $\lambda^*=3$.
+Target $(\frac32)^{11}e^{-5(3-2)}=86.4976\times0.006738=0.5828$; proposal $\frac{q(2|3)}{q(3|2)}=\frac{\frac13e^{-2/3}}{\frac12e^{-3/2}}=1.5340$; $\alpha=\min\{1,0.8940\}=0.89$.
+\end{tb}
+
+\end{multicols*}
+\end{document}

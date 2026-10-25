@@ -1,0 +1,472 @@
+% MAST30027 mock exam -- full worked solutions
+\documentclass[11pt,a4paper]{article}
+\usepackage[a4paper,portrait,top=2.3cm,bottom=2.1cm,left=2.0cm,right=2.0cm,headheight=14pt]{geometry}
+\usepackage{fontspec}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{needspace}
+\usepackage{lastpage}
+\usepackage[dvipsnames]{xcolor}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\emergencystretch=3em
+\allowdisplaybreaks[0]
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{MAST30027 Modern Applied Statistics -- mock solutions}
+\fancyhead[R]{Semester 2, 2026}
+\fancyfoot[C]{Page \thepage\ of \pageref{LastPage}}
+\setlength{\abovedisplayskip}{4pt}\setlength{\belowdisplayskip}{4pt}
+\setlength{\abovedisplayshortskip}{2pt}\setlength{\belowdisplayshortskip}{2pt}
+
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\Var}{Var}
+\newcommand{\qhead}[2]{\Needspace{12\baselineskip}\vspace{8pt}{\large\bfseries Question #1 \quad [#2 marks]}\par\vspace{1pt}\hrule\vspace{3pt}}
+\newcommand{\restate}[3]{\Needspace{8\baselineskip}\par\vspace{4pt}\noindent\textbf{#1}\ \textit{#3}\hfill\mbox{[#2]}\par}
+\newcommand{\mrk}[1]{\par\noindent{\small\textbf{Marks:} #1}\par}
+\newcommand{\errs}[1]{\par\noindent{\small\textbf{Common errors:} #1}\par}
+\newcommand{\calc}[1]{\par\noindent{\small\textbf{FX-82:} #1}\par}
+\newcommand{\chk}[1]{\par\noindent{\small\textcolor{red}{[CHECK: #1]}}\par}
+\newcommand{\why}[1]{\quad\text{\small(#1)}}
+
+\begin{document}
+\thispagestyle{empty}
+\begin{center}
+{\LARGE\bfseries MAST30027 Modern Applied Statistics}\\[4pt]
+{\Large Mock Paper -- Worked Solutions and Mark Scheme}\\[4pt]
+{\normalsize Semester 2, 2026 \quad (9 questions, 78 marks)}
+\end{center}
+\textbf{Conventions.} Every answer is rounded to 2 d.p. unless the question says otherwise and shown in a box. ``FX-82'' lines say what to key in. Intermediate values are carried at full calculator precision and displayed to 4--5 d.p. Gamma$(a,b)$ means shape $a$, rate $b$. The \textbf{Marks} lines show where each mark is earned; follow-through marks are given for correct method on an earlier wrong value.
+
+%% ================================================================= Q1
+\qhead{1}{7}
+
+\restate{(a)}{2}{Log-likelihood of $\theta$ in terms of $N_1,N_2,N_3$.}
+\begin{align*}
+L(\theta)&=\big(\theta^2\big)^{N_1}\big(2\theta(1-\theta)\big)^{N_2}\big((1-\theta)^2\big)^{N_3} &&\why{independent}\\
+\ell(\theta)&=2N_1\log\theta+N_2\log2+N_2\log\theta+N_2\log(1-\theta)\\
+&\quad+2N_3\log(1-\theta) &&\why{take logs}\\
+&\boxed{\ell(\theta)=(2N_1+N_2)\log\theta+(N_2+2N_3)\log(1-\theta)+N_2\log 2}
+\end{align*}
+\mrk{1 for the product/likelihood in terms of $N_k$; 1 for the collected log-likelihood (constant $N_2\log2$ may be dropped).}
+\errs{forgetting the factor 2 in the $Aa$ probability; writing $\theta^{N_1}$ instead of $(\theta^2)^{N_1}$.}
+
+\restate{(b)}{3}{Fisher information $I(\theta)$ for the whole sample.}
+\begin{align*}
+\ell'(\theta)&=\frac{2N_1+N_2}{\theta}-\frac{N_2+2N_3}{1-\theta}\\
+\ell''(\theta)&=-\frac{2N_1+N_2}{\theta^2}-\frac{N_2+2N_3}{(1-\theta)^2}\\
+I(\theta)&=-\E[\ell''(\theta)]=\frac{\E(2N_1+N_2)}{\theta^2}+\frac{\E(N_2+2N_3)}{(1-\theta)^2} &&\why{$-\E$ of second derivative}\\
+\E(2N_1+N_2)&=2n\theta^2+2n\theta(1-\theta)=2n\theta &&\why{given expectations}\\
+\E(N_2+2N_3)&=2n\theta(1-\theta)+2n(1-\theta)^2=2n(1-\theta)\\
+I(\theta)&=\frac{2n\theta}{\theta^2}+\frac{2n(1-\theta)}{(1-\theta)^2}=\frac{2n}{\theta}+\frac{2n}{1-\theta}\\
+&=\frac{2n\big[(1-\theta)+\theta\big]}{\theta(1-\theta)}\\
+&\boxed{I(\theta)=\frac{2n}{\theta(1-\theta)}} &&\why{common denominator}
+\end{align*}
+\mrk{1 for $\ell''$; 1 for substituting expectations correctly; 1 for simplified result.}
+\errs{using $+\E[\ell'']$ (negative information); not simplifying to a single fraction; using $n$ instead of $2n$ (each individual carries two alleles).}
+
+\restate{(c)}{2}{MLE, its asymptotic distribution, and values for $n=100$, $N=(34,46,20)$.}
+\begin{align*}
+\ell'(\hat\theta)&=0\;\Rightarrow\;(2N_1+N_2)(1-\hat\theta)=(N_2+2N_3)\hat\theta\\
+2N_1+N_2&=\hat\theta\,(2N_1+2N_2+2N_3) &&\why{collect $\hat\theta$ terms}\\
+\hat\theta&=\frac{2N_1+N_2}{2n} &&\why{$\sum N_k=n$; $\ell''<0$}\\
+\hat\theta&\overset{a}{\sim}\text{Normal}\Big(\theta,\ \frac1{I(\theta)}\Big)\\
+&=\text{Normal}\Big(\theta,\ \frac{\theta(1-\theta)}{2n}\Big)\\
+\hat\theta&=\frac{2(34)+46}{200}=\frac{114}{200}=\boxed{0.57}\\
+\widehat{\Var}(\hat\theta)&=\frac{0.57\times0.43}{2\times100}=\frac{0.2451}{200}=0.0012255=\boxed{0.0012}
+\end{align*}
+\calc{$0.57\times0.43\div200=$ gives $1.2255\times10^{-3}$; to 4 d.p. this is $0.0012$.}
+\mrk{1 for $\hat\theta$ formula and value $0.57$; 1 for the asymptotic normal with variance $\theta(1-\theta)/(2n)$ and the plug-in $0.0012$.}
+\errs{using $n$ rather than $2n$ in the denominator (variance $0.0025$); giving the standard deviation ($0.035$) instead of the variance.}
+
+%% ================================================================= Q2
+\qhead{2}{8}
+
+\restate{(a)}{4}{Write the pmf of $Y=N/m$ in exponential dispersion form; identify $\theta,\phi,a,b,c$.}
+\begin{align*}
+f(y)&=P(N=my)=\frac{e^{-m\mu}(m\mu)^{my}}{(my)!} &&\why{$Y=y\iff N=my$}\\
+\log f(y)&=my\log\mu-m\mu+my\log m-\log\big((my)!\big) &&\why{take logs}\\
+&=\frac{y\log\mu-\mu}{1/m}+my\log m-\log\big((my)!\big) &&\why{factor out $m=1/\phi$}\\
+&=\frac{y\theta-e^{\theta}}{\phi}+\frac{y}{\phi}\log\frac1\phi-\log\Big(\big(\tfrac y\phi\big)!\Big) &&\why{$\theta=\log\mu$, $\phi=1/m$}
+\end{align*}
+Matching with $\dfrac{y\theta-b(\theta)}{a(\phi)}+c(y,\phi)$:
+\begin{align*}
+\boxed{\theta=\log\mu,\quad \phi=\tfrac1m,\quad a(\phi)=\phi,\quad b(\theta)=e^{\theta},\quad c(y,\phi)=\tfrac y\phi\log\tfrac1\phi-\log\big((\tfrac y\phi)!\big)}
+\end{align*}
+\mrk{1 for the pmf of $Y$ via $N=my$; 1 for $\theta=\log\mu$; 1 for $a(\phi)=\phi$ and $b(\theta)=e^\theta$; 1 for $c(y,\phi)$ (equivalently $my\log m-\log((my)!)$).}
+\errs{leaving $\mu$ in $b$ instead of $e^\theta$; forgetting that $my$ (not $y$) is the factorial argument; putting $m$ inside $\theta$.}
+
+\restate{(b)}{2}{Canonical link; $\E(Y)$, $\Var(Y)$ from $b$; variance function.}
+\begin{align*}
+\theta&=\log\mu\ \Rightarrow\ g(\mu)=\log\mu &&\why{canonical link: $\eta=\theta$}\\
+\E(Y)&=b'(\theta)=e^{\theta}=\mu\\
+\Var(Y)&=a(\phi)\,b''(\theta)=\phi\,e^{\theta}=\frac{\mu}{m}\\
+v(\mu)&=b''(\theta(\mu))=\mu &&\why{$\Var(Y)=a(\phi)v(\mu)$}\\
+&\boxed{g=\log,\quad \E(Y)=\mu,\quad \Var(Y)=\mu/m,\quad v(\mu)=\mu}
+\end{align*}
+\mrk{1 for the log link and $\E(Y)=\mu$; 1 for $\Var(Y)=a(\phi)b''=\mu/m$ and $v(\mu)=\mu$.}
+\errs{writing $v(\mu)=\mu/m$ (the $1/m$ belongs to $a(\phi)$).}
+
+\restate{(c)}{2}{IWLS weight $W_{ii}$ and why longer trapping gets more weight.}
+\begin{align*}
+g(\mu)&=\log\mu\ \Rightarrow\ g'(\mu_i)=\frac1{\mu_i}\\
+\Var(z_i)&=g'(\mu_i)^2\,v(\mu_i)\,a_i=\frac1{\mu_i^2}\cdot\mu_i\cdot\frac1{m_i}=\frac1{m_i\mu_i}\\
+W_{ii}&=\frac1{\Var(z_i)}=\boxed{m_i\mu_i}
+\end{align*}
+Model answer: a trap left out longer counts more insects, so its rate $N_i/m_i$ has variance $\mu_i/m_i$, which is smaller. More precise observations get a larger weight $m_i\mu_i$.
+\mrk{1 for $W_{ii}=m_i\mu_i$ with working; 1 for the explanation (smaller variance of the rate $\Rightarrow$ more weight).}
+\errs{using $a_i=1$ (giving $W=\mu_i$); $g'(\mu)=\mu$.}
+
+%% ================================================================= Q3
+\qhead{3}{9}
+
+\restate{(a)}{2}{Odds ratios for spray and per cm of rain, with interpretation.}
+\begin{align*}
+\widehat{OR}_{\text{spray}}&=e^{\hat\beta_2}=e^{-0.64442}=\boxed{0.52}\\
+\widehat{OR}_{\text{rain}}&=e^{\hat\beta_1}=e^{0.29876}=\boxed{1.35}
+\end{align*}
+\calc{SHIFT $\ln$ gives $e^x$: $e^x\,(-)\,0.64442=$ gives $0.52497$; $e^x\,0.29876=$ gives $1.34819$.}
+Interpretation: at the same rainfall, the odds of a tree being infected in a sprayed plot are $0.52$ times those in an unsprayed plot (about $48\%$ lower). Each extra cm of monthly rain multiplies the odds of infection by $1.35$ (a $35\%$ increase), for the same spray status.
+\mrk{1 for both ORs by exponentiating; 1 for both interpretations (multiplicative on the \emph{odds}, other variable held fixed).}
+\errs{interpreting as a change in probability; using $e^{-0.64442}$ as $1-0.64442$; saying ``$0.52$ times more''.}
+
+\restate{(b)}{3}{$\hat p$ and 95\% CI for a sprayed plot with $\text{rain}=8$.}
+With $c=(1,\,8,\,1)^T$:
+\begin{align*}
+\hat\eta&=-1.67973+8(0.29876)-0.64442=0.06593\\
+\Var(\hat\eta)&=c^TVc=V_{00}+64V_{11}+V_{22}+16V_{01}+2V_{02}+16V_{12}\\
+&=0.13212+0.18233+0.04824-0.28754+0.03635-0.09365\\
+&=0.017844\\
+\text{SE}(\hat\eta)&=\sqrt{0.017844}=0.13358\\
+\hat\eta\pm1.96\,\text{SE}&=0.06593\pm0.26182=(-0.19589,\ 0.32775)\\
+\hat p&=\frac1{1+e^{-0.06593}}=\boxed{0.52}\\
+p_{\text{lo}}&=\frac1{1+e^{0.19589}}=0.4512\\
+p_{\text{hi}}&=\frac1{1+e^{-0.32775}}=0.5812\\
+&\boxed{95\%\text{ CI for }p:\ (0.45,\ 0.58)}
+\end{align*}
+\calc{Terms: $64\times0.002848834$, $16\times(-0.017971204)$, $2\times0.018175543$, $16\times(-0.005853401)$. Store the sum, press $\sqrt{}$. Inverse logit: $1\div(1+e^x(-)\,\hat\eta)$.}
+\mrk{1 for $\hat\eta$ and $\hat p$; 1 for the variance including all covariance terms with correct multipliers; 1 for the CI on the $\eta$ scale transformed to $(0.45,0.58)$.}
+\errs{leaving out the covariance terms (then $\text{SE}=0.60$ and the CI is far too wide); transforming SE rather than the endpoints; omitting the factor 2 or the 8 in cross terms; using $x=(1,8,0)$.}
+
+\restate{(c)}{2}{LRT for \texttt{spray} at the 5\% level.}
+\begin{align*}
+H_0&:\beta_2=0\ \ (\text{rain only})\qquad H_1:\beta_2\ne0 \\
+D&=D_0-D_1=23.372-14.437=8.935\approx\boxed{8.94} &&\why{difference in residual deviances}\\
+D&\overset{H_0}{\sim}\chi^2_1\ \ (14-13=1\text{ df}) &&\why{approx.}\\
+8.94&>3.84 &&\why{reject $H_0$}
+\end{align*}
+Conclusion: reject $H_0$ at the 5\% level (printed $p=0.0028$). Spray is needed in the model, even after rain is included.
+\mrk{1 for hypotheses and $D=8.94$ with $\chi^2_1$; 1 for comparing with $3.84$ and the conclusion in context.}
+\errs{using the wrong deviance order (negative $D$); $df=13$ or $14$; ``accept $H_0$''.}
+
+\restate{(d)}{2}{Is model 1 adequate by residual deviance? How might binomial assumptions fail?}
+\begin{align*}
+D_{\text{res}}=14.44\ \text{on}\ 13\ \text{df},&\qquad 14.44<22.36=\chi^2_{13,0.95}\\
+\frac{D_{\text{res}}}{\text{df}}&=\frac{14.44}{13}=1.11\approx1
+\end{align*}
+Model 1 is adequate: no evidence of lack of fit ($D$ below the critical value). Binomial assumptions could fail because trees in the same plot share soil, microclimate and disease spread, so infections are positively correlated and not independent with a common $p$. This gives extra-binomial variation (overdispersion), so the binomial standard errors are too small, making CIs too narrow and $p$-values too small.
+\mrk{1 for the comparison with $22.36$ and ``adequate''; 1 for a valid reason and the effect on SEs (too small).}
+\errs{saying large deviance means good fit; saying SEs would be too large.}
+
+%% ================================================================= Q4
+\qhead{4}{10}
+
+\restate{(a)}{2}{Two pieces of evidence of overdispersion in model A.}
+\begin{align*}
+\frac{D_{\text{res}}}{\text{df}}&=\frac{222.13}{31}=7.17\gg1\\
+\hat\phi_A&=\frac{X^2}{n-p}=7.16976\approx\boxed{7.17}\gg1 &&\why{Pearson estimate, should be $\approx1$ for Poisson}
+\end{align*}
+Also: the residual deviance $222.13$ far exceeds the $\chi^2_{31}$ 95\% point ($44.99$). (Note $\hat\phi_B=6.75$ also $\gg1$.)
+\mrk{1 each for two valid quantitative pieces ($\hat\phi_A=7.17$; deviance/df $\approx7.2$ on 31 df).}
+\errs{quoting only the null deviance; saying ``$\hat\phi>1$'' without giving the value.}
+
+\restate{(b)}{3}{$F$-statistic for \texttt{anova(modelD, modelC, test="F")}, its df, and conclusion.}
+\begin{align*}
+F&=\frac{(D_B-D_A)/(\text{df}_B-\text{df}_A)}{\hat\phi_A} &&\why{$\hat\phi$ from the larger model}\\
+&=\frac{(234.27-222.13)/(34-31)}{7.16976}=\frac{12.131/3}{7.16976}=\frac{4.0437}{7.16976}\\
+&=\boxed{0.56}\qquad \text{df}=\boxed{(3,\,31)}
+\end{align*}
+\calc{$12.131\div3\div7.16976=0.5640$ (using $234.27-222.13=12.14$ gives $0.5651$, same 2 d.p. answer, $0.56$).}
+Since $0.56<2.91$, we do not reject $H_0$: \texttt{sst} and \texttt{zone} can be dropped (once overdispersion is allowed for).
+\mrk{1 for $F$ formula with $\hat\phi_A$ in the denominator; 1 for $F=0.56$; 1 for df $(3,31)$ and conclusion.}
+\errs{dividing by $\hat\phi_B$ or by 1; df $(3,34)$; forgetting to divide the deviance change by 3.}
+
+\restate{(c)}{3}{Quasi-Poisson SE of \texttt{depth}, and 95\% CI for the factor change in density per 10 m.}
+\begin{align*}
+\text{SE}_{\text{quasi}}&=\text{SE}_{\text{Poisson}}\sqrt{\hat\phi_A} &&\why{SE scaled by $\sqrt{\hat\phi}$}\\
+&=0.001689\times\sqrt{7.16976}=0.001689\times2.67764=0.004523\approx\boxed{0.0045}\\
+\hat\beta\pm t\,\text{SE}&=-0.006366\pm2.04\times0.004523=-0.006366\pm0.009227\\
+&=(-0.015593,\ 0.002861)\\
+\text{10 m:}\ &\ (-0.15593,\ 0.02861) &&\why{multiply by 10}\\
+\exp(\cdot)&:\ \big(e^{-0.15593},\ e^{0.02861}\big)\\
+&\boxed{(0.86,\ 1.03)}\qquad\text{(point estimate }e^{-0.06366}=0.94)
+\end{align*}
+\calc{$\sqrt{7.16976}$ then $\times0.001689$; then $e^x$ of $10\times(-0.006366\mp0.009227)$.}
+The interval contains 1: no significant depth effect on density once overdispersion is allowed for.
+\mrk{1 for $\text{SE}=0.0045$; 1 for the interval for $\beta$ with $t=2.04$; 1 for $\times10$, exponentiating, and the result $(0.86,1.03)$.}
+\errs{using $\hat\phi$ instead of $\sqrt{\hat\phi}$; using the Poisson SE (gives the too-narrow $(0.91,0.97)$); exponentiating without multiplying by 10; forgetting the interval is for the \emph{factor}, not $\beta$.}
+
+\restate{(d)}{2}{How quasi-Poisson differs; why Chisq and $F$ disagree; which to trust.}
+Model answer: Quasi-Poisson keeps the Poisson mean model (same $\hat\beta$) but assumes $\Var(Y)=\phi\mu$ with $\phi$ estimated ($\hat\phi=7.17$), so all SEs are multiplied by $\sqrt{\hat\phi}$ and tests use $F$ rather than $\chi^2$. The Chisq analysis of deviance assumes $\phi=1$, so with $\hat\phi\approx7$ it overstates the evidence ($p=0.007$), while the $F$-test divides the deviance change by $\hat\phi$ and gives $p=0.64$. Trust the $F$-test (the data are strongly overdispersed).
+\mrk{1 for the $\Var=\phi\mu$ difference (same $\hat\beta$, SEs scaled); 1 for explaining the disagreement via ignored overdispersion and choosing $F$.}
+\errs{saying quasi-Poisson changes the coefficient estimates; trusting the Chisq test because its $p$-value is smaller.}
+
+%% ================================================================= Q5
+\qhead{5}{7}
+
+\restate{(a)}{1}{$g'(\mu)$ and show $W_{ii}=\mu_i^2$.}
+\begin{align*}
+g(\mu)&=\mu^{-1}\ \Rightarrow\ g'(\mu)=-\mu^{-2}\\
+W_{ii}&=\frac1{g'(\mu_i)^2\,v(\mu_i)}=\frac1{\mu_i^{-4}\,\mu_i^{2}}=\frac1{\mu_i^{-2}}=\mu_i^2
+\end{align*}
+\mrk{1 for $g'(\mu)=-1/\mu^2$ and the simplification to $\mu_i^2$.}
+\errs{$g'(\mu)=-1/\mu$; forgetting to square $g'$ in $W$; $v(\mu)=\mu$ (instead of $\mu^2$).}
+
+\restate{(b)}{2}{One IWLS step from $\beta^0=(0.45,0.10)^T$: $\eta_i,\mu_i,z_i,W_{ii}$.}
+Use $\eta_i=0.45+0.10x_i$, $\mu_i=1/\eta_i$, $z_i=\eta_i+(y_i-\mu_i)g'(\mu_i)=\eta_i-(y_i-\mu_i)/\mu_i^2$, $W_{ii}=\mu_i^2$.
+\begin{align*}
+i=1:\ \eta_1&=0.45,\ \mu_1=2.2222,\ y_1-\mu_1=0.1778,\ \mu_1^2=4.9383\\
+z_1&=0.45-\frac{0.1778}{4.9383}=0.45-0.0360=0.4140\\
+i=2:\ \eta_2&=0.55,\ \mu_2=1.8182,\ y_2-\mu_2=-0.1182,\ \mu_2^2=3.3058\\
+z_2&=0.55+\frac{0.1182}{3.3058}=0.55+0.0358=0.5858\\
+i=3:\ \eta_3&=0.65,\ \mu_3=1.5385,\ y_3-\mu_3=-0.4385,\ \mu_3^2=2.3669\\
+z_3&=0.65+\frac{0.4385}{2.3669}=0.65+0.1853=0.8353
+\end{align*}
+\begin{center}
+\begin{tabular}{c|ccc}
+$i$ & 1 & 2 & 3\\\hline
+$\eta_i$ & 0.4500 & 0.5500 & 0.6500\\
+$\mu_i$ & 2.2222 & 1.8182 & 1.5385\\
+$z_i$ & \boxed{0.4140} & \boxed{0.5858} & \boxed{0.8353}\\
+$W_{ii}$ & \boxed{4.9383} & \boxed{3.3058} & \boxed{2.3669}
+\end{tabular}
+\end{center}
+\calc{$1\div0.45=$ (use $x^{-1}$ key), then $\mu^2$ with $x^2$.}
+\mrk{1 for $\eta_i,\mu_i,W_{ii}$ correct; 1 for $z_i$ correct (sign of the correction term).}
+\errs{using $z=\eta+(y-\mu)/\mu^2$ (wrong sign of $g'$); using $z=\eta+(y-\mu)$.}
+
+\restate{(c)}{2}{WLS formula for $\beta^1$; $X^TWX$, $X^TWz$, and $\beta^1$.}
+\begin{align*}
+\beta^1&=(X^TWX)^{-1}X^TWz,\qquad X=\begin{pmatrix}1&0\\1&1\\1&2\end{pmatrix}\\
+X^TWX&=\begin{pmatrix}\sum W_i&\sum W_ix_i\\ \sum W_ix_i&\sum W_ix_i^2\end{pmatrix}\\
+\sum W_i&=4.9383+3.3058+2.3669=10.6109\\
+\sum W_ix_i&=3.3058+2(2.3669)=8.0395\\
+\sum W_ix_i^2&=3.3058+4(2.3669)=12.7733\\
+X^TWz&=\begin{pmatrix}\sum W_iz_i\\ \sum W_ix_iz_i\end{pmatrix}=\begin{pmatrix}2.0444+1.9364+1.9769\\ 1.9364+2(1.9769)\end{pmatrix}\\
+&=\begin{pmatrix}5.9577\\5.8902\end{pmatrix}\\
+\det&=10.6109(12.7733)-8.0395^2=135.5358-64.6337=70.9021\\
+\beta^1&=\frac1{70.9021}\begin{pmatrix}12.7733&-8.0395\\-8.0395&10.6109\end{pmatrix}\begin{pmatrix}5.9577\\5.8902\end{pmatrix}\\
+&=\frac1{70.9021}\begin{pmatrix}76.0996-47.3543\\-47.8972+62.5004\end{pmatrix}=\frac1{70.9021}\begin{pmatrix}28.7453\\14.6032\end{pmatrix}\\
+&\boxed{\beta^1=(0.41,\ 0.21)^T}\qquad\text{(unrounded }(0.4054,\,0.2060))
+\end{align*}
+\mrk{1 for the formula and correct $X^TWX$, $X^TWz$; 1 for solving the $2\times2$ system to $(0.41,0.21)$.}
+\errs{forgetting $W$ in $X^TWz$; inverse formula mistakes (sign of the off-diagonal); using $y$ instead of $z$.}
+
+\restate{(d)}{2}{Cook's distance for machine 8; what are machines 7 and 8?}
+\begin{align*}
+C_8&=\frac{r_P^2\,h}{p\,\hat\phi\,(1-h)^2} &&\why{$r_P=0.223$, $h=0.578$, $p=2$, $\hat\phi=0.1985$}\\
+&=\frac{0.223^2\times0.578}{2\times0.1985256\times0.422^2}=\frac{0.049729\times0.578}{2\times0.1985256\times0.178084}\\
+&=\frac{0.028743}{0.070710}=\boxed{0.41}
+\end{align*}
+\calc{numerator $0.223^2\times0.578$; denominator $2\times0.1985256\times0.422^2$; divide.}
+Machine 7 (smallest Pearson residual $-0.794$) is an \emph{outlier}: its cost ($0.25$) is much lower than the model predicts, but its leverage is modest ($0.188$), so $C_7=0.45$. Machine 8 (leverage $0.578>2p/n=0.5$, age $14$ far from the rest) is a \emph{high-leverage} point, but it lies near the fitted curve (residual $0.223$), so $C_8=0.41$. Neither $C_i$ approaches 1, so neither changes the fit much.
+\mrk{1 for $C_8=0.41$ with correct formula; 1 for identifying 7 as outlier and 8 as high leverage and judging influence.}
+\errs{using $h/(1-h)$ with $r_P^2$ (one factor of $1-h$ missing); omitting $\hat\phi$; calling a high-leverage point automatically influential.}
+
+%% ================================================================= Q6
+\qhead{6}{10}
+
+\restate{(a)}{4}{Derive $Q(\theta,\theta^0)$.}
+Let $\gamma_{jk}=P(Z_j=k\mid\mathbf X_j,\theta^0)$, $\pi_1=\pi$, $\pi_2=1-\pi$.
+\begin{align*}
+P(\mathbf X,\mathbf Z\mid\theta)&=\prod_{j=1}^6\prod_{k=1}^2\Big[\pi_k\prod_{l=1}^2\phi(x_{jl};\mu_k,1)\Big]^{\mathbf 1(Z_j=k)} &&\why{units independent}\\
+\log P&=\sum_{j}\sum_{k}\mathbf 1(Z_j=k)\Big[\log\pi_k-\log2\pi-\tfrac12\sum_{l=1}^2(x_{jl}-\mu_k)^2\Big]\\
+\E\big[\mathbf 1(Z_j=k)\mid\mathbf X,\theta^0\big]&=\gamma_{jk} &&\why{E-step}
+\end{align*}
+\begin{align*}
+\boxed{Q(\theta,\theta^0)=\sum_{j=1}^6\sum_{k=1}^2\gamma_{jk}\Big[\log\pi_k-\tfrac12\sum_{l=1}^2(x_{jl}-\mu_k)^2-\log2\pi\Big]}
+\end{align*}
+\mrk{1 for the complete-data likelihood (both measurements share $Z_j$); 1 for its log; 1 for replacing indicators by $\gamma_{jk}$; 1 for the final $Q$.}
+\errs{treating the two measurements as having separate $Z$s; only one $(x-\mu)^2$ term per unit; $\gamma$ not depending on $j,k$.}
+
+\restate{(b)}{3}{M-step updates for $\pi$ and $\mu_1$.}
+\begin{align*}
+\frac{\partial Q}{\partial\pi}&=\frac{\sum_j\gamma_{j1}}{\pi}-\frac{\sum_j\gamma_{j2}}{1-\pi}=0\\
+(1-\pi)\sum_j\gamma_{j1}&=\pi\sum_j\gamma_{j2}\\
+\sum_j\gamma_{j1}&=\pi\sum_j(\gamma_{j1}+\gamma_{j2})=6\pi &&\why{$\gamma_{j1}+\gamma_{j2}=1$}\\
+\boxed{\hat\pi=\frac1{6}\sum_{j=1}^6\gamma_{j1}}\\
+\frac{\partial Q}{\partial\mu_1}&=\sum_j\gamma_{j1}\sum_{l=1}^2(x_{jl}-\mu_1)=0\\
+\sum_j\gamma_{j1}(x_{j1}+x_{j2})&=2\mu_1\sum_j\gamma_{j1}\\
+\boxed{\hat\mu_1=\frac{\sum_{j}\gamma_{j1}(x_{j1}+x_{j2})}{2\sum_j\gamma_{j1}}}
+\end{align*}
+(Second derivatives $-\sum\gamma/\pi^2-\cdots<0$ and $-2\sum_j\gamma_{j1}<0$, so these are maxima.)
+\mrk{1 for $\hat\pi$; 1 for the derivative setup for $\mu_1$; 1 for $\hat\mu_1$ with the factor 2 (two measurements per unit).}
+\errs{dividing by $\sum_j\gamma_{j1}$ instead of $2\sum_j\gamma_{j1}$ while summing both $x$'s; dividing $\hat\pi$ by 12.}
+
+\restate{(c)}{2}{$\gamma_{11}$ for $\theta^0=(0.4,0,3)$, $\mathbf x_1=(1.5,2.5)$.}
+\begin{align*}
+\gamma_{11}&=\frac{\pi^0 f(\mathbf x_1\mid\mu_1^0)}{\pi^0 f(\mathbf x_1\mid\mu_1^0)+(1-\pi^0)f(\mathbf x_1\mid\mu_2^0)} &&\why{Bayes' rule}\\
+f(\mathbf x_1\mid\mu_1^0)&\propto\exp\!\big\{-\tfrac12(1.5^2+2.5^2)\big\}=e^{-4.25} &&\why{$\mu=0$}\\
+f(\mathbf x_1\mid\mu_2^0)&\propto\exp\!\big\{-\tfrac12\big[(1.5-3)^2+(2.5-3)^2\big]\big\}=e^{-1.25} &&\why{$\mu=3$; common $(2\pi)^{-1}$ cancels}\\
+\gamma_{11}&=\frac{0.4e^{-4.25}}{0.4e^{-4.25}+0.6e^{-1.25}}=\frac1{1+1.5e^{3}}\\
+&=\frac1{1+1.5\times20.0855}=\frac1{31.1283}=0.0321\ \Rightarrow\ \boxed{0.03}
+\end{align*}
+\calc{$e^x\,3=20.0855$; $\times1.5=30.1283$; $+1$; then $x^{-1}$. Keep $0.0321$ for part (d).}
+\mrk{1 for the Bayes' rule set-up with correct exponents $-4.25$ and $-1.25$; 1 for the value $0.0321\approx0.03$.}
+\errs{using only one measurement; using $\mu_2=0$ and $\mu_1=3$ swapped; forgetting the priors $0.4,0.6$; $\sigma^2$ in the exponent mis-handled.}
+
+\restate{(d)}{1}{Updated $\hat\pi$ and $\hat\mu_1$ using the given $\gamma_{j1}$.}
+Sums $s_j=x_{j1}+x_{j2}=(4,\,1.5,\,4.4,\,3.4,\,0.3,\,4.1)$ and\\ $\gamma_{j1}=(0.0321,\,0.9836,\,0.0099,\,0.1672,\,0.9995,\,0.0240)$.
+\begin{align*}
+\sum_j\gamma_{j1}&=0.0321+0.9836+0.0099+0.1672+0.9995+0.0240=2.2163\\
+\hat\pi&=\frac{2.2163}{6}=0.3694=\boxed{0.37}\\
+\sum_j\gamma_{j1}s_j&=0.1284+1.4754+0.0436+0.5685+0.2999+0.0984=2.6142\\
+\hat\mu_1&=\frac{2.6142}{2\times2.2163}=\frac{2.6142}{4.4326}=0.5897=\boxed{0.59}
+\end{align*}
+\mrk{1 for both $\hat\pi=0.37$ and $\hat\mu_1=0.59$ (follow-through from your $\gamma_{11}$).}
+\errs{using $\sum\gamma s/\sum\gamma$ (no factor 2, giving $1.18$); not pairing $\gamma_{j1}$ with the right $s_j$.}
+
+%% ================================================================= Q7
+\qhead{7}{17}
+Summary statistics used throughout: $\sum x_i^2=1+4+9=14$, $\sum x_iy_i=1.5+4+10.5=16$, $\sum y_i^2=2.25+4+12.25=18.5$.\\
+Joint posterior (up to a constant), with $S(\beta)=\sum_i(y_i-\beta x_i)^2$:
+\begin{align*}
+p(\beta,\tau\mid\mathbf y)&\propto\underbrace{\tau^{3/2}e^{-\frac\tau2S(\beta)}}_{\text{likelihood}}\ \underbrace{\tau^{1/2}e^{-\frac\tau2\beta^2}}_{p(\beta\mid\tau)}\ \underbrace{\tau^{2}e^{-2\tau}}_{p(\tau)}
+=\tau^{4}\exp\Big\{-\tau\Big[2+\tfrac12\big(S(\beta)+\beta^2\big)\Big]\Big\}
+\end{align*}
+
+\restate{(a)(i)}{3}{$p(\beta\mid\tau,\mathbf y)$.}
+\begin{align*}
+p(\beta\mid\tau,\mathbf y)&\propto\exp\Big\{-\tfrac\tau2\big[S(\beta)+\beta^2\big]\Big\} &&\why{drop terms free of $\beta$}\\
+&=\exp\Big\{-\tfrac\tau2\Big[\beta^2\big(\textstyle\sum x_i^2+1\big)-2\beta\sum x_iy_i+\sum y_i^2\Big]\Big\}\\
+&\propto\exp\Big\{-\tfrac\tau2\big[15\beta^2-32\beta\big]\Big\}\\
+&\propto\exp\Big\{-\tfrac{15\tau}{2}\Big(\beta-\tfrac{16}{15}\Big)^2\Big\} &&\why{complete the square}\\
+&\boxed{\beta\mid\tau,\mathbf y\sim\text{Normal}\Big(\tfrac{16}{15}=1.07,\ \text{variance }\tfrac1{15\tau}\Big)}
+\end{align*}
+\mrk{1 for combining likelihood and prior in the exponent; 1 for completing the square; 1 for Normal with mean $16/15$ and precision $15\tau$.}
+\errs{forgetting the prior's $+1$ (using $14$ and $16/14$); variance $1/15$ without $\tau$; treating the $\tau$ factors as part of the kernel for $\beta$.}
+
+\restate{(a)(ii)}{3}{$p(\tau\mid\beta,\mathbf y)$.}
+\begin{align*}
+p(\tau\mid\beta,\mathbf y)&\propto\tau^{3/2+1/2+2}\exp\Big\{-\tau\Big[2+\tfrac12\big(S(\beta)+\beta^2\big)\Big]\Big\} &&\why{keep factors in $\tau$}\\
+&=\tau^{5-1}\exp\{-\tau\cdot\text{rate}\} &&\why{Gamma kernel $\tau^{a-1}e^{-b\tau}$}\\
+&\boxed{\tau\mid\beta,\mathbf y\sim\text{Gamma}\Big(5,\ 2+\tfrac12\Big[\textstyle\sum_i(y_i-\beta x_i)^2+\beta^2\Big]\Big)}
+\end{align*}
+\mrk{1 for powers of $\tau$ collected: $3/2$ (likelihood, $n/2$), $1/2$ (prior on $\beta$), $2$ (prior on $\tau$); 1 for shape $5$; 1 for the rate.}
+\errs{shape $3+3/2=4.5$ (forgetting the $1/2$ from $p(\beta\mid\tau)$); forgetting the $\beta^2$ in the rate; using the rate $2$ only.}
+
+\restate{(b)}{6}{Acceptance probability at $(\beta_c,\tau_c)=(1,2)$, $(\beta_n,\tau_n)=(1.2,3)$.}
+\begin{align*}
+\alpha&=\min\Big\{1,\ \frac{\pi(\beta_n,\tau_n)}{\pi(\beta_c,\tau_c)}\cdot\frac{q(\tau_c\mid\tau_n)}{q(\tau_n\mid\tau_c)}\Big\} &&\why{$\pi$=posterior kernel; $\beta$ proposal symmetric}
+\end{align*}
+\textbf{Posterior ratio.} $S(1)=0.5^2+0^2+0.5^2=0.5$; $S(1.2)=0.3^2+(-0.4)^2+(-0.1)^2=0.26$.
+\begin{align*}
+\text{current: }&2+\tfrac12(0.5+1^2)=2.75\\
+\text{new: }&2+\tfrac12(0.26+1.2^2)=2.85\\
+\frac{\pi_n}{\pi_c}&=\frac{3^4e^{-3(2.85)}}{2^4e^{-2(2.75)}}=\Big(\frac32\Big)^{4}e^{-8.55+5.5}\\
+&=5.0625\times e^{-3.05}=5.0625\times0.04736=0.2398
+\end{align*}
+\textbf{Proposal ratio.} The $\tau$-proposal is Gamma(2, rate $2/\tau_c$): density $r^2\tau e^{-r\tau}$.
+\begin{align*}
+q(\tau_n\mid\tau_c)&:\ r=2/2=1,\ \tau=3:\ 1^2\cdot3e^{-3}=0.14936\\
+q(\tau_c\mid\tau_n)&:\ r=2/3,\ \tau=2:\ \big(\tfrac23\big)^2\cdot2\,e^{-4/3}=0.23431\\
+\frac{q(\tau_c\mid\tau_n)}{q(\tau_n\mid\tau_c)}&=\frac{0.23431}{0.14936}=\frac{8}{27}e^{5/3}=1.5687
+\end{align*}
+\begin{align*}
+\alpha&=\min\{1,\ 0.2398\times1.5687\}=\min\{1,\ 0.3761\}=\boxed{0.38}
+\end{align*}
+\calc{$e^x(-)\,3.05=0.04736$; $\times5.0625$. Proposal: $8\div27\times e^x(5\div3)$. Multiply the two ratios.}
+\mrk{1 for the correct MH ratio incl.\ the proposal correction; 1 for noting $\beta$ cancels (symmetric Normal); 2 for the posterior ratio (kernel and arithmetic); 1 for the proposal ratio; 1 for $\alpha=0.38$.}
+\errs{using the Gibbs-conditional instead of the joint kernel; omitting $q$ ratio (gives $0.24$); inverting the $q$ ratio (gives $0.15$); using the scale rather than the rate $2/\tau_c$ for the Gamma proposals; forgetting prior and $\tau^{1/2}$ from $p(\beta\mid\tau)$.}
+
+\restate{(c)(i)}{4}{Optimal $q^*(\tau)$ in terms of $\E_q[\beta],\Var_q[\beta]$.}
+\begin{align*}
+\log q^*(\tau)&=\E_{q(\beta)}\big[\log p(\mathbf y,\beta,\tau)\big]+\text{const} &&\why{CAVI}\\
+&=4\log\tau-\tau\Big[2+\tfrac12\big(\E_q[S(\beta)]+\E_q[\beta^2]\big)\Big]+\text{const}\\
+\E_q[S(\beta)]&=\sum y_i^2-2\sum x_iy_i\,\E_q[\beta]+\sum x_i^2\,\E_q[\beta^2]\\
+\E_q[\beta^2]&=\Var_q[\beta]+\E_q[\beta]^2 &&\why{second moment}\\
+\E_q[S]+\E_q[\beta^2]&=18.5-32\,\E_q[\beta]+15\big(\Var_q[\beta]+\E_q[\beta]^2\big)\\
+&\boxed{q^*(\tau)=\text{Gamma}(5,\ b^*)},\ \text{where}\\
+b^*&=2+\tfrac12\Big[18.5-32\,\E_q[\beta]+15\big(\Var_q[\beta]+\E_q[\beta]^2\big)\Big]
+\end{align*}
+\mrk{1 for $\E_q$ of the log joint; 1 for expanding $\E_q[S]$; 1 for $\E_q[\beta^2]=\Var+\E^2$; 1 for Gamma with shape 5 and correct rate.}
+\errs{replacing $\E_q[\beta^2]$ by $\E_q[\beta]^2$ (missing $\Var_q$); forgetting the prior's $\beta^2$ term (using $14$ not $15$); shape $4$.}
+
+\restate{(c)(ii)}{1}{$\E_q[\beta]=1.1$, $\Var_q[\beta]=0.02$: parameters of $q^*$ and $\E_{q^*}[\tau]$.}
+\begin{align*}
+\E_q[\beta^2]&=0.02+1.1^2=1.23\\
+\text{rate}&=2+\tfrac12\big[18.5-32(1.1)+15(1.23)\big]=2+\tfrac12\big[18.5-35.2+18.45\big]=2+\tfrac12(1.75)=2.875\\
+\E_{q^*}[\tau]&=\frac{5}{2.875}=\boxed{1.74}\qquad\Big(q^*=\text{Gamma}(5,\,2.88)\Big)
+\end{align*}
+\mrk{1 for rate $2.875$ (shape 5) and $\E[\tau]=1.74$.}
+\errs{arithmetic slip with $32\times1.1$; using the scale instead of the rate for the mean ($5\times2.875$).}
+
+%% ================================================================= Q8
+\qhead{8}{5}
+
+\restate{(a)}{3}{Smallest $M$ with $f(x)\le Mg(x)$.}
+\begin{align*}
+\frac{f(x)}{g(x)}&=\frac{xe^{-x^2/2}}{e^{-x}}=x\,e^{x-x^2/2}=:r(x)\\
+\frac{d}{dx}\log r&=\frac1x+1-x=0 &&\why{maximise $\log r(x)=\log x+x-x^2/2$}\\
+x^2-x-1&=0\ \Rightarrow\ x^*=\frac{1+\sqrt5}2=1.6180 &&\why{positive root; $(\log r)''<0$}\\
+M&=r(x^*)=1.6180\,e^{1.6180-1.3090} &&\why{$x^{*2}=x^*+1=2.618$, half is $1.309$}\\
+&=1.6180\times e^{0.3090}=1.6180\times1.3621\\
+&\boxed{M=2.20}
+\end{align*}
+\calc{$(1+\sqrt5)\div2=1.61803$; $e^x(1.61803-1.30902)=1.36219$; multiply.}
+\mrk{1 for $f/g=xe^{x-x^2/2}$; 1 for solving for $x^*=1.618$; 1 for $M=2.20$ (with justification of max, as $r\to0$ at $0$ and $\infty$).}
+\errs{maximising $f$ alone (gives $x=1$, $M=1.65$); wrong root; using $M=\max f=0.607$.}
+
+\restate{(b)}{1}{What does the last line do? Output for $x=0.5$, $u=0.5$.}
+It accepts the proposal $x$ (returns it) when $u<\dfrac{f(x)}{M\,g(x)}$, and returns \texttt{NA} (reject) otherwise.
+\begin{align*}
+\frac{f(0.5)}{Mg(0.5)}&=\frac{0.5\,e^{0.5-0.125}}{2.2039}=\frac{0.7275}{2.2039}=0.3301\\
+u&=0.5>0.3301 &&\why{reject}
+\end{align*}
+The code returns $\boxed{\texttt{NA}}$.
+\mrk{1 for correctly describing the accept test and getting \texttt{NA} with the numbers.}
+\errs{returning $0.5$; comparing $u$ with $f(x)/g(x)$ without dividing by $M$.}
+
+\restate{(c)}{1}{Probability one attempt returns a sample; mean attempts per sample.}
+\begin{align*}
+P(\text{accept})&=\int_0^\infty\frac{f(x)}{Mg(x)}\,g(x)\,dx=\frac1M\int_0^\infty f(x)\,dx=\frac1M &&\why{$f$ is a normalised density}\\
+&=\frac1{2.2039}=\boxed{0.45}\\
+\text{mean attempts}&=\frac1{P(\text{accept})}=M=\boxed{2.20} &&\why{geometric}
+\end{align*}
+\mrk{1 for $0.45$ and $2.20$ (both).}
+\errs{$P(\text{accept})=M$; quoting mean attempts as $0.45$.}
+
+%% ================================================================= Q9
+\qhead{9}{5}
+
+\restate{(a)}{1}{Burn-in from the trace plot; why discard.}
+Discard about the first $\boxed{100}$ iterations (chain B has merged with chain A by about iteration 50--100; any answer in $50$--$100$ is fine).
+Reason: early draws depend on the arbitrary starting values ($-8$, $18$) and are not from the stationary (target) distribution, so keeping them biases the estimates.
+\mrk{1 for a value in the range $50$--$100$ and a reason about starting values/not yet stationary.}
+\errs{discarding 300 or more without justification; saying burn-in ``removes autocorrelation''.}
+
+\restate{(b)}{2}{$\hat R=B/W$ for iterations 1--300 and 301--1200.}
+\begin{align*}
+\text{1--300:}\ W&=\frac{2.65+3.23}{2}=2.94,\quad B=3.36\\
+\hat R&=\frac{B}{W}=\frac{3.36}{2.94}=1.1429=\boxed{1.14}>1.05\\
+\text{301--1200:}\ W&=\frac{2.29+2.28}{2}=2.285,\quad B=2.29\\
+\hat R&=\frac{2.29}{2.285}=1.0022=\boxed{1.00}<1.05
+\end{align*}
+Interpretation: for iterations 1--300 the pooled spread exceeds the within-chain spread because the chains started far apart (burn-in is included): not converged. For 301--1200 the chains agree: converged.
+\mrk{1 for both $\hat R$ values; 1 for the interpretations against the $1.05$ threshold.}
+\errs{$W/B$ (gives $0.88$); using the pooled sd as $W$; averaging the variances rather than the sds.}
+
+\restate{(c)}{2}{ESS and Monte Carlo SE; factor by which the naive SE is too small.}
+\begin{align*}
+\text{ESS}&=n\,\frac{1-\hat\rho_1}{1+\hat\rho_1}=900\times\frac{1-0.92}{1+0.92}=900\times\frac{0.08}{1.92}=\boxed{37.50}\\
+\text{MCSE}&=\frac{s}{\sqrt{\text{ESS}}}=\frac{2.29}{\sqrt{37.5}}=\frac{2.29}{6.1237}=\boxed{0.37}\\
+\text{naive SE}&=\frac{2.29}{\sqrt{900}}=\frac{2.29}{30}=0.0763\\
+\text{factor}&=\frac{\text{MCSE}}{\text{naive}}=\sqrt{\frac{n}{\text{ESS}}}=\sqrt{\frac{1+\hat\rho_1}{1-\hat\rho_1}}=\sqrt{24}=\boxed{4.90}
+\end{align*}
+\calc{$900\times0.08\div1.92=37.5$; $2.29\div\sqrt{37.5}=0.374$; $\sqrt{24}=4.899$.}
+\mrk{1 for ESS $=37.50$; 1 for MCSE $=0.37$ and the factor $4.90$ (the naive SE is about 4.9 times too small).}
+\errs{ESS $=n(1+\rho)/(1-\rho)$ (inverted); dividing $s$ by ESS instead of $\sqrt{\text{ESS}}$; using $\rho=0.92$ as a fraction of the SE.}
+
+\end{document}

@@ -1,0 +1,36 @@
+> t(d)
+     [,1] [,2] [,3] [,4] [,5] [,6] [,7]  [,8]
+age  1.00 2.00 3.00 4.00 5.00 6.00 7.00 14.00
+cost 1.25 1.91 2.23 1.66 1.95 1.07 0.25  1.05
+
+> m <- glm(cost ~ age, family = Gamma, data = d)
+
+> summary(m)
+
+Call:
+glm(formula = cost ~ age, family = Gamma, data = d)
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)  
+(Intercept)  0.48605    0.18178   2.674   0.0368 *
+age          0.04848    0.03753   1.292   0.2439  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for Gamma family taken to be 0.1985256)
+
+    Null deviance: 2.4705  on 7  degrees of freedom
+Residual deviance: 2.0854  on 6  degrees of freedom
+AIC: 21.448
+
+Number of Fisher Scoring iterations: 5
+
+
+> round(hatvalues(m), 3)
+    1     2     3     4     5     6     7     8 
+0.414 0.249 0.163 0.128 0.128 0.151 0.188 0.578 
+
+> round(residuals(m, type = "pearson"), 3)
+     1      2      3      4      5      6      7      8 
+-0.332  0.114  0.408  0.129  0.421 -0.169 -0.794  0.223 
+
