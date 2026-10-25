@@ -27,6 +27,8 @@
   Compact derivations of Normal conjugate updates. Use for: §2.3 (known variance, unknown mean, pp. 2–3), §4.3 (precision updates, p. 11) (lesson 15).
 - [Wikipedia: Table of conjugate distributions](https://en.wikipedia.org/wiki/Conjugate_prior#Table_of_conjugate_distributions): quick lookup; its Geometric row counts failures (lesson 15 uses trials).
 
+- Topic 5: `lectures/Intro_Bayesian_Inference_LMS-1.pdf` (PDF page = slide; posterior pp. 8–13, THM example 15–18, predictive 19–22); Murphy (2007) §6.3 joint Normal–Gamma (lesson 22).
+
 - Past exams: `exams/` and `exams/official exams/`. **Reserved for the user to sit timed: patterns only.**
 
 ## Wisdom (Communities)

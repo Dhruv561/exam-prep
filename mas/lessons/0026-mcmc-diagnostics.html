@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCMC Diagnostics</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .4rem 1rem .6rem; margin: 1.2rem 0; }
+  .answer-box > p:first-child { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); margin-bottom: .2rem; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); }
+  .sheet { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .04em; color: var(--ok); }
+  .nosheet { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .04em; color: var(--trap); }
+
+  figure.plot { margin: 1.2rem 0; }
+  figure.plot img { display: block; width: 100%; height: auto; margin: 0 auto; background: #fff; border: 1px solid var(--rule); border-radius: 6px; }
+  figure.plot figcaption { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); margin-top: .4rem; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 26 · Topic 5: Bayesian inference &amp; computation (5 of 7)</div>
+<h1>MCMC diagnostics: has it converged, and how many draws is it worth?</h1>
+<p class="lede">The goal: look at a trace plot and an ACF and say, in two or three sentences, where burn-in ends, whether the chain mixes, and what the sample mean is really worth. By hand, compute \(\hat R\), the effective sample size and the Monte Carlo standard error from a few summary numbers. A sampler that has run is not a sampler that has worked, and this lesson is how you tell.</p>
+
+<div class="mission">Why this matters on 10 Nov: no recent paper tests this (<code>NOTES.md</code>), but the lecturer taught it, so treat it as likely new material. The old papers did ask it, in three shapes: "how would you check convergence of the Gibbs sampler? Give informal and formal checks" (2017), "from this trace plot, how many samples would you discard as burn-in?" and "is the sample mean a fine estimate, and what is its standard error given the autocorrelation?" (2015), and "explain burn-in in a few sentences" (2016). All three are here. About 55 minutes, paper and FX-82. Assumed: <a href="0022-bayesian-inference.html">Lesson 22</a> (posterior notation), and the idea of an MH or Gibbs chain from <a href="0024-metropolis-hastings.html">Lesson 24</a> and <a href="0025-gibbs-sampling.html">Lesson 25</a>. Here I generate my own chains, so you don't need those lessons first.</div>
+
+<h2>1 · Two questions, and the lecturer's list of tools</h2>
+<p>MCMC gives a sequence \(\theta^{(1)},\theta^{(2)},\dots\) that is a <em>Markov chain</em>, not an iid sample from \(p(\theta\mid x)\). That causes the two concerns on <a href="../lectures/MCMC_diagnostics-1.pdf#page=3">slide 3</a>:</p>
+<div class="tablewrap"><table>
+<tr><th>Concern</th><th>Informal check (look at a plot)</th><th>Formal check (compute a number)</th><th>Fix</th></tr>
+<tr><td>1. Has the chain <strong>converged</strong> to the target?</td><td>trace plots of several chains from overdispersed starts (<a href="../lectures/MCMC_diagnostics-1.pdf#page=5">slide 5</a>)</td><td>BGR / Gelman–Rubin \(\hat R&lt;1.05\) (<a href="../lectures/MCMC_diagnostics-1.pdf#page=8">slide 8</a>)</td><td>discard <strong>burn-in</strong>; run longer; better proposal</td></tr>
+<tr><td>2. How much <strong>information</strong> do the correlated draws hold?</td><td>ACF plot; trace looks like a "hairy caterpillar" not a "wooly snake" (<a href="../extra-notes/Diagnostics_additional-1.pdf#page=4">extra notes p.4</a>)</td><td>effective sample size (ESS), MC standard error (<a href="../lectures/MCMC_diagnostics-1.pdf#page=14">slide 14</a>)</td><td>run longer; retune the step size; thin (mostly for memory)</td></tr>
+</table></div>
+<p>Everything below fits that table. The chain I use in most figures is a random-walk Metropolis sampler for a target \(p(\theta\mid x)=N(10,\,2^2)\) (so the truth is known: posterior mean 10, sd 2), proposal \(\theta'\mid\theta\sim N(\theta,s^2)\), with step size \(s\) varied to produce each behaviour.</p>
+
+<h2>2 · Trace plots: four chains, four diagnoses</h2>
+<p>A <strong>trace plot</strong> draws \(\theta^{(t)}\) against \(t\). A healthy chain is a "hairy caterpillar": it hovers around a fixed level with a fixed spread, no trend, no long flat stretches. Below are four different runs on the same target (the dotted line is the truth, which in real life you do not have).</p>
+<figure class="plot">
+<img src="../assets/img/l26-four-traces.png" alt="Four trace plots of 1000 iterations each, same y-axis from -2 to 32, dotted line at 10. Chain A: rapid up-and-down fluctuation around 10 between about 4 and 15. Chain B: a smooth slow wander from 10 down to about 6 at iteration 150, then up to about 14 at iteration 850. Chain C: starts at 30, falls steeply to about 10 within roughly 40 iterations, then fluctuates around 10 between about 4 and 15. Chain D: piecewise flat stretches, many lasting 20 to 50 iterations, jumping between values from 6 to 15 with long plateaus.">
+<figcaption>Figure 1. Four runs of a random-walk Metropolis sampler for \(N(10,2^2)\), 1000 iterations each. Diagnose each before reading on.</figcaption>
+</figure>
+
+<div class="explain">
+<p><strong>Do first (about 3 minutes)</strong></p>
+<p>For each of A–D write one line: has it converged? does it mix? what would you change? Then open the answer.</p>
+<details><summary>Diagnoses</summary><div>
+<ul>
+<li><strong>A: good mixing.</strong> Stationary level and spread, fast oscillation (hairy caterpillar). Nothing to change.</li>
+<li><strong>B: slow mixing.</strong> Values stay near their neighbours for hundreds of iterations (wooly snake): the chain is highly autocorrelated, so 1000 draws carry the information of a handful. It is not stuck at one value, but its mean is unreliable. Cause: steps too small. Fix: larger step size.</li>
+<li><strong>C: not yet converged at the start.</strong> A steep drift from the starting value 30, then stationary. The early stretch (here the first 40 or so iterations) is the <strong>burn-in</strong>: discard it.</li>
+<li><strong>D: stuck.</strong> Long flat plateaus: the sampler proposes, and almost always rejects, then occasionally accepts a jump. Cause: steps too large. Fix: smaller step size.</li>
+</ul></div></details>
+</div>
+<p>The reveal, in R (I only had the draws, not the settings, when diagnosing; the acceptance rate is computable from the chain itself, since a rejection repeats the previous value):</p>
+<pre class="rout"><span class="cmd">&gt; sapply(chains, function(x) round(mean(diff(x) != 0), 2))</span>
+   A    B    C    D 
+0.53 0.97 0.76 0.05 
+<span class="cmd">&gt; sapply(chains, function(x) round(c(first100 = mean(x[1:100]), rest = mean(x[-(1:100)])), 2))</span>
+             A    B     C     D
+first100 10.34 8.66 12.33  9.36
+rest     10.11 9.87  9.92 10.01</pre>
+<p><code>diff(x) != 0</code> is TRUE where the chain moved, so the mean is the fraction of proposals accepted: the <strong>acceptance rate</strong>. The settings were step sizes \(s=4\) (A), \(0.15\) (B), \(1.5\) (C, start 30), \(40\) (D). The second table shows what burn-in does: chain C's first 100 draws average 12.33, pulled up by the start at 30, while the rest average 9.92.</p>
+<p><strong>Warning on flat plateaus vs slow drifts.</strong> B has acceptance 0.97 yet bad mixing, and D has acceptance 0.05 and bad mixing. A high acceptance rate does not mean a good sampler; the two failure directions look different in the trace (smooth wander vs plateaus) and have opposite fixes.</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>1.</strong> A trace plot shows long flat stretches, with the chain jumping to a new level now and then. Which is the most likely cause for a random-walk Metropolis sampler?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The proposal steps are too large, so most proposals are rejected</button>
+    <button class="opt" data-key="b">The proposal steps are too small, so every proposal is accepted</button>
+    <button class="opt" data-key="c">The burn-in was too short, so the chain is still travelling</button>
+    <button class="opt" data-key="d">The thinning was too heavy, so most draws are being dropped</button>
+  </div>
+  <div class="why">A rejection repeats the current value, so many rejections draw as a flat line (chain D, acceptance 0.05). Too-small steps (B) are almost all accepted but move a tiny distance, giving a smooth slow wander. Burn-in shows as a steep drift at the start, not plateaus. Thinning changes which draws you keep, not the shape the sampler produced.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>2.</strong> Chain C starts at 30 and reaches the stationary band (4 to 15) after about 40 iterations. Which burn-in is the best choice?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Discard about 5 iterations</button>
+    <button class="opt" data-key="b">Discard about 60 iterations</button>
+    <button class="opt" data-key="c">Discard about 500 iterations</button>
+    <button class="opt" data-key="d">Discard about 900 iterations</button>
+  </div>
+  <div class="why">Discard at least until the trace has entered the stationary band, with a little margin; 5 would keep the steep drift (and bias the mean upward, as the 12.33 above shows). 500 or 900 discards good draws for no gain. There is no single exact answer on an exam: any value near where the trace levels off, with that reason, earns the marks.</div>
+</div>
+
+<h2>3 · Burn-in and several chains from overdispersed starts</h2>
+<p><strong>Burn-in</strong> is discarding the first iterations of each chain, to diminish the effect of the initial values (<a href="../lectures/MCMC_diagnostics-1.pdf#page=6">slide 6</a>). The chain is only approximately stationary at the start: it began from a value chosen by you, not from the posterior, so early draws are biased toward the start. Burn-in is not a fixed number; it depends on the start and the sampler.</p>
+<p>One chain can look fine and be wrong (it may be sitting in one mode). The lecture's remedy: run several chains from <strong>overdispersed</strong> starts, i.e. more spread out than the target posterior, and see whether they come together and then behave alike (<a href="../lectures/MCMC_diagnostics-1.pdf#page=5">slide 5</a>). If they do, discard the burn-in and pool them.</p>
+<figure class="plot">
+<img src="../assets/img/l26-four-starts.png" alt="Left: four trace plots over 600 iterations starting at -10, 0, 25 and 40, each moving into a common band around 10 within about 60 to 100 iterations, then overlapping. Vertical dashed lines at iterations 150 and 300. Right: the running means of the same four chains, starting at -10, 0, 25, 40, converging slowly toward about 10, still visibly apart at iteration 600 (between about 9 and 12).">
+<figcaption>Figure 2. Four chains (step size 1.5), starts \(-10,0,25,40\). Left: traces; the chains forget their starts by about iteration 100. Right: running means, which are still pulled by the early draws at iteration 600.</figcaption>
+</figure>
+<p>Reading it: the traces overlap after about iteration 100, so a burn-in of about 100 (the dashed line at 150 is the safe choice I use below). The running (cumulative) means on the right are the tute's "cumulative average" plot (week 11, Q2): they settle slowly because the early draws stay in the average for ever. This is why you discard burn-in instead of hoping averaging fixes it.</p>
+<p><strong>Burn-in in two sentences (2016 pattern).</strong> The chain starts at an arbitrary value, so its first draws are not from the posterior. We discard those early iterations so the estimates are not biased by the start, and keep draws once the chain looks stationary.</p>
+
+<h2>4 · The BGR diagnostic \(\hat R\), by hand</h2>
+<p>The lecture's version (<a href="../lectures/MCMC_diagnostics-1.pdf#page=7">slides 7–8</a>): run \(M\) chains, each of length \(L+T\); look at the last \(T\) iterations of each. Then</p>
+<ul>
+<li>\(B\) = standard deviation of the <em>pooled</em> sample of all \(MT\) draws ("between-chain variability" in the slide's loose wording);</li>
+<li>\(W\) = average of the \(M\) within-chain standard deviations;</li>
+<li>\(\hat R=B/W\). If \(\hat R&lt;1.05\), accept the last \(T\) observations of each chain as stationary and pool them. \(\hat R\gg1\) is clear evidence of non-convergence, and \(\hat R\to1\) as \(T\to\infty\).</li>
+</ul>
+<p>The slide says "the actual estimator makes a number of modifications to account for degrees of freedom"; the version above is what you compute on paper. The idea: if the chains have not found a common region, the pooled spread is inflated by their different centres, while each chain alone is narrow. Overlapping chains give \(B\approx W\).</p>
+
+<h3>Worked example: Figure 2's four chains</h3>
+<p>Standard deviation of each chain over iterations 1–150, then over 151–600 (<code>apply(chs[w, ], 2, sd)</code>, \(M=4\)):</p>
+<pre class="rout"><span class="cmd">&gt; Rhat &lt;- function(m) sd(as.vector(m)) / mean(apply(m, 2, sd))
+&gt; round(apply(chs[1:150, ], 2, sd), 2)</span>
+[1] 5.51 2.38 3.85 9.32
+<span class="cmd">&gt; round(apply(chs[151:600, ], 2, sd), 2)</span>
+[1] 1.96 2.13 2.09 1.96
+<span class="cmd">&gt; round(c(sd(chs[1:150, ]), sd(chs[151:600, ])), 3)</span>
+[1] 7.180 2.055
+<span class="cmd">&gt; round(c(Rhat(chs[1:150, ]), Rhat(chs[151:600, ])), 2)</span>
+[1] 1.36 1.01</pre>
+<p>Check both by hand from the printed numbers. Iterations 1–150 (includes the burn-in):</p>
+$$\begin{aligned}
+W&amp;=\frac{5.51+2.38+3.85+9.32}{4}\\
+&amp;=\frac{21.06}{4}=5.265\\
+B&amp;=7.18\\
+\hat R&amp;=\frac{B}{W}=\frac{7.18}{5.265}=1.36
+\end{aligned}$$
+<p>Iterations 151–600:</p>
+$$\begin{aligned}
+W&amp;=\frac{1.96+2.13+2.09+1.96}{4}\\
+&amp;=\frac{8.14}{4}=2.035\\
+B&amp;=2.06\\
+\hat R&amp;=\frac{2.06}{2.035}=1.01
+\end{aligned}$$
+<p>\(1.36\ge1.05\): not converged on 1–150. \(1.01&lt;1.05\): the last 450 iterations of each chain look stationary, so burn-in of 150 is enough and I pool \(4\times450=1800\) draws. (Running it on all 600 iterations gives \(\hat R=1.12\), which also fails: you must not include the burn-in.)</p>
+
+<div class="box"><p><strong>What \(\hat R&lt;1.05\) does not tell you</strong> (<a href="../lectures/MCMC_diagnostics-1.pdf#page=9">slide 9</a>). It only compares the chains you ran. If every start is in the same region and an important region of the target is hard to reach, all chains can agree and still be wrong. Hence "choose overdispersed initial values". It also says nothing about autocorrelation: chain B above could easily have \(\hat R\approx1\) with a hopeless ESS. If it fails: run longer, or use a more efficient proposal.</p></div>
+
+<div class="quiz num" data-answer="1.29" data-tol="0.005">
+  <p class="q"><strong>3.</strong> Three chains, last \(T\) draws of each. Within-chain standard deviations: 2.4, 2.6, 2.2. Standard deviation of the pooled sample: 3.10. Compute \(\hat R\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(W=(2.4+2.6+2.2)/3=7.2/3=2.4\). \(\hat R=3.10/2.4=\)<strong>1.29</strong>. Above 1.05, so the chains have not converged: the pooled spread is much larger than any chain's own spread, meaning the chains are sitting in different places.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>4.</strong> Four chains from very different starting values give \(\hat R=1.02\) on the last 500 iterations. Which conclusion is justified?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The chains converged, so the pooled draws are independent of each other</button>
+    <button class="opt" data-key="b">The chains converged, so none of the early iterations had to be removed</button>
+    <button class="opt" data-key="c">The chains agree, but all could still be missing a region of the target</button>
+    <button class="opt" data-key="d">The chains did not converge, since \(\hat R\) is not exactly equal to 1</button>
+  </div>
+  <div class="why">\(\hat R&lt;1.05\) is the acceptance rule, so "did not converge" is wrong. It says nothing about autocorrelation, so the draws are not independent, and the check was done on the <em>last</em> 500 iterations after discarding the rest. It can only detect disagreement between the chains that were run, so the answer is (c).</div>
+</div>
+
+<h2>5 · Autocorrelation, thinning, effective sample size</h2>
+<p>MCMC draws are positively correlated: an MH step is often close to, or equal to, the current value (<a href="../extra-notes/Diagnostics_additional-1.pdf#page=1">extra notes p.1</a>). 4000 correlated draws carry less information than 4000 independent ones (<a href="../lectures/MCMC_diagnostics-1.pdf#page=11">slide 11</a>).</p>
+<p>The <strong>lag-\(k\) autocorrelation</strong> \(\rho_k\) is the correlation between \(\theta^{(t)}\) and \(\theta^{(t+k)}\) (it doesn't depend on \(t\) once the chain is stationary; <a href="../lectures/MCMC_diagnostics-1.pdf#page=12">slide 12</a>). The <strong>ACF plot</strong> draws \(\hat\rho_k\) against \(k\); the dashed blue lines are the approximate band expected for independent draws, so bars above them are real dependence (the lecturer's coal-mining code comment: "search for the bars that are above the CI of the ACF").</p>
+<figure class="plot">
+<img src="../assets/img/l26-acf.png" alt="Three ACF plots for lags 0 to 40, with a dashed band of about plus or minus 0.06 in the first two and plus or minus 0.28 in the third. Left, chain A: bars start at 1, drop to about 0.62 at lag 1, 0.41 at lag 2, 0.28 at lag 3, and are inside the band from about lag 6. Middle, chain B: every bar from lag 1 to 40 is above 0.88, falling very slowly from 0.997. Right, chain B keeping every 20th draw: lag 1 is 0.94, falling roughly linearly to inside the band at about lag 12, then slightly negative.">
+<figcaption>Figure 3. ACFs of Figure 1's chains A and B, and of B thinned by 20. Fast decay (A) is good; a nearly flat ACF (B) is the signature of the wooly snake. Thinning B by 20 leaves 50 draws that are still strongly correlated.</figcaption>
+</figure>
+
+<h3>Effective sample size</h3>
+<p>The <strong>effective sample size</strong> is the number of independent draws that would carry the same information about the posterior mean as your correlated sample (<a href="../lectures/MCMC_diagnostics-1.pdf#page=14">slide 14</a>). Derivation, from the extra notes (<a href="../extra-notes/Diagnostics_additional-1.pdf#page=5">p.5</a>): for a stationary chain with variance \(\sigma^2\) and autocorrelations \(\rho_i\),</p>
+$$\text{Var}\Big(\frac1n\sum_{t=1}^n\theta^{(t)}\Big)\approx\frac{\sigma^2}{n}\Big(1+2\sum_{i=1}^\infty\rho_i\Big)\quad\Rightarrow\quad \text{ESS}=\frac{n}{1+2\sum_{i=1}^\infty\rho_i}.$$
+<p>For iid draws all \(\rho_i=0\) and ESS \(=n\). The crude estimate takes \(\rho_i\approx\rho_1^{\,i}\) (a geometric sequence); the sum is geometric:</p>
+$$\begin{aligned}
+1+2\sum_{i=1}^\infty\rho_1^{\,i}&amp;=1+\frac{2\rho_1}{1-\rho_1}\\
+&amp;=\frac{(1-\rho_1)+2\rho_1}{1-\rho_1}\\
+&amp;=\frac{1+\rho_1}{1-\rho_1}
+\end{aligned}$$
+$$\boxed{\ \text{ESS}\approx n\,\frac{1-\hat\rho_1}{1+\hat\rho_1}\ }\qquad\text{(slide 14; the tute's formula)}$$
+<p>The slide's goal is ESS \(&gt;4000\) for the quantities you report.</p>
+
+<h3>Monte Carlo standard error</h3>
+<p>The posterior mean estimate \(\bar\theta=\frac1n\sum_t\theta^{(t)}\) is a sample mean, but its standard error is not \(s/\sqrt n\) (that needs independence; <a href="../extra-notes/Diagnostics_additional-1.pdf#page=1">extra notes p.1</a>: it "will generally underestimate" for positively correlated draws). Replace \(n\) by the ESS:</p>
+$$\text{SE}(\bar\theta)\approx\frac{s}{\sqrt{\text{ESS}}},\qquad s=\text{sample sd of the chain}.$$
+<h3>Worked example: chains A and B from Figure 1</h3>
+<pre class="rout"><span class="cmd">&gt; ess &lt;- function(x) { n &lt;- length(x); r &lt;- acf(x, plot = FALSE)$acf[2]
++   c(n = n, rho1 = r, ESS = n*(1-r)/(1+r), se.naive = sd(x)/sqrt(n), se = sd(x)/sqrt(n*(1-r)/(1+r))) }
+&gt; round(sapply(chains[c("A", "B")], ess), 3)</span>
+                A        B
+n        1000.000 1000.000
+rho1        0.618    0.997
+ESS       235.876    1.628
+se.naive    0.064    0.066
+se          0.131    1.641</pre>
+<p>Check chain A by hand with \(n=1000\), \(\hat\rho_1=0.618\), \(s=2.014\):</p>
+$$\begin{aligned}
+\text{ESS}&amp;=1000\times\frac{1-0.618}{1+0.618}\\
+&amp;=1000\times\frac{0.382}{1.618}=236.09\\
+\text{SE}_{\text{naive}}&amp;=\frac{2.014}{\sqrt{1000}}=0.064\\
+\text{SE}&amp;=\frac{2.014}{\sqrt{236.09}}=\frac{2.014}{15.37}=0.131
+\end{aligned}$$
+<p>(R prints 235.88 because \(\hat\rho_1\) is not rounded: 0.6182.) Chain A: 1000 draws are worth about 236 independent ones, and the naive SE 0.06 is half the honest 0.13. Chain B: 1000 draws are worth about <em>two</em>, and the honest SE is 1.64 against the naive 0.07: it is 25 times larger. The naive standard error is off by \(\sqrt{(1+\hat\rho_1)/(1-\hat\rho_1)}\), which is \(\approx2.1\) for \(\rho_1=0.62\) and \(\approx26\) for \(\rho_1=0.997\).</p>
+<p><strong>2015 pattern.</strong> "Is the sample mean a fine point estimate, what is its SE?" Yes, the mean of the post-burn-in draws is a consistent estimate of the posterior mean even when correlated (once stationary), but \(s/\sqrt n\) is too small; report \(s/\sqrt{\text{ESS}}\).</p>
+
+<h3>By hand with summary numbers only</h3>
+<p>A chain of \(n=2000\) post-burn-in draws has sample sd \(s=3.0\) and \(\hat\rho_1=0.80\).</p>
+$$\begin{aligned}
+\text{ESS}&amp;=2000\times\frac{1-0.80}{1+0.80}\\
+&amp;=2000\times\frac{0.20}{1.80}=222.22\\
+\text{SE}_{\text{naive}}&amp;=\frac{3.0}{\sqrt{2000}}=0.07\\
+\text{SE}&amp;=\frac{3.0}{\sqrt{222.22}}=0.20
+\end{aligned}$$
+<p>To reach ESS \(=4000\) at this \(\hat\rho_1\), you would need \(n=4000\times\frac{1.80}{0.20}=36000\) draws.</p>
+
+<h3>Blocking (batch means), from the extra notes</h3>
+<p>Another way to get an honest SE without \(\rho_1\) (<a href="../extra-notes/Diagnostics_additional-1.pdf#page=2">extra notes p.2–4</a>; WinBUGS's "MC error"): split the \(n\) draws into \(Q\) blocks of size \(a=\lfloor\sqrt n\rfloor\), take block means \(\bar h_{(i)}\); if \(a\) is large enough these are close to independent, so</p>
+$$S^2=\frac1{Q-1}\sum_{i=1}^Q\big(\bar h_{(i)}-\bar h\big)^2,\qquad\text{MC error}=\frac{S}{\sqrt Q}.$$
+<p>Example: \(n=100\), so \(a=10\), \(Q=10\), block means \(4.8,5.4,5.1,4.5,5.7,5.2,4.9,5.5,4.6,5.3\):</p>
+$$\begin{aligned}
+\bar h&amp;=\frac{51.0}{10}=5.10\\
+\sum(\bar h_{(i)}-\bar h)^2&amp;=0.09+0.09+0+0.36+0.36+0.01+0.04+0.16+0.25+0.04=1.40\\
+S^2&amp;=\frac{1.40}{9}=0.1556,\qquad S=0.39\\
+\text{MC error}&amp;=\frac{0.39}{\sqrt{10}}=0.12
+\end{aligned}$$
+<p>Rule of thumb (<a href="../extra-notes/Diagnostics_additional-1.pdf#page=4">p.4</a>): the MC error should be at most 5% of the posterior sd you are estimating. Since \(\text{SE}=s/\sqrt{\text{ESS}}\), that means ESS \(\ge(1/0.05)^2=400\).</p>
+
+<h3>Thinning</h3>
+<p><strong>Thinning</strong> keeps every \(k\)th draw (<a href="../lectures/MCMC_diagnostics-1.pdf#page=13">slide 13</a>). Advantages: simple, less memory. Disadvantage: it throws information away. See it in numbers: chain A thinned by 3 (the lecturer's coal-mining example also uses <code>by = thin</code>):</p>
+<pre class="rout"><span class="cmd">&gt; A3 &lt;- chains$A[seq(1, 1000, by = 3)]   # thin by 3
+&gt; round(ess(A3), 3)</span>
+       n     rho1      ESS se.naive       se 
+ 334.000    0.326  169.733    0.109    0.153 </pre>
+<p>Autocorrelation drops (0.62 to 0.33), but ESS falls from 236 to 170 and the honest SE rises from 0.131 to 0.153. Thinning never adds information; do it only if storage matters, and keep the full run if you can. Chain B thinned by 20 (Figure 3, right) still has \(\hat\rho_1=0.94\): thinning cannot rescue a sampler with the wrong step size.</p>
+
+<div class="quiz num" data-answer="250" data-tol="0.5">
+  <p class="q"><strong>5.</strong> A chain has \(n=1000\) post-burn-in draws and lag-1 autocorrelation \(\hat\rho_1=0.60\). What is the effective sample size (nearest whole number)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\text{ESS}=1000\times\frac{1-0.6}{1+0.6}=1000\times\frac{0.4}{1.6}=\)<strong>250</strong>. One in four draws counts.</div>
+</div>
+
+<div class="quiz num" data-answer="0.32" data-tol="0.005">
+  <p class="q"><strong>6.</strong> Same chain, sample sd \(s=5\). Give the Monte Carlo standard error of the sample mean, allowing for autocorrelation (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\text{SE}=5/\sqrt{250}=5/15.81=\)<strong>0.32</strong>. The naive \(5/\sqrt{1000}=0.16\) is half of it, because \(\sqrt{1000/250}=2\). Using \(n\) instead of ESS is the standard error to avoid.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>7.</strong> You thin a stationary MCMC chain by keeping every 5th draw. Which statement is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It removes the autocorrelation, so the draws become fully independent</button>
+    <button class="opt" data-key="b">It speeds up convergence, since the early draws are discarded</button>
+    <button class="opt" data-key="c">It removes the bias in the mean caused by a poor starting value</button>
+    <button class="opt" data-key="d">It uses less memory, but the ESS is no larger than before thinning</button>
+  </div>
+  <div class="why">Thinning keeps a subset of the same chain, so it cannot add information: the thinned ESS (170 vs 236 above) is no larger. Autocorrelation is lowered, not removed. Burn-in, not thinning, handles the start.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>8.</strong> <em>(What does this R line compute?)</em> <code>x &lt;- chain[-(1:200)]; acf(x, plot = FALSE)$acf[2]</code> where <code>chain</code> is a vector of MCMC draws.</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The effective sample size of the chain after dropping 200 draws</button>
+    <button class="opt" data-key="b">The lag-1 autocorrelation of the chain after dropping 200 draws</button>
+    <button class="opt" data-key="c">The \(\hat R\) statistic of the chain after dropping 200 draws</button>
+    <button class="opt" data-key="d">The Monte Carlo standard error of the chain after 200 draws</button>
+  </div>
+  <div class="why"><code>chain[-(1:200)]</code> removes the first 200 draws (burn-in). <code>acf(..., plot = FALSE)$acf</code> is the vector \(\hat\rho_0,\hat\rho_1,\dots\), so index <code>[2]</code> is \(\hat\rho_1\) (index 1 is lag 0, which is always 1). ESS needs one more step: \(n(1-\rho_1)/(1+\rho_1)\).</div>
+</div>
+
+<h2>6 · Step size, acceptance rate, and Gibbs</h2>
+<p>For a random-walk MH chain, the proposal standard deviation \(s\) trades two failures (<a href="../tutes/2026_MAST30027_week11_questions.qmd">week 11 tute Q2</a> asks you to compare \(s=0.1\), \(2.5\), \(10\)). On the same \(N(10,2^2)\) target, 5000 iterations each, burn-in 500 dropped:</p>
+<div class="tablewrap"><table>
+<tr><th>step \(s\)</th><th>acceptance rate</th><th>\(\hat\rho_1\)</th><th>ESS \(=n\frac{1-\hat\rho_1}{1+\hat\rho_1}\), \(n=4500\)</th><th>what the trace looks like</th></tr>
+<tr><td>0.1</td><td>0.99</td><td>0.997</td><td>7</td><td>smooth wooly snake</td></tr>
+<tr><td>0.5</td><td>0.92</td><td>0.971</td><td>66</td><td>wander</td></tr>
+<tr><td>2</td><td>0.71</td><td>0.747</td><td>652</td><td>caterpillar, a bit slow</td></tr>
+<tr><td>4</td><td>0.50</td><td>0.648</td><td>960</td><td>caterpillar</td></tr>
+<tr><td>10</td><td>0.25</td><td>0.687</td><td>834</td><td>caterpillar with some flat bits</td></tr>
+<tr><td>40</td><td>0.07</td><td>0.910</td><td>213</td><td>long plateaus</td></tr>
+</table></div>
+<figure class="plot">
+<img src="../assets/img/l26-stepsize.png" alt="Two plots against proposal standard deviation on a log axis from 0.05 to 40. Left: acceptance rate falls smoothly from 0.99 at 0.05 to about 0.5 at step 4 and 0.06 at step 40. Right: ESS divided by n is near 0 for steps below 0.5, rises to a peak of about 0.23 near step 4 to 6, and falls to about 0.04 at step 40.">
+<figcaption>Figure 4. Acceptance rate and efficiency (ESS per draw) against the proposal sd, \(N(10,2^2)\) target. Efficiency peaks at an intermediate step; acceptance rate alone is monotone and cannot locate the peak.</figcaption>
+</figure>
+<ul>
+<li><strong>Step too small:</strong> nearly every proposal is accepted (acceptance close to 1) but each move is tiny, so \(\hat\rho_1\to1\), ESS is tiny, and the trace is a wooly snake. Burn-in is also slow from a far-off start.</li>
+<li><strong>Step too large:</strong> most proposals land far out in the tails and are rejected, the chain repeats values (plateaus), \(\hat\rho_1\to1\) again.</li>
+<li><strong>In between:</strong> ESS is highest. Here an acceptance rate somewhere in 0.25–0.5 works well; that range is a common rule of thumb, not from the slides, so don't quote a specific "optimal" number.</li>
+</ul>
+<p>So the tute's "what happens at \(s=0.1\) and \(s=10\)" has a standard answer: <em>acceptance rate high/low, cumulative averages move slowly/jump around, ESS small in both cases</em>.</p>
+
+<h3>Gibbs has no acceptance rate to tune</h3>
+<p>A Gibbs update draws exactly from a full conditional, so every draw is accepted: acceptance rate \(\equiv1\) and says nothing about quality. Gibbs mixes badly when the parameters are strongly dependent in the posterior. Tute week 11, Q1: a Gibbs sampler for a bivariate Normal, \(\Sigma\) with correlation 0.7 vs 0. Here is the extreme, a standard bivariate Normal with correlation \(\rho\) (conditionals \(x_1\mid x_2\sim N(\rho x_2,\,1-\rho^2)\)):</p>
+<figure class="plot">
+<img src="../assets/img/l26-gibbs-corr.png" alt="Left: trace of x1 for 1000 Gibbs iterations with correlation 0, a rapid caterpillar between about -3 and 3. Middle: trace of x1 with correlation 0.95, a slower wandering path between about -3 and 2.5 with swings lasting tens of iterations. Right: ACF of x1 for correlation 0.95, bars decaying from about 0.88 at lag 1 to about 0.3 at lag 10 and inside the dashed band by about lag 22.">
+<figcaption>Figure 5. Gibbs sampler for a bivariate Normal: left, correlation 0; middle and right, correlation 0.95 (trace and ACF of \(x_1\)).</figcaption>
+</figure>
+<pre class="rout"><span class="cmd">&gt; round(c(rho0 = acf(G0[, 1], plot = FALSE)$acf[2], rho95 = acf(G9[, 1], plot = FALSE)$acf[2]), 3)</span>
+ rho0 rho95 
+0.069 0.882 
+<span class="cmd">&gt; n * (1 - 0.882) / (1 + 0.882)    # n = 1000</span>
+[1] 62.7</pre>
+<p>Both sampler runs "worked", but the correlated target makes 1000 draws worth about 63. The fix is a different scheme (e.g. sample \((x_1,x_2)\) jointly, or reparametrise), not a tuning knob.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>9.</strong> A Gibbs sampler for a bivariate Normal with correlation 0.95 gives \(\hat\rho_1=0.88\) for \(x_1\). A colleague says "check the acceptance rate". Which is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The acceptance rate here is 0.88, which is good, so no action is needed</button>
+    <button class="opt" data-key="b">Gibbs draws are independent, so \(\hat\rho_1\) must be a computing error</button>
+    <button class="opt" data-key="c">Every Gibbs draw is accepted, so use the ACF, ESS and trace plots</button>
+    <button class="opt" data-key="d">The acceptance rate is low, so lower the proposal standard deviation</button>
+  </div>
+  <div class="why">Gibbs samples from exact conditionals: no accept/reject step, no proposal sd. Successive draws are dependent through the other parameter, so \(\hat\rho_1\) is large when the parameters are strongly correlated, and the diagnostic to use is the ACF and ESS.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>10.</strong> A random-walk MH sampler has acceptance rate 0.97, a smooth wandering trace, and \(\hat\rho_1=0.99\). What should you change?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Decrease the proposal standard deviation</button>
+    <button class="opt" data-key="b">Increase the proposal standard deviation</button>
+    <button class="opt" data-key="c">Keep the proposal and thin by a factor of 100</button>
+    <button class="opt" data-key="d">Keep the proposal and discard more burn-in</button>
+  </div>
+  <div class="why">Acceptance close to 1 with smooth drift means steps are too small: increase \(s\) (chain B, \(s=0.15\), acceptance 0.97). Thinning and extra burn-in do not change how fast the chain explores.</div>
+</div>
+
+<h2>7 · A real run: the coal-mining Gibbs sampler</h2>
+<p>The lecturer's coal-mining example (<a href="../extra-notes/Gibbs example_ coal-mining disasters with trace plots.pdf">extra notes</a>) runs the change-point Gibbs sampler for \((\lambda_1,\lambda_2,M)\) with two chains from different starts, \((1,1,100)\) and \((3,3,50)\), 500 iterations each (code exactly as in the notes; the draws are my own seed).</p>
+<figure class="plot">
+<img src="../assets/img/l26-coal-traces.png" alt="Three trace plots over 500 iterations with two chains each in different colours. Top, lambda1: one chain starts at 1 and rises to about 3 within about 8 iterations, the other starts at 3; both then fluctuate between about 2.4 and 3.9. Middle, lambda2: one chain starts at 3 and drops to about 1 on the second iteration; both fluctuate between about 0.6 and 1.3. Bottom, M: one chain starts at 100 and falls to about 40 within 5 iterations, the other starts at 50; both then fluctuate between about 33 and 48.">
+<figcaption>Figure 6. Two Gibbs chains for the coal-mining change-point model: \(\lambda_1\), \(\lambda_2\), \(M\).</figcaption>
+</figure>
+<pre class="rout"><span class="cmd">&gt; head(G1, 6)   # chain 1, starting from (la1, la2, M) = (1, 1, 100)</span>
+     [,1] [,2] [,3]
+[1,] 1.00 1.00  100
+[2,] 1.59 0.49   92
+[3,] 2.10 0.39   92
+[4,] 2.00 0.60   47
+[5,] 2.78 1.07   39
+[6,] 3.12 1.22   40
+<span class="cmd">&gt; s &lt;- G1[-(1:50), ]           # drop 50 as burn-in
+&gt; round(colMeans(s), 2)</span>
+[1]  3.12  0.93 39.83
+<span class="cmd">&gt; round(apply(s, 2, function(x) acf(x, plot = FALSE)$acf[2]), 3)</span>
+[1] 0.084 0.031 0.066</pre>
+<p><strong>Reading it.</strong> Both chains reach the same band within about 10 iterations (the first rows above show chain 1 climbing from 1 to 3.12 for \(\lambda_1\), and \(M\) falling from 100 to about 40). A burn-in of 50, as in the notes, is generous. After burn-in the traces are caterpillars and \(\hat\rho_1\) is under 0.1 for all three, so this Gibbs sampler mixes well:</p>
+$$\text{ESS}_{\lambda_1}=450\times\frac{1-0.084}{1+0.084}=450\times\frac{0.916}{1.084}=380.26$$
+<p>(R, unrounded \(\hat\rho_1\): 380.6.) About 380 effective draws out of 450, so the SE of \(\bar\lambda_1\) is only \(\sqrt{450/380}=1.09\) times the naive one. \(\hat R\) for \(\lambda_1\) from the two chains after burn-in: pooled sd 0.29, \(W=0.29\), \(\hat R=1.00\). Note that the lecturer's thinning example (<code>thin &lt;- 3</code>) barely changes the means (the lecturer's output: 3.15 vs 3.14 for \(\lambda_1\)): with \(\hat\rho_1\) this small, thinning has nothing to fix.</p>
+
+<h2>8 · Exam-style question</h2>
+<p><strong>Setup</strong> (8 marks, about 18 minutes, FX-82, 2 d.p.).</p>
+<div class="box">
+<p><strong>Model:</strong> a random-walk Metropolis sampler targets the posterior of a Poisson rate \(\lambda>0\), known up to a constant: \(p(\lambda\mid y)\propto\lambda^{19}e^{-4\lambda}\). <strong>Proposal:</strong> \(\lambda'\mid\lambda\sim N(\lambda,\,0.5^2)\), with negative proposals rejected. Two chains, <code>c1</code> and <code>c2</code>, of 600 iterations, started at \(\lambda^{(0)}=0.5\) and \(12\). The trace plots and the ACF of chain 1 over iterations 201–600 are below, with R output.</p>
+<figure class="plot" style="margin:.6rem 0">
+<img src="../assets/img/l26-exam-traces.png" alt="Left: trace plots of two chains over 600 iterations. Chain 1 (blue) starts at 0.5 and rises to about 5 by iteration 30; chain 2 (red) starts at 12 and falls to about 5 by iteration 70. After about iteration 100 both wander between about 2.5 and 9, with slow excursions lasting 50 to 100 iterations, for example chain 2 rising to about 11 near iteration 370. Right: ACF of chain 1 over iterations 201 to 600, bars falling smoothly from 1 at lag 0 to about 0.91 at lag 1, 0.5 at lag 7, and entering the dashed band at about lag 14.">
+</figure>
+<pre class="rout"><span class="cmd">&gt; round(c(mean(diff(c1) != 0), mean(diff(c2) != 0)), 2)</span>
+[1] 0.89 0.84
+<span class="cmd">&gt; m &lt;- chs[1:100, ]; round(apply(m, 2, sd), 2); round(c(W = mean(apply(m, 2, sd)), pooled = sd(as.vector(m))), 2)</span>
+  c1   c2 
+1.12 2.52 
+     W pooled 
+  1.82   2.20 
+<span class="cmd">&gt; m &lt;- chs[201:600, ]; round(apply(m, 2, sd), 2); round(c(W = mean(apply(m, 2, sd)), pooled = sd(as.vector(m))), 2)</span>
+  c1   c2 
+1.02 1.66 
+     W pooled 
+  1.34   1.38 
+<span class="cmd">&gt; x &lt;- c1[201:600]; round(c(n = length(x), mean = mean(x), sd = sd(x), rho1 = acf(x, plot = FALSE)$acf[2]), 2)</span>
+     n   mean     sd   rho1 
+400.00   5.62   1.02   0.91 </pre>
+</div>
+<ol type="a">
+  <li>From the trace plot, how many initial iterations would you discard as burn-in? Give the evidence. <span class="marks">[2]</span></li>
+  <li>The BGR diagnostic is \(\hat R=B/W\), with \(B\) the sd of the pooled sample and \(W\) the average within-chain sd. Compute \(\hat R\) for iterations 1–100 and for iterations 201–600. Using the threshold 1.05, what do you conclude? <span class="marks">[2]</span></li>
+  <li>The analyst uses the mean of chain 1 over iterations 201–600 as the point estimate of the posterior mean. Is this reasonable? Give its standard error allowing for autocorrelation, and say how it compares with the naive \(s/\sqrt n\). <span class="marks">[2]</span></li>
+  <li>(i) The acceptance rates are 0.89 and 0.84. Is the step size 0.5 too small, about right or too large, and what change would you make? (ii) Name one informal and one formal check of convergence. <span class="marks">[2]</span></li>
+</ol>
+
+<details><summary>Marking-key solution</summary><div>
+<p><strong>(a)</strong> <em>[1 mark: a sensible value. 1 mark: evidence from the trace.]</em> Chain 1 (start 0.5) reaches the band around 5 by about iteration 30 and chain 2 (start 12) by about iteration 60–70; after about iteration 100 the two chains overlap and wander around the same level with no trend. Discard about the first <strong>100</strong> iterations of each chain (any value in 70–150 with this reasoning earns the marks; discarding to 200 is conservative and fine).</p>
+<p><strong>(b)</strong> <em>[1 mark: \(B/W\) values. 1 mark: conclusion.]</em></p>
+$$\begin{aligned}
+\text{Iterations 1–100:}\quad\hat R&amp;=\frac{B}{W}=\frac{2.20}{1.82}=1.21\\
+\text{Iterations 201–600:}\quad\hat R&amp;=\frac{1.38}{1.34}=1.03
+\end{aligned}$$
+<p>\(1.21>1.05\): the first 100 iterations are not stationary (the chains are still at different places). \(1.03<1.05\): over 201–600 the chains look stationary and can be pooled.</p>
+<p><strong>(c)</strong> <em>[1 mark: ESS. 1 mark: SE and comparison.]</em> Yes: after burn-in the chain is (approximately) stationary, so the sample mean is a reasonable estimate of the posterior mean, \(\bar\lambda=5.62\), but the draws are correlated (\(\hat\rho_1=0.91\)), so \(s/\sqrt n\) is too small.</p>
+$$\begin{aligned}
+\text{ESS}&amp;=n\,\frac{1-\hat\rho_1}{1+\hat\rho_1}=400\times\frac{0.09}{1.91}=18.85\\
+\text{SE}&amp;=\frac{s}{\sqrt{\text{ESS}}}=\frac{1.02}{\sqrt{18.85}}=\frac{1.02}{4.34}=0.23\\
+\text{SE}_{\text{naive}}&amp;=\frac{1.02}{\sqrt{400}}=0.05
+\end{aligned}$$
+<p>The honest SE (0.23) is about 4.6 times the naive one (0.05); 400 draws are worth about 19 independent ones, so the run is too short for a precise estimate.</p>
+<p><strong>(d)</strong> <em>[1 mark: (i). 1 mark: (ii).]</em> (i) Acceptance 0.89 and 0.84 are very high, and the ACF falls slowly (\(\hat\rho_1=0.91\)): steps are <strong>too small</strong>; increase the proposal sd (and rerun). (ii) Informal: trace plots of several chains from overdispersed starts, which should overlap and look like stationary noise (and the ACF/trace for correlation). Formal: the Gelman–Rubin/BGR statistic \(\hat R&lt;1.05\) on the post-burn-in draws.</p>
+</div></details>
+
+<h2>9 · Writing it up: informal + formal (2017 pattern)</h2>
+<div class="explain">
+<p><strong>Explain (3–5 sentences)</strong></p>
+<p>"How would you check for convergence of a Gibbs sampler? Provide both informal and formal checks." Write your answer, then compare.</p>
+<details><summary>Model answer</summary><div>
+<p>Run several chains from widely separated (overdispersed) starting values. <strong>Informally</strong>, draw trace plots of each parameter: if the chains converge, they overlap after an initial transient and look like stationary noise around one level with no trend or long flat stretches; discard the early iterations as burn-in. <strong>Formally</strong>, compute the BGR (Gelman–Rubin) statistic \(\hat R\) = pooled sd \(/\) average within-chain sd on the post-burn-in draws; \(\hat R&lt;1.05\) supports convergence, \(\hat R\gg1\) does not. Passing does not prove convergence, since the chains might all miss a region, which is why the starts must be overdispersed. If it fails, run longer or change the sampler. Separately, check the ACF and ESS to see whether the draws carry enough information (ESS &gt; 4000 in the lecture).</p></div></details>
+</div>
+
+<h2>10 · Retrieval from earlier lessons</h2>
+<div class="quiz num" data-answer="0.20" data-tol="0.005">
+  <p class="q"><strong>11.</strong> <em>(Retrieval: MH, Lesson 24.)</em> A random-walk MH chain targets a density with kernel \(\pi(\theta)\propto e^{-\theta^2/2}\) and is at \(\theta=3\). It proposes \(\theta'=3.5\) from a symmetric proposal. Give the acceptance probability (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Symmetric proposal, so the proposal ratio cancels: \(A=\min\{1,\pi(\theta')/\pi(\theta)\}\).
+  $$\begin{aligned}\frac{\pi(3.5)}{\pi(3)}&amp;=\exp\Big\{-\frac{3.5^2-3^2}{2}\Big\}\\&amp;=\exp\Big\{-\frac{12.25-9}{2}\Big\}=e^{-1.625}=\textbf{0.20}\end{aligned}$$
+  Moving into the tail is accepted with probability 0.20; a move toward the mode would have \(A=1\).</div>
+</div>
+
+<div class="quiz num" data-answer="0.10" data-tol="0.005">
+  <p class="q"><strong>12.</strong> <em>(Retrieval: Monte Carlo, Lesson 23.)</em> For 400 <em>independent</em> draws with sample sd 2, what is the Monte Carlo standard error of the sample mean (2 d.p.)? Then say what changes if the draws came from a Markov chain with \(\hat\rho_1=0.9\).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\text{SE}=2/\sqrt{400}=\)<strong>0.10</strong>. For the chain, replace 400 by ESS \(=400\times0.1/1.9=21.05\): \(\text{SE}=2/\sqrt{21.05}=0.44\), four times larger. Independent sampling (Lesson 23) is the case \(\rho_1=0\), where ESS \(=n\).</div>
+</div>
+
+<h2>11 · Score yourself</h2>
+<div class="tablewrap"><table>
+<tr><th>If you missed…</th><th>Go back to</th></tr>
+<tr><td>Q1, Q2</td><td>§2–3: plateaus = steps too large; burn-in = where the trace enters the stationary band</td></tr>
+<tr><td>Q3, Q4</td><td>§4: \(\hat R=B/W\) with \(B\) the pooled sd; threshold 1.05; what a pass does not mean</td></tr>
+<tr><td>Q5, Q6, Q8</td><td>§5: ESS \(=n(1-\rho_1)/(1+\rho_1)\); SE \(=s/\sqrt{\text{ESS}}\); <code>acf(...)$acf[2]</code></td></tr>
+<tr><td>Q7</td><td>§5: thinning loses information</td></tr>
+<tr><td>Q9, Q10</td><td>§6: step size vs acceptance; Gibbs has no acceptance rate</td></tr>
+<tr><td>Q11, Q12</td><td>Lessons 24 and 23</td></tr>
+</table></div>
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) Why burn-in; how to choose it from a trace plot. (2) Why several chains with overdispersed starts. (3) \(\hat R=B/W\), \(B\) = pooled sd, \(W\) = mean within-chain sd, threshold 1.05. (4) ESS \(=n(1-\rho_1)/(1+\rho_1)\), and where the \(1+2\sum\rho_i\) comes from. (5) SE \(=s/\sqrt{\text{ESS}}\), not \(s/\sqrt n\). (6) Step too small: acceptance near 1, wandering trace. Step too large: low acceptance, plateaus. (7) Thinning: memory only. (8) Gibbs: acceptance rate is 1.</p></div></details>
+
+<h2>12 · Homework</h2>
+<ol>
+  <li><strong>Tute week 11, Q1 and Q2 (d)–(f)</strong> (<code>tutes/2026_MAST30027_week11_questions.qmd</code>): Gibbs and MH on the bivariate Normal, trace plots of two chains, cumulative averages, lag-1 autocorrelation and ESS \(n(1-\rho)/(1+\rho)\), \(s=0.1\), \(2.5\), \(10\), and correlation 0.7 (\(\Sigma_{12}=2.8\)). You only need to read and interpret the R output and describe the effect of each change in words, not write the code; run the qmd if you want the plots.</li>
+  <li><strong>Hand calculation.</strong> Three chains, last 500 draws, within-chain sds 0.9, 1.1, 1.0, pooled sd 1.4. Compute \(\hat R\) and conclude. Then one chain has \(\hat\rho_1=0.75\), \(s=1.0\), \(n=500\): give ESS and SE (2 d.p.). How many draws would reach ESS \(=4000\)?</li>
+  <li><strong>Coal-mining.</strong> From Figure 6, roughly how many iterations does each of \(\lambda_1\), \(\lambda_2\), \(M\) need to reach its band, and why is one burn-in applied to all three?</li>
+  <li><strong>Explain</strong> in 3 sentences why a chain with acceptance rate 0.99 can still be a bad sampler.</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p><strong>2.</strong> \(W=(0.9+1.1+1.0)/3=1.0\), \(\hat R=1.4/1.0=1.40\) (above 1.05: not converged; the chains are in different places). ESS \(=500\times\frac{0.25}{1.75}=71.43\); SE \(=1.0/\sqrt{71.43}=0.12\) (naive 0.04). For ESS 4000: \(n=4000\times\frac{1.75}{0.25}=28000\).</p>
+<p><strong>3.</strong> About 8 iterations for \(\lambda_1\) (chain from 1 climbs to about 3), 1 to 2 for \(\lambda_2\) (from 3 down to about 1), about 5 for \(M\) (from 100 down to about 40). All three are updated in the same sweep and depend on each other, so you discard the same first iterations from every parameter, taking the slowest.</p>
+<p><strong>4.</strong> A high acceptance rate means most proposals are accepted, but if the steps are tiny each accepted move barely changes the state: successive draws are almost identical, \(\hat\rho_1\approx1\), ESS \(\ll n\). The acceptance rate says nothing about how far the chain moves; use the ACF/ESS.</p></div></details>
+
+<p><strong>Primary source:</strong> the lecturer's <a href="../lectures/MCMC_diagnostics-1.pdf">MCMC diagnostics, slides 5–14</a> (traces, burn-in, BGR, autocorrelation, thinning, ESS), then <a href="../extra-notes/Diagnostics_additional-1.pdf">Diagnostics_additional</a> for the ESS derivation and block means, and the <a href="../extra-notes/Gibbs example_ coal-mining disasters with trace plots.pdf">coal-mining trace-plot notes</a> for a full worked run.</p>
+
+<div class="ask">💬 Ask me in the terminal if the \(\hat R\) formula or the ESS derivation feels like a black box, or for fresh sets of trace/ACF plots to diagnose cold, or a new 8-mark question with different summary numbers. Paste your answer to §8 or the homework and I'll mark it like an exam marker.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0025-gibbs-sampling.html">Lesson 25, Gibbs sampling</a> · Reference: <a href="../reference/kernels-conjugacy.html">kernels and conjugacy</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0027-variational-inference-cavi.html">Lesson 27, variational inference and CAVI</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

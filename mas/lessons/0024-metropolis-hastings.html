@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metropolis-Hastings</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .4rem 1rem .6rem; margin: 1.2rem 0; }
+  .answer-box > p:first-child { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); margin-bottom: .2rem; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); }
+  .sheet { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .04em; color: var(--ok); }
+  .nosheet { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .04em; color: var(--trap); }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 24 · Topic 5: Bayesian inference &amp; computation (3 of 7)</div>
+<h1>Metropolis–Hastings</h1>
+<p class="lede">The goal: given a posterior you can only write down up to a constant, with two parameters and an awkward proposal, compute the acceptance probability at given current and proposed values, factor by factor, with the proposal ratio in the right direction. That one calculation is a recurring 5–6 mark part of the Bayes question, and the proposal ratio is where the marks go.</p>
+
+<div class="mission">Why this matters on 10 Nov: the 2020, 2021 and 2022 Bayes questions each contain "we propose new values \((\mu_n,\tau_n)\) as follows: [an Exponential or Gamma draw whose rate depends on the current value; a Normal draw whose variance depends on the new value]. Compute the acceptance probability when the current and new values are … Show your work." It is worth about 5–6 marks and needs only an FX-82. Older papers add smaller MH marks: 2018 "what is the stationary distribution of this MH chain, and describe the algorithm", 2014 "here is the R code: is the proposal symmetric? justify", 2016 "state the MH algorithm; what is burn-in?". All of those are here. About 55 minutes with paper and FX-82. Assumed: <a href="0022-bayesian-inference.html">Lesson 22</a> (posterior \(\propto\) likelihood \(\times\) prior, notation), <a href="0015-kernels-and-conjugacy.html">Lesson 15</a> (kernels). Markov chain theory (detailed balance, ergodicity) is not examinable and gets one sentence here. The Monte Carlo background (<a href="0023-monte-carlo-rejection-sampling.html">Lesson 23</a>) says why we want samples at all.</div>
+
+<h2>1 · The algorithm, in the lecture's notation</h2>
+<p>You want draws from a posterior \(p(\theta\mid x)\) whose normalising constant is out of reach, or whose conditionals aren't recognisable (<a href="0015-kernels-and-conjugacy.html">Lesson 15</a>'s Gibbs drills can't help). MH builds a sequence \(\theta^{(0)},\theta^{(1)},\dots\) that wanders over the posterior, spending time in each region in proportion to the posterior's height (<a href="../lectures/MCMC-3.pdf#page=3">slide 3</a>). The pieces (<a href="../lectures/MCMC-3.pdf#page=4">slides 4–5</a>):</p>
+
+<div class="tablewrap"><table>
+<tr><th>Symbol</th><th>Meaning</th></tr>
+<tr><td>\(\pi(\theta)\)</td><td>the <em>target</em>, known only up to a constant. For a posterior: \(\pi(\theta)=p(x\mid\theta)\,p(\theta)\), likelihood times prior (Lesson 22). Slide 4 writes \(\pi=p(\theta)p(x\mid\theta)\)</td></tr>
+<tr><td>\(\theta^c\)</td><td>the <em>current</em> value of the chain (the exam writes \(\mu_c,\tau_c\)); the slides write \(\theta\)</td></tr>
+<tr><td>\(\theta^*\)</td><td>the <em>proposed</em> (new) value (exam: \(\mu_n,\tau_n\)); the slides write \(\theta'\)</td></tr>
+<tr><td>\(q(\theta^*\mid\theta^c)\)</td><td>the <em>proposal density</em>: how a candidate \(\theta^*\) is generated from \(\theta^c\). The slides write \(q(\theta,\theta')\), "from \(\theta\) to \(\theta'\)": same thing. Read \(q(a\mid b)\) as "density of landing on \(a\) when starting from \(b\)"</td></tr>
+<tr><td>\(\alpha\)</td><td>the <em>acceptance probability</em> (slides: \(A\))</td></tr>
+</table></div>
+
+<div class="box recipe">
+<p><strong>The algorithm</strong> (slide 5)</p>
+<ol class="steps">
+  <li>Choose a start \(\theta^{(0)}\); set \(t=0\).</li>
+  <li>Let \(\theta^c=\theta^{(t)}\). Draw a candidate \(\theta^*\sim q(\,\cdot\mid\theta^c)\).</li>
+  <li>Compute the acceptance probability
+  $$\boxed{\ \alpha=\min\Big\{1,\ \frac{\pi(\theta^*)\;q(\theta^c\mid\theta^*)}{\pi(\theta^c)\;q(\theta^*\mid\theta^c)}\Big\}\ }$$</li>
+  <li>Draw \(u\sim U(0,1)\). If \(u&lt;\alpha\) set \(\theta^{(t+1)}=\theta^*\) (accept); otherwise set \(\theta^{(t+1)}=\theta^c\) (reject: the chain <em>repeats</em> its current value, and the repeat is recorded).</li>
+  <li>Set \(t\leftarrow t+1\) and return to step 2.</li>
+</ol>
+</div>
+
+<p>That is the whole "state the MH algorithm" answer (2016 pattern). Three things to say in words when asked: the chain's stationary (long-run) distribution is the target \(\pi\), so after discarding a <strong>burn-in</strong> of early draws that still remember \(\theta^{(0)}\), the rest are (dependent) draws from the posterior; you only need to <em>evaluate</em> \(\pi\), never normalise it; and you must be able to simulate from \(q(\cdot\mid\theta)\) for every \(\theta\) (slide 8). Why it works: the rule is built so that the long-run flow \(\theta\to\theta'\) equals the flow \(\theta'\to\theta\) ("detailed balance", slide 6). That is the one sentence of theory you need.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> You run MH on a posterior \(p(\theta\mid x)=p(x\mid\theta)p(\theta)/p(x)\). Why is \(p(x)\) never computed?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It is always equal to 1 once the data are observed</button>
+    <button class="opt" data-key="b">It is replaced by the proposal density at the new value</button>
+    <button class="opt" data-key="c">It appears in numerator and denominator of the ratio, so it cancels</button>
+    <button class="opt" data-key="d">It only matters for the burn-in, which is thrown away anyway</button>
+  </div>
+  <div class="why">\(\alpha\) uses the ratio \(\pi(\theta^*)/\pi(\theta^c)\). Writing \(\pi=p(x\mid\theta)p(\theta)/p(x)\) in both places, \(p(x)\) is the same constant and divides out. It is not 1 (it is the integral \(\int p(x\mid\theta)p(\theta)\,d\theta\)), and it has nothing to do with burn-in. This is slide 8, remark 2: "we only require that we know \(\pi\) up to a constant".</div>
+</div>
+
+<h2>2 · Reading the acceptance probability</h2>
+<p>Split the ratio into the part about the <em>target</em> and the part about the <em>proposal</em>:</p>
+$$\alpha=\min\Big\{1,\ \underbrace{\frac{\pi(\theta^*)}{\pi(\theta^c)}}_{\text{target ratio}}\ \times\ \underbrace{\frac{q(\theta^c\mid\theta^*)}{q(\theta^*\mid\theta^c)}}_{\text{proposal ratio}}\Big\}$$
+<p>The target ratio says "is \(\theta^*\) a more probable place than where I am?". The proposal ratio is a correction for the proposal's habits: if \(q\) makes it easy to jump <em>to</em> \(\theta^*\) from \(\theta^c\) but hard to jump back, the chain would visit \(\theta^*\) too often, so the ratio (reverse over forward) shrinks \(\alpha\) to compensate. The posterior itself breaks into likelihood and prior, so for a posterior target, in full:</p>
+$$\frac{\pi(\theta^*)}{\pi(\theta^c)}=\underbrace{\frac{p(x\mid\theta^*)}{p(x\mid\theta^c)}}_{\text{likelihood ratio}}\times\underbrace{\frac{p(\theta^*)}{p(\theta^c)}}_{\text{prior ratio}}$$
+<p>and every factor free of the parameters (\(p(x)\), \(y_i!\), \(\sqrt{2\pi}\), the Gamma constant \(b^a/\Gamma(a)\)) cancels, exactly as in Lesson 15's kernel-dropping. <strong>Careful:</strong> a factor that contains the parameter does <em>not</em> cancel even if it looks like a constant, e.g. \(\tau^{n/2}\) in a Normal likelihood or \(\sqrt{\tau}\) in a Normal prior with variance \(1/\tau\).</p>
+
+<div class="trap"><strong>Trap: the direction of \(q\)</strong><br>The proposal ratio is <em>reverse over forward</em>: \(q(\theta^c\mid\theta^*)\) on top, \(q(\theta^*\mid\theta^c)\) underneath. The reverse density is evaluated at the <em>current</em> value, with the <em>new</em> value playing the role of "where we start". If the proposal's rate or variance depends on where it starts, then in the reverse density it depends on \(\theta^*\), not \(\theta^c\). §4 does this line by line.</div>
+
+<h2>3 · Choices of proposal</h2>
+<h3>Random walk (Metropolis): the proposal ratio cancels</h3>
+<p>The most common choice adds symmetric noise: \(\theta^*=\theta^c+\varepsilon\) with \(\varepsilon\sim N(0,s^2)\) or \(U(-\delta,\delta)\) (<a href="../lectures/MCMC-3.pdf#page=10">slide 10</a>). Then \(q(\theta^*\mid\theta^c)=q(\theta^c\mid\theta^*)\) (the density depends only on the distance \(|\theta^*-\theta^c|\), same both ways), so</p>
+$$\alpha=\min\Big\{1,\ \frac{\pi(\theta^*)}{\pi(\theta^c)}\Big\}\qquad\text{(Metropolis)}$$
+<p>Slide 11 reads this: a move uphill (\(\pi(\theta^*)\ge\pi(\theta^c)\)) is always accepted; a move downhill is accepted with probability equal to the height ratio. So the chain spends more time where \(\pi\) is large, but still visits the tails. Test for symmetry: swap the roles of current and new in the density; if the formula is unchanged for every pair, the \(q\)'s cancel. \(N(\theta^c,s^2)\) passes. \(N(0,1)\) (ignores \(\theta^c\)) and \(\text{Exponential}(\text{rate }1/\theta^c)\) fail.</p>
+
+<h3>Independence sampler: \(q\) ignores the current value</h3>
+<p>Propose \(\theta^*\sim g(\cdot)\), the same density every time. Then \(q(\theta^*\mid\theta^c)=g(\theta^*)\) and \(q(\theta^c\mid\theta^*)=g(\theta^c)\), so</p>
+$$\alpha=\min\Big\{1,\ \frac{\pi(\theta^*)/g(\theta^*)}{\pi(\theta^c)/g(\theta^c)}\Big\}=\min\Big\{1,\ \frac{w(\theta^*)}{w(\theta^c)}\Big\},\qquad w=\pi/g.$$
+<p>A ratio of "importance weights" (compare the envelope idea in <a href="0023-monte-carlo-rejection-sampling.html">Lesson 23</a>). It works well only if \(g\) resembles \(\pi\), with tails at least as heavy; otherwise the chain sticks.</p>
+<p><strong>Mini example.</strong> Target kernel \(\pi(\theta)=\theta e^{-\theta}\) (\(\theta&gt;0\); this is Gamma(2, 1)), proposal \(g=\text{Exponential}(\text{rate }\tfrac12)\), \(g(\theta)=\tfrac12e^{-\theta/2}\). Current \(\theta^c=2\), proposed \(\theta^*=1\):</p>
+$$\begin{aligned}
+w(\theta)&amp;=\frac{\theta e^{-\theta}}{\tfrac12 e^{-\theta/2}}=2\theta\,e^{-\theta/2}\\
+w(\theta^*)&amp;=w(1)=2e^{-0.5}=1.2131\\
+w(\theta^c)&amp;=w(2)=4e^{-1}=1.4715\\
+\alpha&amp;=\min\Big\{1,\ \frac{1.2131}{1.4715}\Big\}=0.82
+\end{aligned}$$
+
+<h3>Asymmetric proposals, and positive-support parameters</h3>
+<p>A precision \(\tau&gt;0\) or a rate \(\lambda&gt;0\) can't take a symmetric Normal step: it would often propose a negative value, where \(\pi=0\), and the move would be wasted. So papers propose from a distribution on \((0,\infty)\) whose centre follows the current value, e.g. \(\tau^*\sim\text{Exponential}(\text{rate }1/\tau^c)\) (mean \(\tau^c\)) or \(\tau^*\sim\text{Gamma}(\cdot,\cdot)\). Such proposals are <em>not</em> symmetric, so the proposal ratio stays. Another standard fix is a random walk on the log scale, \(\log\tau^*=\log\tau^c+\varepsilon\), \(\varepsilon\sim N(0,s^2)\), which keeps \(\tau^*&gt;0\). It is symmetric in \(\log\tau\) but <em>not</em> in \(\tau\):</p>
+$$\begin{aligned}
+q(\tau^*\mid\tau^c)&amp;=\frac{1}{\tau^*s\sqrt{2\pi}}\exp\Big\{-\frac{(\log\tau^*-\log\tau^c)^2}{2s^2}\Big\}\quad\text{(log-Normal density)}\\
+q(\tau^c\mid\tau^*)&amp;=\frac{1}{\tau^cs\sqrt{2\pi}}\exp\Big\{-\frac{(\log\tau^c-\log\tau^*)^2}{2s^2}\Big\}\\
+\frac{q(\tau^c\mid\tau^*)}{q(\tau^*\mid\tau^c)}&amp;=\frac{\tau^*}{\tau^c}\quad\text{(the exponentials are equal, the leading }1/\tau\text{ factors are not)}
+\end{aligned}$$
+<p>so \(\alpha=\min\{1,\ \frac{\pi(\tau^*)}{\pi(\tau^c)}\cdot\frac{\tau^*}{\tau^c}\}\). Forgetting the \(\tau^*/\tau^c\) is the log-scale version of the trap above.</p>
+
+<h3>Several parameters, and the link to Gibbs</h3>
+<p>For \(\theta=(\mu,\tau)\), propose both at once, usually in sequence: \(\tau^*\) from \(q_\tau(\cdot\mid\tau^c)\), then \(\mu^*\) from \(q_\mu(\cdot\mid\mu^c,\tau^*)\). The joint proposal density is the product, and so is its reverse:</p>
+<div class="tablewrap"><table>
+<tr><th></th><th>Forward: \(q(\theta^*\mid\theta^c)\)</th><th>Reverse: \(q(\theta^c\mid\theta^*)\)</th></tr>
+<tr><td>\(\tau\) part</td><td>\(q_\tau(\tau^*\mid\tau^c)\)</td><td>\(q_\tau(\tau^c\mid\tau^*)\)</td></tr>
+<tr><td>\(\mu\) part</td><td>\(q_\mu(\mu^*\mid\mu^c,\ \tau^*)\)</td><td>\(q_\mu(\mu^c\mid\mu^*,\ \tau^c)\)</td></tr>
+</table></div>
+<p>Note the last cell: the reverse step starts from \((\mu^*,\tau^*)\) and "proposes" \((\mu^c,\tau^c)\), so a variance that was \(1/\tau^*\) going forward is \(1/\tau^c\) going back. If, instead, you propose each full conditional exactly (Gibbs sampling, <a href="0025-gibbs-sampling.html">Lesson 25</a>), the ratio is exactly 1 and every proposal is accepted (<a href="../lectures/MCMC-3.pdf#page=14">slide 14</a>): Gibbs is the special case of MH with \(\alpha=1\), and MH is what you use when the conditionals aren't recognisable.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>2.</strong> Which proposal satisfies \(q(\theta^*\mid\theta^c)=q(\theta^c\mid\theta^*)\) for every pair of values, so the proposal ratio cancels?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\log\theta^*\sim N(\log\theta^c,\ 0.25)\), a random walk on the log scale</button>
+    <button class="opt" data-key="b">\(\theta^*\sim N(\theta^c,\ 0.25)\), a Normal step centred on the current value</button>
+    <button class="opt" data-key="c">\(\theta^*\sim N(0,\ 0.25)\), a Normal centred at the origin every time</button>
+    <button class="opt" data-key="d">\(\theta^*\sim\text{Exponential}(\text{rate }1/\theta^c)\), centred on the current value</button>
+  </div>
+  <div class="why">Only (b): the density is a function of \(|\theta^*-\theta^c|\) alone. (a) is symmetric in \(\log\theta\) but the ratio is \(\theta^*/\theta^c\) (§3). (c) is an independence proposal: the ratio is \(g(\theta^c)/g(\theta^*)\ne1\). (d) is centred on \(\theta^c\) but has a different shape going forward and back.</div>
+</div>
+
+<h2>4 · Worked example: a numeric acceptance probability, every factor</h2>
+<p>This is the 5–6 mark exam part. Do it as a ledger: one line per factor, then multiply.</p>
+<div class="box">
+<p><strong>Model:</strong> \(x_i\mid\mu,\tau\overset{iid}{\sim}N(\mu,1/\tau)\), \(i=1,\dots,4\), with \(\bar x=2\) and \(S=\sum_i(x_i-\bar x)^2=3\).</p>
+<p><strong>Prior:</strong> \(p(\mu,\tau)=p(\mu\mid\tau)p(\tau)\), \(\mu\mid\tau\sim N(0,1/\tau)\), \(\tau\sim\text{Gamma}(2,1)\).</p>
+<p><strong>Proposal:</strong> \(\tau^*\sim\text{Exponential}(\text{rate }1/\tau^c)\), then \(\mu^*\sim N(\mu^c,\ 1/\tau^*)\) (variance depends on the <em>new</em> \(\tau\)).</p>
+<p><strong>Compute</strong> \(\alpha\) at \((\mu^c,\tau^c)=(1,1)\) and \((\mu^*,\tau^*)=(2,0.5)\).</p>
+</div>
+
+<p><strong>Step 1: the target kernel.</strong> Likelihood, then the two prior factors, keeping every \(\tau\) and \(\mu\), with \(Q(\mu)=\sum_i(x_i-\mu)^2=S+n(\bar x-\mu)^2\) (Lesson 22 §6):</p>
+$$\begin{aligned}
+\pi(\mu,\tau)&amp;=\underbrace{\tau^{n/2}e^{-\frac\tau2Q(\mu)}}_{p(x\mid\mu,\tau)}\cdot\underbrace{\tau^{1/2}e^{-\frac\tau2\mu^2}}_{p(\mu\mid\tau)}\cdot\underbrace{\tau\,e^{-\tau}}_{p(\tau)}\\
+Q(\mu^c)&amp;=3+4(2-1)^2=7,\qquad Q(\mu^*)=3+4(2-2)^2=3
+\end{aligned}$$
+<p><strong>Step 2: the four target factors.</strong> Each is "new over current".</p>
+$$\begin{aligned}
+\text{(i) likelihood}&amp;=\Big(\frac{\tau^*}{\tau^c}\Big)^{n/2}\exp\Big\{-\tfrac12\big[\tau^*Q(\mu^*)-\tau^cQ(\mu^c)\big]\Big\}\\
+&amp;=(0.5)^2\exp\Big\{-\tfrac12\big[0.5(3)-1(7)\big]\Big\}\\
+&amp;=0.25\,e^{2.75}=0.25(15.6426)=3.9107\\[4pt]
+\text{(ii) prior on }\mu\mid\tau&amp;=\sqrt{\frac{\tau^*}{\tau^c}}\exp\Big\{-\tfrac12\big[\tau^*\mu^{*2}-\tau^c\mu^{c\,2}\big]\Big\}\\
+&amp;=\sqrt{0.5}\,\exp\Big\{-\tfrac12\big[0.5(4)-1(1)\big]\Big\}\\
+&amp;=0.7071\,e^{-0.5}=0.7071(0.6065)=0.4289\\[4pt]
+\text{(iii) prior on }\tau&amp;=\frac{\tau^*}{\tau^c}\exp\{-(\tau^*-\tau^c)\}\\
+&amp;=0.5\,e^{0.5}=0.5(1.6487)=0.8244
+\end{aligned}$$
+<p>(The \(\sqrt{\tau}\) in (ii) comes from the Normal density of \(\mu\) with precision \(\tau\): it does <em>not</em> cancel.)</p>
+<p><strong>Step 3: the proposal ratio, reverse over forward.</strong> The Exponential density with rate \(r\) is \(re^{-rx}\). For \(\tau\):</p>
+$$\begin{aligned}
+q_\tau(\tau^*\mid\tau^c)&amp;=\frac1{\tau^c}e^{-\tau^*/\tau^c}=1\cdot e^{-0.5}=0.6065\quad\text{(rate }1/\tau^c=1)\\
+q_\tau(\tau^c\mid\tau^*)&amp;=\frac1{\tau^*}e^{-\tau^c/\tau^*}=2\,e^{-2}=0.2707\quad\text{(rate }1/\tau^*=2)\\
+\text{(iv) }\tau\text{ proposal ratio}&amp;=\frac{0.2707}{0.6065}=0.4463
+\end{aligned}$$
+<p>For \(\mu\), forward the variance is \(1/\tau^*=2\); in reverse it is \(1/\tau^c=1\). The difference \((\mu^*-\mu^c)^2=1\) is the same both ways:</p>
+$$\begin{aligned}
+q_\mu(\mu^*\mid\mu^c,\tau^*)&amp;=\sqrt{\frac{\tau^*}{2\pi}}\exp\Big\{-\frac{\tau^*}{2}(\mu^*-\mu^c)^2\Big\}\\
+q_\mu(\mu^c\mid\mu^*,\tau^c)&amp;=\sqrt{\frac{\tau^c}{2\pi}}\exp\Big\{-\frac{\tau^c}{2}(\mu^c-\mu^*)^2\Big\}\\
+\text{(v) }\mu\text{ proposal ratio}&amp;=\sqrt{\frac{\tau^c}{\tau^*}}\exp\Big\{-\tfrac12\tau^c(\mu^c-\mu^*)^2+\tfrac12\tau^*(\mu^*-\mu^c)^2\Big\}\\
+&amp;=\sqrt2\,\exp\{-0.5+0.25\}=1.4142(0.7788)=1.1014
+\end{aligned}$$
+<p><strong>Step 4: multiply, then take the min with 1.</strong> One factor per line:</p>
+$$\begin{aligned}
+3.9107\times0.4289&amp;=1.6773\quad\text{(likelihood}\times\text{prior on }\mu)\\
+1.6773\times0.8244&amp;=1.3827\quad(\times\text{ prior on }\tau)\\
+1.3827\times0.4463&amp;=0.6171\quad(\times\ \tau\text{ proposal})\\
+0.6171\times1.1014&amp;=0.6797\quad(\times\ \mu\text{ proposal})\\
+\alpha&amp;=\min\{1,\ 0.6797\}=0.68
+\end{aligned}$$
+<div class="answer-box"><p>Acceptance probability</p>
+<p>\(\alpha=0.68\) (the target ratio alone is \(1.3827\), which would give 1).</p></div>
+<p>Keep 4 decimal places in the factors and round only at the end (R below gives 0.6796). The marks for this part are for: stating \(\alpha\) with the proposal ratio, each target factor, each proposal factor, and the final \(\min\). If you can't finish the arithmetic, the unevaluated ledger still earns most of them.</p>
+
+<div class="trap"><strong>Trap: leaving out the proposal ratio</strong><br>Target factors alone give 1.38, so \(\min(1,1.38)=1\): "always accept", with full-looking working. The correct answer 0.68 comes from the proposal ratio \(0.4463\times1.1014=0.49\). Next section shows what that costs in a real run.</div>
+
+<div class="quiz num" data-answer="0.37" data-tol="0.005">
+  <p class="q"><strong>3.</strong> Target kernel \(\pi(\theta)=\theta e^{-\theta}\) for \(\theta&gt;0\). Proposal: \(\theta^*\sim\text{Exponential}(\text{rate }1/\theta^c)\). Current \(\theta^c=1\), proposed \(\theta^*=0.5\). Give \(\alpha\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\[\begin{aligned}\frac{\pi(\theta^*)}{\pi(\theta^c)}&amp;=\frac{0.5e^{-0.5}}{1\cdot e^{-1}}=0.5e^{0.5}=0.8244\\ q(\theta^*\mid\theta^c)&amp;=\tfrac1{1}e^{-0.5/1}=0.6065\\ q(\theta^c\mid\theta^*)&amp;=\tfrac1{0.5}e^{-1/0.5}=2e^{-2}=0.2707\\ \alpha&amp;=0.8244\times\frac{0.2707}{0.6065}=0.8244\times0.4463=\textbf{0.37}\end{aligned}\]Ignoring the proposal ratio gives 0.82, the usual wrong answer. Note the reverse density uses the <em>new</em> value 0.5 as its rate.</div>
+</div>
+
+<div class="quiz num" data-answer="0.22" data-tol="0.005">
+  <p class="q"><strong>4.</strong> Random-walk MH for a target with kernel \(\pi(\theta)=e^{-\theta^2/2}\) (a standard Normal, normalising constant unknown to the sampler). Current \(\theta^c=1\), proposed \(\theta^*=2\). Give \(\alpha\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Symmetric proposal, so the \(q\)'s cancel: \(\alpha=\exp\{-(4-1)/2\}=e^{-1.5}=\)<strong>0.22</strong>. The \(1/\sqrt{2\pi}\) is not needed. Moving away from the mode at 0 is accepted about a fifth of the time.</div>
+</div>
+
+<h2>5 · Log scale, and reading MH R code</h2>
+<p>Densities multiply many small numbers and underflow to 0, so real code works with logs: \(\log\alpha\) is a sum of log-densities, and the accept test is done in logs too. The accept step, \(u&lt;\alpha\) with \(u\sim U(0,1)\), becomes \(\log u&lt;\log\alpha\):</p>
+$$\log\alpha=\min\Big\{0,\ \log\pi(\theta^*)-\log\pi(\theta^c)+\log q(\theta^c\mid\theta^*)-\log q(\theta^*\mid\theta^c)\Big\}.$$
+<p>Here is the worked example of §4 as code. Read each line and say what it computes; you won't be asked to write it. The output below is real.</p>
+<pre class="rout"><span class="cmd">&gt; logpi &lt;- function(mu, tau) {
++   0.5*n*log(tau) - 0.5*tau*(S + n*(xbar - mu)^2) +
++   dnorm(mu, 0, 1/sqrt(tau), log = TRUE) +
++   dgamma(tau, shape = 2, rate = 1, log = TRUE)
++ }
+&gt; logq &lt;- function(mu_to, tau_to, mu_from, tau_from) {
++   dexp(tau_to, rate = 1/tau_from, log = TRUE) +
++   dnorm(mu_to, mean = mu_from, sd = 1/sqrt(tau_to), log = TRUE)
++ }
+&gt; log_alpha &lt;- function(mu_c, tau_c, mu_n, tau_n) {
++   logpi(mu_n, tau_n) - logpi(mu_c, tau_c) +
++   logq(mu_c, tau_c, mu_n, tau_n) - logq(mu_n, tau_n, mu_c, tau_c)
++ }
+&gt; n &lt;- 4; xbar &lt;- 2; S &lt;- 3
+&gt; round(exp(log_alpha(1, 1, 2, 0.5)), 4)</span>
+[1] 0.6796
+<span class="cmd">&gt; # inside the loop, with mu_c, tau_c, mu_n, tau_n set:
+&gt; tau_n &lt;- rexp(1, rate = 1/tau_c)
+&gt; mu_n  &lt;- rnorm(1, mean = mu_c, sd = 1/sqrt(tau_n))
+&gt; if (log(runif(1)) &lt; log_alpha(mu_c, tau_c, mu_n, tau_n)) {
++   chain[t + 1, ] &lt;- c(mu_n, tau_n)       # accept
++ } else chain[t + 1, ] &lt;- chain[t, ]      # reject: repeat current</span></pre>
+<p>Reading it. <code>logq(mu_to, tau_to, mu_from, tau_from)</code> is \(\log q(\text{to}\mid\text{from})\): the first call in <code>log_alpha</code>, <code>logq(mu_c, tau_c, mu_n, tau_n)</code>, is the <em>reverse</em> density \(q(\theta^c\mid\theta^*)\), and it uses the new \(\tau\) as the starting point (<code>tau_from = tau_n</code>) and the new \(\mu\) as the mean: exactly the §4 reverse column. The printed 0.6796 matches the hand answer 0.68. The function <code>run_mh</code> (not shown) loops the last block 50000 times from the start \((1,1)\). Now run the chain, and run it again with the two <code>logq</code> terms deleted:</p>
+<pre class="rout"><span class="cmd">&gt; set.seed(30027); r &lt;- run_mh(50000); ch &lt;- r$chain[-(1:1000), ]   # drop 1000 burn-in
+&gt; r$rate</span>
+[1] 0.24142
+<span class="cmd">&gt; round(colMeans(ch), 3)                       # posterior means of (mu, tau)</span>
+[1] 1.592 0.967
+<span class="cmd">&gt; round(c(4*2/(4+1), (2+4/2)/(1+3/2+4*(2-0)^2/(2*(4+1)))), 3)   # exact, from Lesson 22 s6</span>
+[1] 1.600 0.976
+<span class="cmd">&gt; set.seed(30027); r2 &lt;- run_mh(50000, use_q = FALSE)   # proposal ratio left out
+&gt; round(colMeans(r2$chain[-(1:1000), ]), 3)</span>
+[1] 1.585 0.687</pre>
+<p>This target has the exact Normal–Gamma posterior of <a href="0022-bayesian-inference.html">Lesson 22</a>, §6 (\(E\mu=1.60\), \(E\tau=0.976\)), so we can check: the correct chain gets \((1.59,\ 0.97)\); with the proposal ratio left out, the answer for \(\tau\) is \(0.69\), wrong by 30%, because the Exponential proposal likes to jump to small \(\tau\) and the chain visits them too often. Leaving the ratio out doesn't throw an error. It just samples a different distribution.</p>
+
+<p>Two more code patterns, from the lecturer's example (<a href="../extra-notes/MHexample-1.pdf">MHexample</a>, linear regression with \(\theta=(a,b,\sigma)\)):</p>
+<pre class="rout"><span class="cmd">probab = exp(posterior(proposal) - posterior(chain[i,]))
+if (runif(1) &lt; probab){ chain[i+1,] = proposal }else{ chain[i+1,] = chain[i,] }
+proposalfunction &lt;- function(param){ rnorm(3, mean = param, sd = c(0.1,0.5,0.3)) }
+aprior = dunif(a, min=0, max=10, log = T)</span></pre>
+<ul>
+  <li><code>posterior</code> returns <em>log</em> likelihood + <em>log</em> prior, so the difference is \(\log\) of the target ratio and <code>exp(...)</code> turns it back into a ratio: \(\min\{1,\cdot\}\) is implicit, since <code>runif(1)</code> is always \(&lt;1\).</li>
+  <li><strong>Symmetric?</strong> Yes. <code>rnorm(3, mean = param, ...)</code> adds independent Normal noise with fixed sds to the current value, so \(q(\theta^*\mid\theta^c)=q(\theta^c\mid\theta^*)\). That is why there is no proposal term in <code>probab</code>. This is exactly the 2014 "is it symmetric? justify" answer. If the sd depended on <code>param</code>, it would <em>not</em> be symmetric.</li>
+  <li>If <code>a</code> is proposed outside \((0,10)\), <code>dunif(..., log=T)</code> is \(-\infty\), <code>probab</code> is \(\exp(-\infty)=0\), and the proposal is always rejected: the uniform prior restricts the chain to the allowed range.</li>
+  <li>The annotated version (<a href="../extra-notes/Metropolis–Hastings example-1.pdf">Metropolis–Hastings example</a>) names \(\pi(\theta)=p(y\mid\theta)p(\theta)\) and states "we do not need \(p(y)\)".</li>
+</ul>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>5.</strong> A sampler's accept step reads <code>if (log(runif(1)) &lt; log_alpha)</code>, where <code>log_alpha</code> is \(\log\) of the ratio inside the \(\min\) (before taking the min with 1). If <code>log_alpha</code> equals \(0.7\), what happens?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The proposal is accepted with probability 0.7</button>
+    <button class="opt" data-key="b">The proposal is rejected, because \(0.7\) is above \(\log 1=0\)</button>
+    <button class="opt" data-key="c">The proposal is accepted with probability \(e^{-0.7}=0.50\)</button>
+    <button class="opt" data-key="d">The proposal is always accepted, since \(\log u&lt;0&lt;0.7\) for every draw</button>
+  </div>
+  <div class="why">\(u\sim U(0,1)\) gives \(\log u\le0\), so \(\log u&lt;0.7\) always holds: the ratio is \(e^{0.7}=2.01&gt;1\), so \(\alpha=\min(1,2.01)=1\). The probability that \(\log u&lt;\log\alpha\) is \(P(u&lt;\alpha)=\alpha\) when \(\alpha&lt;1\), which is why the log trick works: \(\log\alpha=-1.2\) gives \(\alpha=e^{-1.2}=0.30\).</div>
+</div>
+
+<div class="quiz num" data-answer="0.90" data-tol="0.005">
+  <p class="q"><strong>6.</strong> A precision is updated by a random walk on the log scale: \(\log\tau^*\sim N(\log\tau^c,\ s^2)\). Current \(\tau^c=2\), proposed \(\tau^*=3\), and the target ratio is \(\pi(\tau^*)/\pi(\tau^c)=0.60\). Give \(\alpha\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">The log-scale proposal ratio is \(\tau^*/\tau^c=3/2=1.5\) (§3), so \(\alpha=\min\{1,\ 0.60\times1.5\}=\)<strong>0.90</strong>. Treating the proposal as symmetric gives 0.60. The factor is just the \(1/\tau\) in the log-Normal density, which does not cancel between the forward and reverse moves.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>7.</strong> For an independence sampler, \(\theta^*\sim g\) whatever \(\theta^c\) is. Which expression is the acceptance probability?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\min\Big\{1,\ \dfrac{\pi(\theta^*)\,g(\theta^c)}{\pi(\theta^c)\,g(\theta^*)}\Big\}\)</button>
+    <button class="opt" data-key="b">\(\min\Big\{1,\ \dfrac{\pi(\theta^*)\,g(\theta^*)}{\pi(\theta^c)\,g(\theta^c)}\Big\}\)</button>
+    <button class="opt" data-key="c">\(\min\Big\{1,\ \dfrac{\pi(\theta^c)\,g(\theta^c)}{\pi(\theta^*)\,g(\theta^*)}\Big\}\)</button>
+    <button class="opt" data-key="d">\(\min\Big\{1,\ \dfrac{\pi(\theta^c)\,g(\theta^*)}{\pi(\theta^*)\,g(\theta^c)}\Big\}\)</button>
+  </div>
+  <div class="why">Substitute \(q(\theta^*\mid\theta^c)=g(\theta^*)\) and \(q(\theta^c\mid\theta^*)=g(\theta^c)\): reverse over forward puts \(g(\theta^c)\) on top and \(g(\theta^*)\) underneath, i.e. \(w(\theta^*)/w(\theta^c)\) with \(w=\pi/g\). (d) inverts the target ratio too, (c) is its reciprocal, (b) multiplies by \(g\) instead of dividing.</div>
+</div>
+
+<h2>6 · Tuning: acceptance rate, autocorrelation, effective sample size</h2>
+<p>The step size trades off two things (<a href="../lectures/MCMC-3.pdf#page=9">slide 9</a>): you want <strong>large moves</strong> and <strong>high acceptance</strong>, and they compete. The lecturer's advice is to aim for an "intermediate" acceptance rate. Small steps are nearly always accepted but crawl; huge steps are mostly rejected, so the chain sits still. Either way successive values are strongly correlated, and you have fewer independent draws than the chain length. Quantify this with the lag-1 autocorrelation \(\rho\) and the <strong>effective sample size</strong> (week 11 tute):</p>
+$$\text{ESS}=n\,\frac{1-\rho}{1+\rho}.$$
+<p>(\(\rho=0\) gives \(n\); \(\rho\to1\) gives almost nothing.) The week 10–11 tutes run a random-walk MH on \(N(0,\Sigma)\), \(\Sigma=\begin{pmatrix}4&1\\1&4\end{pmatrix}\), start \((6,-6)\), \(n=1000\), proposal \(N(\mathbf x,s^2I)\). Real output for \(X_1\), for \(s=0.1,\ 2.5,\ 10\), then the same with correlation 0.7 (\(\sigma_{12}=2.8\)):</p>
+<pre class="rout"><span class="cmd">&gt; set.seed(100)   # Sigma = [4 1; 1 4]
+&gt; round(sapply(c(0.1, 2.5, 10), function(s) rw(Sigma1, s)), 2)</span>
+       sd=0.1 sd=2.5 sd=10
+accept   0.94   0.46  0.07
+rho1     1.00   0.81  0.84
+ESS      1.44 105.25 86.01
+<span class="cmd">&gt; set.seed(100)   # Sigma = [4 2.8; 2.8 4]
+&gt; round(sapply(c(0.1, 2.5, 10), function(s) rw(Sigma2, s)), 2)</span>
+       sd=0.1 sd=2.5 sd=10
+accept   0.93   0.39   0.06
+rho1     1.00   0.83   0.91
+ESS      1.02  94.64  45.42</pre>
+<ul>
+  <li><strong>\(s=0.1\):</strong> accepted 94%, but \(\rho\approx1\) and ESS \(\approx1\): 1000 draws carry the information of about one. (The chain is also still walking from the start \((6,-6)\): the cumulative average has not settled, which is the burn-in problem.)</li>
+  <li><strong>\(s=10\):</strong> accepted 7%: nearly every proposal lands far out in the tails, where \(\pi\) is tiny, so the chain mostly repeats itself. Also low ESS.</li>
+  <li><strong>\(s=2.5\):</strong> accepted 46% (the tute's reported 0.457), best ESS \(\approx105\) of 1000. Even "good" random-walk MH keeps only about a tenth of the draws' worth of information here.</li>
+  <li><strong>Higher correlation</strong> (0.7): the target is a thin diagonal ridge; an isotropic proposal often steps off it, so acceptance and ESS fall, and the bad settings get worse. This is the lecture's point about correlated parameters (slides 15–17, in the Gibbs context).</li>
+</ul>
+<p>As a rough rule of thumb (not from the slides), acceptance rates of about 20–50% are considered healthy for a random-walk sampler. Never conclude "high acceptance means good". Diagnostics (trace plots, burn-in, formal checks) get their own lesson: <a href="0026-mcmc-diagnostics.html">Lesson 26</a>.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>8.</strong> A random-walk MH run (proposal \(N(\theta^c,s^2)\)) accepts only 2% of proposals, and the trace plot shows long flat stretches. What should you do, and why?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Increase \(s\), so the chain makes larger moves and escapes the flat stretches</button>
+    <button class="opt" data-key="b">Decrease \(s\), so proposals land near \(\theta^c\), where \(\pi\) is similar, and are accepted more often</button>
+    <button class="opt" data-key="c">Keep \(s\) and lengthen the burn-in, since flat stretches are always start-up effects</button>
+    <button class="opt" data-key="d">Switch to an independence proposal, because rejections show the random walk is biased</button>
+  </div>
+  <div class="why">A 2% acceptance rate means proposals mostly land in low-density regions: the steps are too big. Smaller \(s\) raises acceptance, but not so small that ESS collapses as in the \(s=0.1\) row. Increasing \(s\) (a) makes it worse. Burn-in (c) doesn't fix a persistent flat trace. Rejection doesn't bias the chain (d): the repeat-the-current-value rule is part of the algorithm and keeps \(\pi\) as the stationary distribution.</div>
+</div>
+
+<div class="quiz num" data-answer="111.11" data-tol="0.01">
+  <p class="q"><strong>9.</strong> A chain of \(n=1000\) draws has lag-1 autocorrelation \(\rho=0.8\). Give the effective sample size \(n(1-\rho)/(1+\rho)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(1000\times\dfrac{0.2}{1.8}=\)<strong>111.11</strong>: a chain this sticky is worth about 111 independent draws. Compare the \(s=2.5\) column above, \(\rho=0.81\).</div>
+</div>
+
+<h2>7 · Short explain items (2014 / 2016 / 2018 patterns)</h2>
+<div class="explain">
+<p><strong>Explain (2018 pattern, 3–4 sentences)</strong></p>
+<p>An MH chain proposes \(\theta^*\sim N(\theta^c,1)\) and accepts with probability \(\min\{1,\ \exp(-(\theta^*-3)^2/8)\,/\,\exp(-(\theta^c-3)^2/8)\}\). What is the chain's stationary distribution? Describe in words how you would use it to simulate from that distribution.</p>
+<details><summary>Model answer</summary><div>
+<p>The proposal is symmetric, so the acceptance ratio is purely the ratio of the target kernel at the new and current values, \(\pi(\theta)\propto\exp\{-(\theta-3)^2/8\}=\exp\{-(\theta-3)^2/(2\cdot4)\}\). The stationary distribution of an MH chain is its target \(\pi\): here \(N(3,\ 4)\) (mean 3, variance 4). To simulate: start at any \(\theta^{(0)}\); at each step draw \(\theta^*\sim N(\theta^c,1)\), compute \(\alpha\), accept with probability \(\alpha\) (otherwise repeat \(\theta^c\)); discard an initial burn-in and treat the rest as (dependent) draws from \(N(3,4)\).</p></div></details>
+</div>
+<div class="explain">
+<p><strong>Explain (2014 pattern, 2–3 sentences)</strong></p>
+<p>The proposal in some code is <code>theta_new &lt;- rexp(1, rate = 1/theta_old)</code>, and the accept ratio is computed as <code>pi(theta_new)/pi(theta_old)</code>. Is the code correct? Justify.</p>
+<details><summary>Model answer</summary><div>
+<p>No. The Exponential proposal is not symmetric: \(q(\theta^*\mid\theta^c)=\frac1{\theta^c}e^{-\theta^*/\theta^c}\) differs from \(q(\theta^c\mid\theta^*)=\frac1{\theta^*}e^{-\theta^c/\theta^*}\), so the ratio must include \(q(\theta^c\mid\theta^*)/q(\theta^*\mid\theta^c)\). Without it the chain's stationary distribution is not \(\pi\) (see the 0.69 vs 0.98 for \(E[\tau]\) in §5).</p></div></details>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>10.</strong> A chain's proposal is \(\theta^*\sim N(\theta^c,\ 0.5^2)\) and its acceptance probability is \(\min\{1,\ \exp(-|\theta^*|)/\exp(-|\theta^c|)\}\). The chain's stationary distribution is…</p>
+  <div class="opts">
+    <button class="opt" data-key="a">the proposal's distribution, \(N(\theta^c,\ 0.5^2)\), at the final step</button>
+    <button class="opt" data-key="b">the standard Normal, whichever kernel appears in the ratio</button>
+    <button class="opt" data-key="c">the density proportional to \(e^{-|\theta|}\), the Laplace (double exponential)</button>
+    <button class="opt" data-key="d">no single distribution, because the proposal changes at every step</button>
+  </div>
+  <div class="why">The target is whatever kernel is evaluated in the ratio: \(\pi(\theta)\propto e^{-|\theta|}\), a Laplace density with \(\pi=\frac12e^{-|\theta|}\) after normalising. The proposal only decides <em>how</em> the chain explores. The proposal \(N(\theta^c,\cdot)\) is symmetric, so the ratio is complete. The proposal "changing" is not an obstacle: it is the same \(q\) throughout.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>11.</strong> The lecture calls Gibbs sampling a special case of MH. Using each full conditional \(p(\theta_j\mid\theta_{-j},x)\) as the proposal for \(\theta_j\), what is the acceptance probability?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\alpha=1\), because the proposal ratio exactly cancels the target ratio</button>
+    <button class="opt" data-key="b">\(\alpha=0.5\), because half of the proposals move the chain uphill</button>
+    <button class="opt" data-key="c">\(\alpha=\pi(\theta^*)/\pi(\theta^c)\), the proposal being symmetric</button>
+    <button class="opt" data-key="d">\(\alpha\) depends on the data, so it must be computed at every step</button>
+  </div>
+  <div class="why">With \(q(\theta_j^*\mid\theta)=p(\theta_j^*\mid\theta_{-j},x)\), the target ratio is \(\frac{p(\theta_j^*\mid\theta_{-j},x)}{p(\theta_j^c\mid\theta_{-j},x)}\) (the other coordinates are unchanged) and the proposal ratio is its exact reciprocal, so the product is 1 (slide 14). The proposal is not symmetric (c): the full conditional doesn't depend on \(\theta_j^c\). That is why Gibbs needs no accept step, and why it is the topic of <a href="0025-gibbs-sampling.html">Lesson 25</a>.</div>
+</div>
+
+<div class="quiz num" data-answer="0.25" data-tol="0.005">
+  <p class="q"><strong>12.</strong> Retrieval from <a href="0022-bayesian-inference.html">Lesson 22</a>. You run a random-walk MH chain on \(\mu\) for \(x_i\mid\mu\sim N(\mu,1/2)\) (precision \(\tau=2\) known), \(n=8\), prior \(\mu\sim N(0,\ 1/0.5)\) (prior precision \(\kappa_0=0.5\)). To check the chain, you compare its sample sd to the exact posterior sd. What should the sample sd be (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Precisions add (Lesson 22 §2): \(\kappa_n=\kappa_0+n\tau=0.5+8(2)=16.5\). Variance \(1/16.5=0.0606\), sd \(=\)<strong>0.25</strong> (\(0.2462\)). A chain whose sd is much smaller than this, say 0.05, has not explored the posterior (step size too small, or too short). A chain with an sd far larger has probably not burnt in.</div>
+</div>
+
+<h2>8 · Exam-style question</h2>
+<p><strong>Setup</strong> (fresh model; 12 marks, about 28 minutes, FX-82, 2 d.p.).</p>
+<div class="box">
+<p><strong>Model:</strong> \(x_1,\dots,x_5\) are independent, \(x_i\mid\mu,\tau\sim\text{Normal}(\mu,\ 1/\tau)\), with observed values \(0.5,\ 1.0,\ 1.5,\ 2.0,\ 1.0\) (so \(\bar x=1.2\) and \(\sum_i(x_i-\bar x)^2=1.30\)).</p>
+<p><strong>Prior:</strong> \(\mu\) and \(\tau\) independent, \(\mu\sim\text{Normal}(0,\ 4)\), \(\tau\sim\text{Gamma}(3,\ 2)\) (shape, rate).</p>
+<p><strong>Metropolis–Hastings:</strong> For the current values \((\mu^c,\tau^c)\), propose new values \((\mu^*,\tau^*)\) as follows: \(\tau^*\sim\text{Gamma}(\text{shape}=2,\ \text{rate}=2/\tau^c)\) and, independently, \(\mu^*\sim\text{Normal}(\text{mean}=\mu^c,\ \text{variance}=0.5)\).</p>
+</div>
+<ol type="a">
+  <li>Write down the target \(\pi(\mu,\tau)\) for the algorithm, up to a constant of proportionality. <span class="marks">[3]</span></li>
+  <li>Compute the acceptance probability when \((\mu^c,\tau^c)=(1,\ 1.5)\) and \((\mu^*,\tau^*)=(1.5,\ 1)\). Show your work. <span class="marks">[6]</span></li>
+  <li>Briefly explain why the proposal for \(\mu\) did not need to appear in your answer to (b). <span class="marks">[1]</span></li>
+  <li>In a long run the acceptance rate is 2%. Suggest one change to the algorithm, and say what you expect it to do to the acceptance rate and to the quality of the draws. <span class="marks">[2]</span></li>
+</ol>
+<p>Note: the Gamma(shape \(\nu\), rate \(\beta\)) density is \(\frac{\beta^\nu}{\Gamma(\nu)}x^{\nu-1}e^{-\beta x}\) for \(x&gt;0\), and \(\Gamma(2)=1\).</p>
+
+<details><summary>Marking-key solution</summary><div>
+<p><strong>(a)</strong> <em>[1 mark: likelihood with \(\tau\) kept; 1 mark: the two prior kernels; 1 mark: combined, constants dropped.]</em> Using \(\sum_i(x_i-\mu)^2=S+n(\bar x-\mu)^2=1.30+5(1.2-\mu)^2=:Q(\mu)\):</p>
+$$\begin{aligned}
+\pi(\mu,\tau)&amp;=p(x\mid\mu,\tau)\,p(\mu)\,p(\tau)\\
+&amp;\propto\tau^{5/2}\exp\Big\{-\frac\tau2\,Q(\mu)\Big\}\cdot\exp\Big\{-\frac{\mu^2}{2(4)}\Big\}\cdot\tau^{3-1}e^{-2\tau}\\
+&amp;=\tau^{9/2}\exp\Big\{-\frac\tau2\big[1.30+5(1.2-\mu)^2\big]-\frac{\mu^2}{8}-2\tau\Big\}
+\end{aligned}$$
+<div class="answer-box"><p>(a)</p>
+$$\pi(\mu,\tau)\propto\tau^{9/2}\exp\Big\{-\frac\tau2\big[1.30+5(1.2-\mu)^2\big]-\frac{\mu^2}8-2\tau\Big\}$$
+</div>
+<p><span class="marks">(Marks: 1 + 1 + 1.)</span> Lost marks: dropping \(\tau^{5/2}\) from the likelihood as if it were a constant.</p>
+
+<p><strong>(b)</strong> <em>[1 mark: \(\alpha\) with the proposal ratio, reverse over forward.]</em></p>
+$$\alpha=\min\Big\{1,\ \frac{\pi(\mu^*,\tau^*)}{\pi(\mu^c,\tau^c)}\cdot\frac{q(\mu^c,\tau^c\mid\mu^*,\tau^*)}{q(\mu^*,\tau^*\mid\mu^c,\tau^c)}\Big\}$$
+<p><em>[1 mark: \(Q\) at both points and the likelihood ratio.]</em></p>
+$$\begin{aligned}
+Q(\mu^c)&amp;=1.30+5(1.2-1)^2=1.30+0.20=1.50\\
+Q(\mu^*)&amp;=1.30+5(1.2-1.5)^2=1.30+0.45=1.75\\
+\text{likelihood ratio}&amp;=\Big(\frac{\tau^*}{\tau^c}\Big)^{5/2}\exp\Big\{-\tfrac12\big[\tau^*Q(\mu^*)-\tau^cQ(\mu^c)\big]\Big\}\\
+&amp;=\Big(\frac{1}{1.5}\Big)^{2.5}\exp\Big\{-\tfrac12\big[1(1.75)-1.5(1.5)\big]\Big\}\\
+&amp;=0.3629\,e^{0.25}=0.3629(1.2840)=0.4660
+\end{aligned}$$
+<p><em>[1 mark: both prior ratios.]</em></p>
+$$\begin{aligned}
+\text{prior ratio, }\mu&amp;=\exp\Big\{-\frac{\mu^{*2}-\mu^{c\,2}}{8}\Big\}=\exp\Big\{-\frac{2.25-1}{8}\Big\}=e^{-0.15625}=0.8553\\
+\text{prior ratio, }\tau&amp;=\Big(\frac{\tau^*}{\tau^c}\Big)^{2}\exp\{-2(\tau^*-\tau^c)\}=\Big(\frac1{1.5}\Big)^2e^{1}=0.4444(2.7183)=1.2081
+\end{aligned}$$
+<p><em>[2 marks: proposal ratio for \(\tau\); the \(\mu\) part cancels.]</em> The rate going forward is \(\beta^c=2/\tau^c=2/1.5=1.3333\); going back it is \(\beta^*=2/\tau^*=2/1=2\). With \(\text{Gamma}(2,\beta)\) density \(\beta^2xe^{-\beta x}\):</p>
+$$\begin{aligned}
+q_\tau(\tau^*\mid\tau^c)&amp;=(\beta^c)^2\,\tau^*e^{-\beta^c\tau^*}=(1.3333)^2(1)e^{-1.3333}=1.7778(0.2636)=0.46862\\
+q_\tau(\tau^c\mid\tau^*)&amp;=(\beta^*)^2\,\tau^ce^{-\beta^*\tau^c}=(2)^2(1.5)e^{-3}=6(0.049787)=0.29872\\
+\frac{q_\tau(\tau^c\mid\tau^*)}{q_\tau(\tau^*\mid\tau^c)}&amp;=\frac{0.29872}{0.46862}=0.6375
+\end{aligned}$$
+<p>The \(\mu\) proposal factors are equal and cancel (explained in (c)), so the proposal ratio is \(0.6375\). Closed form as a check: \(\big(\tau^c/\tau^*\big)^3\exp\{-2\tau^c/\tau^*+2\tau^*/\tau^c\}=3.375\,e^{-1.6667}=3.375(0.1889)=0.6375\) \(\checkmark\).</p>
+<p><em>[1 mark: multiply and take the min.]</em></p>
+$$\begin{aligned}
+0.4660\times0.8553&amp;=0.3986\\
+0.3986\times1.2081&amp;=0.4815\\
+0.4815\times0.6375&amp;=0.3070\\
+\alpha&amp;=\min\{1,\ 0.3070\}
+\end{aligned}$$
+<div class="answer-box"><p>(b)</p>
+<p>\(\alpha=0.31\)</p></div>
+<p><span class="marks">(Marks: 1 formula with proposal ratio + 1 likelihood ratio + 1 prior ratios + 2 \(\tau\) proposal ratio + 1 product and min = 6.)</span> Typical lost marks: omitting the proposal ratio (target ratio alone is \(0.4815\)\(\Rightarrow\) 0.48); using forward over reverse (\(1/0.6375=1.5686\), giving \(0.4815\times1.5686=0.76\)); using shape 3 instead of \(3-1=2\) in the \(\tau\) prior; forgetting the \(\tau^{5/2}\) ratio.</p>
+
+<p><strong>(c)</strong> <em>[1 mark.]</em> The \(\mu\) proposal is a Normal centred at the current value with the same variance, 0.5, both ways, so \(q_\mu(\mu^*\mid\mu^c)=q_\mu(\mu^c\mid\mu^*)\) (a function of \((\mu^*-\mu^c)^2\) only): a symmetric random walk, so the \(\mu\) part of the proposal ratio is 1. <span class="marks">(Mark: 1 for symmetry, with the reason.)</span></p>
+
+<p><strong>(d)</strong> <em>[1 mark: change; 1 mark: effect.]</em> A 2% acceptance rate means proposals mostly land where \(\pi\) is much smaller, so the steps are too large. Reduce the spread of the proposal (for example the variance of the \(\mu\) proposal from 0.5 to 0.05, and the Gamma shape of the \(\tau\) proposal increased so it concentrates around \(\tau^c\)). That should raise the acceptance rate, and with it the number of distinct draws. Don't go too far: very small steps are accepted nearly always but move slowly, giving strongly autocorrelated draws and a small effective sample size, so aim for an intermediate rate. <span class="marks">(Marks: 1 + 1.)</span></p>
+<p><strong>Total 12.</strong></p></div></details>
+
+<h2>9 · Score yourself</h2>
+<div class="tablewrap"><table>
+<tr><th>If you missed…</th><th>Go back to</th></tr>
+<tr><td>Q1</td><td>§1–2: \(\pi\) is the kernel; \(p(x)\) cancels; factors containing the parameters (\(\tau^{n/2}\), \(\sqrt\tau\)) do not</td></tr>
+<tr><td>Q2, Q7</td><td>§3: symmetric (Normal step on the same scale) cancels; independence sampler gives \(w(\theta^*)/w(\theta^c)\)</td></tr>
+<tr><td>Q3, Q4, Q6</td><td>§2, 3, 4: reverse over forward; reverse density starts from the <em>new</em> value; log-scale walk gives \(\tau^*/\tau^c\)</td></tr>
+<tr><td>Q5</td><td>§5: \(\log u&lt;\log\alpha\); \(\alpha\ge1\) always accepts</td></tr>
+<tr><td>Q8, Q9</td><td>§6: intermediate acceptance, ESS \(=n(1-\rho)/(1+\rho)\)</td></tr>
+<tr><td>Q10, Q11</td><td>§7, §3: the stationary distribution is the target kernel in the ratio; Gibbs is MH with \(\alpha=1\)</td></tr>
+<tr><td>Q12</td><td>Lesson 22 §2: precisions add; posterior sd \(=1/\sqrt{\kappa_n}\)</td></tr>
+</table></div>
+
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) The MH algorithm in five steps and \(\alpha\) with the proposal ratio (reverse over forward). (2) Why \(p(x)\) and other constants cancel; which look-alike constants don't. (3) When the proposal ratio cancels (symmetric); the independence-sampler form; the log-scale random walk factor \(\tau^*/\tau^c\). (4) The four-line ledger: likelihood ratio, prior ratio(s), proposal ratio(s), product, \(\min(1,\cdot)\). (5) In the reverse proposal, whose value sets the rate or variance? (6) The log trick \(\log u&lt;\log\alpha\). (7) Acceptance too high, too low: what is wrong with each; ESS. (8) Gibbs: \(\alpha=1\). Stationary distribution: the target.</p></div></details>
+
+<h2>10 · Homework</h2>
+<ol>
+  <li><strong>Tute week 10, Q2 and Q3</strong> (<code>tutes/2026_MAST30027_week10_questions.qmd</code>, solution in <code>_sol.html</code>). Read the solution's loop line by line and say what each line computes: <code>proposal &lt;- rnorm(2, chain[i,], sd)</code>, <code>prob &lt;- dbinorm(proposal,…)/dbinorm(chain[i,],…)</code>, <code>if (runif(1) &lt; prob)</code>. Why is there no \(q\)-ratio? The reported acceptance proportion is 0.457: which rows of §6's table is that? Then answer Q3's interpretation: what do the cumulative averages tell you about burn-in from the start \((6,-6)\)?</li>
+  <li><strong>Tute week 11, Q2 (d)–(f)</strong> (<code>tutes/2026_MAST30027_week11_questions.qmd</code>). Compute ESS \(=n(1-\rho)/(1+\rho)\); describe, for \(s=0.1\) and \(s=10\), what happens to acceptance, cumulative averages and ESS (check against §6), and for \(\sigma_{12}=2.8\) what changes and why.</li>
+  <li><strong>Log-scale random walk.</strong> Target kernel \(\pi(\lambda)=\lambda^3e^{-2\lambda}\), \(\lambda&gt;0\). Proposal \(\log\lambda^*\sim N(\log\lambda^c,\ 0.3^2)\). Compute \(\alpha\) for \(\lambda^c=2\), \(\lambda^*=1.5\) (2 d.p.).</li>
+  <li><strong>Independence sampler.</strong> Target kernel \(\pi(\theta)=e^{-\theta^2/2}\); proposal \(g=N(0,4)\) (variance 4), \(g(\theta)\propto e^{-\theta^2/8}\). Compute \(\alpha\) for \(\theta^c=1\), \(\theta^*=3\) (2 d.p.). Would you expect good mixing if \(g\) were \(N(0,0.25)\) instead? Why?</li>
+  <li><strong>Why not a Normal step on \(\tau\)?</strong> In 2–3 sentences: what goes wrong with \(\tau^*=\tau^c+\varepsilon\), \(\varepsilon\sim N(0,s^2)\), and give two fixes. State the proposal ratio for each.</li>
+  <li><strong>Fresh stem.</strong> Redo §4 with the same model but proposal \(\tau^*\sim\text{Exponential}(\text{rate }\tau^c)\), \(\mu^*\sim N(\mu^c,\ 1/\tau^c)\), at the same current and new values \((1,1)\to(2,0.5)\). (The \(\mu\) proposal now depends on the <em>current</em> \(\tau\) only.) Which factors of the proposal ratio cancel?</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p><strong>1.</strong> The loop proposes a bivariate Normal step around the current point (symmetric), forms the ratio of the target densities at the proposal and the current point, and accepts if a \(U(0,1)\) draw is below it; <code>is.nan</code> handles 0/0 when both densities underflow. Symmetric \(\Rightarrow\) \(q\)-ratio 1. 0.457 matches the \(s=2.5\) column (0.46). The cumulative averages start far from 0 (pulled by the early draws near \((6,-6)\)) and settle toward 0: the early part of the chain is burn-in, to be discarded (<a href="0026-mcmc-diagnostics.html">Lesson 26</a>).</p>
+<p><strong>2.</strong> From §6 (my run; the tute solution isn't published): \(s=0.1\) \(\rho\approx1.00\), ESS \(\approx1.4\), acceptance 0.94, and cumulative averages still drifting; \(s=10\) acceptance 0.07, ESS \(\approx86\); \(\sigma_{12}=2.8\): acceptance 0.39 at \(s=2.5\), ESS \(\approx95\), and \(s=10\) falls to ESS \(\approx45\), because the isotropic proposal steps off the ridge.</p>
+<p><strong>3.</strong> The proposal ratio is \(\lambda^*/\lambda^c=0.75\):</p>
+$$\begin{aligned}
+\frac{\pi(\lambda^*)}{\pi(\lambda^c)}&amp;=\Big(\frac{1.5}{2}\Big)^3e^{-2(1.5-2)}=0.4219\,e^{1}=0.4219(2.7183)=1.1468\\
+\alpha&amp;=\min\{1,\ 1.1468\times0.75\}=\min\{1,\ 0.8601\}=0.86
+\end{aligned}$$
+<p><strong>4.</strong> \(w(\theta)=\pi/g=e^{-\theta^2/2+\theta^2/8}=e^{-3\theta^2/8}\):</p>
+$$\begin{aligned}
+\alpha&amp;=\min\Big\{1,\ \frac{w(3)}{w(1)}\Big\}=\exp\Big\{-\frac38(9-1)\Big\}=e^{-3}=0.05
+\end{aligned}$$
+<p>With \(g=N(0,0.25)\) (narrower than \(\pi\)) the weights \(w=\pi/g\) grow without bound in the tails (\(e^{-\theta^2/2+2\theta^2}=e^{1.5\theta^2}\)): a proposal in the tail is almost always rejected, and once the chain reaches a high-weight tail value it sticks. Rule: an independence proposal needs tails at least as heavy as \(\pi\)'s.</p>
+<p><strong>5.</strong> A Normal step proposes \(\tau^*&lt;0\) with positive probability, where \(\pi(\tau^*)=0\), so \(\alpha=0\) and the move is wasted (and the density isn't defined). Fix 1: propose on \((0,\infty)\) from, e.g., \(\tau^*\sim\text{Exponential}(\text{rate }1/\tau^c)\), keeping the full ratio \(q(\tau^c\mid\tau^*)/q(\tau^*\mid\tau^c)=\frac{\tau^c}{\tau^*}\exp\{-\tau^c/\tau^*+\tau^*/\tau^c\}\). Fix 2: random walk on \(\log\tau\) with ratio \(\tau^*/\tau^c\).</p>
+<p><strong>6.</strong> Target factors are unchanged: likelihood 3.9107, prior on \(\mu\) 0.4289, prior on \(\tau\) 0.8244, product \(1.3827\). Proposal: \(\tau\) with rate \(\tau^c\): forward \(q_\tau(\tau^*\mid\tau^c)=\tau^ce^{-\tau^c\tau^*}=1e^{-0.5}=0.6065\); reverse \(q_\tau(\tau^c\mid\tau^*)=\tau^*e^{-\tau^*\tau^c}=0.5e^{-0.5}=0.3033\); ratio \(0.5\) (closed form \(\tau^*/\tau^c\): the exponentials cancel). For \(\mu\), the variance is \(1/\tau^c\) both ways, so it cancels: ratio 1. Then \(\alpha=\min\{1,\ 1.3827\times0.5\times1\}=\min\{1,0.6913\}=0.69\).</p></div></details>
+
+<p><strong>Primary source:</strong> the lecturer's <a href="../lectures/MCMC-3.pdf#page=4">MCMC slides 4–12</a> (algorithm, remarks, choosing \(q\), random walk); the handwritten version is <a href="../annotated-slides/MCMC annotated.pdf#page=4">MCMC annotated</a>. For code reading, <a href="../extra-notes/MHexample-1.pdf">MHexample</a> and its annotated twin <a href="../extra-notes/Metropolis–Hastings example-1.pdf">Metropolis–Hastings example</a>, then the week 10–11 tutes. Skip the "why does it work" slide 6 beyond the one-sentence intuition.</p>
+
+<div class="ask">💬 Ask me in the terminal for a fresh Model/Prior/Proposal stem with your own current and new values (I'll vary which parameter has the asymmetric proposal and which direction the variance depends on), or to mark your ledger for §8. If the reverse-proposal direction in §4 still feels shaky, ask me to redo it with a simpler one-parameter proposal.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0023-monte-carlo-rejection-sampling.html">Lesson 23, Monte Carlo and rejection sampling</a> · Reference: <a href="../reference/kernels-conjugacy.html">kernels and conjugacy</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0025-gibbs-sampling.html">Lesson 25, Gibbs sampling</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

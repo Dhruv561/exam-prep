@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bayes Cheat Sheet</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  body.ref table { font-size: .84rem; margin: .6rem 0; }
+  body.ref th, body.ref td { padding: .28rem .45rem; vertical-align: top; }
+  body.ref th { text-transform: none; letter-spacing: 0; }
+  body.ref p, body.ref li { margin: .35rem 0; }
+  body.ref .box { padding: .6rem .9rem; margin: .7rem 0; }
+  body.ref .trap { padding: .5rem .8rem; margin: .7rem 0; }
+  .src { font-family: Inter, system-ui, sans-serif; font-size: .72rem; color: var(--muted); }
+  .a4 { font-family: Inter, system-ui, sans-serif; font-size: .7rem; font-weight: 600; color: var(--trap); white-space: nowrap; }
+  .sheet { font-family: Inter, system-ui, sans-serif; font-size: .7rem; font-weight: 600; color: var(--ok); white-space: nowrap; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.4rem; }
+  .cols > div, .cols3 > div { min-width: 0; }
+  .cols3 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.4rem; }
+  table.rcode td:first-child { white-space: nowrap; }
+  table.rcode code { font-size: .78rem; }
+  ol.algo { padding-left: 1.3rem; margin: .3rem 0; }
+  @page { size: A4; margin: 9mm 10mm; }
+  @media print {
+    html { font-size: 7.4pt; }
+    body.ref main { max-width: none; }
+    body.ref ul, ol.algo { padding-left: 1.2rem; margin: .2rem 0; }
+    body.ref p, body.ref li { margin: .15rem 0; line-height: 1.38; }
+    body.ref .box { padding: .3rem .6rem; margin: .4rem 0; }
+    body.ref .trap { padding: .3rem .6rem; margin: .4rem 0; }
+    body.ref th, body.ref td { padding: .13rem .32rem; }
+    body.ref h1 { font-size: 1.5rem; margin: 0 0 .2rem; }
+    body.ref .lede { font-size: .95rem; margin: 0 0 .4rem; }
+    body.ref h2 { margin-top: .6rem; padding-top: .25rem; font-size: 1.02rem; }
+    body.ref table { font-size: .78rem; margin: .3rem 0; }
+    .katex-display { margin: .25rem 0; }
+    .cols3 { grid-template-columns: 1fr 1fr 1fr; break-inside: avoid; }
+  }
+</style>
+</head>
+<body class="ref">
+<main>
+<div class="kicker">MAST30027 · Reference</div>
+<h1>Bayesian inference and computation</h1>
+<p class="lede">Topic 5 on two printed pages. The formula sheet gives the pdfs and means of Normal, Exponential, Gamma, Inverse-Gamma, Poisson and Categorical, so every posterior parameter, ratio and update below is <span class="a4">A4</span> material (Gamma variance is not on the sheet). The Bayes question is 17–18 marks: name a Gibbs conditional with its parameters, compute a numeric MH acceptance probability with an asymmetric proposal, derive a CAVI factor in terms of \(E[\mu]\) and \(V[\mu]\). Each heading links to its lesson. Notation: Normal\((\text{mean},\text{variance})\); \(\tau=1/\sigma^2\); Gamma\((\text{shape},\text{rate})\); Inverse-Gamma\((\text{shape},\text{scale})\); \(\tau\sim\text{Gamma}(a,b)\iff\sigma^2\sim\text{Inv-Gamma}(a,b)\); \(S_\mu=\sum_i(x_i-\mu)^2\), \(S=\sum_i(x_i-\bar x)^2\); posterior parameters carry subscript \(n\); \(\pi\) is the unnormalised target, \(\theta^c\) current, \(\theta^*\) proposed.</p>
+
+<div class="cols">
+<div>
+<h2>Bayes' rule <span class="kicker">· <a href="../lessons/0022-bayesian-inference.html">L22</a></span></h2>
+<div class="box">
+$$p(\theta\mid x)=\frac{p(x\mid\theta)p(\theta)}{p(x)}\ \propto\ p(x\mid\theta)\,p(\theta)$$
+</div>
+<p>Drop every factor free of \(\theta\) (\(p(x)\), \(x_i!\), \(\sqrt{2\pi}\), \(b^a/\Gamma(a)\)); <strong>keep</strong> any factor containing it (\(\tau^{n/2}\), the \(\sqrt{\kappa_0\tau}\) of \(p(\mu\mid\tau)\)). Joint prior \(p(\mu,\tau)=p(\mu\mid\tau)p(\tau)\). <span class="src"><a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=8">Intro Bayes slide 8</a></span></p>
+<p><strong>Summaries.</strong> Mean \(E[\theta\mid x]\); 95% credible interval = central 95% (Normal posterior: mean \(\pm1.96\) sd), \(P(\theta\in I\mid x)=0.95\). Predictive \(p(\tilde x\mid x)=\int p(\tilde x\mid\theta)p(\theta\mid x)d\theta\); Normal: \(N(m_n,\ 1/\kappa_n+1/\tau)\). By simulation: draw \(\theta^{(t)}\), then \(\tilde x^{(t)}\mid\theta^{(t)}\).</p>
+</div>
+<div>
+<h2>Priors <span class="kicker">· <a href="../lessons/0022-bayesian-inference.html">L22</a></span></h2>
+<p><strong>Vague:</strong> proper, nearly flat (\(N(0,10^6)\), Gamma\((0.001,0.001)\)). <strong>Informative:</strong> \(\kappa_0\) or \(b\) comparable to \(n\tau\) or \(n\). <strong>Improper:</strong> \(\int p=\infty\): \(p(\mu)\propto1\), \(p(\tau)\propto1/\tau\), \(p(\sigma^2)\propto1/\sigma^2\). Check the posterior kernel is a valid distribution:</p>
+<p>\(p(\mu)\propto1\Rightarrow N(\bar x,\frac1{n\tau})\) · \(p(\tau)\propto\frac1\tau\Rightarrow\text{Gamma}(\frac n2,\frac S2)\), proper iff \(S&gt;0\) · Poisson \(p(\lambda)\propto\frac1\lambda\Rightarrow\text{Gamma}(\sum y,n)\), proper iff \(\sum y&gt;0\).</p>
+<p>BUGS <code>dnorm(mean, precision)</code>: <code>dnorm(10, 0.01)</code> is \(N(10,100)\).</p>
+</div>
+</div>
+
+<h2>Conjugate posteriors <span class="kicker">· <a href="../lessons/0022-bayesian-inference.html">L22</a></span> <span class="src">· all checked numerically in R</span></h2>
+<table>
+<tr><th>Model and prior</th><th>Posterior</th><th>Reading</th></tr>
+<tr><td>\(x_i\sim N(\mu,\frac1\tau)\), \(\tau\) known; \(\mu\sim N(m_0,\frac1{\kappa_0})\)</td><td>\(N\big(m_n,\frac1{\kappa_n}\big)\), \(\kappa_n=\kappa_0+n\tau\), \(m_n=\dfrac{\kappa_0m_0+n\tau\bar x}{\kappa_0+n\tau}\)</td><td>precisions add; \(m_n=wm_0+(1-w)\bar x\), \(w=\kappa_0/\kappa_n\)</td></tr>
+<tr><td>\(\mu\) known; \(\tau\sim\text{Gamma}(a,b)\)</td><td>\(\text{Gamma}\big(a+\frac n2,\ b+\frac{S_\mu}2\big)\)</td><td>mean \(a_n/b_n\)</td></tr>
+<tr><td>\(\mu\) known; \(\sigma^2\sim\text{Inv-Gamma}(a,b)\)</td><td>\(\text{Inv-Gamma}\big(a+\frac n2,\ b+\frac{S_\mu}2\big)\)</td><td>mean \(\frac{b_n}{a_n-1}\), <strong>not</strong> \(\frac{b_n}{a_n}\)</td></tr>
+<tr><td>\(y_i\sim\text{Poisson}(\lambda)\); \(\lambda\sim\text{Gamma}(a,b)\)</td><td>\(\text{Gamma}\big(a+\sum y_i,\ b+n\big)\); exposures \(t_i\) (\(\text{Poisson}(t_i\lambda)\)): \(\text{Gamma}(a+\sum y_i,\ b+\sum t_i)\)</td><td>\(w\frac ab+(1-w)\bar y\), \(w=\frac b{b+n}\); var \(\frac{a_n}{b_n^2}\) <span class="a4">A4</span></td></tr>
+<tr><td>\(x_i\sim\text{Exp}(\text{rate }\lambda)\); \(\lambda\sim\text{Gamma}(a,b)\)</td><td>\(\text{Gamma}\big(a+n,\ b+\sum x_i\big)\)</td><td>mean \(\frac{a+n}{b+\sum x_i}\)</td></tr>
+<tr><td>joint: \(\mu\mid\tau\sim N(m_0,\frac1{\kappa_0\tau})\), \(\tau\sim\text{Gamma}(a,b)\)</td><td>\(\mu\mid\tau,x\sim N\big(\frac{n\bar x+\kappa_0m_0}{n+\kappa_0},\frac1{(n+\kappa_0)\tau}\big)\); \(\tau\mid x\sim\text{Gamma}\big(a+\frac n2,\ b_n\big)\), \(b_n=b+\frac S2+\frac{n\kappa_0(\bar x-m_0)^2}{2(n+\kappa_0)}\)</td><td>\(\tau\) cancels in the mean; missing third term in \(b_n\) is the usual lost mark</td></tr>
+</table>
+
+<h2>Gibbs sampling <span class="kicker">· <a href="../lessons/0025-gibbs-sampling.html">L25</a></span> <span class="src">· <a href="../lectures/MCMC-3.pdf#page=13">MCMC slides 13–23</a></span></h2>
+<div class="box">
+<ol class="algo">
+  <li>Write the joint = likelihood \(\times\) every prior. 2. Treat other parameters as constants; <strong>keep</strong> each factor containing \(\theta_j\). 3. Recognise the kernel: \(\exp\{\text{quadratic}\}\to\) Normal (complete the square); \(\theta^{s-1}e^{-r\theta}\to\) Gamma; finite set \(\to\) weights, divide by the total. 4. State name <em>and</em> both parameters, in the sheet's parametrisation.</li>
+</ol>
+<p><strong>Scheme:</strong> initial values; for \(t=1,\dots,T\) draw each parameter from its conditional using the <strong>newest</strong> values of the others; discard burn-in; average \(g\) over kept draws. It is MH with \(\alpha=1\), so no proposal and no accept/reject.</p>
+</div>
+<table>
+<tr><th>Model (data \(x_i\sim N(\mu,\frac1\tau)\) unless stated)</th><th>Conditional of the mean</th><th>Conditional of \(\tau\)</th></tr>
+<tr><td>independent: \(\mu\sim N(m_0,\frac1{\kappa_0})\), \(\tau\sim\text{Gamma}(a,b)\)</td><td>\(N\big(\frac{\kappa_0m_0+\tau\sum x_i}{\kappa_0+n\tau},\ \frac1{\kappa_0+n\tau}\big)\)</td><td>\(\text{Gamma}\big(a+\frac n2,\ b+\frac12\sum(x_i-\mu)^2\big)\)</td></tr>
+<tr><td>joint prior \(\mu\mid\tau\sim N(m_0,\frac1{\kappa_0\tau})\)</td><td>\(N\big(\frac{\kappa_0m_0+n\bar x}{\kappa_0+n},\ \frac1{(\kappa_0+n)\tau}\big)\)</td><td>\(\text{Gamma}\big(a+\frac{n+1}2,\ b+\frac12[\sum(x_i-\mu)^2+\kappa_0(\mu-m_0)^2]\big)\)</td></tr>
+<tr><td>second source \(y_j\sim N(\mu,\frac1{c\tau})\) (\(c=\frac12\) if variance \(2\sigma^2\))</td><td>\(A=\kappa_0+(n+cm)\tau\), \(B=\kappa_0m_0+\tau(\sum x_i+c\sum y_j)\); \(N(B/A,1/A)\)</td><td>\(\text{Gamma}\big(a+\frac{n+m}2,\ b+\frac12[\sum(x_i-\mu)^2+c\sum(y_j-\mu)^2]\big)\)</td></tr>
+<tr><td>\(y_j\sim N(k\mu,\frac1\tau)\) (mean scaled by \(k\))</td><td>\(A=\kappa_0+(n+k^2m)\tau\), \(B=\kappa_0m_0+\tau(\sum x_i+k\sum y_j)\)</td><td>\(\sum(y_j-k\mu)^2\) in the rate</td></tr>
+<tr><td>variance \(\sigma^2\sim\text{Inv-Gamma}(a,b)\)</td><td>same Normal with \(\tau=1/\sigma^2\)</td><td>\(\sigma^2\mid\mu\sim\text{Inv-Gamma}(a+\frac n2,\ b+\frac12\sum(x_i-\mu)^2)\); R: <code>1/rgamma(1,a+n/2,b+S/2)</code></td></tr>
+<tr><td>improper \(p(\mu_1),p(\mu_2)\propto1\), \(p(\tau)\propto\frac1\tau\), common \(\tau\)</td><td>\(\mu_1\sim N(\bar x,\frac1{n\tau})\), \(\mu_2\sim N(\bar y,\frac1{m\tau})\)</td><td>\(\text{Gamma}\big(\frac{n+m}2,\ \frac12[\sum(x_i-\mu_1)^2+\sum(y_j-\mu_2)^2]\big)\)</td></tr>
+<tr><td>hierarchical: \(y_{ij}\sim N(\theta_j,\frac1\tau)\), \(\theta_j\mid\mu\sim N(\mu,\frac1{\tau_\theta})\), \(\mu\sim N(m_0,\frac1{\kappa_0})\), \(\tau_\theta\sim\text{Gamma}(c,d)\) <span class="src"><a href="../lessons/0028-topic5-review.html">L28</a></span></td><td>\(\mu\mid\theta\sim N\big(\frac{\kappa_0m_0+\tau_\theta\sum_j\theta_j}{\kappa_0+J\tau_\theta},\frac1{\kappa_0+J\tau_\theta}\big)\) <strong>(no \(y\))</strong>; \(\theta_j\sim N\big(\frac{n_j\tau\bar y_j+\tau_\theta\mu}{n_j\tau+\tau_\theta},\frac1{n_j\tau+\tau_\theta}\big)\)</td><td>\(\tau_\theta\sim\text{Gamma}\big(c+\frac J2,\ d+\frac12\sum_j(\theta_j-\mu)^2\big)\); \(\tau\sim\text{Gamma}(a+\frac N2,\ b+\frac12\sum_{ij}(y_{ij}-\theta_j)^2)\)</td></tr>
+<tr><td>Poisson: \(y_i\sim\text{Poi}(\lambda)\), \(z_j\sim\text{Poi}(k\lambda)\); \(\lambda\sim\text{Gamma}(a,b)\)</td><td colspan="2">\(\lambda\mid\cdot\sim\text{Gamma}\big(a+\sum y_i+\sum z_j,\ b+n+km\big)\)</td></tr>
+<tr><td>changepoint: \(y_i\sim\text{Poi}(\lambda_1)\) for \(i\le M\), else \(\lambda_2\); \(c_m=\sum_{i\le m}y_i\)</td><td colspan="2">\(\lambda_1\sim\text{Gamma}(a_1+c_M,\ b_1+M)\); \(\lambda_2\sim\text{Gamma}(a_2+c_n-c_M,\ b_2+n-M)\); \(P(M=m\mid\cdot)\propto(\frac{\lambda_1}{\lambda_2})^{c_m}e^{(\lambda_2-\lambda_1)m}\), \(m=1..n\)</td></tr>
+</table>
+
+<h2>Metropolis–Hastings <span class="kicker">· <a href="../lessons/0024-metropolis-hastings.html">L24</a></span> <span class="src">· <a href="../lectures/MCMC-3.pdf#page=4">MCMC slides 4–12</a></span></h2>
+<div class="box">
+$$\alpha=\min\Big\{1,\ \underbrace{\frac{\pi(\theta^*)}{\pi(\theta^c)}}_{\text{target ratio}}\times\underbrace{\frac{q(\theta^c\mid\theta^*)}{q(\theta^*\mid\theta^c)}}_{\text{proposal: reverse/forward}}\Big\},\qquad\pi=p(x\mid\theta)\,p(\theta)\ \ (\text{posterior kernel})$$
+<p>Propose \(\theta^*\sim q(\cdot\mid\theta^c)\); draw \(u\sim U(0,1)\); accept if \(u&lt;\alpha\), else <strong>repeat</strong> \(\theta^c\). Logs: \(\log\alpha=\min\{0,\ \log\pi^*-\log\pi^c+\log q(\theta^c\mid\theta^*)-\log q(\theta^*\mid\theta^c)\}\), accept if \(\log u&lt;\log\alpha\).</p>
+</div>
+<div class="cols">
+<div>
+<p><strong>Ledger order (one line per factor, 4 d.p., round once):</strong> (i) likelihood ratio, keeping powers like \((\tau^*/\tau^c)^{n/2}\) · (ii) each prior ratio, keeping \(\sqrt{\tau}\) of \(p(\mu\mid\tau)\) · (iii) proposal ratio for each proposed parameter · multiply · \(\min\{1,\cdot\}\).</p>
+<p><strong>Proposal ratio.</strong> Reverse density starts at \(\theta^*\) and lands on \(\theta^c\): a rate or variance that depended on \(\theta^c\) forward depends on \(\theta^*\) in reverse. Exponential\((\text{rate }1/\tau^c)\): \(q=\frac1{\tau^c}e^{-\tau^*/\tau^c}\); Gamma\((\nu,\nu/\tau^c)\): rate changes too; Normal\((\mu^c,1/\tau^*)\): forward variance \(1/\tau^*\), reverse \(1/\tau^c\).</p>
+</div>
+<div>
+<table>
+<tr><th>Proposal</th><th>Ratio</th></tr>
+<tr><td>Random walk \(N(\theta^c,s^2)\)</td><td>cancels: \(\alpha=\min\{1,\pi^*/\pi^c\}\)</td></tr>
+<tr><td>Independence \(g\)</td><td>\(\alpha=\min\{1,w^*/w^c\}\), \(w=\pi/g\)</td></tr>
+<tr><td>\(\log\tau^*\sim N(\log\tau^c,s^2)\)</td><td>extra factor \(\tau^*/\tau^c\)</td></tr>
+<tr><td>Gibbs conditional</td><td>\(\alpha=1\)</td></tr>
+</table>
+<p><strong>Tuning.</strong> Acceptance too high (0.9) = tiny steps, slow ACF decay; too low (0.05) = huge steps, flat stretches. Aim about 0.2–0.5. Leaving out the proposal ratio gives complete-looking working and loses about 2 marks.</p>
+</div>
+</div>
+
+<div class="cols">
+<div>
+<h2>Monte Carlo and rejection <span class="kicker">· <a href="../lessons/0023-monte-carlo-rejection-sampling.html">L23</a></span></h2>
+<p><strong>MC:</strong> \(E[g(\theta)\mid x]\approx\frac1N\sum g(\theta^{(s)})\); a probability is the mean of indicators. SE \(=\text{sd}(g)/\sqrt N\) or \(\sqrt{\hat p(1-\hat p)/N}\) (independent draws only; not the posterior sd). <span class="src"><a href="../lectures/MC_methods_LMS-2.pdf#page=3">MC slides 3, 24–28</a></span></p>
+<p><strong>Inversion:</strong> \(U\sim U(0,1)\Rightarrow F^{-1}(U)\sim F\); solve \(u=F(x)\) (Exp(rate \(\lambda\)): \(x=-\ln(1-u)/\lambda\)). Discrete: increase \(x\) while \(F(x)&lt;u\).</p>
+<p><strong>Rejection</strong> (target \(\tilde f=Zf\), proposal \(g\)): draw \(X\sim g\), \(U\sim U(0,1)\); accept if \(U\le\dfrac{\tilde f(X)}{M\,g(X)}\). Smallest \(M=\sup\tilde f/g\) (differentiate, check max). \(P(\text{accept})=Z/M\) (\(1/M\) if \(f\) is normalised); attempts per draw \(M/Z\). Proposal = prior: \(M=\max_\theta p(x\mid\theta)\), accept if \(U\le p(x\mid\theta)/p(x\mid\hat\theta)\).</p>
+</div>
+<div>
+<h2>Diagnostics <span class="kicker">· <a href="../lessons/0026-mcmc-diagnostics.html">L26</a></span> <span class="src">· <a href="../lectures/MCMC_diagnostics-1.pdf#page=7">diagnostics slides 7–14</a></span></h2>
+<p><strong>Trace plot:</strong> stationary = hairy caterpillar, no trend, constant spread; burn-in = where chains from <em>overdispersed</em> starts overlap. Wandering trace, slow ACF decay = poor mixing. Informal: traces and ACF. Formal: \(\hat R\).</p>
+<p>\(\hat R=B/W\): \(B\) = sd of all pooled draws, \(W\) = mean of within-chain sds, on the post-burn-in window; \(\hat R&lt;1.05\) accepts. It cannot see regions no chain reached, nor autocorrelation.</p>
+<p>\(\rho_k\) = lag-\(k\) autocorrelation. \(\text{ESS}=\dfrac{n}{1+2\sum\rho_i}\approx n\dfrac{1-\hat\rho_1}{1+\hat\rho_1}\). MCMC SE \(=s/\sqrt{\text{ESS}}\), not \(s/\sqrt n\); block means: \(S/\sqrt Q\). Thinning saves memory, never raises ESS.</p>
+</div>
+</div>
+
+<h2>Variational inference and CAVI <span class="kicker">· <a href="../lessons/0027-variational-inference-cavi.html">L27</a></span> <span class="src">· <a href="../lectures/VI-2.pdf#page=8">VI slides 8–24</a></span></h2>
+<div class="cols">
+<div>
+<div class="box">
+$$q^*_j(\theta_j)\propto\exp\big\{E_{-j}[\log p(\theta,x)]\big\},\qquad q=\prod_jq_j$$
+$$\begin{aligned}\text{ELBO}&=E_q[\log p(\theta,x)]-E_q[\log q]\\\log p(x)&=\text{ELBO}+\text{KL}(q\|p)\end{aligned}$$
+<p>Maximise ELBO \(\iff\) minimise KL; ELBO \(\le\log p(x)\); never needs \(p(x)\). CAVI never lowers the ELBO; local optimum only.</p>
+</div>
+<p><strong>Recipe:</strong> log joint line by line, keep terms with \(\theta_j\), take \(E_{-j}\), expand squares, name. <strong>Trick:</strong> \(E_\mu[(c-\mu)^2]=(c-E[\mu])^2+V[\mu]\). \(E[\tau]=a^*/b^*\) for Gamma\((a^*,b^*)\).</p>
+</div>
+<div>
+<table>
+<tr><th></th><th>Joint prior \(\mu\mid\tau\sim N(m_0,\frac1{\kappa_0\tau})\)</th><th>Independent \(\mu\sim N(m_0,\frac1{\kappa_0})\)</th></tr>
+<tr><td>\(q^*_\mu=N(m^*,v^*)\)</td><td>\(m^*=\frac{\kappa_0m_0+n\bar x}{\kappa_0+n}\), \(v^*=\frac1{(\kappa_0+n)E[\tau]}\)</td><td>\(m^*=\frac{\kappa_0m_0+E[\tau]n\bar x}{\kappa_0+nE[\tau]}\), \(v^*=\frac1{\kappa_0+nE[\tau]}\)</td></tr>
+<tr><td>\(q^*_\tau=\text{Gamma}(a^*,b^*)\)</td><td>\(a^*=a+\frac{n+1}2\), \(b^*=b+\frac12[\sum(x_i-E\mu)^2+nV\mu]+\frac{\kappa_0}2[(E\mu-m_0)^2+V\mu]\)</td><td>\(a^*=a+\frac n2\), \(b^*=b+\frac12[\sum(x_i-E\mu)^2+nV\mu]\)</td></tr>
+</table>
+<p>Iterate \(q_\mu\to q_\tau\to\cdots\); \(q^*_{\sigma^2}\) under an Inv-Gamma prior is Inv-Gamma with the same \(b^*\) expression. <strong>VI vs MCMC:</strong> VI fast and deterministic, but mean-field <strong>underestimates variance</strong> (bivariate Normal: \(\sigma^2(1-\rho^2)\)); MCMC slow but exact in the limit.</p>
+</div>
+</div>
+
+<h2>Reading the R <span class="kicker">· <a href="../lessons/0023-monte-carlo-rejection-sampling.html">L23</a>–<a href="../lessons/0026-mcmc-diagnostics.html">26</a></span> <span class="src">· read, don't write</span></h2>
+<div class="tablewrap"><table class="rcode">
+<tr><th>R</th><th>Maths</th></tr>
+<tr><td><code>rnorm(1, m, sqrt(v))</code></td><td>draw from \(N(m,v)\); the third argument is the <strong>sd</strong>, not the variance</td></tr>
+<tr><td><code>rgamma(1, shape = a, rate = b)</code> · <code>1/rgamma(1, a, b)</code></td><td>Gamma\((a,b)\) draw (mean \(a/b\)) · Inv-Gamma\((a,b)\) draw</td></tr>
+<tr><td><code>dnorm(x, m, sd, log = TRUE)</code> · <code>dgamma(x, a, rate = b, log = TRUE)</code></td><td>log densities for \(\log\pi\) and \(\log q\); differences = log ratios</td></tr>
+<tr><td><code>if (runif(1) &lt; ratio)</code> · <code>if (log(runif(1)) &lt; logratio)</code></td><td>accept with probability \(\min\{1,\text{ratio}\}\); no \(q\)-ratio in the code means a symmetric proposal</td></tr>
+<tr><td><code>runif(1) &lt;= ft(cand)/M</code></td><td>rejection accept rule \(U\le\tilde f(X)/(Mg(X))\), \(g=1\) here</td></tr>
+<tr><td><code>sample(1:n, 1, prob = w)</code></td><td>draw a discrete \(M\) with weights \(w_m\) (normalised internally)</td></tr>
+<tr><td><code>cumsum(y)</code> · <code>mean(draws &gt; c)</code></td><td>partial sums \(c_m\) · MC estimate of \(P(\theta&gt;c\mid x)\)</td></tr>
+<tr><td><code>apply(chs, 2, sd)</code> · <code>sd(as.vector(chs))</code></td><td>within-chain sds (\(W\) = their mean) · pooled sd (\(B\))</td></tr>
+<tr><td><code>acf(x, plot = FALSE)$acf[2]</code></td><td>\(\hat\rho_1\), for \(\text{ESS}=n(1-\hat\rho_1)/(1+\hat\rho_1)\)</td></tr>
+<tr><td><code>mean(diff(x) != 0)</code></td><td>acceptance rate (fraction of moves)</td></tr>
+</table></div>
+
+<div class="trap"><strong>Traps</strong><br>
+Missing proposal ratio, or forward over reverse · reverse density using the <em>forward</em> rate or variance · dropping \(\tau^{n/2}\) or \(\sqrt\tau\) as constants · shape \(a+\frac n2\) vs \(a+\frac{n+1}2\) (joint prior) · \(y\) appearing in a hierarchical \(\mu\) conditional · Normal(mean, <em>variance</em>) given a precision or sd · variance of \(\tau\mid x\) from the sheet (it isn't there) · \(1/E[\tau]\ne E[\sigma^2]=\frac{b}{a-1}\) · \(V[\mu]\) left out of CAVI · \(E[\tau]=b^*/a^*\) upside down · \(\kappa_0\) multiplied by \(E[\tau]\) under an independent prior · \(s/\sqrt n\) for a chain (use ESS) · \(\hat R\) on draws that include burn-in · \(Z/M\) vs \(1/M\) · rounding inside the ledger · "VI is faster" as the limitation.</div>
+
+<h2>For your A4 sheet <span class="a4">A4</span></h2>
+<ol class="algo">
+  <li>\(p(\theta\mid x)\propto p(x\mid\theta)p(\theta)\); keep factors containing \(\theta\) (\(\tau^{n/2}\), \(\sqrt\tau\)). Normal(mean, var), Gamma(shape, rate), Inv-Gamma(shape, scale).</li>
+  <li>Normal: \(\kappa_n=\kappa_0+n\tau\), \(m_n=\frac{\kappa_0m_0+n\tau\bar x}{\kappa_n}\). \(\tau\): Gamma\((a+\frac n2,\ b+\frac{S_\mu}2)\). Inv-Gamma\((a+\frac n2,\ b+\frac{S_\mu}2)\), mean \(\frac b{a-1}\). Poisson: Gamma\((a+\sum y,\ b+n)\).</li>
+  <li>Joint Normal–Gamma: \(\mu\mid\tau\sim N(\frac{n\bar x+\kappa_0m_0}{n+\kappa_0},\frac1{(n+\kappa_0)\tau})\); \(b_n=b+\frac S2+\frac{n\kappa_0(\bar x-m_0)^2}{2(n+\kappa_0)}\). Gibbs \(\tau\mid\mu\): shape \(a+\frac{n+1}2\).</li>
+  <li>Gibbs: joint \(\to\) keep \(\theta_j\)-terms \(\to\) kernel \(\to\) name + params. Two sources: add \(c\sum y\), \(cm\) to \(A,B\). Hierarchical \(\mu\): \(N(\frac{\kappa_0m_0+\tau_\theta\sum\theta_j}{\kappa_0+J\tau_\theta},\frac1{\kappa_0+J\tau_\theta})\).</li>
+  <li>\(\alpha=\min\{1,\frac{\pi^*q(c|*)}{\pi^cq(*|c)}\}\): likelihood, priors, proposal (reverse/forward). Log-RW: \(\times\tau^*/\tau^c\). Reverse density uses the <em>new</em> value.</li>
+  <li>Reject: accept if \(U\le\frac{\tilde f}{Mg}\), \(M=\sup\frac{\tilde f}g\), \(P=Z/M\). MC SE \(\sqrt{\hat p(1-\hat p)/N}\). ESS \(=n\frac{1-\rho_1}{1+\rho_1}\), SE \(=s/\sqrt{\text{ESS}}\). \(\hat R=B/W&lt;1.05\).</li>
+  <li>CAVI: \(q^*_j\propto\exp E_{-j}[\log p]\); \(\log p(x)=\text{ELBO}+\text{KL}\); \(E(c-\mu)^2=(c-E\mu)^2+V\mu\).</li>
+  <li>N–G CAVI: \(q^*_\mu=N(m^*,\frac1{(\kappa_0+n)E\tau})\); \(q^*_\tau=\text{Gamma}(a+\frac{n+1}2,\ b+\frac12[\sum(x_i-E\mu)^2+nV\mu]+\frac{\kappa_0}2[(E\mu-m_0)^2+V\mu])\); \(E\tau=a^*/b^*\). VI underestimates variance.</li>
+</ol>
+</main>
+</body>
+</html>

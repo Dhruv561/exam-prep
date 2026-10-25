@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topic 5 Mixed Review</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .4rem 1rem .6rem; margin: 1.2rem 0; }
+  .answer-box > p:first-child { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); margin-bottom: .2rem; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  figure.plot { margin: .8rem 0; }
+  figure.plot img { max-width: 100%; border: 1px solid var(--rule); border-radius: 6px; }
+  figure.plot figcaption { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); margin-top: .3rem; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 28 · Topic 5: Bayesian inference &amp; computation (7 of 7)</div>
+<h1>Topic 5 mixed review: a Bayes question cold, at exam pace</h1>
+<p class="lede">Lessons 22–27 taught each piece of the Bayes question alone: posterior, Monte Carlo, Metropolis–Hastings, Gibbs, diagnostics, CAVI. This lesson puts them back together on models you haven't seen: Normal data from two instruments with an Inverse-Gamma variance, a hierarchical prior (the gap Lesson 25 left), a rejection sampler with chain output, and twelve short items that mix Topic 5 with Topics 1–4. The win: <strong>finish a full 17-mark Bayes question cold in about 40 minutes</strong>, with every line a marker wants to see.</p>
+
+<div class="mission">Why this matters for 10 Nov: a Bayes question has appeared on every paper from 2020 to 2022 at 17–18 marks, with the same skeleton: a "Model: … Prior: …" stem, then (a) a Gibbs full conditional that you name with its parameters, (b) a numeric Metropolis–Hastings acceptance probability with an asymmetric proposal, (c) a CAVI factor in terms of \(E[\mu]\) and \(V[\mu]\). Each year the model was new. Older papers add describing a Gibbs scheme, reading trace plots and convergence checks, and rejection sampling. At about 2.3 minutes per mark, 17 marks is about 40 minutes. The lecturer also said R will be read, not written, so the computation part is output to interpret. The skill being tested is the recipe on a new model, not a memorised formula.</div>
+
+<div class="trap"><strong>Rules for this lesson</strong><br>Close Lessons 22–27, the <a href="../reference/bayes-cheatsheet.html">Bayes cheat sheet</a> and the slides. Paper, pen and an FX-82 only. Set a 40-minute timer for Part A, 25 minutes for Part B and Part C together. Write your answer before you open any fold. Every wrong first try is useful: the table in §7 says which lesson to go back to. Open the cheat sheet only after scoring, to see what you forgot.</div>
+
+<h2>1 · Recall first (5 minutes)</h2>
+<p>On a blank page, write from memory:</p>
+<ol>
+  <li>Bayes' rule with \(\propto\), what you drop, and the four conjugate results: Normal mean with known precision, Normal precision with known mean, Normal variance with an Inverse-Gamma prior, Poisson rate with a Gamma prior.</li>
+  <li>The four-step recipe for a full conditional. Which factor do people drop by mistake, and which shape do they get wrong?</li>
+  <li>A Gibbs scheme in numbered steps, and why it has no accept/reject step.</li>
+  <li>The MH acceptance probability, the order you evaluate the factors, the direction of the proposal ratio, and when it cancels. What is the extra factor for a random walk on \(\log\tau\)?</li>
+  <li>Rejection sampling: the accept rule, the smallest \(M\), the acceptance probability, and what changes when the proposal is the prior.</li>
+  <li>The difference between the MC standard error and the MCMC standard error; the ESS formula; the \(\hat R\) rule and its threshold; how you choose burn-in.</li>
+  <li>The CAVI rule, the ELBO identity, the trick for \(E_\mu[(c-\mu)^2]\), and what differs between an independent prior on \(\mu\) and the joint prior \(\mu\mid\tau\).</li>
+  <li>Two things VI does better than MCMC, and the one thing it does worse.</li>
+</ol>
+<details><summary>Check your page</summary><div>
+<p>1. \(p(\theta\mid x)\propto p(x\mid\theta)p(\theta)\); drop every factor free of \(\theta\), including \(p(x)\) (<a href="0022-bayesian-inference.html">Lesson 22</a>). Normal mean: \(N(m_n,1/\kappa_n)\), \(\kappa_n=\kappa_0+n\tau\), \(m_n=(\kappa_0m_0+n\tau\bar x)/\kappa_n\). Precision: Gamma\((a+n/2,\ b+\sum(x_i-\mu)^2/2)\). Variance, Inv-Gamma\((a,b)\): Inv-Gamma\((a+n/2,\ b+\sum(x_i-\mu)^2/2)\). Poisson: Gamma\((a+\sum y_i,\ b+n)\).<br>
+2. Write the joint; keep factors containing the parameter; recognise the kernel; name it with parameters (<a href="0025-gibbs-sampling.html">Lesson 25</a> §2). Dropped by mistake: \(\tau^{n/2}\) (and the \(\sqrt\tau\) from a prior \(\mu\mid\tau\)). Wrong shape: \(a+n/2\) vs \(a+(n+1)/2\).<br>
+3. Initial values; for \(t=1,\dots,T\) draw each parameter from its full conditional using the newest values of the others; discard burn-in; average over the rest. Each proposal is an exact conditional, so the MH ratio is 1.<br>
+4. \(\alpha=\min\{1,\ \frac{\pi(\theta^*)}{\pi(\theta^c)}\cdot\frac{q(\theta^c\mid\theta^*)}{q(\theta^*\mid\theta^c)}\}\); ledger: likelihood, then each prior, then the proposal ratio, <em>reverse over forward</em>; it cancels for a symmetric (random-walk Normal) proposal. Log-scale walk: extra factor \(\tau^*/\tau^c\) (<a href="0024-metropolis-hastings.html">Lesson 24</a>).<br>
+5. Draw \(X\sim g\), \(U\sim U(0,1)\); accept if \(U\le\tilde f(X)/(Mg(X))\). \(M=\sup\tilde f/g\) by calculus. Acceptance probability \(Z/M\) with \(Z=\int\tilde f\). Prior as proposal: \(M=\) max likelihood (<a href="0023-monte-carlo-rejection-sampling.html">Lesson 23</a>).<br>
+6. MC SE \(=\text{sd}/\sqrt N\) for independent draws (or \(\sqrt{\hat p(1-\hat p)/N}\)); MCMC SE \(=s/\sqrt{\text{ESS}}\), \(\text{ESS}\approx n(1-\hat\rho_1)/(1+\hat\rho_1)\). \(\hat R=B/W\) (pooled sd over mean within-chain sd), \(&lt;1.05\). Burn-in: where several overdispersed chains overlap (<a href="0026-mcmc-diagnostics.html">Lesson 26</a>).<br>
+7. \(q^*_j\propto\exp\{E_{-j}[\log p(\theta,x)]\}\); \(\log p(x)=\text{ELBO}+\text{KL}\); \(E_\mu[(c-\mu)^2]=(c-E[\mu])^2+V[\mu]\). Joint prior: shape \(a+\frac{n+1}2\), \(\mu\) precision \((\kappa_0+n)E[\tau]\); independent prior: shape \(a+\frac n2\), precision \(\kappa_0+nE[\tau]\) (<a href="0027-variational-inference-cavi.html">Lesson 27</a>).<br>
+8. Faster, deterministic and scales to big data; but it underestimates the posterior variance (mean-field ignores dependence) and finds only a local optimum.</p>
+<p style="margin-bottom:0">Fewer than 6 of 8 fully right? Reread the <a href="../reference/bayes-cheatsheet.html">Bayes cheat sheet</a> once, close it, then start Part A.</p></div></details>
+
+<h2>2 · Part A: exam-length Bayes question (17 marks, 40 minutes)</h2>
+<div class="box">
+<p><strong>Question A</strong> (17 marks). A lab measures a coating thickness \(\mu\) (microns) with two instruments. Instrument 1 gives \(x_1,\dots,x_n\) and the less precise instrument 2 gives \(y_1,\dots,y_m\). Given \((\mu,\sigma^2)\), all measurements are independent.</p>
+<p><strong>Model:</strong></p>
+$$x_i\mid\mu,\sigma^2\sim\text{Normal}(\mu,\ \sigma^2),\qquad y_j\mid\mu,\sigma^2\sim\text{Normal}(\mu,\ 2\sigma^2).$$
+<p><strong>Prior:</strong> \(\mu\) and \(\sigma^2\) are independent a priori, with</p>
+$$\mu\sim\text{Normal}(2,\ 1),\qquad\sigma^2\sim\text{Inverse-Gamma}(3,\ 2)\quad\text{(shape, scale)}.$$
+<p>The data are \(x=(2.1,\ 1.7,\ 2.6,\ 1.9)\) (so \(n=4\), \(\sum x_i=8.3\)) and \(y=(2.8,\ 1.4)\) (so \(m=2\), \(\sum y_j=4.2\)). Normal\((\text{mean},\text{variance})\); Gamma(shape \(\nu\), rate \(\beta\)) has density \(\frac{\beta^\nu}{\Gamma(\nu)}x^{\nu-1}e^{-\beta x}\) for \(x&gt;0\), with \(\Gamma(4)=6\).</p>
+<p>(a) Derive the conditional distribution \(p(\mu\mid\sigma^2,x,y)\). If it is a known distribution, identify the distribution name and its parameters. <span class="marks">[5]</span><br>
+(b) We use Metropolis–Hastings for \((\mu,\sigma^2)\). For the current values \((\mu^c,\sigma^{2c})\) propose new values \((\mu^*,\sigma^{2*})\) as follows: first \(\sigma^{2*}\sim\text{Gamma}\big(\text{shape}=4,\ \text{rate}=4/\sigma^{2c}\big)\), then \(\mu^*\sim\text{Normal}\big(\text{mean}=\mu^c,\ \text{variance}=\sigma^{2*}/2\big)\). Compute the acceptance probability when \((\mu^c,\sigma^{2c})=(2.0,\ 0.5)\) and \((\mu^*,\sigma^{2*})=(2.4,\ 0.4)\). Show your work. <span class="marks">[6]</span><br>
+(c) Approximate the posterior by \(q(\mu,\sigma^2)=q_\mu(\mu)\,q_{\sigma^2}(\sigma^2)\), chosen by coordinate ascent variational inference, \(q^*_j(\theta_j)\propto\exp\{E_{-j}[\log p(x,y,\mu,\sigma^2)]\}\). Derive \(q^*_{\sigma^2}(\sigma^2)\). If it is a known distribution, identify its name and parameters; they may contain \(E_\mu[\mu]\) and \(V_\mu[\mu]\). Then evaluate them when \(E_\mu[\mu]=2.1\) and \(V_\mu[\mu]=0.05\), and give \(E[\sigma^2]\) under \(q^*_{\sigma^2}\). <span class="marks">[6]</span></p>
+</div>
+<p>Pace guide: (a) 10 minutes, (b) 17, (c) 13. In (b) write the ledger first (one line per factor) and multiply at the end: unfinished arithmetic with a correct ledger still earns most of the marks.</p>
+
+<div class="quiz num" data-answer="2.07" data-tol="0.005">
+  <p class="q"><strong>A1.</strong> Part (a): at the current value \(\sigma^2=0.5\), give the mean of the full conditional of \(\mu\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Precision \(A=1+(n+\tfrac m2)/\sigma^2=1+5/0.5=11\). \(B=2+(\sum x_i+\tfrac12\sum y_j)/\sigma^2=2+(8.3+2.1)/0.5=2+20.8=22.8\).
+  $$\begin{aligned}\frac BA&amp;=\frac{22.8}{11}\\&amp;=\textbf{2.07}\end{aligned}$$
+  The variance is \(1/11=0.09\). Treating instrument 2 as equally precise (\(A=1+6/0.5=13\), \(B=2+24.4=26.4\)) gives 2.03: close, and wrong.</div>
+</div>
+
+<div class="quiz num" data-answer="0.79" data-tol="0.005">
+  <p class="q"><strong>A2.</strong> Part (b): compute the \(\sigma^2\) proposal ratio \(q(\sigma^{2c}\mid\sigma^{2*})\big/q(\sigma^{2*}\mid\sigma^{2c})\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Forward the rate is \(4/\sigma^{2c}=8\); in reverse it is \(4/\sigma^{2*}=10\), and the density is evaluated at the other point. The \(1/\Gamma(4)\) cancels.
+  $$\begin{aligned}q(\sigma^{2*}\mid\sigma^{2c})&amp;\propto8^4(0.4)^3e^{-8(0.4)}\\q(\sigma^{2c}\mid\sigma^{2*})&amp;\propto10^4(0.5)^3e^{-10(0.5)}\\\text{ratio}&amp;=\Big(\frac{10}{8}\Big)^4\Big(\frac{0.5}{0.4}\Big)^3e^{-5+3.2}\\&amp;=2.4414\times1.9531\times0.1653\\&amp;=\textbf{0.79}\end{aligned}$$
+  Using the forward rate in the reverse density (rate 8 at 0.5) is the classic slip.</div>
+</div>
+
+<div class="quiz num" data-answer="0.52" data-tol="0.005">
+  <p class="q"><strong>A3.</strong> Part (c): at \(E[\mu]=2.1\), \(V[\mu]=0.05\), give \(E[\sigma^2]\) under \(q^*_{\sigma^2}\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(q^*_{\sigma^2}=\)Inv-Gamma\((6,\ 2+\tfrac12E_\mu[Q])\) with \(E_\mu[Q]=\sum(x_i-2.1)^2+4(0.05)+\tfrac12[\sum(y_j-2.1)^2+2(0.05)]\).
+  $$\begin{aligned}E_\mu[Q]&amp;=(0.45+0.20)+\tfrac12(0.98+0.10)\\&amp;=0.65+0.54=1.19\\\text{scale}&amp;=2+\tfrac12(1.19)=2.595\\E[\sigma^2]&amp;=\frac{2.595}{6-1}\\&amp;=\textbf{0.52}\end{aligned}$$
+  The Inverse-Gamma mean \(b/(a-1)\) is on the formula sheet. Dropping \(V[\mu]\) gives scale 2.28 and mean 0.46.</div>
+</div>
+
+<p>Now open the parts one at a time and mark yourself with the bracketed marks.</p>
+
+<details><summary>Part (a): the Gibbs conditional of \(\mu\) [5]</summary><div>
+<p>Keep only factors containing \(\mu\): both likelihoods and the prior of \(\mu\). The \(y\) variance is \(2\sigma^2\), so its exponent has \(4\sigma^2\) <em>[1]</em>:</p>
+$$\begin{aligned}
+p(\mu\mid\sigma^2,x,y)&amp;\propto p(x\mid\mu,\sigma^2)\,p(y\mid\mu,\sigma^2)\,p(\mu)\\
+&amp;\propto\exp\Big\{-\frac1{2\sigma^2}\sum_{i=1}^n(x_i-\mu)^2\Big\}\exp\Big\{-\frac1{4\sigma^2}\sum_{j=1}^m(y_j-\mu)^2\Big\}\exp\Big\{-\frac12(\mu-2)^2\Big\}
+\end{aligned}$$
+<p>Expand each square and collect \(\mu^2\) and \(\mu\) <em>[1]</em> (the \(\sigma^2\) factors \((\sigma^2)^{-n/2}\) etc. carry no \(\mu\) and are dropped):</p>
+$$\begin{aligned}
+\text{exponent}&amp;=-\frac1{2\sigma^2}\Big[n\mu^2-2\mu\sum_ix_i\Big]-\frac1{4\sigma^2}\Big[m\mu^2-2\mu\sum_jy_j\Big]-\frac12\big[\mu^2-4\mu\big]+\text{const}\\
+&amp;=-\frac12\Big[\Big(\frac n{\sigma^2}+\frac m{2\sigma^2}+1\Big)\mu^2-2\Big(\frac{\sum_ix_i}{\sigma^2}+\frac{\sum_jy_j}{2\sigma^2}+2\Big)\mu\Big]+\text{const}\\
+&amp;=-\frac A2\mu^2+B\mu+\text{const}
+\end{aligned}$$
+$$\begin{aligned}
+A&amp;=1+\frac{n+m/2}{\sigma^2}=1+\frac5{\sigma^2}\\
+B&amp;=2+\frac{\sum_ix_i+\frac12\sum_jy_j}{\sigma^2}=2+\frac{8.3+2.1}{\sigma^2}=2+\frac{10.4}{\sigma^2}
+\end{aligned}$$
+<p><em>[1]</em> for \(A\) and \(B\). Complete the square and drop \(e^{B^2/(2A)}\) <em>[1]</em>:</p>
+$$\begin{aligned}
+p(\mu\mid\sigma^2,x,y)&amp;\propto\exp\Big\{-\frac A2\Big(\mu^2-\frac{2B}A\mu\Big)\Big\}\\
+&amp;\propto\exp\Big\{-\frac A2\Big(\mu-\frac BA\Big)^2\Big\}
+\end{aligned}$$
+<div class="answer-box"><p>(a)</p>
+$$\mu\mid\sigma^2,x,y\ \sim\ \text{Normal}\Big(\frac{2\sigma^2+10.4}{\sigma^2+5},\ \frac{\sigma^2}{\sigma^2+5}\Big)$$
+</div>
+<p><em>[1]</em> for the name with mean and variance (not precision). Check at \(\sigma^2=0.5\): mean \(11.4/5.5=2.07\), variance \(0.5/5.5=0.09\) (R, by numerical integration of the kernel on a grid: 2.0727, 0.0909). Precisions add: prior 1, instrument 1 contributes \(n/\sigma^2\), instrument 2 contributes \(m/(2\sigma^2)\).</p></div></details>
+
+<details><summary>Part (b): the acceptance probability [6]</summary><div>
+<p>State the rule and the target <em>[1]</em>. With \(Q(\mu)=\sum_i(x_i-\mu)^2+\tfrac12\sum_j(y_j-\mu)^2\), the target is likelihood \(\times\) priors; keep every power of \(\sigma^2\) (\((\sigma^2)^{-(n+m)/2}\) from the likelihood, \((\sigma^2)^{-3-1}\) from the Inverse-Gamma prior):</p>
+$$\begin{aligned}
+\alpha&amp;=\min\Big\{1,\ \frac{\pi(\mu^*,\sigma^{2*})}{\pi(\mu^c,\sigma^{2c})}\cdot\frac{q(\mu^c,\sigma^{2c}\mid\mu^*,\sigma^{2*})}{q(\mu^*,\sigma^{2*}\mid\mu^c,\sigma^{2c})}\Big\}\\
+\pi(\mu,\sigma^2)&amp;\propto\underbrace{(\sigma^2)^{-3}e^{-Q(\mu)/(2\sigma^2)}}_{\text{likelihood}}\cdot\underbrace{e^{-(\mu-2)^2/2}}_{p(\mu)}\cdot\underbrace{(\sigma^2)^{-4}e^{-2/\sigma^2}}_{p(\sigma^2)}
+\end{aligned}$$
+<p>The two values of \(Q\) (one line each):</p>
+$$\begin{aligned}
+Q(\mu^c)&amp;=\big[0.1^2+0.3^2+0.6^2+0.1^2\big]+\tfrac12\big[0.8^2+0.6^2\big]=0.47+0.50=0.97\\
+Q(\mu^*)&amp;=\big[0.3^2+0.7^2+0.2^2+0.5^2\big]+\tfrac12\big[0.4^2+1.0^2\big]=0.87+0.58=1.45
+\end{aligned}$$
+<p>The three target factors, each "new over current" <em>[2]</em>:</p>
+$$\begin{aligned}
+\text{(i) likelihood}&amp;=\Big(\frac{0.4}{0.5}\Big)^{-3}\exp\Big\{-\frac12\Big[\frac{1.45}{0.4}-\frac{0.97}{0.5}\Big]\Big\}\\
+&amp;=1.9531\,e^{-\frac12(3.625-1.94)}=1.9531\,e^{-0.8425}\\
+&amp;=1.9531\times0.4306=0.8411\\[4pt]
+\text{(ii) prior on }\mu&amp;=\exp\Big\{-\frac12\big[(2.4-2)^2-(2.0-2)^2\big]\Big\}\\
+&amp;=e^{-0.08}=0.9231\\[4pt]
+\text{(iii) prior on }\sigma^2&amp;=\Big(\frac{0.4}{0.5}\Big)^{-4}\exp\Big\{-2\Big[\frac1{0.4}-\frac1{0.5}\Big]\Big\}\\
+&amp;=2.4414\,e^{-1}=2.4414\times0.3679=0.8981
+\end{aligned}$$
+<p>The proposal ratio is reverse over forward. For \(\sigma^2\) <em>[1]</em> (rate \(8\) forward, \(10\) in reverse):</p>
+$$\begin{aligned}
+q(\sigma^{2*}\mid\sigma^{2c})&amp;=\frac{8^4}{6}(0.4)^3e^{-8(0.4)}=1.7809\\
+q(\sigma^{2c}\mid\sigma^{2*})&amp;=\frac{10^4}{6}(0.5)^3e^{-10(0.5)}=1.4037\\
+\text{(iv) }\sigma^2\text{ ratio}&amp;=\frac{1.4037}{1.7809}=0.7882
+\end{aligned}$$
+<p>For \(\mu\) <em>[1]</em>: forward the variance is \(\sigma^{2*}/2=0.2\); in reverse the new state is \((\mu^*,\sigma^{2*})\) and the proposed one is \(\sigma^{2c}\), so the variance is \(\sigma^{2c}/2=0.25\). The squared step is \(0.4^2=0.16\) both ways:</p>
+$$\begin{aligned}
+\text{(v) }\mu\text{ ratio}&amp;=\frac{(2\pi\,0.25)^{-1/2}e^{-0.16/(2\times0.25)}}{(2\pi\,0.2)^{-1/2}e^{-0.16/(2\times0.2)}}\\
+&amp;=\sqrt{\frac{0.2}{0.25}}\;e^{-0.32+0.40}\\
+&amp;=0.8944\times1.0833=0.9689
+\end{aligned}$$
+<p>Multiply, one factor per line, then take the minimum <em>[1]</em>:</p>
+$$\begin{aligned}
+0.8411\times0.9231&amp;=0.7764\quad(\text{likelihood}\times p(\mu))\\
+0.7764\times0.8981&amp;=0.6973\quad(\times\,p(\sigma^2);\ \text{target ratio})\\
+0.6973\times0.7882&amp;=0.5496\quad(\times\ \sigma^2\text{ proposal})\\
+0.5496\times0.9689&amp;=0.5326\quad(\times\ \mu\text{ proposal})\\
+\alpha&amp;=\min\{1,\ 0.5326\}=\mathbf{0.53}
+\end{aligned}$$
+<p>R check, with the proposal densities taken from <code>dgamma</code> and <code>dnorm</code> rather than my algebra (the target is written in logs):</p>
+<pre class="rout"><span class="cmd">&gt; x &lt;- c(2.1, 1.7, 2.6, 1.9); y &lt;- c(2.8, 1.4)
+&gt; logpi &lt;- function(mu, s2) -7*log(s2) - (sum((x-mu)^2) + 0.5*sum((y-mu)^2))/(2*s2) - (mu-2)^2/2 - 2/s2
+&gt; lq_s &lt;- function(new, cur) dgamma(new, shape = 4, rate = 4/cur, log = TRUE)
+&gt; lq_m &lt;- function(new, cur, s2new) dnorm(new, mean = cur, sd = sqrt(s2new/2), log = TRUE)
+&gt; mc &lt;- 2.0; sc &lt;- 0.5; mn &lt;- 2.4; sn &lt;- 0.4
+&gt; tgt &lt;- logpi(mn, sn) - logpi(mc, sc)
+&gt; prp &lt;- (lq_s(sc, sn) + lq_m(mc, mn, sc)) - (lq_s(sn, sc) + lq_m(mn, mc, sn))
+&gt; round(exp(c(target = tgt, proposal = prp)), 4)</span>
+  target proposal
+  0.6973   0.7637
+<span class="cmd">&gt; round(exp(min(0, tgt + prp)), 4)</span>
+[1] 0.5326</pre>
+<p>The proposal factor is \(0.7882\times0.9689=0.7637\), as printed. Without it the answer would be \(\min\{1,0.6973\}=0.70\), complete-looking working that scores about half the marks. With the ratio inverted (forward over reverse) you get 0.91.</p>
+<p><strong>Marks guide (6).</strong> [1] \(\alpha\) with the proposal ratio and the target kernel; [2] the likelihood factor with its \((\sigma^2)^{-3}\), and the two priors; [1] \(\sigma^2\) proposal ratio with the rate changing; [1] \(\mu\) proposal ratio with the variance changing; [1] product and \(\min\). Typical losses: dropping \((\sigma^2)^{-3}\) or \((\sigma^2)^{-4}\) as if they were constants (−1 or −2); using \(\sigma^{2c}\) in the reverse \(\mu\) variance wrongly as \(\sigma^{2*}\) (−1); leaving out the proposal ratio entirely (−2).</p></div></details>
+
+<details><summary>Part (c): \(q^*_{\sigma^2}\) [6]</summary><div>
+<p>Log joint, one line per term <em>[1]</em>:</p>
+$$\begin{aligned}
+\log p(x,y,\mu,\sigma^2)&amp;=-\frac{n+m}2\log\sigma^2-\frac{Q(\mu)}{2\sigma^2}\\
+&amp;\quad-\frac12(\mu-2)^2-(3+1)\log\sigma^2-\frac2{\sigma^2}+\text{const}
+\end{aligned}$$
+<p>Keep only terms containing \(\sigma^2\) (the \(\mu\) prior goes into const), then take \(E_\mu\) <em>[1]</em>. Only \(Q(\mu)\) involves \(\mu\):</p>
+$$\begin{aligned}
+\log q^*_{\sigma^2}(\sigma^2)&amp;=E_\mu\Big[-\Big(\frac{n+m}2+3+1\Big)\log\sigma^2-\frac{2+\frac12Q(\mu)}{\sigma^2}\Big]+\text{const}\\
+&amp;=-\Big(3+\frac{n+m}2+1\Big)\log\sigma^2-\frac{2+\frac12E_\mu[Q(\mu)]}{\sigma^2}+\text{const}
+\end{aligned}$$
+<p>The trick <em>[1]</em>: \(E_\mu[(c-\mu)^2]=(c-E[\mu])^2+V[\mu]\) for each \(x_i\) and \(y_j\):</p>
+$$\begin{aligned}
+E_\mu[Q(\mu)]&amp;=\sum_{i=1}^n\big[(x_i-E[\mu])^2+V[\mu]\big]+\frac12\sum_{j=1}^m\big[(y_j-E[\mu])^2+V[\mu]\big]\\
+&amp;=\sum_i(x_i-E[\mu])^2+nV[\mu]+\frac12\Big[\sum_j(y_j-E[\mu])^2+mV[\mu]\Big]
+\end{aligned}$$
+<p>The kernel is \((\sigma^2)^{-(\text{shape})-1}e^{-\text{scale}/\sigma^2}\), so <em>[1 for collecting, 1 for the name]</em>:</p>
+<div class="answer-box"><p>(c)</p>
+$$q^*_{\sigma^2}=\text{Inverse-Gamma}\Big(3+\frac{n+m}2,\ \ 2+\frac12\Big\{\sum_i(x_i-E[\mu])^2+nV[\mu]+\frac12\Big[\sum_j(y_j-E[\mu])^2+mV[\mu]\Big]\Big\}\Big)$$
+</div>
+<p>Numbers <em>[1]</em> (\(n=4\), \(m=2\), \(E[\mu]=2.1\), \(V[\mu]=0.05\)):</p>
+$$\begin{aligned}
+\textstyle\sum_i(x_i-2.1)^2&amp;=0+0.16+0.25+0.04=0.45\\
+\textstyle\sum_j(y_j-2.1)^2&amp;=0.49+0.49=0.98\\
+E_\mu[Q]&amp;=0.45+4(0.05)+\tfrac12\big[0.98+2(0.05)\big]=0.65+0.54=1.19\\
+\text{shape}&amp;=3+\tfrac62=6,\qquad\text{scale}=2+\tfrac12(1.19)=2.595\\
+E[\sigma^2]&amp;=\frac{\text{scale}}{\text{shape}-1}=\frac{2.595}{5}=\mathbf{0.52}
+\end{aligned}$$
+<p>(R: a Monte Carlo average of \(Q(\mu)\) over \(\mu\sim N(2.1,0.05)\) gives 1.191, matching 1.19.) Note that \(q_\mu\) will need \(E[1/\sigma^2]=\text{shape}/\text{scale}=6/2.595=2.31\) in the next update.</p>
+<p><strong>Marks guide (6).</strong> [1] log joint; [1] keep \(\sigma^2\) terms and take \(E_\mu\); [1] the \(E[(c-\mu)^2]\) trick; [1] collect shape and scale; [1] name Inverse-Gamma with both parameters; [1] numbers. Typical losses: dropping \(V[\mu]\) (the rate then has \((x_i-E\mu)^2\) only); forgetting the \(\tfrac12\) on the \(y\) sum; shape \(a+\frac n2\) (forgetting the \(y\) data); naming it a Gamma (the variable is \(\sigma^2\), not \(\tau\)).</p></div></details>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>In (c) the answer contains \(V_\mu[\mu]\), but the Gibbs conditional of \(\sigma^2\) given a sampled \(\mu\) would not. Where does it come from?</p>
+<details><summary>Model answer</summary><div>
+<p>Gibbs conditions on one fixed value of \(\mu\), so each squared residual is \((x_i-\mu)^2\) with nothing left over. CAVI averages the log joint over \(q_\mu\), which spreads over many values of \(\mu\), and \(E_\mu[(x_i-\mu)^2]=(x_i-E[\mu])^2+V[\mu]\) adds the spread to each residual. It would vanish only if \(q_\mu\) were a point mass (<a href="0027-variational-inference-cavi.html">Lesson 27</a>).</p></div></details>
+</div>
+
+<h2>3 · Part B: a hierarchical prior (10 marks, about 20 minutes)</h2>
+<p>Lesson 25 had no hierarchical prior. The new idea is small: a parameter whose prior depends on another parameter, which has a prior of its own. Only the conditionals that contain it change.</p>
+<div class="box">
+<p><strong>Question B</strong> (10 marks). A plant makes a polymer in \(J=4\) batches, with \(n_j=5\) viscosity readings per batch. Write \(y_{ij}\) for reading \(i\) of batch \(j\), \(\bar y_j\) for the batch mean, and \(\theta_j\) for the true mean viscosity of batch \(j\).</p>
+<p><strong>Model:</strong> given all parameters, the \(y_{ij}\) are independent with</p>
+$$y_{ij}\mid\theta_j,\tau\sim\text{Normal}\Big(\theta_j,\ \frac1\tau\Big),\qquad\theta_j\mid\mu,\tau_\theta\sim\text{Normal}\Big(\mu,\ \frac1{\tau_\theta}\Big)\quad(j=1,\dots,J,\ \text{independent}).$$
+<p><strong>Prior:</strong> \(\mu\), \(\tau\), \(\tau_\theta\) independent, with \(\mu\sim\text{Normal}(10,\ 25)\), \(\tau\sim\text{Gamma}(2,\ 1)\), \(\tau_\theta\sim\text{Gamma}(3,\ 2)\) (shape, rate).</p>
+<p>(a) Derive the conditional distribution \(p(\mu\mid\theta_1,\dots,\theta_J,\tau_\theta,\tau,y)\). If it is a known distribution, identify the distribution name and its parameters. <span class="marks">[4]</span><br>
+(b) Suppose \(\theta=(9.2,\ 10.5,\ 8.8,\ 11.1)\) and \(\tau_\theta=1.5\). Evaluate the mean and variance of the distribution in (a). <span class="marks">[2]</span><br>
+(c) Give, with name and parameters, the full conditionals of \(\theta_j\) and of \(\tau_\theta\). One line of reasoning each is enough. <span class="marks">[2]</span><br>
+(d) Briefly describe a Gibbs sampling scheme for \((\theta_1,\dots,\theta_J,\mu,\tau,\tau_\theta)\), and say what the conditional of \(\theta_j\) tells you about how much each batch is pulled toward \(\mu\). <span class="marks">[2]</span></p>
+</div>
+
+<div class="quiz num" data-answer="9.34" data-tol="0.005">
+  <p class="q"><strong>B1.</strong> Part (c): for batch 1 take \(\bar y_1=9.0\), \(n_1=5\), and currently \(\tau=0.5\), \(\tau_\theta=1.5\), \(\mu=9.9\). Give the mean of the full conditional of \(\theta_1\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Precision \(n_1\tau+\tau_\theta=2.5+1.5=4\). Mean \(=\dfrac{n_1\tau\bar y_1+\tau_\theta\mu}{n_1\tau+\tau_\theta}=\dfrac{2.5(9.0)+1.5(9.9)}{4}=\dfrac{22.5+14.85}{4}=\textbf{9.34}\). The weight on \(\bar y_1\) is \(2.5/4=0.625\): this batch is pulled 37.5% of the way to \(\mu\).</div>
+</div>
+
+<div class="quiz num" data-answer="1.33" data-tol="0.005">
+  <p class="q"><strong>B2.</strong> Part (c): at \(\mu=9.9\) and the \(\theta\) values of part (b), give the mean of the full conditional of \(\tau_\theta\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\sum_j(\theta_j-\mu)^2=0.49+0.36+1.21+1.44=3.50\). Gamma shape \(3+J/2=5\), rate \(2+\tfrac12(3.50)=3.75\), so the mean is \(5/3.75=\)<strong>1.33</strong>.</div>
+</div>
+
+<details><summary>Part (a): the conditional of \(\mu\) [4]</summary><div>
+<p>Write the joint, then keep only factors containing \(\mu\) <em>[1]</em>. These are the \(J\) prior densities of the \(\theta_j\) and the prior of \(\mu\). The data \(y\) and \(\tau\) only touch \(\mu\) through the \(\theta_j\), so they drop out entirely:</p>
+$$\begin{aligned}
+p(\mu\mid\theta,\tau_\theta,\tau,y)&amp;\propto\prod_{j=1}^J\exp\Big\{-\frac{\tau_\theta}2(\theta_j-\mu)^2\Big\}\cdot\exp\Big\{-\frac{\kappa_0}2(\mu-m_0)^2\Big\}\qquad(m_0=10,\ \kappa_0=\tfrac1{25}=0.04)
+\end{aligned}$$
+<p>Expand and collect <em>[1]</em>:</p>
+$$\begin{aligned}
+\text{exponent}&amp;=-\frac{\tau_\theta}2\Big[J\mu^2-2\mu\sum_j\theta_j\Big]-\frac{\kappa_0}2\big[\mu^2-2m_0\mu\big]+\text{const}\\
+&amp;=-\frac12\big[(J\tau_\theta+\kappa_0)\mu^2-2(\tau_\theta\textstyle\sum_j\theta_j+\kappa_0m_0)\mu\big]+\text{const}\\
+&amp;=-\frac A2\mu^2+B\mu+\text{const},\qquad A=\kappa_0+J\tau_\theta,\quad B=\kappa_0m_0+\tau_\theta\sum_j\theta_j
+\end{aligned}$$
+<p>Complete the square <em>[1]</em>: \(p(\mu\mid\cdot)\propto\exp\{-\frac A2(\mu-B/A)^2\}\). Name <em>[1]</em>:</p>
+<div class="answer-box"><p>(a)</p>
+$$\mu\mid\theta,\tau_\theta,\tau,y\ \sim\ \text{Normal}\Big(\frac{\kappa_0m_0+\tau_\theta\sum_{j=1}^J\theta_j}{\kappa_0+J\tau_\theta},\ \frac1{\kappa_0+J\tau_\theta}\Big)=\text{Normal}\Big(\frac{0.4+\tau_\theta\sum_j\theta_j}{0.04+J\tau_\theta},\ \frac1{0.04+J\tau_\theta}\Big)$$
+</div>
+<p>This is the Normal–Normal posterior of Lesson 22 with the \(J\) values \(\theta_j\) playing the role of the data and \(\tau_\theta\) the data precision. The point of the question: \(\mu\) is conditionally independent of \(y\) given \(\theta\) (the data reach \(\mu\) only through the \(\theta_j\)), so no \(y_{ij}\) appears. Writing \(\sum_{ij}y_{ij}\) here is the usual lost mark.</p></div></details>
+
+<details><summary>Part (b) [2]</summary><div>
+$$\begin{aligned}
+\textstyle\sum_j\theta_j&amp;=9.2+10.5+8.8+11.1=39.6\\
+A&amp;=0.04+4(1.5)=6.04\\
+B&amp;=0.04(10)+1.5(39.6)=0.4+59.4=59.8\\
+\text{mean}&amp;=\frac BA=\frac{59.8}{6.04}=\mathbf{9.90}\\
+\text{variance}&amp;=\frac1A=\frac1{6.04}=\mathbf{0.17}
+\end{aligned}$$
+<p><em>[1]</em> for the mean, <em>[1]</em> for the variance. The mean sits at \(\bar\theta=9.9\) because the prior precision 0.04 is tiny next to \(J\tau_\theta=6\). (R grid check: 9.9007 and 0.1656.)</p></div></details>
+
+<details><summary>Part (c) [2]</summary><div>
+<p><strong>\(\theta_j\)</strong> <em>[1]</em>. Keep the likelihood of batch \(j\) and the prior of \(\theta_j\); use \(\sum_i(y_{ij}-\theta_j)^2=\text{const}+n_j(\bar y_j-\theta_j)^2\):</p>
+$$\begin{aligned}
+p(\theta_j\mid\cdot)&amp;\propto\exp\Big\{-\frac\tau2\sum_{i=1}^{n_j}(y_{ij}-\theta_j)^2-\frac{\tau_\theta}2(\theta_j-\mu)^2\Big\}\\
+\theta_j\mid\mu,\tau_\theta,\tau,y&amp;\sim\text{Normal}\Big(\frac{n_j\tau\bar y_j+\tau_\theta\mu}{n_j\tau+\tau_\theta},\ \frac1{n_j\tau+\tau_\theta}\Big)
+\end{aligned}$$
+<p><strong>\(\tau_\theta\)</strong> <em>[1]</em>. Keep \(\tau_\theta^{J/2}\) (the \(J\) Normal densities) and its Gamma prior:</p>
+$$\begin{aligned}
+p(\tau_\theta\mid\cdot)&amp;\propto\tau_\theta^{J/2}e^{-\frac{\tau_\theta}2\sum_j(\theta_j-\mu)^2}\cdot\tau_\theta^{3-1}e^{-2\tau_\theta}\\
+\tau_\theta\mid\theta,\mu&amp;\sim\text{Gamma}\Big(3+\frac J2,\ \ 2+\frac12\sum_{j=1}^J(\theta_j-\mu)^2\Big)
+\end{aligned}$$
+<p>For completeness, \(\tau\mid\theta,y\sim\text{Gamma}\big(2+\tfrac N2,\ 1+\tfrac12\sum_{j}\sum_i(y_{ij}-\theta_j)^2\big)\) with \(N=\sum_jn_j=20\): same recipe as Lesson 25.</p></div></details>
+
+<details><summary>Part (d) [2]</summary><div>
+<p><em>[1]</em> The scheme (newest values, burn-in):</p>
+<ol class="steps">
+  <li>Choose starting values, e.g. \(\theta_j^{(0)}=\bar y_j\), \(\mu^{(0)}=\bar y\), \(\tau^{(0)}\), \(\tau_\theta^{(0)}>0\).</li>
+  <li>For \(t=1,\dots,T\): draw each \(\theta_j^{(t)}\) from its Normal conditional (using \(\mu^{(t-1)},\tau^{(t-1)},\tau_\theta^{(t-1)}\)); then \(\mu^{(t)}\) from the Normal in (a) (using the new \(\theta_j^{(t)}\) and \(\tau_\theta^{(t-1)}\)); then \(\tau^{(t)}\) from its Gamma (new \(\theta\)); then \(\tau_\theta^{(t)}\) from its Gamma (new \(\theta\) and \(\mu\)).</li>
+  <li>Discard the first \(T_0\) draws as burn-in (check with trace plots of several chains); average functions of the remaining draws.</li>
+</ol>
+<p><em>[1]</em> Shrinkage: the conditional mean of \(\theta_j\) is \(w\bar y_j+(1-w)\mu\) with \(w=n_j\tau/(n_j\tau+\tau_\theta)\). A large \(\tau_\theta\) (batches very alike) makes \(w\) small and pulls each \(\theta_j\) toward \(\mu\); a small \(\tau_\theta\) lets each batch stay near its own mean. Because \(\tau_\theta\) has its own full conditional, the sampler <em>learns</em> how much pooling the data support (borrowing strength across batches).</p>
+<p><strong>Marks guide (10).</strong> (a) keep only \(\mu\) terms, no \(y\) [1]; expand and collect [1]; complete the square [1]; Normal with mean and variance [1]. (b) mean [1]; variance [1]. (c) \(\theta_j\) [1]; \(\tau_\theta\) with shape \(3+J/2\) [1]. (d) scheme with newest values and burn-in [1]; shrinkage reading [1]. Typical losses: \(y\) in the \(\mu\) conditional; precision \(J\tau_\theta\) written as \(\tau_\theta\); shape \(3+\frac J2\) with \(J\) forgotten or \(\frac{n}{2}\) used instead.</p></div></details>
+
+<h2>4 · Part C: computation and diagnostics (8 marks, about 18 minutes)</h2>
+<div class="box">
+<p><strong>Question C</strong> (8 marks). A binomial experiment gives \(y=1\) success in 4 trials, with a Uniform(0,1) prior on the success probability \(p\). The posterior is known up to a constant: \(p(p\mid y)\propto\tilde f(p)=p(1-p)^3\) on \((0,1)\), and \(Z=\int_0^1\tilde f(p)\,dp=0.05\).</p>
+<p>(a) Give a rejection sampler for \(p\mid y\) that uses Uniform(0,1) candidates, and find the smallest valid \(M\) by calculus. <span class="marks">[2]</span><br>
+(b) Find the probability that one candidate is accepted. <span class="marks">[1]</span></p>
+<p>The sampler was run until 2000 draws were accepted, with this output (real R output):</p>
+<pre class="rout"><span class="cmd">&gt; set.seed(2818)
+&gt; ft &lt;- function(p) p*(1-p)^3
+&gt; M &lt;- ft(1/4)
+&gt; draws &lt;- numeric(2000); tries &lt;- 0; k &lt;- 0
+&gt; while (k &lt; 2000) {
++   tries &lt;- tries + 1
++   cand &lt;- runif(1)
++   if (runif(1) &lt;= ft(cand)/M) { k &lt;- k + 1; draws[k] &lt;- cand }
++ }
+&gt; round(c(M = M, tries = tries, rate = 2000/tries), 4)</span>
+        M     tries      rate
+   0.1055 4200.0000    0.4762
+<span class="cmd">&gt; ph &lt;- mean(draws &gt; 0.5)
+&gt; round(c(mean = mean(draws), sd = sd(draws), phat = ph), 4)</span>
+  mean     sd   phat
+0.3334 0.1815 0.1950 </pre>
+<p>(c) What does <code>mean(draws &gt; 0.5)</code> estimate? Give its Monte Carlo standard error and an approximate 95% interval. Is the MC standard error the posterior standard deviation? <span class="marks">[2]</span></p>
+<p>(d) The posterior of another parameter \(\theta\) is sampled by random-walk Metropolis, \(\theta^*\sim N(\theta^c,2.5^2)\), from three starting values \(0.5\), \(4\) and \(25\) (chains <code>c1</code>, <code>c2</code>, <code>c3</code>, 1000 iterations each). The trace plots and the ACF of <code>c1</code> over iterations 101–1000 are below, with R output.</p>
+<figure class="plot">
+<img src="../assets/img/l28-traces.png" alt="Left: trace plots of three chains over 1000 iterations. Chain c3 starts at 25 and falls to about 5 by iteration 30; chains c1 and c2 start at 0.5 and 4 and rise to about 4 within a few iterations. After about iteration 50 all three overlap and fluctuate between about 1.5 and 8 with no trend. Right: ACF of chain c1 over iterations 101 to 1000: bars fall from 1 at lag 0 to 0.65 at lag 1, 0.43 at lag 2, 0.27 at lag 3, and are inside the dashed band from about lag 7.">
+<figcaption>Question C(d). Left: three chains from dispersed starts. Right: ACF of <code>c1</code>, iterations 101–1000.</figcaption>
+</figure>
+<pre class="rout"><span class="cmd">&gt; round(c(acc.c1 = mean(diff(chs[,1]) != 0), acc.c2 = mean(diff(chs[,2]) != 0), acc.c3 = mean(diff(chs[,3]) != 0)), 2)</span>
+acc.c1 acc.c2 acc.c3
+  0.47   0.44   0.44
+<span class="cmd">&gt; early &lt;- chs[1:100, ]; late &lt;- chs[101:1000, ]
+&gt; round(apply(early, 2, sd), 2)</span>
+  c1   c2   c3
+1.20 1.42 5.74
+<span class="cmd">&gt; round(sd(as.vector(early)), 2)</span>
+[1] 3.7
+<span class="cmd">&gt; round(apply(late, 2, sd), 2)</span>
+  c1   c2   c3
+1.13 1.11 1.23
+<span class="cmd">&gt; round(sd(as.vector(late)), 2)</span>
+[1] 1.16
+<span class="cmd">&gt; x &lt;- late[, 1]
+&gt; round(c(n = length(x), mean = mean(x), sd = sd(x), rho1 = acf(x, plot = FALSE)$acf[2]), 2)</span>
+     n   mean     sd   rho1
+900.00   4.19   1.13   0.65 </pre>
+<p>(i) With the BGR statistic \(\hat R=B/W\) (\(B\) the sd of the pooled draws, \(W\) the average within-chain sd), compute \(\hat R\) for iterations 1–100 and for 101–1000 and say what you conclude about burn-in. <span class="marks">[1]</span><br>
+(ii) Compute the effective sample size of <code>c1</code> over 101–1000 and the standard error of its mean, and compare with the naive \(s/\sqrt n\). <span class="marks">[1]</span><br>
+(iii) Is the step size 2.5 too small, about right or too large? Give the evidence from the output. <span class="marks">[1]</span></p>
+</div>
+
+<div class="quiz num" data-answer="0.47" data-tol="0.005">
+  <p class="q"><strong>C1.</strong> Part (b): the acceptance probability of one candidate (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(P(\text{accept})=Z/M=0.05/0.1055=\)<strong>0.47</strong> (exactly \(0.05\div\frac{27}{256}=0.474\)). The run's \(2000/4200=0.48\) agrees to within simulation noise. Expected candidates per draw: \(M/Z=2.11\); the run used \(4200/2000=2.10\).</div>
+</div>
+
+<div class="quiz num" data-answer="1.33" data-tol="0.005">
+  <p class="q"><strong>C2.</strong> Part (d)(i): \(\hat R\) for iterations 1–100 (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}W&amp;=\frac{1.20+1.42+5.74}3=\frac{8.36}{3}=2.7867\\B&amp;=3.70\\\hat R&amp;=\frac BW=\frac{3.70}{2.7867}=\textbf{1.33}\end{aligned}$$
+  Above 1.05: not stationary, the early window includes chain <code>c3</code> still coming down from 25 (its own sd is 5.74). For 101–1000, \(W=(1.13+1.11+1.23)/3=1.1567\) and \(\hat R=1.16/1.1567=1.00\).</div>
+</div>
+
+<div class="quiz num" data-answer="190.91" data-tol="0.6">
+  <p class="q"><strong>C3.</strong> Part (d)(ii): the effective sample size of <code>c1</code> over iterations 101–1000, from \(n=900\) and \(\hat\rho_1=0.65\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}\text{ESS}&amp;=n\,\frac{1-\hat\rho_1}{1+\hat\rho_1}\\&amp;=900\times\frac{0.35}{1.65}=\textbf{190.91}\end{aligned}$$
+  (R with the unrounded \(\hat\rho_1=0.6507\) gives 190.43.) Then \(\text{SE}=s/\sqrt{\text{ESS}}=1.13/\sqrt{190.91}=1.13/13.82=0.08\), against the naive \(1.13/\sqrt{900}=0.04\): twice as large. 900 draws are worth about 190 independent ones.</div>
+</div>
+
+<details><summary>Part (a) [2]</summary><div>
+<p>Algorithm <em>[1]</em>: draw \(P\sim U(0,1)\) (so \(g=1\)) and independently \(U\sim U(0,1)\); accept \(P\) if \(U\le\tilde f(P)/M\), otherwise repeat. This is "prior as proposal": \(\tilde f\) is the likelihood \(\times\) a flat prior, so \(M\) is the maximum of the likelihood.</p>
+<p>Smallest \(M=\sup_p\tilde f(p)/g(p)=\max_p\tilde f(p)\) <em>[1]</em>:</p>
+$$\begin{aligned}
+\tilde f'(p)&amp;=(1-p)^3-3p(1-p)^2\\
+&amp;=(1-p)^2(1-4p)\\
+0&amp;=(1-p)^2(1-4p)\ \Rightarrow\ p^*=\tfrac14\quad(p=1\text{ gives }\tilde f=0)\\
+\tilde f'(p)&amp;&gt;0\text{ for }p&lt;\tfrac14,\ &lt;0\text{ for }p&gt;\tfrac14\ \Rightarrow\ \text{maximum}\\
+M&amp;=\tilde f\big(\tfrac14\big)=\tfrac14\times\big(\tfrac34\big)^3=\tfrac{27}{256}=0.1055
+\end{aligned}$$</div></details>
+
+<details><summary>Part (b) [1]</summary><div>
+$$\begin{aligned}
+P(\text{accept})&amp;=\frac ZM\quad(\text{because }g=1\text{ integrates to }1)\\
+&amp;=\frac{0.05}{0.1055}=\mathbf{0.47}
+\end{aligned}$$
+<p>Matching the output: <code>rate</code> \(=0.4762\) from 4200 candidates for 2000 draws. (The formula needs \(Z\); the sampler does not.)</p></div></details>
+
+<details><summary>Part (c) [2]</summary><div>
+<p><code>mean(draws &gt; 0.5)</code> is the Monte Carlo estimate of \(P(p&gt;0.5\mid y)\): the average of indicators over posterior draws <em>[1]</em>. The draws are independent here, so:</p>
+$$\begin{aligned}
+\text{SE}&amp;=\sqrt{\frac{\hat p(1-\hat p)}N}=\sqrt{\frac{0.195\times0.805}{2000}}\\
+&amp;=\sqrt{0.0000785}=\mathbf{0.0089}\approx0.01\\
+\text{95\% interval}&amp;=0.195\pm1.96(0.0089)=(0.18,\ 0.21)
+\end{aligned}$$
+<p><em>[1]</em> The MC standard error measures the error of the estimate \(\hat p\) and shrinks like \(1/\sqrt N\); the posterior standard deviation of \(p\) (0.18 here) is a property of the posterior and doesn't shrink with \(N\). The exact value is \(P(p&gt;0.5\mid y)=0.1875\) (Beta(2,4)), inside the interval.</p></div></details>
+
+<details><summary>Part (d) [3]</summary><div>
+<p><strong>(i) Burn-in</strong> <em>[1]</em>. Iterations 1–100: \(\hat R=3.70/2.7867=1.33&gt;1.05\), so those iterations are not stationary. Iterations 101–1000: \(\hat R=1.16/1.1567=1.00&lt;1.05\), so the chains agree and can be pooled. On the plot, <code>c3</code> (start 25) is down in the band by about iteration 30 and all three overlap after about 50, so a burn-in of about 50 is enough and 100 is safe. Informal evidence: the overlapping traces. Formal evidence: \(\hat R\).</p>
+<p><strong>(ii) ESS and SE</strong> <em>[1]</em>:</p>
+$$\begin{aligned}
+\text{ESS}&amp;=900\times\frac{1-0.65}{1+0.65}=190.91\\
+\text{SE}&amp;=\frac{1.13}{\sqrt{190.91}}=\frac{1.13}{13.82}=0.08\\
+\text{SE}_{\text{naive}}&amp;=\frac{1.13}{\sqrt{900}}=0.04
+\end{aligned}$$
+<p>The honest standard error is twice the naive one, because \(\hat\rho_1=0.65\) makes consecutive draws similar.</p>
+<p><strong>(iii) Step size</strong> <em>[1]</em>: about right. The acceptance rates 0.47, 0.44, 0.44 sit in the usual 0.2–0.5 band; the trace is a "hairy caterpillar" (neither the staircase of tiny steps nor long flat stretches of rejections); the ACF is inside the band by about lag 7. Autocorrelation 0.65 is normal for random-walk MH, so a larger ESS would need a longer run, not a different step.</p>
+<p><strong>Marks guide (8).</strong> (a) algorithm [1], \(M\) by calculus [1]. (b) \(Z/M\) [1]. (c) estimate named [1], SE and interval [1]. (d) \(\hat R\) both windows and the conclusion [1]; ESS and SE [1]; step-size verdict with evidence [1]. Typical losses: accepting if \(U\le\tilde f(P)\) with no \(M\) (the sampler is then wrong, since \(\tilde f\le0.1055\) rejects too much); \(1/M\) instead of \(Z/M\); using \(s/\sqrt n\) for the chain; "too small" because the ACF isn't zero.</p></div></details>
+
+<h2>5 · Part D: twelve interleaved items</h2>
+<p>Mixed on purpose: seven Topic 5 items and five from Topics 1–4. A real Poisson GLM printout is shared by D2–D4.</p>
+
+<div class="quiz num" data-answer="0.28" data-tol="0.005">
+  <p class="q"><strong>D1.</strong> <em>(Topic 1.)</em> Lifetimes \(x_i\sim\text{Exponential}(\text{rate }\lambda)\), \(n=20\), \(\sum x_i=16\). The MLE is \(\hat\lambda=n/\sum x_i\). Using the Fisher information, give the asymptotic standard error of \(\hat\lambda\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}\ell(\lambda)&amp;=n\log\lambda-\lambda\textstyle\sum x_i\\\ell'(\lambda)&amp;=\frac n\lambda-\sum x_i\ \Rightarrow\ \hat\lambda=\frac{20}{16}=1.25\\\ell''(\lambda)&amp;=-\frac n{\lambda^2}\ \Rightarrow\ \mathcal I(\lambda)=\frac n{\lambda^2}\\\text{SE}&amp;=\frac1{\sqrt{\mathcal I(\hat\lambda)}}=\frac{\hat\lambda}{\sqrt n}=\frac{1.25}{4.4721}=\textbf{0.28}\end{aligned}$$
+  The Fisher information doesn't depend on the data here, so observed and expected information agree (<a href="0001-mle-fisher-information.html">Lesson 1</a>).</div>
+</div>
+
+<p>Twenty batches of a product, ten per treatment, with fault counts \(y\). Poisson GLM <code>glm(y ~ grp, family = poisson)</code>, with <code>grp</code> = <code>ctrl</code> or <code>trt</code> (real R output):</p>
+<pre class="rout"><span class="cmd">&gt; round(summary(fit)$coefficients, 4)</span>
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)   1.1632     0.1768  6.5798   0.0000
+grptrt        0.4261     0.2273  1.8747   0.0608
+<span class="cmd">&gt; X2 &lt;- sum(residuals(fit, "pearson")^2); round(c(X2 = X2, df = df.residual(fit)), 2)</span>
+   X2    df
+31.61 18.00 </pre>
+
+<div class="quiz num" data-answer="1.53" data-tol="0.005">
+  <p class="q"><strong>D2.</strong> <em>(Topic 2.)</em> By what factor does the model say treatment multiplies the mean fault count? (2 d.p.)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Log link: \(\log\mu=\beta_0+\beta_1I(\text{trt})\), so treatment multiplies the mean by \(e^{\hat\beta_1}=e^{0.4261}=\)<strong>1.53</strong>. Check against the group means: the sample means are 3.2 and 4.9 and \(4.9/3.2=1.53\), as they must be for a single binary factor with a log link (<a href="0007-poisson-gamma-glms.html">Lesson 7</a>).</div>
+</div>
+
+<div class="quiz num" data-answer="1.76" data-tol="0.005">
+  <p class="q"><strong>D3.</strong> <em>(Topic 3.)</em> Compute the Pearson estimate \(\hat\phi\) from the printout (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}\hat\phi&amp;=\frac{X^2}{n-p}=\frac{31.61}{20-2}\\&amp;=\textbf{1.76}\end{aligned}$$
+  Above 1: overdispersion (<a href="0010-overdispersion.html">Lesson 10</a>). The denominator is the residual df, 18, not \(n=20\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>D4.</strong> <em>(Topic 3.)</em> The model is refitted as quasi-Poisson with \(\hat\phi=1.76\). What changes in the coefficient table?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The coefficients stay the same; each SE is multiplied by \(\sqrt{1.76}\)</button>
+    <button class="opt" data-key="b">The coefficients are divided by \(\sqrt{1.76}\); each SE stays the same</button>
+    <button class="opt" data-key="c">The coefficients stay the same; each SE is divided by \(\sqrt{1.76}\)</button>
+    <button class="opt" data-key="d">The coefficients are multiplied by 1.76; each SE is multiplied by 1.76</button>
+  </div>
+  <div class="why">Quasi-likelihood keeps the Poisson mean model, so the IWLS estimates are unchanged, and inflates the variance by \(\hat\phi\), so each SE grows by \(\sqrt{\hat\phi}=1.33\): \(0.2273\to0.3012\). The z statistic for treatment falls from 1.87 to \(0.4261/0.3012=1.41\) (R prints a \(t\) value 1.4145, \(p=0.174\)) (<a href="0012-quasi-poisson-binomial-output.html">Lesson 12</a>).</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>The Poisson fit gives \(p=0.06\) for treatment and the quasi-Poisson fit gives \(p=0.17\). Which would you report, and why does the answer change though the estimate is the same?</p>
+<details><summary>Model answer</summary><div>
+<p>Report the quasi-Poisson result: \(\hat\phi=1.76\) says the counts vary more than a Poisson allows, so the Poisson SEs are too small and its \(p\)-value overstates the evidence. The estimate 0.43 is the same in both fits; only its uncertainty is corrected, and with that correction the treatment effect is not distinguishable from zero at 5%.</p></div></details>
+</div>
+
+<div class="quiz num" data-answer="0.13" data-tol="0.005">
+  <p class="q"><strong>D5.</strong> <em>(Topic 4.)</em> A two-component Poisson mixture has \(\pi_1=0.4\), \(\lambda_1=2\), \(\lambda_2=6\). Compute the responsibility \(P(Z=1\mid X=5)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">The \(5!\) cancels; the \(\pi_k\) stay:
+  $$\begin{aligned}P(Z=1\mid X=5)&amp;=\frac{0.4\,2^5e^{-2}}{0.4\,2^5e^{-2}+0.6\,6^5e^{-6}}\\&amp;=\frac1{1+1.5\times3^5e^{-4}}\\&amp;=\frac1{1+1.5\times243\times0.018316}\\&amp;=\frac1{1+6.676}=\textbf{0.13}\end{aligned}$$
+  A count of 5 is far likelier under rate 6 (<a href="0016-mixture-models-and-responsibilities.html">Lesson 16</a>). Dropping the weights \(\pi_k\) gives 0.09.</div>
+</div>
+
+<div class="quiz num" data-answer="0.63" data-tol="0.005">
+  <p class="q"><strong>D6.</strong> <em>(Topic 5, Lesson 22.)</em> Poisson counts, prior \(\lambda\sim\text{Gamma}(2,\ 0.5)\), \(n=6\) observations with \(\sum y_i=15\). Give the posterior standard deviation of \(\lambda\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Posterior Gamma\((2+15,\ 0.5+6)=\)Gamma(17, 6.5). The Gamma variance \(a/b^2\) is not on the formula sheet:
+  $$\begin{aligned}\text{Var}(\lambda\mid y)&amp;=\frac{17}{6.5^2}=\frac{17}{42.25}=0.4024\\\text{sd}&amp;=\sqrt{0.4024}=\textbf{0.63}\end{aligned}$$
+  The posterior mean is \(17/6.5=2.62\), a weighted average of the prior mean 4 (weight \(0.5/6.5=0.08\)) and \(\bar y=2.5\).</div>
+</div>
+
+<div class="quiz num" data-answer="0.87" data-tol="0.005">
+  <p class="q"><strong>D7.</strong> <em>(Topic 5, Lesson 22.)</em> Eight measurements \(x_i\sim N(5,\sigma^2)\) (mean known), \(\sum(x_i-5)^2=6.4\), prior \(\sigma^2\sim\text{Inverse-Gamma}(3,\ 2)\). Give the posterior mean of \(\sigma^2\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}a_n&amp;=3+\frac82=7,\qquad b_n=2+\frac{6.4}2=5.2\\E[\sigma^2\mid x]&amp;=\frac{b_n}{a_n-1}=\frac{5.2}6=\textbf{0.87}\end{aligned}$$
+  The trap is \(1/E[\tau\mid x]=b_n/a_n=0.74\): the mean of a reciprocal is not the reciprocal of the mean (<a href="0022-bayesian-inference.html">Lesson 22</a> §5).</div>
+</div>
+
+<div class="quiz num" data-answer="0.18" data-tol="0.005">
+  <p class="q"><strong>D8.</strong> <em>(Topic 5, Lesson 23.)</em> To simulate \(X\) with cdf \(F(x)=1-e^{-2x}\) (\(x&gt;0\)) by inversion, you draw \(u=0.3\). Give \(x\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Solve \(u=F(x)\):
+  $$\begin{aligned}0.3&amp;=1-e^{-2x}\\e^{-2x}&amp;=0.7\\x&amp;=-\frac{\ln0.7}2=\frac{0.3567}2=\textbf{0.18}\end{aligned}$$
+  This is an Exponential(rate 2) draw. Using \(1-u\) in place of \(u\) is also valid; the two give different numbers from the same \(u\), both with the right distribution (<a href="0023-monte-carlo-rejection-sampling.html">Lesson 23</a> §3).</div>
+</div>
+
+<div class="quiz num" data-answer="0.48" data-tol="0.005">
+  <p class="q"><strong>D9.</strong> <em>(Topic 5, Lesson 24.)</em> Target kernel \(\pi(\tau)=\tau^2e^{-2\tau}\), \(\tau&gt;0\). Proposal: \(\log\tau^*\sim N(\log\tau^c,\ s^2)\). Current \(\tau^c=1\), proposed \(\tau^*=0.6\). Give \(\alpha\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">The walk is symmetric in \(\log\tau\) but not in \(\tau\): the proposal ratio is \(\tau^*/\tau^c\).
+  $$\begin{aligned}\frac{\pi(\tau^*)}{\pi(\tau^c)}&amp;=\frac{0.36\,e^{-1.2}}{1\cdot e^{-2}}=0.36\,e^{0.8}=0.8012\\\alpha&amp;=\min\Big\{1,\ 0.8012\times\frac{0.6}{1}\Big\}\\&amp;=\textbf{0.48}\end{aligned}$$
+  Leaving out the ratio gives 0.80 (<a href="0024-metropolis-hastings.html">Lesson 24</a> §3).</div>
+</div>
+
+<div class="quiz num" data-answer="2.42" data-tol="0.005">
+  <p class="q"><strong>D10.</strong> <em>(Topic 5, Lesson 25.)</em> \(y_i\mid\lambda\sim\text{Poisson}(\lambda)\) for \(i=1,\dots,5\) with \(\sum y_i=12\), and \(z_j\mid\lambda\sim\text{Poisson}(2\lambda)\) for \(j=1,2,3\) with \(\sum z_j=15\). Prior \(\lambda\sim\text{Gamma}(2,1)\). Give the mean of the full conditional of \(\lambda\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Keep every factor with \(\lambda\):
+  $$\begin{aligned}p(\lambda\mid y,z)&amp;\propto\lambda^{\sum y_i}e^{-5\lambda}\cdot\lambda^{\sum z_j}e^{-2\cdot3\lambda}\cdot\lambda^{2-1}e^{-\lambda}\\&amp;=\lambda^{(2+12+15)-1}e^{-(1+5+6)\lambda}\end{aligned}$$
+  Gamma(29, 12), mean \(29/12=\)<strong>2.42</strong>. Each \(z\) observation adds 1 to the shape per event but 2 to the rate per observation, since its mean is \(2\lambda\) (the same twist as the 2020–2022 two-source questions).</div>
+</div>
+
+<div class="quiz num" data-answer="121.62" data-tol="0.05">
+  <p class="q"><strong>D11.</strong> <em>(Topic 5, Lesson 26.)</em> A chain of \(n=1500\) post-burn-in draws has \(\hat\rho_1=0.85\). Give the effective sample size (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}\text{ESS}&amp;=1500\times\frac{1-0.85}{1+0.85}\\&amp;=1500\times\frac{0.15}{1.85}=\textbf{121.62}\end{aligned}$$
+  1500 draws are worth about 122 independent ones; the honest SE is \(\sqrt{1500/121.62}=3.51\) times the naive one.</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>A student keeps every 10th draw of this chain "to remove the autocorrelation". What happens to the autocorrelation, to the ESS, and to the standard error of the posterior mean?</p>
+<details><summary>Model answer</summary><div>
+<p>Lag-1 autocorrelation of the thinned chain falls (it is about \(0.85^{10}=0.20\)), so the thinned draws look nearly independent, but only 150 remain. Their ESS is about \(150\times0.80/1.20=100\), below the 122 of the full chain: thinning throws information away, so the ESS cannot rise and the standard error of the mean gets no smaller. Thinning only saves memory (<a href="0026-mcmc-diagnostics.html">Lesson 26</a> §5).</p></div></details>
+</div>
+
+<div class="quiz num" data-answer="0.54" data-tol="0.005">
+  <p class="q"><strong>D12.</strong> <em>(Topic 5, Lesson 27.)</em> In CAVI the current \(q_\mu\) has \(E[\mu]=3.1\) and \(V[\mu]=0.04\). For data \(x=(3.0,\ 3.6,\ 2.7)\), compute \(E_\mu\big[\sum_i(x_i-\mu)^2\big]\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}E_\mu\Big[\sum_i(x_i-\mu)^2\Big]&amp;=\sum_i(x_i-E[\mu])^2+nV[\mu]\\&amp;=(0.01+0.25+0.16)+3(0.04)\\&amp;=0.42+0.12=\textbf{0.54}\end{aligned}$$
+  Forgetting \(nV[\mu]\) gives 0.42. This is the quantity that enters the rate of \(q^*_\tau\) (<a href="0027-variational-inference-cavi.html">Lesson 27</a> §2).</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Give one advantage and one disadvantage of CAVI over Gibbs sampling for a model like Part A's.</p>
+<details><summary>Model answer</summary><div>
+<p>Advantage: CAVI iterates a few deterministic updates of distribution parameters (no sampling, no burn-in, no ESS to check), so it is much faster on large data. Disadvantage: the mean-field factorisation ignores the posterior dependence between \(\mu\) and \(\sigma^2\), so the approximate posterior is too narrow (in Lesson 27's Normal–Gamma example the VI variance of \(\mu\) was 0.28 against the exact 0.37), while Gibbs sampling converges to the exact posterior if run long enough.</p></div></details>
+</div>
+
+<h2>6 · Before you score: what a full-mark answer looks like</h2>
+<p>Compare your Part A page with these six habits. Each is worth about a mark on a 17-mark question.</p>
+<ol class="steps">
+  <li>"Keep only factors containing \(\mu\)" written before the first line of a conditional, and every \((\sigma^2)^{\cdot}\), \(\tau^{\cdot}\) power kept when the parameter is \(\sigma^2\) or \(\tau\).</li>
+  <li>Both parameters written for every named distribution, with the right parametrisation: Normal(mean, <em>variance</em>), Gamma(shape, <em>rate</em>), Inverse-Gamma(shape, <em>scale</em>).</li>
+  <li>The MH ledger in a fixed order: likelihood, each prior, then the proposal ratio as reverse over forward, with the value that the proposal depends on <em>switched</em> in the reverse density.</li>
+  <li>Four decimal places inside, rounded once at the end, and the final \(\min\{1,\cdot\}\) written down.</li>
+  <li>\(E_\mu[(c-\mu)^2]=(c-E[\mu])^2+V[\mu]\) stated before it is used in CAVI.</li>
+  <li>For "briefly describe/explain": numbered steps with initial values, newest values and burn-in, and one sentence of reason.</li>
+</ol>
+
+<h2>7 · Score yourself</h2>
+<p>Use first attempts only. Part A: out of 17 with the marks guides; Part B: out of 10; Part C: out of 8; Part D: out of 12 (one point per item, first try).</p>
+<div class="tablewrap"><table>
+<tr><th>If you missed…</th><th>Skill</th><th>Revisit</th></tr>
+<tr><td>Recall 1, D6, D7</td><td>Conjugate posteriors; Gamma variance; Inverse-Gamma mean vs reciprocal</td><td><a href="0022-bayesian-inference.html">Lesson 22</a> §2, §4–5</td></tr>
+<tr><td>A (a), A1, B (a)–(c), B1, B2, D10, recall 2–3</td><td>Full conditionals: keep factors, complete the square, name with parameters; hierarchical; Gibbs scheme</td><td><a href="0025-gibbs-sampling.html">Lesson 25</a> §2–5</td></tr>
+<tr><td>A (b), A2, D9, recall 4</td><td>The MH ledger, proposal ratio direction, log-scale walk</td><td><a href="0024-metropolis-hastings.html">Lesson 24</a> §2–4</td></tr>
+<tr><td>A (c), A3, D12, recall 7–8</td><td>CAVI factor, the \(V[\mu]\) trick, Inverse-Gamma vs Gamma</td><td><a href="0027-variational-inference-cavi.html">Lesson 27</a> §2–3</td></tr>
+<tr><td>C (a)–(c), C1, D8, recall 5</td><td>Rejection sampling, MC standard error, inversion</td><td><a href="0023-monte-carlo-rejection-sampling.html">Lesson 23</a> §1, §3–5</td></tr>
+<tr><td>C (d), C2, C3, D11, recall 6</td><td>Burn-in, \(\hat R\), ESS, MCMC SE, step size</td><td><a href="0026-mcmc-diagnostics.html">Lesson 26</a> §2–6</td></tr>
+<tr><td>D1</td><td>MLE and Fisher information</td><td><a href="0001-mle-fisher-information.html">Lesson 1</a></td></tr>
+<tr><td>D2</td><td>Reading GLM output, exponentiating a coefficient</td><td><a href="0007-poisson-gamma-glms.html">Lesson 7</a></td></tr>
+<tr><td>D3, D4</td><td>Pearson \(\hat\phi\), quasi-Poisson SEs</td><td><a href="0010-overdispersion.html">Lesson 10</a>; <a href="0012-quasi-poisson-binomial-output.html">Lesson 12</a></td></tr>
+<tr><td>D5</td><td>EM responsibilities</td><td><a href="0016-mixture-models-and-responsibilities.html">Lesson 16</a> §4</td></tr>
+</table></div>
+<p><strong>Topic 5 is done when:</strong> Part A \(\ge14/17\) inside 40 minutes, Part B \(\ge8/10\), Part C \(\ge6/8\), and Part D \(\ge10/12\) first try. Otherwise do the revisits, then redo only the parts you missed. Common first errors, in the order they cost marks: a missing proposal ratio (−2), dropped \(\tau^{n/2}\)-type powers (−1 to −2), \(V[\mu]\) left out of CAVI (−1), precision written as variance (−1), \(y\) in the hierarchical \(\mu\) conditional (−1), \(s/\sqrt n\) for a chain (−1).</p>
+
+<h2>8 · Spaced review plan to 10 Nov</h2>
+<p>Retrieval spaced over growing gaps sticks far better than rereading. DS and DE come first until 5 Nov, so the slots before then are short.</p>
+<div class="tablewrap"><table>
+<tr><th>When</th><th>What (closed book, timed)</th><th>Time</th></tr>
+<tr><td>Mon 26 Oct (+1 day)</td><td>Part A (b) again on a blank page; recall list §1</td><td>20 min</td></tr>
+<tr><td>Wed 28 Oct (+3 days)</td><td>Part B (a)–(d) from memory; homework 1 below</td><td>20 min</td></tr>
+<tr><td>Sun 1 Nov (+1 week)</td><td>Ask me for a fresh Bayes question (new twist: Gamma/Exponential data, a bivariate prior, or a discrete conditional) and do it in 40 min</td><td>45 min</td></tr>
+<tr><td>Fri 6 Nov</td><td>Sit the 2020–2022 Bayes questions cold as part of the past-paper runs (kept unseen for this): 17–18 marks each</td><td>40 min each</td></tr>
+<tr><td>Sun 8 Nov</td><td>Write the Bayes lines of your A4 sheet from memory; compare with the <a href="../reference/bayes-cheatsheet.html">cheat sheet</a>'s 8 suggested lines</td><td>20 min</td></tr>
+<tr><td>Mon 9 Nov</td><td>One last pass: redo whichever of Parts A–D scored lowest, plus Part D items missed</td><td>30 min</td></tr>
+<tr><td>Tue 10 Nov</td><td>Exam: skim the cheat sheet's traps box over breakfast; nothing new</td><td>10 min</td></tr>
+</table></div>
+
+<h2>9 · Homework (by hand, no R)</h2>
+<ol>
+  <li><strong>Tute week 8, Q2 and Q3</strong> (<code>tutes/2026_MAST30027_week8_questions.qmd</code>, not used in Lessons 22–27). Q2: find the pmf of the <code>Y.sim</code> function and say what <code>U</code> being compared with \(1-1/(1+Y)\) means. Q3: derive the standard logistic cdf and the inversion formula, and compute \(x\) for \(u=0.75\) and \(u=0.25\).</li>
+  <li><strong>Part A, the other two factors.</strong> Derive the Gibbs conditional \(p(\sigma^2\mid\mu,x,y)\) and the CAVI factor \(q^*_\mu\). Then evaluate \(q^*_\mu\) using \(E[1/\sigma^2]=2.31\) from Part A (c).</li>
+  <li><strong>A Poisson hierarchy.</strong> Counts \(y_{ij}\mid\lambda_j\sim\text{Poisson}(\lambda_j)\), \(i=1,\dots,n_j\), \(j=1,\dots,J\); \(\lambda_j\mid\beta\sim\text{Gamma}(\alpha,\beta)\) with \(\alpha\) known; \(\beta\sim\text{Gamma}(c,d)\). Derive the conditionals of \(\lambda_j\) and of \(\beta\) and name them.</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p>1. Q2: \(Y=1\) if \(U\le\frac12\); \(Y=2\) if \(\frac12&lt;U\le\frac23\); in general \(Y=y\) if \(1-\frac1y&lt;U\le1-\frac1{y+1}\), so \(P(Y=y)=\frac1y-\frac1{y+1}=\dfrac1{y(y+1)}\) for \(y=1,2,\dots\) (the loop adds 1 to \(Y\) while \(U\) is still above the cdf \(F(Y)=1-\frac1{1+Y}\)). Q3: \(F(x)=\dfrac1{1+e^{-x}}\); solve \(u=F(x)\): \(x=\log\dfrac u{1-u}\). For \(u=0.75\): \(\log3=1.10\); for \(u=0.25\): \(-1.10\) (symmetric about 0).</p>
+<p>2. Keep \(\sigma^2\) terms, as in Part A (c) but with \(\mu\) fixed:</p>
+$$\begin{aligned}
+p(\sigma^2\mid\mu,x,y)&amp;\propto(\sigma^2)^{-\frac{n+m}2}e^{-\frac{Q(\mu)}{2\sigma^2}}\cdot(\sigma^2)^{-3-1}e^{-2/\sigma^2}\\
+\sigma^2\mid\mu,x,y&amp;\sim\text{Inverse-Gamma}\Big(3+\frac{n+m}2,\ 2+\frac12\Big[\sum_i(x_i-\mu)^2+\frac12\sum_j(y_j-\mu)^2\Big]\Big)
+\end{aligned}$$
+<p>(the same as (c) with \(E[\mu]\to\mu\) and \(V[\mu]\to0\)). For \(q^*_\mu\), keep terms with \(\mu\), \(E_{\sigma^2}\) acts only on \(1/\sigma^2\) (linear), write \(E[\tau]=E[1/\sigma^2]\):</p>
+$$\begin{aligned}
+\log q^*_\mu(\mu)&amp;=-\frac{E[\tau]}2\Big[\sum_i(x_i-\mu)^2+\frac12\sum_j(y_j-\mu)^2\Big]-\frac12(\mu-2)^2+\text{const}\\
+q^*_\mu&amp;=\text{Normal}\Big(\frac{2+E[\tau](\sum_ix_i+\frac12\sum_jy_j)}{1+E[\tau](n+\frac m2)},\ \frac1{1+E[\tau](n+\frac m2)}\Big)
+\end{aligned}$$
+$$\begin{aligned}
+\text{precision}&amp;=1+2.3121(5)=12.56,\qquad\text{variance}=0.08\\
+\text{mean}&amp;=\frac{2+2.3121(10.4)}{12.56}=\frac{26.05}{12.56}=2.07
+\end{aligned}$$
+<p>Check: this is the Gibbs mean formula with \(\sigma^2\) replaced by \(1/E[\tau]\). The precision multiplies only the data terms (independent prior), not the prior term.</p>
+<p>3. \(\lambda_j\): \(p(\lambda_j\mid\cdot)\propto\lambda_j^{\sum_iy_{ij}}e^{-n_j\lambda_j}\cdot\lambda_j^{\alpha-1}e^{-\beta\lambda_j}\), so \(\lambda_j\mid\beta,y\sim\text{Gamma}\big(\alpha+\sum_iy_{ij},\ \beta+n_j\big)\). \(\beta\): it appears in the \(J\) Gamma priors, each \(\beta^\alpha e^{-\beta\lambda_j}\), and in its own prior:</p>
+$$\begin{aligned}
+p(\beta\mid\lambda,y)&amp;\propto\prod_{j=1}^J\beta^{\alpha}e^{-\beta\lambda_j}\cdot\beta^{c-1}e^{-d\beta}\\
+&amp;=\beta^{c+J\alpha-1}\exp\Big\{-\Big(d+\sum_j\lambda_j\Big)\beta\Big\}\\
+\beta\mid\lambda&amp;\sim\text{Gamma}\Big(c+J\alpha,\ d+\sum_{j=1}^J\lambda_j\Big)
+\end{aligned}$$
+<p>As in Part B, \(\beta\) never sees \(y\) directly. The data reach it only through the \(\lambda_j\).</p></div></details>
+
+<p><strong>Primary source:</strong> the lecture slides, <a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=7">Intro to Bayes</a> (posterior, conjugacy), <a href="../lectures/MCMC-3.pdf#page=4">MCMC slides 4–23</a> (MH, Gibbs, coal-mining), <a href="../lectures/MCMC_diagnostics-1.pdf#page=7">MCMC diagnostics</a> (BGR, ESS) and <a href="../lectures/VI-2.pdf#page=8">VI slides 8–24</a> (KL, ELBO, CAVI), with the lecturer's handwritten versions in <code>annotated-slides/</code>. The extra notes <a href="../extra-notes/CAVI_normal_gamma_derivations.pdf">CAVI_normal_gamma_derivations</a> and <a href="../extra-notes/Diagnostics_additional-1.pdf">Diagnostics_additional</a> show every line of the derivations in the format to copy. One-page summary: <a href="../reference/bayes-cheatsheet.html">Bayes cheat sheet</a>.</p>
+
+<div class="ask">💬 Ask me in the terminal about anything that felt shaky. Paste or photograph your Part A page and I'll mark it out of 17 the way an exam marker would, line by line. If you want another cold Bayes question (Gamma or Exponential data, a bivariate prior, a discrete changepoint conditional, a CAVI factor for a different model), ask and I'll write one at the same level. I'm your teacher for this.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0027-variational-inference-cavi.html">Lesson 27, Variational inference and CAVI</a> · Reference: <a href="../reference/bayes-cheatsheet.html">Bayes cheat sheet</a> · <a href="../reference/em-cheatsheet.html">EM cheat sheet</a> · <a href="../reference/kernels-conjugacy.html">Kernels and conjugacy</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: past-paper practice (coming)</span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

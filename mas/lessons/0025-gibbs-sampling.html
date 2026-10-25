@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gibbs Sampling</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .4rem 1rem .6rem; margin: 1.2rem 0; }
+  .answer-box > p:first-child { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); margin-bottom: .2rem; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); }
+  .sheet { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .04em; color: var(--ok); }
+  .nosheet { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .04em; color: var(--trap); }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 25 · Topic 5: Bayesian inference &amp; computation (4 of 7)</div>
+<h1>Gibbs sampling</h1>
+<p class="lede">The goal: given any "Model: … Prior: …" stem, write down every full conditional in a few lines (keep the factors with the parameter, recognise the kernel, name it with its parameters), then write the Gibbs scheme as numbered steps and say how the draws give an estimate. That is the whole of the Gibbs part of the exam, and it needs no new maths beyond <a href="0015-kernels-and-conjugacy.html">Lesson 15</a> and <a href="0022-bayesian-inference.html">Lesson 22</a>.</p>
+
+<div class="mission">Why this matters on 10 Nov: every paper from 2020 to 2022 has a Bayes question whose part (a) is "Derive the conditional distribution \(p(\mu\mid\tau,x,y)\). If it is a known distribution, identify the distribution name and its parameters" (about 5–6 marks), with two data sources \(x\) and \(y\) sharing parameters (2020 adds a bivariate prior). Older papers (2015, 2017) ask for three conditionals under improper priors and "briefly describe a Gibbs sampling scheme"; 2018 asks for a Gibbs sampler on a discrete-plus-continuous pair and how to estimate \(E[\mu\theta]\) from it. This lesson covers all of those, plus the lecturer's coal-mining example and how to read the Gibbs R code. About 55 minutes, paper and FX-82. Lessons <a href="0023-monte-carlo-rejection-sampling.html">23</a> (Monte Carlo) and <a href="0024-metropolis-hastings.html">24</a> (Metropolis–Hastings) are the neighbours; this lesson only needs the idea "draws estimate expectations".</div>
+
+<h2>1 · What Gibbs sampling is</h2>
+<p>Suppose \(\theta=(\theta_1,\dots,\theta_k)\) and the joint posterior is awkward, but each <strong>full conditional</strong> \(p(\theta_j\mid\theta_{-j},x)\) (one parameter given all the others and the data) is a distribution you can sample. Gibbs sampling cycles through them (<a href="../lectures/MCMC-3.pdf#page=13">MCMC slide 13</a>):</p>
+<ol class="steps">
+  <li>Start from \(\theta^{(0)}\); set \(t=0\).</li>
+  <li>Draw \(\theta_1^{(t+1)}\sim p(\theta_1\mid\theta_2^{(t)},\dots,\theta_k^{(t)},x)\).</li>
+  <li>Draw \(\theta_2^{(t+1)}\sim p(\theta_2\mid\theta_1^{(t+1)},\theta_3^{(t)},\dots,\theta_k^{(t)},x)\): the <em>newest</em> values of the others.</li>
+  <li>…continue to \(\theta_k^{(t+1)}\sim p(\theta_k\mid\theta_1^{(t+1)},\dots,\theta_{k-1}^{(t+1)},x)\), then set \(t\leftarrow t+1\) and repeat.</li>
+</ol>
+<p>The sequence \(\theta^{(1)},\theta^{(2)},\dots\) is a Markov chain whose stationary distribution is \(p(\theta\mid x)\), so after a burn-in its draws behave like (dependent) draws from the posterior. It needs no proposal distribution, no tuning constant and no accept/reject step.</p>
+<p><strong>Why no accept/reject: Gibbs is Metropolis–Hastings with acceptance probability 1</strong> (<a href="../lectures/MCMC-3.pdf#page=14">slide 14</a>). Update coordinate \(j\) only, proposing \(\theta'_j\sim\pi(\theta'_j\mid\theta_{-j})\) and leaving \(\theta_{-j}\) alone. Write the target as \(\pi(\theta)=\pi(\theta_j\mid\theta_{-j})\,\pi(\theta_{-j})\) and use the MH ratio from <a href="0024-metropolis-hastings.html">Lesson 24</a>:</p>
+$$\begin{aligned}
+\alpha&=\min\Big\{1,\ \frac{\pi(\theta')\,q(\theta',\theta)}{\pi(\theta)\,q(\theta,\theta')}\Big\}\\
+\frac{\pi(\theta')\,q(\theta',\theta)}{\pi(\theta)\,q(\theta,\theta')}&=\frac{\pi(\theta'_j\mid\theta_{-j})\,\pi(\theta_{-j})\cdot\pi(\theta_j\mid\theta_{-j})}{\pi(\theta_j\mid\theta_{-j})\,\pi(\theta_{-j})\cdot\pi(\theta'_j\mid\theta_{-j})}\\
+&=1\quad\text{(every factor cancels)}
+\end{aligned}$$
+<p>So every proposal is accepted. The price is that you must be able to <em>sample</em> each full conditional exactly. When you can't (no recognisable kernel), you use an MH step for that coordinate instead.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> A Gibbs sampler for \((\mu,\tau)\) never rejects a draw. Why?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The posterior is symmetric, so the proposal ratio is always above 1</button>
+    <button class="opt" data-key="b">The chain is started from the posterior mode, so it cannot move downhill</button>
+    <button class="opt" data-key="c">Each draw comes from an exact full conditional, so the MH ratio equals 1</button>
+    <button class="opt" data-key="d">Each draw is taken from the marginal posterior, so no correction is needed</button>
+  </div>
+  <div class="why">The proposal for \(\theta_j\) is \(\pi(\theta_j\mid\theta_{-j})\), and plugging it into the MH ratio cancels everything (the three-line check above). Symmetry is not needed and not true in general; the chain is not started at the mode; and the draws are from <em>conditionals</em>, not marginals: the draws of \(\mu\) only become marginal draws after the chain has been run for a while.</div>
+</div>
+
+<h2>2 · The recipe, with every line (independent Normal and Gamma priors)</h2>
+<div class="box recipe">
+<p><strong>Recipe for a full conditional of \(\theta_j\)</strong></p>
+<ol class="steps">
+  <li>Write the joint \(p(\text{all parameters},\text{data})=\text{likelihood}\times\text{every prior}\). Don't simplify yet.</li>
+  <li>Treat every other parameter as a known constant. Keep each factor that contains \(\theta_j\) (keep \(\tau^{n/2}\): it carries \(\tau\)); drop all the rest.</li>
+  <li>Combine the kept factors. Recognise the kernel: \(\exp\{\text{quadratic in }\mu\}\) is Normal (complete the square); \(\tau^{\,\cdot-1}e^{-\cdot\,\tau}\) is Gamma; a finite set of values is a discrete distribution (evaluate each value, divide by the total).</li>
+  <li>State the name <em>and</em> the parameters, in the parametrisation of the formula sheet: Normal(mean, <em>variance</em>), Gamma(shape, <em>rate</em>).</li>
+</ol>
+</div>
+
+<h3>Worked example A: one Normal sample, \(\mu\) and \(\tau\) both unknown</h3>
+<p>Model: \(x_i\mid\mu,\tau\overset{iid}{\sim}N(\mu,1/\tau)\), \(i=1,\dots,n\). Prior (independent): \(\mu\sim N(m_0,1/\kappa_0)\), \(\tau\sim\text{Gamma}(a,b)\). This is the model where <a href="0022-bayesian-inference.html">Lesson 22</a> said you can't sample the pair directly. Step 1, the joint:</p>
+$$\begin{aligned}
+p(\mu,\tau,x)&amp;=\underbrace{\prod_{i=1}^n\sqrt{\tfrac{\tau}{2\pi}}\,e^{-\frac\tau2(x_i-\mu)^2}}_{\text{likelihood}}\cdot\underbrace{\sqrt{\tfrac{\kappa_0}{2\pi}}\,e^{-\frac{\kappa_0}2(\mu-m_0)^2}}_{p(\mu)}\cdot\underbrace{\tfrac{b^a}{\Gamma(a)}\tau^{a-1}e^{-b\tau}}_{p(\tau)}
+\end{aligned}$$
+<p><strong>Conditional of \(\mu\)</strong> (given \(\tau\)). Keep the likelihood exponent and the prior of \(\mu\); drop \(\tau^{n/2}\), \(\sqrt{\kappa_0}\) and \(p(\tau)\) (no \(\mu\)):</p>
+$$\begin{aligned}
+p(\mu\mid\tau,x)&amp;\propto\exp\Big\{-\frac\tau2\sum_{i=1}^n(x_i-\mu)^2-\frac{\kappa_0}2(\mu-m_0)^2\Big\}\\
+&amp;=\exp\Big\{-\frac12\big[\,n\tau\mu^2-2\tau\mu\textstyle\sum_ix_i+\kappa_0\mu^2-2\kappa_0m_0\mu\,\big]+\text{const}\Big\}\quad\text{(expand squares; const has no }\mu)\\
+&amp;=\exp\Big\{-\frac{A}{2}\mu^2+B\mu+\text{const}\Big\},\qquad A=\kappa_0+n\tau,\quad B=\kappa_0m_0+\tau\textstyle\sum_ix_i\\
+&amp;\propto\exp\Big\{-\frac A2\Big(\mu-\frac BA\Big)^2\Big\}\quad\text{(complete the square, drop }e^{B^2/2A})
+\end{aligned}$$
+<div class="answer-box"><p>Full conditional of \(\mu\)</p>
+$$\mu\mid\tau,x\ \sim\ N\Big(\frac{\kappa_0m_0+\tau\sum_ix_i}{\kappa_0+n\tau},\ \frac1{\kappa_0+n\tau}\Big)$$
+</div>
+<p>This is the Lesson 22 Normal–Normal posterior (with \(\sum x_i=n\bar x\)): precisions add. Same recipe, \(\mu\) held fixed:</p>
+<p><strong>Conditional of \(\tau\)</strong> (given \(\mu\)). Keep \(\tau^{n/2}e^{-\frac\tau2\sum(x_i-\mu)^2}\) and \(p(\tau)\); the prior of \(\mu\) has no \(\tau\), so it goes. Here the sum is about \(\mu\), not \(\bar x\):</p>
+$$\begin{aligned}
+p(\tau\mid\mu,x)&amp;\propto\tau^{n/2}e^{-\frac\tau2\sum_i(x_i-\mu)^2}\cdot\tau^{a-1}e^{-b\tau}\\
+&amp;=\tau^{(a+n/2)-1}\exp\Big\{-\Big(b+\frac12\sum_i(x_i-\mu)^2\Big)\tau\Big\}
+\end{aligned}$$
+<div class="answer-box"><p>Full conditional of \(\tau\)</p>
+$$\tau\mid\mu,x\ \sim\ \text{Gamma}\Big(a+\frac n2,\ b+\frac12\sum_{i=1}^n(x_i-\mu)^2\Big)$$
+</div>
+<p>The sampler alternates the two. The pair is coupled only through the current value of the other parameter: \(\mu\) uses \(\tau\) in its precision \(\kappa_0+n\tau\), and \(\tau\) uses \(\mu\) inside \(\sum(x_i-\mu)^2\).</p>
+
+<h3>The same with a variance parameter</h3>
+<p>If the prior is on \(\sigma^2\sim\text{Inv-Gamma}(a,b)\) (Inverse-Gamma(shape, scale), formula sheet), the \(\mu\) conditional uses precision \(1/\sigma^2\) in the same formula, and for \(\sigma^2\):</p>
+$$\begin{aligned}
+p(\sigma^2\mid\mu,x)&amp;\propto(\sigma^2)^{-n/2}e^{-\frac{1}{2\sigma^2}\sum_i(x_i-\mu)^2}\cdot(\sigma^2)^{-a-1}e^{-b/\sigma^2}\\
+&amp;=(\sigma^2)^{-(a+n/2)-1}\exp\Big\{-\frac{b+\frac12\sum_i(x_i-\mu)^2}{\sigma^2}\Big\}\\
+\sigma^2\mid\mu,x&amp;\sim\text{Inv-Gamma}\Big(a+\frac n2,\ b+\frac12\sum_i(x_i-\mu)^2\Big)
+\end{aligned}$$
+<p>Same numbers as the Gamma for \(\tau=1/\sigma^2\); only the name changes. In R you would draw it as <code>1/rgamma(1, a + n/2, b + S/2)</code>, with \(S\) the sum of squares about the current \(\mu\).</p>
+
+<h2>3 · Two data sources sharing a parameter</h2>
+<p>This is the 2020–2022 pattern: \(x\) and \(y\) both inform \(\mu\) (and \(\tau\)), so the conditional collects terms from <em>both</em> likelihoods. Fresh model: \(x_i\mid\mu,\tau\sim N(\mu,1/\tau)\) for \(i=1,\dots,n\), and \(y_j\mid\mu,\tau\sim N(\mu,\,1/(2\tau))\) for \(j=1,\dots,m\) (the \(y\) instrument is twice as precise), all independent given \((\mu,\tau)\). Prior as in example A: \(\mu\sim N(m_0,1/\kappa_0)\), \(\tau\sim\text{Gamma}(a,b)\).</p>
+<p><strong>Conditional of \(\mu\).</strong> Keep both likelihood exponents and the prior of \(\mu\). The \(y\) terms have precision \(2\tau\):</p>
+$$\begin{aligned}
+p(\mu\mid\tau,x,y)&amp;\propto\exp\Big\{-\frac\tau2\sum_{i=1}^n(x_i-\mu)^2-\frac{2\tau}2\sum_{j=1}^m(y_j-\mu)^2-\frac{\kappa_0}2(\mu-m_0)^2\Big\}\\
+&amp;=\exp\Big\{-\frac12\big[(n\tau+2m\tau+\kappa_0)\mu^2-2\big(\tau\textstyle\sum_ix_i+2\tau\sum_jy_j+\kappa_0m_0\big)\mu\big]+\text{const}\Big\}\\
+&amp;=\exp\Big\{-\frac A2\mu^2+B\mu+\text{const}\Big\},\quad A=\kappa_0+(n+2m)\tau,\ \ B=\kappa_0m_0+\tau\Big(\sum_ix_i+2\sum_jy_j\Big)\\
+&amp;\propto\exp\Big\{-\frac A2\Big(\mu-\frac BA\Big)^2\Big\}
+\end{aligned}$$
+<div class="answer-box"><p>Full conditional of \(\mu\)</p>
+$$\mu\mid\tau,x,y\ \sim\ N\Big(\frac{\kappa_0m_0+\tau(\sum_ix_i+2\sum_jy_j)}{\kappa_0+(n+2m)\tau},\ \frac1{\kappa_0+(n+2m)\tau}\Big)$$
+</div>
+<p><strong>Conditional of \(\tau\).</strong> Each likelihood contributes a power of its own precision: \(\tau^{n/2}\) from \(x\) and \((2\tau)^{m/2}\propto\tau^{m/2}\) from \(y\) (the factor \(2^{m/2}\) has no \(\tau\), so it drops):</p>
+$$\begin{aligned}
+p(\tau\mid\mu,x,y)&amp;\propto\tau^{n/2}e^{-\frac\tau2\sum_i(x_i-\mu)^2}\cdot\tau^{m/2}e^{-\frac{2\tau}2\sum_j(y_j-\mu)^2}\cdot\tau^{a-1}e^{-b\tau}\\
+&amp;=\tau^{\,a+\frac{n+m}2-1}\exp\Big\{-\tau\Big(b+\frac12\Big[\sum_i(x_i-\mu)^2+2\sum_j(y_j-\mu)^2\Big]\Big)\Big\}
+\end{aligned}$$
+<div class="answer-box"><p>Full conditional of \(\tau\)</p>
+$$\tau\mid\mu,x,y\ \sim\ \text{Gamma}\Big(a+\frac{n+m}2,\ b+\frac12\Big[\sum_i(x_i-\mu)^2+2\sum_j(y_j-\mu)^2\Big]\Big)$$
+</div>
+<p>Shape grows by half the <em>total</em> number of observations; the rate adds half the sum of squares, each group's sum weighted by its own precision multiplier (1 for \(x\), 2 for \(y\)). The two usual lost marks are a missing factor 2 on the \(y\) sum, and shape \(a+n/2\) instead of \(a+(n+m)/2\).</p>
+
+<div class="quiz num" data-answer="2.76" data-tol="0.01">
+  <p class="q"><strong>2.</strong> Model of this section with \(\kappa_0=0.5\), \(m_0=1\). Data: \(n=4\), \(\sum x_i=10\); \(m=3\), \(\sum y_j=9\). At the current value \(\tau=2\), give the mean of the full conditional of \(\mu\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(A=0.5+(4+2\cdot3)(2)=20.5\). \(B=0.5(1)+2(10+2\cdot9)=0.5+56=56.5\). Mean \(=B/A=56.5/20.5=\)<strong>2.76</strong>; the variance is \(1/20.5=0.05\). Without the factor 2 on \(\sum y_j\) you would get \(B=0.5+38=38.5\) and \(A=0.5+14=14.5\), mean 2.66: close, and wrong.</div>
+</div>
+
+<div class="quiz num" data-answer="1.38" data-tol="0.01">
+  <p class="q"><strong>3.</strong> Same model, prior \(\tau\sim\text{Gamma}(3,2)\), and at the current \(\mu\): \(\sum(x_i-\mu)^2=3.2\), \(\sum(y_j-\mu)^2=1.1\). Give the mean of the full conditional of \(\tau\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Shape \(=3+\frac{4+3}2=6.5\). Rate \(=2+\frac12(3.2+2\times1.1)=2+\frac12(5.4)=4.7\). Mean \(=a/b=6.5/4.7=\)<strong>1.38</strong>. (Leaving out the 2 on the \(y\) sum gives rate 4.15 and mean 1.57.)</div>
+</div>
+
+<h2>4 · When the prior on \(\mu\) depends on \(\tau\)</h2>
+<p>Take the joint prior of <a href="0022-bayesian-inference.html">Lesson 22</a> §6, \(\mu\mid\tau\sim N\big(m_0,\frac1{\kappa_0\tau}\big)\), \(\tau\sim\text{Gamma}(a,b)\), with the one-sample likelihood. Now the prior of \(\mu\) <em>contains \(\tau\)</em>: its density is \(\sqrt{\kappa_0\tau}\,e^{-\frac{\kappa_0\tau}2(\mu-m_0)^2}\). That changes the \(\tau\) conditional (this is the "bivariate prior" twist of 2020):</p>
+$$\begin{aligned}
+p(\mu\mid\tau,x)&amp;\propto e^{-\frac\tau2\sum_i(x_i-\mu)^2}\cdot e^{-\frac{\kappa_0\tau}2(\mu-m_0)^2}\ \Rightarrow\ N\Big(\frac{\kappa_0m_0+n\bar x}{\kappa_0+n},\ \frac1{(\kappa_0+n)\tau}\Big)\\
+p(\tau\mid\mu,x)&amp;\propto\tau^{n/2}e^{-\frac\tau2\sum_i(x_i-\mu)^2}\cdot\tau^{1/2}e^{-\frac{\kappa_0\tau}2(\mu-m_0)^2}\cdot\tau^{a-1}e^{-b\tau}\quad\text{(keep the }\tau^{1/2}\text{ from }p(\mu\mid\tau))\\
+&amp;=\tau^{\,a+\frac{n+1}2-1}\exp\Big\{-\tau\Big(b+\frac12\Big[\sum_i(x_i-\mu)^2+\kappa_0(\mu-m_0)^2\Big]\Big)\Big\}\\
+\tau\mid\mu,x&amp;\sim\text{Gamma}\Big(a+\frac{n+1}2,\ b+\frac12\Big[\sum_i(x_i-\mu)^2+\kappa_0(\mu-m_0)^2\Big]\Big)
+\end{aligned}$$
+<p>Compare with example A: the shape has an extra \(\tfrac12\) and the rate an extra \(\frac{\kappa_0}2(\mu-m_0)^2\), because the prior of \(\mu\) now "counts as one more observation" at \(m_0\) with weight \(\kappa_0\). Rule: <em>before dropping a prior factor, check whether it contains the parameter you are conditioning on.</em> (As L22 showed, this particular model can be sampled exactly without Gibbs, but the conditionals are what an exam asks for.)</p>
+<div class="quiz num" data-answer="0.98" data-tol="0.01">
+  <p class="q"><strong>4.</strong> Joint prior \(\mu\mid\tau\sim N(1,\frac1{2\tau})\), \(\tau\sim\text{Gamma}(3,2)\), data \(n=6\). At the current \(\mu=2\), \(\sum(x_i-\mu)^2=7.2\). Give the mean of the full conditional of \(\tau\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\kappa_0=2\), \(m_0=1\). Shape \(=3+\frac{6+1}2=6.5\). Rate \(=2+\frac12\big[7.2+2(2-1)^2\big]=2+\frac12(9.2)=6.6\). Mean \(=6.5/6.6=\)<strong>0.98</strong>. With the independent prior of example A you would get shape 6, rate 5.6, mean 1.07.</div>
+</div>
+
+<h2>5 · Two groups, common precision, improper priors</h2>
+<p>This is the 2015/2017 pattern. Model: \(x_i\mid\mu_1,\tau\sim N(\mu_1,1/\tau)\), \(i=1,\dots,n\); \(y_j\mid\mu_2,\tau\sim N(\mu_2,1/\tau)\), \(j=1,\dots,m\); independent. Priors: \(p(\mu_1)\propto1\), \(p(\mu_2)\propto1\), \(p(\tau)\propto1/\tau\). The joint posterior is the likelihood times \(\tau^{-1}\):</p>
+$$p(\mu_1,\mu_2,\tau\mid x,y)\propto\tau^{\frac{n+m}2-1}\exp\Big\{-\frac\tau2\Big[\sum_i(x_i-\mu_1)^2+\sum_j(y_j-\mu_2)^2\Big]\Big\}$$
+<p><strong>(a) Which priors are improper?</strong> All three: \(\int_{-\infty}^\infty1\,d\mu=\infty\) for \(\mu_1\) and \(\mu_2\), and \(\int_0^\infty\tau^{-1}d\tau=\infty\) for \(\tau\) (<a href="0022-bayesian-inference.html">Lesson 22</a>, §7). Each conditional below must be checked for validity.</p>
+<p><strong>(b) Kernels.</strong> For \(\mu_1\), keep only the factor with \(\mu_1\), and use \(\sum_i(x_i-\mu_1)^2=\sum_i(x_i-\bar x)^2+n(\mu_1-\bar x)^2\):</p>
+$$\begin{aligned}
+p(\mu_1\mid x,y,\mu_2,\tau)&amp;\propto\exp\Big\{-\frac\tau2\sum_{i=1}^n(x_i-\mu_1)^2\Big\}\quad\text{(drop everything about }y,\mu_2\text{ and the flat prior)}\\
+&amp;\propto\exp\Big\{-\frac{n\tau}2(\mu_1-\bar x)^2\Big\}\quad\text{(drop }\textstyle\sum(x_i-\bar x)^2\text{, no }\mu_1)\\
+\mu_1\mid x,y,\mu_2,\tau&amp;\sim N\Big(\bar x,\ \frac1{n\tau}\Big)
+\end{aligned}$$
+<p>Identically, \(\mu_2\mid x,y,\mu_1,\tau\sim N\big(\bar y,\ \frac1{m\tau}\big)\). For \(\tau\), keep the power of \(\tau\) and the whole exponent:</p>
+$$\begin{aligned}
+p(\tau\mid x,y,\mu_1,\mu_2)&amp;\propto\tau^{\frac{n+m}2-1}\exp\Big\{-\tau\cdot\frac12\Big[\sum_i(x_i-\mu_1)^2+\sum_j(y_j-\mu_2)^2\Big]\Big\}\\
+\tau\mid x,y,\mu_1,\mu_2&amp;\sim\text{Gamma}\Big(\frac{n+m}2,\ \frac12\Big[\sum_i(x_i-\mu_1)^2+\sum_j(y_j-\mu_2)^2\Big]\Big)
+\end{aligned}$$
+<p>All are proper: the Normals always, the Gamma as long as \(n+m>0\) and the sum of squares is positive. The flat priors leave the Normals centred on the group means (\(\kappa_0=0\) in the example A formula), and \(1/\tau\) removes the "\(-1\)" from the shape, which is \(a=b=0\) in the earlier formula.</p>
+<p><strong>(c) The scheme: what the exam wants for "briefly describe".</strong> Numbered steps, newest values, and an initial value:</p>
+<div class="box recipe">
+<ol class="steps">
+  <li>Choose starting values \(\mu_1^{(0)},\mu_2^{(0)},\tau^{(0)}\) (any, with \(\tau^{(0)}>0\); e.g. \(\bar x\), \(\bar y\), and \(1/\text{sample variance}\)).</li>
+  <li>For \(t=1,\dots,T\):
+    <ol type="a">
+      <li>draw \(\mu_1^{(t)}\sim N\big(\bar x,\ 1/(n\tau^{(t-1)})\big)\);</li>
+      <li>draw \(\mu_2^{(t)}\sim N\big(\bar y,\ 1/(m\tau^{(t-1)})\big)\);</li>
+      <li>draw \(\tau^{(t)}\sim\text{Gamma}\Big(\tfrac{n+m}2,\ \tfrac12\big[\sum_i(x_i-\mu_1^{(t)})^2+\sum_j(y_j-\mu_2^{(t)})^2\big]\Big)\), using the <em>new</em> \(\mu_1^{(t)},\mu_2^{(t)}\).</li>
+    </ol></li>
+  <li>Discard the first \(T_0\) draws as burn-in (check convergence with trace plots, <a href="0026-mcmc-diagnostics.html">Lesson 26</a>); keep \((\mu_1^{(t)},\mu_2^{(t)},\tau^{(t)})\) for \(t=T_0+1,\dots,T\).</li>
+</ol>
+</div>
+<p>Steps (a) and (b) may be done in either order, or together, because \(\mu_1\) and \(\mu_2\) are conditionally independent given \(\tau\).</p>
+
+<h3>Using the draws</h3>
+<p>Every posterior quantity is a sample average over the kept draws (the Monte Carlo idea of <a href="0023-monte-carlo-rejection-sampling.html">Lesson 23</a>), applied to <em>functions of each draw</em>:</p>
+<div class="tablewrap"><table>
+<tr><th>Want</th><th>Estimate from \(t=T_0+1,\dots,T\) (\(N=T-T_0\) kept draws)</th></tr>
+<tr><td>\(E[\mu_1\mid x,y]\)</td><td>\(\frac1N\sum_t\mu_1^{(t)}\)</td></tr>
+<tr><td>difference \(\delta=\mu_1-\mu_2\)</td><td>form \(\delta^{(t)}=\mu_1^{(t)}-\mu_2^{(t)}\) for each \(t\); then mean, quantiles, \(P(\delta&lt;0\mid x,y)\approx\frac1N\sum_t\mathbf 1\{\delta^{(t)}&lt;0\}\)</td></tr>
+<tr><td>standard deviation \(\sigma=1/\sqrt\tau\)</td><td>\(\frac1N\sum_t1/\sqrt{\tau^{(t)}}\)</td></tr>
+<tr><td>95% credible interval for \(\theta\)</td><td>the 2.5% and 97.5% sample quantiles of the draws \(\theta^{(t)}\)</td></tr>
+<tr><td>\(E[\mu\theta]\) (2018 pattern)</td><td>\(\frac1N\sum_t\mu^{(t)}\theta^{(t)}\): average the <em>products</em></td></tr>
+</table></div>
+<div class="trap"><strong>Trap</strong><br>\(E[g(\theta)\mid x]\ne g(E[\theta\mid x])\). Apply \(g\) to each draw, <em>then</em> average. The mean of \(\mu\theta\) is not (mean of \(\mu\)) \(\times\) (mean of \(\theta\)) unless they are uncorrelated; the posterior mean of \(\sigma\) is not \(1/\sqrt{E\tau}\). Below, the two differ: 1.89 against 1.77.</div>
+
+<h3>Reading the code (read, don't write)</h3>
+<p>Fresh data, \(n=8\) \(x\)-values and \(m=6\) \(y\)-values, and the sampler above. This is real R output.</p>
+<pre class="rout"><span class="cmd">&gt; set.seed(30027)
+&gt; x &lt;- round(rnorm(8, 10, 2), 1);  y &lt;- round(rnorm(6, 12.5, 2), 1)
+&gt; x</span>
+[1] 12.2 11.9  9.7  7.1 10.0  9.3  8.0  5.6
+<span class="cmd">&gt; y</span>
+[1] 11.0 11.2 11.8 11.1 10.1 11.3
+<span class="cmd">&gt; n &lt;- length(x);  m &lt;- length(y);  J &lt;- 6000
+&gt; mu1 &lt;- mu2 &lt;- tau &lt;- numeric(J)
+&gt; mu1[1] &lt;- 0;  mu2[1] &lt;- 0;  tau[1] &lt;- 1
+&gt; for (t in 2:J) {
++   mu1[t] &lt;- rnorm(1, mean(x), sd = sqrt(1/(n*tau[t-1])))
++   mu2[t] &lt;- rnorm(1, mean(y), sd = sqrt(1/(m*tau[t-1])))
++   tau[t] &lt;- rgamma(1, shape = (n+m)/2,
++                    rate = (sum((x-mu1[t])^2) + sum((y-mu2[t])^2))/2)
++ }
+&gt; keep &lt;- 1001:J
+&gt; round(c(mean(mu1[keep]), mean(mu2[keep]), mean(tau[keep]), mean(1/sqrt(tau[keep]))), 2)</span>
+[1]  9.24 11.09  0.32  1.89
+<span class="cmd">&gt; d &lt;- mu1[keep] - mu2[keep]
+&gt; round(c(mean(d), sd(d)), 2)</span>
+[1] -1.85  1.06
+<span class="cmd">&gt; round(quantile(d, c(0.025, 0.975)), 2)</span>
+ 2.5% 97.5%
+-3.96  0.25
+<span class="cmd">&gt; round(mean(d &lt; 0), 3)</span>
+[1] 0.958
+<span class="cmd">&gt; round(c(1/sqrt(mean(tau[keep])), mean(1/sqrt(tau[keep]))), 2)</span>
+[1] 1.77 1.89</pre>
+<p>Line by line. <code>rnorm(1, mean(x), sd = sqrt(1/(n*tau[t-1])))</code> is step (a): mean \(\bar x\), <em>variance</em> \(1/(n\tau)\), so the <code>sd</code> argument is its square root. <code>rgamma(1, shape, rate)</code> takes shape then <strong>rate</strong> (R's default for <code>rgamma</code>, matching Gamma(shape, rate) on the formula sheet). The \(\tau\) update uses <code>mu1[t]</code>, <code>mu2[t]</code> (the newest values), the \(\mu\) updates use <code>tau[t-1]</code> (the last \(\tau\) not yet updated): exactly the "newest value" rule. <code>keep &lt;- 1001:J</code> is the burn-in of 1000. Reading the output: \(\bar x=9.23\), \(\bar y=11.08\) so the posterior means sit on them; the credible interval for \(\mu_1-\mu_2\) is \((-3.96,\ 0.25)\) and \(P(\mu_1&lt;\mu_2\mid x,y)\approx0.96\); the draws of \(\mu_1-\mu_2\) are what <code>d</code> holds.</p>
+<div class="trap"><strong>Trap: standard deviation, not variance</strong><br><code>rnorm(1, 5, 4)</code> draws from \(N(5,\ 16)\): the third argument is the sd. The posterior variance of \(\mu_1\) is \(1/(n\tau)\); writing <code>rnorm(1, mean(x), 1/(n*tau))</code> would silently use sd \(=1/(n\tau)\), i.e. variance \(1/(n\tau)^2\). Similarly BUGS' <code>dnorm(mean, precision)</code> takes a precision (<a href="0022-bayesian-inference.html">Lesson 22</a>, §7). Three functions, three conventions.</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>5.</strong> In the two-group model with flat priors, \(n=8\), and the current \(\tau=0.5\), which call draws \(\mu_1\) from its full conditional?</p>
+  <div class="opts">
+    <button class="opt" data-key="a"><code>rnorm(1, mean(x), 1/(n*tau))</code></button>
+    <button class="opt" data-key="b"><code>rnorm(1, mean(x), sqrt(1/(n*tau)))</code></button>
+    <button class="opt" data-key="c"><code>rnorm(1, mean(x), sqrt(n*tau))</code></button>
+    <button class="opt" data-key="d"><code>rnorm(1, mean(x), 1/sqrt(n))</code></button>
+  </div>
+  <div class="why">The conditional is \(N(\bar x,\ 1/(n\tau))=N(\bar x,\ 0.25)\), so the sd is \(\sqrt{0.25}=0.5\): option (b). (a) passes the variance as the sd (0.25). (c) passes the square root of the precision (2). (d) forgets \(\tau\): it is the sd for \(\tau=1\).</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>6.</strong> You hold vectors <code>mu1</code>, <code>mu2</code> of kept draws. Which line estimates \(P(\mu_1&lt;\mu_2\mid x,y)\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a"><code>mean(mu1 &lt; mu2)</code>, the fraction of draws with \(\mu_1^{(t)}&lt;\mu_2^{(t)}\)</button>
+    <button class="opt" data-key="b"><code>mean(mu1) &lt; mean(mu2)</code>, a single comparison of two posterior means</button>
+    <button class="opt" data-key="c"><code>mean(mu1 - mu2)</code>, the posterior mean of the difference</button>
+    <button class="opt" data-key="d"><code>sd(mu1 - mu2)</code>, the posterior spread of the difference</button>
+  </div>
+  <div class="why">A probability is the posterior mean of an indicator: compare within each draw, then average (0.958 above). (b) gives TRUE or FALSE, not a probability. (c) is \(E[\mu_1-\mu_2\mid x,y]=-1.85\) and (d) is its sd (1.06).</div>
+</div>
+
+<h2>6 · Coal-mining changepoint: a discrete conditional</h2>
+<p>The lecturer's example (<a href="../lectures/MCMC-3.pdf#page=19">MCMC slides 19–23</a>, <a href="../extra-notes/Gibbs example_ coal-mining disasters.pdf">coal-mining notes</a>): \(y_i\) is the number of disasters in year \(i\), \(i=1,\dots,n\) (\(n=112\) years from 1851). The rate changes after an unknown year \(M\):</p>
+$$y_i\mid\lambda_1\sim\text{Poisson}(\lambda_1)\ \ (i\le M),\qquad y_i\mid\lambda_2\sim\text{Poisson}(\lambda_2)\ \ (i>M).$$
+<p>Priors: \(\lambda_1\sim\text{Gamma}(a_1,b_1)\), \(\lambda_2\sim\text{Gamma}(a_2,b_2)\), \(M\sim\text{Uniform}\{1,\dots,n\}\), independent. Write \(c_m=\sum_{i=1}^my_i\) for the partial sums, so \(c_n\) is the total. The joint, with the data factors split at \(M\):</p>
+$$\begin{aligned}
+p(y,\lambda_1,\lambda_2,M)&amp;\propto\prod_{i=1}^M\lambda_1^{y_i}e^{-\lambda_1}\ \prod_{i=M+1}^n\lambda_2^{y_i}e^{-\lambda_2}\cdot\lambda_1^{a_1-1}e^{-b_1\lambda_1}\cdot\lambda_2^{a_2-1}e^{-b_2\lambda_2}\cdot\frac1n\\
+&amp;=\lambda_1^{\,a_1+c_M-1}e^{-(b_1+M)\lambda_1}\cdot\lambda_2^{\,a_2+(c_n-c_M)-1}e^{-(b_2+n-M)\lambda_2}\quad\text{(drop }y_i!,\ \tfrac1n,\ \text{prior constants)}
+\end{aligned}$$
+<p><strong>The two rates</strong> are Poisson–Gamma updates with the data that belong to each side:</p>
+<div class="answer-box"><p>Full conditionals of \(\lambda_1,\lambda_2\)</p>
+$$\lambda_1\mid\lambda_2,M,y\sim\text{Gamma}\Big(a_1+\sum_{i=1}^My_i,\ b_1+M\Big),\qquad\lambda_2\mid\lambda_1,M,y\sim\text{Gamma}\Big(a_2+\sum_{i=M+1}^ny_i,\ b_2+n-M\Big)$$
+</div>
+<p><strong>The changepoint.</strong> Now the unknown is \(M\), so keep every factor in which \(M\) appears: the split of the products, and the exponents \(e^{-M\lambda_1}\) and \(e^{-(n-M)\lambda_2}\). Hold \(\lambda_1,\lambda_2\) fixed. For a candidate value \(m\):</p>
+$$\begin{aligned}
+p(M=m\mid\lambda_1,\lambda_2,y)&amp;\propto\lambda_1^{c_m}e^{-m\lambda_1}\cdot\lambda_2^{c_n-c_m}e^{-(n-m)\lambda_2}\\
+&amp;=\lambda_1^{c_m}\lambda_2^{-c_m}\cdot\lambda_2^{c_n}e^{-n\lambda_2}\cdot e^{-m\lambda_1+m\lambda_2}\quad\text{(rewrite }\lambda_2^{c_n-c_m}=\lambda_2^{c_n}\lambda_2^{-c_m})\\
+&amp;\propto\Big(\frac{\lambda_1}{\lambda_2}\Big)^{c_m}e^{(\lambda_2-\lambda_1)m}\quad\text{(drop }\lambda_2^{c_n}e^{-n\lambda_2},\text{ no }m)
+\end{aligned}$$
+<p>This is not a named distribution (<a href="../lectures/MCMC-3.pdf#page=23">slide 23</a>), but it is a finite list, so you can sample it exactly: compute the weight \(w_m=(\lambda_1/\lambda_2)^{c_m}e^{(\lambda_2-\lambda_1)m}\) for every \(m=1,\dots,n\) and normalise:</p>
+$$P(M=m\mid\lambda_1,\lambda_2,y)=\frac{w_m}{\sum_{k=1}^nw_k},\qquad m=1,\dots,n.$$
+<p>The Gibbs scheme for \((\lambda_1,\lambda_2,M)\): draw \(\lambda_1\) given \((M,y)\), then \(\lambda_2\) given \((M,y)\), then \(M\) from the discrete conditional given the new \(\lambda_1,\lambda_2\). (Here \(\lambda_1\) and \(\lambda_2\) don't depend on each other given \(M\).)</p>
+
+<h3>One discrete step by hand</h3>
+<p>Five years, \(y=(3,4,2,0,1)\), current \(\lambda_1=3\), \(\lambda_2=1\). Partial sums \(c=(3,7,9,9,10)\). Weights \(w_m=3^{c_m}e^{-2m}\) (since \(\lambda_1/\lambda_2=3\) and \(\lambda_2-\lambda_1=-2\)):</p>
+<div class="tablewrap"><table>
+<tr><th>\(m\)</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>
+<tr><td>\(c_m\)</td><td>3</td><td>7</td><td>9</td><td>9</td><td>10</td></tr>
+<tr><td>\(3^{c_m}\)</td><td>27</td><td>2187</td><td>19683</td><td>19683</td><td>59049</td></tr>
+<tr><td>\(e^{-2m}\)</td><td>0.1353</td><td>0.0183</td><td>0.0025</td><td>0.0003</td><td>0.0000</td></tr>
+<tr><td>\(w_m\) (R, full precision)</td><td>3.654</td><td>40.056</td><td>48.789</td><td>6.603</td><td>2.681</td></tr>
+<tr><td>\(P(M=m)\)</td><td>0.04</td><td>0.39</td><td>0.48</td><td>0.06</td><td>0.03</td></tr>
+</table></div>
+<p>Total \(\sum w_k=101.783\), so \(P(M=3)=48.789/101.783=0.4793\). On the FX-82 compute \(3^{c_m}e^{-2m}\) directly, e.g. \(w_3=19683\,e^{-6}=48.79\); don't round \(e^{-2m}\) to 4 decimals first. Or work on the log scale, \(\log w_m=c_m\log(\lambda_1/\lambda_2)+(\lambda_2-\lambda_1)m\): \(1.296,\ 3.690,\ 3.888,\ 1.888,\ 0.986\). The most probable changepoint is \(M=3\): the first three years (3, 4, 2 disasters) fit a rate near 3 and the last two (0, 1) fit a rate near 1.</p>
+
+<div class="quiz num" data-answer="0.48" data-tol="0.005">
+  <p class="q"><strong>7.</strong> Five years \(y=(3,4,2,0,1)\) at \(\lambda_1=3\), \(\lambda_2=1\) give unnormalised weights \(w=(3.654,\ 40.056,\ 48.789,\ 6.603,\ 2.681)\) for \(m=1,\dots,5\). Give \(P(M=3\mid\lambda_1,\lambda_2,y)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Sum \(=3.654+40.056+48.789+6.603+2.681=101.783\). \(P(M=3)=48.789/101.783=\)<strong>0.48</strong>. The weights are <em>unnormalised</em>: the discrete conditional is "evaluate at every value, divide by the total". The sum of the five probabilities is 1; the rounded table row sums to 1.00.</div>
+</div>
+
+<div class="quiz num" data-answer="0.92" data-tol="0.005">
+  <p class="q"><strong>8.</strong> Coal data with the lecture's priors \(a_2=0.5\), \(b_2=0.001\) and a current changepoint \(M=40\). The years \(41,\dots,112\) hold \(\sum_{i=41}^{112}y_i=66\) disasters. Give the mean of \(\lambda_2\mid\lambda_1,M=40,y\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\lambda_2\mid\cdot\sim\text{Gamma}(0.5+66,\ 0.001+112-40)=\text{Gamma}(66.5,\ 72.001)\). Mean \(a/b=66.5/72.001=\)<strong>0.92</strong>. (The first 40 years hold 125 disasters: \(\lambda_1\mid\cdot\sim\text{Gamma}(125.5,\ 40.001)\), mean 3.14.) The rate is the number of years on that side of the changepoint, \(n-M\), not \(n\).</div>
+</div>
+
+<h3>Reading the lecturer's code</h3>
+<pre class="rout"><span class="cmd">cfreq &lt;- cumsum(freq)
+for (i in 2:nreps) {
+  la1 &lt;- rgamma(1, a1 + cfreq[M], b1 + M)
+  la2 &lt;- rgamma(1, a2 + cfreq[n] - cfreq[M], b2 + n - M)
+  M   &lt;- sample(1:n, 1, prob = (la1/la2)^cfreq * exp((la2 - la1) * (1:n)))
+  Gsamples[i,] &lt;- c(la1, la2, M)
+}</span></pre>
+<p>Line by line (<a href="../extra-notes/Gibbs_example_coal-1.pdf">the notes</a> explain each): <code>cfreq[m]</code> is \(c_m\), so <code>cfreq[M]</code> is \(\sum_{i\le M}y_i\) and <code>cfreq[n] - cfreq[M]</code> is \(\sum_{i>M}y_i\) (the disasters after the change). Line 1 is the \(\lambda_1\) conditional with the current <code>M</code>; line 2 is the \(\lambda_2\) conditional. In line 3 the vector <code>(la1/la2)^cfreq * exp((la2 - la1) * (1:n))</code> is the whole vector of weights \(w_1,\dots,w_n\) at once; <code>sample(1:n, 1, prob = …)</code> draws one \(m\) with those probabilities, and <code>sample</code> normalises <code>prob</code> itself, so you need not divide by the total. The new <code>la1</code>, <code>la2</code> feed straight into the next lines, and the new <code>M</code> is used at the top of the next iteration: newest values again.</p>
+<p>A run (real output; 5000 iterations from \(\lambda_1=\lambda_2=1\), \(M=100\), first 500 discarded, lecturer's priors):</p>
+<pre class="rout"><span class="cmd">&gt; round(G[1:3, ], 2)</span>
+     [,1] [,2] [,3]
+[1,] 1.00 1.00  100
+[2,] 2.02 0.51   47
+[3,] 2.78 0.88   40
+<span class="cmd">&gt; k &lt;- 501:5000;  round(colMeans(G[k, ]), 2)</span>
+[1]  3.14  0.93 39.89
+<span class="cmd">&gt; round(quantile(G[k, 1], c(0.025, 0.975)), 2)</span>
+ 2.5% 97.5%
+ 2.60  3.75
+<span class="cmd">&gt; round(quantile(G[k, 2], c(0.025, 0.975)), 2)</span>
+ 2.5% 97.5%
+ 0.72  1.18
+<span class="cmd">&gt; round(quantile(G[k, 3], c(0.025, 0.975)))</span>
+ 2.5% 97.5%
+   36    46
+<span class="cmd">&gt; round(mean(G[k, 1] &gt; G[k, 2]), 3)</span>
+[1] 1
+<span class="cmd">&gt; round(c(mean(G[k, 1])/mean(G[k, 2]), mean(G[k, 1]/G[k, 2])), 2)</span>
+[1] 3.38 3.43</pre>
+<p>Reading it. The chain leaves its bad start immediately (row 2: \(M=47\); row 3: \(M=40\)), so the burn-in could be short here; the lecturer discards 50 of 500. The change is placed at about \(M=40\) (the year 1890/91), the rate falling from about 3.1 to about 0.9 disasters a year; the 95% credible interval for \(M\) is 36 to 46 years after 1850. No draw has \(\lambda_1\le\lambda_2\), so \(P(\lambda_1>\lambda_2\mid y)\approx1\): strong evidence of a drop. The ratio line repeats the trap of §5: the mean of the ratio (3.43) is not the ratio of the means (3.38).</p>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>9.</strong> In the coal code, why is <code>b2 + n - M</code> the rate in the draw of <code>la2</code>?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Because \(b_2\) is the prior total of disasters, and \(n-M\) is the observed total</button>
+    <button class="opt" data-key="b">Because the Gamma rate always equals the prior rate plus the number of disasters</button>
+    <button class="opt" data-key="c">Because \(M\) has been drawn uniformly, so \(n-M\) averages out to \(n/2\)</button>
+    <button class="opt" data-key="d">Because \(\lambda_2\) governs the \(n-M\) years after the change, and each year adds 1 to the rate</button>
+  </div>
+  <div class="why">Poisson–Gamma (<a href="0022-bayesian-inference.html">Lesson 22</a> §4): shape \(a+\sum y\), rate \(b+\text{number of periods observed}\). Under \(\lambda_2\) the periods are the years \(M+1,\dots,n\): \(n-M\) of them. The disaster count goes in the shape (<code>a2 + cfreq[n] - cfreq[M]</code>), not the rate, and \(M\) is not averaged out: it is the current sampled value.</div>
+</div>
+
+<h2>7 · A discrete variable in a Gibbs loop (the lecturer's binomial example)</h2>
+<p>Gibbs works for any mixture of discrete and continuous unknowns. <a href="../extra-notes/simulation_Gibbs-1.pdf">simulation_Gibbs</a> samples \((X,p,N)\) with this loop:</p>
+<pre class="rout"><span class="cmd">x.seq[j] &lt;- rbinom(1, N.seq[j-1], p.seq[j-1])
+p.seq[j] &lt;- rbeta(1, x.seq[j] + 2, N.seq[j-1] - x.seq[j] + 4)
+N.seq[j] &lt;- rpois(1, 16 * (1 - p.seq[j])) + x.seq[j]</span></pre>
+<p>Reading it as three full conditionals: \(X\mid N,p\sim\text{Binomial}(N,p)\); \(p\mid X,N\sim\text{Beta}(X+2,\ N-X+4)\) (Beta prior \(\text{Beta}(2,4)\) updated by \(X\) successes and \(N-X\) failures); and \(N-X\mid p,X\sim\text{Poisson}(16(1-p))\), so \(N=X+\text{Poisson}(16(1-p))\). Note the third line adds <code>x.seq[j]</code> to a Poisson draw, and the indices: \(x\) uses the old \(N\), \(p\); \(p\) uses the new \(x\) and the old \(N\); \(N\) uses the new \(x\) and the new \(p\).</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>10.</strong> In that loop, the second line uses <code>x.seq[j]</code> but <code>N.seq[j-1]</code>. What does this say about the scheme?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It is a bug: every line should use iteration \(j-1\) so the updates stay in sync</button>
+    <button class="opt" data-key="b">It is a bug: every line should use iteration \(j\), including <code>N.seq[j]</code> itself</button>
+    <button class="opt" data-key="c">It is correct: \(N\) has not been updated yet, so its latest value is from iteration \(j-1\)</button>
+    <button class="opt" data-key="d">It is correct: the chain uses new values only for \(X\), because it was updated first</button>
+  </div>
+  <div class="why">Rule: each update uses the most recent value of every other variable. At line 2 of iteration \(j\), \(X\) is new (iteration \(j\)) and \(N\) is still the old one. Using all-old values would be a different (and wrong) scheme; <code>N.seq[j]</code> doesn't exist yet when line 2 runs; and the rule applies to every variable, not only the first.</div>
+</div>
+
+<h2>8 · Strong correlation slows Gibbs</h2>
+<p>Gibbs moves one coordinate at a time, so when two parameters are strongly correlated it takes small steps along the ridge (<a href="../lectures/MCMC-3.pdf#page=15">slide 15</a>). Week 11 Q1 is the clean example. For \(X\sim N(\mu,\Sigma)\) the conditional is \(X_1\mid X_2=x_2\sim N\big(\mu_1+(x_2-\mu_2)\tfrac{\sigma_{12}}{\sigma_2^2},\ \sigma_1^2-\tfrac{\sigma_{12}^2}{\sigma_2^2}\big)\). With \(\mu=0\), \(\sigma_1^2=\sigma_2^2=4\):</p>
+<div class="tablewrap"><table>
+<tr><th></th><th>\(\sigma_{12}=1\) (\(\rho=0.25\))</th><th>\(\sigma_{12}=2.8\) (\(\rho=0.70\))</th></tr>
+<tr><td>\(X_1\mid X_2=x_2\)</td><td>\(N(x_2/4,\ 4-\tfrac14)=N(0.25x_2,\ 3.75)\)</td><td>\(N(0.7x_2,\ 4-\tfrac{7.84}4)=N(0.7x_2,\ 2.04)\)</td></tr>
+<tr><td>lag-1 autocorrelation of the \(X_1\) chain (\(\rho^2\))</td><td>0.06 (R: 0.05)</td><td>0.49 (R: 0.48)</td></tr>
+<tr><td>effective sample size \(n\frac{1-r}{1+r}\), \(n=1000\), \(r=\rho^2\)</td><td>882.35</td><td>342.28</td></tr>
+</table></div>
+<p>The two-step Gibbs update multiplies the correlation, which is why the lag-1 autocorrelation of one coordinate is \(\rho^2\) (here quoted, and confirmed by R). Higher \(\rho\) means more dependence between draws, so 1000 draws are worth only about 342. Diagnostics belong to <a href="0026-mcmc-diagnostics.html">Lesson 26</a>; the point for now: Gibbs is exact and tuning-free, but it is not automatically efficient.</p>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Why does a Gibbs sampler for two highly correlated parameters need many more iterations than one for two independent parameters?</p>
+<details><summary>Model answer</summary><div>
+<p>Each step moves only one parameter, holding the other fixed, so with strong correlation the conditional distribution is narrow (e.g. variance 2.04 against 3.75 above) and the chain can only move a short way before the other parameter is updated: it zigzags slowly along the ridge. Successive draws are therefore strongly autocorrelated, the effective sample size is much smaller than the number of iterations, and the chain takes longer to explore the whole posterior. With independent parameters the conditional equals the marginal, and every draw is an independent sample.</p></div></details>
+</div>
+
+<div class="quiz num" data-answer="2.04" data-tol="0.005">
+  <p class="q"><strong>11.</strong> Tute week 11 Q1(a) with \(\mu=0\), \(\sigma_1^2=\sigma_2^2=4\) and \(\sigma_{12}=2.8\). Give the <em>variance</em> of \(X_1\mid X_2=x_2\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\sigma_1^2-\sigma_{12}^2/\sigma_2^2=4-2.8^2/4=4-7.84/4=4-1.96=\)<strong>2.04</strong>. It does not depend on \(x_2\); only the mean \(0.7x_2\) does. In R this is <code>rnorm(1, 0.7*x2, sqrt(2.04))</code>, with the square root.</div>
+</div>
+
+<div class="quiz num" data-answer="342.28" data-tol="0.01">
+  <p class="q"><strong>12.</strong> Tute week 11 Q2(d) formula: effective sample size \(n(1-r)/(1+r)\). For \(n=1000\) draws and lag-1 autocorrelation \(r=0.49\), what is it (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(1000\times0.51/1.49=\)<strong>342.28</strong>. Compare \(r=0.0625\): \(1000\times0.9375/1.0625=882.35\). The same 1000 iterations carry about a third of the information when \(\rho=0.7\).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>13.</strong> Retrieval from <a href="0017-em-algorithm-q-function.html">Lessons 16–17</a>. A Gibbs sampler for a two-component Poisson mixture draws each label \(Z_i\) from \(P(Z_i=k\mid\pi,\lambda,x_i)\). Which EM quantity is that probability?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The mixing weight \(\pi_k\), the prior probability of component \(k\)</button>
+    <button class="opt" data-key="b">The responsibility \(\gamma_{ik}=\pi_kf_k(x_i)\big/\sum_j\pi_jf_j(x_i)\)</button>
+    <button class="opt" data-key="c">The component density \(f_k(x_i)\), the likelihood of \(x_i\) under \(k\)</button>
+    <button class="opt" data-key="d">The marginal \(\sum_j\pi_jf_j(x_i)\), the mixture density at \(x_i\)</button>
+  </div>
+  <div class="why">The label's full conditional is Bayes' rule with the current parameters: prior \(\pi_k\), likelihood \(f_k(x_i)\), normalised over \(k\): the responsibility. EM <em>averages</em> over this distribution (E-step); Gibbs <em>draws</em> from it. It is a discrete conditional, exactly like \(M\) in the coal example: "evaluate every value, divide by the total".</div>
+</div>
+
+<h2>9 · Exam-style question</h2>
+<p><strong>Setup</strong> (fresh model; 11 marks, about 25 minutes, FX-82).</p>
+<div class="box">
+<p><strong>Model:</strong> given \((\mu,\tau)\), the observations \(x_1,\dots,x_n\) and \(y_1,\dots,y_m\) are all independent with</p>
+$$x_i\mid\mu,\tau\sim\text{Normal}\Big(\mu,\ \frac1\tau\Big),\qquad y_j\mid\mu,\tau\sim\text{Normal}\Big(2\mu,\ \frac1\tau\Big).$$
+<p><strong>Prior:</strong> \(\mu\) and \(\tau\) are independent, with \(\mu\sim\text{Normal}(1,\ 2)\) and \(\tau\sim\text{Gamma}(3,\ 2)\).</p>
+</div>
+<ol type="a">
+  <li>Derive the conditional distribution \(p(\mu\mid\tau,x,y)\). If it is a known distribution, identify the distribution name and its parameters. <span class="marks">[4]</span></li>
+  <li>Derive the conditional distribution \(p(\tau\mid\mu,x,y)\) and identify it. <span class="marks">[3]</span></li>
+  <li>Briefly describe a Gibbs sampling scheme for \((\mu,\tau)\), and explain how you would use its output to estimate \(P(\mu>1\mid x,y)\). <span class="marks">[3]</span></li>
+  <li>Briefly explain why this sampler needs no proposal distribution and no accept/reject step. <span class="marks">[1]</span></li>
+</ol>
+
+<details><summary>Marking-key solution</summary><div>
+<p><strong>(a)</strong> <em>[1 mark: posterior \(\propto\) both likelihoods \(\times\) prior, keeping only \(\mu\) terms; note the \(y\) mean is \(2\mu\).]</em> The prior variance 2 means \(\kappa_0=\tfrac12\), \(m_0=1\):</p>
+$$\begin{aligned}
+p(\mu\mid\tau,x,y)&amp;\propto\exp\Big\{-\frac\tau2\sum_{i=1}^n(x_i-\mu)^2\Big\}\cdot\exp\Big\{-\frac\tau2\sum_{j=1}^m(y_j-2\mu)^2\Big\}\cdot\exp\Big\{-\frac{1}{4}(\mu-1)^2\Big\}
+\end{aligned}$$
+<p><em>[1 mark: expand; the \(y\) square gives \(4m\mu^2\) and \(-4\mu\sum y_j\).]</em></p>
+$$\begin{aligned}
+\text{exponent}&amp;=-\frac\tau2\Big[n\mu^2-2\mu\sum_ix_i\Big]-\frac\tau2\Big[4m\mu^2-4\mu\sum_jy_j\Big]-\frac14\big[\mu^2-2\mu\big]+\text{const}\\
+&amp;=-\frac12\Big[(n+4m)\tau+\tfrac12\Big]\mu^2+\Big[\tau\sum_ix_i+2\tau\sum_jy_j+\tfrac12\Big]\mu+\text{const}\\
+&amp;=-\frac A2\mu^2+B\mu+\text{const},\qquad A=\tfrac12+(n+4m)\tau,\quad B=\tfrac12+\tau\Big(\sum_ix_i+2\sum_jy_j\Big)
+\end{aligned}$$
+<p><em>[1 mark: complete the square.]</em></p>
+$$\begin{aligned}
+p(\mu\mid\tau,x,y)&amp;\propto\exp\Big\{-\frac A2\Big(\mu-\frac BA\Big)^2\Big\}
+\end{aligned}$$
+<div class="answer-box"><p>(a)</p>
+$$\mu\mid\tau,x,y\ \sim\ \text{Normal}\Big(\frac{\tfrac12+\tau\big(\sum_ix_i+2\sum_jy_j\big)}{\tfrac12+(n+4m)\tau},\ \frac{1}{\tfrac12+(n+4m)\tau}\Big)$$
+</div>
+<p><em>[1 mark: name, mean, and variance (not precision).]</em> <span class="marks">(Marks: 1 + 1 + 1 + 1.)</span> Typical losses: \(A\) with \(m\) instead of \(4m\); \(B\) with \(\sum y_j\) instead of \(2\sum y_j\); using \(\kappa_0=2\) (the variance) instead of \(\tfrac12\) (the precision).</p>
+
+<p><strong>(b)</strong> <em>[1 mark: keep the \(\tau\) powers from both likelihoods and the Gamma prior; the Normal prior of \(\mu\) has no \(\tau\).]</em></p>
+$$\begin{aligned}
+p(\tau\mid\mu,x,y)&amp;\propto\tau^{n/2}e^{-\frac\tau2\sum_i(x_i-\mu)^2}\cdot\tau^{m/2}e^{-\frac\tau2\sum_j(y_j-2\mu)^2}\cdot\tau^{3-1}e^{-2\tau}
+\end{aligned}$$
+<p><em>[1 mark: add the powers and collect the exponent.]</em></p>
+$$\begin{aligned}
+p(\tau\mid\mu,x,y)&amp;=\tau^{\,3+\frac{n+m}2-1}\exp\Big\{-\tau\Big(2+\frac12\Big[\sum_i(x_i-\mu)^2+\sum_j(y_j-2\mu)^2\Big]\Big)\Big\}
+\end{aligned}$$
+<div class="answer-box"><p>(b)</p>
+$$\tau\mid\mu,x,y\ \sim\ \text{Gamma}\Big(3+\frac{n+m}2,\ \ 2+\frac12\Big[\sum_{i=1}^n(x_i-\mu)^2+\sum_{j=1}^m(y_j-2\mu)^2\Big]\Big)$$
+</div>
+<p><em>[1 mark: name, shape, rate.]</em> <span class="marks">(Marks: 1 + 1 + 1.)</span> Typical losses: shape \(3+n/2\) (forgetting the \(y\) observations); \((y_j-\mu)^2\) instead of \((y_j-2\mu)^2\).</p>
+
+<p><strong>(c)</strong> <em>[1 mark: initial values, then alternate the two draws using the most recent value of the other parameter.]</em></p>
+<ol class="steps">
+  <li>Choose \(\mu^{(0)}\) and \(\tau^{(0)}>0\).</li>
+  <li>For \(t=1,\dots,T\): draw \(\mu^{(t)}\sim\text{Normal}(B/A,\ 1/A)\) from (a) with \(\tau=\tau^{(t-1)}\); then draw \(\tau^{(t)}\sim\text{Gamma}(\cdot,\cdot)\) from (b) with \(\mu=\mu^{(t)}\).</li>
+  <li>Discard the first \(T_0\) draws as burn-in.</li>
+</ol>
+<p><em>[1 mark: burn-in discarded.]</em> <em>[1 mark: estimate.]</em> With the \(N=T-T_0\) kept draws,</p>
+$$\begin{aligned}
+P(\mu>1\mid x,y)&amp;\approx\frac1N\sum_{t=T_0+1}^{T}\mathbf 1\{\mu^{(t)}>1\}\quad\text{(the fraction of kept draws with }\mu^{(t)}>1)
+\end{aligned}$$
+<p><span class="marks">(Marks: 1 + 1 + 1.)</span></p>
+
+<p><strong>(d)</strong> <em>[1 mark.]</em> Each draw is made from an exact full conditional. Used as an MH proposal, a full conditional makes the acceptance probability exactly 1 (the proposal ratio cancels the target ratio), so every draw is accepted and there is nothing to tune. <span class="marks">(Marks: 1.)</span></p>
+<p><strong>Total 11.</strong></p></div></details>
+
+<h2>10 · Score yourself</h2>
+<div class="tablewrap"><table>
+<tr><th>If you missed…</th><th>Go back to</th></tr>
+<tr><td>Q1, Q13</td><td>§1: full conditional as the MH proposal gives \(\alpha=1\); a label's conditional is the EM responsibility</td></tr>
+<tr><td>Q2, Q3</td><td>§3: both likelihoods in both conditionals; the factor 2 on the \(y\) terms; shape \(a+(n+m)/2\)</td></tr>
+<tr><td>Q4</td><td>§4: a prior containing \(\tau\) adds \(\tfrac12\) to the shape and \(\tfrac{\kappa_0}2(\mu-m_0)^2\) to the rate</td></tr>
+<tr><td>Q5, Q6</td><td>§5: <code>rnorm</code> takes an sd; probability = mean of an indicator over draws</td></tr>
+<tr><td>Q7, Q8, Q9</td><td>§6: discrete conditional = weights then normalise; rate = number of periods on that side</td></tr>
+<tr><td>Q10</td><td>§7: newest value of every other variable</td></tr>
+<tr><td>Q11, Q12</td><td>§8: conditional variance \(\sigma_1^2-\sigma_{12}^2/\sigma_2^2\); effective sample size</td></tr>
+</table></div>
+
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) The 4-step recipe: joint, keep factors with \(\theta_j\), recognise kernel, name with parameters. (2) Normal mean conditional: precision \(\kappa_0+n\tau\) (add the \(2m\tau\)-type terms from other data), mean \((\kappa_0m_0+\tau\sum x_i)/\text{precision}\). (3) \(\tau\) conditional: Gamma\((a+\tfrac n2,\ b+\tfrac12\sum(x_i-\mu)^2)\); with every observation counted, and with \(\tau\) inside the prior of \(\mu\) add \(\tfrac12\) and \(\tfrac{\kappa_0}2(\mu-m_0)^2\). (4) Discrete conditional: weight each value, divide by the total. (5) Scheme: init, alternate with newest values, burn-in, average a function of each draw. (6) Why \(\alpha=1\).</p></div></details>
+
+<h2>11 · Homework</h2>
+<ol>
+  <li><strong>Tute week 11, Q1</strong> (<code>tutes/2026_MAST30027_week11_questions.qmd</code>). Do (a) on paper (the bivariate Normal conditional); for (b)–(d) read the Gibbs sampler, don't write it: what does each line draw, and why does \(\rho=0.7\) slow things down? Q2 is Metropolis–Hastings, <a href="0024-metropolis-hastings.html">Lesson 24</a>.</li>
+  <li><strong>Exponential changepoint.</strong> \(y_i\mid\lambda_1\sim\text{Exponential}(\text{rate }\lambda_1)\) for \(i\le M\) and \(\text{Exponential}(\text{rate }\lambda_2)\) for \(i>M\); \(\lambda_k\sim\text{Gamma}(a_k,b_k)\), \(M\sim\text{Uniform}\{1,\dots,n\}\). Derive the three full conditionals (write \(S_m=\sum_{i\le m}y_i\)).</li>
+  <li><strong>Unknown variance.</strong> \(x_i\mid\mu,\sigma^2\sim N(\mu,\sigma^2)\), \(\mu\sim N(0,100)\), \(\sigma^2\sim\text{Inv-Gamma}(2,3)\). Derive both conditionals and give the parameters for \(n=5\), \(\sum x_i=12\), \(\sum(x_i-\mu)^2=9.5\) at \(\sigma^2=2\), \(\mu=2\) (2 d.p.).</li>
+  <li><strong>Discrete plus continuous.</strong> \(f(\theta,K\mid x)\propto\exp\{-\tfrac12(\theta-2K)^2\}\times\begin{cases}0.3&amp;K=1\\0.7&amp;K=0\end{cases}\), \(\theta\in\mathbb R\), \(K\in\{0,1\}\). Give both conditionals, describe a Gibbs sampler, and say how to estimate \(E[K\theta]\).</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p><strong>1.</strong> (a) \(f(x_1\mid x_2)\propto f(x_1,x_2)\): the exponent is a quadratic in \(x_1\); complete the square to get mean \(\mu_1+(x_2-\mu_2)\sigma_{12}/\sigma_2^2\), variance \(\sigma_1^2-\sigma_{12}^2/\sigma_2^2\). Lines to read: <code>rnorm(1, rho*x2, sqrt(1-rho^2))</code>-type calls with <em>sd</em>, \(X_1\) updated from the old \(X_2\), then \(X_2\) from the new \(X_1\). \(\rho=0.7\): conditional variance 2.04, lag-1 autocorrelation about 0.49, effective sample size about 342 out of 1000 (§8).</p>
+<p><strong>2.</strong> Joint \(\propto\prod_{i\le M}\lambda_1e^{-\lambda_1y_i}\prod_{i>M}\lambda_2e^{-\lambda_2y_i}\cdot\lambda_1^{a_1-1}e^{-b_1\lambda_1}\lambda_2^{a_2-1}e^{-b_2\lambda_2}\).</p>
+$$\begin{aligned}
+\lambda_1\mid\cdot&amp;\sim\text{Gamma}\big(a_1+M,\ b_1+S_M\big)\\
+\lambda_2\mid\cdot&amp;\sim\text{Gamma}\big(a_2+n-M,\ b_2+S_n-S_M\big)\\
+p(M=m\mid\cdot)&amp;\propto\lambda_1^{m}\lambda_2^{n-m}e^{-\lambda_1S_m-\lambda_2(S_n-S_m)}\propto\Big(\frac{\lambda_1}{\lambda_2}\Big)^{m}e^{-(\lambda_1-\lambda_2)S_m}
+\end{aligned}$$
+<p>(shape counts the observations on each side, rate adds the data total on that side). Normalise over \(m=1,\dots,n\).</p>
+<p><strong>3.</strong> \(\mu\) conditional: precision \(\frac1{100}+\frac n{\sigma^2}\), mean \(\frac{0/100+\sum x_i/\sigma^2}{1/100+n/\sigma^2}\); \(\sigma^2\mid\mu,x\sim\text{Inv-Gamma}\big(2+\frac n2,\ 3+\frac12\sum(x_i-\mu)^2\big)\). Numbers: \(\mu\mid\cdot\sim N\big(\frac{12/2}{0.01+2.5},\ \frac1{2.51}\big)=N(2.39,\ 0.40)\); \(\sigma^2\mid\cdot\sim\text{Inv-Gamma}(4.5,\ 7.75)\), mean \(7.75/3.5=2.21\).</p>
+<p><strong>4.</strong> \(\theta\mid K\sim N(2K,1)\). \(P(K=1\mid\theta)=\dfrac{0.3\,e^{-(\theta-2)^2/2}}{0.3\,e^{-(\theta-2)^2/2}+0.7\,e^{-\theta^2/2}}=\dfrac{0.3}{0.3+0.7e^{2-2\theta}}\). Scheme: start \((\theta^{(0)},K^{(0)})\); for each \(t\) draw \(\theta^{(t)}\sim N(2K^{(t-1)},1)\), then \(K^{(t)}\sim\text{Bernoulli}\big(P(K=1\mid\theta^{(t)})\big)\); discard burn-in. Estimate \(E[K\theta]\) by \(\frac1N\sum_tK^{(t)}\theta^{(t)}\), the average of the products.</p></div></details>
+
+<p><strong>Primary source:</strong> the lecturer's <a href="../lectures/MCMC-3.pdf#page=13">MCMC slides 13–23</a> (algorithm, \(\alpha=1\), correlation, coal-mining), then the <a href="../extra-notes/Gibbs example_ coal-mining disasters.pdf">coal-mining notes</a> for the line-by-line code, and <a href="../extra-notes/simulation_Gibbs-1.pdf">simulation_Gibbs</a>. For more worked conditionals, <a href="https://www.cs.ubc.ca/~murphyk/Papers/bayesGauss.pdf">Murphy (2007)</a> §2.3 and §6.3.</p>
+
+<div class="ask">💬 Ask me in the terminal if the factor-dropping in §3–4 feels unsafe (I can give a fresh stem with a different mean such as \(y_j\sim N(3\mu,1/\tau)\) or a hierarchical prior), or for a cold Model/Prior stem to try. Paste your working for §9 or any homework and I'll mark it like an exam marker.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0024-metropolis-hastings.html">Lesson 24, Metropolis–Hastings</a> · Reference: <a href="../reference/kernels-conjugacy.html">kernels and conjugacy</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0026-mcmc-diagnostics.html">Lesson 26, MCMC diagnostics</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

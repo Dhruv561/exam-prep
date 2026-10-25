@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monte Carlo and Rejection Sampling</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .4rem 1rem .6rem; margin: 1.2rem 0; }
+  .answer-box > p:first-child { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); margin-bottom: .2rem; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); }
+  .sheet { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .04em; color: var(--ok); }
+  .nosheet { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .04em; color: var(--trap); }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 23 · Topic 5: Bayesian inference &amp; computation (2 of 7)</div>
+<h1>Monte Carlo and rejection sampling</h1>
+<p class="lede">The goal: given a target density you can only write down up to a constant, build a rejection sampler for it using only uniform random numbers, find the smallest envelope constant \(M\) by calculus, and state its acceptance probability. Along the way you will turn posterior draws into estimates, with an error bar, by averaging.</p>
+
+<div class="mission">Why this matters on 10 Nov: past papers ask "provide a rejection sampling algorithm using only a uniform generator for \(f(x)\propto\dots\) on an interval, and minimise the probability of rejection" (2018, 7 marks), "describe how to simulate from the posterior predictive" (2017), "estimate the posterior mean and sd from 10,000 draws" (2014/15), and they show R code with a <code>while</code> loop simulating a discrete random variable and ask what it does (2017). All four are in this lesson. About 50 minutes, paper and FX-82. Assumed: <a href="0022-bayesian-inference.html">Lesson 22</a> (posterior \(\propto\) likelihood \(\times\) prior, posterior predictive: draw \(\theta\), then \(\tilde x\)), <a href="0015-kernels-and-conjugacy.html">Lesson 15</a> (kernels). R is read-only: you interpret code and output, you don't write it.</div>
+
+<h2>1 · Monte Carlo: averages of draws estimate expectations</h2>
+<p>Notation follows <a href="0022-bayesian-inference.html">Lesson 22</a>: \(\theta\) is the parameter, \(p(\theta\mid x)\) the posterior. Suppose you can't compute \(E[g(\theta)\mid x]\) by integration but you can draw \(\theta^{(1)},\dots,\theta^{(N)}\) independently from \(p(\theta\mid x)\). The law of large numbers says (<a href="../lectures/MC_methods_LMS-2.pdf#page=3">slide 3</a>; <a href="../extra-notes/sampling_example-1.pdf">sampling_example</a>):</p>
+$$\begin{aligned}
+E[g(\theta)\mid x]&amp;\approx\hat g=\frac1N\sum_{s=1}^N g\big(\theta^{(s)}\big)\\
+P(\theta\in A\mid x)&amp;=E[\mathbf 1\{\theta\in A\}\mid x]\approx\frac1N\sum_{s=1}^N\mathbf 1\{\theta^{(s)}\in A\}\quad\text{(fraction of draws in }A)
+\end{aligned}$$
+<p>Posterior mean, variance, median, quantiles and a 95% credible interval all come from the draws the same way: <code>mean(theta)</code>, <code>var(theta)</code>, <code>quantile(theta, c(.025, .975))</code>.</p>
+
+<p><strong>Monte Carlo standard error.</strong> \(\hat g\) is itself random, an average of \(N\) independent terms each with variance \(\text{Var}(g(\theta)\mid x)\):</p>
+$$\begin{aligned}
+\text{Var}(\hat g)&amp;=\frac1{N^2}\sum_{s=1}^N\text{Var}\big(g(\theta^{(s)})\big)\quad\text{(independent draws)}\\
+&amp;=\frac{\text{Var}(g(\theta)\mid x)}{N}\\
+\text{MC s.e.}&amp;=\sqrt{\frac{\text{Var}(g(\theta)\mid x)}{N}}=\frac{\text{sd of the }g\text{-values}}{\sqrt N}
+\end{aligned}$$
+<p>For a probability \(p=P(\theta\in A\mid x)\), the \(g\)-values are 0/1 with variance \(p(1-p)\), so \(\text{s.e.}=\sqrt{\hat p(1-\hat p)/N}\). The error falls like \(1/\sqrt N\): ten times more accuracy costs a hundred times more draws.</p>
+
+<p><strong>Worked example.</strong> Posterior \(\theta\mid x\sim\text{Beta}(8,4)\) (a coin with 7 heads in 10 tosses and a flat prior: we will rebuild it from its kernel in §5). Pretend we only have draws:</p>
+<pre class="rout"><span class="cmd">&gt; set.seed(2310)
+&gt; N &lt;- 10000
+&gt; theta &lt;- rbeta(N, 8, 4)
+&gt; mean(theta)</span>
+[1] 0.6692041
+<span class="cmd">&gt; ind &lt;- theta &gt; 0.5
+&gt; mean(ind)</span>
+[1] 0.8896
+<span class="cmd">&gt; sqrt(mean(ind) * (1 - mean(ind)) / N)</span>
+[1] 0.003133877
+<span class="cmd">&gt; odds &lt;- theta / (1 - theta)
+&gt; mean(odds)</span>
+[1] 2.695228
+<span class="cmd">&gt; sd(odds) / sqrt(N)</span>
+[1] 0.02201348
+<span class="cmd">&gt; quantile(theta, c(0.025, 0.975))</span>
+     2.5%     97.5%
+0.3939122 0.8905541
+<span class="cmd">&gt; pbeta(0.5, 8, 4, lower.tail = FALSE)</span>
+[1] 0.8867188</pre>
+<p>Read each line. <code>mean(theta)</code> estimates \(E[\theta\mid x]=0.67\) (exact \(8/12\)). <code>mean(ind)</code> is the average of 0/1 indicators, so it estimates \(P(\theta&gt;0.5\mid x)\approx0.89\). Its standard error, by hand:</p>
+$$\begin{aligned}
+\text{s.e.}&amp;=\sqrt{\frac{0.8896\times0.1104}{10000}}=\sqrt{9.82\times10^{-6}}=0.0031
+\end{aligned}$$
+<p>The exact value \(0.8867\) is \(0.0029\) away, under one s.e.: as expected. <code>mean(odds)</code> estimates \(E[\theta/(1-\theta)\mid x]\), a quantity with no tidy shortcut from the mean of \(\theta\) (exact \(8/3=2.67\); the estimate \(2.70\) is \(0.03\) off, about 1.3 s.e.). A 95% credible interval is \((0.39,\ 0.89)\), read straight off the quantiles.</p>
+
+<div class="trap"><strong>Trap</strong><br>Two different "standard deviations". The sd of the draws (<code>sd(theta)</code>, about \(0.13\) here) is the <em>posterior</em> spread: it does not shrink as you draw more. The Monte Carlo s.e. of the posterior mean is that sd divided by \(\sqrt N\), \(0.13/100=0.0013\): it does shrink. "Report the posterior mean and its sd from 10,000 draws" asks for the first. "How accurate is your estimate?" asks for the second.</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>1.</strong> You hold 4,000 posterior draws in the vector <code>theta</code>. Which line estimates \(P(\theta&lt;2\mid x)\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a"><code>mean(theta &lt; 2)</code>, the fraction of draws below 2</button>
+    <button class="opt" data-key="b"><code>mean(theta) &lt; 2</code>, the posterior mean compared with 2</button>
+    <button class="opt" data-key="c"><code>sd(theta &lt; 2)</code>, the spread of the draws below 2</button>
+    <button class="opt" data-key="d"><code>sum(theta &lt; 2)</code>, the count of draws below 2</button>
+  </div>
+  <div class="why"><code>theta &lt; 2</code> is a vector of TRUE/FALSE (1/0), and its mean is the fraction of draws below 2: an average of indicators. (b) gives a single TRUE/FALSE about the mean, not a probability. (d) is the count, which is \(4000\times\) the probability. (c) is not an estimate of it.</div>
+</div>
+<div class="quiz num" data-answer="10000" data-tol="1">
+  <p class="q"><strong>2.</strong> You estimate a posterior probability \(p\) believed to be near \(0.5\). How many independent draws \(N\) guarantee a Monte Carlo s.e. of at most \(0.005\)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\sqrt{p(1-p)/N}\le0.005\), and \(p(1-p)\le0.25\):
+  $$\begin{aligned}N&amp;\ge\frac{0.25}{0.005^2}=\frac{0.25}{0.000025}=\textbf{10000}\end{aligned}$$
+  For \(p\) nearer 0 or 1, \(p(1-p)\) is smaller and you need fewer.</div>
+</div>
+<div class="quiz num" data-answer="0.15" data-tol="0.005">
+  <p class="q"><strong>3.</strong> From 900 independent posterior draws of \(\mu\), the sample sd is \(4.5\). What is the Monte Carlo s.e. of the estimated posterior mean (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\text{s.e.}=4.5/\sqrt{900}=4.5/30=\)<strong>0.15</strong>. The \(4.5\) is the posterior sd, a feature of the posterior; \(0.15\) is the accuracy of the estimate, set by \(N\).</div>
+</div>
+
+<h2>2 · Simulating a discrete random variable: the <code>while</code> loop</h2>
+<p>Every simulator starts from \(U\sim U(0,1)\) (<code>runif</code>). For \(X\in\{0,1,2,\dots\}\) with cdf \(F\) (<a href="../lectures/MC_methods_LMS-2.pdf#page=7">slide 7</a>):</p>
+<pre class="rout"><span class="cmd">u &lt;- runif(1)
+x &lt;- 0
+while (F(x) &lt; u) {
+    x &lt;- x + 1
+}
+x</span></pre>
+<p>Why it works: the loop stops at the first \(x\) with \(F(x)\ge u\), so \(F(x-1)&lt;u\le F(x)\). That interval has length \(F(x)-F(x-1)=p(x)\), and a uniform lands in it with exactly that probability:</p>
+$$\begin{aligned}
+P(X=x)&amp;=P\big(F(x-1)&lt;U\le F(x)\big)\\
+&amp;=F(x)-F(x-1)\\
+&amp;=p(x)
+\end{aligned}$$
+<p><strong>Trace by hand.</strong> \(X\sim\text{Poisson}(2)\), so \(F(0),F(1),\dots=0.1353,\ 0.4060,\ 0.6767,\ 0.8571,\ 0.9473,\dots\) Take \(u=0.70\):</p>
+<div class="tablewrap"><table>
+<tr><th>x</th><th>\(F(x)\)</th><th>\(F(x)&lt;0.70\)?</th><th>action</th></tr>
+<tr><td>0</td><td>0.1353</td><td>yes</td><td>x becomes 1</td></tr>
+<tr><td>1</td><td>0.4060</td><td>yes</td><td>x becomes 2</td></tr>
+<tr><td>2</td><td>0.6767</td><td>yes</td><td>x becomes 3</td></tr>
+<tr><td>3</td><td>0.8571</td><td>no</td><td>stop, return 3</td></tr>
+</table></div>
+<p>Now the same loop inside a function, repeated 10,000 times (this is the shape of the 2017 question):</p>
+<pre class="rout"><span class="cmd">&gt; sim.one &lt;- function() {
++   u &lt;- runif(1); x &lt;- 0
++   while (ppois(x, 2) &lt; u) x &lt;- x + 1
++   x
++ }
+&gt; set.seed(7)
+&gt; x &lt;- replicate(10000, sim.one())
+&gt; mean(x)</span>
+[1] 2.0084
+<span class="cmd">&gt; mean(x &gt; 3)</span>
+[1] 0.1422
+<span class="cmd">&gt; 1 - ppois(3, 2)</span>
+[1] 0.1428765</pre>
+<p>Answers an examiner wants: <code>sim.one</code> returns one draw from Poisson(2) (<code>ppois</code> is the cdf); <code>mean(x)</code> estimates the mean \(2\); <code>mean(x &gt; 3)</code> estimates \(P(X&gt;3)=1-F(3)=0.143\), and \(0.1422\) agrees to within the Monte Carlo s.e. \(\sqrt{0.143\times0.857/10000}=0.0035\). The loop is correct for any pmf: only the function <code>F</code> changes. For a finite pmf, R's <code>sample(x, size, replace=TRUE, prob=p)</code> does the same job in one call.</p>
+<div class="quiz num" data-answer="3" data-tol="0.01">
+  <p class="q"><strong>4.</strong> The loop in this section is run for a pmf with cdf values \(F(0)=0.20,\ F(1)=0.55,\ F(2)=0.80,\ F(3)=0.95,\ F(4)=1\), and <code>u</code> comes out as \(0.88\). What value does it return?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(F(0)=0.20&lt;0.88\), \(F(1)=0.55&lt;0.88\), \(F(2)=0.80&lt;0.88\) all continue; \(F(3)=0.95\ge0.88\) stops, so it returns <strong>3</strong>. Equivalently \(u\in(F(2),F(3)]=(0.80,0.95]\), which has probability \(p(3)=0.15\).</div>
+</div>
+
+<h2>3 · Inverse-CDF method (continuous)</h2>
+<p>If \(F\) is the cdf of \(X\) and you can invert it, then \(Y=F^{-1}(U)\) has cdf \(F\) (<a href="../lectures/MC_methods_LMS-2.pdf#page=11">slide 11</a>):</p>
+$$\begin{aligned}
+P(Y\le y)&amp;=P\big(F^{-1}(U)\le y\big)\\
+&amp;=P\big(U\le F(y)\big)\quad\text{(apply the increasing }F\text{ to both sides)}\\
+&amp;=F(y)\quad\text{(since }P(U\le t)=t)
+\end{aligned}$$
+<p><strong>Recipe:</strong> write \(F(x)\), set \(u=F(x)\), solve for \(x\). Exponential with rate \(\lambda\) (<a href="../lectures/MC_methods_LMS-2.pdf#page=13">slide 13</a>):</p>
+$$\begin{aligned}
+F(x)&amp;=1-e^{-\lambda x},\quad x\ge0\\
+u&amp;=1-e^{-\lambda x}\\
+e^{-\lambda x}&amp;=1-u\\
+-\lambda x&amp;=\log(1-u)\\
+x&amp;=F^{-1}(u)=-\frac1\lambda\log(1-u)
+\end{aligned}$$
+<p>Since \(1-U\) is also \(U(0,1)\), \(-\log(U)/\lambda\) works too (the Gamma code in §5 uses that). With \(\lambda=2\), \(u=0.70\): \(x=-\log(0.30)/2=0.60\). A second example, the truncated exponential \(p(z)=e^{-z}/(1-e^{-1})\) on \((0,1)\) from the week 9 tute:</p>
+$$\begin{aligned}
+F(z)&amp;=\frac{\int_0^ze^{-t}\,dt}{1-e^{-1}}=\frac{1-e^{-z}}{1-e^{-1}}\\
+u\,(1-e^{-1})&amp;=1-e^{-z}\\
+e^{-z}&amp;=1-u\,(1-e^{-1})\\
+z&amp;=F^{-1}(u)=-\log\big(1-u\,(1-e^{-1})\big)
+\end{aligned}$$
+<p>With \(u=0.70\): \(1-0.70(0.6321)=0.5575\), \(z=-\log0.5575=0.58\). One uniform in, one draw out, never rejected.</p>
+<p><strong>When it fails:</strong> if \(F^{-1}\) has no closed form (Normal, Gamma, Beta with general shape, any unnormalised posterior), you can't solve \(u=F(x)\) by hand. Rejection sampling then needs only the density.</p>
+<div class="quiz num" data-answer="0.58" data-tol="0.005">
+  <p class="q"><strong>5.</strong> \(X\) has pdf \(2x\) on \((0,1)\) (so \(F(x)=x^2\)). Using the inverse-CDF method and \(u=0.34\), what is \(x\) (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(u=x^2\Rightarrow x=\sqrt u=\sqrt{0.34}=\)<strong>0.58</strong>. (Check: \(F(0.58)=0.3364\approx0.34\).) This is the same density as the larger of two uniforms, which is why \(2\sqrt U\) reappears in §8.</div>
+</div>
+
+<h2>4 · Rejection sampling: the algorithm and why it is right</h2>
+<p>Idea (<a href="../lectures/MC_methods_LMS-2.pdf#page=17">slides 17–19</a>): a point chosen uniformly under the graph of the density has an \(x\)-coordinate with exactly that density. To get such points, scatter points uniformly under a taller, simpler curve and keep the ones that fall under the target.</p>
+<div class="tablewrap"><table>
+<tr><th>Mine (use in the exam)</th><th>Lecture slides</th><th>Meaning</th></tr>
+<tr><td>\(f(x)=\tilde f(x)/Z\)</td><td>\(f_X\), with \(f_X^*\propto f_X\) (slide 23)</td><td>target density; \(\tilde f\) the <em>unnormalised</em> version, \(Z=\int\tilde f(x)\,dx\) (maybe unknown)</td></tr>
+<tr><td>\(g\)</td><td>\(h\)</td><td>proposal (envelope) density you can already simulate from</td></tr>
+<tr><td>\(M\)</td><td>\(k\)</td><td>constant with \(\tilde f(x)\le M\,g(x)\) for all \(x\)</td></tr>
+</table></div>
+<div class="answer-box"><p>Rejection sampler</p>
+<p>Repeat until acceptance:<br>1. Draw \(X\sim g\).<br>2. Draw \(U\sim U(0,1)\), independent of \(X\).<br>3. If \(U\le\dfrac{\tilde f(X)}{M\,g(X)}\), return \(X\); otherwise go back to 1.</p></div>
+<p>The slides' version draws \(Y\sim U(0,\,k\,h(X))\) and accepts if \(Y&lt;f^*(X)\): the same rule, since \(Y/(kh(X))\) is my \(U\).</p>
+
+<p><strong>Why it works.</strong> Given \(X=x\), the acceptance probability is \(\tilde f(x)/(Mg(x))\), which is at most 1 because \(\tilde f\le Mg\). The chance that a single attempt proposes near \(x\) <em>and</em> is accepted:</p>
+$$\begin{aligned}
+P(X\in dx,\ \text{accept})&amp;=g(x)\,dx\cdot\frac{\tilde f(x)}{M\,g(x)}\\
+&amp;=\frac{\tilde f(x)}{M}\,dx\quad\text{(the }g\text{ cancels)}
+\end{aligned}$$
+<p>Add over all \(x\) for the overall acceptance probability, then divide:</p>
+$$\begin{aligned}
+P(\text{accept})&amp;=\int\frac{\tilde f(x)}{M}\,dx=\frac ZM\\
+p(x\mid\text{accepted})&amp;=\frac{\tilde f(x)/M}{Z/M}=\frac{\tilde f(x)}{Z}=f(x)
+\end{aligned}$$
+<p>So accepted draws have the target density, and the unknown constant \(Z\) is never needed to run the algorithm (<a href="../lectures/MC_methods_LMS-2.pdf#page=24">slide 24</a>: that is why this works on posteriors). Efficiency (<a href="../lectures/MC_methods_LMS-2.pdf#page=25">slide 25</a>): each attempt is accepted independently with probability \(Z/M\), so the number of attempts per accepted draw is Geometric\((Z/M)\) with mean \(M/Z\).</p>
+<div class="answer-box"><p>Acceptance probability</p>
+$$P(\text{accept})=\frac ZM=\frac{\int\tilde f}{M}\qquad\text{if }\tilde f\text{ is already a density }(Z=1):\ \ \frac1M$$
+</div>
+<div class="trap"><strong>Trap</strong><br>"Acceptance probability \(=1/M\)" is true only when \(\tilde f\) integrates to 1. For an unnormalised kernel it is \(Z/M\), and you must compute \(Z=\int\tilde f\) (also note \(M\ge Z\) always, since \(Z=\int\tilde f\le M\int g=M\)). The slides' "\(1/k\)" assumes the normalised \(f_X\).</div>
+<div class="quiz num" data-answer="0.43" data-tol="0.005">
+  <p class="q"><strong>6.</strong> Target \(f(x)\propto\tilde f(x)=e^{-x}\) on \((0,2)\). Proposal \(g=U(0,2)\), i.e. \(g(x)=\tfrac12\). The smallest valid \(M\) is \(2\). What is the overall acceptance probability (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\tilde f\) is not normalised: \(Z=\int_0^2e^{-x}dx=1-e^{-2}=0.8647\). Then
+  $$\begin{aligned}P(\text{accept})&amp;=\frac ZM=\frac{0.8647}{2}=\textbf{0.43}\end{aligned}$$
+  Using \(1/M=0.50\) is the trap. Expected attempts per draw: \(M/Z=2.31\).</div>
+</div>
+
+<h2>5 · Choosing \(g\) and the smallest \(M\)</h2>
+<p>Any \(M\ge\sup_x\tilde f(x)/g(x)\) is valid; the smallest valid \(M\) accepts most often (\(Z/M\) is largest). So:</p>
+<div class="answer-box"><p>Smallest M</p>
+$$M=\sup_x\frac{\tilde f(x)}{g(x)}\quad\text{found by maximising }\ r(x)=\tilde f(x)/g(x)\text{ with calculus}$$
+</div>
+<p>Practical rules: (i) \(g\) must be positive wherever \(\tilde f\) is, with tails at least as heavy (else \(r\to\infty\) and no finite \(M\) exists); (ii) the closer \(g\) is in shape to \(\tilde f\), the flatter \(r\) is and the smaller \(M\) is. Maximise \(\log r\) when the algebra is a product of powers and exponentials.</p>
+
+<p><strong>Worked example: Gamma target, Exponential proposal</strong> (<a href="../lectures/MC_methods_LMS-2.pdf#page=26">slides 26–28</a>, in my notation: shape \(a\), rate \(b\); the slides write \(\Gamma(\lambda,m)\) with rate first, so slide \(m\) is my \(a\) and slide \(\lambda\) is my \(b\)). Target \(f(x)=\dfrac{b^a}{\Gamma(a)}x^{a-1}e^{-bx}\), proposal \(g(x)=\mu e^{-\mu x}\), \(x&gt;0\). The ratio:</p>
+$$\begin{aligned}
+r(x)&amp;=\frac{f(x)}{g(x)}=\frac{b^a\,x^{a-1}e^{-bx}}{\Gamma(a)\,\mu\,e^{-\mu x}}\\
+&amp;=\frac{b^a}{\mu\,\Gamma(a)}\,x^{a-1}e^{-(b-\mu)x}
+\end{aligned}$$
+<p>This blows up as \(x\to\infty\) unless \(\mu&lt;b\), and as \(x\to0\) unless \(a\ge1\) (for \(a=1\) the Gamma is just an Exponential), so take \(a&gt;1\), \(0&lt;\mu&lt;b\). <strong>Step 1: maximise over \(x\).</strong></p>
+$$\begin{aligned}
+\log r(x)&amp;=\text{const}+(a-1)\log x-(b-\mu)x\\
+\frac{d}{dx}\log r(x)&amp;=\frac{a-1}{x}-(b-\mu)\\
+0&amp;=\frac{a-1}{x}-(b-\mu)\ \Rightarrow\ x^*=\frac{a-1}{b-\mu}
+\end{aligned}$$
+<p>(It is a maximum: \(r\to0\) at both ends.) Substituting back:</p>
+$$\begin{aligned}
+M(\mu)&amp;=r(x^*)=\frac{b^a}{\mu\,\Gamma(a)}\Big(\frac{a-1}{b-\mu}\Big)^{a-1}e^{-(a-1)}\\
+&amp;=\frac{b^a\,(a-1)^{a-1}\,e^{-(a-1)}}{\mu\,(b-\mu)^{a-1}\,\Gamma(a)}
+\end{aligned}$$
+<p><strong>Step 2: choose \(\mu\) to minimise \(M(\mu)\)</strong>, i.e. maximise \(\mu(b-\mu)^{a-1}\):</p>
+$$\begin{aligned}
+\frac{d}{d\mu}\Big[\log\mu+(a-1)\log(b-\mu)\Big]&amp;=\frac1\mu-\frac{a-1}{b-\mu}\\
+0&amp;=\frac1\mu-\frac{a-1}{b-\mu}\\
+b-\mu&amp;=(a-1)\mu\\
+\mu&amp;=\frac ba
+\end{aligned}$$
+<p>With \(\mu=b/a\) we have \(b-\mu=b(a-1)/a\), so \(\mu(b-\mu)^{a-1}=b^a(a-1)^{a-1}/a^a\), and the \(b\), \((a-1)\) factors cancel:</p>
+<div class="answer-box"><p>Gamma(a, b) from Exponential(b/a)</p>
+$$M=\frac{a^a\,e^{-(a-1)}}{\Gamma(a)}\qquad P(\text{accept})=\frac1M\ \ (f\text{ is normalised})$$
+</div>
+<p>For \(a=2\), \(b=1\): \(\mu=0.5\), \(M=4e^{-1}/\Gamma(2)=1.47\), acceptance \(=0.68\). \(M\) does not depend on \(b\): the shape of the problem is set by \(a\) alone. As \(a\) grows, \(M\) grows (an Exponential is a worse and worse fit), e.g. \(a=3\): \(M=27e^{-2}/2=1.83\), acceptance \(0.55\).</p>
+
+<p><strong>Simplest case: a uniform envelope on an interval.</strong> For \(\tilde f\) on \([c,d]\) and \(g=1/(d-c)\):</p>
+$$\begin{aligned}
+M&amp;=\sup_x\frac{\tilde f(x)}{1/(d-c)}=(d-c)\,\max_x\tilde f(x)\\
+\frac{\tilde f(X)}{M\,g(X)}&amp;=\frac{\tilde f(X)}{\max_x\tilde f(x)}
+\end{aligned}$$
+<p>So: draw \(X\sim U(c,d)\), \(U\sim U(0,1)\), accept if \(U\le\tilde f(X)/\max\tilde f\). This is the "rectangle" of the lecture (<a href="../lectures/MC_methods_LMS-2.pdf#page=20">slide 20</a>, the triangular density; code in <a href="../extra-notes/rejecttriangle-1.pdf">rejecttriangle</a>). It is the "only uniforms" answer to a 2018-style question; whether a cleverer \(g\) beats it is the exam question in §8.</p>
+
+<div class="quiz num" data-answer="1.83" data-tol="0.01">
+  <p class="q"><strong>7.</strong> Gamma with shape \(a=3\), rate \(b=2\), proposal Exponential with the best rate \(\mu=b/a\). What is \(M\) (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(M=a^ae^{-(a-1)}/\Gamma(a)=3^3e^{-2}/\Gamma(3)=27(0.1353)/2=\)<strong>1.83</strong>, not dependent on \(b\). Acceptance \(1/M=0.55\). The proposal rate here is \(\mu=2/3\).</div>
+</div>
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>8.</strong> In a rejection sampler you pick \(M\) <em>smaller</em> than \(\sup\tilde f/g\). What goes wrong?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The sampler rejects more draws but its output is still exact</button>
+    <button class="opt" data-key="b">The sampler never terminates because every draw is rejected</button>
+    <button class="opt" data-key="c">The output is biased: regions where \(\tilde f&gt;Mg\) are under-sampled</button>
+    <button class="opt" data-key="d">The output is exact, but the acceptance probability exceeds one</button>
+  </div>
+  <div class="why">Where \(\tilde f(x)&gt;Mg(x)\), the "probability" \(\tilde f/(Mg)\) exceeds 1 and is capped at certain acceptance, so those \(x\) appear at rate \(g(x)\) rather than \(\tilde f(x)/M\): too rarely. The accepted density is no longer \(\propto\tilde f\). A bigger \(M\) is safe but slower; a smaller one is wrong.</div>
+</div>
+
+<h2>6 · Unnormalised targets and posterior draws</h2>
+<p>A posterior is \(p(\theta\mid x)\propto p(x\mid\theta)\,p(\theta)=\tilde f(\theta)\). Rejection sampling needs only that product: no \(p(x)\). A neat special case is to use the <strong>prior as the proposal</strong>, \(g=p(\theta)\):</p>
+$$\begin{aligned}
+\frac{\tilde f(\theta)}{g(\theta)}&amp;=\frac{p(x\mid\theta)\,p(\theta)}{p(\theta)}=p(x\mid\theta)\\
+M&amp;=\max_\theta p(x\mid\theta)=p(x\mid\hat\theta_{\text{MLE}})\\
+\text{accept if }\ U&amp;\le\frac{p(x\mid\theta)}{p(x\mid\hat\theta)}
+\end{aligned}$$
+<p>Draw \(\theta\) from the prior and keep it with probability equal to its likelihood relative to the best. <strong>Example.</strong> 7 successes in 10 trials, prior \(\theta\sim U(0,1)\), so \(\tilde f(\theta)=\theta^7(1-\theta)^3\) on \((0,1)\) (the binomial coefficient is a constant and goes into \(Z\); \(g=1\)). Maximise:</p>
+$$\begin{aligned}
+\log\tilde f(\theta)&amp;=7\log\theta+3\log(1-\theta)\\
+\frac{d}{d\theta}\log\tilde f&amp;=\frac7\theta-\frac3{1-\theta}\\
+0&amp;=\frac7\theta-\frac3{1-\theta}\ \Rightarrow\ 7(1-\theta)=3\theta\ \Rightarrow\ \hat\theta=0.7\\
+M&amp;=0.7^7\times0.3^3=0.08235\times0.027=0.002224
+\end{aligned}$$
+<p>The constant \(Z=\int_0^1\theta^7(1-\theta)^3d\theta=B(8,4)=\frac{7!\,3!}{11!}=\frac1{1320}=0.000758\), so</p>
+$$\begin{aligned}
+P(\text{accept})&amp;=\frac ZM=\frac{0.000758}{0.002224}=0.34
+\end{aligned}$$
+<p>The accepted \(\theta\) should be Beta(8,4) draws, mean \(8/12=0.67\) (Lesson 22 conjugacy, the check). The simulation (5000 accepted draws; <code>tries</code> counts every attempt):</p>
+<pre class="rout"><span class="cmd">&gt; set.seed(2312)
+&gt; M &lt;- 0.7^7 * 0.3^3
+&gt; Lk &lt;- function(t) t^7 * (1 - t)^3
+&gt; tries &lt;- 0; acc &lt;- numeric(0)
+&gt; while (length(acc) &lt; 5000) {
++   tries &lt;- tries + 1
++   t &lt;- runif(1); u &lt;- runif(1)
++   if (u &lt;= Lk(t) / M) acc &lt;- c(acc, t)
++ }
+&gt; tries / 5000</span>
+[1] 2.9386
+<span class="cmd">&gt; mean(acc)</span>
+[1] 0.6681148
+<span class="cmd">&gt; mean(acc &gt; 0.5)</span>
+[1] 0.8906</pre>
+<p>Reading it: <code>t</code> is a proposal from \(g=U(0,1)\); <code>u</code> is the acceptance uniform; the <code>if</code> is step 3. \(\text{tries}/5000=2.94\) attempts per accepted draw, \(1/0.34=2.94\): the theory \(M/Z\) matches. <code>mean(acc)</code> is \(0.668\approx0.667\), and <code>mean(acc &gt; 0.5)</code> is \(0.89\), the same estimate as §1 from a sampler that never used the Beta formula.</p>
+
+<p><strong>Composition: the posterior predictive.</strong> To simulate a new observation \(\tilde x\) from \(p(\tilde x\mid x)\), draw \(\theta^{(s)}\) from the posterior, then \(\tilde x^{(s)}\) from \(p(\tilde x\mid\theta^{(s)})\); the pairs have joint density \(p(\theta\mid x)p(\tilde x\mid\theta)\), so the \(\tilde x^{(s)}\) alone have the marginal \(p(\tilde x\mid x)\) (<a href="0022-bayesian-inference.html">Lesson 22</a>, §3). The week 9 tute, Q1, does exactly this with a Beta prior and Binomial data. For our posterior, predict the number of heads in 10 further tosses:</p>
+<pre class="rout"><span class="cmd">&gt; set.seed(2311)
+&gt; xt &lt;- rbinom(N, 10, theta)      # theta: the 10,000 Beta(8,4) draws of section 1
+&gt; mean(xt &gt;= 8)</span>
+[1] 0.3748</pre>
+<p>Each of the 10,000 \(\theta\) values gets its <em>own</em> binomial draw, so <code>mean(xt &gt;= 8)</code> estimates \(P(\tilde x\ge8\mid x)\approx0.37\) (exact beta-binomial value \(0.3673\); the s.e. is \(\sqrt{0.37\times0.63/10000}=0.0048\)). This is "simulate from the predictive": one line of code with <code>rbinom</code> fed a whole vector of \(\theta\)'s. A mixture model (<a href="0016-mixture-models-and-responsibilities.html">Lesson 16</a>) is composition too: draw the label \(Z\) from \(\pi\), then \(x\) from component \(Z\).</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>9.</strong> Retrieval from <a href="0016-mixture-models-and-responsibilities.html">Lesson 16</a>. <code>z &lt;- sample(1:2, 5000, replace=TRUE, prob=c(0.3, 0.7))</code> then <code>x &lt;- rnorm(5000, mean=c(0, 4)[z], sd=1)</code>. What does <code>mean(x &gt; 2)</code> estimate?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(P(X&gt;2\mid Z=2)\), the chance within the second component</button>
+    <button class="opt" data-key="b">\(P(X&gt;2)\) under the two-component mixture \(0.3N(0,1)+0.7N(4,1)\)</button>
+    <button class="opt" data-key="c">\(P(Z=2\mid X&gt;2)\), the responsibility of the second component</button>
+    <button class="opt" data-key="d">\(P(X&gt;2)\) under a single Normal with mean \(0.3(0)+0.7(4)\)</button>
+  </div>
+  <div class="why">Labels are drawn first (composition), then <code>x</code> from the chosen component, so each \(x\) is a draw from the mixture, and the mean of an indicator estimates the mixture probability \(0.3P(N(0,1)&gt;2)+0.7P(N(4,1)&gt;2)=0.3(0.023)+0.7(0.977)=0.69\). (c) would need the labels of only those with \(x&gt;2\) (an EM responsibility); (d) ignores the bimodality.</div>
+</div>
+<div class="quiz num" data-answer="2.67" data-tol="0.01">
+  <p class="q"><strong>10.</strong> Retrieval from <a href="0022-bayesian-inference.html">Lesson 22</a>. Five Poisson counts total \(14\), prior \(\lambda\sim\text{Gamma}(2,1)\) (shape, rate). The posterior mean of \(\lambda\) is what (2 d.p.)? (You would then estimate \(P(\lambda&gt;3\mid y)\) by <code>mean(rgamma(10000, a_n, b_n) &gt; 3)</code>.)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Poisson–Gamma: \(\lambda\mid y\sim\text{Gamma}(a+\sum y,\ b+n)=\text{Gamma}(16,\ 6)\), mean \(16/6=\)<strong>2.67</strong>. The R call has <code>a_n=16</code>, <code>b_n=6</code> (<code>rgamma</code>'s third argument is the rate, as in my parametrisation).</div>
+</div>
+
+<h2>7 · Reading rejection code</h2>
+<p>Two functions from the lecturer's notes. First <a href="../extra-notes/rejecttriangle-1.pdf">rejecttriangle</a> (rectangular envelope), then <a href="../extra-notes/gamma_sim-1.pdf">gamma_sim</a>.</p>
+<pre class="rout"><span class="cmd">rejectionK &lt;- function(fx, a, b, K){
+  while (TRUE) {
+    x &lt;- runif(1, a, b)
+    y &lt;- runif(1, 0, K)
+    if (y &lt; fx(x)) return(x)
+  }
+}</span></pre>
+<p>Line by line: <code>x</code> is a proposal from \(U(a,b)\), <code>y</code> is uniform on \((0,K)\) so the pair \((x,y)\) is uniform on the rectangle \([a,b]\times[0,K]\); the pair is kept when it lies under \(f_X\), i.e. when \(y&lt;f_X(x)\); <code>while (TRUE)</code> loops until <code>return</code>. The requirement is \(f_X\le K\) on \([a,b]\). Take \(K=\max f_X\): then \(y&lt;f_X(x)\) is the same as \(U\le f_X(x)/K\) with \(y=KU\).</p>
+<pre class="rout"><span class="cmd">gamma.sim &lt;- function(lambda, m) {
+  f &lt;- function(x) lambda^m * x^(m-1) * exp(-lambda*x) / gamma(m)
+  h &lt;- function(x) lambda/m * exp(-lambda/m * x)
+  k &lt;- m^m * exp(1-m) / gamma(m)
+  while (TRUE) {
+    X &lt;- -log(runif(1)) * m / lambda
+    Y &lt;- runif(1, 0, k * h(X))
+    if (Y &lt; f(X)) return(X)
+  }
+}</span></pre>
+<p>Here <code>lambda</code> is the <em>rate</em> (my \(b\)) and <code>m</code> the <em>shape</em> (my \(a\)). <code>f</code> is the Gamma density; <code>h</code> is the Exponential(\(b/a\)) density, the optimal \(\mu\) of §5; <code>k</code> is \(M=a^ae^{1-a}/\Gamma(a)\); <code>X</code> is an Exponential(\(\mu\)) draw by inverse CDF, \(-\log(U)/\mu\); <code>Y</code> is uniform on \((0,Mg(X))\); the test is step 3. So <code>gamma.sim(1, 2)</code> returns Gamma(shape 2, rate 1) draws, mean 2.</p>
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>11.</strong> <code>x &lt;- rbinom(10000, 10, rbeta(10000, 2, 3)); mean(x == 0)</code>. What is estimated?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(P(\theta=0)\), the chance the Beta draw is exactly zero</button>
+    <button class="opt" data-key="b">\(P(X=0\mid\theta)\) for a single fixed value of \(\theta\)</button>
+    <button class="opt" data-key="c">\(E[X]\), the mean of the beta-binomial distribution</button>
+    <button class="opt" data-key="d">\(P(X=0)\) in the marginal (beta-binomial) distribution of \(X\)</button>
+  </div>
+  <div class="why">Each \(x_i\) uses its own \(\theta_i\) from <code>rbeta</code>, so the \(x_i\) are draws from the marginal \(\int p(x\mid\theta)p(\theta)d\theta\). The mean of the indicator <code>x == 0</code> estimates \(P(X=0)=B(2,13)/B(2,3)=0.0659\) (the tute's \(10^6\)-draw run gave \(0.0662\)). \(\theta=0\) has probability zero; with a fixed \(\theta\) you would use <code>rbinom(10000, 10, 0.4)</code>.</div>
+</div>
+
+<h2>8 · Exam-style question</h2>
+<p><strong>Setup</strong> (fresh; 10 marks, about 23 minutes, FX-82, 2 d.p.).</p>
+<div class="box">
+<p>The random variable \(X\) has density \(f(x)\propto\tilde f(x)=x^2(2-x)\) for \(0&lt;x&lt;2\), and \(f(x)=0\) otherwise. You have access only to a generator of independent \(U(0,1)\) random numbers.</p>
+</div>
+<ol type="a">
+  <li>Give a rejection sampling algorithm for \(X\) using the \(U(0,2)\) density as proposal. Find the smallest \(M\) for which it is valid, showing your calculus. <span class="marks">[3]</span></li>
+  <li>Find the probability that a single candidate is accepted. Show your work. <span class="marks">[2]</span></li>
+  <li>A student proposes instead \(g(x)=x/2\) on \((0,2)\). Explain how to simulate from \(g\) using one uniform, find the smallest \(M\) for this \(g\), and state the acceptance step. <span class="marks">[3]</span></li>
+  <li>Which of the two samplers is more efficient? Give the expected number of candidates per accepted draw for each. <span class="marks">[2]</span></li>
+</ol>
+<details><summary>Marking-key solution</summary><div>
+<p><strong>(a)</strong> <em>[1 mark: maximise \(\tilde f\).]</em> \(g(x)=\frac12\), so \(\tilde f/g=2\tilde f\). Maximise \(\tilde f(x)=2x^2-x^3\):</p>
+$$\begin{aligned}
+\tilde f'(x)&amp;=4x-3x^2=x(4-3x)\\
+0&amp;=x(4-3x)\ \Rightarrow\ x^*=\tfrac43\quad(x=0\text{ is a minimum})\\
+\tilde f''(x)&amp;=4-6x&lt;0\text{ at }x=\tfrac43\ \Rightarrow\ \text{maximum}\\
+\tilde f\big(\tfrac43\big)&amp;=\tfrac{16}9\times\tfrac23=\tfrac{32}{27}=1.185
+\end{aligned}$$
+<p><em>[1 mark: \(M\).]</em></p>
+<div class="answer-box"><p>(a), part 1</p>
+$$M=\sup_x\frac{\tilde f(x)}{g(x)}=2\times\frac{32}{27}=\frac{64}{27}=2.37$$
+</div>
+<p><em>[1 mark: the algorithm.]</em> The acceptance ratio:</p>
+$$\begin{aligned}
+\frac{\tilde f(x)}{M\,g(x)}&amp;=\frac{x^2(2-x)}{(64/27)(1/2)}=\frac{27\,x^2(2-x)}{32}
+\end{aligned}$$
+<ol class="steps"><li>Draw \(U_1,U_2\sim U(0,1)\) independently; set \(X=2U_1\) (this is \(U(0,2)\)).</li><li>If \(U_2\le\dfrac{27X^2(2-X)}{32}\), return \(X\).</li><li>Otherwise go back to step 1.</li></ol>
+<p><span class="marks">(Marks: 1 + 1 + 1.)</span></p>
+<p><strong>(b)</strong> <em>[1 mark: \(Z=\int\tilde f\), since \(\tilde f\) is not normalised.]</em></p>
+$$\begin{aligned}
+Z&amp;=\int_0^2(2x^2-x^3)\,dx=\Big[\frac{2x^3}3-\frac{x^4}4\Big]_0^2\\
+&amp;=\frac{16}3-4=\frac43
+\end{aligned}$$
+<p><em>[1 mark: \(Z/M\).]</em></p>
+$$\begin{aligned}
+P(\text{accept})&amp;=\frac ZM=\frac{4/3}{64/27}=\frac43\times\frac{27}{64}=\frac{9}{16}
+\end{aligned}$$
+<div class="answer-box"><p>(b)</p><p>\(P(\text{accept})=9/16=0.56\)</p></div>
+<p>Using \(1/M=0.42\) would be wrong: \(\tilde f\) is not a density. <span class="marks">(Marks: 1 + 1.)</span></p>
+<p><strong>(c)</strong> <em>[1 mark: simulate \(g\) by inversion.]</em> \(g(x)=x/2\) integrates to \(\int_0^2\frac x2dx=1\), a density, with cdf \(G(x)=x^2/4\):</p>
+$$\begin{aligned}
+u&amp;=\frac{x^2}4\ \Rightarrow\ x=G^{-1}(u)=2\sqrt u
+\end{aligned}$$
+<p>So \(X=2\sqrt{U_1}\). <em>[1 mark: smallest \(M\) by calculus.]</em></p>
+$$\begin{aligned}
+r(x)=\frac{\tilde f(x)}{g(x)}&amp;=\frac{x^2(2-x)}{x/2}=2x(2-x)=4x-2x^2\\
+r'(x)&amp;=4-4x=0\ \Rightarrow\ x^*=1\\
+r(x)&amp;\le r(1)=4-2=2\ \Rightarrow\ M=2
+\end{aligned}$$
+<p><em>[1 mark: acceptance step.]</em></p>
+$$\begin{aligned}
+\frac{\tilde f(x)}{M\,g(x)}&amp;=\frac{2x(2-x)}{2}=x(2-x)
+\end{aligned}$$
+<div class="answer-box"><p>(c)</p>
+<p>Draw \(U_1,U_2\sim U(0,1)\); set \(X=2\sqrt{U_1}\); accept \(X\) if \(U_2\le X(2-X)\), else repeat. \(M=2\).</p></div>
+<p>(\(X(2-X)\le1\), as it must be.) <span class="marks">(Marks: 1 + 1 + 1.)</span></p>
+<p><strong>(d)</strong> <em>[1 mark: compare efficiency via \(Z/M\).]</em> Sampler (c): \(P(\text{accept})=\frac{4/3}{2}=\frac23=0.67\). Candidates per accepted draw have mean \(M/Z\):</p>
+$$\begin{aligned}
+\text{(a)}:&amp;\quad\frac MZ=\frac{64/27}{4/3}=\frac{16}9=1.78\\
+\text{(c)}:&amp;\quad\frac MZ=\frac{2}{4/3}=\frac32=1.50
+\end{aligned}$$
+<p><em>[1 mark: conclusion with reason.]</em> The sampler in (c) is more efficient. Its proposal rises from 0 like \(\tilde f\) does, so \(\tilde f/g\) is flatter and \(M\) can be smaller. <span class="marks">(Marks: 1 + 1.)</span></p>
+<p><strong>Total 10.</strong> Simulation check (20,000 accepted draws each): acceptance rates \(0.558\) and \(0.673\), means \(1.197\) and \(1.200\) against the exact \(E[X]=1.2\). Typical lost marks: using \(1/M\) in (b); forgetting the density \(g\) in \(\tilde f/g\) (using \(M=\max\tilde f\) with a non-uniform \(g\)); "\(X=2U\)" in (c) instead of \(2\sqrt U\); no second derivative or sign check in (a).</p></details>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>A classmate says: "the posterior \(p(\theta\mid x)\) can't be sampled by rejection because I can't compute the denominator \(p(x)\)." Why is that wrong, and what is the cost?</p>
+<details><summary>Model answer</summary><div>
+<p>Rejection sampling works from any \(\tilde f\propto p(\theta\mid x)\): the acceptance ratio \(\tilde f/(Mg)\) uses only the kernel \(p(x\mid\theta)p(\theta)\), and \(p(x)=Z\) cancels from the accepted-draw density (it only sets the acceptance rate \(Z/M\)). The cost is that you need a proposal \(g\) with \(\tilde f\le Mg\), and in many dimensions a good one is hard to find, so \(M\) is huge and almost every candidate is rejected. That is why Lessons 24–25 turn to MCMC.</p></div></details>
+</div>
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>12.</strong> Gamma simulation by rejection, shape \(a=1.5\) versus \(a=6\) (each with its best Exponential proposal). Which has the smaller acceptance probability, and why?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(a=1.5\), because \(M\) grows as the shape decreases towards 1</button>
+    <button class="opt" data-key="b">\(a=6\), because the Gamma is bell-shaped and the Exponential is not</button>
+    <button class="opt" data-key="c">They are equal, because \(M\) does not depend on the shape \(a\)</button>
+    <button class="opt" data-key="d">\(a=1.5\), because the rate \(\mu=b/a\) is larger for small shape</button>
+  </div>
+  <div class="why">\(M=a^ae^{-(a-1)}/\Gamma(a)\): \(a=1.5\) gives \(1.5^{1.5}e^{-0.5}/\Gamma(1.5)=1.837(0.6065)/0.8862=1.26\) (acceptance 0.80), while \(a=6\) gives \(6^6e^{-5}/120=46656(0.006738)/120=2.62\) (acceptance 0.38). As \(a\) grows the Gamma becomes bell-shaped with a mode away from 0 and the monotone Exponential envelope is a poor fit. \(M\) is free of the rate \(b\) but not of \(a\).</div>
+</div>
+
+<h2>9 · Score yourself</h2>
+<div class="tablewrap"><table>
+<tr><th>If you missed…</th><th>Go back to</th></tr>
+<tr><td>Q1–Q3</td><td>§1: average of indicators; s.e. \(=\text{sd}/\sqrt N\); posterior sd is not the MC s.e.</td></tr>
+<tr><td>Q4</td><td>§2: stop at first \(x\) with \(F(x)\ge u\)</td></tr>
+<tr><td>Q5</td><td>§3: set \(u=F(x)\), solve for \(x\)</td></tr>
+<tr><td>Q6, Q8</td><td>§4: acceptance \(=Z/M\) not \(1/M\); \(M\ge\sup\tilde f/g\) is needed for exactness</td></tr>
+<tr><td>Q7, Q12</td><td>§5: \(M=a^ae^{-(a-1)}/\Gamma(a)\); maximise \(\tilde f/g\) with calculus</td></tr>
+<tr><td>Q9, Q10, Q11</td><td>§6–7: composition (draw \(\theta\) then \(\tilde x\); label then \(x\)); Poisson–Gamma from Lesson 22</td></tr>
+</table></div>
+
+<h2>10 · Homework</h2>
+<ol>
+  <li><strong>Tute week 9, Q1</strong> (<code>tutes/2026_MAST30027_week9_questions.qmd</code>). \(X\mid\theta\sim\text{Bin}(10,\theta)\), \(\theta\sim\text{Beta}(2,3)\). (a) Write, in words, the two-step simulation. (b) The tute's \(10^6\)-draw output is \(\hat p(0)=0.066230\). Compute the exact \(P(X=0)\) by hand from \(\int_0^1(1-\theta)^{10}\,6\theta(1-\theta)^2d\theta\) and decide whether the simulation is consistent with it. (c) Estimate \(P(X\ge8)\) from the tute's table, where \(\hat p(8),\hat p(9),\hat p(10)=0.054031,\ 0.029951,\ 0.011128\).</li>
+  <li><strong>Tute week 9, Q2</strong> (truncated exponential on \((0,1)\)), the algorithm and interpretation parts: (a) the rectangular-envelope sampler, its \(M\) and acceptance probability; (b) the inverse-CDF alternative (you did it in §3); (c) the tute's solution output has sample mean \(0.4160\) and variance \(0.0784\) from 10,000 draws; the exact mean is \(0.418\). Is that consistent? Use the Monte Carlo s.e.</li>
+  <li><strong>Beta(2,2) by rejection.</strong> \(f(x)=6x(1-x)\) on \((0,1)\). Uniform proposal. Find \(M\), the acceptance probability and the expected number of candidates per draw.</li>
+  <li><strong>Posterior predictive for Q10.</strong> With \(\lambda\mid y\sim\text{Gamma}(16,6)\) and \(\tilde y\mid\lambda\sim\text{Poisson}(\lambda)\) (one new unit of exposure): describe the two-step simulation and what <code>mean(ytilde == 0)</code> estimates. The exact value is \(E[e^{-\lambda}]=\big(\tfrac{b_n}{b_n+1}\big)^{a_n}\): compute it (2 d.p.).</li>
+  <li><strong>Sine kernel.</strong> \(f(x)\propto\sin(\pi x)\) on \((0,1)\). Give a rejection sampler using only uniforms, \(M\), and the acceptance probability \((\int_0^1\sin\pi x\,dx=2/\pi)\).</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p><strong>1.</strong> (a) Draw \(\theta^{(s)}\sim\text{Beta}(2,3)\) (<code>rbeta</code>), then \(X^{(s)}\sim\text{Bin}(10,\theta^{(s)})\); keep the \(X^{(s)}\). (b) The Beta(2,3) density is \(\theta(1-\theta)^2/B(2,3)=12\theta(1-\theta)^2\), since \(B(2,3)=\frac{1!\,2!}{4!}=\frac1{12}\):</p>
+$$\begin{aligned}
+P(X=0)&amp;=\int_0^1(1-\theta)^{10}\,12\theta(1-\theta)^2\,d\theta\\
+&amp;=12\int_0^1\theta(1-\theta)^{12}\,d\theta=12\,B(2,13)\\
+&amp;=12\times\frac{1!\,12!}{14!}=\frac{12}{14\times13}=0.0659
+\end{aligned}$$
+<p>S.e. of the simulated value \(=\sqrt{0.066\times0.934/10^6}=0.00025\), and \(|0.06623-0.06593|=0.0003\): about 1.2 s.e., consistent. (c) \(0.054031+0.029951+0.011128=0.0951\approx\) <strong>0.10</strong>.</p>
+<p><strong>2.</strong> (a) \(f(z)=\frac{e^{-z}}{1-e^{-1}}\le\frac1{1-e^{-1}}\) on \((0,1)\), maximised at \(z=0\). With \(g=U(0,1)\) (\(g=1\)), \(M=\frac1{1-e^{-1}}=1.58\); \(f\) is normalised, so \(P(\text{accept})=1/M=1-e^{-1}=0.63\); mean candidates \(1.58\). Algorithm: \(X=U_1\); accept if \(U_2\le f(X)/M=e^{-X}\). (b) \(z=-\log(1-u(1-e^{-1}))\), no rejection. (c) The MC s.e. of the sample mean is \(\sqrt{0.079/10000}=0.0028\); the difference \(0.418-0.4160=0.002\) is under 1 s.e. (the sample variance \(0.0784\) vs \(0.079\) likewise). Consistent.</p>
+<p><strong>3.</strong> \(f\) is a density, \(\max f=f(\tfrac12)=1.5\), \(g=1\), \(M=1.5\); \(P(\text{accept})=1/1.5=0.67\); mean candidates \(1.5\). Accept if \(U\le f(X)/1.5=4X(1-X)\).</p>
+<p><strong>4.</strong> Draw \(\lambda^{(s)}\sim\text{Gamma}(16,6)\) (<code>rgamma(N, 16, 6)</code>), then \(\tilde y^{(s)}\sim\text{Poisson}(\lambda^{(s)})\) (<code>rpois(N, lambda)</code>). <code>mean(ytilde == 0)</code> estimates \(P(\tilde y=0\mid y)\), the posterior predictive probability of zero. Exact: \((6/7)^{16}=\exp(16\log(6/7))=\exp(-2.466)=0.085\approx\) <strong>0.08</strong>.</p>
+<p><strong>5.</strong> \(\max\sin(\pi x)=1\) at \(x=\tfrac12\); \(g=1\), \(M=1\). Accept if \(U_2\le\sin(\pi U_1)\) with \(X=U_1\). \(Z=2/\pi=0.6366\), so \(P(\text{accept})=Z/M=\) <strong>0.64</strong> (not \(1/M=1\)); mean candidates \(1.57\).</p></div></details>
+
+<p><strong>Primary source:</strong> the lecturer's <a href="../lectures/MC_methods_LMS-2.pdf#page=3">simulation slides 3–28</a> (slides 29 onwards, the Gibbs sampler, are Lesson 25), with the annotated copy <a href="../annotated-slides/MC_methods_LMS-2 annotated.pdf">MC_methods_LMS-2 annotated</a>, then the three R notes: <a href="../extra-notes/sampling_example-1.pdf">sampling_example</a>, <a href="../extra-notes/rejecttriangle-1.pdf">rejecttriangle</a>, <a href="../extra-notes/gamma_sim-1.pdf">gamma_sim</a>.</p>
+
+<div class="ask">💬 Ask me in the terminal if the algebra in §5 loses you (I can redo the calculus with another target and proposal), or for a fresh "give a rejection sampler for \(f\propto\dots\) on an interval" to try cold. Paste your working for §8 or any homework and I'll mark it like an exam marker.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0022-bayesian-inference.html">Lesson 22, Bayesian inference</a> · Reference: <a href="../reference/kernels-conjugacy.html">kernels and conjugacy</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0024-metropolis-hastings.html">Lesson 24, Metropolis–Hastings</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

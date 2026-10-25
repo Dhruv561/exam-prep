@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Variational Inference and CAVI</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .4rem 1rem .6rem; margin: 1.2rem 0; }
+  .answer-box > p:first-child { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); margin-bottom: .2rem; }
+  .recipe > p:first-child { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); margin-bottom: .3rem; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 27 · Topic 5: Bayesian inference &amp; computation (6 of 7)</div>
+<h1>Variational inference and CAVI</h1>
+<p class="lede">The goal: given a Normal model with a Gamma prior, write down \(q^*_\tau(\tau)\) and \(q^*_\mu(\mu)\) in about ten lines each, name them with their parameters (which may contain \(E_\mu[\mu]\), \(V_\mu[\mu]\), \(E_\tau[\tau]\)), run two or three rounds by hand on an FX-82, and say in one sentence why the answer is too narrow. It is the Gibbs conditional of <a href="0025-gibbs-sampling.html">Lesson 25</a> with expectations in place of the other parameters.</p>
+
+<div class="mission">Why this matters on 10 Nov: Q4(c) of the 2020, 2021 and 2022 papers each asked for one CAVI factor under a mean-field \(q(\mu,\tau)=q_\mu(\mu)q_\tau(\tau)\) (about 5–6 marks): "Derive \(q^*_\tau(\tau)\). If it is a known distribution, identify the distribution name and its parameters. The parameters may contain \(E_\mu[\mu]\) or \(V_\mu[\mu]\)." The priors varied (a bivariate Normal on two means in 2020, an Inverse-Gamma variance in 2021), but the working is identical. The lecturer's learning goals add KL, ELBO, mean-field, the MCMC vs VI trade-off and reading the R implementation. About 55 minutes, paper and FX-82. Assumed: <a href="0022-bayesian-inference.html">Lesson 22</a> (Normal–Gamma notation), <a href="0015-kernels-and-conjugacy.html">Lesson 15</a> (kernels), <a href="0014-probability-toolkit.html">Lesson 14</a> (\(E[(x-\mu)^2]\)).</div>
+
+<h2>1 · Why VI, and KL, ELBO line by line</h2>
+<p>MCMC (<a href="0024-metropolis-hastings.html">Lessons 24</a>–<a href="0025-gibbs-sampling.html">25</a>) gives exact draws eventually, but is slow on big data or complex models. VI trades accuracy for speed: pick a family \(\mathcal D\) of nice distributions and <em>optimise</em> to find the member nearest the posterior (<a href="../lectures/VI-2.pdf#page=3">VI slides 3–4</a>). "Nearest" means smallest Kullback–Leibler divergence (<a href="../lectures/VI-2.pdf#page=8">slide 8</a>):</p>
+$$q^*=\arg\min_{q\in\mathcal D}\ \text{KL}\big(q(\theta)\,\|\,p(\theta\mid x)\big),\qquad \text{KL}(q\,\|\,p)=E_q\big[\log q(\theta)-\log p(\theta\mid x)\big].$$
+<p>We can't evaluate \(p(\theta\mid x)\) (that is the whole problem), but its numerator \(p(\theta,x)\) is available. Substitute \(p(\theta\mid x)=p(\theta,x)/p(x)\), one step per line:</p>
+$$\begin{aligned}
+\text{KL}(q\,\|\,p(\cdot\mid x))&amp;=E_q\big[\log q(\theta)-\log p(\theta\mid x)\big]\\
+&amp;=E_q\big[\log q(\theta)-\log p(\theta,x)+\log p(x)\big]\quad\text{(Bayes: }p(\theta\mid x)=p(\theta,x)/p(x))\\
+&amp;=E_q[\log q(\theta)]-E_q[\log p(\theta,x)]+\log p(x)\quad(\log p(x)\text{ has no }\theta)\\
+&amp;=-\underbrace{\Big(E_q[\log p(\theta,x)]-E_q[\log q(\theta)]\Big)}_{\text{ELBO}(q)}+\log p(x)
+\end{aligned}$$
+<div class="answer-box"><p>The identity to remember</p>
+$$\text{ELBO}(q)=E_q[\log p(\theta,x)]-E_q[\log q(\theta)],\qquad \log p(x)=\text{ELBO}(q)+\text{KL}(q\,\|\,p(\cdot\mid x))$$
+</div>
+<p>Three consequences, each one line:</p>
+<ul>
+  <li>\(\log p(x)\) does not depend on \(q\), so <strong>minimising KL = maximising the ELBO</strong>, and the ELBO needs only \(p(\theta,x)=p(x\mid\theta)p(\theta)\), never \(p(x)\).</li>
+  <li>\(\text{KL}\ge0\), so \(\text{ELBO}\le\log p(x)\): a <em>lower bound</em> on the "evidence" \(p(x)\). The gap is exactly the KL, so a higher ELBO is a closer \(q\).</li>
+  <li>KL is not symmetric. VI uses \(\text{KL}(q\|p)\), which punishes \(q\) for putting mass where \(p\) has none; that is why VI ends up too narrow (§6). Using \(\text{KL}(p\|q)\) is expectation propagation, not examinable (<a href="../lectures/VI-2.pdf#page=12">slide 12</a>).</li>
+</ul>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> Why can VI maximise the ELBO even though \(p(\theta\mid x)\) is unknown?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The ELBO is the KL, and the KL needs only \(q\) and the prior</button>
+    <button class="opt" data-key="b">The ELBO equals \(\log p(x)\), so it is a constant we can ignore</button>
+    <button class="opt" data-key="c">The ELBO needs only \(p(\theta,x)\) and \(q\), since \(\log p(x)\) is free of \(q\)</button>
+    <button class="opt" data-key="d">The ELBO needs only the likelihood \(p(x\mid\theta)\) and the posterior mean</button>
+  </div>
+  <div class="why">\(\text{KL}=-\text{ELBO}+\log p(x)\), and \(\log p(x)\) is a constant for the optimisation over \(q\). The ELBO itself is \(E_q[\log p(\theta,x)-\log q]\): every ingredient is known. It is a lower bound on \(\log p(x)\), equal only when \(\text{KL}=0\).</div>
+</div>
+
+<h2>2 · Mean-field and the CAVI update</h2>
+<p>The <strong>mean-field family</strong> forces the parameters to be independent in \(q\) (<a href="../lectures/VI-2.pdf#page=14">slide 14</a>):</p>
+$$q(\theta)=\prod_{j=1}^Jq_j(\theta_j),\qquad\text{here: }q(\mu,\tau)=q_\mu(\mu)\,q_\tau(\tau).$$
+<p>This is an assumption about the <em>approximation</em>, not the model: the true posterior may well have \(\mu\) and \(\tau\) dependent (slide 15). <strong>CAVI</strong> (coordinate ascent VI) updates one factor at a time with the others held fixed (<a href="../lectures/VI-2.pdf#page=19">slide 19</a>):</p>
+<div class="box recipe"><p>CAVI update rule</p>
+$$\boxed{\ q^*_j(\theta_j)\ \propto\ \exp\Big\{E_{-j}\big[\log p(\theta,x)\big]\Big\}\ }\qquad\text{i.e. }\ \log q^*_j(\theta_j)=E_{-j}\big[\log p(\theta,x)\big]+\text{const}$$
+<p>\(E_{-j}\) averages over the <em>current</em> other factors \(\prod_{i\ne j}q_i\). Each update cannot lower the ELBO.</p></div>
+<p>Why it works (Bishop §10.1.1, three lines). Fix the other factors and split the ELBO into the part with \(q_j\):</p>
+$$\begin{aligned}
+\text{ELBO}&amp;=E_j\Big[E_{-j}[\log p(\theta,x)]\Big]-E_j[\log q_j]+\text{const}\\
+&amp;=E_j\big[\log\tilde q_j\big]-E_j[\log q_j]+\text{const},\qquad\tilde q_j\propto\exp\{E_{-j}[\log p(\theta,x)]\}\\
+&amp;=-\text{KL}(q_j\,\|\,\tilde q_j)+\text{const}
+\end{aligned}$$
+<p>This is maximised, with value 0 for the KL, by \(q_j=\tilde q_j\). So the rule is exactly "set \(q_j\) to the best choice given the others".</p>
+
+<h3>The link to Gibbs</h3>
+<p>Split the log joint by the product rule, \(\log p(\theta,x)=\log p(\theta_j\mid\theta_{-j},x)+\log p(\theta_{-j},x)\). The second term has no \(\theta_j\) and goes into the constant, so</p>
+$$\log q^*_j(\theta_j)=E_{-j}\big[\log p(\theta_j\mid\theta_{-j},x)\big]+\text{const}.$$
+<p><strong>Gibbs conditional with expectations.</strong> Gibbs plugs a <em>sampled value</em> of the other parameters into the full conditional. CAVI takes the expectation of the <em>log</em> of the same conditional over the other factor. The working is the same as <a href="0025-gibbs-sampling.html">Lesson 25</a>: write the log joint, keep only terms containing \(\theta_j\), recognise the kernel. The only new step is replacing, in each leftover term, the other parameter by its expectation.</p>
+<div class="box recipe"><p>Recipe for \(q^*_j\) (exam order)</p>
+<ol class="steps">
+  <li>Write \(\log p(x,\theta)\) as a sum of log-likelihood and log-priors, one line each.</li>
+  <li>Keep only terms containing \(\theta_j\); everything else is "const".</li>
+  <li>Take \(E_{-j}\) of what is left. Terms that are products of a function of \(\theta_j\) and a function of the others factorise (the others are independent in \(q\)).</li>
+  <li>Expand squares in \(\theta_j\), recognise the kernel, name the distribution and its parameters.</li>
+</ol></div>
+<h3>The key trick</h3>
+<p>For \(q_\mu\) with mean \(E[\mu]\) and variance \(V[\mu]\), and any constant \(c\):</p>
+$$\begin{aligned}
+E_\mu[(c-\mu)^2]&amp;=E_\mu\Big[\big((c-E[\mu])-(\mu-E[\mu])\big)^2\Big]\\
+&amp;=(c-E[\mu])^2-2(c-E[\mu])\underbrace{E_\mu[\mu-E[\mu]]}_{=0}+\underbrace{E_\mu[(\mu-E[\mu])^2]}_{V[\mu]}\\
+&amp;=(c-E[\mu])^2+V[\mu]
+\end{aligned}$$
+<p>Used with \(c=x_i\) (the likelihood term) and \(c=m_0\) (the prior-mean term). It is the same identity as in <a href="0014-probability-toolkit.html">Lesson 14</a>. Also \(E[\tau]=a^*/b^*\) for \(\tau\sim\text{Gamma}(a^*,b^*)\).</p>
+
+<div class="quiz num" data-answer="0.36" data-tol="0.005">
+  <p class="q"><strong>2.</strong> Under the current \(q_\mu\), \(E[\mu]=4.6\) and \(V[\mu]=0.2\). Compute \(E_\mu[(x-\mu)^2]\) for \(x=5\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\((5-4.6)^2+0.2=0.16+0.2=\)<strong>0.36</strong>. Forgetting \(V[\mu]\) gives 0.16: the usual lost mark. Even when \(x\) equals the mean, the expected squared distance is \(V[\mu]\), not 0.</div>
+</div>
+
+<h2>3 · Normal–Gamma CAVI, every line</h2>
+<p>This is the lecturer's worked example (<a href="../lectures/VI-2.pdf#page=20">slides 20–22</a>; derivation in <a href="../extra-notes/CAVI_normal_gamma_derivations.pdf">CAVI_normal_gamma_derivations</a>, also <a href="../extra-notes/VI_normal.pdf">VI_normal</a>). In my notation (<a href="0022-bayesian-inference.html">Lesson 22</a>, §6; the slides write \(\mu_0,\lambda_0,a_0,b_0\)):</p>
+$$x_i\mid\mu,\tau\overset{iid}{\sim}N(\mu,1/\tau),\qquad\mu\mid\tau\sim N\Big(m_0,\frac1{\kappa_0\tau}\Big),\qquad\tau\sim\text{Gamma}(a,b),\qquad q(\mu,\tau)=q_\mu(\mu)q_\tau(\tau).$$
+<p><strong>Step 1: the log joint</strong> \(\log p(x,\mu,\tau)=\log p(x\mid\mu,\tau)+\log p(\mu\mid\tau)+\log p(\tau)\):</p>
+$$\begin{aligned}
+\log p(x\mid\mu,\tau)&amp;=\frac n2\log\tau-\frac n2\log2\pi-\frac\tau2\sum_i(x_i-\mu)^2\\
+\log p(\mu\mid\tau)&amp;=\frac12\log\kappa_0+\frac12\log\tau-\frac12\log2\pi-\frac{\kappa_0\tau}{2}(\mu-m_0)^2\\
+\log p(\tau)&amp;=a\log b-\log\Gamma(a)+(a-1)\log\tau-b\tau
+\end{aligned}$$
+<p><strong>Step 2: \(q^*_\mu\).</strong> Keep terms with \(\mu\) (the \(\log\tau\) and \(\log\Gamma\) terms go into const), then \(E_\tau\):</p>
+$$\begin{aligned}
+\log q^*_\mu(\mu)&amp;=E_\tau\Big[-\frac\tau2\sum_i(x_i-\mu)^2-\frac{\kappa_0\tau}{2}(\mu-m_0)^2\Big]+\text{const}\\
+&amp;=-\frac{E[\tau]}2\Big[\sum_i(x_i-\mu)^2+\kappa_0(\mu-m_0)^2\Big]+\text{const}\quad(\tau\text{ appears linearly})\\
+&amp;=-\frac{E[\tau]}2\Big[n\mu^2-2\mu\sum_ix_i+\kappa_0\mu^2-2\kappa_0m_0\mu\Big]+\text{const}\\
+&amp;=-\frac{E[\tau]}2\Big[(\kappa_0+n)\mu^2-2(\kappa_0m_0+n\bar x)\mu\Big]+\text{const}\\
+&amp;=-\frac{(\kappa_0+n)E[\tau]}{2}\Big(\mu-\frac{\kappa_0m_0+n\bar x}{\kappa_0+n}\Big)^2+\text{const}\quad\text{(complete the square)}
+\end{aligned}$$
+<div class="answer-box"><p>\(q^*_\mu\)</p>
+$$q^*_\mu(\mu)=N\big(m^*,\,v^*\big),\qquad m^*=\frac{\kappa_0m_0+n\bar x}{\kappa_0+n},\qquad v^*=\frac1{(\kappa_0+n)\,E_\tau[\tau]}$$
+</div>
+<p>The mean \(m^*\) does not depend on \(q_\tau\) at all (as in the exact posterior, where \(\tau\) cancels from the mean). Only the variance does. Compare the exact conditional \(\mu\mid\tau,x\sim N(m^*,\,1/((\kappa_0+n)\tau))\): \(\tau\) has been replaced by \(E[\tau]\).</p>
+<p><strong>Step 3: \(q^*_\tau\).</strong> Keep terms with \(\tau\) (now \(\log\tau\) and \(\tau\) both stay), then \(E_\mu\):</p>
+$$\begin{aligned}
+\log q^*_\tau(\tau)&amp;=E_\mu\Big[\frac n2\log\tau-\frac\tau2\sum_i(x_i-\mu)^2+\frac12\log\tau-\frac{\kappa_0\tau}{2}(\mu-m_0)^2+(a-1)\log\tau-b\tau\Big]+\text{const}\\
+&amp;=\Big(a+\frac{n+1}2-1\Big)\log\tau-\tau\Big[b+\frac12\sum_iE_\mu[(x_i-\mu)^2]+\frac{\kappa_0}2E_\mu[(\mu-m_0)^2]\Big]+\text{const}
+\end{aligned}$$
+<p>This is \((a^*-1)\log\tau-b^*\tau\), the log of a Gamma kernel. Now the trick, with \(E[\mu]=m^*\) and \(V[\mu]=v^*\):</p>
+$$\begin{aligned}
+E_\mu[(x_i-\mu)^2]&amp;=(x_i-E[\mu])^2+V[\mu]\\
+E_\mu[(\mu-m_0)^2]&amp;=(E[\mu]-m_0)^2+V[\mu]
+\end{aligned}$$
+<div class="answer-box"><p>\(q^*_\tau\)</p>
+$$q^*_\tau(\tau)=\text{Gamma}(a^*,b^*),\qquad a^*=a+\frac{n+1}2,\qquad b^*=b+\frac12\Big[\sum_i(x_i-E[\mu])^2+nV[\mu]\Big]+\frac{\kappa_0}2\Big[(E[\mu]-m_0)^2+V[\mu]\Big]$$
+</div>
+<p>Compare the Gibbs conditional \(\tau\mid\mu,x\sim\text{Gamma}\big(a+\frac{n+1}2,\ b+\frac12[\sum_i(x_i-\mu)^2+\kappa_0(\mu-m_0)^2]\big)\) (Lesson 22 §5 with the prior-mean term of the joint prior): same shape; in the rate, \((x_i-\mu)^2\) became \((x_i-E[\mu])^2+V[\mu]\). The \(\tfrac{n+1}2\) (not \(\tfrac n2\)) is because the prior \(p(\mu\mid\tau)\) also contains \(\tau\).</p>
+<p><strong>The loop.</strong> \(q_\mu\) needs \(E[\tau]=a^*/b^*\) from \(q_\tau\); \(q_\tau\) needs \(E[\mu]=m^*\) and \(V[\mu]=v^*\) from \(q_\mu\). So iterate: update \(q_\mu\) from the current \(q_\tau\), then \(q_\tau\) from the new \(q_\mu\), and repeat (<a href="../lectures/VI-2.pdf#page=22">slide 22</a>). Here \(m^*\) and \(a^*\) never change; \(v^*\) and \(b^*\) chase each other. We update <em>distributions</em>; nothing is sampled.</p>
+
+<div class="quiz num" data-answer="0.10" data-tol="0.005">
+  <p class="q"><strong>3.</strong> Normal–Gamma CAVI with \(\kappa_0=1\), \(n=4\). The current \(q_\tau=\text{Gamma}(4.5,\,2.25)\). Give the new \(v^*\), the variance of \(q_\mu\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(E[\tau]=4.5/2.25=2\). \(v^*=1/((\kappa_0+n)E[\tau])=1/(5\times2)=\)<strong>0.10</strong>. Using the shape 4.5 instead of the mean 2 (or \(E[\tau]=b/a\)) is the usual slip.</div>
+</div>
+
+<div class="quiz num" data-answer="7.5" data-tol="0.01">
+  <p class="q"><strong>4.</strong> Same model with prior \(\tau\sim\text{Gamma}(2,\,1)\) and \(n=10\) observations. What is \(a^*\), the shape of \(q^*_\tau\)? (1 d.p.)</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(a^*=a+(n+1)/2=2+5.5=\)<strong>7.5</strong>. The exact conditional of \(\tau\) given \(\mu\) has the same shape, and the exact marginal posterior of \(\tau\) has \(a+n/2=7\): VI's \(q_\tau\) is slightly different because \(\mu\) is not integrated out the same way. The rate does not enter the shape.</div>
+</div>
+
+<h2>4 · Iterate by hand</h2>
+<p>Four readings \(x=(4.2,\,5.6,\,3.9,\,6.3)\), so \(n=4\), \(\bar x=5\), \(S=\sum(x_i-\bar x)^2=3.9\). Prior: \(m_0=3\), \(\kappa_0=1\), \(a=2\), \(b=2\). Fixed by the data and prior:</p>
+$$m^*=\frac{1(3)+4(5)}{1+4}=\frac{23}5=4.6,\qquad a^*=2+\frac{4+1}{2}=4.5,\qquad\sum_i(x_i-4.6)^2=0.16+1+0.49+2.89=4.54.$$
+<p>Start with \(E[\tau]=1\). Carry 4 d.p., round the reported answer.</p>
+<p><strong>Round 1.</strong></p>
+$$\begin{aligned}
+v^*&amp;=\frac1{5(1)}=0.2000\\
+\sum_iE[(x_i-\mu)^2]&amp;=4.54+4(0.2)=5.3400\\
+E[(\mu-m_0)^2]&amp;=(4.6-3)^2+0.2=2.56+0.2=2.7600\\
+b^*&amp;=2+\tfrac12(5.34)+\tfrac12(2.76)=2+2.67+1.38=6.0500\\
+E[\tau]&amp;=\frac{4.5}{6.05}=0.7438
+\end{aligned}$$
+<p><strong>Round 2</strong> (new \(E[\tau]=0.7438\)):</p>
+$$\begin{aligned}
+v^*&amp;=\frac1{5(0.7438)}=0.2689\\
+\sum_iE[(x_i-\mu)^2]&amp;=4.54+4(0.2689)=5.6156\\
+E[(\mu-m_0)^2]&amp;=2.56+0.2689=2.8289\\
+b^*&amp;=2+2.8078+1.4145=6.2222,\qquad E[\tau]=\frac{4.5}{6.2222}=0.7232
+\end{aligned}$$
+<p><strong>Round 3</strong> (new \(E[\tau]=0.7232\)):</p>
+$$\begin{aligned}
+v^*&amp;=\frac1{5(0.7232)}=0.2765\\
+\sum_iE[(x_i-\mu)^2]&amp;=4.54+4(0.2765)=5.6462,\qquad E[(\mu-m_0)^2]=2.56+0.2765=2.8365\\
+b^*&amp;=2+2.8231+1.4183=6.2414,\qquad E[\tau]=\frac{4.5}{6.2414}=0.7210
+\end{aligned}$$
+<p>Real R output of the same loop (my condensed version of the lecture's code, below). Read it, don't write it:</p>
+<pre class="rout"><span class="cmd">&gt; x &lt;- c(4.2, 5.6, 3.9, 6.3); n &lt;- length(x)
+&gt; m0 &lt;- 3; k0 &lt;- 1; a0 &lt;- 2; b0 &lt;- 2
+&gt; m &lt;- (k0*m0 + sum(x))/(k0 + n)
+&gt; a &lt;- a0 + (n + 1)/2
+&gt; b &lt;- 4.5                     # start: E[tau] = a/b = 1
+&gt; for (t in 1:3) {
++   v &lt;- b/a/(k0 + n)
++   A &lt;- v + (x - m)^2
++   B &lt;- v + (m - m0)^2
++   b &lt;- b0 + 0.5*sum(A) + 0.5*k0*B
++   cat("t =", t, " m =", m, " v =", round(v, 4), " a =", a, " b =", round(b, 4), "\n")
++ }</span>
+t = 1  m = 4.6  v = 0.2  a = 4.5  b = 6.05
+t = 2  m = 4.6  v = 0.2689  a = 4.5  b = 6.2222
+t = 3  m = 4.6  v = 0.2765  a = 4.5  b = 6.2414</pre>
+<p>It matches the hand work to every digit. Line by line: <code>m</code> is \(m^*\) (outside the loop because it never changes); <code>b/a</code> is \(1/E[\tau]\), so <code>v</code> is \(v^*=1/((\kappa_0+n)E[\tau])\); <code>A</code> is the <em>vector</em> \(E_\mu[(x_i-\mu)^2]=v^*+(x_i-m^*)^2\), <code>B</code> is \(E_\mu[(\mu-m_0)^2]\); the line for <code>b</code> is the \(b^*\) formula. (The lecture's code writes the same thing expanded as <code>sigma2.vi + mu.vi^2 - 2*X*mu.vi + X*X</code>.)</p>
+
+<h3>Convergence and the ELBO</h3>
+<p>Further rounds give \(v^*=0.2774,\ 0.2775,\dots\) and \(b^*=6.2437\): the changes shrink geometrically. In practice you stop when the ELBO changes by less than a small \(\varepsilon\) (<a href="../lectures/VI-2.pdf#page=19">slide 19</a>). The ELBO from the lecture's formula (<a href="../extra-notes/CAVI_normal_gamma_derivations.pdf">derivations §6</a>; digamma terms, so computed in R, not on paper), against the exact log evidence \(\log p(x)=-8.1576\) from the closed-form Normal–Gamma marginal:</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>Round</th><th>\(v^*\)</th><th>\(b^*\)</th><th>ELBO</th></tr>
+<tr><td>1</td><td>0.2000</td><td>6.0500</td><td>\(-8.2407\)</td></tr>
+<tr><td>2</td><td>0.2689</td><td>6.2222</td><td>\(-8.2190\)</td></tr>
+<tr><td>3</td><td>0.2765</td><td>6.2414</td><td>\(-8.2188\)</td></tr>
+<tr><td>5</td><td>0.2775</td><td>6.2437</td><td>\(-8.2188\)</td></tr>
+</table></div>
+<p>Three checks to run on any CAVI output: (1) the ELBO <strong>never decreases</strong>; a drop means a bug in an update or in the ELBO; (2) the ELBO stays \(\le\log p(x)\) (here \(-8.2188<-8.1576\); the gap \(0.06\) is the remaining KL); (3) CAVI finds a <em>local</em> optimum and depends on the start, so run it from several initial values and keep the run with the highest ELBO (the lecture's R notes do this with two starts and the same answer: <a href="../extra-notes/VI-3.pdf">VI-3</a>).</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>5.</strong> You run CAVI and the printed ELBO goes \(-69.47,\ -69.14,\ -69.25,\ -69.14\). What does the dip tell you?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Nothing: CAVI is stochastic, so ELBO values may go down and up</button>
+    <button class="opt" data-key="b">There is an error: each exact CAVI update cannot decrease the ELBO</button>
+    <button class="opt" data-key="c">The algorithm has converged, because the values are close together</button>
+    <button class="opt" data-key="d">The prior is too vague and the iteration needs a larger \(\kappa_0\)</button>
+  </div>
+  <div class="why">CAVI is deterministic and each update maximises the ELBO over one factor with the others fixed, so the ELBO is non-decreasing. A decrease means a wrong update or ELBO formula (or a coding slip). MCMC traces wiggle; CAVI traces do not.</div>
+</div>
+
+<div class="quiz num" data-answer="5.62" data-tol="0.01">
+  <p class="q"><strong>6.</strong> In round 2 above, \(v^*=0.2689\). Give \(\sum_iE_\mu[(x_i-\mu)^2]\), computed as \(\sum_i(x_i-4.6)^2+nv^*\) with \(\sum_i(x_i-4.6)^2=4.54\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(4.54+4(0.2689)=4.54+1.0756=5.6156\approx\)<strong>5.62</strong>. The variance enters \(n\) times (once per observation), not once.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>7.</strong> What does the R line <code>A &lt;- v + (x - m)^2</code> compute?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">the sample variance of the data around the current mean \(m^*\)</button>
+    <button class="opt" data-key="b">the posterior draw of \(\mu\) for each observation at this iteration</button>
+    <button class="opt" data-key="c">the squared residuals \((x_i-m^*)^2\), without any correction</button>
+    <button class="opt" data-key="d">the vector of \(E_\mu[(x_i-\mu)^2]\), one entry per observation</button>
+  </div>
+  <div class="why">\(v+(x_i-m)^2=V[\mu]+(x_i-E[\mu])^2\): the trick, applied to every \(x_i\) at once (R recycles the scalar <code>v</code>). Its sum is what goes into \(b^*\). Nothing is drawn.</div>
+</div>
+
+<h3>How good is it? Compare with the exact posterior</h3>
+<p>For this prior the exact posterior is known (Lesson 22 §6): \(\tau\mid x\sim\text{Gamma}(a+\tfrac n2,\,b_n)\) with</p>
+$$a+\frac n2=4,\qquad b_n=b+\frac S2+\frac{n\kappa_0(\bar x-m_0)^2}{2(n+\kappa_0)}=2+1.95+\frac{4(2)^2}{10}=5.55,$$
+<p>and \(\text{Var}(\mu\mid x)=\dfrac{b_n}{(n+\kappa_0)(a_n-1)}=\dfrac{5.55}{5(3)}=0.37\) (the marginal of \(\mu\) is a \(t\); formula not needed on paper, quoted for the comparison).</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th></th><th>exact posterior</th><th>CAVI \(q^*\)</th></tr>
+<tr><td>\(E[\mu]\)</td><td>4.60</td><td>4.60</td></tr>
+<tr><td>\(\text{Var}(\mu)\)</td><td>0.37</td><td>0.28</td></tr>
+<tr><td>\(E[\tau]\)</td><td>0.7207</td><td>0.7207</td></tr>
+<tr><td>\(\text{Var}(\tau)\)</td><td>0.1299</td><td>0.1154</td></tr>
+</table></div>
+<p>The means agree; <strong>both variances are too small</strong> (\(0.28\) is 75% of \(0.37\)). That is the general pattern, explained next.</p>
+
+<h2>5 · Bivariate Normal: what mean-field throws away (tute week 12)</h2>
+<p>The tute pretends we know a bivariate Normal only up to a constant and approximates it with \(q(x_1,x_2)=q_1(x_1)q_2(x_2)\) (<code>tutes/2026_MAST30027_week12.html</code>, Q1). Let \(\Lambda=\Sigma^{-1}\) (precision matrix). Then \(\log h(x)=-\tfrac12\big[\Lambda_{11}(x_1-\mu_1)^2+2\Lambda_{12}(x_1-\mu_1)(x_2-\mu_2)+\Lambda_{22}(x_2-\mu_2)^2\big]\).</p>
+$$\begin{aligned}
+\log q^*_1(x_1)&amp;=E_{x_2}[\log h(x)]+\text{const}\\
+&amp;=-\frac12\Big[\Lambda_{11}(x_1-\mu_1)^2+2\Lambda_{12}(x_1-\mu_1)\big(E[x_2]-\mu_2\big)\Big]+\text{const}\quad(\text{drop the }x_2^2\text{ term})\\
+&amp;=-\frac{\Lambda_{11}}2\Big[(x_1-\mu_1)^2+2\frac{\Lambda_{12}}{\Lambda_{11}}\big(E[x_2]-\mu_2\big)(x_1-\mu_1)\Big]+\text{const}\\
+&amp;=-\frac{\Lambda_{11}}2\Big(x_1-\mu_1+\frac{\Lambda_{12}}{\Lambda_{11}}\big(E[x_2]-\mu_2\big)\Big)^2+\text{const}
+\end{aligned}$$
+<div class="answer-box"><p>Bivariate Normal, mean-field</p>
+$$q_1^*=N\Big(\mu_1-\frac{\Lambda_{12}}{\Lambda_{11}}\big(E[x_2]-\mu_2\big),\ \frac1{\Lambda_{11}}\Big),\qquad q_2^*=N\Big(\mu_2-\frac{\Lambda_{12}}{\Lambda_{22}}\big(E[x_1]-\mu_1\big),\ \frac1{\Lambda_{22}}\Big)$$
+</div>
+<p>With \(\Sigma=\begin{pmatrix}\sigma_1^2&amp;\sigma_{12}\\\sigma_{12}&amp;\sigma_2^2\end{pmatrix}\): \(\Lambda_{11}=\sigma_2^2/\det\Sigma\), \(\Lambda_{12}=-\sigma_{12}/\det\Sigma\), so the mean is \(\mu_1+\frac{\sigma_{12}}{\sigma_2^2}(E[x_2]-\mu_2)\) and the variance is
+\(\dfrac1{\Lambda_{11}}=\sigma_1^2-\dfrac{\sigma_{12}^2}{\sigma_2^2}=\sigma_1^2(1-\rho^2).\)
+The fixed point has \(E[x_1]=\mu_1\), \(E[x_2]=\mu_2\) (the means are right) but variances \(\sigma_i^2(1-\rho^2)\) against the true \(\sigma_i^2\): the <em>conditional</em> variance, not the marginal. Mean-field has no way to represent the correlation, so it shrinks the spread by \(1-\rho^2\).</p>
+<p>The ELBO up to a constant, with \(q_i=N(m_i,s_i^2)\) (\(E[(x_1-\mu_1)(x_2-\mu_2)]\) factorises under \(q\)):</p>
+$$\text{ELBO}=-\frac12\Big[\Lambda_{11}\big(s_1^2+(m_1-\mu_1)^2\big)+\Lambda_{22}\big(s_2^2+(m_2-\mu_2)^2\big)+2\Lambda_{12}(m_1-\mu_1)(m_2-\mu_2)\Big]+\frac12\log s_1^2+\frac12\log s_2^2+\text{const}$$
+<p>Real R output (CAVI started at \(m=(3,-2)\); \(\mu=(0,0)\), \(\sigma_1^2=\sigma_2^2=2\)). Columns: round, \(m_1\), \(m_2\), ELBO up to the constant. Variances are fixed at \(1/\Lambda_{ii}\) from round 1.</p>
+<pre class="rout"><span class="cmd">&gt; # Sigma = [2, 0.1; 0.1, 2]    rho = 0.05
+&gt; # Sigma = [2, 1.9; 1.9, 2]    rho = 0.95</span>
+<span class="cmd">rho = 0.05:  s1^2 = s2^2 = <b>1.995</b></span>
+ round    m1      m2     ELBO
+     1  -0.1000 -0.0050 -0.3119
+     2  -0.0003  0.0000 -0.3094
+     3   0.0000  0.0000 -0.3094
+<span class="cmd">rho = 0.95:  s1^2 = s2^2 = <b>0.195</b></span>
+ round    m1      m2     ELBO
+     1  -1.9000 -1.8050 -3.5373
+     2  -1.7147 -1.6290 -3.3698
+     3  -1.5476 -1.4702 -3.2335
+    10  -0.7547 -0.7170 -2.7772
+    30  -0.0970 -0.0921 -2.6371
+    60  -0.0045 -0.0042 -2.6348
+   100  -0.0001 -0.0001 -2.6348</pre>
+<p>Reading it: with weak correlation the answer is the truth after two rounds and the variance \(1.995\approx2\). With \(\rho=0.95\) the variance is \(0.195\), ten times too small (\(2(1-0.9025)\)), the ELBO rises every round (a monotone check, as in the tute), and it needs about 60 rounds: each round multiplies the error in the mean by \(\rho^2=0.9025\). Strong correlation hurts mean-field twice: wrong spread and slow convergence. <a href="../lectures/VI-2.pdf#page=15">Slide 15</a>'s picture (red contours inside green) is this effect.</p>
+
+<div class="quiz num" data-answer="1.67" data-tol="0.01">
+  <p class="q"><strong>8.</strong> Mean-field VI for a bivariate Normal with \(\Sigma=\begin{pmatrix}3&amp;2\\2&amp;3\end{pmatrix}\). Give the variance of \(q_1^*\), using \(\sigma_1^2-\sigma_{12}^2/\sigma_2^2\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(3-\dfrac{2^2}{3}=3-1.3333=\)<strong>1.67</strong>, against a true marginal variance of 3. Equivalent: \(\sigma_1^2(1-\rho^2)\) with \(\rho^2=4/9\): \(3\times0.5556=1.67\).</div>
+</div>
+
+<h2>6 · VI vs MCMC</h2>
+<div class="tablewrap"><table>
+<tr><th></th><th>MCMC (Gibbs, MH)</th><th>VI (CAVI)</th></tr>
+<tr><td>What you get</td><td>Draws; exact in the limit</td><td>A density \(q^*\) close to the posterior (not exact)</td></tr>
+<tr><td>Speed</td><td>Slow, scales badly with data size and model complexity</td><td>Fast; an optimisation, deterministic</td></tr>
+<tr><td>Convergence</td><td>Trace plots, ACF, ESS (<a href="0026-mcmc-diagnostics.html">Lesson 26</a>); random</td><td>ELBO stops changing; stuck in a local optimum, so use several starts</td></tr>
+<tr><td>Accuracy</td><td>Arbitrarily good with enough draws</td><td>Underestimates posterior variance; mean-field loses correlation</td></tr>
+<tr><td>Derivation work</td><td>Full conditionals (Gibbs) or an acceptance ratio (MH)</td><td>Same log-joint recipe, plus expectations</td></tr>
+</table></div>
+<p>(<a href="../lectures/VI-2.pdf#page=24">slide 24</a>): MCMC <em>simulates from</em> densities, VI <em>approximates</em> them; VI suits large data sets and quickly comparing many models. The variance shrinkage in §4 and §5 is the standard "limitation" answer. Why: \(\text{KL}(q\|p)\) heavily penalises \(q\) for placing mass where \(p\) is small, so \(q\) hides inside \(p\). Other acceptable limitations: it needs the mean-field assumption (no posterior correlation), only a local optimum, no guarantee of exactness.</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>9.</strong> Which statement about mean-field VI versus MCMC is correct?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">VI is usually faster but typically gives posterior variances that are too small</button>
+    <button class="opt" data-key="b">VI is usually slower but gives posterior variances that are too large</button>
+    <button class="opt" data-key="c">VI is exact in the limit of many iterations, like MCMC, but needs more memory</button>
+    <button class="opt" data-key="d">VI is usually faster and gives the correct variance but a biased posterior mean</button>
+  </div>
+  <div class="why">Both examples: means right, variances too small. VI optimises to a nearby member of a restricted family; there is no "run long enough and it becomes exact" guarantee, unlike MCMC.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>10.</strong> Retrieval from <a href="0025-gibbs-sampling.html">Lesson 25</a>. With the independent prior \(\mu\sim N(m_0,1/\kappa_0)\), \(\tau\sim\text{Gamma}(a,b)\), the Gibbs conditional is \(\tau\mid\mu,x\sim\text{Gamma}\big(a+\tfrac n2,\ b+\tfrac12\sum(x_i-\mu)^2\big)\). What does \(q^*_\tau\) look like?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">The same, with the sampled \(\mu\) replaced by the posterior mode of \(\mu\)</button>
+    <button class="opt" data-key="b">Gamma with shape \(a+\tfrac{n+1}2\), because \(\mu\) is now random</button>
+    <button class="opt" data-key="c">Gamma with the same shape, and \(\sum_iE_\mu[(x_i-\mu)^2]\) in place of \(\sum_i(x_i-\mu)^2\)</button>
+    <button class="opt" data-key="d">A Normal, because averaging over \(\mu\) makes the kernel Gaussian</button>
+  </div>
+  <div class="why">Gibbs-with-expectations: the shape counts the \(\tau\) powers, unchanged (the independent prior on \(\mu\) has no \(\tau\), so no \(+\tfrac12\)); the expected squared residuals are \(\sum_i(x_i-E[\mu])^2+nV[\mu]\). The family stays Gamma because the log kernel stays \((\cdot-1)\log\tau-(\cdot)\tau\). Shape \(\tfrac{n+1}2\) belongs to the <em>joint</em> prior of §3.</div>
+</div>
+
+<h2>7 · Exam-style question</h2>
+<p><strong>Setup</strong> (fresh model; 8 marks, about 18 minutes, FX-82 not needed, 2 d.p. if you evaluate).</p>
+<div class="box">
+<p><strong>Model:</strong> \(x_1,\dots,x_n\) are independent, \(x_i\mid\mu,\tau\sim\text{Normal}(\mu,\ 1/\tau)\).</p>
+<p><strong>Prior:</strong> \(\mu\) and \(\tau\) are independent a priori, with</p>
+$$\mu\sim\text{Normal}\Big(2,\ \frac1{0.25}\Big),\qquad\tau\sim\text{Gamma}(3,\ 2).$$
+<p>Approximate the posterior with \(q(\mu,\tau)=q_\mu(\mu)\,q_\tau(\tau)\), chosen by coordinate ascent variational inference (CAVI), where \(q^*_j(\theta_j)\propto\exp\{E_{-j}[\log p(x,\mu,\tau)]\}\).</p>
+</div>
+<ol type="a">
+  <li>Derive \(q^*_\tau(\tau)\). If it is a known distribution, identify the distribution name and its parameters. The parameters may contain \(E_\mu[\mu]\) and \(V_\mu[\mu]\). <span class="marks">[3]</span></li>
+  <li>Derive \(q^*_\mu(\mu)\). If it is a known distribution, identify the distribution name and its parameters. The parameters may contain \(E_\tau[\tau]\). <span class="marks">[3]</span></li>
+  <li>The resulting \(q^*\) will usually have a smaller posterior variance than the true posterior. Briefly explain why, and name one situation where this is a serious problem. <span class="marks">[2]</span></li>
+</ol>
+
+<details><summary>Marking-key solution</summary><div>
+<p><strong>(a)</strong> <em>[1 mark: log joint, keep only terms with \(\tau\) (the prior of \(\mu\) has no \(\tau\)).]</em></p>
+$$\begin{aligned}
+\log p(x,\mu,\tau)&amp;=\frac n2\log\tau-\frac\tau2\sum_i(x_i-\mu)^2+\log p(\mu)+(3-1)\log\tau-2\tau+\text{const}\\
+\log q^*_\tau(\tau)&amp;=E_\mu[\log p(x,\mu,\tau)]+\text{const}\\
+&amp;=\Big(\frac n2+2\Big)\log\tau-\tau\Big[2+\frac12\sum_iE_\mu[(x_i-\mu)^2]\Big]+\text{const}
+\end{aligned}$$
+<p><em>[1 mark: the trick.]</em> \(E_\mu[(x_i-\mu)^2]=(x_i-E_\mu[\mu])^2+V_\mu[\mu]\), so \(\sum_iE_\mu[(x_i-\mu)^2]=\sum_i(x_i-E_\mu[\mu])^2+nV_\mu[\mu]\).</p>
+<div class="answer-box"><p>(a)</p>
+$$q^*_\tau(\tau)=\text{Gamma}\Big(3+\frac n2,\ \ 2+\frac12\Big[\sum_i(x_i-E_\mu[\mu])^2+n\,V_\mu[\mu]\Big]\Big)$$
+</div>
+<p><em>[1 mark: name and both parameters (shape, rate).]</em> <span class="marks">(Marks: 1 + 1 + 1.)</span> Check: \(\tau^{(3+n/2)-1}e^{-(\cdot)\tau}\) is a Gamma(shape, rate) kernel. Shape is \(3+n/2\), not \(3+(n+1)/2\): the prior of \(\mu\) has no \(\tau\).</p>
+
+<p><strong>(b)</strong> <em>[1 mark: log joint, keep only terms with \(\mu\), take \(E_\tau\).]</em> Here the prior of \(\mu\) matters, and \(\tau\) appears only linearly in the likelihood:</p>
+$$\begin{aligned}
+\log q^*_\mu(\mu)&amp;=E_\tau\Big[-\frac\tau2\sum_i(x_i-\mu)^2-\frac{0.25}2(\mu-2)^2\Big]+\text{const}\\
+&amp;=-\frac{E[\tau]}2\sum_i(x_i-\mu)^2-\frac{0.25}2(\mu-2)^2+\text{const}
+\end{aligned}$$
+<p><em>[1 mark: expand and collect \(\mu^2\), \(\mu\).]</em></p>
+$$\begin{aligned}
+&amp;=-\frac12\Big[\big(nE[\tau]+0.25\big)\mu^2-2\big(E[\tau]\,n\bar x+0.25(2)\big)\mu\Big]+\text{const}\quad\Big(\textstyle\sum_ix_i=n\bar x\Big)\\
+&amp;=-\frac{nE[\tau]+0.25}{2}\Big(\mu-\frac{n\bar x\,E[\tau]+0.5}{nE[\tau]+0.25}\Big)^2+\text{const}
+\end{aligned}$$
+<div class="answer-box"><p>(b)</p>
+$$q^*_\mu(\mu)=\text{Normal}\Big(\frac{n\bar x\,E_\tau[\tau]+0.5}{n\,E_\tau[\tau]+0.25},\ \ \frac1{n\,E_\tau[\tau]+0.25}\Big)$$
+</div>
+<p><em>[1 mark: complete the square, name Normal with mean and variance.]</em> <span class="marks">(Marks: 1 + 1 + 1.)</span> Here \(E_\tau[\tau]=a^*/b^*\) from (a). The mean is a precision-weighted average of the prior mean 2 and \(\bar x\) with data precision \(nE[\tau]\), as in <a href="0022-bayesian-inference.html">Lesson 22</a> §2 with \(\tau\) replaced by \(E[\tau]\). Note the precision is \(\kappa_0+nE[\tau]\), not \((\kappa_0+n)E[\tau]\): the \(\tau\) multiplies only the data term under an independent prior.</p>
+
+<p><strong>(c)</strong> <em>[1 mark: reason.]</em> Mean-field forces \(\mu\) and \(\tau\) to be independent in \(q\), and the VI objective \(\text{KL}(q\|p)\) penalises \(q\) heavily for putting mass where the posterior has little, so \(q\) concentrates inside the true posterior and the variances come out too small (the posterior dependence between \(\mu\) and \(\tau\), and the uncertainty it carries, is lost). <em>[1 mark: situation.]</em> Any one of: strongly correlated parameters (the bivariate Normal with \(\rho=0.95\) had variance \(0.195\) instead of 2); credible intervals or probabilities that need the right spread; multimodal posteriors where CAVI finds one local optimum. <span class="marks">(Marks: 1 + 1.)</span></p>
+<p><strong>Total 8.</strong> Typical lost marks: writing \(\frac{n+1}2\) in (a) (copied from the joint-prior version); dropping \(V_\mu[\mu]\) so the rate has \((x_i-E[\mu])^2\) only; \(E[\tau]=b^*/a^*\) (upside down); in (b), multiplying the prior term by \(E[\tau]\) as well; in (c), answering "VI is faster" (that is a benefit, not the limitation asked).</p></div></details>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>In (a) the answer contains \(V_\mu[\mu]\) but the exact Gibbs conditional does not. Where does it come from, and when would it be zero?</p>
+<details><summary>Model answer</summary><div>
+<p>Gibbs conditions on one fixed sampled value of \(\mu\), so there is no leftover uncertainty. CAVI averages \((x_i-\mu)^2\) over \(q_\mu\), which spreads over values of \(\mu\); that adds the variance \(V_\mu[\mu]\) to each squared residual. It would be zero only if \(q_\mu\) were a point mass, i.e. no uncertainty about \(\mu\), which makes the update a Gibbs-style plug-in.</p></div></details>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>11.</strong> Retrieval from <a href="0017-em-algorithm-q-function.html">Lesson 17</a>. EM raises the log-likelihood every iteration; CAVI raises the ELBO every iteration. What do they have in common?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Both are guaranteed to find the global maximum of their objective</button>
+    <button class="opt" data-key="b">Both climb a lower bound and may stop at a local optimum from a bad start</button>
+    <button class="opt" data-key="c">Both draw random samples at each step and average them at the end</button>
+    <button class="opt" data-key="d">Both give a full posterior distribution for every parameter</button>
+  </div>
+  <div class="why">Both are monotone ascent methods (EM maximises a minorising function of \(\ell\); CAVI maximises the bound on \(\log p(x)\)) with only local-optimum guarantees, so you rerun from several starts. Neither samples. EM returns point estimates, not a distribution.</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>The lecture runs CAVI twice from very different starts (e.g. \(\mu^*=2\) vs \(-10\)) and reports the run with the highest ELBO. Why is that sensible, and why did both runs give the same answer here?</p>
+<details><summary>Model answer</summary><div>
+<p>CAVI only guarantees a local optimum, and the ELBO is the quantity being maximised, so among several runs the one with the highest ELBO is the closest to the posterior. Here \(m^*\) and \(a^*\) are fixed by the data and prior and \(v^*,b^*\) have a single fixed point, so every start reaches the same optimum (the lecture's two runs both end at ELBO \(-69.14251\)) (<a href="../extra-notes/VI-3.pdf">VI-3</a>).</p></div></details>
+</div>
+
+<h2>8 · Score yourself</h2>
+<div class="tablewrap"><table>
+<tr><th>If you missed…</th><th>Go back to</th></tr>
+<tr><td>Q1, Q5</td><td>§1 and §4: \(\log p(x)=\text{ELBO}+\text{KL}\); ELBO never decreases and stays below \(\log p(x)\)</td></tr>
+<tr><td>Q2, Q6, Q7</td><td>§2 key trick: \(E[(c-\mu)^2]=(c-E\mu)^2+V\mu\); \(n\) copies of \(V\mu\)</td></tr>
+<tr><td>Q3, Q4</td><td>§3: \(v^*=1/((\kappa_0+n)E\tau)\); \(E\tau=a^*/b^*\); shape \(a+\frac{n+1}2\) only with the joint prior</td></tr>
+<tr><td>Q8, Q9</td><td>§5–6: \(\sigma_1^2(1-\rho^2)\); VI fast, variance too small</td></tr>
+<tr><td>Q10, Q11</td><td>§2 Gibbs link; EM vs CAVI both ascent methods</td></tr>
+</table></div>
+
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) \(\log p(x)=\text{ELBO}+\text{KL}\), ELBO \(=E_q[\log p(\theta,x)]-E_q[\log q]\). (2) \(q^*_j\propto\exp E_{-j}[\log p(\theta,x)]\). (3) \(E_\mu[(c-\mu)^2]=(c-E\mu)^2+V\mu\). (4) Joint prior: \(q^*_\mu=N\big(\frac{\kappa_0m_0+n\bar x}{\kappa_0+n},\frac1{(\kappa_0+n)E\tau}\big)\); \(q^*_\tau=\text{Gamma}\big(a+\frac{n+1}2,\ b+\frac12[\sum(x_i-E\mu)^2+nV\mu]+\frac{\kappa_0}2[(E\mu-m_0)^2+V\mu]\big)\). (5) Independent prior: \(q^*_\tau\) shape \(a+\frac n2\), no \(\kappa_0\) term; \(q^*_\mu=N\big(\frac{\kappa_0m_0+E\tau\,n\bar x}{\kappa_0+nE\tau},\frac1{\kappa_0+nE\tau}\big)\). (6) Bivariate: variance \(\sigma_1^2(1-\rho^2)\). (7) VI: fast, deterministic, variance too small; MCMC: slow, exact in the limit.</p></div></details>
+
+<h2>9 · Homework (tute week 12)</h2>
+<ol>
+  <li><strong>Tute week 12, Q1(a)–(b).</strong> Derive \(q^*_1\) and \(q^*_2\) for the bivariate Normal and the ELBO up to a constant (the working is in §5; redo it on a blank page, then compare).</li>
+  <li><strong>Tute Q1(c)–(d), as printouts.</strong> (i) For \(\Sigma=\begin{pmatrix}2&amp;0.1\\0.1&amp;2\end{pmatrix}\), give \(q^*\) and say how it compares with the true density. (ii) For \(\Sigma=\begin{pmatrix}2&amp;1.9\\1.9&amp;2\end{pmatrix}\), same question, and say what you would see in the contour plot (true contours: a thin ellipse along \(x_1=x_2\); \(q^*\) contours: circles). (iii) The printout shows \(m\) after round 100 is \(-0.0001\) from a start of 3: what does that say about the starting value?</li>
+  <li><strong>Inverse-Gamma variance (2021 pattern).</strong> \(x_i\mid\mu,\sigma^2\sim N(\mu,\sigma^2)\), \(\mu\sim N(m_0,1/\kappa_0)\), \(\sigma^2\sim\text{Inv-Gamma}(a,b)\) independent, \(q=q_\mu q_{\sigma^2}\). Derive \(q^*_{\sigma^2}\) and name it. Then find the variance of \(q^*_\mu\) (you will need \(E[1/\sigma^2]\); for Inv-Gamma(\(\alpha,\beta\)) this is \(\alpha/\beta\)).</li>
+  <li><strong>Two sentences.</strong> Why does \(q^*_\mu\) contain \(E[\tau]\) while \(q^*_\tau\) contains \(E[\mu]\) <em>and</em> \(V[\mu]\)?</li>
+  <li><strong>Hand run.</strong> Repeat §4 with the independent prior of §7 (\(m_0=2\), \(\kappa_0=0.25\), \(a=3\), \(b=2\)) and the same data (\(n=4\), \(\bar x=5\), \(\sum(x_i-\bar x)^2=3.9\)), starting from \(E[\tau]=1\). Do one round (give \(m^*\), \(v^*\), \(b^*\)).</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p><strong>1.</strong> \(q^*_1=N\big(\mu_1-\frac{\Lambda_{12}}{\Lambda_{11}}(E[x_2]-\mu_2),\frac1{\Lambda_{11}}\big)\), symmetrically \(q^*_2\), ELBO as in §5.</p>
+<p><strong>2.</strong> (i) \(\rho=0.05\): \(q^*=N(0,1.995)\times N(0,1.995)\), essentially the true \(N(0,2)\) marginals: a circle matching the near-circular true density. (ii) \(q_i^*=N(0,0.195)\): two independent Normals, circles of radius about \(\sqrt{0.195}=0.44\) (per sd), against the true ellipse with marginal sd \(\sqrt2=1.41\) along the diagonal: \(q^*\) sits inside the true density and is far too narrow across the diagonal's long direction. (iii) CAVI converges to the same answer from any start (a unique optimum), but slowly when \(\rho\) is large, error shrinking by \(\rho^2=0.9025\) per round.</p>
+<p><strong>3.</strong></p>
+$$\begin{aligned}
+\log q^*_{\sigma^2}&amp;=E_\mu\Big[-\frac n2\log\sigma^2-\frac{1}{2\sigma^2}\sum_i(x_i-\mu)^2-(a+1)\log\sigma^2-\frac b{\sigma^2}\Big]+\text{const}\\
+&amp;=-\Big(a+\frac n2+1\Big)\log\sigma^2-\frac1{\sigma^2}\Big[b+\frac12\sum_iE_\mu[(x_i-\mu)^2]\Big]+\text{const}
+\end{aligned}$$
+<p>So \(q^*_{\sigma^2}=\text{Inv-Gamma}\big(a+\tfrac n2,\ b+\tfrac12[\sum_i(x_i-E\mu)^2+nV\mu]\big)\): same numbers as the Gamma in the precision form. For \(q^*_\mu\), the likelihood gives \(-\frac{E[1/\sigma^2]}2\sum(x_i-\mu)^2\); with \(E[1/\sigma^2]=\alpha^*/\beta^*\): \(q^*_\mu=N\big(\frac{\kappa_0m_0+E[1/\sigma^2]n\bar x}{\kappa_0+nE[1/\sigma^2]},\frac1{\kappa_0+nE[1/\sigma^2]}\big)\), so the variance is \(1/(\kappa_0+n\alpha^*/\beta^*)\). (Not \(E[\sigma^2]\): the likelihood contains \(1/\sigma^2\).)</p>
+<p><strong>4.</strong> \(\mu\) multiplies \(\tau\) in the likelihood, which is linear in \(\tau\), so only \(E[\tau]\) is needed to update \(\mu\). \(\tau\) multiplies the squared distances \((x_i-\mu)^2\), which are nonlinear in \(\mu\), so their expectation needs both the mean and the spread of \(q_\mu\) (\(E[\mu^2]=E[\mu]^2+V[\mu]\)).</p>
+<p><strong>5.</strong> \(q^*_\mu\): precision \(\kappa_0+nE[\tau]=0.25+4(1)=4.25\), \(v^*=1/4.25=0.2353\); \(m^*=(0.25(2)+1(4)(5))/4.25=20.5/4.25=4.8235\). \(q^*_\tau\): shape \(3+2=5\); \(\sum_iE[(x_i-\mu)^2]=\sum(x_i-\bar x)^2+n(\bar x-m^*)^2+nv^*=3.9+4(0.1765)^2+4(0.2353)=3.9+0.1246+0.9412=4.9658\) (using \(\sum(x_i-c)^2=S+n(\bar x-c)^2\)), \(b^*=2+\tfrac12(4.9658)=4.4829\), \(E[\tau]=5/4.4829=1.12\). Note \(m^*\) depends on \(E[\tau]\) here (unlike the joint prior), so it changes each round.</p></div></details>
+
+<p><strong>Primary source:</strong> the lecturer's <a href="../lectures/VI-2.pdf#page=8">VI slides 8–24</a> (KL, ELBO, CAVI, Normal–Gamma, MCMC vs VI), then <a href="../extra-notes/CAVI_normal_gamma_derivations.pdf">CAVI_normal_gamma_derivations</a> (every line, expectations and the ELBO), <a href="../extra-notes/VI-3.pdf">VI-3</a> (R loop) and <a href="../tutes/2026_MAST30027_week12.html">tute week 12</a>. The handwritten <a href="../extra-notes/VI_normal_correction-1.pdf">VI_normal_correction</a> has the same \(q^*_\mu\), \(q^*_\tau\) and ELBO formulas as the typed notes; follow the typed ones above.</p>
+
+<div class="ask">💬 Ask me in the terminal if the \(E_\mu[(x_i-\mu)^2]\) step or the \(\frac{n+1}2\) vs \(\frac n2\) shape feels arbitrary (I can run it on a smaller data set), for a fresh Model/Prior stem (Inverse-Gamma variance, two means with a bivariate Normal prior, or a Poisson–Gamma two-group model), or to mark your attempt at §7 like an exam marker.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0026-mcmc-diagnostics.html">Lesson 26, MCMC diagnostics</a> · Reference: <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0028-topic5-review.html">Lesson 28, Topic 5 review</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

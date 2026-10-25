@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bayesian Inference</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .4rem 1rem .6rem; margin: 1.2rem 0; }
+  .answer-box > p:first-child { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); margin-bottom: .2rem; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); }
+  .sheet { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .04em; color: var(--ok); }
+  .nosheet { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .04em; color: var(--trap); }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 22 · Topic 5: Bayesian inference &amp; computation (1 of 7)</div>
+<h1>Bayesian inference: prior, likelihood, posterior</h1>
+<p class="lede">The goal: from a model and a prior, write down the posterior, its mean and variance, a 95% credible interval and a predictive interval, each in a few lines, and say what the answer would look like under a vague or improper prior. Every later lesson in this topic (Monte Carlo, MH, Gibbs, VI) is a way of getting at a posterior you can't name this way, so the notation set here is the notation for all of them.</p>
+
+<div class="mission">Why this matters on 10 Nov: every recent paper has a Bayes question that opens "Model: … Prior: …" (often a joint prior \(p(\mu,\tau)=p(\mu\mid\tau)p(\tau)\)) and asks you to derive a conditional and name it with its parameters. Older papers also ask "is the prior vague or informative?", "which priors are improper?", "what posterior mean and sd would you expect?", "describe how to simulate from the posterior predictive". All of those are in this lesson. About 50 minutes, paper and FX-82. Assumed: <a href="0014-probability-toolkit.html">Lesson 14</a> (Bayes' rule, \(E[(x-\mu)^2]\)), <a href="0015-kernels-and-conjugacy.html">Lesson 15</a> (kernels, completing the square, conjugate table; I review it, I don't re-teach it).</div>
+
+<h2>1 · The notation for the whole topic</h2>
+<p>A Bayesian treats the parameter \(\theta\) as random and the data \(x\) as fixed once observed (<a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=7">Intro Bayes slide 7</a>). You supply two things and Bayes' rule combines them (<a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=8">slide 8</a>):</p>
+$$p(\theta\mid x)=\frac{p(x\mid\theta)\,p(\theta)}{p(x)},\qquad p(x)=\int p(x\mid\theta)\,p(\theta)\,d\theta,$$
+$$\boxed{\ p(\theta\mid x)\ \propto\ p(x\mid\theta)\,p(\theta)\ }\qquad\text{posterior}\ \propto\ \text{likelihood}\times\text{prior}.$$
+<p>\(p(x)\) has no \(\theta\), so it is a constant for the posterior and you drop it, along with every other factor free of \(\theta\) (<a href="0015-kernels-and-conjugacy.html">Lesson 15</a>, §1). The slides write the likelihood \(f(x\mid\theta)\); I write \(p(x\mid\theta)\), same thing.</p>
+
+<div class="tablewrap"><table>
+<tr><th>Symbol</th><th>Meaning (used in Lessons 22–28)</th></tr>
+<tr><td>\(p(\theta)\), \(p(x\mid\theta)\), \(p(\theta\mid x)\)</td><td>prior, likelihood (as a function of \(\theta\)), posterior. Joint prior on two parameters: \(p(\mu,\tau)=p(\mu\mid\tau)p(\tau)\)</td></tr>
+<tr><td>\(N(m,v)\)</td><td>Normal(mean, <em>variance</em>), as on the formula sheet. \(N(\mu,1/\tau)\): precision \(\tau\)</td></tr>
+<tr><td>\(\tau=1/\sigma^2\)</td><td>precision. Prior on a mean: \(\mu\sim N(m_0,1/\kappa_0)\), so \(\kappa_0\) is the prior <em>precision</em></td></tr>
+<tr><td>Gamma\((a,b)\)</td><td>shape \(a\), <em>rate</em> \(b\): \(\frac{b^a}{\Gamma(a)}x^{a-1}e^{-bx}\), mean \(a/b\), variance \(a/b^2\) <span class="sheet">mean on sheet</span> <span class="nosheet">variance NOT: A4</span></td></tr>
+<tr><td>Inv-Gamma\((a,b)\)</td><td>shape \(a\), <em>scale</em> \(b\): \(\frac{b^a}{\Gamma(a)}x^{-a-1}e^{-b/x}\), mean \(\frac{b}{a-1}\) (\(a&gt;1\)). \(\tau\sim\text{Gamma}(a,b)\iff\sigma^2=1/\tau\sim\text{Inv-Gamma}(a,b)\) <span class="sheet">on sheet</span></td></tr>
+<tr><td>\(m_0,\kappa_0,a,b\)</td><td>hyperparameters: the numbers in the prior. Posterior parameters get a subscript \(n\): \(m_n,\kappa_n,a_n,b_n\)</td></tr>
+<tr><td>\(\tilde x\)</td><td>a new observation, for the posterior predictive \(p(\tilde x\mid x)\)</td></tr>
+</table></div>
+<p>Slide form vs mine: the lecture writes the prior as \(\theta\sim N(\mu,\sigma^2/n_0)\) with an "implicit sample size" \(n_0\) (<a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=11">slide 11</a>). That is \(\kappa_0=n_0/\sigma^2=n_0\tau\). The week 8 tute writes the prior \(N(\mu,\tau^2)\) with \(\tau^2\) a prior <em>variance</em>, so its \(\tau^2\) is my \(1/\kappa_0\). Don't mix it up with precision \(\tau\).</p>
+<p>Everything you report comes from \(p(\theta\mid x)\) (<a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=6">slide 6</a>): the posterior mean \(E[\theta\mid x]\) and variance, a <strong>95% credible interval</strong> (the middle 95%: the 2.5% and 97.5% posterior quantiles; for a Normal posterior, mean \(\pm\,1.96\) sd), \(P(\theta&gt;c\mid x)\), or \(E[g(\theta)\mid x]\) for any function \(g\). The interval means what people want a CI to mean: \(P(\theta\in\text{interval}\mid x)=0.95\).</p>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>1.</strong> You want \(p(\theta\mid x)\) for a Normal likelihood with a Normal prior on \(\theta\). Which factor can be dropped without changing the answer?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(p(x)\), because it does not involve \(\theta\)</button>
+    <button class="opt" data-key="b">\(p(\theta)\), because the data already carry the information</button>
+    <button class="opt" data-key="c">\(p(x\mid\theta)\), because the prior is conjugate to it</button>
+    <button class="opt" data-key="d">\(p(\theta)\), when \(n\) exceeds the prior sample size</button>
+  </div>
+  <div class="why">Only factors free of \(\theta\) go. \(p(x)\) is the normalising constant. The prior always stays: a large \(n\) makes it matter less (§2) but never removes it. Conjugacy is about the <em>result</em> being the same family, not about dropping the likelihood.</div>
+</div>
+
+<h2>2 · Normal mean, known precision: every line</h2>
+<p>Model: \(x_i\mid\mu\overset{iid}{\sim}N(\mu,1/\tau)\), \(i=1,\dots,n\), \(\tau\) known. Prior: \(\mu\sim N(m_0,1/\kappa_0)\). Drop every factor without \(\mu\):</p>
+$$\begin{aligned}
+p(\mu\mid x)&amp;\propto p(x\mid\mu)\,p(\mu)\\
+&amp;\propto\prod_{i=1}^n e^{-\frac\tau2(x_i-\mu)^2}\cdot e^{-\frac{\kappa_0}{2}(\mu-m_0)^2}\quad\text{(drop }(\tau/2\pi)^{n/2},\ \sqrt{\kappa_0/2\pi})\\
+&amp;=\exp\Big\{-\frac\tau2\sum_i(x_i-\mu)^2-\frac{\kappa_0}2(\mu-m_0)^2\Big\}
+\end{aligned}$$
+<p>Expand the squares, \(\sum_i(x_i-\mu)^2=\sum_ix_i^2-2\mu\sum_ix_i+n\mu^2\) and \((\mu-m_0)^2=\mu^2-2m_0\mu+m_0^2\):</p>
+$$\begin{aligned}
+\text{exponent}&amp;=-\frac\tau2\sum_ix_i^2+\tau\mu\sum_ix_i-\frac{n\tau}2\mu^2-\frac{\kappa_0}2\mu^2+\kappa_0m_0\mu-\frac{\kappa_0}{2}m_0^2\\
+&amp;=-\frac12(\kappa_0+n\tau)\,\mu^2+(\kappa_0m_0+n\tau\bar x)\,\mu+\text{const}\quad\text{(using }\textstyle\sum_ix_i=n\bar x)\\
+&amp;=-\frac A2\mu^2+B\mu+\text{const},\qquad A=\kappa_0+n\tau,\quad B=\kappa_0m_0+n\tau\bar x
+\end{aligned}$$
+<p>Complete the square (<a href="0015-kernels-and-conjugacy.html">Lesson 15</a>, §3), then drop \(e^{B^2/(2A)}\):</p>
+$$\begin{aligned}
+p(\mu\mid x)&amp;\propto\exp\Big\{-\frac A2\Big(\mu^2-\frac{2B}{A}\mu\Big)\Big\}\\
+&amp;=\exp\Big\{-\frac A2\Big(\mu-\frac BA\Big)^2+\frac{B^2}{2A}\Big\}\\
+&amp;\propto\exp\Big\{-\frac{1}{2\,(1/A)}\Big(\mu-\frac BA\Big)^2\Big\}
+\end{aligned}$$
+<div class="answer-box"><p>Normal–Normal posterior</p>
+$$\mu\mid x\ \sim\ N(m_n,\,1/\kappa_n),\qquad \kappa_n=\kappa_0+n\tau,\qquad m_n=\frac{\kappa_0m_0+n\tau\,\bar x}{\kappa_0+n\tau}$$
+</div>
+<p><strong>Precisions add.</strong> Posterior precision = prior precision + data precision (\(n\tau\), the precision of \(\bar x\)). The posterior mean is a weighted average of the prior mean and the MLE \(\bar x\), weights proportional to precisions. Write it with one weight \(w\):</p>
+$$\begin{aligned}
+m_n&amp;=\frac{\kappa_0}{\kappa_0+n\tau}\,m_0+\frac{n\tau}{\kappa_0+n\tau}\,\bar x\\
+&amp;=w\,m_0+(1-w)\,\bar x,\qquad w=\frac{\kappa_0}{\kappa_0+n\tau}
+\end{aligned}$$
+<p>This is <strong>shrinkage</strong>: the estimate is pulled from \(\bar x\) toward \(m_0\). In the slides' form, \(w=n_0/(n_0+n)\) (<a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=13">slide 13</a>). Three facts the slides list, each a one-line check on the formulas above:</p>
+<ul>
+  <li>\(m_n\) always lies between \(m_0\) and \(\bar x\) (it is a convex combination).</li>
+  <li>\(1/\kappa_n\) is smaller than both the prior variance \(1/\kappa_0\) and the MLE's variance \(1/(n\tau)=\sigma^2/n\).</li>
+  <li>As \(n\to\infty\): \(w\to0\), so \(m_n\to\bar x\) and \(1/\kappa_n\to\sigma^2/n\). The prior is washed out. As \(\kappa_0\to0\) (a very vague prior) the same happens at any \(n\).</li>
+</ul>
+
+<h3>Worked example: the THM data (slides 15–17), my notation</h3>
+<p>Two assay measurements with \(\bar x=130\) and known \(\sigma=5\), so \(\tau=1/25=0.04\), \(n\tau=0.08\). Historical zones give prior \(N(120,\,10^2)\), so \(m_0=120\), \(\kappa_0=1/100=0.01\).</p>
+$$\begin{aligned}
+\kappa_n&amp;=0.01+0.08=0.09\\
+m_n&amp;=\frac{0.01(120)+0.08(130)}{0.09}=\frac{1.2+10.4}{0.09}=\frac{11.6}{0.09}=128.89\\
+\text{Var}(\mu\mid x)&amp;=\frac1{0.09}=11.11,\qquad\text{sd}=3.33\\
+\text{95\% credible interval}&amp;=128.89\pm1.96\,(3.33)=(122.36,\ 135.42)
+\end{aligned}$$
+<p>The slides get the same numbers with \(n_0=0.25\): \(\frac{0.25(120)+2(130)}{2.25}=128.89\) (<a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=17">slide 17</a>). The frequentist 95% CI is \(130\pm1.96\times5/\sqrt2=(123.07,\ 136.93)\): wider, centred on \(\bar x\). The weight on the prior is \(w=0.01/0.09=0.11\).</p>
+
+<div class="quiz num" data-answer="32.59" data-tol="0.01">
+  <p class="q"><strong>2.</strong> A pressure gauge reads \(x_i\sim N(\theta,16)\) (variance 16, known). Prior \(\theta\sim N(30,25)\). Four readings average \(\bar x=33\). Give the posterior mean of \(\theta\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\tau=1/16\), \(n\tau=4/16=0.25\); \(\kappa_0=1/25=0.04\). \(\kappa_n=0.29\).
+  $$m_n=\frac{0.04(30)+0.25(33)}{0.29}=\frac{1.2+8.25}{0.29}=\textbf{32.59}$$
+  Weight on the prior mean: \(0.04/0.29=0.14\).</div>
+</div>
+
+<div class="quiz num" data-answer="28.95" data-tol="0.01">
+  <p class="q"><strong>3.</strong> Same data. Give the <em>lower</em> limit of the 95% credible interval for \(\theta\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Posterior variance \(1/0.29=3.45\), sd \(1.857\). \(32.59-1.96(1.857)=32.59-3.64=\)<strong>28.95</strong>. Upper limit 36.23. Using the rounded sd 1.86 gives 28.94: carry 4 d.p. and round at the end.</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>What is the difference in meaning between the 95% credible interval above and the frequentist 95% confidence interval \(\bar x\pm1.96\sigma/\sqrt n\)?</p>
+<details><summary>Model answer</summary><div>
+<p>The credible interval is a probability statement about the parameter given the observed data: \(P(\theta\in(122.36,135.42)\mid x)=0.95\), with \(\theta\) random and the data fixed. The confidence interval is a statement about the procedure: over repeated samples, 95% of such intervals would contain the fixed true \(\theta\) (<a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=3">slides 3 and 16</a>). The credible interval is shifted toward the prior mean and is narrower because the prior adds information.</p></div></details>
+</div>
+
+<h2>3 · Posterior predictive</h2>
+<p>To predict a new observation \(\tilde x\), average the sampling model over the posterior (<a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=19">slide 19</a>):</p>
+$$p(\tilde x\mid x)=\int p(\tilde x\mid\theta)\,p(\theta\mid x)\,d\theta.$$
+<p>It has two sources of spread: not knowing \(\theta\), and the noise in a new observation. For the Normal model (the slides' "exercise", <a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=20">slide 20</a>), no integral is needed. Given \(x\), write \(\tilde x\) as \(\theta\) plus fresh noise:</p>
+$$\begin{aligned}
+\tilde x&amp;=\mu+\varepsilon,\qquad \mu\mid x\sim N(m_n,1/\kappa_n),\quad\varepsilon\sim N(0,1/\tau)\ \text{independent}\\
+E[\tilde x\mid x]&amp;=m_n+0=m_n\\
+\text{Var}(\tilde x\mid x)&amp;=\frac1{\kappa_n}+\frac1\tau\quad\text{(variances of independent terms add)}\\
+\tilde x\mid x&amp;\sim N\Big(m_n,\ \frac1{\kappa_n}+\frac1\tau\Big)
+\end{aligned}$$
+<p>Same centre as the posterior, variance = posterior variance + \(\sigma^2\). THM: \(11.11+25=36.11\), sd \(6.01\), so a 95% predictive interval for a future sample is \(128.89\pm1.96(6.01)=(117.11,\ 140.67)\). The slides turn this into a tail probability \(P(\tilde x&gt;145\mid x)=1-\Phi\big(\frac{145-128.89}{6.01}\big)=0.004\), which needs a Normal table (not on the FX-82), so expect an interval or a standardised value on paper.</p>
+<p><strong>By simulation</strong> (any model, and the 2017-style "describe an algorithm" question):</p>
+<ol class="steps">
+  <li>For \(t=1,\dots,T\): draw \(\theta^{(t)}\sim p(\theta\mid x)\) (exactly, or by MCMC).</li>
+  <li>Draw \(\tilde x^{(t)}\sim p(\tilde x\mid\theta^{(t)})\), using that same \(\theta^{(t)}\).</li>
+  <li>The \(\tilde x^{(t)}\) are draws from \(p(\tilde x\mid x)\). Estimate \(E[\tilde x\mid x]\) by \(\frac1T\sum_t\tilde x^{(t)}\), and \(P(\tilde x\in S\mid x)\) by the fraction landing in \(S\).</li>
+</ol>
+
+<div class="quiz num" data-answer="19.45" data-tol="0.01">
+  <p class="q"><strong>4.</strong> Gauge example (Q2). Give the variance of the posterior predictive for a fifth reading \(\tilde x\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Posterior variance \(1/\kappa_n=1/0.29=3.4483\); add the sampling variance 16: \(3.4483+16=\)<strong>19.45</strong>. The tempting 3.45 is the posterior variance of \(\theta\), not of a new reading.</div>
+</div>
+
+<h2>4 · Poisson–Gamma, and the posterior mean as a weighted average</h2>
+<p>Model: \(y_i\mid\lambda\overset{iid}{\sim}\text{Poisson}(\lambda)\). Prior: \(\lambda\sim\text{Gamma}(a,b)\).</p>
+$$\begin{aligned}
+p(\lambda\mid y)&amp;\propto\prod_{i=1}^n\frac{\lambda^{y_i}e^{-\lambda}}{y_i!}\cdot\frac{b^a}{\Gamma(a)}\lambda^{a-1}e^{-b\lambda}\\
+&amp;\propto\lambda^{\sum_iy_i}e^{-n\lambda}\cdot\lambda^{a-1}e^{-b\lambda}\quad\text{(drop }y_i!,\ b^a/\Gamma(a))\\
+&amp;=\lambda^{(a+\sum_iy_i)-1}e^{-(b+n)\lambda}
+\end{aligned}$$
+<div class="answer-box"><p>Poisson–Gamma posterior</p>
+$$\lambda\mid y\ \sim\ \text{Gamma}\Big(a+\sum_iy_i,\ b+n\Big)$$
+</div>
+<p>Read the prior as "\(a\) events seen in \(b\) earlier periods". The posterior mean, split into prior mean \(a/b\) and MLE \(\bar y=\sum y_i/n\):</p>
+$$\begin{aligned}
+E[\lambda\mid y]&amp;=\frac{a+n\bar y}{b+n}\\
+&amp;=\frac{a}{b+n}+\frac{n\bar y}{b+n}\\
+&amp;=\frac{b}{b+n}\cdot\frac ab+\frac{n}{b+n}\cdot\bar y\\
+&amp;=w\cdot\frac ab+(1-w)\,\bar y,\qquad w=\frac{b}{b+n}
+\end{aligned}$$
+<p>Same shrinkage shape: \(b\) plays the role of the prior sample size. \(\text{Var}(\lambda\mid y)=\dfrac{a+\sum y_i}{(b+n)^2}\) (Gamma variance \(a/b^2\), <em>not</em> on the formula sheet).</p>
+
+<h3>Worked example</h3>
+<p>Daily fault counts: prior \(\text{Gamma}(3,2)\) (mean 1.5), \(n=8\) days, \(\sum y_i=20\) (\(\bar y=2.5\)).</p>
+$$\begin{aligned}
+\lambda\mid y&amp;\sim\text{Gamma}(3+20,\ 2+8)=\text{Gamma}(23,\ 10)\\
+E[\lambda\mid y]&amp;=\frac{23}{10}=2.30\quad\Big(=0.20(1.5)+0.80(2.5)\ \text{ with }w=\tfrac2{10}\Big)\\
+\text{Var}(\lambda\mid y)&amp;=\frac{23}{10^2}=0.23,\qquad\text{sd}=0.48\\
+\text{approx. 95\% interval}&amp;=2.30\pm1.96(0.48)=(1.36,\ 3.24)
+\end{aligned}$$
+<p>A Gamma posterior is skewed, so the Normal-approximation interval is a shortcut; the exact central interval uses Gamma quantiles. The next block is real R output. Read each line, don't write it.</p>
+<pre class="rout"><span class="cmd">&gt; set.seed(30027)
+&gt; lam  &lt;- rgamma(1e5, shape = 3 + 20, rate = 2 + 8)
+&gt; ytil &lt;- rpois(1e5, lam)
+&gt; round(c(mean(lam), sd(lam)), 3)</span>
+[1] 2.302 0.480
+<span class="cmd">&gt; round(qgamma(c(0.025, 0.975), 23, 10), 3)</span>
+[1] 1.458 3.331
+<span class="cmd">&gt; round(c(mean(ytil), var(ytil)), 3)</span>
+[1] 2.302 2.539</pre>
+<p>The exact interval is \((1.46,\ 3.33)\), a little narrower on top than the Normal shortcut. The first two lines are exactly the simulation algorithm above, with the Poisson model as step 2.</p>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>5.</strong> What does the line <code>ytil &lt;- rpois(1e5, lam)</code> compute?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">100000 draws of \(\lambda\) from its Gamma prior</button>
+    <button class="opt" data-key="b">100000 draws of \(\lambda\) from its Gamma posterior</button>
+    <button class="opt" data-key="c">100000 draws from the posterior predictive of a new count</button>
+    <button class="opt" data-key="d">100000 draws of a new count at the single value \(\lambda=2.30\)</button>
+  </div>
+  <div class="why">The vector <code>lam</code> (previous line) holds posterior draws; <code>rpois</code> is vectorised, so draw \(t\) of <code>ytil</code> uses \(\lambda^{(t)}\): step 2 of the algorithm. Plugging in 2.30 for every draw (d) would ignore uncertainty about \(\lambda\) and give variance 2.30, not 2.54. Prior draws would use shape 3 and rate 2.</div>
+</div>
+
+<div class="quiz num" data-answer="2.53" data-tol="0.01">
+  <p class="q"><strong>6.</strong> Predictive variance of a new count \(\tilde y\) in the fault example. By iterated variance (<a href="0014-probability-toolkit.html">Lesson 14</a>), \(\text{Var}(\tilde y)=E[\lambda\mid y]+\text{Var}(\lambda\mid y)\). Compute it (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(E[\text{Var}(\tilde y\mid\lambda)]=E[\lambda\mid y]=2.30\) and \(\text{Var}(E[\tilde y\mid\lambda])=\text{Var}(\lambda\mid y)=0.23\): \(2.30+0.23=\)<strong>2.53</strong> (the simulation printed 2.539). The predictive variance exceeds the predictive mean: uncertainty about \(\lambda\) makes new counts overdispersed relative to Poisson, as in <a href="0010-overdispersion.html">Lesson 10</a>.</div>
+</div>
+
+<div class="quiz num" data-answer="2.33" data-tol="0.01">
+  <p class="q"><strong>7.</strong> Prior \(\lambda\sim\text{Gamma}(4,1)\), then \(n=5\) intervals with \(\sum y_i=10\). Give the posterior mean of \(\lambda\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Posterior Gamma\((4+10,\ 1+5)=\)Gamma(14, 6), mean \(14/6=\)<strong>2.33</strong>. Check as a weighted average: \(w=b/(b+n)=1/6\), \(\frac16(4)+\frac56(2)=2.33\). The prior mean 4 gets only 17% of the weight, since \(b=1\) is a prior sample size of one interval against five.</div>
+</div>
+
+<div class="quiz num" data-answer="0.31" data-tol="0.005">
+  <p class="q"><strong>8.</strong> Retrieval from <a href="0001-mle-fisher-information.html">Lesson 1</a>. For the fault data, the Poisson MLE is \(\hat\lambda=\bar y=2.5\) with \(I(\lambda)=n/\lambda\). Give the asymptotic variance of the MLE, \(1/I(\hat\lambda)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(1/I(\hat\lambda)=\hat\lambda/n=2.5/8=\)<strong>0.31</strong>. The posterior variance is 0.23: smaller, because the prior adds the information of \(b=2\) extra periods. As \(n\) grows both tend to \(\bar y/n\), the "Bayes meets frequentist" limit from §2.</div>
+</div>
+
+<h2>5 · Precision and variance (known mean)</h2>
+<p>You met these in <a href="0015-kernels-and-conjugacy.html">Lesson 15</a>, §5; here is the full line-by-line version, since it is the Gibbs conditional for \(\tau\) in every Normal model. Model: \(x_i\mid\tau\overset{iid}{\sim}N(\mu,1/\tau)\), \(\mu\) known, \(S=\sum_i(x_i-\mu)^2\). Prior \(\tau\sim\text{Gamma}(a,b)\):</p>
+$$\begin{aligned}
+p(\tau\mid x)&amp;\propto\prod_{i=1}^n\sqrt{\tau}\,e^{-\frac\tau2(x_i-\mu)^2}\cdot\tau^{a-1}e^{-b\tau}\\
+&amp;=\tau^{n/2}e^{-\frac\tau2S}\cdot\tau^{a-1}e^{-b\tau}\\
+&amp;=\tau^{(a+n/2)-1}e^{-(b+S/2)\tau}
+\end{aligned}$$
+<div class="answer-box"><p>Normal precision, Gamma prior</p>
+$$\tau\mid x\ \sim\ \text{Gamma}\Big(a+\frac n2,\ b+\frac S2\Big)$$
+</div>
+<p>Note \(\tau^{n/2}\) is <em>kept</em>: it carries \(\tau\). With the variance as the parameter, \(\sigma^2\sim\text{Inv-Gamma}(a,b)\):</p>
+$$\begin{aligned}
+p(\sigma^2\mid x)&amp;\propto(\sigma^2)^{-n/2}e^{-\frac{S}{2\sigma^2}}\cdot(\sigma^2)^{-a-1}e^{-b/\sigma^2}\\
+&amp;=(\sigma^2)^{-(a+n/2)-1}e^{-(b+S/2)/\sigma^2}\ \Rightarrow\ \text{Inv-Gamma}\Big(a+\frac n2,\ b+\frac S2\Big)
+\end{aligned}$$
+<p>The same two updates, in two parametrisations: shape \(+\,n/2\), rate (or scale) \(+\,S/2\).</p>
+<div class="trap"><strong>Trap</strong><br>The mean of a reciprocal is not the reciprocal of the mean. \(E[\sigma^2\mid x]=\frac{b_n}{a_n-1}\), while \(1/E[\tau\mid x]=\frac{b_n}{a_n}\). Both are "the posterior mean of the variance" to a careless eye. If the question's prior is on \(\sigma^2\) with the Inverse-Gamma mean formula from the sheet, use \(b_n/(a_n-1)\).</div>
+
+<div class="quiz num" data-answer="1.26" data-tol="0.01">
+  <p class="q"><strong>9.</strong> Six measurements \(N(5,\sigma^2)\), known mean 5, with \(\sum(x_i-5)^2=4.1\). Prior \(\sigma^2\sim\text{Inv-Gamma}(2,3)\). Give the posterior mean of \(\sigma^2\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(a_n=2+6/2=5\), \(b_n=3+4.1/2=5.05\): Inv-Gamma(5, 5.05). Sheet mean \(b_n/(a_n-1)=5.05/4=\)<strong>1.26</strong>. In precision form, \(\tau\mid x\sim\text{Gamma}(5,5.05)\) has mean \(0.99\), and \(1/0.99=1.01\ne1.26\): that's the trap.</div>
+</div>
+
+<h2>6 · A joint prior \(p(\mu,\tau)=p(\mu\mid\tau)\,p(\tau)\)</h2>
+<p>Recent papers write the prior in two stages: the precision first, then a mean whose spread is scaled by it. Model: \(x_i\mid\mu,\tau\overset{iid}{\sim}N(\mu,1/\tau)\). Prior:</p>
+$$\mu\mid\tau\sim N\Big(m_0,\ \frac1{\kappa_0\tau}\Big),\qquad\tau\sim\text{Gamma}(a,b).$$
+<p>Here the prior precision of \(\mu\) is \(\kappa_0\tau\), so \(\kappa_0\) is a prior sample size in the slides' sense (\(n_0\)). This differs from <a href="0015-kernels-and-conjugacy.html">Lesson 15</a>'s independent prior, where it was \(\kappa_0\). Write \(S=\sum_i(x_i-\bar x)^2\) and use \(\sum_i(x_i-\mu)^2=S+n(\bar x-\mu)^2\). The joint posterior, keeping every factor with \(\mu\) or \(\tau\) (and the \(\sqrt{\kappa_0\tau}\) from the prior density of \(\mu\)):</p>
+$$\begin{aligned}
+p(\mu,\tau\mid x)&amp;\propto\underbrace{\tau^{n/2}e^{-\frac\tau2[S+n(\bar x-\mu)^2]}}_{p(x\mid\mu,\tau)}\cdot\underbrace{\tau^{1/2}e^{-\frac{\kappa_0\tau}{2}(\mu-m_0)^2}}_{p(\mu\mid\tau)}\cdot\underbrace{\tau^{a-1}e^{-b\tau}}_{p(\tau)}\\
+&amp;=\tau^{a+\frac{n+1}2-1}\exp\Big\{-\tau\Big(b+\frac S2\Big)-\frac\tau2\big[n(\bar x-\mu)^2+\kappa_0(\mu-m_0)^2\big]\Big\}
+\end{aligned}$$
+<p><strong>Step: combine the two squares in \(\mu\).</strong> Expand, then complete the square with \(m_n=\dfrac{n\bar x+\kappa_0m_0}{n+\kappa_0}\):</p>
+$$\begin{aligned}
+n(\bar x-\mu)^2+\kappa_0(\mu-m_0)^2&amp;=(n+\kappa_0)\mu^2-2(n\bar x+\kappa_0m_0)\mu+n\bar x^2+\kappa_0m_0^2\\
+&amp;=(n+\kappa_0)(\mu-m_n)^2-\frac{(n\bar x+\kappa_0m_0)^2}{n+\kappa_0}+n\bar x^2+\kappa_0m_0^2\\
+&amp;=(n+\kappa_0)(\mu-m_n)^2+\frac{n\kappa_0}{n+\kappa_0}(\bar x-m_0)^2
+\end{aligned}$$
+<p>(The last step: \(n\bar x^2+\kappa_0m_0^2-\frac{(n\bar x+\kappa_0m_0)^2}{n+\kappa_0}=\frac{n\kappa_0(\bar x-m_0)^2}{n+\kappa_0}\).) Substitute, and split the \(\tau\) powers as \(\tau^{1/2}\cdot\tau^{a+n/2-1}\):</p>
+$$\begin{aligned}
+p(\mu,\tau\mid x)&amp;\propto\underbrace{\tau^{1/2}e^{-\frac{(n+\kappa_0)\tau}{2}(\mu-m_n)^2}}_{\propto\,p(\mu\mid\tau,x)}\cdot\underbrace{\tau^{a+\frac n2-1}e^{-\tau b_n}}_{\propto\,p(\tau\mid x)},\\
+b_n&amp;=b+\frac S2+\frac{n\kappa_0(\bar x-m_0)^2}{2(n+\kappa_0)}
+\end{aligned}$$
+<p>The first factor is a Normal kernel in \(\mu\) with precision \((n+\kappa_0)\tau\) (its \(\sqrt{\tau}\) is the Normal constant), and the second has no \(\mu\). So the posterior factorises the same way as the prior:</p>
+<div class="answer-box"><p>Normal–Gamma posterior</p>
+$$\mu\mid\tau,x\sim N\Big(\frac{n\bar x+\kappa_0m_0}{n+\kappa_0},\ \frac1{(n+\kappa_0)\tau}\Big),\qquad \tau\mid x\sim\text{Gamma}\Big(a+\frac n2,\ b+\frac S2+\frac{n\kappa_0(\bar x-m_0)^2}{2(n+\kappa_0)}\Big)$$
+</div>
+<p>Observations. (i) \(\tau\) cancels in the conditional mean: only the spread depends on \(\tau\). (ii) The rate gains a term that grows with \(|\bar x-m_0|\): data far from the prior mean are evidence of a larger variance. (iii) This exact factorisation means you can sample the pair directly, \(\tau\) from its Gamma and then \(\mu\) from the Normal; no MCMC needed. With the independent priors of Lesson 15 you can't, which is why Gibbs sampling exists (<a href="0025-gibbs-sampling.html">Lesson 25</a>). In an exam the question usually asks only for \(p(\mu\mid\tau,x)\) (the "treat \(\tau\) as a constant" conditional), which is the first half of the working above.</p>
+
+<div class="quiz num" data-answer="0.67" data-tol="0.005">
+  <p class="q"><strong>10.</strong> Prior \(\mu\mid\tau\sim N(1,\frac1{2\tau})\), \(\tau\sim\text{Gamma}(3,2)\); data \(n=6\), \(\bar x=3.4\), \(S=\sum(x_i-\bar x)^2=5.4\). Give \(E[\tau\mid x]\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(\kappa_0=2\), \(m_0=1\):
+  $$\begin{aligned}a_n&amp;=3+\tfrac62=6\\ b_n&amp;=2+\tfrac{5.4}2+\frac{6(2)(3.4-1)^2}{2(8)}\\&amp;=2+2.7+\frac{12(5.76)}{16}\\&amp;=2+2.7+4.32=9.02\\ E[\tau\mid x]&amp;=\frac6{9.02}=\textbf{0.67}\end{aligned}$$
+  Leaving out the third term in \(b_n\) gives \(6/4.7=1.28\): the usual lost mark. (Checked by integrating the joint numerically.)</div>
+</div>
+
+<h2>7 · Vague, informative and improper priors</h2>
+<div class="tablewrap"><table>
+<tr><th>Prior</th><th>Example</th><th>What it does</th></tr>
+<tr><td>Informative</td><td>\(\mu\sim N(120,10^2)\); \(\lambda\sim\text{Gamma}(30,20)\)</td><td>noticeably changes the posterior (large \(\kappa_0\) or \(b\) relative to \(n\tau\) or \(n\))</td></tr>
+<tr><td>Vague (diffuse)</td><td>\(\mu\sim N(0,10^6)\); \(\tau\sim\text{Gamma}(0.001,0.001)\)</td><td>a proper density that is nearly flat where the likelihood lives: posterior \(\approx\) likelihood</td></tr>
+<tr><td>Improper</td><td>\(p(\mu)\propto1\) on \(\mathbb R\); \(p(\tau)\propto1/\tau\); \(p(\sigma^2)\propto1/\sigma^2\)</td><td>doesn't integrate to 1, so isn't a distribution. The limit of a vague prior (\(\kappa_0\to0\); \(a,b\to0\))</td></tr>
+</table></div>
+<p>A vague prior is a judgement ("nearly flat"), an improper prior is a fact (\(\int p(\theta)\,d\theta=\infty\)). Both make the posterior mean \(\to\) the MLE. The danger with improper priors: the <strong>posterior may also be improper</strong>, and then it isn't a distribution at all. Check by reading the kernel: is it a recognisable distribution with valid parameters?</p>
+$$\begin{aligned}
+\text{Normal mean, flat prior:}\quad p(\mu\mid x)&amp;\propto e^{-\frac{n\tau}{2}(\mu-\bar x)^2}\ \Rightarrow\ N(\bar x,\tfrac1{n\tau}),\ \text{proper for any }n\ge1\\
+\text{Normal precision, }p(\tau)\propto1/\tau:\quad p(\tau\mid x)&amp;\propto\tau^{n/2-1}e^{-\tau S/2}\ \Rightarrow\ \text{Gamma}(\tfrac n2,\tfrac S2),\ \text{proper if }S&gt;0\\
+\text{Poisson rate, }p(\lambda)\propto1/\lambda:\quad p(\lambda\mid y)&amp;\propto\lambda^{\sum y_i-1}e^{-n\lambda}\ \Rightarrow\ \text{Gamma}(\textstyle\sum y_i,\ n),\ \text{proper iff }\sum y_i&gt;0
+\end{aligned}$$
+<p>A Gamma needs shape \(&gt;0\) and rate \(&gt;0\). With all-zero counts, \(\lambda^{-1}e^{-n\lambda}\) is not integrable at 0: improper posterior.</p>
+<p><strong>Sensitivity.</strong> The prior matters when its precision is comparable to the data's: \(\kappa_0\approx n\tau\) (or \(b\approx n\)) means the prior carries half the weight. With 6 observations, \(\text{Gamma}(0.001,0.001)\) is harmless; with 1 observation and an informative prior, it is the posterior.</p>
+<p><strong>WinBUGS/JAGS code.</strong> Past papers show BUGS code. <code>dnorm(mean, precision)</code>: the second argument is a <em>precision</em>, not a variance or an sd. So <code>mu ~ dnorm(10, 0.01)</code> is \(N(10,\ 100)\): vague. Reading the posterior off data: with a vague prior, expect posterior mean \(\approx\bar y\) and posterior sd \(\approx1/\sqrt{n\tau}\).</p>
+
+<div class="quiz num" data-answer="0.17" data-tol="0.005">
+  <p class="q"><strong>11.</strong> BUGS model: <code>y[i] ~ dnorm(mu, 4)</code> for \(i=1,\dots,9\); <code>mu ~ dnorm(0, 0.001)</code>; data with \(\bar y=5.2\). You draw 10,000 posterior samples of <code>mu</code>. About what sample standard deviation should you see (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Precisions: prior \(\kappa_0=0.001\), data \(n\tau=9\times4=36\), total \(36.001\). Posterior sd \(=1/\sqrt{36.001}=\)<strong>0.17</strong>, and the sample mean \(\approx\frac{36(5.2)}{36.001}=5.20\) (the prior pulls by 0.0003). The trap is reading 4 as a variance: sd would then be \(\sqrt{4/9}=0.67\).</div>
+</div>
+
+<div class="quiz" data-answer="d">
+  <p class="q"><strong>12.</strong> Poisson counts with the improper prior \(p(\lambda)\propto1/\lambda\). In which case is the posterior <em>not</em> a proper distribution?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(n=1\) and \(y_1=7\), because one observation is too few</button>
+    <button class="opt" data-key="b">\(n=50\) and \(\sum y_i=3\), because the counts are tiny</button>
+    <button class="opt" data-key="c">\(n=4\) and \(y=(2,0,0,1)\), because some counts are zero</button>
+    <button class="opt" data-key="d">\(n=5\) and \(y=(0,0,0,0,0)\), because every count is zero</button>
+  </div>
+  <div class="why">The posterior kernel is \(\lambda^{\sum y_i-1}e^{-n\lambda}\), a Gamma(\(\sum y_i,n\)) kernel, proper iff \(\sum y_i&gt;0\). (a)–(c) all have \(\sum y_i&gt;0\). With \(\sum y_i=0\) the kernel \(\lambda^{-1}e^{-5\lambda}\) has an infinite integral near 0. The sample size needs only \(n\ge1\), and zeros are fine as long as the total isn't zero.</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>The prior \(\mu\sim N(0,10^6)\) is vague; the prior \(p(\mu)\propto1\) is improper. Why do both give almost the same posterior here, and what extra check does the improper one need?</p>
+<details><summary>Model answer</summary><div>
+<p>The likelihood is concentrated over a range far narrower than the prior's spread, so over that range the prior is essentially constant and the posterior is \(\approx N(\bar x,1/(n\tau))\) either way: \(\kappa_0=10^{-6}\) against \(n\tau\) means a weight of about zero on the prior mean. A proper vague prior guarantees a proper posterior; an improper prior does not, so you must check that the posterior kernel is a recognisable distribution with valid parameters (e.g. Gamma shape and rate both \(&gt;0\)).</p></div></details>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>13.</strong> Retrieval from <a href="0016-mixture-models-and-responsibilities.html">Lessons 16–17</a>. In the EM responsibility \(\gamma_{ik}=\dfrac{\pi_kf_k(x_i)}{\sum_j\pi_jf_j(x_i)}\), what plays the role of the <em>prior</em> in Bayes' rule?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(f_k(x_i)\), the density of \(x_i\) in component \(k\)</button>
+    <button class="opt" data-key="b">\(\pi_k\), the probability of component \(k\) before seeing \(x_i\)</button>
+    <button class="opt" data-key="c">\(\sum_j\pi_jf_j(x_i)\), the mixture density of \(x_i\)</button>
+    <button class="opt" data-key="d">\(\gamma_{ik}\), the probability of component \(k\) given \(x_i\)</button>
+  </div>
+  <div class="why">Here the unknown is the label \(Z_i\): prior \(P(Z_i=k)=\pi_k\), likelihood \(f_k(x_i)=p(x_i\mid Z_i=k)\), marginal \(\sum_j\pi_jf_j(x_i)=p(x_i)\), posterior \(\gamma_{ik}\). Same rule as \(p(\theta\mid x)=p(x\mid\theta)p(\theta)/p(x)\), with a discrete unknown instead of a parameter.</div>
+</div>
+
+<h2>8 · Exam-style question</h2>
+<p><strong>Setup</strong> (fresh model; 12 marks, about 28 minutes, FX-82, 2 d.p.).</p>
+<div class="box">
+<p><strong>Model:</strong> \(x_1,\dots,x_n\) are independent, \(x_i\mid\mu,\tau\sim\text{Normal}(\mu,\ 1/\tau)\).</p>
+<p><strong>Prior:</strong> \(p(\mu,\tau)=p(\mu\mid\tau)\,p(\tau)\) with</p>
+$$\mu\mid\tau\sim\text{Normal}\Big(1,\ \frac1{2\tau}\Big),\qquad\tau\sim\text{Gamma}(3,\ 2).$$
+</div>
+<ol type="a">
+  <li>Derive the conditional distribution \(p(\mu\mid\tau,x)\). If it is a known distribution, identify the distribution name and its parameters. <span class="marks">[4]</span></li>
+  <li>Suppose \(n=6\) and \(\bar x=3.4\). For \(\tau=2\), find the posterior mean of \(\mu\) and a 95% credible interval for \(\mu\). Show your work. <span class="marks">[3]</span></li>
+  <li>Write the posterior mean in (a) as a weighted average of the prior mean and \(\bar x\), and give the two weights. Briefly explain what happens to the weights as \(n\to\infty\). <span class="marks">[2]</span></li>
+  <li>An analyst instead uses the priors \(p(\mu\mid\tau)\propto1\) and \(p(\tau)\propto1/\tau\). Are these priors proper? Derive \(p(\tau\mid x)\), identify it, and state when it is a proper distribution. Let \(S=\sum_i(x_i-\bar x)^2\). <span class="marks">[3]</span></li>
+</ol>
+
+<details><summary>Marking-key solution</summary><div>
+<p><strong>(a)</strong> <em>[1 mark: posterior \(\propto\) likelihood \(\times\) prior, keeping only \(\mu\) terms.]</em> Given \(\tau\), \(p(\mu\mid\tau,x)\propto p(x\mid\mu,\tau)\,p(\mu\mid\tau)\):</p>
+$$\begin{aligned}
+p(\mu\mid\tau,x)&amp;\propto\exp\Big\{-\frac\tau2\sum_{i=1}^n(x_i-\mu)^2\Big\}\cdot\exp\Big\{-\frac{2\tau}{2}(\mu-1)^2\Big\}
+\end{aligned}$$
+<p><em>[1 mark: expand, collect the \(\mu^2\) and \(\mu\) terms.]</em></p>
+$$\begin{aligned}
+\text{exponent}&amp;=-\frac\tau2\Big[n\mu^2-2\mu\sum_ix_i+\sum_ix_i^2\Big]-\tau\big[\mu^2-2\mu+1\big]\\
+&amp;=-\frac\tau2(n+2)\,\mu^2+\tau\Big(\sum_ix_i+2\Big)\mu+\text{const}\\
+&amp;=-\frac A2\mu^2+B\mu+\text{const},\qquad A=(n+2)\tau,\quad B=\tau\big(n\bar x+2\big)
+\end{aligned}$$
+<p><em>[1 mark: complete the square.]</em></p>
+$$\begin{aligned}
+p(\mu\mid\tau,x)&amp;\propto\exp\Big\{-\frac A2\Big(\mu-\frac BA\Big)^2\Big\}\\
+\frac BA&amp;=\frac{\tau(n\bar x+2)}{(n+2)\tau}=\frac{n\bar x+2}{n+2},\qquad\frac1A=\frac1{(n+2)\tau}
+\end{aligned}$$
+<div class="answer-box"><p>(a)</p>
+$$\mu\mid\tau,x\ \sim\ \text{Normal}\Big(\frac{n\bar x+2}{n+2},\ \frac1{(n+2)\tau}\Big)$$
+</div>
+<p><em>[1 mark: name and parameters (mean, variance).]</em> The \(\tau\) cancels in the mean. <span class="marks">(Marks: 1 + 1 + 1 + 1.)</span></p>
+
+<p><strong>(b)</strong> <em>[1 mark: mean.]</em> \(n=6\), \(\bar x=3.4\):</p>
+$$\begin{aligned}
+E[\mu\mid\tau,x]&amp;=\frac{6(3.4)+2}{6+2}=\frac{22.4}{8}=2.80
+\end{aligned}$$
+<p><em>[1 mark: variance at \(\tau=2\); 1 mark: interval.]</em></p>
+$$\begin{aligned}
+\text{Var}(\mu\mid\tau=2,x)&amp;=\frac1{8\times2}=0.0625,\qquad\text{sd}=0.25\\
+\text{95\% interval}&amp;=2.80\pm1.96(0.25)=2.80\pm0.49
+\end{aligned}$$
+<div class="answer-box"><p>(b)</p>
+<p>Posterior mean \(2.80\); 95% credible interval \((2.31,\ 3.29)\).</p></div>
+<p><span class="marks">(Marks: 1 + 1 + 1.)</span></p>
+
+<p><strong>(c)</strong> <em>[1 mark: weighted average with weights.]</em></p>
+$$\begin{aligned}
+E[\mu\mid\tau,x]&amp;=\frac{n\bar x+2}{n+2}\\
+&amp;=\frac{2}{n+2}\cdot1+\frac{n}{n+2}\cdot\bar x
+\end{aligned}$$
+<p>Weight on the prior mean \(1\): \(\frac2{n+2}=0.25\) (at \(n=6\)); weight on \(\bar x\): \(\frac n{n+2}=0.75\). Check: \(0.25(1)+0.75(3.4)=2.80\) ✓. <em>[1 mark: explanation.]</em> The prior acts like \(\kappa_0=2\) extra observations at \(1\). As \(n\to\infty\), the weight on the prior mean \(2/(n+2)\to0\) and the weight on \(\bar x\to1\): the posterior mean tends to the MLE and the prior is washed out. <span class="marks">(Marks: 1 + 1.)</span></p>
+
+<p><strong>(d)</strong> <em>[1 mark: both improper.]</em> \(\int_{-\infty}^\infty1\,d\mu=\infty\) and \(\int_0^\infty\tau^{-1}d\tau=\infty\): neither is a proper density. <em>[1 mark: integrate out \(\mu\).]</em> With these priors, \(p(\mu,\tau\mid x)\propto\tau^{n/2}e^{-\frac\tau2[S+n(\bar x-\mu)^2]}\tau^{-1}\), using \(\sum_i(x_i-\mu)^2=S+n(\bar x-\mu)^2\):</p>
+$$\begin{aligned}
+p(\tau\mid x)&amp;\propto\tau^{\frac n2-1}e^{-\frac{\tau S}{2}}\int_{-\infty}^\infty e^{-\frac{n\tau}{2}(\mu-\bar x)^2}\,d\mu\\
+&amp;=\tau^{\frac n2-1}e^{-\frac{\tau S}{2}}\sqrt{\frac{2\pi}{n\tau}}\quad\text{(Normal normalising constant)}\\
+&amp;\propto\tau^{\frac{n-1}{2}-1}e^{-\frac S2\tau}
+\end{aligned}$$
+<div class="answer-box"><p>(d)</p>
+$$\tau\mid x\sim\text{Gamma}\Big(\frac{n-1}2,\ \frac S2\Big),\quad\text{proper iff }n\ge2\text{ and }S&gt;0$$
+</div>
+<p><em>[1 mark: name, parameters, and the condition.]</em> Shape \(\frac{n-1}2&gt;0\) needs \(n\ge2\), and rate \(S/2&gt;0\) needs the data not all equal. The posterior is proper under improper priors, but only under that condition. (With \(n=6\), \(S=5.4\): Gamma(2.5, 2.7), mean 0.93.) <span class="marks">(Marks: 1 + 1 + 1.)</span></p>
+<p><strong>Total 12.</strong> Typical lost marks: dropping the \(\tau\) in the prior variance \(\frac{1}{2\tau}\) (so \(A=(n+2)\) not \((n+2)\tau\)); reporting the variance as \(1/A\) with \(\tau\) forgotten in (b); using \(\text{sd}=0.0625\) in the interval; "shape \(n/2\)" in (d) because the \(\mu\)-integral's \(\tau^{-1/2}\) was missed.</p></details>
+
+<h2>9 · Score yourself</h2>
+<div class="tablewrap"><table>
+<tr><th>If you missed…</th><th>Go back to</th></tr>
+<tr><td>Q1, Q13</td><td>§1: posterior \(\propto\) likelihood \(\times\) prior; \(p(x)\) is the constant; Bayes' rule is the same one as the EM E-step</td></tr>
+<tr><td>Q2, Q3, Q4</td><td>§2–3: precisions add, \(m_n\) is a precision-weighted average; predictive variance adds \(\sigma^2\)</td></tr>
+<tr><td>Q5, Q6</td><td>§3–4: predictive simulation = draw \(\theta\), then draw \(\tilde x\) from it; iterated variance</td></tr>
+<tr><td>Q7, Q8</td><td>§4: Gamma\((a+\sum y,\ b+n)\); weight \(b/(b+n)\); MLE variance \(\hat\lambda/n\)</td></tr>
+<tr><td>Q9</td><td>§5: Inv-Gamma mean \(b_n/(a_n-1)\), not \(1/E\tau\)</td></tr>
+<tr><td>Q10</td><td>§6: the \(b_n\) cross term; \(\kappa_0\) is a prior sample size</td></tr>
+<tr><td>Q11, Q12</td><td>§7: BUGS second argument is precision; improper prior needs a proper-posterior check</td></tr>
+</table></div>
+
+<details><summary>Retrieval: write these from memory, then check</summary><div>
+<p>(1) Bayes' rule for \(\theta\), and what \(\propto\) drops. (2) Normal–Normal: \(\kappa_n=\kappa_0+n\tau\), \(m_n=(\kappa_0m_0+n\tau\bar x)/\kappa_n\), weight on \(m_0\). (3) Poisson–Gamma: Gamma\((a+\sum y_i,\ b+n)\). (4) Normal precision: Gamma\((a+n/2,\ b+S/2)\); variance: Inv-Gamma with the same numbers. (5) Normal–Gamma joint: \(\mu\mid\tau,x\sim N(m_n,1/((n+\kappa_0)\tau))\), \(b_n\) with the cross term. (6) Predictive: posterior variance \(+\ \sigma^2\); simulate \(\theta\) then \(\tilde x\). (7) 95% interval: mean \(\pm1.96\) sd. (8) Gamma: mean \(a/b\), variance \(a/b^2\); Inv-Gamma mean \(b/(a-1)\).</p></div></details>
+
+<h2>10 · Homework</h2>
+<ol>
+  <li><strong>Tute week 8, Q1 (a)–(c)</strong> (<code>tutes/2026_MAST30027_week8_questions.qmd</code>; its \(\tau^2\) is the prior variance, \(=1/\kappa_0\)): the joint pdf of \((\bar X,\theta)\), the posterior of \(\theta\), and the marginal of \(\bar X\). Do (b) on a blank page using the §2 recipe, then compare with the tute solution's completing-the-square. Q2 and Q3 of that tute (simulation, inversion) belong to <a href="0023-monte-carlo-rejection-sampling.html">Lesson 23</a>.</li>
+  <li><strong>Gamma–Exponential.</strong> \(x_i\mid\lambda\overset{iid}{\sim}\text{Exponential}(\text{rate }\lambda)\), \(\lambda\sim\text{Gamma}(a,b)\). Derive the posterior and show its mean is a weighted average of the prior mean \(a/b\) and a data-based estimate. With \(a=2\), \(b=1\), \(n=5\), \(\sum x_i=4\), give the posterior mean and variance (2 d.p.).</li>
+  <li><strong>Poisson with exposure.</strong> \(y_i\mid\lambda\sim\text{Poisson}(t_i\lambda)\) with known \(t_i\), \(\lambda\sim\text{Gamma}(a,b)\). Derive the posterior.</li>
+  <li><strong>Predictive for the gauge (Q2).</strong> Show that \(p(\tilde x\mid x)\) is Normal with the variance in Q4 by writing \(\tilde x=\theta+\varepsilon\), then give a 95% predictive interval (2 d.p.).</li>
+  <li><strong>Improper prior.</strong> \(x_i\mid\sigma^2\sim N(0,\sigma^2)\), \(p(\sigma^2)\propto1/\sigma^2\). Derive the posterior of \(\sigma^2\), identify it, and say for which \(n\) it is proper and when its mean exists.</li>
+</ol>
+<details><summary>Homework answers</summary><div>
+<p><strong>1.</strong> (a) \(p(\bar x,\theta)=p(\bar x\mid\theta)p(\theta)\) with \(\bar X\mid\theta\sim N(\theta,\sigma^2/n)\). (b) Exponent \(=-\frac n{2\sigma^2}(\bar x-\theta)^2-\frac1{2\tau^2}(\theta-\mu)^2=-\frac12\big(\frac n{\sigma^2}+\frac1{\tau^2}\big)\theta^2+\big(\frac{n\bar x}{\sigma^2}+\frac\mu{\tau^2}\big)\theta+\text{const}\), so \(A=\frac{n}{\sigma^2}+\frac1{\tau^2}\), \(B=\frac{n\bar x}{\sigma^2}+\frac\mu{\tau^2}\), mean \(B/A=\frac{n\tau^2\bar x+\sigma^2\mu}{n\tau^2+\sigma^2}\), variance \(1/A=\frac{\sigma^2\tau^2}{n\tau^2+\sigma^2}\). (c) \(\bar X=\theta+\varepsilon\), \(\theta\sim N(\mu,\tau^2)\), \(\varepsilon\sim N(0,\sigma^2/n)\) independent, so \(\bar X\sim N(\mu,\ \tau^2+\sigma^2/n)\) (the same sum-of-independent-Normals step as the predictive in §3).</p>
+<p><strong>2.</strong></p>
+$$\begin{aligned}
+p(\lambda\mid x)&amp;\propto\lambda^ne^{-\lambda\sum x_i}\cdot\lambda^{a-1}e^{-b\lambda}=\lambda^{(a+n)-1}e^{-(b+\sum x_i)\lambda}\\
+\lambda\mid x&amp;\sim\text{Gamma}\Big(a+n,\ b+\sum_ix_i\Big)\\
+E[\lambda\mid x]&amp;=\frac{a+n}{b+\sum x_i}
+\end{aligned}$$
+<p>With the MLE \(\hat\lambda=n/\sum x_i\) (<a href="0001-mle-fisher-information.html">Lesson 1</a>):</p>
+$$\begin{aligned}
+E[\lambda\mid x]&amp;=\frac{a+n}{b+\sum_ix_i}\\
+&amp;=\frac{b}{b+\sum x_i}\cdot\frac ab+\frac{\sum x_i}{b+\sum x_i}\cdot\frac{n}{\sum x_i}
+\end{aligned}$$
+<p>Weights \(b/(b+\sum x_i)\) on the prior mean and \(\sum x_i/(b+\sum x_i)\) on the MLE: \(b\) is the prior "total time", \(\sum x_i\) the observed total time. Numbers: Gamma(7, 5), mean \(7/5=1.40\) (\(=0.2(2)+0.8(1.25)\)), variance \(7/25=0.28\).</p>
+<p><strong>3.</strong> \(p(\lambda\mid y)\propto\prod_i(t_i\lambda)^{y_i}e^{-t_i\lambda}\cdot\lambda^{a-1}e^{-b\lambda}\propto\lambda^{a+\sum y_i-1}e^{-(b+\sum t_i)\lambda}\): Gamma\((a+\sum y_i,\ b+\sum t_i)\). Same as Poisson–Gamma with \(n\) replaced by the total exposure \(\sum t_i\) (the offset idea from <a href="0007-poisson-gamma-glms.html">Lesson 7</a>).</p>
+<p><strong>4.</strong> \(\tilde x\mid x\sim N(32.59,\ 3.4483+16)=N(32.59,\ 19.45)\), sd \(4.41\). Interval \(32.59\pm1.96(4.41)=32.59\pm8.64=(23.94,\ 41.23)\). Much wider than the credible interval for \(\theta\) (28.95, 36.23).</p>
+<p><strong>5.</strong></p>
+$$\begin{aligned}
+p(\sigma^2\mid x)&amp;\propto(\sigma^2)^{-n/2}e^{-\frac{\sum x_i^2}{2\sigma^2}}\cdot(\sigma^2)^{-1}\\
+&amp;=(\sigma^2)^{-\frac n2-1}e^{-\frac{\sum x_i^2/2}{\sigma^2}}\ \Rightarrow\ \text{Inv-Gamma}\Big(\frac n2,\ \frac{\sum x_i^2}{2}\Big)
+\end{aligned}$$
+<p>This is the Lesson 15 update with \(a=b=0\). Proper if \(n\ge1\) and \(\sum x_i^2&gt;0\). The mean \(b_n/(a_n-1)\) exists only if \(a_n=n/2&gt;1\), i.e. \(n\ge3\); then it equals \(\sum x_i^2/(n-2)\).</p></div></details>
+
+<p><strong>Primary source:</strong> the lecturer's <a href="../lectures/Intro_Bayesian_Inference_LMS-1.pdf#page=11">Intro to Bayesian Inference, slides 11–21</a> (Normal posterior, the THM example, the posterior predictive and its tail probability), then <a href="../extra-notes/Posterior_Normal_mean-2.pdf">Posterior_Normal_mean</a> for the handwritten completing-the-square. For the Normal precision and the joint Normal–Gamma form, <a href="https://www.cs.ubc.ca/~murphyk/Papers/bayesGauss.pdf">Murphy (2007)</a> §2.3 and §6.3 (unknown mean and precision).</p>
+
+<div class="ask">💬 Ask me in the terminal if the joint-prior derivation in §6 loses you (I can redo it with specific numbers), or for a fresh Model/Prior stem to try cold: a Poisson–Gamma with exposure, an Exponential with a Gamma prior, or a Normal–Gamma joint prior with different hyperparameters. Paste your working for §8 or any homework and I'll mark it like an exam marker.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0021-topic4-review.html">Lesson 21, Topic 4 review</a> · Reference: <a href="../reference/kernels-conjugacy.html">kernels and conjugacy</a> · <a href="../reference/glossary.html">Glossary</a></span>
+  <span>Next: <a href="0023-monte-carlo-rejection-sampling.html">Lesson 23, Monte Carlo and rejection sampling</a></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>
