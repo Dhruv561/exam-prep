@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arbitrage Tables</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  table.arb { font-size: .9rem; margin: .6rem 0 .4rem; }
+  table.arb th { text-align: center; color: var(--fg); font-size: .8rem; }
+  table.arb td { padding: .35rem .55rem; }
+  table.arb td.cf, table.arb th.cf { text-align: center; }
+  table.arb .vr { border-right: 2px solid var(--fg); }
+  table.arb .vl { border-right: 1px solid var(--rule); }
+  table.arb tr.net td { border-top: 2px solid var(--fg); font-weight: 600; }
+  table.arb tr.tot td { border-top: 1px solid var(--fg); }
+  table.arb td.pf { font-weight: 600; font-family: Inter, system-ui, sans-serif; vertical-align: middle; width: 2.2rem; }
+  table.arb td.act { font-family: Inter, system-ui, sans-serif; font-size: .82rem; }
+  .cond { margin: .4rem 0 0; }
+  .cond .katex-display { margin: .3rem 0; }
+  .src { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 500; color: var(--muted); letter-spacing: .03em; }
+  .then { font-size: .95rem; margin: .3rem 0 1rem; }
+  .case { margin: 1.4rem 0 1.8rem; }
+  h3 { margin-top: 1.8rem; }
+  .idx td { font-size: .85rem; }
+  .idx a { color: var(--accent); }
+</style>
+</head>
+<body class="ref" data-money>
+<main>
+<div class="kicker">FNCE30007 · Reference</div>
+<h1>Arbitrage Tables</h1>
+<p class="lede">Every arbitrage in the subject, set out with the table method from the handwritten lecture notes (L3, L4, L6, L8). Futures, forwards, spot options, futures options, binomial and swaps, both directions.</p>
+
+<h2>The method (as in the notes)</h2>
+<div class="box">
+<p><strong>1.</strong> Work out the theoretical price. <strong>2.</strong> Write <em>observed</em> vs <em>theoretical</em> as an inequality. Write <span style="color:#d64b3a">Short</span> under the bigger side and <span style="color:#d64b3a">Long</span> under the smaller one (sell the dear side, buy the cheap side). <strong>3.</strong> Draw the table: each row is one position, with its action and cash flow at \(0\) and at \(T\). <strong>4.</strong> Borrow or lend so the net at \(0\) is \(0\). <strong>5.</strong> Cross out what cancels (\(S_T\), \(F_T\)). The net at \(T\) is the mispricing, and it is \(>0\).</p>
+<p><strong>Options version:</strong> split the \(T\) column into \(S_T>K\) and \(S_T\le K\) (use \(F_T\) for futures options). First compare two portfolios (A vs B) to prove the bound. If the market breaks it, <em>buy the cheap portfolio and sell the dear one</em>. Profit comes at \(0\) and the payoff at \(T\) is \(\ge0\) in every case.</p>
+<p>Signs: \(+\) = cash in, \(-\) = cash out. Work per unit, then multiply by the contract size or multiplier and the number of contracts at the end.</p>
+</div>
+<table>
+<tr><th>Position at 0</th><th>Closing action at \(T\)</th><th>CF at \(T\)</th></tr>
+<tr><td>Long \(F_0\)</td><td>Short \(F_T\) (close out / take delivery)</td><td>\(F_T-F_0\)</td></tr>
+<tr><td>Short \(F_0\)</td><td>Long \(F_T\) (close out / deliver)</td><td>\(F_0-F_T\)</td></tr>
+<tr><td>Long \(S_0\) (\(-S_0\))</td><td>Short \(S_T\) (sell / deliver)</td><td>\(+S_T\)</td></tr>
+<tr><td>Short sell \(S_0\) (\(+S_0\))</td><td>Long \(S_T\) (buy back, return)</td><td>\(-S_T\)</td></tr>
+<tr><td>Borrow \(X\) (\(+X\))</td><td>Repay</td><td>\(-Xe^{rT}\)</td></tr>
+<tr><td>Invest \(X\) (\(-X\))</td><td>Receive</td><td>\(+Xe^{rT}\)</td></tr>
+<tr><td>Long call / put</td><td>Exercise if ITM</td><td>\(\max(S_T-K,0)\) / \(\max(K-S_T,0)\)</td></tr>
+<tr><td>Short call / put</td><td>Exercised against you</td><td>\(-\max(S_T-K,0)\) / \(-\max(K-S_T,0)\)</td></tr>
+</table>
+
+<h3>Case finder</h3>
+<table class="idx">
+<tr><th>Situation</th><th>Go to</th></tr>
+<tr><td>Futures ≠ spot at delivery</td><td><a href="#a1">A1</a></td></tr>
+<tr><td>Forward/futures on asset with no income</td><td><a href="#a2">A2</a></td></tr>
+<tr><td>Known cash income (coupon bond, $ dividend)</td><td><a href="#a3">A3</a></td></tr>
+<tr><td>Known yield / stock index</td><td><a href="#a4">A4</a></td></tr>
+<tr><td>Currency</td><td><a href="#a5">A5</a></td></tr>
+<tr><td>Investment commodity with storage (gold, silver)</td><td><a href="#a6">A6</a></td></tr>
+<tr><td>Consumption commodity (oil, wheat), convenience yield</td><td><a href="#a7">A7</a></td></tr>
+<tr><td>Two futures maturities on the same asset</td><td><a href="#a8">A8</a></td></tr>
+<tr><td>Value of an existing forward/futures</td><td><a href="#a9">A9</a></td></tr>
+<tr><td>Option above its upper bound</td><td><a href="#b1">B1–B2</a></td></tr>
+<tr><td>Option below its lower bound (European / American)</td><td><a href="#b3">B3–B5</a></td></tr>
+<tr><td>Bounds with $ dividends / yield / FX</td><td><a href="#b6">B6–B7</a></td></tr>
+<tr><td>Put-call parity broken (European)</td><td><a href="#b8">B8</a></td></tr>
+<tr><td>American put-call bounds broken (GameStop)</td><td><a href="#b9">B9</a></td></tr>
+<tr><td>Quoted option ≠ binomial value (spot or futures option)</td><td><a href="#b10">B10</a></td></tr>
+<tr><td>Futures options: parity, bounds, \(C\lt F_0-K\)</td><td><a href="#b11">B11</a></td></tr>
+<tr><td>Swap: comparative-advantage gain</td><td><a href="#c1">C1</a></td></tr>
+<tr><td>When arbitrage fails</td><td><a href="#d">D</a></td></tr>
+</table>
+
+<!-- ============================ A ============================ -->
+<h2>A · Futures and forwards</h2>
+<p>With a constant interest rate, a futures contract is priced the same as a forward (L3 slide 10), so every table below works for both.</p>
+<div class="box">
+$$\begin{array}{ll}
+\text{No income} & F_0=S_0e^{rT}\\
+\text{Known income (PV } I) & F_0=(S_0-I)e^{rT}\\
+\text{Known yield / index} & F_0=S_0e^{(r-q)T}\\
+\text{Currency} & F_0=S_0e^{(r-r_f)T}\\
+\text{Investment commodity} & F_0=(S_0+U)e^{rT}=S_0e^{(r+u)T}\\
+\text{Consumption commodity} & F_0\le(S_0+U)e^{rT},\quad F_0=S_0e^{(r+u-y)T}
+\end{array}$$
+</div>
+
+<div class="case" id="a1">
+<h3>A1 · Convergence at delivery <span class="src">L1 notes p.3 · L1 slide 19 · Tute 1 Q4</span></h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Short}}}{F_T}\;>\;\underset{\textcolor{#d64b3a}{\text{Long}}}{S_T}\qquad(\text{during the delivery period})$$</div>
+<table class="arb">
+<tr><th colspan="2">\(T\) (delivery period)</th></tr>
+<tr><td class="vl">Buy asset spot</td><td class="cf">\(-S_T\)</td></tr>
+<tr><td class="vl">Short \(F_T\), deliver at once</td><td class="cf">\(+F_T\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf">\(F_T-S_T>0\)</td></tr>
+</table>
+<p class="then">\(F_T\lt S_T\): <strong>no clean arbitrage</strong>. You can go long futures, but the short side chooses when and where delivery happens, so you can't force immediate delivery. Firms that want the asset just go long and wait. So \(F_T=S_T\).</p>
+</div>
+
+<div class="case" id="a2">
+<h3>A2 · No income: derivation <span class="src">L3 notes p.1 · L3 slide 12</span></h3>
+<p>Long \(S_0\) + short \(F_0\) (a short hedge) has no risk, so its net position must be \(0\).</p>
+<table class="arb">
+<tr><th colspan="2" class="vr">0</th><th colspan="2">T</th></tr>
+<tr><td class="act vl">Borrow \(S_0\)</td><td class="cf vr">\(+S_0\)</td><td class="act vl">Repay</td><td class="cf">\(-S_0e^{rT}\)</td></tr>
+<tr><td class="act vl">Long \(S_0\)</td><td class="cf vr">\(-S_0\)</td><td class="act vl">Short \(S_T\)</td><td class="cf">\(+\cancel{S_T}\)</td></tr>
+<tr><td class="act vl">Short \(F_0\)</td><td class="cf vr">\(0\)</td><td class="act vl">Long \(F_T\)</td><td class="cf">\(F_0-\cancel{F_T}\)</td></tr>
+<tr class="net"><td class="vl">Net position</td><td class="cf vr">\(0\)</td><td class="vl"></td><td class="cf">\(F_0-S_0e^{rT}=0\)</td></tr>
+</table>
+<p class="then">\(\Rightarrow\boxed{F_0=S_0e^{rT}}\) (cost of carry). \(F_T=S_T\) at \(T\) is why they cross out.</p>
+
+<h3>A2a · \(F_0>S_0e^{rT}\): cash-and-carry <span class="src">L3 notes p.2 · slide 14</span></h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Short}}}{F_0}\;>\;\underset{\textcolor{#d64b3a}{\text{Long}}}{S_0e^{rT}}$$</div>
+<table class="arb">
+<tr><th colspan="2" class="vr">0</th><th colspan="2">T</th></tr>
+<tr><td class="act vl">Short \(F_0\)</td><td class="cf vr">\(0\)</td><td class="act vl">Long \(F_T\)</td><td class="cf">\(F_0-\cancel{F_T}\)</td></tr>
+<tr><td class="act vl">Long \(S_0\)</td><td class="cf vr">\(-S_0\)</td><td class="act vl">Short \(S_T\)</td><td class="cf">\(+\cancel{S_T}\)</td></tr>
+<tr><td class="act vl">Borrow \(S_0\)</td><td class="cf vr">\(+S_0\)</td><td class="act vl">Repayment</td><td class="cf">\(-S_0e^{rT}\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(0\)</td><td class="vl"></td><td class="cf">\(F_0-S_0e^{rT}>0\)</td></tr>
+</table>
+<p class="then">Notes example: \(F=1100,\ S_0=1000,\ r=5\%,\ T=1\). \(S_0e^{rT}=1051\lt1100\), so the profit is \(1100-1051=\$49\) per unit at \(T\).</p>
+
+<h3>A2b · \(F_0\lt S_0e^{rT}\): reverse cash-and-carry <span class="src">L3 notes p.3 · slide 14</span></h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Long}}}{F_0}\;\lt\;\underset{\textcolor{#d64b3a}{\text{Short}}}{S_0e^{rT}}$$</div>
+<table class="arb">
+<tr><th colspan="2" class="vr">0</th><th colspan="2">T</th></tr>
+<tr><td class="act vl">Long \(F_0\)</td><td class="cf vr">\(0\)</td><td class="act vl">Short \(F_T\)</td><td class="cf">\(\cancel{F_T}-F_0\)</td></tr>
+<tr><td class="act vl">Short sell \(S_0\)</td><td class="cf vr">\(+S_0\)</td><td class="act vl">Long \(S_T\) (return it)</td><td class="cf">\(-\cancel{S_T}\)</td></tr>
+<tr><td class="act vl">Invest in bond (cash investment)</td><td class="cf vr">\(-S_0\)</td><td class="act vl">Receive</td><td class="cf">\(+S_0e^{rT}\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(0\)</td><td class="vl"></td><td class="cf">\(S_0e^{rT}-F_0>0\)</td></tr>
+</table>
+<p class="then">Notes example: \(F=1000\), \(S_0e^{rT}=1051\), so the profit is \(\$51\).<br>
+<strong>Holder version</strong> (if you can't short, or you already own the asset and "temporarily replace" it): <em>sell the asset you hold</em> instead of short selling. The table is the same. At \(T\) you have the asset back through the long forward, plus \(S_0e^{rT}-F_0\).</p>
+</div>
+
+<div class="case" id="a3">
+<h3>A3 · Known cash income \(I\) (PV of coupons/dividends) <span class="src">L3 notes p.4 · slides 15–18</span></h3>
+<p>\(F_0=(S_0-I)e^{rT}\), where \(I=\sum D_ie^{-r_it_i}\) counts only income paid before \(T\). Income received and invested to \(T\) is worth \(Ie^{rT}\).</p>
+<h3>A3a · \(F_0>(S_0-I)e^{rT}\)</h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Short}}}{F_0}\;>\;\underset{\textcolor{#d64b3a}{\text{Long}}}{(S_0-I)e^{rT}}$$</div>
+<table class="arb">
+<tr><th colspan="2" class="vr">0</th><th colspan="2">T</th></tr>
+<tr><td class="act vl">Short \(F_0\)</td><td class="cf vr">\(0\)</td><td class="act vl">Long \(F_T\)</td><td class="cf">\(F_0-\cancel{F_T}\)</td></tr>
+<tr><td class="act vl">Long \(S_0\)</td><td class="cf vr">\(-S_0\)</td><td class="act vl">Short \(S_T\)</td><td class="cf">\(+\cancel{S_T}\)</td></tr>
+<tr><td class="act vl">(income paid to you, invested)</td><td class="cf vr"></td><td class="act vl">Use income to partly repay</td><td class="cf">\(+Ie^{rT}\)</td></tr>
+<tr><td class="act vl">Borrow \(S_0\)</td><td class="cf vr">\(+S_0\)</td><td class="act vl">Repay</td><td class="cf">\(-S_0e^{rT}\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(0\)</td><td class="vl"></td><td class="cf">\(F_0-(S_0-I)e^{rT}>0\)</td></tr>
+</table>
+<h3>A3b · \(F_0\lt(S_0-I)e^{rT}\)</h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Long}}}{F_0}\;\lt\;\underset{\textcolor{#d64b3a}{\text{Short}}}{(S_0-I)e^{rT}}$$</div>
+<table class="arb">
+<tr><th colspan="2" class="vr">0</th><th colspan="2">T</th></tr>
+<tr><td class="act vl">Long \(F_0\)</td><td class="cf vr">\(0\)</td><td class="act vl">Short \(F_T\)</td><td class="cf">\(\cancel{F_T}-F_0\)</td></tr>
+<tr><td class="act vl">Short sell \(S_0\)</td><td class="cf vr">\(+S_0\)</td><td class="act vl">Long asset &amp; return it</td><td class="cf">\(-\cancel{S_T}\)</td></tr>
+<tr><td class="act vl">(you owe the income to the lender)</td><td class="cf vr"></td><td class="act vl">Pay it out of the investment</td><td class="cf">\(-Ie^{rT}\)</td></tr>
+<tr><td class="act vl">Invest \(S_0\)</td><td class="cf vr">\(-S_0\)</td><td class="act vl">Receive</td><td class="cf">\(+S_0e^{rT}\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(0\)</td><td class="vl"></td><td class="cf">\((S_0-I)e^{rT}-F_0>0\)</td></tr>
+</table>
+<p class="then">Slide example: bond \(900\), coupon \(40\) at 4 months (3%), \(T=9\) months (4%). \(I=40e^{-0.03(4/12)}=39.60\), so \(F_0=(900-39.60)e^{0.04(0.75)}=886.60\).</p>
+</div>
+
+<div class="case" id="a4">
+<h3>A4 · Known yield \(q\) / stock index <span class="src">L3 notes p.5–6 · slides 19–23 · Tute 3 Q3</span></h3>
+<h3>A4a · \(F_0>S_0e^{(r-q)T}\): buy the stocks, short index futures</h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Short}}}{F_0}\;>\;\underset{\textcolor{#d64b3a}{\text{Long}}}{S_0e^{(r-q)T}}$$</div>
+<table class="arb">
+<tr><th colspan="2" class="vr">0</th><th colspan="2">T</th></tr>
+<tr><td class="act vl">Short \(F_0\)</td><td class="cf vr">\(0\)</td><td class="act vl">Long \(F_T\)</td><td class="cf">\(F_0-\cancel{F_T}\)</td></tr>
+<tr><td class="act vl">Long \(S_0\)</td><td class="cf vr">\(-S_0\)</td><td class="act vl">Short \(S_T\)</td><td class="cf">\(+\cancel{S_T}\)</td></tr>
+<tr><td class="act vl">Borrow \(S_0\)</td><td class="cf vr">\(+S_0\)</td><td class="act vl">Repay; use the dividends to partly cover the repayment</td><td class="cf">\(-S_0e^{(r-q)T}\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(0\)</td><td class="vl"></td><td class="cf">\(F_0-S_0e^{(r-q)T}>0\)</td></tr>
+</table>
+<h3>A4b · \(F_0\lt S_0e^{(r-q)T}\): short the stocks, long index futures</h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Long}}}{F_0}\;\lt\;\underset{\textcolor{#d64b3a}{\text{Short}}}{S_0e^{(r-q)T}}\qquad(\text{observed vs theoretical }F)$$</div>
+<table class="arb">
+<tr><th colspan="2" class="vr">0</th><th colspan="2">T</th></tr>
+<tr><td class="act vl">Long \(F_0\)</td><td class="cf vr">\(0\)</td><td class="act vl">Short \(F_T\)</td><td class="cf">\(\cancel{F_T}-F_0\)</td></tr>
+<tr><td class="act vl">Short sell \(S_0\)</td><td class="cf vr">\(+S_0\)</td><td class="act vl">Long asset &amp; return the asset</td><td class="cf">\(-\cancel{S_T}\)</td></tr>
+<tr><td class="act vl">Invest \(S_0\)</td><td class="cf vr">\(-S_0\)</td><td class="act vl">Use the investment return to pay the dividends to the asset's lender</td><td class="cf">\(+S_0e^{(r-q)T}\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(0\)</td><td class="vl"></td><td class="cf">\(S_0e^{(r-q)T}-F_0>0\)</td></tr>
+</table>
+<p class="then">In \(e^{(r-q)T}\), the \(r\) is the interest earned and the \(q\) is the dividends paid back to the lender.<br>
+<strong>Exact units:</strong> in A4a, buy \(e^{-qT}\) units for \(S_0e^{-qT}\) and reinvest the dividends, which grows to 1 unit at \(T\). Borrow \(S_0e^{-qT}\) and repay \(S_0e^{(r-q)T}\). The net is the same.<br>
+<strong>Index scaling:</strong> contract value \(=F_0\times\) multiplier (ASX: $25/pt). Profit per contract \(=\) gap in points \(\times\) multiplier. Contracts \(=\) $ position \(\div(F_0\times\) multiplier\()\).<br>
+<strong>Yield conversion:</strong> \(r_c=m\ln(1+r_m/m)\). Example: 4% s.a. gives 3.96% continuous.<br>
+Tute 3 Q3: \(400e^{(0.10-0.04)(4/12)}=408.08>405\), so buy futures and short the stocks (A4b).</p>
+</div>
+
+<div class="case" id="a5">
+<h3>A5 · Currency (\(r_f\) acts like \(q\)) <span class="src">L3 notes p.7 · slides 24–25 · Tute 3 Q4</span></h3>
+<p>\(S_0\) is the domestic price of 1 unit of foreign currency. Holding the foreign currency earns \(r_f\).</p>
+<h3>A5a · \(F_0>S_0e^{(r-r_f)T}\): buy foreign spot, sell foreign forward</h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Short}}}{F_0}\;>\;\underset{\textcolor{#d64b3a}{\text{Long}}}{S_0e^{(r-r_f)T}}$$</div>
+<table class="arb">
+<tr><th colspan="2" class="vr">0</th><th colspan="2">T</th></tr>
+<tr><td class="act vl">Short \(F_0\) (sell 1 foreign unit forward)</td><td class="cf vr">\(0\)</td><td class="act vl">Long \(F_T\)</td><td class="cf">\(F_0-\cancel{F_T}\)</td></tr>
+<tr><td class="act vl">Buy foreign currency \(S_0\), invest it at \(r_f\)</td><td class="cf vr">\(-S_0\)</td><td class="act vl">Sell the foreign currency</td><td class="cf">\(+\cancel{S_T}\)</td></tr>
+<tr><td class="act vl">Borrow domestic \(S_0\)</td><td class="cf vr">\(+S_0\)</td><td class="act vl">Repay; foreign interest partly covers it</td><td class="cf">\(-S_0e^{(r-r_f)T}\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(0\)</td><td class="vl"></td><td class="cf">\(F_0-S_0e^{(r-r_f)T}>0\)</td></tr>
+</table>
+<h3>A5b · \(F_0\lt S_0e^{(r-r_f)T}\): borrow foreign, invest domestic, buy foreign forward</h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Long}}}{F_0}\;\lt\;\underset{\textcolor{#d64b3a}{\text{Short}}}{S_0e^{(r-r_f)T}}$$</div>
+<table class="arb">
+<tr><th colspan="2" class="vr">0</th><th colspan="2">T</th></tr>
+<tr><td class="act vl">Long \(F_0\)</td><td class="cf vr">\(0\)</td><td class="act vl">Short \(F_T\)</td><td class="cf">\(\cancel{F_T}-F_0\)</td></tr>
+<tr><td class="act vl">Borrow foreign, sell it spot</td><td class="cf vr">\(+S_0\)</td><td class="act vl">Buy foreign to repay</td><td class="cf">\(-\cancel{S_T}\)</td></tr>
+<tr><td class="act vl">Invest domestic \(S_0\) at \(r\)</td><td class="cf vr">\(-S_0\)</td><td class="act vl">Receive; pay the foreign interest out of it</td><td class="cf">\(+S_0e^{(r-r_f)T}\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(0\)</td><td class="vl"></td><td class="cf">\(S_0e^{(r-r_f)T}-F_0>0\)</td></tr>
+</table>
+<p class="then"><strong>Exact units</strong> (A5a): buy \(e^{-r_fT}\) foreign units and invest them at \(r_f\), which grows to 1 unit at \(T\). Borrow \(S_0e^{-r_fT}\) domestic.<br>
+Tute 3 Q4: \(0.80e^{(0.05-0.02)(2/12)}=0.8040\lt0.81\), so buy CHF and short CHF futures (A5a).</p>
+<div class="trap"><strong>Trap</strong><br>A rate quoted as "X per AUD" makes AUD the <em>foreign</em> currency, so \(r_f=r_{AUD}\). Check which currency \(S_0\) is priced in.</div>
+</div>
+
+<div class="case" id="a6">
+<h3>A6 · Investment commodity with storage (gold, silver) <span class="src">L3 notes p.7 · slides 28–29</span></h3>
+<p>\(F_0=(S_0+U)e^{rT}\), where \(U\) is the PV of storage costs less income. If storage is a proportion \(u\): \(F_0=S_0e^{(r+u)T}\) (replace \(U\) by \(S_0(e^{uT}-1)\) in the rows below).</p>
+<h3>A6a · \(F_0>(S_0+U)e^{rT}\)</h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Short}}}{F_0}\;>\;\underset{\textcolor{#d64b3a}{\text{Long}}}{(S_0+U)e^{rT}}$$</div>
+<table class="arb">
+<tr><th colspan="2" class="vr">0</th><th colspan="2">T</th></tr>
+<tr><td class="act vl">Short \(F_0\)</td><td class="cf vr">\(0\)</td><td class="act vl">Long \(F_T\)</td><td class="cf">\(F_0-\cancel{F_T}\)</td></tr>
+<tr><td class="act vl">Long \(S_0\)</td><td class="cf vr">\(-S_0\)</td><td class="act vl">Short \(S_T\) (deliver)</td><td class="cf">\(+\cancel{S_T}\)</td></tr>
+<tr><td class="act vl">Pay storage (PV)</td><td class="cf vr">\(-U\)</td><td class="act vl"></td><td class="cf"></td></tr>
+<tr><td class="act vl">Borrow \(S_0+U\)</td><td class="cf vr">\(+(S_0+U)\)</td><td class="act vl">Repay</td><td class="cf">\(-(S_0+U)e^{rT}\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(0\)</td><td class="vl"></td><td class="cf">\(F_0-(S_0+U)e^{rT}>0\)</td></tr>
+</table>
+<p class="then"><strong>Storage payable at \(T\)</strong> (amount \(U_T\)): borrow only \(S_0\) and add a row "pay storage \(-U_T\)" at \(T\). Net \(=F_0-S_0e^{rT}-U_T\). Don't discount it and then grow it again.</p>
+<h3>A6b · \(F_0\lt(S_0+U)e^{rT}\) (investment asset only)</h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Long}}}{F_0}\;\lt\;\underset{\textcolor{#d64b3a}{\text{Short}}}{(S_0+U)e^{rT}}$$</div>
+<table class="arb">
+<tr><th colspan="2" class="vr">0</th><th colspan="2">T</th></tr>
+<tr><td class="act vl">Long \(F_0\)</td><td class="cf vr">\(0\)</td><td class="act vl">Short \(F_T\) (take delivery)</td><td class="cf">\(\cancel{F_T}-F_0\)</td></tr>
+<tr><td class="act vl">Sell the asset you hold (or short sell)</td><td class="cf vr">\(+S_0\)</td><td class="act vl">Asset back via the forward</td><td class="cf">\(-\cancel{S_T}\)</td></tr>
+<tr><td class="act vl">Storage saved (PV)</td><td class="cf vr">\(+U\)</td><td class="act vl"></td><td class="cf"></td></tr>
+<tr><td class="act vl">Invest \(S_0+U\)</td><td class="cf vr">\(-(S_0+U)\)</td><td class="act vl">Receive</td><td class="cf">\(+(S_0+U)e^{rT}\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(0\)</td><td class="vl"></td><td class="cf">\((S_0+U)e^{rT}-F_0>0\)</td></tr>
+</table>
+<p class="then">Investors in gold and silver hold them only as investments, so they will sell and switch to the forward. That keeps the equality.</p>
+</div>
+
+<div class="case" id="a7">
+<h3>A7 · Consumption commodity (oil, wheat): only one side works <span class="src">L3 notes p.7 · slides 30–33 · Oil case</span></h3>
+<p><strong>\(F_0>(S_0+U)e^{rT}\):</strong> use the A6a table (buy, store, short futures). This works, so \(F_0\le(S_0+U)e^{rT}\).</p>
+<p><strong>\(F_0\lt(S_0+U)e^{rT}\): no arbitrage.</strong> The A6b table needs someone to sell inventory, and users hold it to consume it (a futures contract can't be refined). Nobody will sell or lend the asset, so nothing forces the equality.</p>
+<div class="box">
+$$F_0e^{yT}=(S_0+U)e^{rT}\quad\text{or}\quad F_0=S_0e^{(r+u-y)T}\;\Rightarrow\; y=\frac1T\ln\frac{(S_0+U)e^{rT}}{F_0}$$
+</div>
+<p class="then">The convenience yield \(y\) measures how far \(F_0\) sits below the carry price. A supply shock causes deeper backwardation and a higher \(y\). Cheap futures on oil are not an arbitrage: give that reason in written answers.</p>
+</div>
+
+<div class="case" id="a8">
+<h3>A8 · Two maturities (calendar spread) <span class="src">Tute 3 Q5</span></h3>
+<p>Same asset, \(t_2>t_1\), no storage: \(F_2=F_1e^{r(t_2-t_1)}\). The table has an extra date column.</p>
+<h3>A8a · \(F_2>F_1e^{r(t_2-t_1)}\)</h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Short}}}{F_2}\;>\;\underset{\textcolor{#d64b3a}{\text{Long}}}{F_1e^{r(t_2-t_1)}}$$</div>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf vr">\(t_1\)</th><th class="cf">\(t_2\)</th></tr>
+<tr><td class="act vl">Long \(F_1\)</td><td class="cf vr">\(0\)</td><td class="cf vr">take delivery: \(-F_1\)</td><td class="cf"></td></tr>
+<tr><td class="act vl">Borrow \(F_1\) at \(t_1\)</td><td class="cf vr"></td><td class="cf vr">\(+F_1\)</td><td class="cf">\(-F_1e^{r(t_2-t_1)}\)</td></tr>
+<tr><td class="act vl">Short \(F_2\)</td><td class="cf vr">\(0\)</td><td class="cf vr">(hold the asset)</td><td class="cf">deliver: \(+F_2\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(0\)</td><td class="cf vr">\(0\)</td><td class="cf">\(F_2-F_1e^{r(t_2-t_1)}>0\)</td></tr>
+</table>
+<h3>A8b · \(F_2\lt F_1e^{r(t_2-t_1)}\) (needs short selling at \(t_1\))</h3>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf vr">\(t_1\)</th><th class="cf">\(t_2\)</th></tr>
+<tr><td class="act vl">Short \(F_1\)</td><td class="cf vr">\(0\)</td><td class="cf vr">short sell the asset, deliver: \(+F_1\)</td><td class="cf"></td></tr>
+<tr><td class="act vl">Invest \(F_1\) at \(t_1\)</td><td class="cf vr"></td><td class="cf vr">\(-F_1\)</td><td class="cf">\(+F_1e^{r(t_2-t_1)}\)</td></tr>
+<tr><td class="act vl">Long \(F_2\)</td><td class="cf vr">\(0\)</td><td class="cf vr"></td><td class="cf">take delivery, return the asset: \(-F_2\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(0\)</td><td class="cf vr">\(0\)</td><td class="cf">\(F_1e^{r(t_2-t_1)}-F_2>0\)</td></tr>
+</table>
+</div>
+
+<div class="case" id="a9">
+<h3>A9 · Value of an existing forward (offsetting table) <span class="src">L3 notes p.8 · L9/L10 notes p.3–4</span></h3>
+<p>You entered a long forward at \(K\) earlier. Today the forward price is \(F\). Enter a short forward at \(F\) today (it costs nothing).</p>
+<table class="arb">
+<tr><th colspan="2" class="vr">today</th><th colspan="2">T</th></tr>
+<tr><td class="act vl">Long forward (old, at \(K\))</td><td class="cf vr">\(0\)</td><td class="act vl">Buy at \(K\)</td><td class="cf">\(\cancel{S_T}-K\)</td></tr>
+<tr><td class="act vl">Short forward (new, at \(F\))</td><td class="cf vr">\(0\)</td><td class="act vl">Sell at \(F\)</td><td class="cf">\(F-\cancel{S_T}\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr"></td><td class="vl"></td><td class="cf">\(F-K\) (certain)</td></tr>
+</table>
+<div class="box">
+$$f_{\text{long fwd}}=(F-K)e^{-rT}=S_0-Ke^{-rT}\ (\text{no income}),\quad =S_0e^{-qT}-Ke^{-rT}\ (\text{yield})$$
+$$f_{\text{short fwd}}=(K-F)e^{-rT},\qquad f_{\text{long futures}}=F-K\ (\text{marked to market, not discounted})$$
+</div>
+</div>
+
+<!-- ============================ B ============================ -->
+<h2>B · Options on a stock / index / currency</h2>
+<div class="box">
+$$\begin{array}{lll}
+ & \text{Non-dividend} & \text{Div } D\ (\text{PV}) \;/\; \text{yield } q \;/\; \text{FX } r_f\\ \hline
+c & \max(S_0-Ke^{-rT},0)\le c\le S_0 & S_0\to S_0-D\ \text{ or }\ S_0e^{-qT},\ S_0e^{-r_fT}\\
+p & \max(Ke^{-rT}-S_0,0)\le p\le Ke^{-rT} & \text{same replacement}\\
+\text{American} & C\ge\max(S_0-K,0),\ \ \max(K-S_0,0)\le P\le K & \\
+\text{Parity} & c+Ke^{-rT}=p+S_0 & c+D+Ke^{-rT}=p+S_0,\ \ c+Ke^{-rT}=p+S_0e^{-qT}\\
+\text{Amer. parity} & S_0-K\le C-P\le S_0-Ke^{-rT} & S_0-D-K\le C-P\le S_0-Ke^{-rT}
+\end{array}$$
+</div>
+<p>Rule from the notes (L8 p.1, 4): <strong>replace \(S_0\) with \(S_0e^{-qT}\)</strong> for a yield (\(e^{-qT}\) shares with dividends reinvested grow to 1 share), or <strong>with \(S_0-PV(D)\)</strong> for dollar dividends paid before expiry.</p>
+
+<div class="case" id="b1">
+<h3>B1 · Call above its upper bound: \(c>S_0\) (or \(C>S_0\)) <span class="src">L4 slide 24</span></h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Short}}}{c}\;>\;\underset{\textcolor{#d64b3a}{\text{Long}}}{S_0}$$</div>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf" colspan="2">T</th></tr>
+<tr><th class="vl"></th><th class="vr"></th><th class="cf vl">\(S_T>K\)</th><th class="cf">\(S_T\le K\)</th></tr>
+<tr><td class="act vl">Sell call</td><td class="cf vr">\(+c\)</td><td class="cf vl">\(-(S_T-K)\)</td><td class="cf">\(0\)</td></tr>
+<tr><td class="act vl">Buy stock</td><td class="cf vr">\(-S_0\)</td><td class="cf vl">\(+S_T\)</td><td class="cf">\(+S_T\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(c-S_0>0\)</td><td class="cf vl">\(K\ge0\)</td><td class="cf">\(S_T\ge0\)</td></tr>
+</table>
+<p class="then">American: if the call is exercised early you hand over the stock and receive \(K\), which is still \(\ge0\).</p>
+</div>
+
+<div class="case" id="b2">
+<h3>B2 · Put above its upper bound: \(p>Ke^{-rT}\) (European), \(P>K\) (American) <span class="src">L4 slide 25</span></h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Short}}}{p}\;>\;\underset{\textcolor{#d64b3a}{\text{Long}}}{Ke^{-rT}}$$</div>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf" colspan="2">T</th></tr>
+<tr><th class="vl"></th><th class="vr"></th><th class="cf vl">\(S_T\ge K\)</th><th class="cf">\(S_T\lt K\)</th></tr>
+<tr><td class="act vl">Sell put</td><td class="cf vr">\(+p\)</td><td class="cf vl">\(0\)</td><td class="cf">\(-(K-S_T)\)</td></tr>
+<tr><td class="act vl">Invest \(Ke^{-rT}\)</td><td class="cf vr">\(-Ke^{-rT}\)</td><td class="cf vl">\(+K\)</td><td class="cf">\(+K\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(p-Ke^{-rT}>0\)</td><td class="cf vl">\(K\ge0\)</td><td class="cf">\(S_T\ge0\)</td></tr>
+</table>
+<p class="then">American \(P>K\): sell the put and keep \(K\) in cash, so you pocket \(P-K\) now. Whenever it is exercised you pay \(K\) from the cash (plus interest) and get a stock worth \(\ge0\).</p>
+</div>
+
+<div class="case" id="b3">
+<h3>B3 · European call below its lower bound: \(c\lt S_0-Ke^{-rT}\) <span class="src">L4 notes p.5 · slides 26–27</span></h3>
+<p><strong>Proof table (notes):</strong></p>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf" colspan="2">T</th></tr>
+<tr><th class="vl"></th><th class="vr"></th><th class="cf vl">\(S_T>K\)</th><th class="cf">\(S_T\le K\)</th></tr>
+<tr><td class="pf vl" rowspan="2">A</td><td class="cf vr">\(c\)</td><td class="cf vl">\(S_T-\cancel{K}\)</td><td class="cf">\(0\)</td></tr>
+<tr><td class="cf vr">\(Ke^{-rT}\)</td><td class="cf vl">\(\cancel{K}\)</td><td class="cf">\(K\)</td></tr>
+<tr class="tot"><td class="vl"></td><td class="cf vr">\(c+Ke^{-rT}\)</td><td class="cf vl">\(S_T\)</td><td class="cf">\(K\)</td></tr>
+<tr class="tot"><td class="pf vl">B</td><td class="cf vr">\(S_0\)</td><td class="cf vl">\(S_T\)</td><td class="cf">\(S_T\)</td></tr>
+</table>
+<p class="then">At \(T\): if \(S_T>K\), \(A=B\); if \(S_T\le K\), \(A\ge B\). So \(A\ge B\). At \(t_0\): \(c+Ke^{-rT}\ge S_0\Rightarrow c\ge S_0-Ke^{-rT}\).</p>
+<p><strong>Arbitrage when broken:</strong> A is cheap, so buy A and sell B.</p>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Long}}}{c+Ke^{-rT}}\;\lt\;\underset{\textcolor{#d64b3a}{\text{Short}}}{S_0}$$</div>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf" colspan="2">T</th></tr>
+<tr><th class="vl"></th><th class="vr"></th><th class="cf vl">\(S_T>K\)</th><th class="cf">\(S_T\le K\)</th></tr>
+<tr><td class="act vl">Buy call</td><td class="cf vr">\(-c\)</td><td class="cf vl">\(S_T-K\)</td><td class="cf">\(0\)</td></tr>
+<tr><td class="act vl">Invest \(Ke^{-rT}\)</td><td class="cf vr">\(-Ke^{-rT}\)</td><td class="cf vl">\(+K\)</td><td class="cf">\(+K\)</td></tr>
+<tr><td class="act vl">Short sell stock</td><td class="cf vr">\(+S_0\)</td><td class="cf vl">\(-S_T\)</td><td class="cf">\(-S_T\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(S_0-Ke^{-rT}-c>0\)</td><td class="cf vl">\(0\)</td><td class="cf">\(K-S_T\ge0\)</td></tr>
+</table>
+<p class="then">With no dividends the same applies to an American call, since \(C=c\) (never exercise early).</p>
+</div>
+
+<div class="case" id="b4">
+<h3>B4 · European put below its lower bound: \(p\lt Ke^{-rT}-S_0\) <span class="src">L4 notes p.6 · slides 28–29</span></h3>
+<p><strong>Proof table (notes):</strong></p>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">\(t_0\)</th><th class="cf" colspan="2">T</th></tr>
+<tr><th class="vl"></th><th class="vr"></th><th class="cf vl">\(S_T\ge K\)</th><th class="cf">\(S_T\lt K\)</th></tr>
+<tr><td class="pf vl" rowspan="2">C</td><td class="cf vr">\(p\)</td><td class="cf vl">\(0\)</td><td class="cf">\(K-S_T\)</td></tr>
+<tr><td class="cf vr">\(S_0\)</td><td class="cf vl">\(S_T\)</td><td class="cf">\(S_T\)</td></tr>
+<tr class="tot"><td class="vl">Total</td><td class="cf vr">\(p+S_0\)</td><td class="cf vl">\(S_T\)</td><td class="cf">\(K\)</td></tr>
+<tr class="tot"><td class="pf vl">D</td><td class="cf vr">\(Ke^{-rT}\)</td><td class="cf vl">\(K\)</td><td class="cf">\(K\)</td></tr>
+</table>
+<p class="then">At \(T\): if \(S_T\ge K\), \(C\ge D\); if \(S_T\lt K\), \(C=D\). So \(C\ge D\). At \(t_0\): \(p+S_0\ge Ke^{-rT}\Rightarrow p\ge Ke^{-rT}-S_0\).</p>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Long}}}{p+S_0}\;\lt\;\underset{\textcolor{#d64b3a}{\text{Short}}}{Ke^{-rT}}$$</div>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf" colspan="2">T</th></tr>
+<tr><th class="vl"></th><th class="vr"></th><th class="cf vl">\(S_T\ge K\)</th><th class="cf">\(S_T\lt K\)</th></tr>
+<tr><td class="act vl">Buy put</td><td class="cf vr">\(-p\)</td><td class="cf vl">\(0\)</td><td class="cf">\(K-S_T\)</td></tr>
+<tr><td class="act vl">Buy stock</td><td class="cf vr">\(-S_0\)</td><td class="cf vl">\(+S_T\)</td><td class="cf">\(+S_T\)</td></tr>
+<tr><td class="act vl">Borrow \(Ke^{-rT}\)</td><td class="cf vr">\(+Ke^{-rT}\)</td><td class="cf vl">\(-K\)</td><td class="cf">\(-K\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(Ke^{-rT}-S_0-p>0\)</td><td class="cf vl">\(S_T-K\ge0\)</td><td class="cf">\(0\)</td></tr>
+</table>
+</div>
+
+<div class="case" id="b5">
+<h3>B5 · American options below intrinsic value <span class="src">L4 slide 31</span></h3>
+<p><strong>\(C\lt S_0-K\):</strong> exercise straight away.</p>
+<table class="arb">
+<tr><th colspan="2">Now</th></tr>
+<tr><td class="act vl">Buy call</td><td class="cf">\(-C\)</td></tr>
+<tr><td class="act vl">Exercise: pay \(K\), get the stock</td><td class="cf">\(-K\)</td></tr>
+<tr><td class="act vl">Sell the stock</td><td class="cf">\(+S_0\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf">\(S_0-K-C>0\)</td></tr>
+</table>
+<p><strong>\(P\lt K-S_0\):</strong></p>
+<table class="arb">
+<tr><th colspan="2">Now</th></tr>
+<tr><td class="act vl">Buy put</td><td class="cf">\(-P\)</td></tr>
+<tr><td class="act vl">Buy stock</td><td class="cf">\(-S_0\)</td></tr>
+<tr><td class="act vl">Exercise: deliver the stock, get \(K\)</td><td class="cf">\(+K\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf">\(K-S_0-P>0\)</td></tr>
+</table>
+<p class="then">Why an American call is never exercised early (no dividends): \(C\ge S_0-Ke^{-rT}>S_0-K\). Selling the call beats exercising it.</p>
+</div>
+
+<div class="case" id="b6">
+<h3>B6 · Bounds with known dollar dividends (PV \(D\)) <span class="src">L4 slide 30 · L8 notes p.4</span></h3>
+<p>\(c\ge\max(S_0-D-Ke^{-rT},0)\), \(p\ge\max(D+Ke^{-rT}-S_0,0)\). Count only dividends with ex-dates before expiry.</p>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Long}}}{c+D+Ke^{-rT}}\;\lt\;\underset{\textcolor{#d64b3a}{\text{Short}}}{S_0}$$</div>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf" colspan="2">T</th></tr>
+<tr><th class="vl"></th><th class="vr"></th><th class="cf vl">\(S_T>K\)</th><th class="cf">\(S_T\le K\)</th></tr>
+<tr><td class="act vl">Buy call</td><td class="cf vr">\(-c\)</td><td class="cf vl">\(S_T-K\)</td><td class="cf">\(0\)</td></tr>
+<tr><td class="act vl">Invest \(Ke^{-rT}\)</td><td class="cf vr">\(-Ke^{-rT}\)</td><td class="cf vl">\(+K\)</td><td class="cf">\(+K\)</td></tr>
+<tr><td class="act vl">Invest \(D\) (it pays the dividend you owe the lender)</td><td class="cf vr">\(-D\)</td><td class="cf vl">\(0\)</td><td class="cf">\(0\)</td></tr>
+<tr><td class="act vl">Short sell stock</td><td class="cf vr">\(+S_0\)</td><td class="cf vl">\(-S_T\)</td><td class="cf">\(-S_T\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(S_0-D-Ke^{-rT}-c>0\)</td><td class="cf vl">\(0\)</td><td class="cf">\(K-S_T\ge0\)</td></tr>
+</table>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Long}}}{p+S_0}\;\lt\;\underset{\textcolor{#d64b3a}{\text{Short}}}{D+Ke^{-rT}}$$</div>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf" colspan="2">T</th></tr>
+<tr><th class="vl"></th><th class="vr"></th><th class="cf vl">\(S_T\ge K\)</th><th class="cf">\(S_T\lt K\)</th></tr>
+<tr><td class="act vl">Buy put</td><td class="cf vr">\(-p\)</td><td class="cf vl">\(0\)</td><td class="cf">\(K-S_T\)</td></tr>
+<tr><td class="act vl">Buy stock</td><td class="cf vr">\(-S_0\)</td><td class="cf vl">\(+S_T\)</td><td class="cf">\(+S_T\)</td></tr>
+<tr><td class="act vl">Borrow \(D\) (repaid by the dividend received)</td><td class="cf vr">\(+D\)</td><td class="cf vl">\(0\)</td><td class="cf">\(0\)</td></tr>
+<tr><td class="act vl">Borrow \(Ke^{-rT}\)</td><td class="cf vr">\(+Ke^{-rT}\)</td><td class="cf vl">\(-K\)</td><td class="cf">\(-K\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(D+Ke^{-rT}-S_0-p>0\)</td><td class="cf vl">\(S_T-K\ge0\)</td><td class="cf">\(0\)</td></tr>
+</table>
+</div>
+
+<div class="case" id="b7">
+<h3>B7 · Bounds with a dividend yield \(q\) (index) or FX \(r_f\) <span class="src">L8 notes p.2 · L9 slides 9–14</span></h3>
+<p><strong>Proof table (notes):</strong> B = \(e^{-qT}\) shares with dividends reinvested.</p>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">\(t_0\)</th><th class="cf" colspan="2">T</th></tr>
+<tr><th class="vl"></th><th class="vr"></th><th class="cf vl">\(S_T>K\)</th><th class="cf">\(S_T\le K\)</th></tr>
+<tr><td class="pf vl" rowspan="2">A</td><td class="cf vr">\(c\)</td><td class="cf vl">\(S_T-K\)</td><td class="cf">\(0\)</td></tr>
+<tr><td class="cf vr">\(Ke^{-rT}\) (cash/bond)</td><td class="cf vl">\(K\)</td><td class="cf">\(K\)</td></tr>
+<tr class="tot"><td class="vl"></td><td class="cf vr">\(c+Ke^{-rT}\)</td><td class="cf vl">\(S_T\)</td><td class="cf">\(K\)</td></tr>
+<tr class="tot"><td class="pf vl">B</td><td class="cf vr">\(e^{-qT}S_0\) with div. reinvestment</td><td class="cf vl">\(S_T\)</td><td class="cf">\(S_T\)</td></tr>
+</table>
+<p class="then">With reinvestment, \(e^{-qT}S_0\to e^{-qT}S_T\cdot e^{qT}=S_T\). At \(T\), \(A\ge B\). At \(t_0\): \(c+Ke^{-rT}\ge S_0e^{-qT}\).</p>
+<p><strong>\(c\lt S_0e^{-qT}-Ke^{-rT}\):</strong> buy call \((-c)\), invest \(Ke^{-rT}\), short \(e^{-qT}\) units \((+S_0e^{-qT})\). You owe dividends on the short units, so cover them by shorting more units: you owe exactly 1 unit at \(T\). The \(T\) columns are the same as B3: \(0\) and \(K-S_T\). Net at \(0\) \(=S_0e^{-qT}-Ke^{-rT}-c>0\).</p>
+<p><strong>\(p\lt Ke^{-rT}-S_0e^{-qT}\):</strong> buy put \((-p)\), buy \(e^{-qT}\) units and reinvest the dividends \((-S_0e^{-qT})\), borrow \(Ke^{-rT}\). The \(T\) columns are the same as B4: \(S_T-K\) and \(0\). Net at \(0\) \(=Ke^{-rT}-S_0e^{-qT}-p>0\).</p>
+<p class="then">FX: put \(r_f\) in place of \(q\). The "shares" are foreign currency invested at \(r_f\).</p>
+</div>
+
+<div class="case" id="b8">
+<h3>B8 · European put-call parity <span class="src">L4 slide 33 · L8 notes p.3 · L9 slides 16–18 · Tute 4 Q4–5</span></h3>
+<p><strong>Proof table (notes, yield version; set \(q=0\) for no dividends):</strong></p>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">\(t_0\)</th><th class="cf" colspan="2">T</th></tr>
+<tr><th class="vl"></th><th class="vr"></th><th class="cf vl">\(S_T>K\)</th><th class="cf">\(S_T\le K\)</th></tr>
+<tr><td class="pf vl" rowspan="2">A</td><td class="cf vr">\(c\)</td><td class="cf vl">\(S_T-K\)</td><td class="cf">\(0\)</td></tr>
+<tr><td class="cf vr">\(Ke^{-rT}\)</td><td class="cf vl">\(K\)</td><td class="cf">\(K\)</td></tr>
+<tr class="tot"><td class="vl">Net</td><td class="cf vr">\(c+Ke^{-rT}\)</td><td class="cf vl">\(S_T\)</td><td class="cf">\(K\)</td></tr>
+<tr><td class="pf vl" rowspan="2">C</td><td class="cf vr">\(p\)</td><td class="cf vl">\(0\)</td><td class="cf">\(K-S_T\)</td></tr>
+<tr><td class="cf vr">\(e^{-qT}S_0\)</td><td class="cf vl">\(S_T\)</td><td class="cf">\(S_T\)</td></tr>
+<tr class="tot"><td class="vl"></td><td class="cf vr">\(p+e^{-qT}S_0\)</td><td class="cf vl">\(S_T\)</td><td class="cf">\(K\)</td></tr>
+</table>
+<p class="then">At \(T\): \(A=C\) in both cases \(\Rightarrow c+Ke^{-rT}=p+S_0e^{-qT}\). No dividends: \(c+Ke^{-rT}=p+S_0\). Dollar dividends: \(c+D+Ke^{-rT}=p+S_0\). FX: \(c+Ke^{-rT}=p+S_0e^{-r_fT}\).</p>
+
+<h3>B8a · \(c+Ke^{-rT}>p+S_0\): call side dear (put cheap)</h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Short}}}{c+Ke^{-rT}}\;>\;\underset{\textcolor{#d64b3a}{\text{Long}}}{p+S_0}$$</div>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf" colspan="2">T</th></tr>
+<tr><th class="vl"></th><th class="vr"></th><th class="cf vl">\(S_T>K\)</th><th class="cf">\(S_T\le K\)</th></tr>
+<tr><td class="act vl">Sell call</td><td class="cf vr">\(+c\)</td><td class="cf vl">\(-(S_T-K)\)</td><td class="cf">\(0\)</td></tr>
+<tr><td class="act vl">Borrow \(Ke^{-rT}\)</td><td class="cf vr">\(+Ke^{-rT}\)</td><td class="cf vl">\(-K\)</td><td class="cf">\(-K\)</td></tr>
+<tr><td class="act vl">Buy put</td><td class="cf vr">\(-p\)</td><td class="cf vl">\(0\)</td><td class="cf">\(K-S_T\)</td></tr>
+<tr><td class="act vl">Buy stock</td><td class="cf vr">\(-S_0\)</td><td class="cf vl">\(+S_T\)</td><td class="cf">\(+S_T\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(c+Ke^{-rT}-p-S_0>0\)</td><td class="cf vl">\(0\)</td><td class="cf">\(0\)</td></tr>
+</table>
+
+<h3>B8b · \(c+Ke^{-rT}\lt p+S_0\): put side dear (Tute 4 Q5 style)</h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Long}}}{c+Ke^{-rT}}\;\lt\;\underset{\textcolor{#d64b3a}{\text{Short}}}{p+S_0}$$</div>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf" colspan="2">T</th></tr>
+<tr><th class="vl"></th><th class="vr"></th><th class="cf vl">\(S_T>K\)</th><th class="cf">\(S_T\le K\)</th></tr>
+<tr><td class="act vl">Buy call</td><td class="cf vr">\(-c\)</td><td class="cf vl">\(S_T-K\)</td><td class="cf">\(0\)</td></tr>
+<tr><td class="act vl">Invest \(Ke^{-rT}\)</td><td class="cf vr">\(-Ke^{-rT}\)</td><td class="cf vl">\(+K\)</td><td class="cf">\(+K\)</td></tr>
+<tr><td class="act vl">Sell put</td><td class="cf vr">\(+p\)</td><td class="cf vl">\(0\)</td><td class="cf">\(-(K-S_T)\)</td></tr>
+<tr><td class="act vl">Short sell stock</td><td class="cf vr">\(+S_0\)</td><td class="cf vl">\(-S_T\)</td><td class="cf">\(-S_T\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(p+S_0-c-Ke^{-rT}>0\)</td><td class="cf vl">\(0\)</td><td class="cf">\(0\)</td></tr>
+</table>
+<p class="then"><strong>Dividend versions:</strong><br>
+• \(D\): in B8a add "borrow \(D\), repaid by the dividends on the stock you hold" \((+D)\). In B8b add "invest \(D\) to pay the dividends you owe on the short" \((-D)\). Net at \(0\) \(=\pm(c+D+Ke^{-rT}-p-S_0)\).<br>
+• Yield/FX: trade \(e^{-qT}\) units (\(e^{-r_fT}\) of currency) instead of 1 share. Net at \(0\) \(=\pm(c+Ke^{-rT}-p-S_0e^{-qT})\).<br>
+• If you invest the profit at \(0\), it becomes profit × \(e^{rT}\) at \(T\). Tute 4 Q5 invests all the cash and reports \(30.52-30=0.52\) at \(T\) (PV \(0.49\)).<br>
+<strong>Tute 4 Q4/Q5 numbers:</strong> \(c=2,\ S_0=29,\ K=30\), dividends \(0.50\) at 2 and 5 months, \(r=10\%\), \(T=6\) months, so the fair \(p=2.51\). Market \(p=3\) is dear, so use B8b with \(D\).</p>
+</div>
+
+<div class="case" id="b9">
+<h3>B9 · American put-call bounds broken <span class="src">L4 slide 34 · GameStop case · Tute 4 Q7</span></h3>
+<p>\(S_0-K\le C-P\le S_0-Ke^{-rT}\) (no dividends). With dividends the lower end is \(S_0-D-K\). Rearranged for \(P\): \(C+Ke^{-rT}-S_0\le P\le C+K-S_0\). The table needs an extra column for early exercise at \(\tau\).</p>
+
+<h3>B9a · Upper bound broken: \(C-P>S_0-Ke^{-rT}\) (call dear)</h3>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf vr">Call exercised early at \(\tau\)</th><th class="cf vl">\(T:\ S_T>K\)</th><th class="cf">\(T:\ S_T\le K\)</th></tr>
+<tr><td class="act vl">Sell call</td><td class="cf vr">\(+C\)</td><td class="cf vr">\(-(S_\tau-K)\)</td><td class="cf vl">\(-(S_T-K)\)</td><td class="cf">\(0\)</td></tr>
+<tr><td class="act vl">Buy put</td><td class="cf vr">\(-P\)</td><td class="cf vr">keep it (\(\ge0\))</td><td class="cf vl">\(0\)</td><td class="cf">\(K-S_T\)</td></tr>
+<tr><td class="act vl">Buy stock</td><td class="cf vr">\(-S_0\)</td><td class="cf vr">\(+S_\tau\)</td><td class="cf vl">\(+S_T\)</td><td class="cf">\(+S_T\)</td></tr>
+<tr><td class="act vl">Borrow \(Ke^{-rT}\)</td><td class="cf vr">\(+Ke^{-rT}\)</td><td class="cf vr">\(-Ke^{-r(T-\tau)}\)</td><td class="cf vl">\(-K\)</td><td class="cf">\(-K\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(C-P-S_0+Ke^{-rT}>0\)</td><td class="cf vr">\(K-Ke^{-r(T-\tau)}+P_\tau\ge0\)</td><td class="cf vl">\(0\)</td><td class="cf">\(0\)</td></tr>
+</table>
+
+<h3>B9b · Lower bound broken: \(C-P\lt S_0-K\), i.e. \(P>C+K-S_0\) (put dear, GameStop)</h3>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf vr">Put exercised early at \(\tau\)</th><th class="cf vl">\(T:\ S_T>K\)</th><th class="cf">\(T:\ S_T\le K\)</th></tr>
+<tr><td class="act vl">Sell put</td><td class="cf vr">\(+P\)</td><td class="cf vr">\(-(K-S_\tau)\)</td><td class="cf vl">\(0\)</td><td class="cf">\(-(K-S_T)\)</td></tr>
+<tr><td class="act vl">Buy call</td><td class="cf vr">\(-C\)</td><td class="cf vr">keep it (\(\ge0\))</td><td class="cf vl">\(S_T-K\)</td><td class="cf">\(0\)</td></tr>
+<tr><td class="act vl">Short sell stock</td><td class="cf vr">\(+S_0\)</td><td class="cf vr">\(-S_\tau\)</td><td class="cf vl">\(-S_T\)</td><td class="cf">\(-S_T\)</td></tr>
+<tr><td class="act vl">Invest \(K\) (bond)</td><td class="cf vr">\(-K\)</td><td class="cf vr">\(+Ke^{r\tau}\)</td><td class="cf vl">\(+Ke^{rT}\)</td><td class="cf">\(+Ke^{rT}\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(P-C+S_0-K>0\)</td><td class="cf vr">\(K(e^{r\tau}-1)+C_\tau\ge0\)</td><td class="cf vl">\(K(e^{rT}-1)\ge0\)</td><td class="cf">\(K(e^{rT}-1)\ge0\)</td></tr>
+</table>
+<p class="then">With dividends: also invest \(D\) to pay the dividends owed on the short stock, so the condition becomes \(C-P\lt S_0-D-K\).<br>
+<strong>GameStop, 27 Jan 2021:</strong> \(S_0=347.51,\ K=200,\ C=216,\ P=88,\ r\approx0\). The upper bound is \(C+K-S_0=68.49\), so the put was \(\$19.51\) dear and B9b applied on paper. It wasn't exploited: GME shares were hard and costly to borrow, the stock was extremely volatile (losses and margin calls on the short), and trading was restricted. It was an <em>apparent</em> arbitrage, not a riskless one.<br>
+<strong>Tute 4 Q7.2 (2026 data):</strong> \(1.94\lt P=2.00\lt2.07\), inside the bounds, so there's no arbitrage in normal conditions.</p>
+</div>
+
+<div class="case" id="b10">
+<h3>B10 · Quoted option ≠ binomial value <span class="src">L5 notes p.1–2 · L6 notes p.3, 5 · L5/L6 slides</span></h3>
+<p>Riskless portfolio (notes): <strong>call</strong> \(\Pi=\Delta S-f\) (long \(\Delta\) shares, short 1 call). <strong>Put</strong> \(\Pi=\Delta S+f\) (long \(\Delta\) shares, long 1 put). Set \(\Pi_u=\Pi_d\) to find \(\Delta\), then \(\Pi_0=\Pi_ue^{-r\Delta t}\) gives the fair \(f\).</p>
+<h3>B10a · Call quoted above the tree value (\(f_{mkt}>f\))</h3>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf vl">Up \((S_u)\)</th><th class="cf">Down \((S_d)\)</th></tr>
+<tr><td class="act vl">Sell 1 call</td><td class="cf vr">\(+f_{mkt}\)</td><td class="cf vl">\(-f_u\)</td><td class="cf">\(-f_d\)</td></tr>
+<tr><td class="act vl">Buy \(\Delta\) shares</td><td class="cf vr">\(-\Delta S_0\)</td><td class="cf vl">\(+\Delta S_u\)</td><td class="cf">\(+\Delta S_d\)</td></tr>
+<tr><td class="act vl">Borrow \(\Pi_0=\Delta S_0-f\)</td><td class="cf vr">\(+(\Delta S_0-f)\)</td><td class="cf vl">\(-\Pi\)</td><td class="cf">\(-\Pi\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(f_{mkt}-f>0\)</td><td class="cf vl">\(0\)</td><td class="cf">\(0\)</td></tr>
+</table>
+<p class="then">Here \(\Pi=\Delta S_u-f_u=\Delta S_d-f_d\). <strong>Call cheap</strong> (\(f_{mkt}\lt f\)): reverse every row (buy the call, short \(\Delta\) shares, invest \(\Delta S_0-f\)). Net at \(0\) \(=f-f_{mkt}\).</p>
+<h3>B10b · Put mispriced</h3>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf vl">Up</th><th class="cf">Down</th></tr>
+<tr><td class="act vl">Buy 1 put (cheap: \(p_{mkt}\lt p\))</td><td class="cf vr">\(-p_{mkt}\)</td><td class="cf vl">\(+f_u\)</td><td class="cf">\(+f_d\)</td></tr>
+<tr><td class="act vl">Buy \(\Delta\) shares</td><td class="cf vr">\(-\Delta S_0\)</td><td class="cf vl">\(+\Delta S_u\)</td><td class="cf">\(+\Delta S_d\)</td></tr>
+<tr><td class="act vl">Borrow \(\Pi_0=\Delta S_0+p\)</td><td class="cf vr">\(+(\Delta S_0+p)\)</td><td class="cf vl">\(-\Pi\)</td><td class="cf">\(-\Pi\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(p-p_{mkt}>0\)</td><td class="cf vl">\(0\)</td><td class="cf">\(0\)</td></tr>
+</table>
+<p class="then">Put dear: sell the put, short \(\Delta\) shares, invest \(\Delta S_0+p\). Notes example: \(S=10,\ S_u=13.5,\ S_d=7.4,\ K=13.5\) gives \(\Delta=1\), \(\Pi=13.5\), \(p=2.84\) (\(\Pi_0=12.84\)).<br>
+<strong>2–3 steps:</strong> \(\Delta\) changes at every node, so rebalance at each node (sell or buy shares and adjust the loan). At \(T\) the net is still \(0\).</p>
+<h3>B10c · Futures option on a tree <span class="src">L6 notes p.5 · slides 15–17</span></h3>
+<p>Long \(\Delta\) futures costs \(0\) and pays \(\Delta(F_T-F_0)\): \(\Pi=\Delta(F_T-F_0)-f\), \(\Pi_0=-f\).</p>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf vl">Up \((F_u)\)</th><th class="cf">Down \((F_d)\)</th></tr>
+<tr><td class="act vl">Sell 1 call (dear: \(f_{mkt}>f\))</td><td class="cf vr">\(+f_{mkt}\)</td><td class="cf vl">\(-f_u\)</td><td class="cf">\(-f_d\)</td></tr>
+<tr><td class="act vl">Long \(\Delta\) futures</td><td class="cf vr">\(0\)</td><td class="cf vl">\(\Delta(F_u-F_0)\)</td><td class="cf">\(\Delta(F_d-F_0)\)</td></tr>
+<tr><td class="act vl">Invest \(f\)</td><td class="cf vr">\(-f\)</td><td class="cf vl">\(+fe^{r\Delta t}=-\Pi\)</td><td class="cf">\(-\Pi\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(f_{mkt}-f>0\)</td><td class="cf vl">\(0\)</td><td class="cf">\(0\)</td></tr>
+</table>
+<p class="then">Notes example: \(F_0=30,\ F_u=33,\ F_d=28,\ K=29\). \((33-30)\Delta-4=(28-30)\Delta\) gives \(\Delta=0.8\), \(\Pi=-1.6\), \(f=1.6e^{-0.06/12}=1.592\).</p>
+</div>
+
+<div class="case" id="b11">
+<h3>B11 · Futures options: parity and bounds <span class="src">L6 notes p.2, 4 · L6 slides 7–13</span></h3>
+<p><strong>Proof table (notes):</strong></p>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf" colspan="2">T</th></tr>
+<tr><th class="vl"></th><th class="vr"></th><th class="cf vl">\(F_T\ge K\)</th><th class="cf">\(F_T\lt K\)</th></tr>
+<tr><td class="pf vl" rowspan="2">A</td><td class="cf vr">\(c\)</td><td class="cf vl">\(F_T-\cancel{K}\)</td><td class="cf">\(0\)</td></tr>
+<tr><td class="cf vr">\(Ke^{-rT}\)</td><td class="cf vl">\(\cancel{K}\)</td><td class="cf">\(K\)</td></tr>
+<tr class="tot"><td class="vl"></td><td class="cf vr">\(c+Ke^{-rT}\)</td><td class="cf vl">\(F_T\)</td><td class="cf">\(K\)</td></tr>
+<tr><td class="pf vl" rowspan="3">B</td><td class="cf vr">\(p\)</td><td class="cf vl">\(0\)</td><td class="cf">\(K-\cancel{F_T}\)</td></tr>
+<tr><td class="cf vr">cash \(F_0e^{-rT}\)</td><td class="cf vl">\(\cancel{F_0}\)</td><td class="cf">\(\cancel{F_0}\)</td></tr>
+<tr><td class="cf vr">\(0\) (long \(F\))</td><td class="cf vl">\(F_T-\cancel{F_0}\)</td><td class="cf">\(\cancel{F_T}-\cancel{F_0}\)</td></tr>
+<tr class="tot"><td class="vl"></td><td class="cf vr">\(p+F_0e^{-rT}\)</td><td class="cf vl">\(F_T\)</td><td class="cf">\(K\)</td></tr>
+</table>
+<div class="box">
+$$c+Ke^{-rT}=p+F_0e^{-rT}\qquad(\text{same as } c+Ke^{-rT}=p+S_0 \text{ since } S_0=F_0e^{-rT})$$
+</div>
+<p class="then">Slide example (greasy wool): \(c=100,\ K=1000,\ F_0=900,\ r=5\%,\ T=0.5\). \(p=100+(1000-900)e^{-0.025}=\$198\).</p>
+
+<h3>B11a · \(c+Ke^{-rT}>p+F_0e^{-rT}\)</h3>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vr">0</th><th class="cf" colspan="2">T</th></tr>
+<tr><th class="vl"></th><th class="vr"></th><th class="cf vl">\(F_T\ge K\)</th><th class="cf">\(F_T\lt K\)</th></tr>
+<tr><td class="act vl">Sell call</td><td class="cf vr">\(+c\)</td><td class="cf vl">\(-(F_T-K)\)</td><td class="cf">\(0\)</td></tr>
+<tr><td class="act vl">Borrow \(Ke^{-rT}\)</td><td class="cf vr">\(+Ke^{-rT}\)</td><td class="cf vl">\(-K\)</td><td class="cf">\(-K\)</td></tr>
+<tr><td class="act vl">Buy put</td><td class="cf vr">\(-p\)</td><td class="cf vl">\(0\)</td><td class="cf">\(K-F_T\)</td></tr>
+<tr><td class="act vl">Invest \(F_0e^{-rT}\)</td><td class="cf vr">\(-F_0e^{-rT}\)</td><td class="cf vl">\(+F_0\)</td><td class="cf">\(+F_0\)</td></tr>
+<tr><td class="act vl">Long futures</td><td class="cf vr">\(0\)</td><td class="cf vl">\(F_T-F_0\)</td><td class="cf">\(F_T-F_0\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(c+Ke^{-rT}-p-F_0e^{-rT}>0\)</td><td class="cf vl">\(0\)</td><td class="cf">\(0\)</td></tr>
+</table>
+<p class="then">B11b \((c+Ke^{-rT}\lt p+F_0e^{-rT})\): reverse every row (buy the call, invest \(Ke^{-rT}\), sell the put, borrow \(F_0e^{-rT}\), short futures).</p>
+
+<h3>B11c · European lower bounds</h3>
+<p>\(c\ge(F_0-K)e^{-rT}\), \(p\ge(K-F_0)e^{-rT}\) (from parity with \(p,c\ge0\)).</p>
+<table class="arb">
+<tr><th class="vl">\(c\lt(F_0-K)e^{-rT}\)</th><th class="cf vr">0</th><th class="cf vl">\(F_T>K\)</th><th class="cf">\(F_T\le K\)</th></tr>
+<tr><td class="act vl">Buy call</td><td class="cf vr">\(-c\)</td><td class="cf vl">\(F_T-K\)</td><td class="cf">\(0\)</td></tr>
+<tr><td class="act vl">Short futures</td><td class="cf vr">\(0\)</td><td class="cf vl">\(F_0-F_T\)</td><td class="cf">\(F_0-F_T\)</td></tr>
+<tr><td class="act vl">Borrow \((F_0-K)e^{-rT}\)</td><td class="cf vr">\(+(F_0-K)e^{-rT}\)</td><td class="cf vl">\(-(F_0-K)\)</td><td class="cf">\(-(F_0-K)\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\((F_0-K)e^{-rT}-c>0\)</td><td class="cf vl">\(0\)</td><td class="cf">\(K-F_T\ge0\)</td></tr>
+</table>
+<table class="arb">
+<tr><th class="vl">\(p\lt(K-F_0)e^{-rT}\)</th><th class="cf vr">0</th><th class="cf vl">\(F_T\ge K\)</th><th class="cf">\(F_T\lt K\)</th></tr>
+<tr><td class="act vl">Buy put</td><td class="cf vr">\(-p\)</td><td class="cf vl">\(0\)</td><td class="cf">\(K-F_T\)</td></tr>
+<tr><td class="act vl">Long futures</td><td class="cf vr">\(0\)</td><td class="cf vl">\(F_T-F_0\)</td><td class="cf">\(F_T-F_0\)</td></tr>
+<tr><td class="act vl">Borrow \((K-F_0)e^{-rT}\)</td><td class="cf vr">\(+(K-F_0)e^{-rT}\)</td><td class="cf vl">\(-(K-F_0)\)</td><td class="cf">\(-(K-F_0)\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\((K-F_0)e^{-rT}-p>0\)</td><td class="cf vl">\(F_T-K\ge0\)</td><td class="cf">\(0\)</td></tr>
+</table>
+
+<h3>B11d · American: \(C\lt F_0-K\) or \(P\lt K-F_0\) <span class="src">L6 notes p.4 · slide 13 "what happens if"</span></h3>
+<div class="cond">$$\underset{\textcolor{#d64b3a}{\text{Long}}}{C+K}\;\lt\;\underset{\textcolor{#d64b3a}{\text{Short}}}{F_0}$$</div>
+<table class="arb">
+<tr><th colspan="2">Now</th></tr>
+<tr><td class="act vl">Long \(C\)</td><td class="cf">\(-C\)</td></tr>
+<tr><td class="act vl">Exercise at once: long \(F\) at \(K\), marked to market</td><td class="cf">\(+(F_0-K)\)</td></tr>
+<tr><td class="act vl">Short \(F_0\) (closes out)</td><td class="cf">\(0\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf">\(F_0-(K+C)>0\)</td></tr>
+</table>
+<p class="then">\(P\lt K-F_0\): buy the put and exercise it (short futures at \(K\), credit \(K-F_0\)), then go long \(F_0\) to close. Net \(=K-F_0-P>0\).<br>
+American parity (state only): \(F_0e^{-rT}-K\le C-P\le F_0-Ke^{-rT}\).<br>
+Payoff reminder (notes p.1): a call futures option pays \(F_1-K\) at exercise. Closing out at \(T_2\) adds \(F_2-F_1\), so the total is \(F_2-K\). For a put: \(K-F_1\) then \(F_1-F_2\), total \(K-F_2\).</p>
+</div>
+
+<!-- ============================ C ============================ -->
+<h2>C · Swaps</h2>
+<div class="case" id="c1">
+<h3>C1 · Comparative-advantage gain (the "swap arbitrage") <span class="src">L10 slides 28–34</span></h3>
+<p>In the slides, the riskless gain from swaps comes from comparative advantage. The final exam uses the same floating rate for all floating payments.</p>
+<table class="arb">
+<tr><th class="vl"></th><th class="cf vl">Fixed</th><th class="cf">Floating</th></tr>
+<tr><td class="act vl">Company A</td><td class="cf vl">7%</td><td class="cf">SOFR + 1%</td></tr>
+<tr><td class="act vl">Company B</td><td class="cf vl">10%</td><td class="cf">SOFR + 2%</td></tr>
+<tr class="net"><td class="vl">Difference</td><td class="cf vl">3</td><td class="cf">1</td></tr>
+</table>
+<p class="then">Maximum saving = difference in differences = \(3-1=2\%\). A's comparative advantage is in fixed and B's is in floating. Each borrows where it has the advantage, then they swap.</p>
+<div class="box">
+<p><strong>Recipe.</strong> 1. Total gain \(=|\Delta_{\text{fixed}}-\Delta_{\text{float}}|-\text{bank fee}\). 2. Split it (equally unless told otherwise). 3. Targets: A pays its direct floating rate minus its share, B pays its direct fixed rate minus its share. 4. Pass the floating leg at the floating borrower's rate (SOFR + 2%) on both sides. 5. Solve each company's fixed swap rate from its net-cost line. 6. Bank keeps \(X_B-X_A\).</p>
+</div>
+<p><strong>No intermediary fee</strong> (gain 2%, 1% each): A receives 9%, B pays 9%.</p>
+<table class="arb">
+<tr><th class="vl">Company A</th><th class="cf vr"></th><th class="vl">Company B</th><th class="cf"></th></tr>
+<tr><td class="act vl">Borrow fixed</td><td class="cf vr">\(-7\%\)</td><td class="act vl">Borrow floating</td><td class="cf">\(-(\text{SOFR}+2\%)\)</td></tr>
+<tr><td class="act vl">Receive from bank</td><td class="cf vr">\(+9\%\)</td><td class="act vl">Receive from bank</td><td class="cf">\(+(\text{SOFR}+2\%)\)</td></tr>
+<tr><td class="act vl">Pay bank</td><td class="cf vr">\(-(\text{SOFR}+2\%)\)</td><td class="act vl">Pay bank</td><td class="cf">\(-9\%\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(-\text{SOFR}\)</td><td class="vl">Net</td><td class="cf">\(-9\%\)</td></tr>
+</table>
+<p class="then">A saves \((\text{SOFR}+1\%)-\text{SOFR}=1\%\). B saves \(10\%-9\%=1\%\). Total \(2\%\).</p>
+<p><strong>Bank takes 0.5%</strong> (gain \(1.5\%\), \(0.75\%\) each): A's target is SOFR + 0.25% and B's is 9.25%.</p>
+<table class="arb">
+<tr><th class="vl">Company A</th><th class="cf vr"></th><th class="vl">Company B</th><th class="cf"></th></tr>
+<tr><td class="act vl">Borrow fixed</td><td class="cf vr">\(-7\%\)</td><td class="act vl">Borrow floating</td><td class="cf">\(-(\text{SOFR}+2\%)\)</td></tr>
+<tr><td class="act vl">Receive from bank</td><td class="cf vr">\(+8.75\%\)</td><td class="act vl">Receive from bank</td><td class="cf">\(+(\text{SOFR}+2\%)\)</td></tr>
+<tr><td class="act vl">Pay bank</td><td class="cf vr">\(-(\text{SOFR}+2\%)\)</td><td class="act vl">Pay bank</td><td class="cf">\(-9.25\%\)</td></tr>
+<tr class="net"><td class="vl">Net</td><td class="cf vr">\(-(\text{SOFR}+0.25\%)\)</td><td class="vl">Net</td><td class="cf">\(-9.25\%\)</td></tr>
+</table>
+<p class="then">Solve: A: \(-7+X_A-(\text{SOFR}+2)=-(\text{SOFR}+0.25)\Rightarrow X_A=8.75\%\). B: \(-X_B=-9.25\Rightarrow X_B=9.25\%\). Bank: \(9.25-8.75=0.5\%\).<br>
+<strong>Related (not arbitrage):</strong> FRA value \(=L(R_K-R_F)\tau e^{-R_2T_2}\). A swap is a portfolio of FRAs: net CF per date, discounted at the zero rates.</p>
+</div>
+
+<!-- ============================ D ============================ -->
+<h2 id="d">D · When arbitrage fails (written answers)</h2>
+<table>
+<tr><th>Case</th><th>Why the table breaks</th></tr>
+<tr><td>\(F_T\lt S_T\) at delivery (A1)</td><td>The short side picks the delivery timing, so you can't force delivery.</td></tr>
+<tr><td>Consumption commodity, \(F_0\) cheap (A7)</td><td>Holders won't sell inventory and can't consume a futures contract. The gap is the convenience yield.</td></tr>
+<tr><td>GameStop put above \(C+K-S_0\) (B9b)</td><td>Short selling was hard and costly, the stock was extremely volatile with margin pressure, and trading was restricted.</td></tr>
+<tr><td>Any case</td><td>Transaction costs and taxes, different borrowing and lending rates, short-sale limits (L3 slide 9 assumptions). Prices then only stay inside a band.</td></tr>
+</table>
+<div class="trap"><strong>Traps</strong><br>Trading the wrong side (always <em>short</em> the dear side) · forgetting to borrow/lend so the net at 0 is 0 · storage paid at \(T\) handled as PV · dividends after \(T\) included · "X per AUD" foreign/domestic mix-up · index points not × multiplier · option profit taken at 0 vs at \(T\) (×\(e^{rT}\)) · American bounds use \(K\), European use \(Ke^{-rT}\) · claiming arbitrage on a consumption asset when \(F_0\) is low</div>
+</main>
+</body>
+</html>
