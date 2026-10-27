@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DS Past Finals Breakdown</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: one reading column (matches ds/assets/style.css), wide heatmap table in its own scroller, question order as a vertical sequence. */
+:root {
+  --bg: #fffff8; --fg: #1d1d1b; --muted: #6b6b66; --rule: #e4e2d6;
+  --accent: #8a2b0e; --card: #f7f5ea; --heat: 138 43 14;
+  --serif: 'Source Serif 4', Georgia, serif;
+  --sans: Inter, system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161614; --fg: #e9e7df; --muted: #9c9a91; --rule: #34332e;
+    --accent: #e08a62; --card: #1f1f1c; --heat: 224 138 98; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161614; --fg: #e9e7df; --muted: #9c9a91; --rule: #34332e;
+  --accent: #e08a62; --card: #1f1f1c; --heat: 224 138 98; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { font-size: 17px; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: var(--serif); line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 50rem; margin: 0 auto; padding-block: 2.5rem 4rem; }
+.kicker, th, .tag, .num, .meta { font-family: var(--sans); }
+.kicker { font-size: .72rem; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+h1 { font-weight: 400; font-size: 2rem; line-height: 1.2; margin: .3rem 0 .5rem; text-wrap: balance; }
+h2 { font-weight: 400; font-style: italic; font-size: 1.35rem; margin: 2.4rem 0 .6rem; border-top: 1px solid var(--rule); padding-top: 1.2rem; text-wrap: balance; }
+p, li { max-width: 65ch; }
+.lede { color: var(--muted); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: .9rem; }
+th { font-size: .7rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); text-align: right; padding: .5rem .45rem; border-bottom: 1px solid var(--rule); vertical-align: bottom; }
+th:first-child, td:first-child { text-align: left; }
+td { padding: .38rem .45rem; border-bottom: 1px solid var(--rule); text-align: right; font-family: var(--sans); }
+td:first-child { font-family: var(--serif); white-space: nowrap; }
+td.h { background: rgb(var(--heat) / calc(var(--v) / 40)); }
+td.avg { font-weight: 600; color: var(--accent); }
+td.z { color: var(--muted); }
+tr.sum td { font-weight: 600; border-top: 2px solid var(--fg); }
+.pre td:first-child::after { content: " · pre-MST"; font-family: var(--sans); font-size: .68rem; color: var(--muted); }
+.meta { font-size: .78rem; color: var(--muted); }
+ol.seq { list-style: none; padding: 0; margin: 0; display: grid; gap: .1rem; }
+ol.seq li { display: grid; grid-template-columns: 4.2rem 1fr; gap: 1rem; padding: .7rem 0; border-bottom: 1px solid var(--rule); max-width: none; }
+ol.seq .tag { font-size: .8rem; font-weight: 600; color: var(--accent); padding-top: .15rem; }
+ol.seq .tag small { display: block; font-weight: 400; color: var(--muted); }
+ol.seq b { font-weight: 600; }
+ol.seq div { min-width: 0; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.box { background: var(--card); padding: 1rem 1.2rem; border-radius: 4px; min-width: 0; }
+.box h3 { font-family: var(--sans); font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; margin: 0 0 .5rem; color: var(--muted); font-weight: 600; }
+.box ul { margin: 0; padding-left: 1.1rem; }
+.bar { display: grid; grid-template-columns: 11rem 1fr 3rem; align-items: center; gap: .6rem; font-size: .88rem; padding: .18rem 0; }
+.bar span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar i { display: block; height: .7rem; background: var(--accent); border-radius: 1px; }
+.bar .num { text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) {
+  .split { grid-template-columns: 1fr; }
+  .bar { grid-template-columns: 8rem 1fr 2.6rem; }
+  ol.seq li { grid-template-columns: 3.2rem 1fr; gap: .6rem; }
+}
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">FNCE30007 Derivative Securities · final exam prep</div>
+  <h1>How past finals split their marks</h1>
+  <p class="lede">Five marked finals, tallied by lecture topic. The two newest papers are written in the current lecturer's format (8 questions, no MCQ), so the last column averages only those two.</p>
+
+  <h2>Marks by topic, % of each paper</h2>
+  <div class="scroll">
+  <table>
+    <thead>
+      <tr><th>Topic</th><th>2025 S2<br>/70</th><th>2026 prac<br>/70</th><th>2025 S1<br>/55</th><th>2022 S1<br>/75</th><th>Sample<br>/75</th><th>Avg of 2 newest</th></tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+  </div>
+  <p class="meta">Shading scales with the share of the paper. 2025 S1 (studocu copy) has only post-MST questions. Article/case questions are conceptual, 7 marks, no calculations.</p>
+
+  <h2>Where 2026's 65 marks probably go</h2>
+  <p>The lecturer's rule is 30% Topics 1–4 and 70% Topics 5–10. Applying the newest-paper averages within each half gives a rough budget:</p>
+  <div id="bars"></div>
+  <p class="meta">Estimate only. Cases are examinable in 2026 and sit inside the topic they illustrate, so the article share is folded into the pre-MST half here.</p>
+
+  <h2>The usual question order</h2>
+  <p>2025 S2, the 2026 practice and 2025 S1 all run in syllabus order, about 10 marks per question.</p>
+  <ol class="seq">
+    <li><span class="tag">Q1–Q2<small>T1–T2</small></span><div><b>Futures.</b> A margin account with two positions in the same contract, or a hedge: cross-hedge h* from a correlation matrix, or a beta change with index futures. Parts: long or short, which maturity, number of contracts, full hedge plan, basis risk.</div></li>
+    <li><span class="tag">Q2–Q3<small>T3</small></span><div><b>Forward pricing.</b> Convenience yield, or index or FX forward arbitrage with a cash-flow table.</div></li>
+    <li><span class="tag">Q3–Q4<small>case / T4</small></span><div><b>Conceptual article or case question</b> (about 7 marks), or options basics: time value of an American put, effect of a dividend announcement.</div></li>
+    <li><span class="tag">Q5<small>T5</small></span><div><b>Binomial, 10–12 marks.</b> A 2–3 step put (European or American), u = e<sup>σ√Δt</sup>. Then the delta hedge, whether Δ<sub>0</sub> still hedges at t = 1, an arbitrage when the quoted price is off, and the "risk preferences play no role" statement.</div></li>
+    <li><span class="tag">Q6<small>T7–T8</small></span><div><b>Lognormal and BSM.</b> P(call exercised), or a confidence interval and E/Var of S<sub>T</sub>. Theory on binomial vs BSM (assumption 1, convergence 1, link 2). Sometimes dividend, FX or index BSM, or implied q from parity.</div></li>
+    <li><span class="tag">Q7<small>T9</small></span><div><b>Delta hedging.</b> Portfolio or index-option delta hedge, then rebalancing after a price move. Futures vs forward delta, with the intuition.</div></li>
+    <li><span class="tag">Q8<small>T10</small></span><div><b>Rates and swaps, 8–10 marks.</b> Swap design with the bank's cut, a percentage split of the gains and a diagram (4–6 marks). Zero rates by bootstrapping, par yield, or the two-bond trick.</div></li>
+  </ol>
+
+  <h2>Patterns to know</h2>
+  <div class="split">
+    <div class="box">
+      <h3>Every recent paper</h3>
+      <ul>
+        <li>A binomial put with a delta hedge</li>
+        <li>A delta-hedge-then-rebalance question</li>
+        <li>A futures hedge (cross-hedge or beta)</li>
+        <li>Swap design plus a zero-rate calculation (since 2025)</li>
+        <li>Lognormal probability or interval (since 2025)</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Reuse and drift</h3>
+      <ul>
+        <li>The 2025 S2 margin question reuses the 2022 numbers exactly.</li>
+        <li>The 2025 S1 binomial, lognormal and swap questions reappear in the 2026 practice.</li>
+        <li>Gamma/vega-neutral questions appear only in 2022 and the Sample. The 2026 slides only define those Greeks.</li>
+        <li>Futures-option (Black) pricing appears once, in 2025 S1 (6 marks).</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Sources</h2>
+  <p class="meta">Counted: <em>FNCE30007 past exam</em> (also <em>Final Exam Q&amp;A</em>), <em>Exam Practice with Solutions</em>, 2025 S1 studocu copy, 2022 S1 studocu copy, <em>FNCE Sample Exam</em>. Left out: the studocu "Final Exam" (AI-generated MCQ paper, off-syllabus), the DER101 test bank (another course), the 2021 practice paper (no marks, old syllabus with VaR and Monte Carlo), and the MSTs (Topics 1–4 only).</p>
+</main>
+
+<script>
+// marks per topic: [2025 S2, 2026 prac, 2025 S1, 2022 S1, Sample]
+const totals = [70, 70, 55, 75, 75];
+const topics = [
+  ["T1 Futures & margin", [6, 0, 0, 7, 0], true],
+  ["T2 Hedging (h*, beta)", [10, 10, 0, 14, 12], true],
+  ["T3 Forward pricing & arbitrage", [5, 7, 0, 18, 0], true],
+  ["T4 Options basics & strategies", [0, 6, 0, 4, 26], true],
+  ["T5 Binomial", [10, 10, 12, 15, 12]],
+  ["T6 Futures options (Black)", [0, 0, 6, 0, 0]],
+  ["T7 BSM & lognormal", [5, 10, 10, 0, 6]],
+  ["T8 Dividends, FX, index", [7, 0, 10, 0, 0]],
+  ["T9 Delta & Greeks", [10, 10, 9, 17, 15]],
+  ["T10 Rates & swaps", [10, 10, 8, 0, 0]],
+  ["Article / case", [7, 7, 0, 0, 4], true],
+];
+const pct = (m, i) => 100 * m / totals[i];
+const avg2 = m => (pct(m[0], 0) + pct(m[1], 1)) / 2;
+const rows = document.getElementById("rows");
+for (const [name, m, pre] of topics) {
+  const tr = document.createElement("tr");
+  if (pre) tr.className = "pre";
+  let html = `<td>${name}</td>`;
+  m.forEach((v, i) => {
+    const p = pct(v, i);
+    html += v ? `<td class="h" style="--v:${p.toFixed(1)}" title="${v} marks">${Math.round(p)}</td>` : `<td class="z">–</td>`;
+  });
+  html += `<td class="avg">${Math.round(avg2(m))}</td>`;
+  tr.innerHTML = html;
+  rows.appendChild(tr);
+}
+const sum = document.createElement("tr");
+sum.className = "sum";
+sum.innerHTML = `<td>Total marks</td>` + totals.map(t => `<td>${t}</td>`).join("") + `<td>–</td>`;
+rows.appendChild(sum);
+
+// 2026 budget: 19.5 marks across pre-MST + article, 45.5 across T5–T10, weighted by newest-paper averages
+const bars = document.getElementById("bars");
+const preT = topics.filter(t => t[2]), postT = topics.filter(t => !t[2]);
+const share = (list, pool) => {
+  const s = list.reduce((a, t) => a + avg2(t[1]), 0);
+  return list.map(t => [t[0], pool * avg2(t[1]) / s]);
+};
+const budget = [...share(preT, 19.5), ...share(postT, 45.5)];
+const max = Math.max(...budget.map(b => b[1]));
+for (const [name, marks] of budget) {
+  const d = document.createElement("div");
+  d.className = "bar";
+  d.innerHTML = `<span>${name}</span><i style="width:${(100 * marks / max).toFixed(1)}%"></i><span class="num">${marks < 0.5 ? "<1" : "≈" + Math.round(marks)}</span>`;
+  bars.appendChild(d);
+}
+</script>
+</body>
+</html>
