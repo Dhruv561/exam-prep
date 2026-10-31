@@ -1,0 +1,117 @@
+% MAST30027 cheat sheet, landscape: 2 A4 pages, red topic borders. Holds everything in the portrait sheet's three pages.
+% Build: tectonic -X compile mas-cheat-sheet-horizontal.tex
+\documentclass{article}
+\usepackage[a4paper,landscape,left=14.7pt,right=14.7pt,top=13.4pt,bottom=13.4pt]{geometry}
+\usepackage{mathtools}
+\usepackage{fontspec}
+\usepackage{unicode-math}
+\usepackage{xcolor}
+\usepackage{multicol}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{graphicx}
+\usepackage{eso-pic}
+
+\def\DF{/Applications/Microsoft Word.app/Contents/Resources/DFonts/}
+\setmainfont{Aptos}[Path=\DF,Extension=.ttf,UprightFont=*,BoldFont=*-Bold,ItalicFont=*-Italic,BoldItalicFont=*-Bold-Italic]
+\setmonofont{Consola}[Path=\DF,Extension=.ttf,BoldFont=Consolab,ItalicFont=Consolai]
+\setmathfont{Cambria.ttc}[Path=\DF,FontIndex=1]
+
+\definecolor{mg}{HTML}{B5179E}
+\definecolor{bl}{HTML}{0B57D0}
+\definecolor{rd}{HTML}{D90000}
+\definecolor{gn}{HTML}{0B7A2B}
+\definecolor{yl}{HTML}{FFF27A}
+\definecolor{hdr}{HTML}{E8F0FB}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\setlength{\columnsep}{5pt}
+\setlength{\columnseprule}{1.2pt}
+\renewcommand{\columnseprulecolor}{\color{rd}}
+\setlength{\topskip}{6.1pt}
+\setlength{\tabcolsep}{1.3pt}
+\setlength{\arrayrulewidth}{0.25pt}
+\setlength{\multicolsep}{0pt}
+\renewcommand{\arraystretch}{1.02}
+\raggedcolumns
+\clubpenalty=0 \widowpenalty=0 \displaywidowpenalty=0 \brokenpenalty=0
+\emergencystretch=8pt
+\lineskip=0.1pt \lineskiplimit=-1.5pt \normallineskip=0.1pt \normallineskiplimit=-1.5pt
+\hbadness=10000 \vbadness=10000
+
+\newcommand{\fs}{\fontsize{5.1}{5.6}\selectfont}
+\DeclareMathSizes{5.1}{5.34}{4.15}{3.57}
+
+% box separator inside a topic: thin black rule joining the red column rules
+\newcommand{\bx}{\par\nointerlineskip\vskip 0.7pt
+  \moveleft\dimexpr\columnsep/2\relax\vbox{\hrule width \dimexpr\columnwidth+\columnsep\relax height 0.5pt}\nointerlineskip\vskip 0.8pt}
+% topic bar: red band that closes the red border above and opens the next topic
+\newcommand{\topic}[1]{\par\nointerlineskip\vskip 0.8pt
+  \moveleft\dimexpr\columnsep/2\relax\hbox{\rlap{\textcolor{rd}{\rule[-1.4pt]{\dimexpr\columnwidth+\columnsep\relax}{7.2pt}}}%
+  \hspace{\dimexpr\columnsep/2\relax}\textcolor{white}{\fontsize{6.1}{7}\selectfont\bfseries #1}}%
+  \nointerlineskip\nobreak\vskip 0.7pt\nobreak}
+\newcommand{\hd}[1]{{\setlength{\fboxsep}{0.3pt}\colorbox{yl}{\strut\textbf{#1}}} }
+\renewcommand{\strut}{\vrule width 0pt height 4.2pt depth 1.1pt}
+\newcommand{\bh}[1]{\textbf{#1}}
+\newcommand{\kw}[1]{\textcolor{bl}{\textbf{#1}}}
+\newcommand{\warn}[1]{\textcolor{rd}{#1}}
+\newcommand{\m}[1]{\textcolor{mg}{$#1$}}
+\newcommand{\sk}{\par\vskip 0.25pt}
+% display line: centred, shrunk only if it would overflow the column
+\newsavebox{\dmbox}
+\newcommand{\dm}[1]{\par\sbox{\dmbox}{\textcolor{mg}{$\displaystyle #1$}}%
+  \ifdim\wd\dmbox>\columnwidth\typeout{SCALED: \the\wd\dmbox}\resizebox{\columnwidth}{!}{\usebox{\dmbox}}\else\centerline{\usebox{\dmbox}}\fi\par}
+\newcommand{\li}{\par\hangindent=4.5pt\hangafter=1\makebox[4.5pt][l]{•}}
+
+% maths shorthands
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\hb}{\hat{\beta}}
+\newcommand{\hth}{\hat{\theta}}
+\newcommand{\hmu}{\hat{\mu}}
+\newcommand{\hphi}{\hat{\phi}}
+\newcommand{\heta}{\hat{\eta}}
+\newcommand{\pik}{P_{ik}}
+\newcommand{\T}{^{\mathsf T}}
+\newcommand{\inv}{^{-1}}
+\newcommand{\Nor}{\mathrm{N}}
+\newcommand{\Ga}{\mathrm{Gamma}}
+\newcommand{\IG}{\mathrm{InvGamma}}
+\newcommand{\sumi}{\sum_{i}}
+\newcommand{\sumik}{\sum_{i}\sum_{k}}
+
+% inline R between backticks: verbatim, green, breakable after punctuation
+\makeatletter
+\def\rc@mk#1{\catcode`#1=\active\begingroup\lccode`\~=`#1\lowercase{\endgroup\def~}{\char`#1\discretionary{}{}{}}}
+\def\rcode{\begingroup\ttfamily\fontsize{4.77}{5.6}\selectfont\color{gn}%
+  \let\do\@makeother\dospecials\catcode`\ =10\relax
+  \rc@mk{,}\rc@mk{(}\rc@mk{=}\rc@mk{+}\rc@mk{*}\rc@mk{/}\rc@mk{<}\rc@mk{~}\rc@go}
+\begingroup\catcode`\`=\active
+\gdef\rc@go{\def`{\endgroup}}
+\gdef\rc@on{\catcode 96=\active\def`{\rcode}}
+\endgroup
+\makeatother
+\newcommand{\codehd}[1]{\par\vskip 0.3pt{\ttfamily\fontsize{5.9}{6.6}\selectfont\textbf{#1}}\par}
+\newcommand{\rr}[1]{{\ttfamily\fontsize{4.86}{5.6}\selectfont #1}}
+
+\makeatletter
+\AddToShipoutPictureBG{\AtPageLowerLeft{\unitlength=1pt
+  \put(12.2,12.2){\color{rd}\linethickness{1.2pt}\framebox(\strip@pt\dimexpr\paperwidth-24.4pt\relax,\strip@pt\dimexpr\paperheight-24.4pt\relax){}}}}
+\makeatother
+
+\begin{document}\fs
+\thinmuskip=2mu \medmuskip=2mu plus 0.6mu minus 0.6mu \thickmuskip=3mu plus 0.8mu
+\rightskip=0pt plus 9pt\relax\spaceskip=0.27em plus 0.08em minus 0.04em\relax\xspaceskip=\spaceskip\relax\hyphenpenalty=100\exhyphenpenalty=50
+\relpenalty=0 \binoppenalty=0 \tolerance=9999 \pretolerance=2000
+\makeatletter\rc@on\makeatother
+
+\begin{multicols*}{6}
+\lineskiplimit=-1.35pt\normallineskiplimit=-1.35pt\input{horizontal-side1}
+\end{multicols*}
+\begin{multicols*}{6}
+\lineskiplimit=-0.8pt\normallineskiplimit=-0.8pt\input{horizontal-side2}
+\end{multicols*}
+\end{document}

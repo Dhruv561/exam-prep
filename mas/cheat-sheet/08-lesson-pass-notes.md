@@ -21,7 +21,7 @@ Pass through all 28 lessons in `mas/lessons/`, to add shortcut formulas, an R ou
 
 ## Cut to fit two pages
 
-Cut lines are lower value than what replaced them, but they are gone from the sheet. Ask to restore any of them.
+These lines are now on page 3 of the PDF, from `sheet-p3-cuts.tex`, under the same red topics. The cuts come to about one column. Pages 1 and 2 are unchanged. Page 3 is a holding page: exam notes are one A4 sheet, double-sided, so print pages 1 and 2 only. To drop page 3, delete the marked lines at the end of `mas-cheat-sheet.tex`.
 
 - First-year CI table (kept the rule, the correct wording and the link to tests). Hypothesis test and estimator boxes shortened.
 - MH "why it works" line, which is Markov theory and out of scope.
@@ -31,6 +31,23 @@ Cut lines are lower value than what replaced them, but they are gone from the sh
 - Probit information, Poisson deviance derivation.
 - Bivariate Normal pdf (kept the conditional), several $\chi^2$ cutoffs, some R lines repeated elsewhere.
 - Rejection "why it works" sentence (kept the output pdf derivation).
+
+## Horizontal version
+
+`mas-cheat-sheet-horizontal.pdf` is a separate 2-page A4 landscape sheet holding everything from all three portrait pages, in 6 columns. Build it from `mas-cheat-sheet-horizontal.tex`, `horizontal-side1.tex` and `horizontal-side2.tex`. Portrait files are unchanged.
+
+- Side 1: Prerequisites, Likelihood, GLMs, Overdispersion, R Output. Side 2: Probability Toolkit (moved out of Prerequisites), EM, Bayes, Simulation, MCMC, VI, Exam Checks.
+- Landscape adds no paper, so the fit comes from smaller text: 5.1pt body and 5.6pt leading. About 25pt is free at the bottom of side 2.
+- The MLE, IWLS and conjugate tables are split where a column ends, to avoid holes. Moving text can leave a hole at a split, so recheck after edits.
+- The logit information matrix is written as its entries, with the same information.
+
+Completeness audit: 1,546 items across all three pages, none missing. Correctness audit: about 1,950 items, 282 scripted formula checks and 6 R scripts.
+
+One error fixed: the same-mean cutoff read $|x|>c$, which holds only for mean 0; it is now $|x-\mu|>c$. Also tightened: $AIC_B-AIC_A$ with $\phi$, the fitted-count checks for `cbind` binomial, the `colSums` bug gloss, "se far off" when covariances are dropped, the undefined $\tau^2$ in the cluster formula, 0/1 $D$ as logit only, the `rstudent` gloss, $n$ from null df needing an intercept, `drop1` with interactions, $\bar X\approx$ Normal, the two ESS targets, and $D_B/(n-p_B)$ as approximate.
+
+These fixes are in the horizontal files only. The portrait sheet still has the old wording.
+
+Left as they are: "`step`/`drop1` do not work" on quasi fits is the course wording, though R's `drop1` does run. No source was found for the two marks claims ("Marks:", "A correct unfinished ledger still scores"). The $H_{ii}>2p/n$ and Cook near 1 rules are not in the slides.
 
 ## Checked
 
