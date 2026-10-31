@@ -1,0 +1,105 @@
+% MAST30027 cheat sheet: 2 A4 pages, four vertical columns, black-ruled boxes.
+% Build: tectonic -X compile mas-cheat-sheet.tex
+\documentclass{article}
+\usepackage[a4paper,left=4.5mm,right=4.5mm,top=4.5mm,bottom=4.5mm]{geometry}
+\usepackage{mathtools}
+\usepackage{fontspec}
+\usepackage{unicode-math}
+\usepackage{xcolor}
+\usepackage{multicol}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{graphicx}
+\usepackage{eso-pic}
+
+\def\DF{/Applications/Microsoft Word.app/Contents/Resources/DFonts/}
+\setmainfont{Aptos}[Path=\DF,Extension=.ttf,UprightFont=*,BoldFont=*-Bold,ItalicFont=*-Italic,BoldItalicFont=*-Bold-Italic]
+\setmonofont{Consola}[Path=\DF,Extension=.ttf,BoldFont=Consolab,ItalicFont=Consolai]
+\setmathfont{Cambria.ttc}[Path=\DF,FontIndex=1]
+
+\definecolor{mg}{HTML}{B5179E}
+\definecolor{bl}{HTML}{0B57D0}
+\definecolor{rd}{HTML}{D90000}
+\definecolor{gn}{HTML}{0B7A2B}
+\definecolor{yl}{HTML}{FFF27A}
+\definecolor{hdr}{HTML}{E8F0FB}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\setlength{\columnsep}{7pt}
+\setlength{\columnseprule}{1.1pt}
+\setlength{\tabcolsep}{1.3pt}
+\setlength{\arrayrulewidth}{0.25pt}
+\setlength{\multicolsep}{0pt}
+\renewcommand{\arraystretch}{1.02}
+\raggedcolumns\flushcolumns
+\emergencystretch=8pt
+\lineskip=0.2pt \lineskiplimit=-1.1pt \normallineskip=0.2pt \normallineskiplimit=-1.1pt
+\hbadness=10000 \vbadness=10000
+
+\newcommand{\fs}{\fontsize{5.85}{6.58}\selectfont}
+\DeclareMathSizes{5.85}{6.1}{4.7}{3.85}
+
+% box separator: rule joins the column rules
+\newcommand{\bx}{\par\vskip 0.5pt plus 9pt
+  \noindent\hspace*{-3.5pt}\rule{\dimexpr\columnwidth+7pt\relax}{1.1pt}\par\vskip 0.7pt plus 6pt}
+\newcommand{\hd}[1]{{\setlength{\fboxsep}{0.3pt}\colorbox{yl}{\strut\textbf{#1}}} }
+\renewcommand{\strut}{\vrule width 0pt height 4.5pt depth 1.2pt}
+\newcommand{\bh}[1]{\textbf{#1}}
+\newcommand{\kw}[1]{\textcolor{bl}{\textbf{#1}}}
+\newcommand{\warn}[1]{\textcolor{rd}{#1}}
+\newcommand{\m}[1]{\textcolor{mg}{$#1$}}
+\newcommand{\sk}{\par\vskip 0.55pt}
+% display line: centred, shrunk only if it would overflow the column
+\newsavebox{\dmbox}
+\newcommand{\dm}[1]{\par\sbox{\dmbox}{\textcolor{mg}{$\displaystyle #1$}}%
+  \ifdim\wd\dmbox>\columnwidth\typeout{SCALED: \the\wd\dmbox}\resizebox{\columnwidth}{!}{\usebox{\dmbox}}\else\centerline{\usebox{\dmbox}}\fi\par}
+\newcommand{\li}{\par\hangindent=4.5pt\hangafter=1\makebox[4.5pt][l]{•}}
+
+% maths shorthands
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\hb}{\hat{\beta}}
+\newcommand{\hth}{\hat{\theta}}
+\newcommand{\hmu}{\hat{\mu}}
+\newcommand{\hphi}{\hat{\phi}}
+\newcommand{\heta}{\hat{\eta}}
+\newcommand{\pik}{P_{ik}}
+\newcommand{\T}{^{\mathsf T}}
+\newcommand{\inv}{^{-1}}
+\newcommand{\Nor}{\mathrm{N}}
+\newcommand{\Ga}{\mathrm{Gamma}}
+\newcommand{\IG}{\mathrm{InvGamma}}
+\newcommand{\sumi}{\sum_{i}}
+\newcommand{\sumik}{\sum_{i}\sum_{k}}
+
+% inline R between backticks: verbatim, green, breakable after punctuation
+\makeatletter
+\def\rc@mk#1{\catcode`#1=\active\begingroup\lccode`\~=`#1\lowercase{\endgroup\def~}{\char`#1\discretionary{}{}{}}}
+\def\rcode{\begingroup\ttfamily\fontsize{5.35}{6.1}\selectfont\color{gn}%
+  \let\do\@makeother\dospecials\catcode`\ =10\relax
+  \rc@mk{,}\rc@mk{(}\rc@mk{=}\rc@mk{+}\rc@mk{*}\rc@mk{/}\rc@mk{<}\rc@mk{~}\rc@go}
+\begingroup\catcode`\`=\active
+\gdef\rc@go{\def`{\endgroup}}
+\gdef\rc@on{\catcode 96=\active\def`{\rcode}}
+\endgroup
+\makeatother
+\newcommand{\codehd}[1]{\par\vskip 0.3pt{\ttfamily\fontsize{5.9}{6.6}\selectfont\textbf{#1}}\par}
+
+\makeatletter
+\AddToShipoutPictureBG{\AtPageLowerLeft{\unitlength=1pt
+  \put(12.2,12.2){\linethickness{1.1pt}\framebox(\strip@pt\dimexpr\paperwidth-24.4pt\relax,\strip@pt\dimexpr\paperheight-24.4pt\relax){}}}}
+\makeatother
+
+\begin{document}\fs
+\thinmuskip=2.2mu \medmuskip=2.6mu plus 0.6mu minus 0.6mu \thickmuskip=3.6mu plus 1mu
+\rightskip=0pt plus 14pt\relax\spaceskip=0.27em plus 0.08em minus 0.04em\relax\xspaceskip=\spaceskip\relax\hyphenpenalty=300\exhyphenpenalty=100
+\makeatletter\rc@on\makeatother
+
+\begin{multicols*}{4}
+\input{sheet-p1}
+\input{sheet-p2}
+\end{multicols*}
+\end{document}

@@ -1,0 +1,51 @@
+# Tutes + review exercises: must include
+- predict(model, newdata=list(...), type="response") -> μ̂/p̂; type="link", se.fit=TRUE -> η̂, se(η̂). CI: ilogit(fit ± 2 se.fit) (tute uses 2; use 1.96).
+- Classification: predicted p vs cutoff; false pos/neg trade-off; cutoff depends on costs (screening: reduce false negatives).
+- Sign flip: marginal corr positive but coef negative: predictors correlated; "not significant in the presence of the other variables".
+- step(model, scope=~.): table of - x lines: Df, Deviance, AIC; row with AIC below <none> gets dropped; stop when <none> lowest.
+- LR region: contour levels=qchisq(.95,2).
+- pchisq(deviance(m2)-deviance(m1), 2, lower.tail=FALSE) LRT p-value; factor with 3 levels = 2 df.
+- education test p=.207: not important when others in the model.
+- Binomial exp fam: θ=log(p/(1-p)), φ=1, b=m log(1+e^θ), a=φ, c=log(m choose y).
+- I(year^2): quadratic on log scale.
+- Gamma(link="identity"/"log"/"inverse"): summary shows t values, Dispersion=Pearson/df. anova(gmod,test="F"): F=(null_dev-model_dev)/1/φ̂ ≈ 84.53.
+- Plot g(y) vs x for link choice; log(x+1) for zeros.
+- Rate model: log(λi/ti)=x'β ⇔ log λi=log ti + x'β: coefficient of log t fixed 1; R offset(log(t)).
+- Deviance high despite OK residuals & counts large → overdispersion; drop Cook points no change → overdispersion.
+- Simulate mixture: rbinom(1,1,pi_2) then rpois. L=dpois(X,lambda)*pi; CP=L/rowSums(L).
+- Poisson-mix Q: Σ[p(Zi=1|X,θ⁰)(Xi log λ1-λ1-log Xi!+log π1)+p(Zi=2|X,θ⁰)(Xi log λ2-λ2-log Xi!+log(1-π1))].
+- Equal start values stuck: λ1⁰=λ2⁰ gives both = x̄, π unchanged. Label switching same ll.
+- X̄|θ: posterior as weighted: E(θ|x̄)=[nτ²x̄+σ²μ]/(nτ²+σ²); Var=σ²τ²/(nτ²+σ²). Marginal X̄~N(μ,σ²/n+τ²). x̄ sufficient.
+- pmf from while loop: while(U>1-1/(1+Y)) Y++ : F(y)=1-1/(1+y) → p(y)=1/(y(y+1)), y≥1.
+- Logistic F=1/(1+e^-x): -log(1/U-1).
+- Beta-binomial sim: tha<-rbeta(N,2,3); X<-rbinom(N,10,tha); table(X)/N.
+- Truncated exp e^{-z}/(1-e^-1) on(0,1): rectangle height 1/(1-e^-1).
+- Hist vs theoretical check.
+- MH RW bivariate: proposal<-rnorm(2,chain[i,],sd); prob<-dbinorm(prop)/dbinorm(cur); if(runif(1)<prob) accept. sd 2.5 accept .46. sd .1: accept high, tiny steps, high autocorr, low ESS. sd 10: accept low, sticky, high autocorr.
+- cumavg=cumsum(chain)/1:n running mean. rho=cor(chain[-n],chain[-1]). ESS n(1-ρ)/(1+ρ).
+- Conditional normal: X1|X2=x2 ~N(μ1+(x2-μ2)σ12/σ2², σ1²-σ12²/σ2²). Gibbs on correlated (2.8) slower.
+- Estimating prob: mean(success), plot cumsum(success)/1:n vs k.
+- CAVI bivariate: q1*=N(μ1-(Λ12/Λ11)(E x2-μ2),1/Λ11), 1/Λ11=σ1²-σ12²/σ2² (cond var) < marginal var: VI underestimates, mean right, misses correlation (2,1.9 very bad; 2,.1 fine).
+- ELBO(q)=∫q[log h-log q] with p=Ch; KL=-ELBO+log C.
+- Review ex: Factor coding reference level; coef exp() = ratio; 45% higher; multiplicative not additive.
+- Poisson: p=n-df; l=p-AIC/2; l_S=l+D/2. LR*=D_A-D_B; s=df diff; crit χ²_{2,.95}=5.991. AIC separate, not a test. Subtract residual deviances not null. 
+- Quasi: t*=β̂/se_Q ~ t_{n-p}; CI β̂ ± t_{n-p,.975} se_Q then exp; F=((D_A-D_B)/s)/φ̂ ~F_{s,n-pB}. t is approximate.
+- Poisson mixture E-step ratio and M-step: π=N_k/n; λ=Στx/N_k; 2nd derivative -Στx/λ²≤0 check; repeat.
+- Poisson mixture can be overdispersed even if each comp var=mean.
+
+# Assignments
+- A1 probit Fisher: I(β)=Σ m_i φ(η_i)²/(Φ(η_i)(1-Φ(η_i))) x_i x_i' = X'WX. (E(Y-mp)=0 kills 2nd term). Var β̂=I^-1. CI for p: η̂0=x0'β̂, se=sqrt(x0'Vx0), Φ(endpoints).
+- A1: 500-unit change: log-odds 500β1; CI 500(β±1.96se); OR exp(500β1) =1.86: odds multiplied by. Association, not causal; species omitted.
+- A1 Q3: Gamma exp fam: θ=-λ/ν=-1/μ, φ=1/ν, b=-log(-θ), a=φ, c=(1/φ-1)log y - log φ/φ - logΓ(1/φ). b'=-1/θ=μ, b''=1/θ²; v(μ)=μ². Var=φμ². R uses 1/μ inverse link.
+- A2 Reef: interaction * ; reference group ; exp(sum of coefs) for interaction cell. e.g. Southern no-take exp(1.126+.304+.402)=6.25 × reference. Additive model = one common ratio.
+- A2: chisq sig (9.40 on 2, p=.009) but after φ̂=5.38, F=.87, p=.42: drop interaction. GOF pchisq(D,df,lower=F). φ̂ differs per model: 5.38 vs 5.40.
+- A2: "t" CI on ratio: exp(β̂ ± qt(.975,df) se) =(1.25,2.49), "76% more".
+- A2: se_q/se_p=sqrt(φ̂)=2.3247 for all.
+- A2: Quasi not fitted by ML; AIC NA; ordinary LR inappropriate; use scaled F; step/drop1 not.
+- A2: Influence: refit without point, compare; retain unless recording error. Dispersion 5.40→4.38: outlier doesn't explain all overdispersion. Observational: association only.
+- A2: Interaction plots: non-parallel → consider interaction.
+- A3 3-comp Poisson mixture: Lagrange ν: L=Q+ν(Σπ-1); π_k=-ΣP/ν; sum: ν=-n. λ_k weighted mean. d²Q/dλ² =-ΣPx/λ²<0.
+- A3 labelled batch from class 2 (n'): π divisor n (unlabelled only), λ2=(ΣP_i2 x_i+Σ_lab x_i)/(ΣP_i2+n'); incomplete ll=Σ log Σ π_k f + Σ_lab log f(x;λ2). log-lik comparisons across different data not valid.
+- A3: decreasing ll = code bug, not data.
+- A4: x~N(75,1/τ), τ~Gamma(2,1): τ|x ~Gamma(a+n/2,b+Σ(x-μ)²/2). Posterior predictive for x̃: t(ν=2a*,a=μ,b=b*/a*) 3-param t. Credible interval by quantiles (5% each tail).
+- A4: two samples N(μ1,1), N(μ2,1/2) with bivariate normal prior: conditional normals; RW MH variance .1²; CAVI normal factors.

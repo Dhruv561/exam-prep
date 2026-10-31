@@ -1,0 +1,189 @@
+% ===================== PAGE 1 =====================
+% ---------- column 1: prerequisites ----------
+\hd{Probability toolkit:} \bh{Total prob:} $P(A)=\sum_k P(A|B_k)P(B_k)$. \bh{Bayes:} \m{P(B_k|A)=P(A|B_k)P(B_k)/\sum_j P(A|B_j)P(B_j)}. \bh{Joint:} $p(x,z)=p(x|z)p(z)$. \bh{Marginal:} $p(x)=\int p(x,z)\,dz$ (or $\sum_z$). \bh{Conditional indep.} given $\theta$: $p(\tilde x|\theta,x)=p(\tilde x|\theta)$. \bh{Indicator:} \m{\E[I(A)]=P(A)}.
+\sk\bh{Tower:} $\E X=\E[\E(X|Z)]$. \bh{Total variance:} $\Var X=\E[\Var(X|Z)]+\Var[\E(X|Z)]$. \bh{Linear:} $\Var(aX+bY)=a^2\Var X+b^2\Var Y+2ab\Cov(X,Y)$; \m{\Var(t\T\hth)=t\T Vt}; $\Var(AY)=A\Var(Y)A\T$.
+\sk\bh{Square trick (CAVI):} \m{\E[(c-\mu)^2]=(c-\E\mu)^2+\Var\mu}, so $\E[\mu^2]=(\E\mu)^2+\Var\mu$.
+\sk\bh{Jensen:} $f$ convex $\Rightarrow\E f(X)\ge f(\E X)$. Log is concave: $\log\E Y\ge\E\log Y$, equal iff $Y$ is constant.
+\sk\bh{Invariance:} MLE of $g(\theta)$ is $g(\hth)$. \bh{Delta:} $g(\hth)\approx\Nor(g(\theta),g'(\theta)^2I(\theta)\inv)$. \bh{Taylor:} $g(Y)\approx g(\mu)+(Y-\mu)g'(\mu)$.
+\sk\bh{Integrals:} $\int_0^\infty x^{a-1}e^{-bx}dx=\Gamma(a)/b^a$; $\int_0^1x^{a-1}(1-x)^{b-1}dx=B(a,b)=\Gamma(a)\Gamma(b)/\Gamma(a+b)$; $\Gamma(a+1)=a\Gamma(a)$; $\Gamma(n)=(n-1)!$; $\Gamma(\tfrac12)=\sqrt\pi$.
+\sk\bh{Inverse:} $\begin{psmallmatrix}a&b\\c&d\end{psmallmatrix}\inv=\frac1{ad-bc}\begin{psmallmatrix}d&-b\\-c&a\end{psmallmatrix}$. \bh{Odds:} $o=\frac p{1-p}$, $p=\frac o{1+o}$.
+\sk\bh{Complete the square:} $-\frac A2\mu^2+B\mu$ is the kernel of \m{\Nor(B/A,\ 1/A)}. \warn{Course log = ln: press \textbf{ln} on the FX-82, not log.} Round final answers to 2dp.
+\bx
+\hd{Distributions NOT on formula sheet:}\par
+{\renewcommand{\arraystretch}{1.08}%
+\begin{tabular}{@{}|p{27pt}|p{54pt}|p{45pt}|@{}}\hline
+\rowcolor{hdr}Name&pmf / pdf&Mean; Variance\\\hline
+Bin$(m,p)$&$\binom mxp^x(1-p)^{m-x}$&$mp$;\ $mp(1-p)$\\\hline
+Geo $x{\ge}1$&$p(1-p)^{x-1}$&$1/p$;\ $(1-p)/p^2$\\\hline
+Geo $x{\ge}0$&$p(1-p)^x$&$(1-p)/p$;\ $(1-p)/p^2$\\\hline
+NB$(r,p)$&$\binom{x+r-1}{x}p^r(1-p)^x$&$\frac{r(1-p)}p$;\ $\frac{r(1-p)}{p^2}$\\\hline
+Beta$(a,b)$&$\frac{x^{a-1}(1-x)^{b-1}}{B(a,b)}$&$\frac a{a+b}$;\ $\frac{ab}{(a+b)^2(a+b+1)}$\\\hline
+\end{tabular}}
+\sk\bh{Variances the sheet omits:} Exp(rate $\lambda$) $1/\lambda^2$; Gamma$(a,\text{rate }b)$ $a/b^2$; InvGamma$(a,b)$ $\frac{b^2}{(a-1)^2(a-2)}$ ($a>2$); Poisson $\lambda$.
+\sk\bh{Gamma extras:} $\E[1/X]=b/(a-1)$ ($a>1$); \m{\E[\log X]=\psi(a)-\log b}, $\psi=\Gamma'/\Gamma$. \warn{Scale form:} $x^{a-1}e^{-x/b}/(\Gamma(a)b^a)$ has mean $ab$. \m{\tau\sim\Ga(a,b)\iff1/\tau\sim\IG(a,b)}; if $\sigma^2\sim\IG(a,b)$, $\E[1/\sigma^2]=a/b$.
+\sk\bh{Bivariate Normal:} $f(x)=\frac{1}{2\pi|\Sigma|^{1/2}}\exp\{-\frac12(x-\mu)\T\Sigma\inv(x-\mu)\}$. \m{X_1|X_2{=}x_2\sim\Nor(\mu_1+(x_2-\mu_2)\sigma_{12}/\sigma_2^2,\ \sigma_1^2-\sigma_{12}^2/\sigma_2^2)}.
+\sk\bh{Facts:} $Z^2\sim\chi^2_1$; sum of $k$ indep. $Z^2\sim\chi^2_k$ (mean $k$, var $2k$); $Z/\sqrt{U/r}\sim t_r$; $(U/m)/(V/n)\sim F_{m,n}$; $t_\nu^2\sim F_{1,\nu}$. $\sum$ Pois$(\lambda_i)$ is Pois$(\sum\lambda_i)$; $\sum_1^n$Exp$(\lambda)$ is Gamma$(n,\lambda)$.
+\sk\bh{Critical values:} $z$: 1.645 (90\%), \textbf{1.96} (95\%), 2.576 (99\%). $\chi^2_{df}(.95)$: df 1: \textbf{3.84}, 2: 5.99, 3: 7.81, 4: 9.49, 5: 11.07, 6: 12.59, 8: 15.51, 10: 18.31. $\chi^2_{df}(.99)$: 1: 6.63, 2: 9.21, 3: 11.34. $\Phi(1)=.84$, $\Phi(2)=.98$. $t_{60}(.975)=2.00$.
+\bx
+\hd{Confidence intervals:} estimate $\pm$ critical value $\times$ SE. \bh{Pivot:} function of data and $\theta$ with fully known distribution.
+\sk{\renewcommand{\arraystretch}{1.1}%
+\begin{tabular}{@{}|p{38pt}|p{92pt}|@{}}\hline
+\rowcolor{hdr}Want&95\% CI\\\hline
+$\mu$, $\sigma$ known&$\bar x\pm z\,\sigma/\sqrt n$\\\hline
+$\mu$, $\sigma$ unk.&$\bar x\pm t_{n-1}\,s/\sqrt n$\\\hline
+$\mu_X{-}\mu_Y$, equal var&$\bar x-\bar y\pm t_{n+m-2}\,s_p\sqrt{1/n+1/m}$\\\hline
+$p$&$\hat p\pm z\sqrt{\hat p(1-\hat p)/n}$\\\hline
+$\sigma^2$ ($\chi^2_{n-1}$ $c$)&$[(n-1)s^2/c_{.975},\ (n-1)s^2/c_{.025}]$\\\hline
+New $X^*$ (PI)&$\bar x\pm t_{n-1}\,s\sqrt{1+1/n}$\\\hline
+\end{tabular}}
+\sk\bh{Say:} “If we repeated this, 95\% of such intervals would contain the true value.” \warn{Do not say} “95\% chance $\theta$ is in this interval” (that is a Bayesian credible interval). CI excludes 0 (or 1 for a ratio) $\iff$ reject $H_0$ at 5\%.
+\bx
+\hd{Hypothesis tests:} $H_0$: no effect. $H_1$: effect. \bh{Test statistic:} known distribution under $H_0$. Reject if statistic beyond critical value, or $p<\alpha$. \bh{p-value:} P(result at least this extreme $|\ H_0$ true), \warn{not} P($H_0$ true). \bh{Type I:} reject true $H_0$ (prob $\alpha$). \bh{Type II:} keep false $H_0$ (prob $\beta$). \bh{Power:} $1-\beta$. Write “reject” or “insufficient evidence to reject”, \warn{never “accept”}. $\chi^2$ and $F$ tests are right-tailed. Statistical $\ne$ practical significance.
+\bx
+\hd{Estimators:} \bh{Bias} $=\E\hth-\theta$. \bh{MSE} $=\Var\hth+$ Bias$^2$. \bh{Unbiased:} Bias 0. \bh{Consistent:} $\hth\to\theta$ as $n\to\infty$. \bh{Standard error:} estimated sd of $\hth$. \bh{Precision:} 1/variance. $\bar X\sim\Nor(\mu,\sigma^2/n)$, and approximately so for large $n$ by the CLT. $(n-1)S^2/\sigma^2\sim\chi^2_{n-1}$ for Normal data.
+\bx
+\hd{Model terms:} \bh{Nested:} A comes from B by constraining parameters (usually to 0). \bh{Factor} with $L$ levels: $L-1$ dummies vs reference level; test it by one LRT on $L-1$ df, not its separate $z$ values. `x1*x2` $=$ `x1+x2+x1:x2`. `I(x^2)`: quadratic term. Coefficients mean “holding other predictors fixed”. Observational data show \bh{association, not causation}. A predictor can flip sign when correlated with others: it is “not significant in the presence of the others”.
+\par\columnbreak
+% ---------- column 2: MLE, binomial ----------
+\hd{Likelihood:} independent $Y_i$ with densities $f_i(\cdot;\theta)$ (may depend on covariates): \m{l(\theta)=\sumi\log f_i(y_i;\theta)}. MLE $\hth$ maximises $l$.
+\sk\bh{Score:} $U(\theta)=\partial l/\partial\theta$. \bh{Observed information:} \m{J(\theta)=-\partial^2l/\partial\theta\,\partial\theta\T=-H}, depends on $y$. \bh{Fisher information:} \m{I(\theta)=\E J(\theta;Y)}, no $y$. This is the whole sample ($n\times$ one-obs info if iid). Bigger information = sharper curvature = smaller variance.
+\sk\bh{Asymptotics} ($n\to\infty$, $\theta^*$ true): \bh{Consistent:} $P(|\hth-\theta^*|>\epsilon)\to0$. \bh{Normal:} \m{\hth\approx\Nor(\theta^*,I(\theta^*)\inv)}. \bh{Efficient:} asymptotically unbiased with smallest variance $I(\theta^*)\inv$.
+\sk\bh{Regularity:} $l$ smooth (3rd derivatives exist, continuous, bounded expectation); support of $Y$ free of $\theta$; parameter space finite-dimensional, free of $Y$; $\theta^*$ not on boundary.
+\sk\kw{Q1 recipe:} (a) $l$. (b) $l'$, $l''$; \m{I=-\E[l'']}, replace $\sum x_i$ by $n\E X$ if data remain. (c) Solve $l'=0$, check $l''<0$, state $\hth\approx\Nor(\theta,1/I(\theta))$.
+\sk{\renewcommand{\arraystretch}{1.1}%
+\begin{tabular}{@{}|p{46pt}|p{44pt}|p{38pt}|@{}}\hline
+\rowcolor{hdr}iid $X_i\sim$&MLE&$I(\theta)$\\\hline
+Exp(rate $\lambda$)&$1/\bar x$&$n/\lambda^2$\\\hline
+Exp(mean $\lambda$)&$\bar x$&$n/\lambda^2$\\\hline
+Poisson$(\lambda)$&$\bar x$&$n/\lambda$\\\hline
+$\Nor(\mu_0,1/\tau)$&$n/\sum(x_i-\mu_0)^2$&$n/(2\tau^2)$\\\hline
+$\Nor(\mu_0,\sigma^2)$&$\sum(x_i-\mu_0)^2/n$&$n/(2\sigma^4)$\\\hline
+$\Nor(\mu,\sigma_0^2)$&$\bar x$&$n/\sigma_0^2$\\\hline
+Bin$(m,p)$&$\bar x/m$&$\frac{nm}{p(1-p)}$\\\hline
+Geom $x\ge1$&$1/\bar x$&$\frac{n}{p^2(1-p)}$\\\hline
+Gamma($a$ kn.$,\lambda$)&$a/\bar x$&$na/\lambda^2$\\\hline
+$\kappa(1+x)^{-\kappa-1}$&$n/\sum\log(1+x_i)$&$n/\kappa^2$\\\hline
+NegBin$(r,1{-}p)$, one $y$&$y/(y+r)$&$\frac{r}{p(1-p)^2}$\\\hline
+\end{tabular}}
+\bx
+\hd{Wald CI for $t\T\theta$:} \m{\hth\approx\Nor(\theta^*,I(\hth)\inv)}, so \m{t\T\hth\pm z_\alpha\sqrt{t\T I(\hth)\inv t}}, $\Phi(z_\alpha)=1-\alpha/2$. Unit vector $t$: $\hth_i\pm z_\alpha\sqrt{[I(\hth)\inv]_{ii}}$. No $I$? Use $J(\hth;y)$.
+\sk\hd{LR confidence region:} $\{\theta:2l(\hth)-2l(\theta)\le\chi^2_k(1-\alpha)\}$, $k=\dim\theta$. Better than the Normal approximation for small $n$.
+\sk\hd{Wald test:} $H_0:\beta_j=0$. \m{z^*=\hb_j/\mathrm{se}(\hb_j)\sim\Nor(0,1)} under $H_0$. Reject if $|z^*|>1.96$.
+\sk\hd{LRT:} Reduced R nested in Full F, $k$ fewer parameters. \m{LR^*=-2[\log L(\hth^R)-\log L(\hth^F)]\sim\chi^2_k} under R. If $LR^*>\chi^2_k(1-\alpha)$ reject R, pick F.
+\sk\bh{Wald vs LRT:} asymptotically equivalent ($z^{*2}\approx\chi^2_1$), but the $\chi^2$ approximation to the LR is generally better, so \kw{prefer LRT}.
+\bx
+\hd{Binomial regression:} $Y_i\sim\mathrm{bin}(m_i,p_i)$ independent, $m_i$ known (binary: $m_i=1$), \m{g(p_i)=\eta_i=x_i\T\beta}. Linear $p=\beta_0+\beta_1t$ fails because $0\le p\le1$ is needed.
+\sk\bh{Logit:} \m{\eta=\log\frac p{1-p}}, $p=\frac{e^\eta}{1+e^\eta}=\frac1{1+e^{-\eta}}$. \bh{Probit:} $\eta=\Phi\inv(p)$, $p=\Phi(\eta)$. \bh{Cloglog:} $\eta=\log(-\log(1-p))$, $p=1-e^{-e^\eta}$.
+\sk\bh{Logistic curve} $\eta=\beta_0+\beta_1t$: $p=\frac12$ at $t=-\beta_0/\beta_1$ (location), slope there $\beta_1/4$ (steepness).
+\dm{l(\beta)=c+\sumi\big[y_i\log\tfrac{p_i}{1-p_i}+m_i\log(1-p_i)\big]}
+Logit: $l=c+\sumi[y_i\eta_i-m_i\log(1+e^{\eta_i})]$. No closed form: use `optim` or IWLS.
+\sk\bh{Logit information:} $J=I=X\T WX$, $W=\mathrm{diag}(m_ip_i(1-p_i))$ (no $y_i$ left). One predictor:
+\dm{I(\beta)=\begin{pmatrix}\sum m_ip_iq_i&\sum m_ix_ip_iq_i\\\sum m_ix_ip_iq_i&\sum m_ix_i^2p_iq_i\end{pmatrix},\ q_i=1-p_i}
+\bh{Probit:} $I=X\T WX$, $W_{ii}=m_i\varphi(\eta_i)^2/[\Phi(\eta_i)(1-\Phi(\eta_i))]$.
+\sk\bh{Predict at $x_0$:} $\heta_0=x_0\T\hb$, $\hat p_0=g\inv(\heta_0)$.
+\sk\kw{CI for $p$:} $p$ is not linear in $\beta$, so (1) CI for $\eta$: \m{\heta_0\pm1.96\sqrt{x_0\T Vx_0}}, $V=I(\hb)\inv$; one predictor $x_0\T Vx_0=V_{11}+2x_0V_{12}+x_0^2V_{22}$. (2) Apply $g\inv$ to both ends ($g$ monotone).
+\sk\kw{Odds:} $\log o=\eta$. Change $x_j$ by $\Delta$: \m{OR=e^{\Delta\beta_j}}, CI \m{\exp\{\Delta(\hb_j\pm1.96\,\mathrm{se})\}} (swap ends if $\Delta<0$). Several $x$ change by vector $d$: $\log OR=d\T\hb$, se $=\sqrt{d\T Vd}$.
+\sk\bh{Classify:} $\hat p\ge$ cutoff; trade off false positives and negatives by cost (screening: fewer false negatives).
+\bx
+\hd{Deviance:} \bh{Saturated S:} one parameter per observation, $\hmu_i=y_i$. \bh{Null:} intercept only. \bh{Scaled deviance:} \m{D^A/\phi=-2\log[L(\hb_A)/L(S)]=2(l_S-l_A)}. \bh{Deviance} is $D^A=\sum d_i$. Binomial and Poisson: $\phi=1$, same thing. $D_{null}-D_{res}$ = improvement from predictors.
+\sk\bh{Why (Poisson):} $l_S=\sum[y_i\log y_i-y_i-\log y_i!]$, $\hat l=\sum[y_i\log\hmu_i-\hmu_i-\log y_i!]$; double the gap.
+\sk{\renewcommand{\arraystretch}{1.1}%
+\begin{tabular}{@{}|p{24pt}|p{106pt}|@{}}\hline
+\rowcolor{hdr}Model&$d_i$ ($0\log0=0$)\\\hline
+Normal&$(y_i-\hmu_i)^2$ (= SSE in LM)\\\hline
+Poisson&$2[y_i\log(y_i/\hmu_i)-(y_i-\hmu_i)]$\\\hline
+Binomial&$2[y_i\log\frac{y_i}{\hmu_i}+(m_i-y_i)\log\frac{m_i-y_i}{m_i-\hmu_i}]$\\\hline
+Gamma&$2[-\log(y_i/\hmu_i)+(y_i-\hmu_i)/\hmu_i]$\\\hline
+\end{tabular}}
+\par
+% ---------- column 3: adequacy, exp fam, GLM ----------
+\kw{Adequacy (goodness of fit), $\phi=1$ only:} $H_0$: fitted model adequate. If $m_ip_i,\ m_i(1-p_i)\ge5$ (binomial) or $\lambda_i\ge5$ (Poisson) then \m{D\approx\chi^2_{n-p}}, $p$ including $\beta_0$. Reject if $D>\chi^2_{n-p}(.95)$; rough check $D\approx df$. \warn{Saturated model has $n$ parameters (not fixed), so ML theory does not apply: $D$ need not be $\chi^2$.} Small $m_i$ or counts (binary $m_i=1$ especially): no adequacy test, $\Delta D$ still fine. Normal, Gamma, IG: $\phi$ estimated, cannot test adequacy.
+\sk\bh{Lack of fit} may be overdispersion, wrong mean or missing interaction: check residuals vs $\heta$ first.
+\sk\kw{Nested:} A in B, $s$ extra parameters. \m{(D^A-D^B)/\phi=-2[l_A-l_B]}, $l_S$ cancels. $\phi=1$: $D^A-D^B\approx\chi^2_s$. $\phi$ unknown: $F$ test (see Overdispersion). \warn{Subtract residual deviances, not null deviances.}
+\sk\kw{AIC (non-nested too):} \m{AIC=2p-2\hat l}, smaller is better, same data only, not a test. B has $s$ more parameters: \m{AIC_B-AIC_A=2s-(D_A-D_B)/\phi} (exact for $\phi=1$).
+\sk\kw{From R output:} \m{p=n-}residual df; $n=$ null df $+1$. $\phi=1$: \m{\hat l=p-AIC/2}, \m{l_S=\hat l+D/2} (same $l_S$ for every model on those data). Gamma, Normal: R's AIC counts $\phi$, so $\hat l=(p+1)-AIC/2$.
+\bx
+\hd{Exponential family:} \m{f(y;\theta,\phi)=\exp\big[\frac{y\theta-b(\theta)}{a(\phi)}+c(y,\phi)\big]}. $\theta$ canonical (location), $\phi$ dispersion (scale). Form not unique. Convention $a(\phi)=\phi$.
+\sk\m{\E Y=b'(\theta)}, \m{\Var Y=b''(\theta)a(\phi)=v(\mu)a(\phi)}. \bh{Variance function} \m{v(\mu)=b''((b')\inv(\mu))}: how spread changes with mean. \bh{Canonical link} \m{g=(b')\inv}, $g(\mu)=\theta$.
+\sk\bh{Proof:} $\int f\,dy=1$. Differentiate in $\theta$: $\E[(Y-b')/a]=0$, so $\E Y=b'$. Again: $\E[(Y-b')^2/a^2]-b''/a=0$, so $\Var Y=b''a$.
+\sk\kw{Recipe:} write $\log f$; find $y\times$(something) $=\theta/a$; the term with no $y$ gives $-b/a$; leftovers $c$. Write $b$ in $\theta$ only. \warn{Check $b'(\theta)=\mu$.} State all of $\theta,\phi,a,b,c$. \warn{Not exp family} if the support depends on $\theta$, or the parameter multiplies $y^2$, $\log y$ or $e^y$ rather than $y$.
+\li\bh{Normal:} $\theta=\mu$, $\phi=\sigma^2$, $b=\theta^2/2$, $c=-\frac12(\frac{y^2}\phi+\log2\pi\phi)$; $g=\mu$, $v=1$.
+\li\bh{Poisson:} $\theta=\log\lambda$, $\phi=1$, $b=e^\theta$, $c=-\log y!$; $g=\log\mu$, $v=\mu$.
+\li\bh{Binomial:} $\theta=\log\frac p{1-p}$, $\phi=1$, $b=m\log(1+e^\theta)$, $c=\log\binom my$; $g=\log\frac\mu{m-\mu}$, $v=\mu(1-\mu/m)$.
+\li\bh{Gamma$(\nu,\lambda)$:} $\theta=-\lambda/\nu=-1/\mu$, $\phi=1/\nu$, $b=-\log(-\theta)$, $c=(\frac1\phi-1)\log y-\frac{\log\phi}\phi-\log\Gamma(\frac1\phi)$; $g=-1/\mu$ (R: $1/\mu$), $v=\mu^2$, $\Var Y=\phi\mu^2$.
+\li\bh{Exponential$(\lambda)$:} $\theta=-\lambda$, $\phi=1$, $b=-\log(-\theta)$, $c=0$; $g=-1/\mu$, $v=\mu^2$. $\mu=-1/\eta$ needs $\eta<0$, so canonical link can fail: use log. $\phi$ known: $\chi^2$ tests.
+\li\bh{Inverse Gaussian:} $\theta=-\frac1{2\mu^2}$, $\phi=1/\lambda$, $b=-\sqrt{-2\theta}$, $c=-\frac12[\log(2\pi\phi y^3)+\frac1{\phi y}]$; $g=-\frac1{2\mu^2}$ (R: $1/\mu^2$), $v=\mu^3$.
+\li\bh{Weibull,} $k$ known: $Y=X^k\sim$ Exp(rate $\lambda^k$).
+\bx
+\hd{GLM:} $Y$ from exponential family and \m{\mu=\E Y=g\inv(x\T\beta)}; $g$ monotone differentiable link. We model location $\eta=x\T\beta$; scale sorts itself out. Canonical link: $\theta_i=x_i\T\beta$.
+\sk\bh{Fitted mean:} log link $e^\eta$; logit $me^\eta/(1+e^\eta)$; identity $\eta$; inverse $1/\eta$.
+\sk\bh{Newton-Raphson:} $x_{n+1}=x_n-f'(x_n)/f''(x_n)$; \m{\theta^{n+1}=\theta^n-H(\theta^n)\inv U(\theta^n)}. \bh{Fisher scoring:} replace $J$ by $I$ (positive definite): \m{\theta^{n+1}=\theta^n+I(\theta^n)\inv U(\theta^n)}. Equal under a canonical link.
+\sk\bh{Score:} $U_j=\sumi\frac{(y_i-\mu_i)x_{ij}}{a(\phi)v(\mu_i)g'(\mu_i)}$. Canonical link: $X\T(y-\hmu)=0$, so $\sum\hmu_i=\sum y_i$ with an intercept.
+\sk\bh{WLS:} $Y=X\beta+\varepsilon$, $\varepsilon\sim\Nor(0,\Sigma)$: $\hb=(X\T\Sigma\inv X)\inv X\T\Sigma\inv y$.
+\sk\bh{Idea:} $g(Y_i)\approx Z_i=g(\mu_i)+(Y_i-\mu_i)g'(\mu_i)=x_i\T\beta+\varepsilon_i$, $\Var\varepsilon_i=g'(\mu_i)^2v(\mu_i)a(\phi)$, diagonal $\Sigma$. Depends on $\beta$, so iterate.
+\sk\kw{IWLS:} (1) $\hmu^0=y$. (2) \m{z_i=g(\hmu_i)+(y_i-\hmu_i)g'(\hmu_i)}, \m{W_{ii}=1/[g'(\hmu_i)^2v(\hmu_i)]}. (3) \m{\hb=(X\T WX)\inv X\T Wz}, $\hmu_i=g\inv(x_i\T\hb)$. (4) Repeat until $\hb$ stable. $a(\phi)$ cancels. Same as Fisher scoring. Needs only $g$, $v$.
+\sk{\renewcommand{\arraystretch}{1.08}%
+\begin{tabular}{@{}|p{34pt}|p{54pt}|p{40pt}|@{}}\hline
+\rowcolor{hdr}Family, link&$z_i$&$W_{ii}$\\\hline
+Poisson, log&$\eta+(y-\mu)/\mu$&$\mu$\\\hline
+Binom, logit&$\eta+\frac{(y-\mu)m}{\mu(m-\mu)}$&$\mu(m-\mu)/m$\\\hline
+Gamma, log&$\eta+(y-\mu)/\mu$&1\\\hline
+\end{tabular}}
+\sk\bh{Variance:} \m{\Var\hb=(X\T\hat\Sigma\inv X)\inv}, $\hat\Sigma_{ii}=g'(\hmu_i)^2v(\hmu_i)a(\hphi)$. $a(\phi)$ does \warn{not} cancel here.
+\sk\bh{Estimate $\phi$:} \m{\hphi=X^2/(n-p)}, Pearson \m{X^2=\sumi(y_i-\hmu_i)^2/v(\hmu_i)}. Consistent. \warn{Not} $D/(n-p)$. If $\phi=1$ and the model is adequate, $X^2\approx\chi^2_{n-p}$.
+\sk\kw{Rate model:} $Y_i\sim$ Pois$(\lambda_i)$, $\lambda_i\propto t_i$: \m{\log\lambda_i=\log t_i+x_i\T\beta}. `offset(log(t))` fixes the coefficient of $\log t$ at 1 (uses no df). $e^{\beta}$ = rate ratio; $\hat\lambda=t\,e^{x\T\hb}$.
+\sk\kw{Gamma GLM:} `Gamma(link="log")` etc. $\phi$ estimated, so $t$ and $F$. $\mathrm{sd}/\mu=\sqrt\phi$. Pick link by plotting $g(y)$ vs $x$.
+\par
+% ---------- column 4: diagnostics, overdispersion, codes ----------
+\hd{Residuals:} \bh{Response:} $y_i-\hmu_i$; not homoskedastic unless $v$ constant. \bh{Pearson:} \m{r_P(i)=(y_i-\hmu_i)/\sqrt{v(\hmu_i)}}, $\sum r_P^2=X^2$. \bh{Deviance:} \m{r_D(i)=\mathrm{sign}(y_i-\hmu_i)\sqrt{d_i}}, $\sum r_D^2=D$ (R default).
+\sk\bh{Leverage:} \m{H=X(X\T\hat\Sigma\inv X)\inv X\T\hat\Sigma\inv}, $H_{ii}$ measures potential influence (unusual $x$; also depends on IWLS weight), no $\phi$. $\sum H_{ii}=p$: rule of thumb, flag $>2p/n$. Large leverage need not mean actual influence.
+\sk\bh{Studentised:} $\Var(Z-\hat Z)=(I-H)\Sigma$, so \m{r_{SP}=r_P/\sqrt{(1-H_{ii})\hphi}}, \m{r_{SD}=r_D/\sqrt{(1-H_{ii})\hphi}}. Unit variance after adjusting for leverage. $\pm$: above/below fit.
+\sk\bh{Jack-knife:} change in $\hmu_i$ when $y_i$ removed (outliers): \m{\mathrm{sign}(y_i-\hmu_i)\sqrt{(1-H_{ii})r_{SD}^2+H_{ii}r_{SP}^2}}.
+\sk\bh{Cook:} change in the whole fit when $i$ removed: \m{(\hb_{(i)}-\hb)\T X\T\hat\Sigma\inv X(\hb_{(i)}-\hb)/p\approx r_{SP}^2H_{ii}/[p(1-H_{ii})]}.
+\sk\bh{Half-normal plot:} ordered $|$values$|$ vs $\Phi\inv(\frac{n+i}{2n+1})$. Smooth = fine; \warn{jump or kink in tail = problem}. Need not be straight.
+\sk\bh{$r_D$ vs $\heta$:} no trend, even spread is good. Trend or curve: wrong mean. Fan: wrong variance. \bh{Banding:} discrete counts, not a problem; use a smoother.
+\sk\bh{Linearity:} plot $g(y)$ or $z$ vs each $x_j$: want straight. Fix by transforming $x$, \warn{not $y$} (breaks distribution of $Y$).
+\sk\bh{Influential point:} refit without it, compare $\hb$, $D$, $\hphi$. Typically keep unless a recording error.
+\bx
+\hd{Overdispersion:} actual $\Var Y_i$ larger than the model says. \bh{Causes:} binomial: dependent trials or $p$ changing trial to trial. Poisson: dependent events or non-constant rate.
+\sk\bh{Detect:} $D\gg df$, GOF $p$ tiny, $\hphi\gg1$ (no universal cutoff). Rule out wrong mean and outliers first.
+\sk\kw{If ignored:} $\hb$ unaffected, but SEs too small, $z$ too big, $p$-values too small, CIs too narrow: spurious significant predictors, too big a model.
+\sk\bh{Fixes:} quasi-likelihood; different model (Poisson with Gamma rate gives NegBin, $\Var=\mu+\mu^2/\nu$); Bayes: random effect in $\eta$.
+\sk\hd{Quasi-likelihood:} specify only $g(\mu_i)=x_i\T\beta$, $\E Y_i=\mu_i$, $\Var Y_i=\phi v(\mu_i)$; no distribution. Score \m{u_i=\frac{Y_i-\mu_i}{\phi v(\mu_i)}}: $\E u=0$, $\Var u=\frac1{\phi v}$, $-\E\frac{\partial u}{\partial\mu}=\frac1{\phi v}=\E u^2$, same as $\partial\log L/\partial\mu$.
+\dm{Q_i=\int_{y_i}^{\mu_i}\frac{y_i-t}{\phi v(t)}dt,\quad Q=\sumi Q_i}
+$\partial Q_i/\partial\mu_i=u_i$. $Q$ need not be a real log-density. $\hb$ is consistent and asymptotically Normal as for MLE, but less efficient: use the distribution if known.
+\sk\bh{Quasi-deviance:} saturated $Q=0$, so scaled $D_Q/\phi=-2\sum Q_i$, \m{D_Q=-2\sumi\int_{y_i}^{\mu_i}\frac{y_i-t}{v(t)}dt}.
+\sk\bh{Quasi-Poisson:} $v=\mu$, $Q_i=\frac1\phi[y_i\log\mu_i-\mu_i]$ + const. \bh{Quasi-binomial:} $v=\mu(m-\mu)/m$, $Q_i=\frac1\phi[y_i\log\frac{\mu_i}{m_i-\mu_i}+m_i\log(m_i-\mu_i)]$ + const. $\phi$ cancels in IWLS, so \kw{same $\hb$, $\hmu$, $D$} as Poisson/binomial.
+\sk\bh{Numeric $Q_i$ (definite integral, $\le0$):} $v=\mu$: $\phi Q_i=y\log\frac\mu y-(\mu-y)$. $v=\mu(m-\mu)/m$: $y\log\frac\mu y+(m-y)\log\frac{m-\mu}{m-y}$. $v=\mu^2$: $1-\frac y\mu+\log\frac y\mu$. $v=\mu^3$: $-\frac{(y-\mu)^2}{2y\mu^2}$.
+\sk\kw{SE:} \m{\mathrm{se}_Q=\sqrt{\hphi}\ \mathrm{se}_P}, $\hphi$ of \warn{that same model}; reverse: $\mathrm{se}_P=\mathrm{se}_Q/\sqrt{\hphi}$. Estimate never changes.
+\sk\bh{Coefficient:} \m{t^*=\hb/\mathrm{se}_Q\approx t_{n-p}}; CI $\hb\pm t_{n-p}(.975)\mathrm{se}_Q$ (1.96 if no $t$ given), exp for ratio.
+\sk\kw{Nested $F$:} \m{F=\frac{(D_A-D_B)/s}{\hphi}\approx F_{s,\,n-p_B}}, \warn{$\hphi$ from the BIG model B}. No adequacy test, no $\chi^2$, AIC is NA (no likelihood), `step`/`drop1` do not work. Exact for Normal (LM $F$ test), approximate otherwise.
+\sk\bh{New data type:} choose link and $v$ from mean-variance (e.g. proportions: logit, $\mu(1-\mu)$), fit IWLS, $\hphi$ from Pearson. $\hphi<1$ (underdispersion) is allowed. iid mean $\lambda$, var $\phi\lambda$: $\hat\lambda=\bar y$, $\hphi=\frac{\sum(y_i-\bar y)^2}{\bar y(n-1)}$.
+\bx
+\hd{Degrees of freedom:} null $n-1$; residual, GOF $\chi^2$, Wald $t$: $n-p$; LRT $\chi^2$: $s$ = difference in residual df; quasi $F$: $(s,n-p_B)$; factor: $L-1$; interaction of two factors: $(L_1-1)(L_2-1)$.
+\bx
+\hd{Maid Mast Codes PT1: GLM}\par
+`glm(cbind(y,m-y)~x, family=binomial, d)`: grouped binomial. `family=poisson`, `quasipoisson`, `quasibinomial`, `Gamma(link="log")`. `subset=-25` drops row 25.
+\li\bh{Estimate} $\hb_j$; \bh{Std. Error} $\sqrt{[I(\hb)\inv]_{jj}}$; \bh{z value} = Est/SE; \bh{Pr(>|z|)} two-sided. $t$ if $\phi$ estimated.
+\li\bh{Dispersion:} 1 or $X^2/(n-p)$. \bh{Null deviance} on $n-1$; \bh{Residual deviance} on $n-p$. \bh{AIC}. \bh{Fisher Scoring iterations:} IWLS steps.
+\li`anova(A,B,test="Chisq")`: Resid.Df, Resid.Dev, Df $=s$, Deviance $=\Delta D$. `test="F"` on quasi or Gamma fits adds $F$ (\warn{plain Poisson/binomial: $\Delta D/s$, ignores overdispersion}). `anova(m,test="Chi")`: terms added in order.
+\li`anova(A,B,dispersion=phi,test="F")` on binomial fits: same $F$ as quasi, but $p$ uses $F_{s,\infty}$.
+\li`step(m)`: each row is the model after that change; drop the term with lowest AIC if below `<none>`; stops when `<none>` lowest.
+\li`sum(residuals(m,type="pearson")^2)/m$df.residual` $=\hphi$.
+\li`pchisq(D,df,lower.tail=FALSE)` $=P(\chi^2_{df}>D)$. `predict(m,newdata=list(x=1),type="response")`: $\hmu$ (\warn{`cbind` binomial: $\hat p$, multiply by $m$}; same for `fitted`; offset: `newdata` needs $t$). `type="link",se.fit=TRUE`: $\heta$, se. `rstudent` jack-knife (exact if $\phi=1$); `influence(m)$hat`; `cooks.distance`; `halfnorm`.
+\li`optim(start,logL,control=list(fnscale=-1))` maximises $l$; start values matter.
+\li`summary(m,dispersion=phi)` rescales SEs. Old papers: `drop1(m,scale=phi,test="F")`, its $F$ uses $D/(n-p)$, not Pearson.
+\li`vcov(m)` $=V$ (quasi includes $\hphi$); `rstandard(m)` $=r_{SD}$; `hatvalues(m)` $=H_{ii}$.
+\li`z<-predict(m)+(y-mu)/mu`: linearised response, log link.
+\li`dnorm(x,mean,sd)`, `rnorm(n,mean,sd)` take \warn{sd}. `rgamma(n,shape,rate)`.
+\bx
+\hd{Interpretation lines:} \bh{Log link:} “Holding other predictors fixed, a 1-unit rise in $x$ multiplies the expected count by $e^{\hb}$, a $100(e^{\hb}-1)$\% change.” \bh{Logit:} same for the \warn{odds}, not the probability. \bh{Identity:} adds $\hb$. \bh{Inverse:} $1/\mu$ rises by $\hb$, so $\hb>0$ lowers $\mu$. \bh{Factor:} “relative to the reference level”. \bh{$\log x$ with log link:} doubling $x$ multiplies $\mu$ by $2^{\hb}$. \bh{Interaction:} the effect of one predictor depends on the other; a cell vs baseline is $\exp$(its main effects + interaction); add the intercept for the cell mean.
+\bx
+\hd{Hard subquestions (R output):}
+\li\bh{Which model, 2 quantitative reasons:} smaller AIC, and $\Delta D>\chi^2_s(.95)$ rejects the smaller one.
+\li\bh{2 reasons overdispersed:} $D\gg df$ and $\hphi\gg1$.
+\li\bh{Why $F$, $t$ not $\chi^2$, $z$:} $\phi$ unknown, estimated by $\hphi$.
+\li\bh{Poisson vs quasi-Poisson:} Poisson fixes $\Var Y=\mu$. Quasi keeps the same mean model, sets $\Var Y=\phi\mu$ with $\phi$ estimated from Pearson and assumes no distribution. Same $\hb$; SEs $\times\sqrt{\hphi}$; tests become $t$, $F$; no AIC.
+\li\bh{Interaction tested twice:} $z$ from Fisher information $\sim\Nor(0,1)$, and $\Delta D\sim\chi^2_1$. Prefer $\Delta D$.
+\li\bh{Linear assumption evidence:} $\log(y/t)$ vs $x$ straight; interaction plot parallel lines = no interaction.
+\li\bh{Outlier:} clear point in half-normal Cook/jack-knife plot. Refit, re-check $\hphi$: overdispersion typically remains.
