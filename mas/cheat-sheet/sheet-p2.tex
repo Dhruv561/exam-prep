@@ -1,6 +1,5 @@
-% ===================== PAGE 2 =====================
-\par\columnbreak
-% ---------- column 5: mixtures and EM ----------
+% ===================== MIXTURES AND EM =====================
+\topic{MIXTURES \& EM}
 \hd{Mixture model:} (1) \m{Z_i\sim\mathrm{Categorical}(\pi_1,\dots,\pi_K)}, $Z_i$ latent label, $\pi_k$ mixture proportions. (2) \m{X_i|Z_i=k\sim P(X_i|\Theta_k)} component.
 \sk\m{P(x_i)=\sum_k\pi_kf(x_i;\Theta_k)}, \m{L(\theta)=\prod_i\sum_k\pi_kf(x_i;\Theta_k)}. Free parameters: $K-1$ proportions + component parameters. \warn{A mixture is not a linear combination:} $\pi_aX_a+\pi_bX_b$ of Normals is Normal; a mixture may be bimodal, or unimodal and skewed.
 \sk\bh{Mean:} $\bar\mu=\sum\pi_k\mu_k$. \bh{Var:} $\sum\pi_k\sigma_k^2+\sum\pi_k(\mu_k-\bar\mu)^2$. Poisson mixtures are overdispersed.
@@ -23,11 +22,22 @@ $K=2$: $\pi_1=\pi$, $\pi_2=1-\pi$. Normal: $\log f=-\frac12\log(2\pi\sigma_k^2)-
 \sk\kw{Twists rule:} collect every term with the parameter across all components and blocks, differentiate once. Exp$(\lambda)$, Exp$(2\lambda)$: $\hat\lambda=n/\sum(P_{i1}+2P_{i2})x_i$. Exposure $t_i$: $\hat\lambda_k=\sum\pik x_i/\sum\pik t_i$. $\Nor(\mu,\sigma^2)$, $\Nor(\mu,9\sigma^2)$: $w_i=P_{i1}+P_{i2}/9$, $\hmu=\sum w_ix_i/\sum w_i$, $\hat\sigma^2=\sum w_i(x_i-\hmu)^2/n$.
 \sk\bh{$n'$ points known from component $j$} (not drawn from the mixture): no $Z$, so they add $\sum\log f_j(x_i)$ to $Q$ with weight 1 and no $\pi$. \warn{$\hat\pi_k=N_k/n$, unlabelled $n$ only.} $\hmu_j=(\sum\pik x_i+\sum_{lab}x_i)/(N_j+n')$; same for $\sigma_j^2$ with $(x_i-\hmu_j)^2$. Incomplete log-lik: $\sum_{unlab}\log\sum_k\pi_kf_k+\sum_{lab}\log f_j$.
 \sk\bh{Observed labels from the mixture:} count in both: $\hat\pi_k=(N_k+m_k)/(n+m)$. \bh{Known parameters:} do not differentiate. \bh{Tied:} $\Nor(\mu,1),\Nor(-\mu,1)$: differentiate once, $\hmu=\sum(P_{i1}-P_{i2})x_i/n$. \bh{Zero-inflated:} $P_{i1}=0$ if $x_i>0$; $\hat\lambda=\sum x_i/(n-N_1)$. $K=3$: $\pi_3=1-\pi_1-\pi_2$, three terms in the denominator.
-\sk\bh{Behaviour:} incomplete log-lik \kw{never decreases} (a drop means a bug). Local maxima: sensitive to initial values, so run many starts, keep the \kw{highest incomplete log-lik}. \bh{Label switching:} same log-lik, permuted labels, same fit. Equal starts ($\lambda_1^0=\lambda_2^0$) get stuck at $\hat\lambda_k=\bar x$, $\pi$ unchanged. Overlap: $\pik$ less decisive, EM slower and more start-sensitive. Do not compare log-lik across different data.
+\sk\bh{Behaviour:} incomplete log-lik \kw{never decreases} (a drop means a bug). Local maxima: sensitive to initial values, so run many starts, keep the \kw{highest incomplete log-lik}. \bh{Label switching:} same log-lik, permuted labels, same fit. Equal starts ($\lambda_1^0=\lambda_2^0$) get stuck at $\hat\lambda_k=\bar x$, $\pi$ unchanged.
 \sk\bh{By hand:} table of $x_i$, $P_{i1}$, $P_{i2}$; check $N_1+N_2=n$. M-step is the complete-data MLE with hard counts replaced by weights $\pik$. To choose between runs, plug each $\hth$ into $\sumi\log(\pi f_1(x_i)+(1-\pi)f_2(x_i))$. Keep $\log x_i!$ when reporting $Q$ or log-lik values.
 \sk\kw{Proof (Jensen):} $q(Z)=P(Z|X,\theta^0)$:
 \dm{\textstyle l(\theta)=\log\sum_Zq\frac{P(X,Z|\theta)}q\ge\sum_Zq\log\frac{P(X,Z|\theta)}q}
 $=Q(\theta,\theta^0)+C$, $C=-\sum q\log q$. Equality at $\theta^0$, as $P(X,Z|\theta^0)/q=P(X|\theta^0)$ is constant. M-step: $Q(\hth,\theta^0)\ge Q(\theta^0,\theta^0)$. So $l(\hth)\ge Q(\hth,\theta^0)+C\ge Q(\theta^0,\theta^0)+C=l(\theta^0)$.
+\bx
+\hd{EM shortcuts:} write “the terms of $Q$ involving $\lambda$ are…” before each derivative.
+\sk\bh{Any two classes, no underflow:} $P_{i1}=1/(1+e^{d})$, $d=\log\frac{\pi_2\sigma_1}{\pi_1\sigma_2}+\frac{(x-\mu_1)^2}{2\sigma_1^2}-\frac{(x-\mu_2)^2}{2\sigma_2^2}$.
+\li Pois$(\lambda)$, Pois$(3\lambda)$: $P_{i1}=1/[1+\frac{1-\pi}\pi3^{x_i}e^{-2\lambda}]$; $\hat\lambda=\sum x_i/\sum(P_{i1}+3P_{i2})$, known block adds 3 each below.
+\li Pois$(t\lambda_1)$, Pois$(t\lambda_2)$: $P_{i1}=1/[1+\frac{1-\pi}\pi(\frac{\lambda_2}{\lambda_1})^{x_i}e^{-t_i(\lambda_2-\lambda_1)}]$.
+\li $\Nor(\mu,\sigma^2)$, $\Nor(-\mu,\sigma^2)$: $P_{i1}=\pi/[\pi+(1-\pi)e^{-2\mu x_i/\sigma^2}]$; $\hmu=\frac1n\sum(2P_{i1}-1)x_i$; \m{\hat\sigma^2=\frac1n\sum x_i^2-\hmu^2}.
+\li Zero-inflated Poisson: $x_i=0$: $P_{i1}=\pi/[\pi+(1-\pi)e^{-\lambda}]$; $x_i>0$: 0. Binomial: $\pi/[\pi+(1-\pi)(1-p)^{m_i}]$; $\hat p=\sum x_i/\sum P_{i2}m_i$.
+\sk\bh{Mixture moments:} $K=2$ between term $=\pi_1\pi_2(\mu_1-\mu_2)^2$. Poisson: $\Var X=\bar\lambda+\pi_1\pi_2(\lambda_1-\lambda_2)^2$, so intercept-only $\hphi\approx\Var X/\E X$. Exposure $t$: $t\bar\lambda+t^2\pi_1\pi_2(\lambda_1-\lambda_2)^2$. Zero-inflated: $\E X=(1-\pi)\lambda$, $\Var X=\E X(1+\pi\lambda)$.
+\sk\bh{Cutoffs:} Poisson, $\lambda_1<\lambda_2$: cluster 1 if $x<\frac{\log(\pi_1/\pi_2)+\lambda_2-\lambda_1}{\log(\lambda_2/\lambda_1)}$. Same mean, $\sigma_1<\sigma_2$: cluster 2 if $|x|>c$, $c^2=\log\frac{\pi_1\sigma_2}{\pi_2\sigma_1}\big/\big(\frac1{2\sigma_1^2}-\frac1{2\sigma_2^2}\big)$. Misclassified: $\pi_1P(x>c|1)+\pi_2P(x\le c|2)$.
+\sk\bh{By hand:} $\sum P_{i2}x_i=\sum x_i-\sum P_{i1}x_i$. Pooled $\hat\sigma^2=(N_1\hat\sigma_1^2+N_2\hat\sigma_2^2)/n$. Variance update uses the \warn{new} mean.
+\sk\bh{Choose $K$:} $l$ always rises with $K$: use AIC, $p=K-1$ + component parameters (known values not counted).
 \bx
 \hd{Maid Mast Codes PT2: EM}\par
 `Z=sample(1:K,n,replace=TRUE,prob=pi); X=rnorm(n,mu[Z],sd[Z])`: simulate.
@@ -36,14 +46,17 @@ $=Q(\theta,\theta^0)+C$, $C=-\sum q\log q$. Equality at $\theta^0$, as $P(X,Z|\t
 \li`w.new=colSums(P_ik)/sum(P_ik)`: $\hat\pi_k$; `sum(P_ik)` $=n$.
 \li`mu.new=colSums(P_ik*X)/colSums(P_ik)`: $\hmu_k$.
 \li`ill=sum(log(rowSums(prob.x.z)))`: incomplete log-lik.
-\li`delta.ll`, `epsilon`, `max.iter`: hitting `max.iter` means not yet converged; `length(log_liks)` $=$ iterations $+1$; negative `delta.ll` also stops the loop, so a bug can look converged. Bugs: `/colSums` in E-step; `sum(log(prob.x.z))`.
-\bx
-% ---------- column 6: Bayes and simulation ----------
+\li`delta.ll`, `epsilon`: gain, tolerance. Negative `delta.ll` also stops the loop, so a bug can look converged. Bugs: `/colSums` in E-step; `sum(log(prob.x.z))`.
+\li`cluster=apply(P_ik,1,which.max)`: largest $\pik$. `table(true=Z,cluster)`: diagonal correct, needs simulated labels; permute columns if labels switched.
+\li`length(log_liks)` $=$ `max.iter+1`: stopped at the cap, not converged, rerun longer. All means equal: every row of `P_ik` is $\pi^0$, stuck at $\bar x$ after 2 iterations.
+\li\bh{More bugs:} `pi.new=colSums(P_ik)`: $\pi$ sums to $n$, $l$ jumps by $n\log n$ yet still rises. `mu.new=colSums(P_ik*X)/sum(P_ik)`: $l$ falls, loop stops, looks converged.
+\li\bh{Say:} $l$ rises every iteration and levels off, so it has converged.
+% ===================== BAYES =====================
+\topic{BAYES}
 \hd{Bayes:} Frequentist: $\theta$ fixed, probability = long-run frequency. Bayesian: $\theta$ random, probability = degree of belief.
 \dm{p(\theta|x)=\frac{f(x|\theta)p(\theta)}{f(x)}\propto f(x|\theta)\,p(\theta)}
 Likelihood $\times$ prior. Marginal $f(x)=\int f(x|\theta)p(\theta)d\theta$. \bh{Point estimate:} posterior mean (minimises squared error loss). \bh{Credible interval:} central 95\% of the posterior, a direct probability statement about $\theta$. Normal posterior: mean $\pm1.96$ sd; samples: `quantile(th,c(.025,.975))`.
 \sk\kw{Kernels:} \bh{Gamma$(a,b)$:} $\tau^{a-1}e^{-b\tau}$. \bh{InvGamma$(a,b)$:} $x^{-a-1}e^{-b/x}$. \bh{Normal:} $e^{-\frac A2\mu^2+B\mu}$ is $\Nor(B/A,1/A)$. \bh{Beta$(a,b)$:} $\theta^{a-1}(1-\theta)^{b-1}$.
-\sk\bh{In $\lambda$:} Poisson likelihood is $\lambda^{\sum y_i}e^{-n\lambda}$, Exp is $\lambda^ne^{-\lambda\sum y_i}$: Gamma kernels. Exp(rate $b$) = Gamma$(1,b)$.
 \sk\kw{Recipe:} joint $\to$ keep factors with the parameter $\to$ add exponents $\to$ name the kernel. Summaries: \m{\sum(x_i-c)^2=\sum(x_i-\bar x)^2+n(\bar x-c)^2}. \warn{$\tau^{n/2}$ is constant for $\mu$ but not for $\tau$: keep it. Each prior appears once.}
 \sk{\renewcommand{\arraystretch}{1.12}%
 \begin{tabular}{@{}|p{38pt}|p{22pt}|p{68pt}|@{}}\hline
@@ -55,25 +68,27 @@ Exp(rate $\lambda$)&Gamma&Gamma$(a+n,\ b+\sum y_i)$\\\hline
 $\Nor(\mu_0,1/\tau)$&Gamma&Gamma$(a+\frac n2,\ b+\frac12S)$\\\hline
 $\Nor(\mu_0,\sigma^2)$&InvG&InvGamma$(a+\frac n2,\ b+\frac12S)$\\\hline
 \end{tabular}}
-$S=\sum(x_i-\mu_0)^2$. Poisson$(t_i\lambda)$: rate $b+\sum t_i$.
+$S=\sum(x_i-\mu_0)^2$. \warn{$\E[\sigma^2|x]=b_n/(a_n-1)$, not $1/\E[\tau|x]=b_n/a_n$.} Poisson$(t_i\lambda)$: rate $b+\sum t_i$.
 \sk\bh{Normal mean, $\sigma^2$ known:} prior $\Nor(\mu,\sigma^2/n_0)$ ($n_0$ = implicit sample size):
 \dm{\theta|x\sim\Nor\Big(\frac{n_0\mu+n\bar x}{n_0+n},\ \frac{\sigma^2}{n_0+n}\Big)}
 Prior $\Nor(m,s^2)$: precisions add: variance $(\frac1{s^2}+\frac n{\sigma^2})\inv$, mean = variance $\times(\frac m{s^2}+\frac{n\bar x}{\sigma^2})$. $\bar X\sim\Nor(m,\frac{\sigma^2}n+s^2)$ marginally.
-\sk\bh{Posterior mean} is a precision-weighted average of prior mean and MLE. Variance is below both prior and MLE variance. $n\to\infty$: $\to\Nor(\bar x,\sigma^2/n)$, prior forgotten. $n_0\to0$: flat prior.
-\sk\kw{Posterior predictive:} \m{p(\tilde x|x)=\int p(\tilde x|\theta)p(\theta|x)d\theta}. Normal: $\Nor$(post. mean, post. var $+\ \sigma^2$). Simulate: $\theta^{(l)}\sim p(\theta|x)$, then $\tilde x^{(l)}\sim p(\tilde x|\theta^{(l)})$; average. Known mean $\mu_0$, $\tau|x\sim\Ga(a^*,b^*)$: 3-parameter $t$ with $\nu=2a^*$, location $\mu_0$, scale$^2$ $s^2=b^*/a^*$, pdf $\propto(1+\frac{(x-\mu_0)^2}{\nu s^2})^{-(\nu+1)/2}$.
-\sk\bh{Pseudo-counts:} Beta$(a,b)$ acts like $a+b$ prior trials; Beta(1,1) = U(0,1). Poisson-Gamma mean: $\frac{a+\sum y_i}{b+n}=w\frac ab+(1-w)\bar y$, $w=\frac b{b+n}$.
-\sk\bh{Marginals:} Beta-binomial $P(X{=}x)=\binom mx B(a+x,b+m-x)/B(a,b)$; Poisson-Gamma gives NegBin.
-\sk\bh{Priors:} \bh{vague} $\Nor(0,10^4)$, $\Ga(.001,.001)$; \bh{informative}: concentrated. \bh{Improper:} does not integrate to 1, $p(\mu)\propto1$, $p(\tau)\propto1/\tau$ (Gibbs: $a=b=0$); fine if the posterior is proper ($p(\lambda)\propto1/\lambda$, Poisson: Gamma$(\sum y_i,n)$, needs $\sum y_i>0$). $p(\mu,\sigma^2)\propto1/\sigma^2$ goes straight into $\pi$ in MH.
-\sk\bh{Spike prior:} $\gamma$ discrete: $p(\gamma|x)\propto p(x|\gamma)p(\gamma)$, with $p(x|\gamma)=\int p(x|\mu)p(\mu|\gamma)d\mu$; sample $\gamma$, then $\mu|\gamma,x$.
-\sk\bh{Conjugate exp family:} $f=\alpha(x)e^{x\theta+\beta(\theta)}$, prior $\propto e^{\gamma\theta+\delta\beta(\theta)}$: posterior $(\gamma+x,\delta+1)$.
-\bx
-\hd{Simulation:} \bh{Monte Carlo:} $\frac1N\sum g(X_j)\approx\E g(X)$; proportions estimate probabilities. `set.seed` makes it repeatable.
+\sk\bh{Posterior mean} is a precision-weighted average of prior mean and MLE. Variance is below both prior and MLE variance. $n\to\infty$: $\to\Nor(\bar x,\sigma^2/n)$, prior forgotten. $n_0\to0$: flat prior. Weight on the prior mean $w=\kappa_0/(\kappa_0+n\tau)=n_0/(n_0+n)$; $\kappa_0\approx n\tau$ gives the prior half the say.
+\sk\kw{Posterior predictive:} \m{p(\tilde x|x)=\int p(\tilde x|\theta)p(\theta|x)d\theta}. Normal: $\Nor$(post. mean, post. var $+\ \sigma^2$). Simulate: $\theta^{(l)}\sim p(\theta|x)$, then $\tilde x^{(l)}\sim p(\tilde x|\theta^{(l)})$; average. Known mean, $\tau|x\sim\Ga(a^*,b^*)$: $t$ with $\nu=2a^*$, location $\mu_0$, scale$^2$ $b^*/a^*$. Poisson-Gamma: $\Var\tilde y=\E[\lambda|y]+\Var(\lambda|y)$; $P(\tilde y=0)=(\frac{b_n}{b_n+1})^{a_n}$.
+\sk\bh{Pseudo-counts:} Beta$(a,b)$ acts like $a+b$ prior trials; Beta(1,1) = U(0,1). Poisson-Gamma mean: $\frac{a+\sum y_i}{b+n}=w\frac ab+(1-w)\bar y$, $w=\frac b{b+n}$. $\Var(\lambda|y)=a_n/b_n^2$. Gamma interval: mean $\pm1.96$ sd is a shortcut; exact uses quantiles.
+\sk\bh{Marginals:} Beta-binomial $P(X{=}x)=\binom mx B(a+x,b+m-x)/B(a,b)$; Poisson-Gamma gives NegBin. Poisson-Gamma $p(y)=\frac{\Gamma(a+y)}{\Gamma(a)y!}\frac{b^a}{(b+1)^{a+y}}$, $\Var=\mu+\mu^2/a$. $X_1,X_2$ iid only given $\lambda$: $\Cov=\Var\lambda>0$.
+\sk\bh{Priors:} \bh{vague} $\Nor(0,10^4)$, $\Ga(.001,.001)$; \bh{informative}: concentrated. \bh{Improper:} does not integrate to 1, $p(\mu)\propto1$, $p(\tau)\propto1/\tau$ (Gibbs: $a=b=0$); fine if the posterior is proper ($p(\lambda)\propto1/\lambda$, Poisson: Gamma$(\sum y_i,n)$, needs $\sum y_i>0$). $p(\mu,\sigma^2)\propto1/\sigma^2$ goes straight into $\pi$ in MH. Flat $\mu$, $\tau$ known: $\Nor(\bar x,\frac1{n\tau})$. $p(\tau)\propto1/\tau$, mean known: $\Ga(\frac n2,\frac S2)$. Flat $\mu$ and $1/\tau$: $\tau|x\sim\Ga(\frac{n-1}2,\frac12\sum(x_i-\bar x)^2)$, needs $n\ge2$. $x_i\sim\Nor(0,\sigma^2)$, $p(\sigma^2)\propto1/\sigma^2$: $\IG(\frac n2,\frac12\sum x_i^2)$, mean $\sum x_i^2/(n-2)$ if $n\ge3$.
+\sk\bh{BUGS:} `dnorm(m,p)`: second argument is a \warn{precision}: `mu~dnorm(0,.001)` is $\Nor(0,1000)$, vague. Vague prior: expect mean $\approx\bar y$, sd $\approx1/\sqrt{n\tau}$.
+\sk\bh{Spike prior:} $\gamma$ discrete: $p(\gamma|x)\propto p(x|\gamma)p(\gamma)$; sample $\gamma$, then $\mu|\gamma,x$.
+\sk\bh{Bayes estimator:} minimise posterior expected loss; squared error gives posterior mean. \bh{Bayesian GLM:} vague priors $\beta_j\sim\Nor(0,10^4)$; overdispersion: add $\varepsilon_i\sim\Nor(0,1/\tau)$ to $\eta_i$, or $\lambda_i\sim\Ga$ per unit.
+% ===================== SIMULATION =====================
+\topic{SIMULATION}
+\hd{Simulation:} \bh{Monte Carlo:} $\frac1N\sum g(X_j)\approx\E g(X)$; proportions estimate probabilities. `set.seed` makes it repeatable. Need $N\ge\hat p(1-\hat p)/\mathrm{se}^2$ (at most $.25/\mathrm{se}^2$). \warn{sd of draws is the posterior spread, fixed; MC s.e. = sd$/\sqrt N$ shrinks.}
 \sk\kw{Discrete:} $U\sim$ U(0,1); `x<-0; while(F(x)<U) x<-x+1`. Ends with $F(x-1)<U\le F(x)$, so $P(X=x)=F(x)-F(x-1)=p(x)$. \bh{Read a pmf from a loop:} `while(U>G(Y)) Y<-Y+1` means $F=G$, then difference it. `sample(x,n,replace=TRUE,prob=p)`. Expected comparisons: $\sum$ (tests needed) $\times$ prob, so test likely values first.
-\sk\kw{Inversion:} $Y=F\inv(U)$: $P(Y\le y)=P(U\le F(y))=F(y)$. Needs $F\inv$. Exp$(\lambda)$: $-\log(1-U)/\lambda$; U$(a,b)$: $a+(b-a)U$; logistic: $\log\frac U{1-U}$; Weibull: $(-\log U)^{1/k}/\lambda$.
+\sk\kw{Inversion:} $Y=F\inv(U)$: $P(Y\le y)=P(U\le F(y))=F(y)$. Needs $F\inv$. Exp$(\lambda)$: $-\log(1-U)/\lambda$; U$(a,b)$: $a+(b-a)U$; logistic: $\log\frac U{1-U}$; Weibull: $(-\log U)^{1/k}/\lambda$. Pdf $2x$ on (0,1): $\sqrt U$. $e^{-z}$ on (0,1): $-\log(1-U(1-e^{-1}))$.
 \sk\kw{Rejection, uniform:} $f\le k$ on $[a,b]$. (1) $X\sim$ U$(a,b)$, $Y\sim$ U$(0,k)$. (2) If $Y<f(X)$ return $X$, else go to 1.
-\sk\kw{General:} envelope density $h$, \m{k\ge\sup_xf(x)/h(x)}. (1) $X\sim h$. (2) $Y\sim$ U$(0,kh(X))$. (3) If $Y<f(X)$ return $X$, else go to 1. Works with unnormalised $f^*$ (posterior): $k\ge\sup f^*/h$. Prior as $h$: $k=\max_\theta p(x|\theta)$, keep if $U\le p(x|\theta)/k$.
-\sk\bh{Why:} $(X,Y)$ is uniform under $kh$ (density $1/k$); points kept are uniform under $f$, so $X\sim f$. \bh{Derive output pdf:} $P(X\le x|\text{accept})=P(X\le x,\text{accept})/P(\text{accept})=\int_{-\infty}^xh(t)\frac{f(t)}{kh(t)}dt\big/\frac1k=F(x)$.
-\sk\kw{Efficiency:} expected candidates per sample. $P(\text{accept})=1/k$ (with $f^*$: $\int f^*/k$). $N\sim$ Geom$(1/k)$, $\E N=k$ ($f^*$: $k/\int f^*$). Least rejection: smallest valid $k$, $h$ close to $f$. Uniform envelope: rectangle height $\sup f$ on $[a,b]$, so $k=(b-a)\sup f$.
+\sk\kw{General:} envelope density $h$, \m{k\ge\sup_xf(x)/h(x)}. (1) $X\sim h$. (2) $Y\sim$ U$(0,kh(X))$. (3) If $Y<f(X)$ return $X$, else go to 1. Works with unnormalised $f^*$ (posterior): $k\ge\sup f^*/h$. Prior as $h$: $k=\max_\theta p(x|\theta)$, keep if $U\le p(x|\theta)/k$. \warn{$k$ too small biases the output} (where $f>kh$ is under-sampled); too big only slows. $h$ tails at least as heavy as $f$.
+\sk\bh{Derive output pdf:} $P(X\le x|\text{accept})=P(X\le x,\text{accept})/P(\text{accept})=\int_{-\infty}^xh(t)\frac{f(t)}{kh(t)}dt\big/\frac1k=F(x)$.
+\sk\kw{Efficiency:} expected candidates per sample. $P(\text{accept})=1/k$ (with $f^*$: $\int f^*/k$). $N\sim$ Geom$(1/k)$, $\E N=k$ ($f^*$: $k/\int f^*$). Least rejection: smallest valid $k$, $h$ close to $f$. Uniform envelope: rectangle height $\sup f$ on $[a,b]$, so $k=(b-a)\sup f$. Then accept if $U\le f^*(X)/\max f^*$.
 \sk\bh{Gamma(shape $m$, rate $\lambda$)}, $m>1$, $h=\mu e^{-\mu x}$: $f/h$ peaks at $x=\frac{m-1}{\lambda-\mu}$. Best \m{\mu=\lambda/m}, \m{k^*=m^me^{-(m-1)}/\Gamma(m)}. $k^*=\infty$ if $m<1$ or $\lambda\le\mu$.
 \bx
 \hd{Maid Mast Codes PT3: Simulation}\par
@@ -81,8 +96,9 @@ Prior $\Nor(m,s^2)$: precisions add: variance $(\frac1{s^2}+\frac n{\sigma^2})\i
 \li`X<- -log(runif(1))*m/lambda`: Exp(rate $\lambda/m$) by inversion.
 \li`tha<-rbeta(N,2,3); X<-rbinom(N,10,tha); table(X)/N`: marginal pmf by simulating parameter then data.
 \li`while(runif(1)>p) Y<-Y+1` from $Y=0$: failures before first success, $P(Y=y)=p(1-p)^y$.
-\bx
-% ---------- column 7: MCMC ----------
+\li`xt<-rbinom(N,10,theta)`: each draw uses its own $\theta$, so `mean(xt>=8)` is predictive. Label then $x$ is a mixture draw.
+% ===================== MCMC =====================
+\topic{MCMC}
 \hd{MCMC:} build a Markov chain whose stationary distribution is the posterior. Long-run draws are dependent but approximately from the posterior.
 \sk\hd{Metropolis-Hastings:} target \m{\pi\propto p(\theta)p(x|\theta)} (constant not needed). \bh{Proposal} $q(\theta,\theta')$: density of new $\theta'$ given current $\theta$; must be simulable.
 \sk(1) Start $\theta^{(0)}$, $t=0$. (2) Propose $\theta'\sim q(\theta^{(t)},\cdot)$. (3)
@@ -90,14 +106,17 @@ Prior $\Nor(m,s^2)$: precisions add: variance $(\frac1{s^2}+\frac n{\sigma^2})\i
 (4) With probability $A$ set $\theta^{(t+1)}=\theta'$, else $\theta^{(t+1)}=\theta$ ($U\le A$). (5) $t\leftarrow t+1$, go to 2.
 \sk\bh{Random walk:} $\theta'=\theta+$ symmetric noise (U$[-\epsilon,\epsilon]$, $\Nor(0,\epsilon^2)$): $q$ cancels, \m{A=\min(1,\pi(\theta')/\pi(\theta))}. Uphill always accepted, downhill sometimes, so time spent $\propto\pi$. \bh{Independence:} $q(\theta,\theta')=q(\theta')$, so $A=\min\{1,w(\theta')/w(\theta)\}$, $w=\pi/q$. \bh{Walk on $\log\tau$:} extra factor $\tau'/\tau$.
 \sk\kw{Numeric $A$ recipe:} (i) $\pi$ = likelihood $\times$ prior at new and current. (ii) $q$ ratio: top is density of proposing \warn{current from new}, bottom new from current. Multi-part proposals multiply: $\tau_n\sim g(\cdot|\tau_c)$, $\mu_n\sim h(\cdot|\mu_c,\tau_n)$ gives $q(c,n)=g(\tau_n|\tau_c)h(\mu_n|\mu_c,\tau_n)$, $q(n,c)=g(\tau_c|\tau_n)h(\mu_c|\mu_n,\tau_c)$. (iii) Cancel common constants only. (iv) $\min(1,\cdot)$. Out of support: $\pi=0$, $A=0$. Log form (symmetric $q$): `A<-min(1,exp(lp(new)-lp(cur)))`; else add log $q$ ratio.
-\sk\kw{Tuning:} want large moves and high acceptance; they compete, so aim for intermediate $A$. Tiny steps: high acceptance, slow crawl. Huge steps: low acceptance, sticky. Both: high autocorrelation, low ESS.
+\sk\bh{Ledger:} one line each: likelihood (keep $\tau^{n/2}$), each prior (keep $\sqrt\tau$), each proposal, multiply, $\min(1,\cdot)$. A correct unfinished ledger still scores.
+\sk\kw{Proposal ratios} $q(c|n)/q(n|c)$: Gamma$(k$, rate $k/\tau_c)$: \m{(\tau_c/\tau_n)^{2k-1}e^{-k\tau_c/\tau_n+k\tau_n/\tau_c}} ($k=1$: Exp, mean $\tau_c$). Exp(rate $\tau_c$): $\tau_n/\tau_c$. $\mu_n\sim\Nor(\mu_c,1/\tau_n)$: \m{\sqrt{\tau_c/\tau_n}\,e^{-\frac12(\tau_c-\tau_n)(\mu_n-\mu_c)^2}}. Walk on $\log\tau$: $\tau_n/\tau_c$. Same variance both ways: 1.
+\sk\bh{Symmetric?} Swap current and new: same formula for every pair. $\Nor(\theta_c,s^2)$ yes; $\Nor(0,1)$, Exp(rate $1/\theta_c$) no. \warn{Leave $q$ out and it runs silently on the wrong target.} `dunif` prior out of range: log is $-$Inf, rejected. Normal step on $\tau$ can go negative: $\pi=0$, wasted. Independence: $q$ tails as heavy as $\pi$, else sticky.
+\sk\kw{Tuning:} want large moves and high acceptance; they compete, so aim for intermediate $A$. Tiny steps: high acceptance, slow crawl. Huge steps: low acceptance, sticky. Both: high autocorrelation, low ESS. Rule of thumb (not slides): 20--50\% accepted.
 \sk\bh{Read $\pi$ off $A$:} symmetric $q$ and $A=\min(1,r(\theta_n)/r(\theta_o))$ give $\pi\propto r$.
-\sk\bh{Why it works (not examinable):} detailed balance $\pi(\theta)p(\theta\to\theta')=\pi(\theta')p(\theta'\to\theta)$ makes $\pi$ stationary; aperiodic, irreducible: limiting; ergodic: averages converge.
 \bx
 \hd{Gibbs sampler:} needs only full conditionals. $\theta=(\theta_1,\dots,\theta_k)$. Start $\theta^{(0)}$. Each sweep: \m{\theta_j^{(t+1)}\sim p(\theta_j|x,\text{latest values of others})}, $j=1,\dots,k$. Discard burn-in $m$; keep the rest as a dependent sample; marginals: keep that coordinate.
-\sk\bh{Use output:} $\E[g(\theta)|x]\approx$ average of $g(\theta^{(t)})$ after burn-in; $P(\theta>c|x)\approx$ proportion above $c$; credible interval from sample quantiles.
-\sk\bh{Special case of MH:} proposal = full conditional, so $A=1$. \bh{Limit:} strong correlation between coordinates gives tiny moves and slow exploration.
+\sk\bh{Use output:} $\E[g(\theta)|x]\approx$ average of $g(\theta^{(t)})$ after burn-in; $P(\theta>c|x)\approx$ proportion above $c$; credible interval from sample quantiles. \warn{Apply $g$ to each draw, then average:} $\E[\mu\theta]$ = mean of products; $\E\sigma\ne1/\sqrt{\E\tau}$; mean of ratios $\ne$ ratio of means. Difference: $\delta^{(t)}=\mu_1^{(t)}-\mu_2^{(t)}$, then `mean(d<0)`.
+\sk\bh{Special case of MH:} proposal = full conditional, so $A=1$. \bh{Limit:} strong correlation between coordinates gives tiny moves and slow exploration. Bivariate, correlation $\rho$: lag-1 autocorrelation of one coordinate is $\rho^2$.
 \sk\bh{Not a named distribution?} Finite support: sample with weights (R normalises `prob`). Otherwise an MH step for that coordinate.
+\sk\bh{Check before dropping a prior:} does it contain the parameter you condition on? Scheme answer: start values ($\tau^{(0)}>0$), each draw with the \warn{newest} values, drop burn-in, average.
 \sk\kw{Standard conditionals} ($x_i\sim\Nor(\mu,1/\tau)$, $S=\sum(x_i-\mu)^2$):
 \li$\mu\sim\Nor(m,\frac1\kappa)$: \m{\mu|\tau,x\sim\Nor\big(\frac{\kappa m+\tau n\bar x}{\kappa+n\tau},\frac1{\kappa+n\tau}\big)}.
 \li$\mu|\tau\sim\Nor(m,\frac1{\kappa\tau})$: \m{\mu|\tau,x\sim\Nor\big(\frac{\kappa m+n\bar x}{\kappa+n},\frac1{(\kappa+n)\tau}\big)}.
@@ -105,58 +124,51 @@ Prior $\Nor(m,s^2)$: precisions add: variance $(\frac1{s^2}+\frac n{\sigma^2})\i
 \li$\sigma^2\sim\IG(a,b)$: $\IG(a+\frac n2,b+\frac S2)$; prior $\mu|\sigma^2\sim\Nor(m,\sigma^2/\kappa)$: $\IG(a+\frac{n+1}2,b+\frac S2+\frac\kappa2(\mu-m)^2)$.
 \li\bh{Two samples} $x$ ($n_1$), $y$ ($n_2$), common $\tau$: $\Ga(a+\frac{n_1+n_2}2,b+\frac{S_x+S_y}2)$; $\mu_1$ uses $x$ only.
 \li\bh{One $\mu$, two sources:} $x_i\sim\Nor(\mu,\frac1\tau)$ ($n$), $y_j\sim\Nor(c\mu,\frac1{d\tau})$ ($m$), $\mu\sim\Nor(\mu_0,\frac1\kappa)$: \m{A=\kappa+(n+c^2dm)\tau}, \m{B=\kappa\mu_0+\tau(\sum x_i+cd\sum y_j)}; $\tau|\cdot\sim\Ga(a+\frac{n+m}2,b+\frac12[\sum(x_i-\mu)^2+d\sum(y_j-c\mu)^2])$.
-\li\bh{Hierarchical:} $y_{ij}\sim\Nor(\theta_j,\frac1\tau)$, $\theta_j\sim\Nor(\mu,\frac1{\tau_\theta})$, $\mu\sim\Nor(m,\frac1\kappa)$: $\theta_j|\cdot$ precision $n_j\tau+\tau_\theta$, mean $(n_j\tau\bar y_j+\tau_\theta\mu)/$prec; $\mu|\cdot$ precision $\kappa+J\tau_\theta$, mean $(\kappa m+\tau_\theta\sum\theta_j)/$prec (no $y$); $\tau_\theta|\cdot\sim\Ga(a+\frac J2,b+\frac12\sum(\theta_j-\mu)^2)$.
+\li\bh{Hierarchical:} $y_{ij}\sim\Nor(\theta_j,\frac1\tau)$, $\theta_j\sim\Nor(\mu,\frac1{\tau_\theta})$, $\mu\sim\Nor(m,\frac1\kappa)$: $\theta_j|\cdot$ precision $n_j\tau+\tau_\theta$, mean $(n_j\tau\bar y_j+\tau_\theta\mu)/$prec (weight $n_j\tau/$prec on $\bar y_j$); $\mu|\cdot$ precision $\kappa+J\tau_\theta$, mean $(\kappa m+\tau_\theta\sum\theta_j)/$prec (no $y$); $\tau_\theta|\cdot\sim\Ga(a+\frac J2,b+\frac12\sum(\theta_j-\mu)^2)$.
 \li\bh{Bivariate prior}, $\Lambda=\Sigma\inv$, zero mean, $x_i\sim\Nor(\mu_1,\sigma^2)$: $-\frac12(\Lambda_{11}\mu_1^2+2\Lambda_{12}\mu_1\mu_2+\Lambda_{22}\mu_2^2)$ in the exponent gives $A=\Lambda_{11}+n/\sigma^2$, $B=n\bar x/\sigma^2-\Lambda_{12}\mu_2$: \m{\mu_1|\mu_2,x\sim\Nor(B/A,1/A)}.
 \li\bh{Change point:} $Y_i\sim$ Pois$(\lambda_1)$, $i\le m$; Pois$(\lambda_2)$, $i>m$; Gamma priors; $m$ uniform on $1..n$: $\lambda_1|\cdot\sim\Ga(\alpha_1+\sum_1^my_i,\beta_1+m)$; $\lambda_2|\cdot\sim\Ga(\alpha_2+\sum_{m+1}^ny_i,\beta_2+n-m)$; $p(m|\cdot)\propto(\lambda_1/\lambda_2)^{\sum_1^my_i}e^{(\lambda_2-\lambda_1)m}$.
 \li\bh{Hidden count:} $X|p,N\sim$ bin$(N,p)$, $p\sim$ Beta$(a,b)$, $N\sim$ Pois$(\lambda)$: $p|\cdot\sim$ Beta$(x+a,N-x+b)$; $N-x|\cdot\sim$ Pois$(\lambda(1-p))$.
-\li\bh{Discrete $\mu\in\{0,1\}$:} $P(\mu=1|\theta)=f(\theta,1)/[f(\theta,0)+f(\theta,1)]$.
+\li\bh{Two groups, flat priors,} $p(\tau)\propto1/\tau$: $\mu_1|\cdot\sim\Nor(\bar x,\frac1{n\tau})$, $\mu_2|\cdot\sim\Nor(\bar y,\frac1{m\tau})$, $\tau|\cdot\sim\Ga(\frac{n+m}2,\frac12[\sum(x_i-\mu_1)^2+\sum(y_j-\mu_2)^2])$.
+\li\bh{Poisson two sources:} $y_i\sim$ Pois$(\lambda)$ ($n$), $z_j\sim$ Pois$(c\lambda)$ ($m$): $\lambda|\cdot\sim\Ga(a+\sum y_i+\sum z_j,b+n+cm)$.
+\li\bh{Poisson hierarchy:} $\lambda_j|\beta\sim\Ga(\alpha,\beta)$, $\beta\sim\Ga(c,d)$: $\lambda_j|\cdot\sim\Ga(\alpha+\sum_iy_{ij},\beta+n_j)$; $\beta|\cdot\sim\Ga(c+J\alpha,d+\sum\lambda_j)$.
 \bx
 \hd{MCMC diagnostics:} (1) Converged? (2) How correlated?
 \sk\bh{Trace plots:} run several chains from \kw{overdispersed} starts (more variable than the target). Good: chains overlap, stable, “hairy caterpillar”. Separate or drifting: not converged. Slow wander, “woolly snake”: high autocorrelation. \bh{Burn-in:} discard early iterations affected by the start; read length off the trace.
-\sk\kw{BGR:} $M$ chains, each length $L+T$; keep last $T$. \bh{B} = sd of the pooled $MT$ draws (between). \bh{W} = average of the $M$ within-chain sds (within). \m{\hat R=B/W<1.05}: accept last $T$ as stationary and pool. $\hat R\gg1$: not converged. $T\to\infty$: $\hat R\to1$.
-\sk\bh{Trace vs step size:} tiny steps: smooth wander; huge steps: flat runs then jumps; good: fuzzy band.
-\sk\bh{Not converged:} run longer; better proposal. Passing is no proof if important regions were missed by the starts.
-\sk\bh{Autocorrelation:} lag $k$: $\rho_k=\mathrm{cor}(\theta^{(t)},\theta^{(t+k)})$; `acf(chain)`; `cor(chain[-n],chain[-1])` is $\hat\rho_1$. \bh{Thinning:} keep every $k$th; simple, saves memory, throws away information.
-\sk\kw{ESS:} independent sample size with the same information: \m{n/(1+2\sum_i\rho_i)\approx n\frac{1-\rho_1}{1+\rho_1}}. Aim ESS $>4000$. E.g. $n=5000$, $\rho_1=.9$: ESS $\approx263$.
-\sk\bh{Accuracy:} $\Var(\bar h)\approx\frac{\sigma^2}n(1+2\sum\rho_i)$: iid SE is too small. MC s.e.: iid $s/\sqrt N$; proportion $\sqrt{\hat p(1-\hat p)/N}$; chain $s/\sqrt{\mathrm{ESS}}$. Posterior sd does not shrink with $N$. \bh{Blocking:} $Q$ blocks, MC error $=$ sd(block means)$/\sqrt Q$; rule: $\le5\%$ of posterior sd.
-\bx
-% ---------- column 8: VI, codes, extras ----------
-\hd{Variational inference:} turns inference into optimisation: find $q^*\in D$ nearest the posterior. Faster for large data and complex models, at a cost in accuracy.
-\sk\kw{KL:} \m{KL(q\|p(\theta|y))=\int q(\theta)[\log q(\theta)-\log p(\theta|y)]d\theta\ge0}. Not symmetric. Penalises $q$ for mass where $p$ is tiny, not for missing mass, so $q$ sits inside $p$.
-\sk\kw{ELBO:} $p(\theta|y)$ unknown, but $KL=-ELBO+\log p(y)$ with
-\dm{ELBO(q)=-\int q[\log q-\log p(\theta)p(y|\theta)]d\theta}
-$=\E_q[\log p(\theta,y)]-\E_q[\log q]$. $\log p(y)$ is free of $q$, so \bh{min KL = max ELBO}; $KL\ge0$ gives $\log p(y)\ge ELBO$.
-\sk\kw{Mean field:} $q(\theta)=\prod_jq_j(\theta_j)$: parameters independent under $q$. An assumption on the approximation, \warn{not on the model}.
-\sk\kw{CAVI:} update one factor at a time, others fixed: \m{q_j^*(\theta_j)\propto\exp\{\E_{-j}[\log p(\theta,y)]\}}. ELBO rises to a local optimum (a drop means a bug). Stop when ELBO change is small. Sensitive to initial values: run several, keep highest ELBO. It updates distributions; it draws no samples.
-\sk\kw{Recipe:} (1) $\log p(\theta,y)$ = log likelihoods + log priors. (2) Keep terms with $\theta_j$. (3) Take $\E$ over the others (linear). (4) Collect powers, name the kernel. Same kernel as Gibbs, with terms in other parameters replaced by their expectations.
-\sk\bh{Use:} $\E(x-\mu)^2=(x-\E\mu)^2+V\mu=\sigma^{2*}+\mu^{*2}-2x\mu^*+x^2$; $\E\mu^2=(\E\mu)^2+V\mu$; $\E\tau=a^*/b^*$; $\E\log\tau=\psi(a^*)-\log b^*$; $\E[1/\sigma^2]=a^*/b^*$.
-\sk\kw{Normal-Gamma:} $x_i\sim\Nor(\mu,\frac1\tau)$, $\mu|\tau\sim\Nor(\mu_0,\frac1{\lambda_0\tau})$, $\tau\sim\Ga(a_0,b_0)$:
-\sk\m{q_\mu^*=\Nor(\mu^*,\sigma^{2*})}: \m{\mu^*=\frac{\lambda_0\mu_0+n\bar x}{\lambda_0+n}}, \m{\sigma^{2*}=\frac1{(\lambda_0+n)\E\tau}}.
-\sk\m{q_\tau^*=\Ga(a^*,b^*)}: \m{a^*=a_0+\frac{n+1}2}, \m{b^*=b_0+\frac12\sumi\E(x_i-\mu)^2+\frac{\lambda_0}2\E(\mu-\mu_0)^2}.
-\sk Only $\sigma^{2*}$ and $b^*$ change between iterations. \bh{Variance form} $\sigma^2\sim\IG(a_0,b_0)$, $\mu|\sigma^2\sim\Nor(\mu_0,\sigma^2/\lambda_0)$: $q_{\sigma^2}^*$ is $\IG$ with the same two parameters.
-\sk\kw{Independent priors} $\mu\sim\Nor(m,\frac1\kappa)$, $\tau\sim\Ga(a,b)$: \m{q_\mu^*=\Nor(\frac{\kappa m+n\bar x\E\tau}{\kappa+n\E\tau},\frac1{\kappa+n\E\tau})}; \m{q_\tau^*=\Ga(a+\frac n2,\ b+\frac12[\sum(x_i-\E\mu)^2+nV\mu])}. \warn{Shape $a+\frac n2$, not $\frac{n+1}2$}; here both factors move each round.
-\sk\bh{Exact:} $\mu|\tau,x\sim\Nor(\frac{\lambda_0\mu_0+n\bar x}{\lambda_0+n},\frac1{(\lambda_0+n)\tau})$, $\tau|x\sim\Ga(a_0+\frac n2,b_0+\frac12\sum(x_i-\bar x)^2+\frac{n\lambda_0(\bar x-\mu_0)^2}{2(\lambda_0+n)})$.
-\sk\bh{ELBO here:} $\E[\log p(x,\mu,\tau)]-\E\log q_\mu-\E\log q_\tau$, with $\E\log q_\mu=-\frac12\log\sigma^{2*}+c$, $\E\log q_\tau=\log b^*-\log\Gamma(a^*)+(a^*-1)\psi(a^*)-a^*$.
-\sk\kw{Bivariate Normal target:} $\Lambda=\Sigma\inv$: $q_1^*=\Nor(\mu_1-\frac{\Lambda_{12}}{\Lambda_{11}}(\E x_2-\mu_2),\frac1{\Lambda_{11}})$. $1/\Lambda_{11}=\sigma_1^2-\sigma_{12}^2/\sigma_2^2<\sigma_1^2$: the conditional variance. Means right, but \warn{VI underestimates variance and ignores correlation}; worse as correlation rises. ELBO up to a constant, $q_i=\Nor(m_i,s_i^2)$: $-\frac12[\Lambda_{11}(s_1^2+(m_1-\mu_1)^2)+\Lambda_{22}(s_2^2+(m_2-\mu_2)^2)+2\Lambda_{12}(m_1-\mu_1)(m_2-\mu_2)]+\frac12\log s_1^2+\frac12\log s_2^2$.
-\sk\bh{Bivariate prior} (Gibbs row): $q_1^*=\Nor(B/A,1/A)$ with $\mu_2$ replaced by $\E\mu_2$.
-\bx
-\hd{Derivations to copy:} $\Nor(\mu,1/\tau)$ data, priors as Gibbs box.
-\sk\bh{Gibbs $\mu$:} $p(\mu|\tau,x)\propto\exp\{-\frac\tau2\sum(x_i-\mu)^2-\frac\kappa2(\mu-m)^2\}\propto\exp\{-\frac12(n\tau+\kappa)\mu^2+(\tau n\bar x+\kappa m)\mu\}$: $A=n\tau+\kappa$, $B=\tau n\bar x+\kappa m$.
-\sk\bh{CAVI $\tau$:} $\log q_\tau^*=\E_\mu[\log p(x|\mu,\tau)+\log p(\mu|\tau)+\log p(\tau)]+c$
-$=(\frac n2+\frac12+a_0-1)\log\tau-\tau[b_0+\frac12\sum\E(x_i-\mu)^2+\frac{\lambda_0}2\E(\mu-\mu_0)^2]+c$: power of $\log\tau$ is $a^*-1$, coefficient of $-\tau$ is $b^*$.
-\sk\bh{MH, $x\sim\Nor(\mu,1)$, $\mu\sim\Nor(0,1)$, random walk:} $\log\frac{\pi(\mu')}{\pi(\mu)}=-\frac12[(x-\mu')^2+\mu'^2]+\frac12[(x-\mu)^2+\mu^2]$; $A=\min(1,e^{\text{this}})$.
-\bx
-\hd{MCMC vs VI:} MCMC simulates from the density, is heavier, asymptotically exact. VI approximates the density, is faster, suits large data and quick model exploration, has no guarantee, generally underestimates variance.
+\sk\kw{BGR:} $M$ chains, each length $L+T$; keep last $T$. \bh{B} = sd of the pooled $MT$ draws (between). \bh{W} = average of the $M$ within-chain sds (within). \m{\hat R=B/W<1.05}: accept last $T$ as stationary and pool. $\hat R\gg1$: not converged. $T\to\infty$: $\hat R\to1$. \warn{Exclude burn-in from $\hat R$.}
+\sk\bh{Trace vs step size:} tiny steps: smooth wander; huge steps: flat runs then jumps; good: fuzzy band. Accept near 1 and smooth: raise step. Low accept and plateaus: lower it. Gibbs accepts all, so use ACF, ESS, trace.
+\sk\bh{Not converged:} run longer, better proposal. A pass is no proof: all starts may miss a region.
+\sk\bh{Autocorrelation:} lag $k$: $\rho_k=\mathrm{cor}(\theta^{(t)},\theta^{(t+k)})$; `acf(chain)`; `cor(chain[-n],chain[-1])` is $\hat\rho_1$. \bh{Thinning:} keep every $k$th; simple, saves memory, throws away information. ESS never rises. `acf(x,plot=FALSE)$acf[2]` $=\hat\rho_1$ (entry 1 is lag 0); bars above the dashed band are real. `mean(diff(x)!=0)`: acceptance rate.
+\sk\kw{ESS:} independent sample size with the same information: \m{n/(1+2\sum_i\rho_i)\approx n\frac{1-\rho_1}{1+\rho_1}}. Aim ESS $>4000$. E.g. $n=5000$, $\rho_1=.9$: ESS $\approx263$. Naive SE too small by $\sqrt{(1+\rho_1)/(1-\rho_1)}$. $n$ for a target ESS: target$\times\frac{1+\rho_1}{1-\rho_1}$.
+\sk\bh{Accuracy:} $\Var(\bar h)\approx\frac{\sigma^2}n(1+2\sum\rho_i)$: iid SE is too small. MC s.e.: iid $s/\sqrt N$; proportion $\sqrt{\hat p(1-\hat p)/N}$; chain $s/\sqrt{\mathrm{ESS}}$. Posterior sd does not shrink with $N$. \bh{Blocking:} MC error $=$ sd(block means)$/\sqrt Q$; want $\le5\%$ of posterior sd. Same as ESS $\ge400$.
 \bx
 \hd{Maid Mast Codes PT4: MCMC}\par
-\li`prob<-dtarget(prop)/dtarget(cur); if(runif(1)<prob) accept`: symmetric MH. `is.nan` guard.
-\li`proposal<-rnorm(2,chain[i,],sd)`: random walk.
+\li`prob<-dtarget(prop)/dtarget(cur); if(runif(1)<prob) accept`: symmetric MH. `is.nan` guard. `proposal<-rnorm(2,chain[i,],sd)`: random walk.
 \li`acceptance<-1-mean(duplicated(chain[-(1:burnIn),]))`: after burn-in. `chain[-(1:burnIn),]` drops burn-in.
 \li`la1<-rgamma(1,a1+cfreq[M],b1+M)`: Gamma(shape, rate); `cfreq<-cumsum(freq)` gives $\sum_1^my_i$.
 \li`M<-sample(1:n,1,prob=(la1/la2)^cfreq*exp((la2-la1)*(1:n)))`: discrete conditional.
 \li`rnorm(1,mu1+(x2-mu2)*s12/s2,sqrt(s1-s12^2/s2))`: Gibbs, sd not var.
 \li`cumsum(x)/1:n`: running mean, should flatten. `mean(th>0)`: posterior probability. `s[seq(1,n,by=k),]`: thin.
+\li`1/rgamma(1,a,b)`: $\IG$ draw. `rnorm(1,m,sqrt(1/A))`: sd is the root of the variance.
+% ===================== VARIATIONAL INFERENCE =====================
+\topic{VARIATIONAL INFERENCE}
+\hd{Variational inference:} turns inference into optimisation: find $q^*\in D$ nearest the posterior. Faster for large data and complex models, at a cost in accuracy.
+\sk\kw{KL:} \m{KL(q\|p(\theta|y))=\int q(\theta)[\log q(\theta)-\log p(\theta|y)]d\theta\ge0}. Not symmetric. Penalises $q$ for mass where $p$ is tiny, not for missing mass, so $q$ sits inside $p$.
+\sk\kw{ELBO:} $p(\theta|y)$ unknown, but $KL=-ELBO+\log p(y)$ with
+\dm{ELBO(q)=-\int q[\log q-\log p(\theta)p(y|\theta)]d\theta}
+$=\E_q[\log p(\theta,y)]-\E_q[\log q]$. $\log p(y)$ is free of $q$, so \bh{min KL = max ELBO}; $KL\ge0$ gives $\log p(y)\ge ELBO$. $\log p(y)=ELBO+KL$: the gap is the KL.
+\sk\kw{Mean field:} $q(\theta)=\prod_jq_j(\theta_j)$: parameters independent under $q$. An assumption on the approximation, \warn{not on the model}.
+\sk\kw{CAVI:} update one factor at a time, others fixed: \m{q_j^*(\theta_j)\propto\exp\{\E_{-j}[\log p(\theta,y)]\}}. ELBO rises to a local optimum (a drop means a bug). Stop when ELBO change is small. Sensitive to initial values: run several, keep highest ELBO. It updates distributions; it draws no samples. Checks: ELBO never falls, stays $\le\log p(y)$.
+\sk\kw{Recipe:} (1) $\log p(\theta,y)$ = log likelihoods + log priors. (2) Keep terms with $\theta_j$. (3) Take $\E$ over the others (linear). (4) Collect powers, name the kernel. Same kernel as Gibbs, with terms in other parameters replaced by their expectations.
+\sk\bh{Use:} $\E(x-\mu)^2=(x-\E\mu)^2+V\mu=\sigma^{2*}+\mu^{*2}-2x\mu^*+x^2$; $\E\mu^2=(\E\mu)^2+V\mu$; $\E\tau=a^*/b^*$; $\E\log\tau=\psi(a^*)-\log b^*$; $\E[1/\sigma^2]=a^*/b^*$. \warn{$q_\mu$ uses $\E[1/\sigma^2]$, not $1/\E\sigma^2$.}
+\sk\kw{Normal-Gamma:} $x_i\sim\Nor(\mu,\frac1\tau)$, $\mu|\tau\sim\Nor(\mu_0,\frac1{\lambda_0\tau})$, $\tau\sim\Ga(a_0,b_0)$:
+\sk\m{q_\mu^*=\Nor(\mu^*,\sigma^{2*})}: \m{\mu^*=\frac{\lambda_0\mu_0+n\bar x}{\lambda_0+n}}, \m{\sigma^{2*}=\frac1{(\lambda_0+n)\E\tau}}.
+\sk\m{q_\tau^*=\Ga(a^*,b^*)}: \m{a^*=a_0+\frac{n+1}2}, \m{b^*=b_0+\frac12\sumi\E(x_i-\mu)^2+\frac{\lambda_0}2\E(\mu-\mu_0)^2}.
+\sk Only $\sigma^{2*}$ and $b^*$ change between iterations. \bh{Variance form:} $q_{\sigma^2}^*$ is $\IG$ with the same two parameters.
+\sk\kw{Independent priors} $\mu\sim\Nor(m,\frac1\kappa)$, $\tau\sim\Ga(a,b)$: \m{q_\mu^*=\Nor(\frac{\kappa m+n\bar x\E\tau}{\kappa+n\E\tau},\frac1{\kappa+n\E\tau})}; \m{q_\tau^*=\Ga(a+\frac n2,\ b+\frac12[\sum(x_i-\E\mu)^2+nV\mu])}. \warn{Shape $a+\frac n2$, not $\frac{n+1}2$}; here both factors move each round. \bh{Two sources,} $y_j$ variance $d\sigma^2$: $\E Q=\sum(x_i-\E\mu)^2+nV\mu+\frac1d[\sum(y_j-\E\mu)^2+mV\mu]$, shape $a+\frac{n+m}2$.
+\sk\bh{Exact:} $\mu|\tau,x\sim\Nor(\frac{\lambda_0\mu_0+n\bar x}{\lambda_0+n},\frac1{(\lambda_0+n)\tau})$, $\tau|x\sim\Ga(a_0+\frac n2,b_0+\frac12\sum(x_i-\bar x)^2+\frac{n\lambda_0(\bar x-\mu_0)^2}{2(\lambda_0+n)})$. $\Var(\mu|x)=\frac{b_n}{(n+\lambda_0)(a_n-1)}$.
+\sk\kw{Bivariate Normal target:} $\Lambda=\Sigma\inv$: $q_1^*=\Nor(\mu_1-\frac{\Lambda_{12}}{\Lambda_{11}}(\E x_2-\mu_2),\frac1{\Lambda_{11}})$. $1/\Lambda_{11}=\sigma_1^2-\sigma_{12}^2/\sigma_2^2<\sigma_1^2$: the conditional variance. Means right, but \warn{VI underestimates variance and ignores correlation}; worse as correlation rises. Error in the means shrinks by $\rho^2$ a round: strong correlation is slow too.
 \bx
-\hd{Old-paper extras:} \bh{Bayes estimator:} minimise posterior expected loss; squared error gives posterior mean. \bh{Bayesian GLM:} vague priors $\beta_j\sim\Nor(0,10^4)$; overdispersion: add $\varepsilon_i\sim\Nor(0,1/\tau)$ to $\eta_i$. \bh{Log-linear:} Poisson on table counts; `A*B` = interaction; residual df = cells $-$ parameters; `A+B+C` = mutual independence.
-\bx
-\hd{Exam checks:} \li Define $\pik$; state which $\theta^0$. \li State $H_0$, statistic, df, decision, sentence in context. \li CI on $\eta$ first, transform last. \li $\hat p$, $\hmu$ on response scale. \li $p$ includes intercept. \li $\hphi$: big model for $F$, own model for SE. \li Rate vs scale; variance vs sd in $\Nor$. \li Name distribution and every parameter.
+\hd{MCMC vs VI:} MCMC simulates the density, is heavier, asymptotically exact. VI approximates it, is faster, suits large data and model exploration, no guarantee, underestimates variance.
+% ===================== EXAM CHECKS =====================
+\topic{EXAM CHECKS}
+\li Define $\pik$; state which $\theta^0$. \li State $H_0$, statistic, df, decision, sentence in context. \li CI on $\eta$ first, transform last. \li $\hat p$, $\hmu$ on response scale. \li $p$ includes intercept. \li $\hphi$: big model for $F$, own model for SE. \li Rate vs scale; variance vs sd in $\Nor$. \li Name distribution and every parameter. \li 4 dp inside, round once.

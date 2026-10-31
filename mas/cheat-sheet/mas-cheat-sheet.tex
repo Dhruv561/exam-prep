@@ -1,7 +1,7 @@
 % MAST30027 cheat sheet: 2 A4 pages, four vertical columns, black-ruled boxes.
 % Build: tectonic -X compile mas-cheat-sheet.tex
 \documentclass{article}
-\usepackage[a4paper,left=4.5mm,right=4.5mm,top=4.5mm,bottom=4.5mm]{geometry}
+\usepackage[a4paper,left=14.7pt,right=14.7pt,top=13.4pt,bottom=13.4pt]{geometry}
 \usepackage{mathtools}
 \usepackage{fontspec}
 \usepackage{unicode-math}
@@ -27,30 +27,38 @@
 \pagestyle{empty}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0pt}
-\setlength{\columnsep}{7pt}
-\setlength{\columnseprule}{1.1pt}
+\setlength{\columnsep}{5pt}
+\setlength{\columnseprule}{1.2pt}
+\renewcommand{\columnseprulecolor}{\color{rd}}
+\setlength{\topskip}{6.1pt}
 \setlength{\tabcolsep}{1.3pt}
 \setlength{\arrayrulewidth}{0.25pt}
 \setlength{\multicolsep}{0pt}
 \renewcommand{\arraystretch}{1.02}
-\raggedcolumns\flushcolumns
+\raggedcolumns
+\clubpenalty=0 \widowpenalty=0 \displaywidowpenalty=0 \brokenpenalty=0
 \emergencystretch=8pt
-\lineskip=0.2pt \lineskiplimit=-1.1pt \normallineskip=0.2pt \normallineskiplimit=-1.1pt
+\lineskip=0.1pt \lineskiplimit=-1.5pt \normallineskip=0.1pt \normallineskiplimit=-1.5pt
 \hbadness=10000 \vbadness=10000
 
-\newcommand{\fs}{\fontsize{5.85}{6.58}\selectfont}
-\DeclareMathSizes{5.85}{6.1}{4.7}{3.85}
+\newcommand{\fs}{\fontsize{5.35}{5.9}\selectfont}
+\DeclareMathSizes{5.35}{5.6}{4.35}{3.65}
 
-% box separator: rule joins the column rules
-\newcommand{\bx}{\par\vskip 0.5pt plus 9pt
-  \noindent\hspace*{-3.5pt}\rule{\dimexpr\columnwidth+7pt\relax}{1.1pt}\par\vskip 0.7pt plus 6pt}
+% box separator inside a topic: thin black rule joining the red column rules
+\newcommand{\bx}{\par\nointerlineskip\vskip 0.7pt
+  \moveleft\dimexpr\columnsep/2\relax\vbox{\hrule width \dimexpr\columnwidth+\columnsep\relax height 0.5pt}\nointerlineskip\vskip 0.8pt}
+% topic bar: red band that closes the red border above and opens the next topic
+\newcommand{\topic}[1]{\par\nointerlineskip\vskip 0.8pt
+  \moveleft\dimexpr\columnsep/2\relax\hbox{\rlap{\textcolor{rd}{\rule[-1.4pt]{\dimexpr\columnwidth+\columnsep\relax}{7.2pt}}}%
+  \hspace{\dimexpr\columnsep/2\relax}\textcolor{white}{\fontsize{6.1}{7}\selectfont\bfseries #1}}%
+  \nointerlineskip\nobreak\vskip 0.7pt\nobreak}
 \newcommand{\hd}[1]{{\setlength{\fboxsep}{0.3pt}\colorbox{yl}{\strut\textbf{#1}}} }
-\renewcommand{\strut}{\vrule width 0pt height 4.5pt depth 1.2pt}
+\renewcommand{\strut}{\vrule width 0pt height 4.2pt depth 1.1pt}
 \newcommand{\bh}[1]{\textbf{#1}}
 \newcommand{\kw}[1]{\textcolor{bl}{\textbf{#1}}}
 \newcommand{\warn}[1]{\textcolor{rd}{#1}}
 \newcommand{\m}[1]{\textcolor{mg}{$#1$}}
-\newcommand{\sk}{\par\vskip 0.55pt}
+\newcommand{\sk}{\par\vskip 0.25pt}
 % display line: centred, shrunk only if it would overflow the column
 \newsavebox{\dmbox}
 \newcommand{\dm}[1]{\par\sbox{\dmbox}{\textcolor{mg}{$\displaystyle #1$}}%
@@ -78,7 +86,7 @@
 % inline R between backticks: verbatim, green, breakable after punctuation
 \makeatletter
 \def\rc@mk#1{\catcode`#1=\active\begingroup\lccode`\~=`#1\lowercase{\endgroup\def~}{\char`#1\discretionary{}{}{}}}
-\def\rcode{\begingroup\ttfamily\fontsize{5.35}{6.1}\selectfont\color{gn}%
+\def\rcode{\begingroup\ttfamily\fontsize{5}{6}\selectfont\color{gn}%
   \let\do\@makeother\dospecials\catcode`\ =10\relax
   \rc@mk{,}\rc@mk{(}\rc@mk{=}\rc@mk{+}\rc@mk{*}\rc@mk{/}\rc@mk{<}\rc@mk{~}\rc@go}
 \begingroup\catcode`\`=\active
@@ -87,15 +95,17 @@
 \endgroup
 \makeatother
 \newcommand{\codehd}[1]{\par\vskip 0.3pt{\ttfamily\fontsize{5.9}{6.6}\selectfont\textbf{#1}}\par}
+\newcommand{\rr}[1]{{\ttfamily\fontsize{5.1}{6}\selectfont #1}}
 
 \makeatletter
 \AddToShipoutPictureBG{\AtPageLowerLeft{\unitlength=1pt
-  \put(12.2,12.2){\linethickness{1.1pt}\framebox(\strip@pt\dimexpr\paperwidth-24.4pt\relax,\strip@pt\dimexpr\paperheight-24.4pt\relax){}}}}
+  \put(12.2,12.2){\color{rd}\linethickness{1.2pt}\framebox(\strip@pt\dimexpr\paperwidth-24.4pt\relax,\strip@pt\dimexpr\paperheight-24.4pt\relax){}}}}
 \makeatother
 
 \begin{document}\fs
-\thinmuskip=2.2mu \medmuskip=2.6mu plus 0.6mu minus 0.6mu \thickmuskip=3.6mu plus 1mu
-\rightskip=0pt plus 14pt\relax\spaceskip=0.27em plus 0.08em minus 0.04em\relax\xspaceskip=\spaceskip\relax\hyphenpenalty=300\exhyphenpenalty=100
+\thinmuskip=2mu \medmuskip=2mu plus 0.6mu minus 0.6mu \thickmuskip=3mu plus 0.8mu
+\rightskip=0pt plus 9pt\relax\spaceskip=0.27em plus 0.08em minus 0.04em\relax\xspaceskip=\spaceskip\relax\hyphenpenalty=100\exhyphenpenalty=50
+\relpenalty=0 \binoppenalty=0 \tolerance=9999 \pretolerance=2000
 \makeatletter\rc@on\makeatother
 
 \begin{multicols*}{4}
