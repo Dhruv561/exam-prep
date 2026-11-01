@@ -210,7 +210,7 @@ $$-\frac{\partial^2\ell}{\partial\beta\,\partial\beta^T}=\frac{1}{a(\phi)}X^TWX\
 <details><summary>Model answer</summary><div><p>In \(\hat\beta=(X^T\Sigma^{-1}X)^{-1}X^T\Sigma^{-1}z\), \(\Sigma\) appears once inverted and once not, so a common scalar factor \(a(\phi)\) cancels (just as \(\sigma^2\) doesn't affect OLS estimates). In \(\operatorname{Var}\hat\beta=(X^T\Sigma^{-1}X)^{-1}\) it appears only once, so it scales the variance. That's why overdispersion leaves estimates unchanged but inflates SEs by \(\sqrt{\hat\phi}\).</p></div></details>
 </div>
 
-<h2>6 · Exam-level challenge</h2>
+<h2 id="challenge">6 · Exam-level challenge</h2>
 <p>About 20 minutes on paper. No past paper asks this, but every piece is a stated learning goal of GLMs I.</p>
 <div class="box">
 <p>A café counts customers \(y_i\) arriving in 12 half-hour windows, two windows at each of six staffing levels \(x_i\in\{1,\dots,6\}\). (Simulated data.) Model: \(Y_i\sim\text{Poisson}(\mu_i)\) independently, \(\sqrt{\mu_i}=\beta_0+\beta_1x_i\).</p>
@@ -268,6 +268,8 @@ Number of Fisher Scoring iterations: 4
 <details><summary>Step 6: part (f)</summary><div>
 <p>\(\dfrac{\partial^2\ell}{\partial\beta_j\partial\beta_k}=\sum_i\Big(-\dfrac{2y_i}{\eta_i^2}-2\Big)x_{ij}x_{ik}\), so \(J(\beta)=X^T\operatorname{diag}\!\Big(2+\dfrac{2y_i}{\eta_i^2}\Big)X\). Taking expectations, \(\mathbb E[2y_i/\eta_i^2]=2\mu_i/\mu_i=2\), so \(\mathcal I=X^T\operatorname{diag}(4)X=4X^TX\) ✓.</p>
 <p><strong>Explanation:</strong> \(J\) depends on the data through \(y_i\), so \(J\ne\mathcal I\) in general and Newton–Raphson (which uses \(J\)) takes different steps from Fisher scoring (which uses \(\mathcal I\)). This happens because the link isn't canonical: the \(y\)-term of \(\ell\) is \(2y_i\log\eta_i\), not linear in \(\beta\). Both converge to the same \(\hat\beta\); <code>glm</code> uses Fisher scoring, so its SEs come from \(\mathcal I\). (At \(\hat\beta\), SEs from \(J\) would be 0.3142 and 0.0809: close, not equal. For <code>fit0</code> they coincide, because \(\sum y_i=n\hat\eta^2\) at the MLE.)</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0006-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>7 · Before you close this tab</h2>
 <details><summary>Retrieval: write these from memory, then check</summary><div>

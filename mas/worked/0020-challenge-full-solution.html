@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EM Code Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 20 · Exam-style question · Full written solution</div>
+<h1>Reading the EM code, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<div class="box">
+<p><strong>Setup</strong> (fresh data; about 12 marks). The numbers of insurance claims \(X_1,\dots,X_8\) filed by eight small businesses are modelled as a two-component Poisson mixture: \(Z_i\sim\text{Categorical}(\pi_1,1-\pi_1)\), \(X_i\mid Z_i=k\sim\text{Poisson}(\lambda_k)\). An analyst uses the tute week 7 code:</p>
+<pre class="rout"><span class="cmd">EM.iter &lt;- function(X, w.curr, lambda_curr) {
+  prob.x.z = compute.prob.x.z(X, w.curr, lambda_curr)$prob.x.z
+  P_ik = prob.x.z / rowSums(prob.x.z)
+  w.new = colSums(P_ik)/sum(P_ik)
+  lambda_new = colSums(P_ik*X)/colSums(P_ik)
+  return(list(w.new=w.new, lambda_new=lambda_new))
+}
+compute.prob.x.z &lt;- function(X, w.curr, lambda_curr) {
+  L = matrix(NA, nrow=length(X), ncol= length(w.curr))
+  for(k in seq_len(ncol(L))) {
+    L[, k] = dpois(X, lambda_curr[k])*w.curr[k]
+  }
+  return(list(prob.x.z=L))
+}</span></pre>
+<p>(<code>compute.log.lik</code> and <code>mixture.EM</code> are as in §2 with <code>w</code>/<code>lambda</code> names.) Output:</p>
+<pre class="rout"><span class="cmd">&gt; X &lt;- c(0, 1, 1, 2, 4, 6, 8, 9)
+&gt; w.curr &lt;- c(0.6, 0.4); lambda_curr &lt;- c(1, 6)
+&gt; prob.x.z = compute.prob.x.z(X, w.curr, lambda_curr)$prob.x.z
+&gt; round(prob.x.z, 4)</span>
+       [,1]   [,2]
+[1,] 0.2207 0.0010
+[2,] 0.2207 0.0059
+[3,] 0.2207 0.0059
+[4,] 0.1104 0.0178
+[5,] 0.0092 0.0535
+[6,] 0.0003 0.0642
+[7,] 0.0000 0.0413
+[8,] 0.0000 0.0275
+<span class="cmd">&gt; round(rowSums(prob.x.z), 4)</span>
+[1] 0.2217 0.2267 0.2267 0.1282 0.0627 0.0646 0.0413 0.0275
+<span class="cmd">&gt; P_ik = prob.x.z / rowSums(prob.x.z); round(P_ik, 4)</span>
+       [,1]   [,2]
+[1,] 0.9955 0.0045
+[2,] 0.9738 0.0262
+[3,] 0.9738 0.0262
+[4,] 0.8608 0.1392
+[5,] 0.1466 0.8534
+[6,] 0.0047 0.9953
+[7,] 0.0001 0.9999
+[8,] 0.0000 1.0000
+<span class="cmd">&gt; EM1 &lt;- mixture.EM(X, w.init=c(0.6,0.4), lambda_init=c(1, 6))
+&gt; EM2 &lt;- mixture.EM(X, w.init=c(0.5,0.5), lambda_init=c(7, 2))
+&gt; EM3 &lt;- mixture.EM(X, w.init=c(0.6,0.4), lambda_init=c(4, 4))
+&gt; fin &lt;- function(e) round(c(w = e$w.curr, lambda = e$lambda_curr,
++                          ill = tail(e$log_liks, 1),
++                          iters = length(e$log_liks) - 1), 4)
+&gt; cbind(EM1 = fin(EM1), EM2 = fin(EM2), EM3 = fin(EM3))</span>
+             EM1      EM2     EM3
+w1        0.4979   0.5015   0.600
+w2        0.5021   0.4985   0.400
+lambda1   1.0935   6.6373   3.875
+lambda2   6.6334   1.0957   3.875
+ill     -18.5014 -18.5014 -22.866
+iters     5.0000  10.0000   2.000</pre>
+<ol type="a">
+  <li>State what <code>prob.x.z[i, k]</code> and <code>P_ik[i, k]</code> are in probability notation, with formulas in terms of \(w_k\), \(\lambda_k\) and \(x_i\). <span class="marks">[2]</span></li>
+  <li>Starting from the Poisson pmf, verify <code>prob.x.z[4, 1]</code> and <code>prob.x.z[4, 2]</code>, then compute <code>P_ik[4, 1]</code>. To which component would observation 4 be assigned? (2 d.p.) <span class="marks">[3]</span></li>
+  <li>Using the printed <code>P_ik</code>, compute <code>w.new[1]</code> and <code>lambda_new[1]</code> for the first iteration (2 d.p.). <span class="marks">[3]</span></li>
+  <li>Compute the incomplete log-likelihood at the starting values (2 d.p.). What can you say about its value after the first iteration? <span class="marks">[2]</span></li>
+  <li>Which run's estimates would you report? Comment on EM2 and EM3. <span class="marks">[2]</span></li>
+</ol>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · What the objects are <span class="marks">[2]</span></h2>
+<div class="script">
+$$\begin{aligned}
+\texttt{prob.x.z}[i,k]&=P(X_i=x_i,Z_i=k\mid\theta^0)\\
+&=w_k^0\frac{(\lambda_k^0)^{x_i}e^{-\lambda_k^0}}{x_i!}\\[6pt]
+\texttt{P\_ik}[i,k]&=P(Z_i=k\mid X_i=x_i,\theta^0)\\
+&=\frac{w_k^0(\lambda_k^0)^{x_i}e^{-\lambda_k^0}/x_i!}{\sum_{j=1}^2w_j^0(\lambda_j^0)^{x_i}e^{-\lambda_j^0}/x_i!}
+\end{aligned}$$
+<p>The joint, and the responsibility, at the current values.</p>
+</div>
+<h2>(b) · Row 4 <span class="marks">[3]</span></h2>
+<div class="script">
+<p>\(x_4=2\), so \(x_4!=2\):</p>
+$$\begin{aligned}
+\texttt{prob.x.z}[4,1]&=0.6\times\frac{1^2e^{-1}}2\\
+&=0.6(0.183940)\\
+&=0.1104\\
+\texttt{prob.x.z}[4,2]&=0.4\times\frac{6^2e^{-6}}2\\
+&=0.4(18)(0.002479)\\
+&=0.0178\\
+\texttt{P\_ik}[4,1]&=\frac{0.1104}{0.1104+0.0178}\\
+&=\frac{0.1104}{0.1282}\\
+&=0.86
+\end{aligned}$$
+<div class="answer-box"><p>\(0.86\gt0.5\): assign observation 4 to component 1</p></div>
+</div>
+<h2>(c) · First M-step <span class="marks">[3]</span></h2>
+<div class="script">
+<p>Column 1 of <code>P_ik</code>:</p>
+$$\begin{aligned}
+\sum_i\gamma_{i1}&=0.9955+0.9738+0.9738+0.8608\\
+&\quad+0.1466+0.0047+0.0001+0.0000\\
+&=3.9553\\
+\texttt{w.new}[1]&=\frac{3.9553}8\\
+&=0.49
+\end{aligned}$$
+<p>Weighted sum of the counts:</p>
+$$\begin{aligned}
+\sum_i\gamma_{i1}x_i&=0.9955(0)+0.9738(1)+0.9738(1)+0.8608(2)\\
+&\quad+0.1466(4)+0.0047(6)+0.0001(8)+0.0000(9)\\
+&=4.2846\\
+\texttt{lambda\_new}[1]&=\frac{4.2846}{3.9553}\\
+&=1.08
+\end{aligned}$$
+<div class="answer-box"><p><code>w.new[1]</code> \(=0.49\), <code>lambda_new[1]</code> \(=1.08\)</p></div>
+</div>
+<p class="note"><code>sum(P_ik)</code> \(=n=8\), since each row sums to 1.</p>
+<h2>(d) · Incomplete log-likelihood <span class="marks">[2]</span></h2>
+<div class="script">
+$$\begin{aligned}
+\ell(\theta^0)&=\sum_{i=1}^8\log\Big(\sum_k\texttt{prob.x.z}[i,k]\Big)\\
+&=\log0.2217+\log0.2267+\log0.2267+\log0.1282\\
+&\quad+\log0.0627+\log0.0646+\log0.0413+\log0.0275\\
+&=-18.82
+\end{aligned}$$
+<p>EM never decreases the incomplete log-likelihood.</p>
+<div class="answer-box"><p>\(\ell(\theta^0)=-18.82\), and after one iteration \(\ell\ge-18.82\)</p></div>
+</div>
+<h2>(e) · Which run <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Report EM1 (\(\hat w_1=0.50\), \(\hat\lambda=(1.09,\ 6.63)\)): it has the highest final \(\ell\), \(-18.50\) against EM3's \(-22.87\).</p>
+<p>EM2 is the same fit with labels switched (\(w\), \(\lambda\) swapped, same \(\ell\)).</p>
+<p>EM3 started with \(\lambda_1^0=\lambda_2^0=4\), so every row of <code>P_ik</code> equals \((0.6,\ 0.4)\) and both rates become \(\bar x=3.875\): it is stuck at a stationary point, so discard it.</p>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Joint vs responsibility in notation · \(x!\) used in the check · 0.86 and the assignment · weighted sums · <code>rowSums</code> inside the log · highest \(\ell\) · label switching · equal starts stuck.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0020-reading-em-r-code.html#challenge">Lesson 20, exam-style question</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

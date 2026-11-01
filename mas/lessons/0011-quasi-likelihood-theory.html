@@ -182,7 +182,7 @@ Number of Fisher Scoring iterations: 8
 <details><summary>Model answer</summary><div><p>If the true distribution is the exponential family whose variance function is the \(v\) you chose, \(Q\) is that log-likelihood up to a constant and a factor \(1/\phi\), so \(\hat\beta\) is the MLE. If the true distribution is something else with the same mean and variance, \(\hat\beta\) is still consistent and approximately normal, but the MLE under the true distribution uses more information and has smaller variance.</p></div></details>
 </div>
 
-<h2>7 · Exam-level challenge (11 marks, about 20 minutes)</h2>
+<h2 id="challenge">7 · Exam-level challenge (11 marks, about 20 minutes)</h2>
 <div class="box">
 <p>A lab measures lead concentration \(Y_i\) (μg/L) in tap-water samples. Concentrations are lognormal: \(\log Y_i\sim N(m_i,\sigma^2)\) independently, where \(\sigma=0.4\) is known from the lab's repeat-measurement studies. You want to model \(\mu_i=\mathbb EY_i\) by pipe type, \(\log\mu_i=\beta_0+\beta_1x_i\) (\(x_i=1\) for old solder joints). You may use: if \(\log Y\sim N(m,\sigma^2)\) then \(\mathbb E(Y^k)=e^{km+k^2\sigma^2/2}\).</p>
 <p>(a) Show that \(\operatorname{Var}Y_i=\phi\,v(\mu_i)\) and identify \(v\) and \(\phi\) (give \(\phi\) numerically). <em>[2]</em><br>
@@ -207,6 +207,8 @@ $$Q_i=\frac1\phi\int_{y_i}^{\mu_i}\Big(\frac{y_i}{t^2}-\frac1t\Big)dt=\frac1\phi
 <details><summary>Step 5: part (e)</summary><div>
 <p>No. The quasi \(\hat\beta\) is the gamma MLE (same \(v\), same link). Under the lognormal model the MLE comes from least squares on \(\log y_i\) (here, group geometric means \(\times e^{\sigma^2/2}\): 3.75 and 9.38, not 4 and 10). The quasi estimator is consistent but less efficient, so with the distribution known you should use it. <em>[1]</em></p>
 <p>\(\hat\phi=0.5\) is far from the true \(0.1735\): it rests on only \(n-p=2\) df, so it's very noisy. Since \(\phi\) is known here, you could fix it; the quasi approach estimates it because in general you don't know it. <em>[1]</em></p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0011-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>8 · Before you close this tab</h2>
 <details><summary>Retrieval: write these from memory, then check</summary><div>

@@ -299,7 +299,7 @@ true   1   2
 <p>\(16+33=49\) of 500 (9.8%). Observation 1 really is high-risk but made 0 claims, which a Poisson(2.5) driver does with probability \(e^{-2.5}=0.08\). Given only \(x=0\), the low-risk explanation is far more likely (\(\gamma_1=0.97\)). The method is working as designed: overlapping components make some errors unavoidable, and the responsibilities say how uncertain each assignment is.</p></div></details>
 </div>
 
-<h2>6 · Exam-style practice</h2>
+<h2 id="challenge">6 · Exam-style practice</h2>
 <p><strong>Setup</strong> (written in the shape of a past paper; fresh numbers). Counts \(x=(0,\ 3,\ 5,\ 1)\) follow a two-component Poisson mixture: \(Z_i\sim\text{Categorical}(\pi,1-\pi)\), \(X_i\mid Z_i=1\sim\text{Poisson}(1)\), \(X_i\mid Z_i=2\sim\text{Poisson}(4)\). Only \(\pi\) is unknown. Two EM runs from different starting values (one stopped early) report \(\hat\pi=0.3\) and \(\hat\pi=0.6\). Pick the one with the higher \(\ell(\pi)\).</p>
 <p>The component pmf values you'll need, which don't depend on \(\pi\):</p>
 <div class="tablewrap"><table class="ledger">
@@ -338,6 +338,8 @@ true   1   2
 <details><summary>Model answer</summary><div>
 <p>The MLE is by definition the value that maximises the observed-data log-likelihood \(\ell(\theta)\). EM only guarantees that \(\ell\) never decreases, so different starting values can stop at different local maxima, or stop early. We compare the runs on the criterion EM is maximising and keep the one with the higher \(\ell\): here \(-7.77&gt;-7.98\), so \(\hat\pi=0.6\). The lecturer's demo does the same, comparing "the final incomplete log-likelihoods" across starts (<a href="../extra-notes/EM-updated.qmd">EM-updated.qmd</a>).</p></div></details>
 </div>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0016-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>7 · Next: the EM algorithm</h2>
 <p>§2 showed that you'd know how to fit each component if you knew the labels, and §4 showed how to compute the labels' probabilities if you knew the parameters. EM alternates between the two. The <strong>E-step</strong> computes \(\gamma_{ik}\) at the current \(\theta^0\), which turns the complete-data log-likelihood into \(Q(\theta,\theta^0)=\sum_i\sum_k\gamma_{ik}[\log\pi_k+\log f_k(x_i;\theta)]\). The <strong>M-step</strong> maximises \(Q\), which gives weighted versions of Q3's group MLEs. <a href="0017-em-algorithm-q-function.html">Lesson 17</a> derives \(Q\) and the M-step line by line, the way the 2021–2022 papers ask for it.</p>

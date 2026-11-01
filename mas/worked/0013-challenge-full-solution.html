@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seizures Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 13 · Exam-level challenge · Full written solution</div>
+<h1>Seizure counts, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<div class="box">
+<p><strong>Question 1</strong> (21 marks). R's <code>MASS::epil</code> comes from a clinical trial of the anti-epileptic drug progabide in 59 patients. For each patient we use:</p>
+<ul>
+  <li><code>y</code>: number of seizures in the 8 weeks after randomisation;</li>
+  <li><code>base</code>: number of seizures in the 8 weeks before the trial;</li>
+  <li><code>trt</code>: <code>placebo</code> or <code>progabide</code>;</li>
+  <li><code>age</code>: age in years.</li>
+</ul>
+<pre class="rout"><span class="cmd">&gt; library(MASS)
+&gt; ep &lt;- aggregate(y ~ subject + trt + base + age, data = epil, FUN = sum)
+&gt; m1 &lt;- glm(y ~ log(base) + trt, family = poisson, data = ep)
+&gt; summary(m1)</span>
+
+Coefficients:
+             Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  -0.55588    0.12209  -4.553 5.29e-06 ***
+log(base)     1.17672    0.03085  38.146  &lt; 2e-16 ***
+trtprogabide -0.10533    0.04530  -2.325   0.0201 *
+---
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 2122.73  on 58  degrees of freedom
+Residual deviance:  584.85  on 56  degrees of freedom
+AIC: 874.11
+
+<span class="cmd">&gt; m2 &lt;- glm(y ~ log(base) + trt + log(age), family = poisson, data = ep)
+&gt; summary(m2)</span>
+
+Coefficients:
+             Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  -2.72002    0.42665  -6.375 1.83e-10 ***
+log(base)     1.22522    0.03252  37.672  &lt; 2e-16 ***
+trtprogabide -0.01759    0.04818  -0.365    0.715
+log(age)      0.58778    0.10992   5.347 8.93e-08 ***
+---
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 2122.73  on 58  degrees of freedom
+Residual deviance:  556.39  on 55  degrees of freedom
+AIC: 847.66
+
+<span class="cmd">&gt; anova(m1, m2, test = "Chisq")</span>
+Analysis of Deviance Table
+
+Model 1: y ~ log(base) + trt
+Model 2: y ~ log(base) + trt + log(age)
+  Resid. Df Resid. Dev Df Deviance  Pr(&gt;Chi)
+1        56     584.85
+2        55     556.39  1   28.456 9.587e-08 ***
+<span class="cmd">&gt; (phi1 &lt;- sum(residuals(m1, type = "pearson")^2) / m1$df.residual)</span>
+[1] 11.23465
+<span class="cmd">&gt; (phi2 &lt;- sum(residuals(m2, type = "pearson")^2) / m2$df.residual)</span>
+[1] 11.05488
+<span class="cmd">&gt; q1 &lt;- glm(y ~ log(base) + trt, family = quasipoisson, data = ep)
+&gt; q2 &lt;- glm(y ~ log(base) + trt + log(age), family = quasipoisson, data = ep)
+&gt; summary(q1)</span>
+
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)   -0.5559     0.4092  -1.358    0.180
+log(base)      1.1767     0.1034  11.381 3.43e-16 ***
+trtprogabide  -0.1053     0.1518  -0.694    0.491
+---
+(Dispersion parameter for quasipoisson family taken to be 11.23465)
+
+    Null deviance: 2122.73  on 58  degrees of freedom
+Residual deviance:  584.85  on 56  degrees of freedom
+AIC: NA
+
+<span class="cmd">&gt; anova(q1, q2, test = "F")</span>
+Analysis of Deviance Table
+
+Model 1: y ~ log(base) + trt
+Model 2: y ~ log(base) + trt + log(age)
+  Resid. Df Resid. Dev Df Deviance      F Pr(&gt;F)
+1        56     584.85
+2        55     556.39  1   28.456      ?      ?
+<span class="cmd">&gt; qf(0.95, 1, 55)</span>
+[1] 4.016195
+<span class="cmd">&gt; range(fitted(m2))</span>
+[1]   3.924587 186.139181</pre>
+<p>(a) Give the maximised log-likelihood of <code>m2</code> and the log-likelihood of the saturated model. <span class="marks">[2]</span><br>
+(b) Ignoring overdispersion, which of <code>m1</code> and <code>m2</code> is better? Give two quantitative reasons. <span class="marks">[3]</span><br>
+(c) Using <code>m2</code>, estimate the expected number of seizures in 8 weeks for a 25-year-old on progabide who had 20 seizures in the baseline period. <span class="marks">[2]</span><br>
+(d) Give two quantitative reasons why <code>m2</code> may suffer from overdispersion. <span class="marks">[2]</span><br>
+(e) In 2–3 sentences, explain the difference between the Poisson model <code>m2</code> and the quasi-Poisson model <code>q2</code>. <span class="marks">[3]</span><br>
+(f) Give the standard error of the <code>trtprogabide</code> coefficient in <code>m2</code> allowing for overdispersion. Is there evidence of a treatment effect? <span class="marks">[2]</span><br>
+(g) The F statistic in the last <code>anova</code> is hidden. Write down its formula, compute it, and give its degrees of freedom. <span class="marks">[3]</span><br>
+(h) Allowing for overdispersion, which model do you prefer? Explain why this differs from (b). <span class="marks">[2]</span><br>
+(i) Compute the scaled quasideviance of <code>q2</code> and its maximised quasi log-likelihood \(\sum_iQ_i\). <span class="marks">[2]</span></p>
+<p style="margin-bottom:0"><strong>Question 2</strong> (4 marks). A colleague fits a Poisson regression to overdispersed counts and reports the summary as is. What misleading results can this give, and why?</p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2 class="q-part">Question 1</h2>
+<h2>(a) · Log-likelihoods <span class="marks">[2]</span></h2>
+<div class="script">
+<p>\(p=4\), and \(\phi=1\) for Poisson:</p>
+$$\begin{aligned}
+\hat\ell_{m2}&=4-\frac{847.66}2\\
+&=-419.83\\
+\ell_{\text{sat}}&=-419.83+\frac{556.39}2\\
+&=-141.64
+\end{aligned}$$
+<div class="answer-box"><p>\(\hat\ell_{m2}=-419.83\), \(\ell_{\text{sat}}=-141.64\)</p></div>
+</div>
+<p class="note">Check with <code>m1</code>: \(3-874.11/2+584.85/2=-141.63\) ✓.</p>
+<h2>(b) · Which Poisson model <span class="marks">[3]</span></h2>
+<div class="script">
+<p><code>m2</code>:</p>
+<ol><li>LRT, \(H_0\): <code>log(age)</code> not needed. \(584.85-556.39=28.46\) on 1 df, p \(=9.6\times10^{-8}\), so reject \(H_0\).</li><li>AIC: \(847.66\lt874.11\).</li></ol>
+</div>
+<h2>(c) · Prediction <span class="marks">[2]</span></h2>
+<div class="script">
+<p>The predictors enter as logs:</p>
+$$\begin{aligned}
+\hat\eta&=-2.72002+1.22522\log20-0.01759+0.58778\log25\\
+&=-2.72002+1.22522(2.99573)-0.01759+0.58778(3.21888)\\
+&=-2.72002+3.67043-0.01759+1.89199\\
+&=2.8248\\
+\hat\mu&=e^{2.8248}\\
+&=16.86
+\end{aligned}$$
+<div class="answer-box"><p>16.86 seizures</p></div>
+</div>
+<h2>(d) · Overdispersion evidence <span class="marks">[2]</span></h2>
+<div class="script">
+<ol><li>Residual deviance 556.39 on 55 df, about 10 times its df (mean of \(\chi^2_{55}\) is 55).</li><li>\(\hat\phi=X^2/(n-p)=11.05\gg1\).</li></ol>
+</div>
+<p class="note">Fitted counts run 3.9 to 186, mostly well above 5, so the \(\chi^2\) comparison is reasonable. Wrong mean structure or outliers can also inflate \(D\).</p>
+<h2>(e) · Poisson vs quasi-Poisson <span class="marks">[3]</span></h2>
+<div class="script">
+<p>Poisson assumes \(\operatorname{Var}Y_i=\mu_i\). Quasi-Poisson assumes \(\operatorname{Var}Y_i=\phi\mu_i\) with \(\phi\) estimated by \(X^2/(n-p)\), and specifies only the mean and variance, not a distribution.</p>
+<p>The estimates \(\hat\beta\), fitted values and deviance are identical, because the quasi-score equations are the Poisson ones times \(1/\phi\).</p>
+<p>The SEs are \(\sqrt{\hat\phi}\) times larger, nested models use F tests rather than \(\chi^2\), and there is no likelihood, so no AIC.</p>
+</div>
+<h2>(f) · SE allowing for overdispersion <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Use <code>phi2</code>, the \(\hat\phi\) for <code>m2</code>:</p>
+$$\begin{aligned}
+\text{SE}&=0.04818\sqrt{11.05488}\\
+&=0.04818(3.32489)\\
+&=0.16\\
+t&=\frac{-0.01759}{0.16019}\\
+&=-0.11
+\end{aligned}$$
+<div class="answer-box"><p>SE \(=0.16\). \(|t|=0.11\), so no evidence of a treatment effect</p></div>
+</div>
+<h2>(g) · The F statistic <span class="marks">[3]</span></h2>
+<div class="script">
+$$\begin{aligned}
+F&=\frac{(D_{m1}-D_{m2})/s}{\hat\phi_{m2}}\\
+&=\frac{28.456/1}{11.05488}\\
+&=2.57
+\end{aligned}$$
+<div class="answer-box"><p>\(F=2.57\) on \((1,\ 55)\) df</p></div>
+</div>
+<p class="note">Using <code>phi1</code> gives 2.53: lose the mark.</p>
+<h2>(h) · Which quasi model <span class="marks">[2]</span></h2>
+<div class="script">
+<p>\(2.57\lt F_{1,55}(0.95)=4.02\), so don't reject \(H_0\): prefer the smaller <code>q1</code>, without <code>log(age)</code>.</p>
+<p>This differs from (b) because the \(\chi^2\) test assumed \(\phi=1\). With \(\phi\approx11\), a change in deviance of 28 is about what extra-Poisson noise alone produces.</p>
+</div>
+<p class="note">Check: quasi \(t=5.347/3.325=1.61\), and \(1.61^2\approx2.57\).</p>
+<h2>(i) · Scaled quasideviance and \(\sum Q_i\) <span class="marks">[2]</span></h2>
+<div class="script">
+<p>For quasi-Poisson, \(D_Q\) is the Poisson deviance:</p>
+$$\begin{aligned}
+\frac{D_Q}{\hat\phi}&=\frac{556.39}{11.05488}\\
+&=50.33\\
+\sum_iQ_i&=-\frac12\cdot\frac{D_Q}{\hat\phi}\\
+&=-\frac{50.33}2\\
+&=-25.16
+\end{aligned}$$
+<div class="answer-box"><p>Scaled quasideviance \(50.33\), \(\sum_iQ_i=-25.16\)</p></div>
+</div>
+<p class="note">50.33 is near \(n-p=55\) by construction, since \(\hat\phi\) came from the same residuals. It isn't a fit test.</p>
+<h2 class="q-part">Question 2</h2>
+<h2>Ignoring overdispersion <span class="marks">[4]</span></h2>
+<div class="script">
+<p>\(\hat\beta\) and the fitted values are still fine, because the score equations don't depend on \(\phi\).</p>
+<p>But \(\operatorname{Var}\hat\beta=\phi(X^TWX)^{-1}\), and the Poisson fit sets \(\phi=1\), so variances are underestimated by \(\phi\) and SEs by \(\sqrt\phi\).</p>
+<p>So CIs are too narrow, \(z\) values too large, p-values too small, and \(\chi^2\) tests on unscaled deviances too significant.</p>
+<p>The result: predictors that don't matter look significant, and the chosen model is too complex (<code>trt</code> in <code>m1</code>: p = 0.020 as Poisson, 0.49 allowing for \(\phi\)).</p>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+\(\hat\ell\), \(\ell_{\text{sat}}\) · LRT and AIC · \(\log\) of base and age in \(\hat\eta\) · deviance vs df and \(\hat\phi\) · three-part Poisson vs quasi answer · SE × 3.32 with <code>phi2</code> · \(F=2.57\) on (1, 55) · flip to <code>q1</code> · \(50.33\), \(-25.16\).</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0013-topic3-review.html#challenge">Lesson 13, exam-level challenge</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

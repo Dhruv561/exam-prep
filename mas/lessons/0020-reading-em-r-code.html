@@ -496,7 +496,7 @@ true  1  2  3
   <div class="why">\(\ell=\sum_{i=1}^n\log\big[\sum_{k}\pi_kf_k(x_i)\big]\): sum over components inside the log (<code>rowSums</code> gives \(P(X_i=x_i)\)), then the log of each, then add over observations. (b) is \(\sum_i\sum_k\log(\pi_kf_k(x_i))\), the log of a product over \(k\) instead of a sum: −41.53 vs −12.36 here. (c) sums over observations inside the log, mixing up the roles of \(i\) and \(k\).</div>
 </div>
 
-<h2>8 · Exam-style question</h2>
+<h2 id="challenge">8 · Exam-style question</h2>
 <p><strong>Setup</strong> (fresh data; about 12 marks). The numbers of insurance claims \(X_1,\dots,X_8\) filed by eight small businesses are modelled as a two-component Poisson mixture: \(Z_i\sim\text{Categorical}(\pi_1,1-\pi_1)\), \(X_i\mid Z_i=k\sim\text{Poisson}(\lambda_k)\). An analyst uses the tute week 7 code:</p>
 <pre class="rout"><span class="cmd">EM.iter &lt;- function(X, w.curr, lambda_curr) {
   prob.x.z = compute.prob.x.z(X, w.curr, lambda_curr)$prob.x.z
@@ -611,6 +611,8 @@ $$\begin{aligned}
 \end{aligned}$$
 <p>(R: −18.81684.) After one iteration \(\ell\ge-18.82\): EM never decreases the incomplete log-likelihood. (Indeed EM1's trace is −18.82, −18.50, −18.50, ….)</p>
 <p><strong>(e)</strong> Report EM1 (\(\hat w_1=0.50\), \(\hat\lambda=(1.09,6.63)\)): with EM2 it has the highest final incomplete log-likelihood, −18.50 vs −22.87. EM2 is the same fit with the labels switched (\(w\) and \(\lambda\) swapped, same \(\ell\)), so either is fine; the tiny differences come from the \(\epsilon\) stopping rule. EM3 started with \(\lambda_1^0=\lambda_2^0=4\), so every row of <code>P_ik</code> equals \((0.6,0.4)\) and both rates become \(\bar x=3.875\): it is stuck at a stationary point with a much lower \(\ell\), and should be discarded.</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0020-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>9 · Score yourself</h2>
 <div class="tablewrap"><table>

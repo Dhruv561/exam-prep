@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rejection Sampling Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 23 · Exam-style question · Full written solution</div>
+<h1>Rejection sampling, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<h2 class="q-part">Question 1</h2>
+<p><strong>Setup</strong> (fresh; 10 marks, about 23 minutes, FX-82, 2 d.p.).</p>
+<div class="box">
+<p>The random variable \(X\) has density \(f(x)\propto\tilde f(x)=x^2(2-x)\) for \(0&lt;x&lt;2\), and \(f(x)=0\) otherwise. You have access only to a generator of independent \(U(0,1)\) random numbers.</p>
+</div>
+<ol type="a">
+  <li>Give a rejection sampling algorithm for \(X\) using the \(U(0,2)\) density as proposal. Find the smallest \(M\) for which it is valid, showing your calculus. <span class="marks">[3]</span></li>
+  <li>Find the probability that a single candidate is accepted. Show your work. <span class="marks">[2]</span></li>
+  <li>A student proposes instead \(g(x)=x/2\) on \((0,2)\). Explain how to simulate from \(g\) using one uniform, find the smallest \(M\) for this \(g\), and state the acceptance step. <span class="marks">[3]</span></li>
+  <li>Which of the two samplers is more efficient? Give the expected number of candidates per accepted draw for each. <span class="marks">[2]</span></li>
+</ol>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · Algorithm with uniform proposal <span class="marks">[3]</span></h2>
+<div class="script">
+<p>\(g(x)=\frac12\) on \((0,2)\), so \(\tilde f/g=2\tilde f\). Maximise \(\tilde f(x)=2x^2-x^3\):</p>
+$$\begin{aligned}
+\tilde f'(x)&=4x-3x^2\\
+&=x(4-3x)=0\\
+x^*&=\tfrac43\quad(x=0\text{ is a minimum})\\
+\tilde f''\big(\tfrac43\big)&=4-8\lt0\quad\Rightarrow\text{ maximum}\\
+\tilde f\big(\tfrac43\big)&=\tfrac{16}9\cdot\tfrac23\\
+&=\tfrac{32}{27}
+\end{aligned}$$
+<p>So:</p>
+$$\begin{aligned}
+M&=\sup_x\frac{\tilde f(x)}{g(x)}\\
+&=2\times\frac{32}{27}\\
+&=\frac{64}{27}\\
+&=2.37
+\end{aligned}$$
+<p>Acceptance ratio:</p>
+$$\begin{aligned}
+\frac{\tilde f(x)}{Mg(x)}&=\frac{x^2(2-x)}{(64/27)(1/2)}\\
+&=\frac{27x^2(2-x)}{32}
+\end{aligned}$$
+<p>Algorithm:</p>
+<ol><li>Draw \(U_1,U_2\sim U(0,1)\) independently and set \(X=2U_1\).</li><li>If \(U_2\le\dfrac{27X^2(2-X)}{32}\), return \(X\).</li><li>Otherwise go back to step 1.</li></ol>
+</div>
+<h2>(b) · Acceptance probability <span class="marks">[2]</span></h2>
+<div class="script">
+<p>\(\tilde f\) is not normalised, so find \(Z\):</p>
+$$\begin{aligned}
+Z&=\int_0^2(2x^2-x^3)\,dx\\
+&=\Big[\frac{2x^3}3-\frac{x^4}4\Big]_0^2\\
+&=\frac{16}3-4\\
+&=\frac43\\
+P(\text{accept})&=\frac ZM\\
+&=\frac{4/3}{64/27}\\
+&=\frac43\cdot\frac{27}{64}\\
+&=\frac9{16}\\
+&=0.56
+\end{aligned}$$
+<div class="answer-box"><p>\(P(\text{accept})=0.56\)</p></div>
+</div>
+<h2>(c) · Proposal \(g(x)=x/2\) <span class="marks">[3]</span></h2>
+<div class="script">
+<p>Inversion. The cdf is \(G(x)=x^2/4\):</p>
+$$\begin{aligned}
+u&=\frac{x^2}4\\
+x&=2\sqrt u
+\end{aligned}$$
+<p>So \(X=2\sqrt{U_1}\). Smallest \(M\):</p>
+$$\begin{aligned}
+r(x)=\frac{\tilde f(x)}{g(x)}&=\frac{x^2(2-x)}{x/2}\\
+&=4x-2x^2\\
+r'(x)&=4-4x=0\quad\Rightarrow x^*=1\\
+M&=r(1)\\
+&=2
+\end{aligned}$$
+<p>Acceptance ratio:</p>
+$$\begin{aligned}
+\frac{\tilde f(x)}{Mg(x)}&=\frac{2x(2-x)}2\\
+&=x(2-x)
+\end{aligned}$$
+<div class="answer-box"><p>Draw \(U_1,U_2\sim U(0,1)\), set \(X=2\sqrt{U_1}\), accept if \(U_2\le X(2-X)\), else repeat. \(M=2\)</p></div>
+</div>
+<h2>(d) · Efficiency <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Expected candidates per accepted draw is \(M/Z\):</p>
+$$\begin{aligned}
+\text{(a)}:\quad&\frac{64/27}{4/3}=\frac{16}9=1.78\\
+\text{(c)}:\quad&\frac2{4/3}=\frac32=1.50
+\end{aligned}$$
+<div class="answer-box"><p>Sampler (c) is more efficient: \(g\) rises from 0 like \(\tilde f\), so \(\tilde f/g\) is flatter and \(M\) smaller</p></div>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Calculus with a max check · \(M=64/27\) · algorithm in steps · \(Z/M\), not \(1/M\) · \(2\sqrt U\) · \(M=2\) · \(M/Z\) for both.</div>
+<h2 class="q-part">Question 2</h2>
+<p><strong>Setup</strong> (fresh; 10 marks, about 23 minutes, FX-82, 2 d.p.).</p>
+<div class="box">
+<p>A random number \(X\) is generated as follows. (1) Generate \(U\) and \(V\) independently from \(U(0,1)\). (2) If \(UV&lt;\tfrac12\), deliver \(X=U\); otherwise go to (1).</p>
+</div>
+<ol type="a">
+  <li>Show that a single pass delivers a value with probability \(\tfrac12(1+\log2)\). <span class="marks">[2]</span></li>
+  <li>Find the cdf and the pdf of \(X\). <span class="marks">[4]</span></li>
+  <li>Let \(T\) be the number of passes needed to deliver one value. State the distribution of \(T\) and evaluate \(E[T]\). <span class="marks">[2]</span></li>
+  <li>The algorithm is changed to deliver \(Y=U^2\) instead. Find \(P(Y\le0.25)\). <span class="marks">[2]</span></li>
+</ol>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · Delivery probability <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Given \(U=u\) we need \(V\lt\frac1{2u}\). That bound is at least 1 when \(u\le\frac12\):</p>
+$$\begin{aligned}
+P\big(V\lt\tfrac1{2u}\big)&=\begin{cases}1&0\lt u\le\tfrac12\\[2pt]\dfrac1{2u}&\tfrac12\lt u\lt1\end{cases}
+\end{aligned}$$
+<p>Integrate over \(u\):</p>
+$$\begin{aligned}
+A=P(\text{deliver})&=\int_0^{1/2}1\,du+\int_{1/2}^1\frac1{2u}\,du\\
+&=\frac12+\frac12\big[\log u\big]_{1/2}^1\\
+&=\frac12+\frac12\log2\\
+&=\frac12(1+\log2)
+\end{aligned}$$
+</div>
+<h2>(b) · cdf and pdf <span class="marks">[4]</span></h2>
+<div class="script">
+<p>\(X\) is \(U\) conditional on delivery:</p>
+$$\begin{aligned}
+F(x)&=\frac{P(U\le x,\ UV\lt\frac12)}{A}
+\end{aligned}$$
+<p>For \(0\lt x\le\frac12\):</p>
+$$\begin{aligned}
+F(x)&=\frac1A\int_0^x1\,du\\
+&=\frac xA\\
+&=\frac{2x}{1+\log2}
+\end{aligned}$$
+<p>For \(\frac12\lt x\lt1\):</p>
+$$\begin{aligned}
+F(x)&=\frac1A\Big(\frac12+\int_{1/2}^x\frac1{2u}\,du\Big)\\
+&=\frac1A\Big(\frac12+\frac12\log(2x)\Big)\\
+&=\frac{1+\log(2x)}{1+\log2}
+\end{aligned}$$
+<p>Differentiate each piece:</p>
+<div class="answer-box"><p>\(f(x)=\dfrac2{1+\log2}\) on \(0\lt x\le\frac12\); \(f(x)=\dfrac1{(1+\log2)\,x}\) on \(\frac12\lt x\lt1\)</p></div>
+</div>
+<p class="note">Check: \(F(1)=1\), and both pieces give \(F(\frac12)=1/(1+\log2)=0.59\).</p>
+<h2>(c) · Number of passes <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Passes are independent, each succeeding with probability \(A\):</p>
+$$\begin{aligned}
+T&\sim\text{Geometric}(A)\text{ on }\{1,2,\dots\}\\
+E[T]&=\frac1A\\
+&=\frac2{1+\log2}\\
+&=1.18
+\end{aligned}$$
+<div class="answer-box"><p>\(E[T]=1.18\)</p></div>
+</div>
+<h2>(d) · \(Y=U^2\) <span class="marks">[2]</span></h2>
+<div class="script">
+<p>\(U\gt0\), so \(\{Y\le0.25\}=\{U\le0.5\}\), with the same acceptance rule:</p>
+$$\begin{aligned}
+P(Y\le0.25)&=F(0.5)\\
+&=\frac1{1+\log2}\\
+&=0.59
+\end{aligned}$$
+<div class="answer-box"><p>\(P(Y\le0.25)=0.59\)</p></div>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Two cases for \(V\) · integral gives \(A\) · divide by \(A\) · cdf in both pieces · pdf in both pieces · Geometric with mean \(1/A\) · event converted.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0023-monte-carlo-rejection-sampling.html#challenge">Lesson 23, exam-style question</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

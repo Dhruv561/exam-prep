@@ -304,7 +304,7 @@ AIC: NA
   <div class="why">A Poisson family's dispersion is fixed at 1, so \(F = 14.404/1/1 = \Delta D\). That's just the χ² test in disguise. To allow for overdispersion, either refit with <code>quasipoisson</code> or pass <code>dispersion = phiB</code>.</div>
 </div>
 
-<h2>8 · Exam-level challenge</h2>
+<h2 id="challenge">8 · Exam-level challenge</h2>
 <p>Do this on paper in about 25 minutes (20 marks), then open the steps one at a time. Write sentences: the exam has no MCQ.</p>
 <div class="box">
 <p>A weaving mill counts warp breaks on 54 looms, each weaving the same fixed length of yarn. Nine looms are run for each combination of <code>wool</code> type (A, B; baseline A) and <code>tension</code> (L, M, H; baseline L). <code>breaks</code> = number of warp breaks on the loom. (R's built-in <code>warpbreaks</code>.)</p>
@@ -391,6 +391,8 @@ $$F = \frac{(D_C - D_D)/s}{\hat\phi_B} = \frac{(226.43 - 210.39)/1}{4.261522} = 
 <p>Quasi SE \(= 0.06396\times2.0643 = 0.13204\). CI for \(\beta_{\text{H}}\): \(-0.51849 \pm 1.96(0.13204) = (-0.7773,\ -0.2597)\). Ratio: \(e^{-0.51849} = 0.60\) with CI \(\boxed{(0.46,\ 0.77)}\). For the same wool, high tension is estimated to cut mean breaks by about 40% compared with low tension. The CI excludes 1, so the tension effect survives allowing for overdispersion.</p></div></details>
 <details><summary>Step 8: part (h) [3]</summary><div>
 <p>Check: \(\hat\eta = 3.69196 - 0.20599 - 0.32132 = 3.16465\) ✓. \(\hat\mu = e^{3.164654} = \boxed{23.7}\) breaks [1]. The printed SE is Poisson: \(0.05397811\times2.0643 = 0.11143\) [1]. CI: \(e^{3.164654 \pm 1.96(0.11143)} = e^{(2.9463,\ 3.3831)} = \boxed{(19.0,\ 29.5)}\) [1]. Ignoring overdispersion would give \((21.3,\ 26.3)\), too narrow.</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0012-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>9 · Before you close this tab</h2>
 <details><summary>Retrieval: write these from memory, then check</summary><div>

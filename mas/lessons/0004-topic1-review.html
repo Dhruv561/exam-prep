@@ -296,7 +296,7 @@ $$\big\{\theta:\ 2\ell(\hat\theta)-2\ell(\theta)\le\chi^2_k(0.95)\big\}.$$
 </figure></div></details>
 </div>
 
-<h2>4 · Exam-level challenge (12 marks, about 20 minutes)</h2>
+<h2 id="challenge">4 · Exam-level challenge (12 marks, about 20 minutes)</h2>
 <p>Write full answers on paper, with a sentence of explanation for every number, then open the steps one at a time.</p>
 <div class="box">
 <p>Continue with <span class="exhibit-tag">Exhibit B</span>. A colleague treats age group and alcohol group as factors (baseline 25–34 and 0–39 g/day) instead of scores.</p>
@@ -359,6 +359,8 @@ AIC: \(221.39&lt;233.96\), so AIC also prefers <code>m3</code>. Check: \(2(6)+82
 <p>The comparison isn't valid. \(D\approx\chi^2_{76}\) needs \(m_ip_i\) and \(m_i(1-p_i)\) of about 5 or more, and 75 of 88 rows have fewer than 5 expected cases, so the data are sparse. The 82.34 vs 97.35 comparison can't be used as evidence of good (or bad) fit.</p></div></details>
 <details><summary>Step 5: part (e), link choice</summary><div>
 <p>No. (1) AIC differs by only \(221.39-219.62=1.77\); the logit and probit curves are nearly identical except in the tails, and the data can't really tell them apart (Faraway §4.2). (2) The study is case-control: with the logit, retrospective sampling only shifts the intercept, so the coefficients are valid log odds ratios, as used in (c). Probit coefficients have no odds interpretation and aren't protected this way (Faraway §4.3). Report the logit. (And the links aren't nested, so AIC, not an LRT, is the only way to compare them.)</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0004-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>5 · Score yourself</h2>
 <p>Use your first attempts. Each miss points to the place to revisit before Lesson 5.</p>

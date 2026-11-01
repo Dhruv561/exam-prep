@@ -477,7 +477,7 @@ $$\begin{aligned}
   <div class="why">Here the unknown is the label \(Z_i\): prior \(P(Z_i=k)=\pi_k\), likelihood \(f_k(x_i)=p(x_i\mid Z_i=k)\), marginal \(\sum_j\pi_jf_j(x_i)=p(x_i)\), posterior \(\gamma_{ik}\). Same rule as \(p(\theta\mid x)=p(x\mid\theta)p(\theta)/p(x)\), with a discrete unknown instead of a parameter.</div>
 </div>
 
-<h2>8 · Exam-style question</h2>
+<h2 id="challenge">8 · Exam-style question</h2>
 <p><strong>Setup</strong> (fresh model; 12 marks, about 28 minutes, FX-82, 2 d.p.).</p>
 <div class="box">
 <p><strong>Model:</strong> \(x_1,\dots,x_n\) are independent, \(x_i\mid\mu,\tau\sim\text{Normal}(\mu,\ 1/\tau)\).</p>
@@ -543,6 +543,8 @@ $$\tau\mid x\sim\text{Gamma}\Big(\frac{n-1}2,\ \frac S2\Big),\quad\text{proper i
 </div>
 <p><em>[1 mark: name, parameters, and the condition.]</em> Shape \(\frac{n-1}2&gt;0\) needs \(n\ge2\), and rate \(S/2&gt;0\) needs the data not all equal. The posterior is proper under improper priors, but only under that condition. (With \(n=6\), \(S=5.4\): Gamma(2.5, 2.7), mean 0.93.) <span class="marks">(Marks: 1 + 1 + 1.)</span></p>
 <p><strong>Total 12.</strong> Typical lost marks: dropping the \(\tau\) in the prior variance \(\frac{1}{2\tau}\) (so \(A=(n+2)\) not \((n+2)\tau\)); reporting the variance as \(1/A\) with \(\tau\) forgotten in (b); using \(\text{sd}=0.0625\) in the interval; "shape \(n/2\)" in (d) because the \(\mu\)-integral's \(\tau^{-1/2}\) was missed.</p></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0022-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>9 · Score yourself</h2>
 <div class="tablewrap"><table>

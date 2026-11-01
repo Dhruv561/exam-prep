@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oesophageal Cancer Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 4 · Exam-level challenge · Full written solution</div>
+<h1>Oesophageal cancer factors, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<h2>Exhibit used</h2>
+<h3><span class="exhibit-tag">Exhibit B</span>Oesophageal cancer (binomial <code>glm</code>)</h3>
+<p>The <code>esoph</code> data (base R) come from a case-control study in Ille-et-Vilaine, France. Each of the 88 rows is one combination of age group, alcohol group and tobacco group, with <code>ncases</code> cancer cases and <code>ncontrols</code> controls (\(m_i\) = ncases + ncontrols ranges from 1 to 60; 12 rows have \(m_i=1\)). Here <code>age</code> is a score 1–6 (1 = 25–34, 2 = 35–44, …, 5 = 65–74, 6 = 75+), <code>alc</code> is a score 1–4 (1 = 0–39 g/day, 2 = 40–79, 3 = 80–119, 4 = 120+), and <code>tob</code> is a factor with baseline 0–9 g/day. (The factors were converted to unordered ones so that R uses ordinary dummy variables.)</p>
+<p>Because cases and controls were sampled separately, \(p_i\) is the probability that a subject <em>in this study</em> with those characteristics is a case. Retrospective sampling only shifts the intercept of a logit model, so the odds ratios still estimate population odds ratios (<a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=89">Faraway §4.3, p. 73</a>).</p>
+
+<pre class="rout"><span class="cmd">&gt; m1 &lt;- glm(cbind(ncases, ncontrols) ~ age + alc + tob, family = binomial, data = esoph2)
+&gt; summary(m1)</span>
+
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) -6.73857    0.47180 -14.283  &lt; 2e-16 ***
+age          0.74873    0.08192   9.140  &lt; 2e-16 ***
+alc          1.10547    0.10388  10.642  &lt; 2e-16 ***
+tob10-19     0.43383    0.22682   1.913   0.0558 .
+tob20-29     0.59999    0.27139   2.211   0.0270 *
+tob30+       1.51171    0.32343   4.674 2.95e-06 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 367.95  on 87  degrees of freedom
+Residual deviance: 106.91  on 82  degrees of freedom
+AIC: 233.96
+
+Number of Fisher Scoring iterations: 4
+
+<span class="cmd">&gt; round(vcov(m1), 5)</span>
+            (Intercept)      age      alc tob10-19 tob20-29   tob30+
+(Intercept)     0.22259 -0.03248 -0.03245 -0.02106 -0.02765 -0.04706
+age            -0.03248  0.00671  0.00228  0.00118  0.00231  0.00592
+alc            -0.03245  0.00228  0.01079 -0.00159 -0.00068  0.00145
+tob10-19       -0.02106  0.00118 -0.00159  0.05145  0.02032  0.02077
+tob20-29       -0.02765  0.00231 -0.00068  0.02032  0.07365  0.02174
+tob30+         -0.04706  0.00592  0.00145  0.02077  0.02174  0.10461</pre>
+
+<pre class="rout"><span class="cmd">&gt; m2 &lt;- glm(cbind(ncases, ncontrols) ~ age + alc, family = binomial, data = esoph2)
+&gt; summary(m2)</span>
+
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) -6.22839    0.43591 -14.288   &lt;2e-16 ***
+age          0.69201    0.07863   8.801   &lt;2e-16 ***
+alc          1.13609    0.10150  11.193   &lt;2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 367.95  on 87  degrees of freedom
+Residual deviance: 129.81  on 85  degrees of freedom
+AIC: 250.87
+
+Number of Fisher Scoring iterations: 5
+
+<span class="cmd">&gt; qchisq(0.95, df = c(3, 82))</span>
+[1]   7.814728 104.138738</pre>
+
+
+<div class="box">
+<p>Continue with <span class="exhibit-tag">Exhibit B</span>. A colleague treats age group and alcohol group as factors (baseline 25–34 and 0–39 g/day) instead of scores.</p>
+<pre class="rout"><span class="cmd">&gt; m3 &lt;- glm(cbind(ncases, ncontrols) ~ agegp + alcgp + tob, family = binomial, data = esoph2)
+&gt; summary(m3)</span>
+
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  -6.8954     1.0859  -6.350 2.16e-10 ***
+agegp35-44    1.9809     1.1041   1.794 0.072786 .
+agegp45-54    3.7763     1.0680   3.536 0.000407 ***
+agegp55-64    4.3352     1.0650   4.070 4.69e-05 ***
+agegp65-74    4.8964     1.0764   4.549 5.39e-06 ***
+agegp75+      4.8265     1.1213   4.304 1.67e-05 ***
+alcgp40-79    1.4346     0.2501   5.737 9.63e-09 ***
+alcgp80-119   1.9807     0.2848   6.956 3.51e-12 ***
+alcgp120+     3.6029     0.3850   9.357  &lt; 2e-16 ***
+tob10-19      0.4381     0.2283   1.919 0.055039 .
+tob20-29      0.5126     0.2730   1.878 0.060398 .
+tob30+        1.6410     0.3441   4.769 1.85e-06 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 367.953  on 87  degrees of freedom
+Residual deviance:  82.337  on 76  degrees of freedom
+AIC: 221.39
+
+Number of Fisher Scoring iterations: 6
+
+<span class="cmd">&gt; round(vcov(m3)[8:9, 8:9], 5)</span>
+            alcgp80-119 alcgp120+
+alcgp80-119     0.08109   0.04402
+alcgp120+       0.04402   0.14825
+<span class="cmd">&gt; m3p &lt;- update(m3, family = binomial(link = "probit"))
+&gt; c(AIC(m3), AIC(m3p))</span>
+[1] 221.3918 219.6172
+<span class="cmd">&gt; qchisq(0.95, df = c(6, 76))</span>
+[1] 12.59159 97.35097</pre>
+<p>(a) Explain why <code>m1</code> is nested in <code>m3</code>. Test <code>m1</code> against <code>m3</code>: state \(H_0\), the statistic, its df, and your conclusion. <em>[3]</em><br>
+(b) Find the maximised log-likelihood of <code>m3</code> and of the saturated model, and check the second against <code>m1</code>. Which model does AIC prefer? <em>[3]</em><br>
+(c) Under <code>m3</code>, estimate the odds ratio of being a case for 120+ g/day versus 80–119 g/day drinkers (same age and tobacco), with a 95% CI. Interpret it in one sentence. <em>[3]</em><br>
+(d) The colleague writes: "82.34 &lt; 97.35, so <code>m3</code> fits well." Comment. (Under <code>m3</code>, 75 of the 88 rows have \(m_i\hat p_i&lt;5\).) <em>[1]</em><br>
+(e) <code>m3p</code> has the lower AIC. Should you switch to the probit link? Give two reasons. <em>[2]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · Nesting and the LRT <span class="marks">[3]</span></h2>
+<div class="script">
+<p><code>m1</code> forces age onto a straight line in its score: group \(k\) gets \((k-1)\beta_{\text{age}}\) relative to 25–34. Same for alcohol. So <code>m1</code> is <code>m3</code> with linear constraints on the coefficients.</p>
+$$\begin{aligned}
+p_{m3}&=88-76=12\\
+p_{m1}&=88-82=6\\
+s&=12-6=6
+\end{aligned}$$
+<p>\(H_0\): age and alcohol effects are linear in the scores (<code>m1</code> adequate).</p>
+$$\begin{aligned}
+\text{LR}&=D_{m1}-D_{m3}\\
+&=106.91-82.34\\
+&=24.57\\
+\text{df}&=6\\
+\chi^2_6(0.95)&=12.59
+\end{aligned}$$
+<p>\(24.57\gt12.59\), so reject \(H_0\).</p>
+<div class="answer-box"><p>Scores are too restrictive: prefer <code>m3</code></p></div>
+</div>
+<p class="note">The 6 constraints: 5 age dummies → 1 slope (4), 3 alcohol dummies → 1 slope (2).</p>
+<h2>(b) · Log-likelihoods and AIC <span class="marks">[3]</span></h2>
+<div class="script">
+$$\begin{aligned}
+\hat\ell_{m3}&=p-\frac{\text{AIC}}2\\
+&=12-\frac{221.39}2\\
+&=-98.70\\
+\ell_{\text{sat}}&=\hat\ell_{m3}+\frac{D_{m3}}2\\
+&=-98.70+\frac{82.337}2\\
+&=-57.53
+\end{aligned}$$
+<p>Check with <code>m1</code>:</p>
+$$\begin{aligned}
+\hat\ell_{m1}&=6-\frac{233.96}2=-110.98\\
+\ell_{\text{sat}}&=-110.98+\frac{106.91}2=-57.53\quad\checkmark
+\end{aligned}$$
+<p>\(221.39\lt233.96\), so AIC also prefers <code>m3</code>.</p>
+<div class="answer-box"><p>\(\hat\ell_{m3}=-98.70\), \(\ell_{\text{sat}}=-57.53\), AIC prefers <code>m3</code></p></div>
+</div>
+<h2>(c) · Odds ratio between two non-baseline levels <span class="marks">[3]</span></h2>
+<div class="script">
+$$\begin{aligned}
+\log\widehat{\text{OR}}&=\hat\beta_{120+}-\hat\beta_{80\text{–}119}\\
+&=3.6029-1.9807\\
+&=1.6222\\
+\widehat{\text{OR}}&=e^{1.6222}=5.06
+\end{aligned}$$
+<p>The variance of a difference needs the covariance:</p>
+$$\begin{aligned}
+\operatorname{Var}&=0.14825+0.08109-2(0.04402)\\
+&=0.14130\\
+\text{se}&=\sqrt{0.14130}=0.3759\\
+\text{CI}&=1.6222\pm1.96(0.3759)\\
+&=1.6222\pm0.7368\\
+&=(0.8854,\ 2.3590)\\
+\text{exp}&\Rightarrow(2.42,\ 10.58)
+\end{aligned}$$
+<p>Holding age and tobacco fixed, the odds of being a case for 120+ g/day drinkers are estimated to be about 5 times those for 80–119 g/day drinkers (95% CI 2.42 to 10.58).</p>
+</div>
+<p class="note">Case-control design: it's an odds ratio, so don't turn it into a probability of getting cancer.</p>
+<h2>(d) · The colleague's fit claim <span class="marks">[1]</span></h2>
+<div class="script">
+<p>Not valid. \(D\approx\chi^2_{76}\) needs expected counts of about 5 or more, but 75 of the 88 rows have \(m_i\hat p_i\lt5\). The data are too sparse, so 82.34 vs 97.35 is no evidence about fit.</p>
+</div>
+<h2>(e) · Probit? <span class="marks">[2]</span></h2>
+<div class="script">
+<p>No.</p>
+<ol><li>AIC differs by only \(221.39-219.62=1.77\); logit and probit are nearly identical away from the tails, so the data can't really separate them.</li><li>This is a case-control study. Under the logit, retrospective sampling only shifts the intercept, so coefficients stay valid log odds ratios. Probit coefficients have no such protection or odds reading.</li></ol>
+<div class="answer-box"><p>Keep the logit</p></div>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Linear constraints and \(s=6\) · LR 24.57 vs 12.59 · \(\hat\ell\), \(\ell_{\text{sat}}\) and the check · difference of coefficients with \(-2\operatorname{Cov}\) · CI on log scale · sparse data invalidates \(\chi^2_{76}\) · two reasons to keep the logit.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0004-topic1-review.html#challenge">Lesson 4, exam-level challenge</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

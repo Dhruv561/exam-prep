@@ -222,7 +222,7 @@ Number of Fisher Scoring iterations: 4</pre>
   <div class="why">\(\chi^2_{24}(0.95) = 36.4\), so 61.3 is far too big, and the sample-size condition holds, so the test is valid. \(\hat\phi = 2.4\) says the variance is about 2.4 times what the binomial allows. Standard errors are then too small by a factor of about \(\sqrt{2.4}\approx1.55\). (Option (d) is a made-up rule.)</div>
 </div>
 
-<h2>6 · Exam-level challenge</h2>
+<h2 id="challenge">6 · Exam-level challenge</h2>
 <p>Do this on paper in about 15 minutes, then open the steps one at a time. This is the shape of the real R-output question.</p>
 <div class="box">
 <p>Conservationists record 36 turtle nests across four beaches (A, B, C, D). Nest \(i\) has \(m_i\) eggs (60 to 116), and \(y_i\) hatch. The predictors are <code>temp</code> (mean sand temperature, °C), <code>beach</code> (factor, baseline A) and <code>depth</code> (nest depth, cm). (Simulated data.)</p>
@@ -293,6 +293,8 @@ So under the binomial assumption, <strong>model1</strong> is better. Notice that
 <details><summary>Step 5: part (e), the overdispersion warning</summary><div>
 <p>\(\hat\phi = 1.58 &gt; 1\), and together with the failed goodness-of-fit test in (c) this points to <strong>overdispersion</strong>: nests vary more than a binomial with these predictors allows (e.g. unmeasured nest-to-nest differences). Under \(\phi=1\) the standard errors are too small, by a factor of about \(\sqrt{1.58} = 1.26\), and the χ² LRT in (b) is too generous.</p>
 <p>The LRT for beach is most at risk. Sneak preview of the overdispersion lesson: the F-statistic is \(\dfrac{9.966/3}{1.584} = 2.10\) on (3, 30) df. The 5% point of \(F_{3,30}\) is 2.92, so once you allow for overdispersion, <strong>beach is no longer significant</strong> (p ≈ 0.12), and model2 would be preferred. Exams love this flip.</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0003-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>7 · Before you close this tab</h2>
 <details><summary>Retrieval: write these from memory, then check</summary><div>

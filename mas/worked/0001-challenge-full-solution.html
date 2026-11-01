@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Binomial Trays Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 1 · Exam-level challenge · Full written solution</div>
+<h1>Binomial trays, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<div class="box">
+<p>Seeds are planted in \(k\) trays. Tray \(i\) has \(m_i\) seeds (known), and \(Y_i\sim\text{Bin}(m_i,p)\) germinate, independently across trays.</p>
+<p>(a) Write \(\ell(p)\), find \(\hat p\), and find \(\mathcal I(p)\).<br>
+(b) With 20 trays of 10 seeds and 140 germinated in total, give a 95% Wald CI for \(p\).<br>
+(c) Now write the model in terms of the <strong>logit</strong> \(\eta = \log\dfrac{p}{1-p}\), so \(p = \dfrac{e^\eta}{1+e^\eta}\). Find \(\hat\eta\) and \(\mathcal I(\eta)\), build a 95% CI for \(\eta\), and transform it into a CI for \(p\).</p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · Log-likelihood, MLE, information</h2>
+<div class="script">
+<p>Each \(Y_i\sim\text{Bin}(m_i,p)\), independent, so</p>
+$$\begin{aligned}
+L(p)&=\prod_{i=1}^k\binom{m_i}{y_i}p^{y_i}(1-p)^{m_i-y_i}\\
+\ell(p)&=c+\sum_iy_i\log p+\sum_i(m_i-y_i)\log(1-p)
+\end{aligned}$$
+<p>Differentiate and set to zero:</p>
+$$\begin{aligned}
+\ell'(p)&=\frac{\sum_iy_i}{p}-\frac{\sum_i(m_i-y_i)}{1-p}=0\\
+(1-p)\sum_iy_i&=p\sum_i(m_i-y_i)\\
+\sum_iy_i&=p\sum_im_i\\
+\hat p&=\frac{\sum_iy_i}{\sum_im_i}
+\end{aligned}$$
+<p>Second derivative:</p>
+$$\begin{aligned}
+\ell''(p)&=-\frac{\sum_iy_i}{p^2}-\frac{\sum_i(m_i-y_i)}{(1-p)^2}
+\end{aligned}$$
+<p>\(\ell''\) contains data, so take expectations with \(\mathbb EY_i=m_ip\):</p>
+$$\begin{aligned}
+\mathcal I(p)&=-\mathbb E[\ell''(p)]\\
+&=\frac{p\sum_im_i}{p^2}+\frac{(1-p)\sum_im_i}{(1-p)^2}\\
+&=\sum_im_i\Big(\frac1p+\frac1{1-p}\Big)\\
+&=\frac{\sum_im_i}{p(1-p)}
+\end{aligned}$$
+</div>
+<p class="note">\(\ell''\lt0\) for all \(p\), so \(\hat p\) is a maximum. \(c\) holds the binomial coefficients: no \(p\) in it.</p>
+<h2>(b) · Wald CI for \(p\)</h2>
+<div class="script">
+$$\begin{aligned}
+\textstyle\sum_iy_i&=140,\quad\sum_im_i=20\times10=200\\
+\hat p&=\frac{140}{200}=0.70\\
+\text{se}(\hat p)&=\sqrt{\mathcal I(\hat p)^{-1}}\\
+&=\sqrt{\frac{0.7(0.3)}{200}}\\
+&=0.0324\\
+\text{CI}&=0.70\pm1.96(0.0324)\\
+&=0.70\pm0.0635
+\end{aligned}$$
+<div class="answer-box"><p>95% CI for \(p\): \((0.64,\ 0.76)\)</p></div>
+</div>
+<h2>(c) · Work on the logit scale</h2>
+<div class="script">
+<p>Using \(\log p-\log(1-p)=\eta\) and \(\log(1-p)=-\log(1+e^\eta)\):</p>
+$$\begin{aligned}
+\ell(\eta)&=c+\sum_iy_i\big[\log p-\log(1-p)\big]+\sum_im_i\log(1-p)\\
+&=c+\eta\sum_iy_i-\sum_im_i\log(1+e^\eta)
+\end{aligned}$$
+<p>Score, using \(\frac{e^\eta}{1+e^\eta}=p\):</p>
+$$\begin{aligned}
+\ell'(\eta)&=\sum_iy_i-\sum_im_i\,\frac{e^\eta}{1+e^\eta}\\
+&=\sum_iy_i-p\sum_im_i=0\\
+\hat p&=0.70\\
+\hat\eta&=\log\frac{0.7}{0.3}=0.85
+\end{aligned}$$
+<p>Second derivative, using \(\frac{dp}{d\eta}=p(1-p)\):</p>
+$$\begin{aligned}
+\ell''(\eta)&=-\sum_im_i\,p(1-p)\\
+\mathcal I(\eta)&=\sum_im_i\,p(1-p)\quad\text{(no data, so no expectation needed)}\\
+\mathcal I(\hat\eta)&=200(0.7)(0.3)=42
+\end{aligned}$$
+<p>CI on the \(\eta\) scale:</p>
+$$\begin{aligned}
+\text{se}(\hat\eta)&=\frac1{\sqrt{42}}=0.1543\\
+\text{CI}&=0.8473\pm1.96(0.1543)\\
+&=0.8473\pm0.3024\\
+&=(0.5449,\ 1.1497)
+\end{aligned}$$
+<p>Transform each end with \(p=e^\eta/(1+e^\eta)\):</p>
+$$\begin{aligned}
+\frac{e^{0.5449}}{1+e^{0.5449}}&=0.63\\
+\frac{e^{1.1497}}{1+e^{1.1497}}&=0.76
+\end{aligned}$$
+<div class="answer-box"><p>95% CI for \(\eta\): \((0.54,\ 1.15)\). 95% CI for \(p\): \((0.63,\ 0.76)\)</p></div>
+</div>
+<p class="note">Not symmetric about 0.70, and it can't leave \([0,1]\): that is why CIs are built on the \(\eta\) scale. To 3 d.p. the two CIs differ: (0.636, 0.764) vs (0.633, 0.759).</p>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+\(\ell(p)\) · \(\hat p\) pooled · \(\mathcal I(p)\) with the expectation · 0.70 ± 0.06 · \(\ell(\eta)\) · \(\hat\eta=0.85\) · \(\mathcal I(\eta)=42\) · CI on \(\eta\) · endpoints transformed.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0001-mle-fisher-information.html#challenge">Lesson 1, exam-level challenge</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Warp Breaks Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 12 · Exam-level challenge · Full written solution</div>
+<h1>Warp breaks, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<div class="box">
+<p>A weaving mill counts warp breaks on 54 looms, each weaving the same fixed length of yarn. Nine looms are run for each combination of <code>wool</code> type (A, B; baseline A) and <code>tension</code> (L, M, H; baseline L). <code>breaks</code> = number of warp breaks on the loom. (R's built-in <code>warpbreaks</code>.)</p>
+<pre class="rout"><span class="cmd">&gt; modelA &lt;- glm(breaks ~ tension, family = poisson, data = warpbreaks)
+&gt; summary(modelA)</span>
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  3.59426    0.03907  91.988  &lt; 2e-16 ***
+tensionM    -0.32132    0.06027  -5.332 9.73e-08 ***
+tensionH    -0.51849    0.06396  -8.107 5.21e-16 ***
+---
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 297.37  on 53  degrees of freedom
+Residual deviance: 226.43  on 51  degrees of freedom
+AIC: 507.09
+
+<span class="cmd">&gt; modelB &lt;- glm(breaks ~ wool + tension, family = poisson, data = warpbreaks)
+&gt; summary(modelB)</span>
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  3.69196    0.04541  81.302  &lt; 2e-16 ***
+woolB       -0.20599    0.05157  -3.994 6.49e-05 ***
+tensionM    -0.32132    0.06027  -5.332 9.73e-08 ***
+tensionH    -0.51849    0.06396  -8.107 5.21e-16 ***
+---
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 297.37  on 53  degrees of freedom
+Residual deviance: 210.39  on 50  degrees of freedom
+AIC: 493.06
+
+<span class="cmd">&gt; anova(modelA, modelB, test = "Chisq")</span>
+  Resid. Df Resid. Dev Df Deviance  Pr(&gt;Chi)
+1        51     226.43
+2        50     210.39  1   16.039 6.206e-05 ***
+<span class="cmd">&gt; (phiA &lt;- sum(residuals(modelA, type = "pearson")^2/modelA$df.residual))</span>
+[1] 4.601903
+<span class="cmd">&gt; (phiB &lt;- sum(residuals(modelB, type = "pearson")^2/modelB$df.residual))</span>
+[1] 4.261522
+<span class="cmd">&gt; summary(fitted(modelB))</span>
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  19.44   23.68   26.49   28.15   32.65   40.12
+<span class="cmd">&gt; modelC &lt;- glm(breaks ~ tension, family = quasipoisson, data = warpbreaks)
+&gt; modelD &lt;- glm(breaks ~ wool + tension, family = quasipoisson, data = warpbreaks)
+&gt; anova(modelC, modelD, test = "F")</span>
+  Resid. Df Resid. Dev Df Deviance      F  Pr(&gt;F)
+1        51     226.43
+2        50     210.39  1   16.039   <i>[F and Pr(&gt;F) removed]</i>
+<span class="cmd">&gt; predict(modelB, newdata = data.frame(wool = "B", tension = "M"),
++         type = "link", se.fit = TRUE)</span>
+$fit
+       1
+3.164654
+$se.fit
+[1] 0.05397811
+<span class="cmd">&gt; qchisq(0.95, c(1, 50)); qf(0.95, 1, 50)</span>
+[1]  3.841459 67.504807
+[1] 4.03431</pre>
+<p>(a) Find the maximised log-likelihood of modelB and of the saturated model. <strong>[3]</strong><br>
+(b) Ignoring overdispersion, which Poisson model is better? Give two quantitative reasons. <strong>[2]</strong><br>
+(c) Give two quantitative reasons to suspect modelB is overdispersed. <strong>[2]</strong><br>
+(d) In two or three sentences, explain how modelD differs from modelB. <strong>[2]</strong><br>
+(e) Give the standard error of the <code>woolB</code> coefficient allowing for overdispersion, and the <code>t value</code> R prints for it in <code>summary(modelD)</code>. <strong>[2]</strong><br>
+(f) Compute the F statistic hidden in the last anova. Give its df, state the formula used, and say which model you prefer allowing for overdispersion, and why. <strong>[4]</strong><br>
+(g) Give a 95% CI for the ratio of mean breaks at high vs low tension (same wool), allowing for overdispersion. Interpret it. <strong>[2]</strong><br>
+(h) Using modelB, predict the mean number of breaks for wool B at medium tension, with a 95% CI allowing for overdispersion. <strong>[3]</strong></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · Log-likelihoods <span class="marks">[3]</span></h2>
+<div class="script">
+$$\begin{aligned}
+n&=53+1=54\\
+p_B&=54-50=4\\
+\hat\ell_B&=p_B-\frac{\text{AIC}}2\\
+&=4-\frac{493.06}2\\
+&=-242.53\\
+\ell_{\text{sat}}&=\hat\ell_B+\frac{D_B}2\\
+&=-242.53+\frac{210.39}2\\
+&=-137.34
+\end{aligned}$$
+<p>Check from modelA:</p>
+$$\begin{aligned}
+3-\frac{507.09}2+\frac{226.43}2&=-137.33\quad\checkmark
+\end{aligned}$$
+<div class="answer-box"><p>\(\hat\ell_B=-242.53\), \(\ell_{\text{sat}}=-137.34\)</p></div>
+</div>
+<h2>(b) · Ignoring overdispersion <span class="marks">[2]</span></h2>
+<div class="script">
+<ol><li>AIC: \(493.06\lt507.09\).</li><li>LRT: \(226.43-210.39=16.04\) on 1 df, above \(3.84\) (p = 0.00006), so reject \(H_0:\beta_{\text{woolB}}=0\).</li></ol>
+<div class="answer-box"><p>modelB is better</p></div>
+</div>
+<h2>(c) · Overdispersion evidence <span class="marks">[2]</span></h2>
+<div class="script">
+<ol><li>\(D=210.39\) on 50 df, far above \(\chi^2_{50}(0.95)=67.50\), and all fitted means are at least 19.44, so the \(\chi^2\) approximation is sound.</li><li>\(\hat\phi=X^2/(n-p)=4.26\gg1\).</li></ol>
+</div>
+<h2>(d) · modelD vs modelB <span class="marks">[2]</span></h2>
+<div class="script">
+<p>modelB assumes \(\operatorname{Var}Y_i=\mu_i\). modelD assumes only \(\mathbb EY_i=\mu_i\) and \(\operatorname{Var}Y_i=\phi\mu_i\), with \(\phi\) estimated by \(X^2/(n-p)\), so it has no likelihood and no AIC. Estimates and deviances are identical, but modelD's SEs are \(\sqrt{4.26}=2.06\) times larger and nested models are compared by F tests.</p>
+</div>
+<h2>(e) · SE of woolB <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Use modelB's \(\hat\phi\), since modelD has modelB's formula:</p>
+$$\begin{aligned}
+\sqrt{\hat\phi_B}&=\sqrt{4.261522}=2.0643\\
+\text{SE}&=0.05157(2.0643)\\
+&=0.11\\
+t&=\frac{-0.20599}{0.10646}\\
+&=-1.93
+\end{aligned}$$
+<div class="answer-box"><p>SE \(=0.11\), \(t=-1.93\)</p></div>
+</div>
+<h2>(f) · The hidden F <span class="marks">[4]</span></h2>
+<div class="script">
+$$\begin{aligned}
+F&=\frac{(D_C-D_D)/s}{\hat\phi_B}\\
+&=\frac{(226.43-210.39)/1}{4.261522}\\
+&=\frac{16.039}{4.2615}\\
+&=3.76
+\end{aligned}$$
+<p>df:</p>
+$$\begin{aligned}
+s&=51-50=1\\
+n-p_B&=54-4=50
+\end{aligned}$$
+<p>So \(F\sim F_{1,50}\) under \(H_0\), and \(3.76\lt F_{1,50}(0.95)=4.03\): no significant wool effect.</p>
+<div class="answer-box"><p>\(F=3.76\) on \((1,50)\) df. Prefer the smaller modelC</p></div>
+</div>
+<p class="note">This reverses (b): the \(\chi^2\) test assumed \(\phi=1\). \(\hat\phi\) comes from the bigger model because it is valid whether or not \(H_0\) holds. With 4.602 you'd get 3.49: wrong.</p>
+<h2>(g) · CI for high vs low tension <span class="marks">[2]</span></h2>
+<div class="script">
+$$\begin{aligned}
+\text{SE}&=0.06396(2.0643)\\
+&=0.1320\\
+\text{CI for }\beta_H&=-0.51849\pm1.96(0.1320)\\
+&=-0.51849\pm0.2588\\
+&=(-0.7773,\ -0.2597)\\
+e^{-0.51849}&=0.60\\
+\text{exp}&\Rightarrow(0.46,\ 0.77)
+\end{aligned}$$
+<div class="answer-box"><p>Ratio 0.60, 95% CI \((0.46,\ 0.77)\): high tension cuts mean breaks by about 40% for the same wool, and the CI excludes 1</p></div>
+</div>
+<h2>(h) · Prediction <span class="marks">[3]</span></h2>
+<div class="script">
+$$\begin{aligned}
+\hat\eta&=3.69196-0.20599-0.32132\\
+&=3.16465\quad\checkmark\\
+\hat\mu&=e^{3.164654}\\
+&=23.68
+\end{aligned}$$
+<p>The printed <code>se.fit</code> is Poisson, so scale it:</p>
+$$\begin{aligned}
+\text{se}&=0.05397811(2.0643)\\
+&=0.1114\\
+\text{CI}&=3.164654\pm1.96(0.1114)\\
+&=3.164654\pm0.2184\\
+&=(2.9463,\ 3.3831)\\
+\text{exp}&\Rightarrow(19.03,\ 29.46)
+\end{aligned}$$
+<div class="answer-box"><p>\(\hat\mu=23.68\) breaks, 95% CI \((19.03,\ 29.46)\)</p></div>
+</div>
+<p class="note">Ignoring overdispersion gives \((21.30,\ 26.32)\): too narrow.</p>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+AIC and LRT · \(D\) vs 67.50 with fitted means checked · same \(\hat\beta\), bigger SEs, F, no AIC · SE × 2.06 with modelB's \(\hat\phi\) · \(F=3.76\) on (1, 50) · prefer modelC · CIs on the log scale with the scaled SE.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0012-quasi-poisson-binomial-output.html#challenge">Lesson 12, exam-level challenge</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

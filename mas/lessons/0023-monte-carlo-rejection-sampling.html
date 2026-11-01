@@ -354,7 +354,7 @@ P(\text{accept})&amp;=\frac ZM=\frac{0.000758}{0.002224}=0.34
   <div class="why">Each \(x_i\) uses its own \(\theta_i\) from <code>rbeta</code>, so the \(x_i\) are draws from the marginal \(\int p(x\mid\theta)p(\theta)d\theta\). The mean of the indicator <code>x == 0</code> estimates \(P(X=0)=B(2,13)/B(2,3)=0.0659\) (the tute's \(10^6\)-draw run gave \(0.0662\)). \(\theta=0\) has probability zero; with a fixed \(\theta\) you would use <code>rbinom(10000, 10, 0.4)</code>.</div>
 </div>
 
-<h2>8 · Exam-style question</h2>
+<h2 id="challenge">8 · Exam-style question</h2>
 <p><strong>Setup</strong> (fresh; 10 marks, about 23 minutes, FX-82, 2 d.p.).</p>
 <div class="box">
 <p>The random variable \(X\) has density \(f(x)\propto\tilde f(x)=x^2(2-x)\) for \(0&lt;x&lt;2\), and \(f(x)=0\) otherwise. You have access only to a generator of independent \(U(0,1)\) random numbers.</p>
@@ -732,6 +732,8 @@ P(Y\le0.25)&amp;=F(0.5)\\
 &amp;=0.59
 \end{aligned}$$
 <p><strong>Total 10.</strong> Simulation check (\(2\times10^6\) passes): acceptance \(0.847\) (exact \(0.847\)); \(P(X\le0.25)=0.295\) (exact \(0.295\)); \(P(X\le0.75)=0.830\) (exact \(0.830\)). Typical lost marks: using \(1/(2u)\) on all of \((0,1)\), which gives a divergent integral; a single-formula pdf; not dividing by \(A\).</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0023-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>13 · Score yourself</h2>
 <div class="tablewrap"><table>

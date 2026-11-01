@@ -56,7 +56,7 @@
 8. Faster, deterministic and scales to big data; but it underestimates the posterior variance (mean-field ignores dependence) and finds only a local optimum.</p>
 <p style="margin-bottom:0">Fewer than 6 of 8 fully right? Reread the <a href="../reference/bayes-cheatsheet.html">Bayes cheat sheet</a> once, close it, then start Part A.</p></div></details>
 
-<h2>2 · Part A: exam-length Bayes question (17 marks, 40 minutes)</h2>
+<h2 id="challenge">2 · Part A: exam-length Bayes question (17 marks, 40 minutes)</h2>
 <div class="box">
 <p><strong>Question A</strong> (17 marks). A lab measures a coating thickness \(\mu\) (microns) with two instruments. Instrument 1 gives \(x_1,\dots,x_n\) and the less precise instrument 2 gives \(y_1,\dots,y_m\). Given \((\mu,\sigma^2)\), all measurements are independent.</p>
 <p><strong>Model:</strong></p>
@@ -401,6 +401,8 @@ $$\begin{aligned}
 <p>The honest standard error is twice the naive one, because \(\hat\rho_1=0.65\) makes consecutive draws similar.</p>
 <p><strong>(iii) Step size</strong> <em>[1]</em>: about right. The acceptance rates 0.47, 0.44, 0.44 sit in the usual 0.2–0.5 band; the trace is a "hairy caterpillar" (neither the staircase of tiny steps nor long flat stretches of rejections); the ACF is inside the band by about lag 7. Autocorrelation 0.65 is normal for random-walk MH, so a larger ESS would need a longer run, not a different step.</p>
 <p><strong>Marks guide (8).</strong> (a) algorithm [1], \(M\) by calculus [1]. (b) \(Z/M\) [1]. (c) estimate named [1], SE and interval [1]. (d) \(\hat R\) both windows and the conclusion [1]; ESS and SE [1]; step-size verdict with evidence [1]. Typical losses: accepting if \(U\le\tilde f(P)\) with no \(M\) (the sampler is then wrong, since \(\tilde f\le0.1055\) rejects too much); \(1/M\) instead of \(Z/M\); using \(s/\sqrt n\) for the chain; "too small" because the ACF isn't zero.</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0028-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>5 · Part D: twelve interleaved items</h2>
 <p>Mixed on purpose: seven Topic 5 items and five from Topics 1–4. A real Poisson GLM printout is shared by D2–D4.</p>

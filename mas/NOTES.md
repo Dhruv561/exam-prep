@@ -57,6 +57,9 @@
 - Lecture learning goals also list: define quasi log-likelihood Q_i = ∫_y^μ (y−t)/(φv(t)) dt, compute Q, scaled quasideviance and quasideviance; quasi-binomial. Not yet seen in past papers → cover as "possible new" items.
 - Past datasets to avoid: as above + troutegg is the lecture demo (fine to show, but practise on other data).
 
+## Worked solutions (added 1 Nov)
+- `worked/00NN-challenge-full-solution.html`: one exam-script page per lesson with an exam-level question (lessons 1-13, 16-29; 14, 15 have none), plus `worked/index.html`. Same layout as `../diff/worked`: red-rule text is what you write, grey notes are not, one step per line, 2 d.p. finals. Each lesson's question section links to its page. Lesson 21 covers Parts A-B, Lesson 28 Parts A-C; the interleaved quiz items (21 Part C, 28 Part D) stay as quizzes with their own explanations.
+
 ## Plan
 Conventions: `BinReg_1` PDF page = slide number (slide 41 = LR confidence region). In R output, convert ordered factors (e.g. `esoph`) to unordered ones to avoid the off-syllabus .L/.Q contrasts.
 

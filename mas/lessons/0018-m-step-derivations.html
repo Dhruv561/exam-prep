@@ -369,7 +369,7 @@ Q_\lambda&amp;=\sum_{i=1}^n\Big\{\gamma_{i1}\big[\log\lambda-\lambda x_i\big]+\g
   With \(\hat\pi=(0.2893+0.5990+0.3779)/3=0.42\), the incomplete \(\ell\) rises from −2.32 to −2.29, which answers Lesson 17's part (e) numerically. If you treat the components separately and average two rates, you are solving a different model.</div>
 </div>
 
-<h2>8 · Exam-style practice</h2>
+<h2 id="challenge">8 · Exam-style practice</h2>
 <p><strong>Setup</strong> (fresh model, past-paper shape; 12 marks). A tilt sensor is bolted to each of \(n\) machines. If it was mounted the right way round, it reads \(+\mu\) plus noise. If it was mounted reversed, it reads \(-\mu\) plus noise. Nobody recorded which. For \(i=1,\dots,n\):</p>
 $$\begin{aligned}
 Z_i&amp;\sim\text{Categorical}(\pi,1-\pi)\\
@@ -484,6 +484,8 @@ $$\begin{aligned}
 <details><summary>Model answer</summary><div>
 <p>\(\ell(\theta)=\sum_i\log\sum_k\pi_kf(x_i;\theta_k)\) has a log of a sum, so its derivative has every parameter in the denominator, and setting it to zero gives equations with no closed-form solution. In \(Q(\theta,\theta^0)\) the log acts directly on each \(\pi_kf(x_i;\theta_k)\), and the weights \(\gamma_{ik}\) are fixed numbers computed from \(\theta^0\). \(Q\) therefore splits into separate weighted complete-data log-likelihoods, and each one is maximised by a weighted version of the usual MLE.</p></div></details>
 </div>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0018-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>9 · Score yourself</h2>
 <div class="tablewrap"><table>

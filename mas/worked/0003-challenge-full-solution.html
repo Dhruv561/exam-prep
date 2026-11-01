@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Turtle Nests Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 3 · Exam-level challenge · Full written solution</div>
+<h1>Turtle nests, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<div class="box">
+<p>Conservationists record 36 turtle nests across four beaches (A, B, C, D). Nest \(i\) has \(m_i\) eggs (60 to 116), and \(y_i\) hatch. The predictors are <code>temp</code> (mean sand temperature, °C), <code>beach</code> (factor, baseline A) and <code>depth</code> (nest depth, cm). (Simulated data.)</p>
+<pre class="rout"><span class="cmd">&gt; model1 &lt;- glm(cbind(y, m - y) ~ temp + beach + depth, family = binomial, data = nests)
+&gt; summary(model1)</span>
+
+Coefficients:
+             Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  4.705183   0.960391   4.899 9.62e-07 ***
+temp        -0.127696   0.029272  -4.362 1.29e-05 ***
+beachB       0.198065   0.127541   1.553   0.1204
+beachC      -0.194445   0.117969  -1.648   0.0993 .
+beachD      -0.028779   0.119728  -0.240   0.8100
+depth        0.008261   0.005189   1.592   0.1114
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 84.699  on 35  degrees of freedom
+Residual deviance: 48.207  on 30  degrees of freedom
+AIC: 224.98
+
+Number of Fisher Scoring iterations: 4
+
+<span class="cmd">&gt; model2 &lt;- glm(cbind(y, m - y) ~ temp + depth, family = binomial, data = nests)
+&gt; summary(model2)</span>
+
+Coefficients:
+             Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  3.773985   0.903030   4.179 2.92e-05 ***
+temp        -0.105003   0.028110  -3.735 0.000187 ***
+depth        0.013794   0.004837   2.852 0.004350 **
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 84.699  on 35  degrees of freedom
+Residual deviance: 58.173  on 33  degrees of freedom
+AIC: 228.95
+
+Number of Fisher Scoring iterations: 4
+
+<span class="cmd">&gt; (phi1 &lt;- sum(residuals(model1, type="pearson")^2)/model1$df.residual)</span>
+[1] 1.583947
+<span class="cmd">&gt; qchisq(0.95, df = c(3, 30, 33))</span>
+[1]  7.814728 43.772972 47.399880</pre>
+<p>(a) For model1, what is the log-likelihood of the fitted model, and of the saturated model?<br>
+(b) Assuming binomial responses, which is better, model1 or model2? Give two quantitative reasons.<br>
+(c) Is model1 an adequate fit? State what you checked first. (The fitted \(\hat p_i\) range from 0.69 to 0.85.)<br>
+(d) Give a 95% CI for the factor by which the odds of hatching change when sand temperature rises by 1 °C, under model1.<br>
+(e) What does <code>phi1</code> suggest, and which of your conclusions in (b) is most at risk because of it?</p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · Log-likelihoods</h2>
+<div class="script">
+<p>\(n=35+1=36\) and \(p=36-30=6\) (intercept, temp, three beach dummies, depth).</p>
+$$\begin{aligned}
+\text{AIC}&=-2\hat\ell+2p\\
+\hat\ell_1&=p-\frac{\text{AIC}}2\\
+&=6-\frac{224.98}{2}\\
+&=-106.49
+\end{aligned}$$
+<p>From \(D=2(\ell_{\text{sat}}-\hat\ell)\):</p>
+$$\begin{aligned}
+\ell_{\text{sat}}&=\hat\ell_1+\frac D2\\
+&=-106.49+\frac{48.207}2\\
+&=-82.39
+\end{aligned}$$
+<div class="answer-box"><p>\(\hat\ell_1=-106.49\), \(\ell_{\text{sat}}=-82.39\)</p></div>
+</div>
+<p class="note">Check with model2: \(3-228.95/2+58.173/2=-82.39\) ✓.</p>
+<h2>(b) · model1 or model2?</h2>
+<div class="script">
+<p><strong>Reason 1: LRT.</strong> model2 is nested in model1. \(H_0\): all three beach coefficients are 0.</p>
+$$\begin{aligned}
+\text{LR}&=D_2-D_1\\
+&=58.173-48.207\\
+&=9.97\\
+\text{df}&=33-30=3\\
+\chi^2_3(0.95)&=7.81
+\end{aligned}$$
+<p>\(9.97\gt7.81\), so reject \(H_0\): beach is needed.</p>
+<p><strong>Reason 2: AIC.</strong> \(224.98\lt228.95\), so model1 has the lower AIC.</p>
+<div class="answer-box"><p>Under the binomial assumption, model1 is better</p></div>
+</div>
+<p class="note">No single beach dummy is significant (p = 0.12, 0.10, 0.81), yet the factor is. Test factors as a block.</p>
+<h2>(c) · Goodness of fit</h2>
+<div class="script">
+<p>First check the condition. \(m_i\ge60\) and \(0.69\le\hat p_i\le0.85\), so</p>
+$$\begin{aligned}
+\min_im_i(1-\hat p_i)&\approx60(0.15)=9\ge5\\
+\min_im_i\hat p_i&\approx60(0.69)=41.4\ge5
+\end{aligned}$$
+<p>So \(D\approx\chi^2_{30}\) if model1 is adequate.</p>
+$$\begin{aligned}
+D&=48.21\gt\chi^2_{30}(0.95)=43.77
+\end{aligned}$$
+<div class="answer-box"><p>Reject adequacy: model1 does not fit well</p></div>
+</div>
+<h2>(d) · Odds multiplier for +1 °C</h2>
+<div class="script">
+$$\begin{aligned}
+\text{CI for }\beta_{\text{temp}}&=-0.127696\pm1.96(0.029272)\\
+&=-0.127696\pm0.05737\\
+&=(-0.1851,\ -0.0703)\\
+e^{-0.1851}&=0.83\\
+e^{-0.0703}&=0.93
+\end{aligned}$$
+<div class="answer-box"><p>95% CI for the odds multiplier: \((0.83,\ 0.93)\)</p></div>
+</div>
+<p class="note">Point estimate \(e^{-0.1277}=0.88\): each extra degree cuts the odds of hatching by about 12%.</p>
+<h2>(e) · What phi1 says</h2>
+<div class="script">
+<p><code>phi1</code> \(=X^2/(n-p)=1.58\gt1\), which together with the failed fit test in (c) suggests overdispersion. Under \(\phi=1\) the SEs are too small by a factor of about:</p>
+$$\begin{aligned}
+\sqrt{1.584}&=1.26
+\end{aligned}$$
+<p>The LRT for beach in (b) is most at risk, because a \(\chi^2\) test on an unscaled deviance difference overstates significance.</p>
+<p>Allowing for it:</p>
+$$\begin{aligned}
+F&=\frac{9.966/3}{1.584}\\
+&=\frac{3.322}{1.584}\\
+&=2.10
+\end{aligned}$$
+<p>Compared with \(F_{3,30}(0.95)=2.92\): not significant, so the conclusion in (b) flips.</p>
+</div>
+<p class="note">The F value wasn't asked for here (no F table in the output); it's the Lesson 12 method, shown so you see the flip.</p>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+\(n\), \(p\) · \(\hat\ell=p-\text{AIC}/2\) · LR 9.97 on 3 df vs 7.81 · AIC · condition checked before GOF · 48.21 vs 43.77 · CI on \(\beta\) then exp · \(\hat\phi=1.58\) means overdispersion, SEs too small by 1.26, LRT at risk.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0003-deviance-lrt-aic.html#challenge">Lesson 3, exam-level challenge</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

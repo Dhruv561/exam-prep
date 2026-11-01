@@ -344,7 +344,7 @@ S^2&amp;=\frac{1.40}{9}=0.1556,\qquad S=0.39\\
 $$\text{ESS}_{\lambda_1}=450\times\frac{1-0.084}{1+0.084}=450\times\frac{0.916}{1.084}=380.26$$
 <p>(R, unrounded \(\hat\rho_1\): 380.6.) About 380 effective draws out of 450, so the SE of \(\bar\lambda_1\) is only \(\sqrt{450/380}=1.09\) times the naive one. \(\hat R\) for \(\lambda_1\) from the two chains after burn-in: pooled sd 0.29, \(W=0.29\), \(\hat R=1.00\). Note that the lecturer's thinning example (<code>thin &lt;- 3</code>) barely changes the means (the lecturer's output: 3.15 vs 3.14 for \(\lambda_1\)): with \(\hat\rho_1\) this small, thinning has nothing to fix.</p>
 
-<h2>8 · Exam-style question</h2>
+<h2 id="challenge">8 · Exam-style question</h2>
 <p><strong>Setup</strong> (8 marks, about 18 minutes, FX-82, 2 d.p.).</p>
 <div class="box">
 <p><strong>Model:</strong> a random-walk Metropolis sampler targets the posterior of a Poisson rate \(\lambda>0\), known up to a constant: \(p(\lambda\mid y)\propto\lambda^{19}e^{-4\lambda}\). <strong>Proposal:</strong> \(\lambda'\mid\lambda\sim N(\lambda,\,0.5^2)\), with negative proposals rejected. Two chains, <code>c1</code> and <code>c2</code>, of 600 iterations, started at \(\lambda^{(0)}=0.5\) and \(12\). The trace plots and the ACF of chain 1 over iterations 201–600 are below, with R output.</p>
@@ -391,6 +391,8 @@ $$\begin{aligned}
 <p>The honest SE (0.23) is about 4.6 times the naive one (0.05); 400 draws are worth about 19 independent ones, so the run is too short for a precise estimate.</p>
 <p><strong>(d)</strong> <em>[1 mark: (i). 1 mark: (ii).]</em> (i) Acceptance 0.89 and 0.84 are very high, and the ACF falls slowly (\(\hat\rho_1=0.91\)): steps are <strong>too small</strong>; increase the proposal sd (and rerun). (ii) Informal: trace plots of several chains from overdispersed starts, which should overlap and look like stationary noise (and the ACF/trace for correlation). Formal: the Gelman–Rubin/BGR statistic \(\hat R&lt;1.05\) on the post-burn-in draws.</p>
 </div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0026-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>9 · Writing it up: informal + formal (2017 pattern)</h2>
 <div class="explain">

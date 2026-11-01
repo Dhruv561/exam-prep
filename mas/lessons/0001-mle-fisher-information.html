@@ -138,7 +138,7 @@ $$\mathcal I(\theta) = -\frac{n}{\theta^2} + \frac{2n\theta}{\theta^3} = \frac{n
   <div class="why">The course's \(\mathcal I\) already includes \(n\), so the variance is just \(1/\mathcal I\). Option (a) divides by \(n\) twice, the mix-up between conventions from the box above.</div>
 </div>
 
-<h2>5 · Exam-level challenge</h2>
+<h2 id="challenge">5 · Exam-level challenge</h2>
 <p>This is the bridge to binomial regression. Solve it on paper, then open the steps one at a time.</p>
 <div class="box">
 <p>Seeds are planted in \(k\) trays. Tray \(i\) has \(m_i\) seeds (known), and \(Y_i\sim\text{Bin}(m_i,p)\) germinate, independently across trays.</p>
@@ -158,6 +158,8 @@ Then \(\ell'(\eta) = \sum y_i - \sum m_i\,p = 0\), so \(\hat p = 0.7\) as before
 <details><summary>Step 4: CI for η, then for p</summary><div>
 <p>The SE is \(1/\sqrt{42} = 0.154\), so the CI for \(\eta\) is \(0.847 \pm 0.302 = (0.545,\ 1.150)\). Apply \(p = e^\eta/(1+e^\eta)\) to each end: \(\boxed{(0.633,\ 0.759)}\).</p>
 <p>Notice it's <em>not</em> symmetric about 0.7, and it can never leave \([0,1]\). The interval from (b) could, if \(p\) were near 0 or 1. That's why the lecture builds CIs on the \(\eta\) scale and transforms back (<a href="../lectures/BinReg_1_LMS.pdf">slide 40</a>). It's also your first logistic regression: one with only an intercept, \(\eta = \beta_0\). Compare \(\mathcal I(\eta) = \sum m_i p(1-p)\) with the top-left entry of \(\mathcal I(\beta)\) on slide 34.</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0001-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>6 · Before you close this tab</h2>
 <details><summary>Retrieval: write the four steps and the asymptotic result from memory</summary><div>

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCMC Diagnostics Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 26 · Exam-style question · Full written solution</div>
+<h1>MCMC diagnostics, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<p><strong>Setup</strong> (8 marks, about 18 minutes, FX-82, 2 d.p.).</p>
+<div class="box">
+<p><strong>Model:</strong> a random-walk Metropolis sampler targets the posterior of a Poisson rate \(\lambda>0\), known up to a constant: \(p(\lambda\mid y)\propto\lambda^{19}e^{-4\lambda}\). <strong>Proposal:</strong> \(\lambda'\mid\lambda\sim N(\lambda,\,0.5^2)\), with negative proposals rejected. Two chains, <code>c1</code> and <code>c2</code>, of 600 iterations, started at \(\lambda^{(0)}=0.5\) and \(12\). The trace plots and the ACF of chain 1 over iterations 201–600 are below, with R output.</p>
+<figure class="plot" style="margin:.6rem 0">
+<img src="../assets/img/l26-exam-traces.png" alt="Left: trace plots of two chains over 600 iterations. Chain 1 (blue) starts at 0.5 and rises to about 5 by iteration 30; chain 2 (red) starts at 12 and falls to about 5 by iteration 70. After about iteration 100 both wander between about 2.5 and 9, with slow excursions lasting 50 to 100 iterations, for example chain 2 rising to about 11 near iteration 370. Right: ACF of chain 1 over iterations 201 to 600, bars falling smoothly from 1 at lag 0 to about 0.91 at lag 1, 0.5 at lag 7, and entering the dashed band at about lag 14.">
+</figure>
+<pre class="rout"><span class="cmd">&gt; round(c(mean(diff(c1) != 0), mean(diff(c2) != 0)), 2)</span>
+[1] 0.89 0.84
+<span class="cmd">&gt; m &lt;- chs[1:100, ]; round(apply(m, 2, sd), 2); round(c(W = mean(apply(m, 2, sd)), pooled = sd(as.vector(m))), 2)</span>
+  c1   c2 
+1.12 2.52 
+     W pooled 
+  1.82   2.20 
+<span class="cmd">&gt; m &lt;- chs[201:600, ]; round(apply(m, 2, sd), 2); round(c(W = mean(apply(m, 2, sd)), pooled = sd(as.vector(m))), 2)</span>
+  c1   c2 
+1.02 1.66 
+     W pooled 
+  1.34   1.38 
+<span class="cmd">&gt; x &lt;- c1[201:600]; round(c(n = length(x), mean = mean(x), sd = sd(x), rho1 = acf(x, plot = FALSE)$acf[2]), 2)</span>
+     n   mean     sd   rho1 
+400.00   5.62   1.02   0.91 </pre>
+</div>
+<ol type="a">
+  <li>From the trace plot, how many initial iterations would you discard as burn-in? Give the evidence. <span class="marks">[2]</span></li>
+  <li>The BGR diagnostic is \(\hat R=B/W\), with \(B\) the sd of the pooled sample and \(W\) the average within-chain sd. Compute \(\hat R\) for iterations 1–100 and for iterations 201–600. Using the threshold 1.05, what do you conclude? <span class="marks">[2]</span></li>
+  <li>The analyst uses the mean of chain 1 over iterations 201–600 as the point estimate of the posterior mean. Is this reasonable? Give its standard error allowing for autocorrelation, and say how it compares with the naive \(s/\sqrt n\). <span class="marks">[2]</span></li>
+  <li>(i) The acceptance rates are 0.89 and 0.84. Is the step size 0.5 too small, about right or too large, and what change would you make? (ii) Name one informal and one formal check of convergence. <span class="marks">[2]</span></li>
+</ol>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · Burn-in <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Chain 1 (start 0.5) reaches the band around 5 by about iteration 30, and chain 2 (start 12) by about iteration 60–70. After about iteration 100 the chains overlap with no trend.</p>
+<div class="answer-box"><p>Discard about the first 100 iterations of each chain</p></div>
+</div>
+<p class="note">Any value in 70–150 with this reasoning earns the marks.</p>
+<h2>(b) · BGR <span class="marks">[2]</span></h2>
+<div class="script">
+$$\begin{aligned}
+\text{Iterations 1–100:}\quad\hat R&=\frac BW\\
+&=\frac{2.20}{1.82}\\
+&=1.21\\
+\text{Iterations 201–600:}\quad\hat R&=\frac{1.38}{1.34}\\
+&=1.03
+\end{aligned}$$
+<p>\(1.21\gt1.05\): the first 100 iterations aren't stationary. \(1.03\lt1.05\): iterations 201–600 look stationary and can be pooled.</p>
+<div class="answer-box"><p>\(\hat R=1.21\) then \(1.03\)</p></div>
+</div>
+<h2>(c) · Point estimate and SE <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Yes: after burn-in the chain is approximately stationary, so the mean \(\bar\lambda=5.62\) is a reasonable estimate. But the draws are correlated (\(\hat\rho_1=0.91\)):</p>
+$$\begin{aligned}
+\text{ESS}&=n\,\frac{1-\hat\rho_1}{1+\hat\rho_1}\\
+&=400\times\frac{0.09}{1.91}\\
+&=18.85\\
+\text{SE}&=\frac s{\sqrt{\text{ESS}}}\\
+&=\frac{1.02}{\sqrt{18.85}}\\
+&=\frac{1.02}{4.34}\\
+&=0.23\\
+\text{SE}_{\text{naive}}&=\frac{1.02}{\sqrt{400}}\\
+&=0.05
+\end{aligned}$$
+<div class="answer-box"><p>SE \(=0.23\), about 4.6 times the naive \(0.05\). 400 draws are worth about 19 independent ones</p></div>
+</div>
+<h2>(d) · Step size and checks <span class="marks">[2]</span></h2>
+<div class="script">
+<p>(i) Acceptance 0.89 and 0.84 are very high and the ACF falls slowly (\(\hat\rho_1=0.91\)): steps are too small, so increase the proposal sd.</p>
+<p>(ii) Informal: trace plots of several chains from overdispersed starts, which should overlap and look stationary. Formal: BGR \(\hat R\lt1.05\) on the post-burn-in draws.</p>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Burn-in with evidence · both \(\hat R\) with threshold · ESS then SE · comparison with naive · too small, increase sd · one informal and one formal check.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0026-mcmc-diagnostics.html#challenge">Lesson 26, exam-style question</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

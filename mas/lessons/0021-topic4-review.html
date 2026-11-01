@@ -52,7 +52,7 @@
 8. Keep the run with the highest final incomplete \(\ell\); relabelled runs tie. Looks finished but isn't: it hit <code>max.iter</code> (<code>length(log_liks)</code> \(=\) <code>max.iter</code> \(+1\)), or it is stuck at equal starting components (<a href="0020-reading-em-r-code.html">Lesson 20</a>).</p>
 <p style="margin-bottom:0">Fewer than 6 of 8 fully right? Reread the <a href="../reference/em-cheatsheet.html">EM cheat sheet</a> once, close it, then start Part A.</p></div></details>
 
-<h2>2 · Part A: exam-length EM question (12 marks, 25 minutes)</h2>
+<h2 id="challenge">2 · Part A: exam-length EM question (12 marks, 25 minutes)</h2>
 <div class="box">
 <p><strong>Question A</strong> (12 marks). A hospital network monitors \(n\) wards for bloodstream infections. Ward \(i\) records \(X_i\) infections over \(t_i\) hundred patient-days. The exposures \(t_i\) are known. Some wards are <em>standard</em> and some are <em>high-risk</em>, but the type is not recorded. For \(i=1,\dots,n\), independently,</p>
 $$\begin{aligned}
@@ -309,6 +309,8 @@ P(Z=1\mid X=1.2)&amp;=\frac{0.0052}{0.0052+0.1347}=0.04
 
 <details><summary>Part (e) [2]</summary><div>
 <p>Misclassified: \(9+3=12\) of 150, so \(8\%\) (accuracy 92%) <em>[1]</em>. The two regimes overlap: \(N(-2.1,2)\) and \(N(2.5,2)\) are only about 3.2 SDs apart, so some regime-1 days fall right of \(c\) and some regime-2 days left of it. Given only \(x\), the rule already picks the more probable regime at every \(x\); the errors are draws from the tails, not a failure of EM <em>[1]</em>. (The table needs the true labels, which only exist because the data were simulated.)</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0021-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>4 · Part C: interleaved practice</h2>
 <p>Mixed on purpose: Topic 4 with Topics 1–3 and the Lesson 14–15 toolkit. Several items reuse Part A's six wards, \(\sum x_i=23\), \(\sum t_i=17\), now fitted in other ways.</p>

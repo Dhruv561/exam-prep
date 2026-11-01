@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gibbs Two Sources Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 25 · Exam-style question · Full written solution</div>
+<h1>Gibbs with two data sources, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<p><strong>Setup</strong> (fresh model; 11 marks, about 25 minutes, FX-82).</p>
+<div class="box">
+<p><strong>Model:</strong> given \((\mu,\tau)\), the observations \(x_1,\dots,x_n\) and \(y_1,\dots,y_m\) are all independent with</p>
+$$x_i\mid\mu,\tau\sim\text{Normal}\Big(\mu,\ \frac1\tau\Big),\qquad y_j\mid\mu,\tau\sim\text{Normal}\Big(2\mu,\ \frac1\tau\Big).$$
+<p><strong>Prior:</strong> \(\mu\) and \(\tau\) are independent, with \(\mu\sim\text{Normal}(1,\ 2)\) and \(\tau\sim\text{Gamma}(3,\ 2)\).</p>
+</div>
+<ol type="a">
+  <li>Derive the conditional distribution \(p(\mu\mid\tau,x,y)\). If it is a known distribution, identify the distribution name and its parameters. <span class="marks">[4]</span></li>
+  <li>Derive the conditional distribution \(p(\tau\mid\mu,x,y)\) and identify it. <span class="marks">[3]</span></li>
+  <li>Briefly describe a Gibbs sampling scheme for \((\mu,\tau)\), and explain how you would use its output to estimate \(P(\mu>1\mid x,y)\). <span class="marks">[3]</span></li>
+  <li>Briefly explain why this sampler needs no proposal distribution and no accept/reject step. <span class="marks">[1]</span></li>
+</ol>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · \(p(\mu\mid\tau,x,y)\) <span class="marks">[4]</span></h2>
+<div class="script">
+<p>Prior variance 2 gives \(e^{-(\mu-1)^2/4}\). The \(y\) mean is \(2\mu\):</p>
+$$\begin{aligned}
+p(\mu\mid\tau,x,y)&\propto\exp\Big\{-\frac\tau2\sum_i(x_i-\mu)^2\Big\}\exp\Big\{-\frac\tau2\sum_j(y_j-2\mu)^2\Big\}\\
+&\qquad\times\exp\Big\{-\frac14(\mu-1)^2\Big\}
+\end{aligned}$$
+<p>Expand. \((y_j-2\mu)^2=y_j^2-4\mu y_j+4\mu^2\):</p>
+$$\begin{aligned}
+\text{exponent}&=-\frac\tau2\Big[n\mu^2-2\mu\sum_ix_i\Big]-\frac\tau2\Big[4m\mu^2-4\mu\sum_jy_j\Big]\\
+&\qquad-\frac14\big[\mu^2-2\mu\big]+\text{const}\\
+&=-\frac12\Big[(n+4m)\tau+\tfrac12\Big]\mu^2\\
+&\qquad+\Big[\tau\sum_ix_i+2\tau\sum_jy_j+\tfrac12\Big]\mu+\text{const}\\
+&=-\frac A2\mu^2+B\mu+\text{const}
+\end{aligned}$$
+<p>where</p>
+$$\begin{aligned}
+A&=\tfrac12+(n+4m)\tau\\
+B&=\tfrac12+\tau\Big(\sum_ix_i+2\sum_jy_j\Big)
+\end{aligned}$$
+<p>Complete the square:</p>
+$$\begin{aligned}
+p(\mu\mid\tau,x,y)&\propto\exp\Big\{-\frac A2\Big(\mu-\frac BA\Big)^2\Big\}
+\end{aligned}$$
+<div class="answer-box"><p>\(\mu\mid\tau,x,y\sim\text{Normal}\Big(\dfrac{\frac12+\tau(\sum_ix_i+2\sum_jy_j)}{\frac12+(n+4m)\tau},\ \dfrac1{\frac12+(n+4m)\tau}\Big)\)</p></div>
+</div>
+<h2>(b) · \(p(\tau\mid\mu,x,y)\) <span class="marks">[3]</span></h2>
+<div class="script">
+<p>Keep the \(\tau\) powers from both likelihoods and the Gamma prior. The Normal prior of \(\mu\) has no \(\tau\):</p>
+$$\begin{aligned}
+p(\tau\mid\mu,x,y)&\propto\tau^{n/2}e^{-\frac\tau2\sum_i(x_i-\mu)^2}\cdot\tau^{m/2}e^{-\frac\tau2\sum_j(y_j-2\mu)^2}\\
+&\qquad\times\tau^{3-1}e^{-2\tau}\\
+&=\tau^{3+\frac{n+m}2-1}\\
+&\qquad\times\exp\Big\{-\tau\Big(2+\frac12\Big[\sum_i(x_i-\mu)^2+\sum_j(y_j-2\mu)^2\Big]\Big)\Big\}
+\end{aligned}$$
+<div class="answer-box"><p>\(\tau\mid\mu,x,y\sim\text{Gamma}\Big(3+\dfrac{n+m}2,\ 2+\dfrac12\Big[\sum_i(x_i-\mu)^2+\sum_j(y_j-2\mu)^2\Big]\Big)\)</p></div>
+</div>
+<h2>(c) · Gibbs scheme <span class="marks">[3]</span></h2>
+<div class="script">
+<ol><li>Choose \(\mu^{(0)}\) and \(\tau^{(0)}\gt0\).</li><li>For \(t=1,\dots,T\): draw \(\mu^{(t)}\) from (a) with \(\tau=\tau^{(t-1)}\), then draw \(\tau^{(t)}\) from (b) with \(\mu=\mu^{(t)}\).</li><li>Discard the first \(T_0\) draws as burn-in.</li></ol>
+<p>With \(N=T-T_0\) kept draws:</p>
+$$\begin{aligned}
+P(\mu\gt1\mid x,y)&\approx\frac1N\sum_{t=T_0+1}^T\mathbf 1\{\mu^{(t)}\gt1\}
+\end{aligned}$$
+</div>
+<h2>(d) · No proposal needed <span class="marks">[1]</span></h2>
+<div class="script">
+<p>Each draw is from an exact full conditional. Treated as an MH proposal, a full conditional makes the acceptance probability exactly 1, so every draw is accepted and nothing needs tuning.</p>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Prior precision \(\frac12\), not 2 · \(4m\) and \(2\sum y_j\) · Normal(mean, variance) · shape \(3+(n+m)/2\) · \((y_j-2\mu)^2\) · newest values · burn-in · indicator average · \(\alpha=1\).</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0025-gibbs-sampling.html#challenge">Lesson 25, exam-style question</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

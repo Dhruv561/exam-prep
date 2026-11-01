@@ -227,7 +227,7 @@ $$\ell(\beta,\phi;y) = \sum_{i=1}^n\left[\frac{y_i x_i^T\beta - b(x_i^T\beta)}{a
 <p>Under the canonical link \(\theta_i = x_i^T\beta\), so the only term in the log-likelihood that involves both data and \(\beta\) is \(\sum_i y_ix_i^T\beta = \beta^TX^Ty\); the \(b(x_i^T\beta)\) terms have no data and \(c(y_i,\phi)\) has no \(\beta\). By the factorisation theorem, the likelihood depends on the data (as far as \(\beta\) is concerned) only through \(X^Ty\). With any other link, \(\theta_i\) is a non-linear function of \(x_i^T\beta\) and no such reduction happens.</p></div></details>
 </div>
 
-<h2>5 · Exam-level challenge</h2>
+<h2 id="challenge">5 · Exam-level challenge</h2>
 <p>About 15 minutes on paper, written answers. Then open the steps one at a time.</p>
 <div class="box">
 <p>Let \(Y\) have the negative binomial distribution with mean \(\mu&gt;0\) and <em>known</em> size \(r&gt;0\):</p>
@@ -259,6 +259,8 @@ $$b''(\theta) = \frac{re^\theta}{(1-e^\theta)^2} = \frac{re^\theta}{1-e^\theta}\
 $$\frac{\partial\ell}{\partial\beta} = \sum_i\big[y_i - b'(x_i^T\beta)\big]x_i = \sum_i (y_i - \mu_i)\,x_i = X^T(y-\mu).$$</div></details>
 <details><summary>Step 6: part (f)</summary><div>
 <p>Faraway means the negative binomial with \(r\) <em>unknown</em>. Then \(r\) appears inside \(b\) (through \(-r\log(1-e^\theta)\)) and inside \(c\), and it can't be split off as a dispersion \(a(\phi)\) dividing \(y\theta - b(\theta)\), so the form fails. With \(r\) known, as here, it's a one-parameter exponential family with \(\phi = 1\).</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0005-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>6 · Before you close this tab</h2>
 <details><summary>Retrieval: write these from memory, then check</summary><div>

@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topic 5 Review Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 28 · Exam-style question · Full written solution</div>
+<h1>Topic 5 review, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<h2 class="q-part">Part A</h2>
+<div class="box">
+<p><strong>Question A</strong> (17 marks). A lab measures a coating thickness \(\mu\) (microns) with two instruments. Instrument 1 gives \(x_1,\dots,x_n\) and the less precise instrument 2 gives \(y_1,\dots,y_m\). Given \((\mu,\sigma^2)\), all measurements are independent.</p>
+<p><strong>Model:</strong></p>
+$$x_i\mid\mu,\sigma^2\sim\text{Normal}(\mu,\ \sigma^2),\qquad y_j\mid\mu,\sigma^2\sim\text{Normal}(\mu,\ 2\sigma^2).$$
+<p><strong>Prior:</strong> \(\mu\) and \(\sigma^2\) are independent a priori, with</p>
+$$\mu\sim\text{Normal}(2,\ 1),\qquad\sigma^2\sim\text{Inverse-Gamma}(3,\ 2)\quad\text{(shape, scale)}.$$
+<p>The data are \(x=(2.1,\ 1.7,\ 2.6,\ 1.9)\) (so \(n=4\), \(\sum x_i=8.3\)) and \(y=(2.8,\ 1.4)\) (so \(m=2\), \(\sum y_j=4.2\)). Normal\((\text{mean},\text{variance})\); Gamma(shape \(\nu\), rate \(\beta\)) has density \(\frac{\beta^\nu}{\Gamma(\nu)}x^{\nu-1}e^{-\beta x}\) for \(x&gt;0\), with \(\Gamma(4)=6\).</p>
+<p>(a) Derive the conditional distribution \(p(\mu\mid\sigma^2,x,y)\). If it is a known distribution, identify the distribution name and its parameters. <span class="marks">[5]</span><br>
+(b) We use Metropolis–Hastings for \((\mu,\sigma^2)\). For the current values \((\mu^c,\sigma^{2c})\) propose new values \((\mu^*,\sigma^{2*})\) as follows: first \(\sigma^{2*}\sim\text{Gamma}\big(\text{shape}=4,\ \text{rate}=4/\sigma^{2c}\big)\), then \(\mu^*\sim\text{Normal}\big(\text{mean}=\mu^c,\ \text{variance}=\sigma^{2*}/2\big)\). Compute the acceptance probability when \((\mu^c,\sigma^{2c})=(2.0,\ 0.5)\) and \((\mu^*,\sigma^{2*})=(2.4,\ 0.4)\). Show your work. <span class="marks">[6]</span><br>
+(c) Approximate the posterior by \(q(\mu,\sigma^2)=q_\mu(\mu)\,q_{\sigma^2}(\sigma^2)\), chosen by coordinate ascent variational inference, \(q^*_j(\theta_j)\propto\exp\{E_{-j}[\log p(x,y,\mu,\sigma^2)]\}\). Derive \(q^*_{\sigma^2}(\sigma^2)\). If it is a known distribution, identify its name and parameters; they may contain \(E_\mu[\mu]\) and \(V_\mu[\mu]\). Then evaluate them when \(E_\mu[\mu]=2.1\) and \(V_\mu[\mu]=0.05\), and give \(E[\sigma^2]\) under \(q^*_{\sigma^2}\). <span class="marks">[6]</span></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · \(p(\mu\mid\sigma^2,x,y)\) <span class="marks">[5]</span></h2>
+<div class="script">
+<p>Keep factors with \(\mu\). The \(y\) variance is \(2\sigma^2\), so its exponent has \(4\sigma^2\):</p>
+$$\begin{aligned}
+p(\mu\mid\sigma^2,x,y)&\propto\exp\Big\{-\frac1{2\sigma^2}\sum_i(x_i-\mu)^2\Big\}\exp\Big\{-\frac1{4\sigma^2}\sum_j(y_j-\mu)^2\Big\}\\
+&\qquad\times\exp\Big\{-\frac12(\mu-2)^2\Big\}
+\end{aligned}$$
+<p>Expand and collect:</p>
+$$\begin{aligned}
+\text{exponent}&=-\frac1{2\sigma^2}\Big[n\mu^2-2\mu\sum_ix_i\Big]-\frac1{4\sigma^2}\Big[m\mu^2-2\mu\sum_jy_j\Big]\\
+&\qquad-\frac12\big[\mu^2-4\mu\big]+\text{const}\\
+&=-\frac12\Big[\Big(\frac n{\sigma^2}+\frac m{2\sigma^2}+1\Big)\mu^2-2\Big(\frac{\sum_ix_i}{\sigma^2}+\frac{\sum_jy_j}{2\sigma^2}+2\Big)\mu\Big]+\text{const}\\
+&=-\frac A2\mu^2+B\mu+\text{const}
+\end{aligned}$$
+<p>With \(n=4\), \(m=2\), \(\sum_ix_i=8.3\), \(\sum_jy_j=4.2\):</p>
+$$\begin{aligned}
+A&=1+\frac{n+m/2}{\sigma^2}\\
+&=1+\frac5{\sigma^2}\\
+B&=2+\frac{\sum_ix_i+\frac12\sum_jy_j}{\sigma^2}\\
+&=2+\frac{8.3+2.1}{\sigma^2}\\
+&=2+\frac{10.4}{\sigma^2}
+\end{aligned}$$
+<p>Complete the square:</p>
+$$\begin{aligned}
+p(\mu\mid\sigma^2,x,y)&\propto\exp\Big\{-\frac A2\Big(\mu-\frac BA\Big)^2\Big\}\\
+\frac BA&=\frac{2\sigma^2+10.4}{\sigma^2+5}\\
+\frac1A&=\frac{\sigma^2}{\sigma^2+5}
+\end{aligned}$$
+<div class="answer-box"><p>\(\mu\mid\sigma^2,x,y\sim\text{Normal}\Big(\dfrac{2\sigma^2+10.4}{\sigma^2+5},\ \dfrac{\sigma^2}{\sigma^2+5}\Big)\)</p></div>
+</div>
+<h2>(b) · Acceptance probability <span class="marks">[6]</span></h2>
+<div class="script">
+<p>With \(Q(\mu)=\sum_i(x_i-\mu)^2+\tfrac12\sum_j(y_j-\mu)^2\), the target keeps every power of \(\sigma^2\):</p>
+$$\begin{aligned}
+\alpha&=\min\Big\{1,\ \frac{\pi(\mu^*,\sigma^{2*})}{\pi(\mu^c,\sigma^{2c})}\cdot\frac{q(\mu^c,\sigma^{2c}\mid\mu^*,\sigma^{2*})}{q(\mu^*,\sigma^{2*}\mid\mu^c,\sigma^{2c})}\Big\}\\
+\pi(\mu,\sigma^2)&\propto(\sigma^2)^{-3}e^{-Q(\mu)/(2\sigma^2)}\cdot e^{-(\mu-2)^2/2}\cdot(\sigma^2)^{-4}e^{-2/\sigma^2}
+\end{aligned}$$
+<p>Values of \(Q\):</p>
+$$\begin{aligned}
+Q(2.0)&=\big[0.1^2+0.3^2+0.6^2+0.1^2\big]+\tfrac12\big[0.8^2+0.6^2\big]\\
+&=0.47+0.50\\
+&=0.97\\
+Q(2.4)&=\big[0.3^2+0.7^2+0.2^2+0.5^2\big]+\tfrac12\big[0.4^2+1.0^2\big]\\
+&=0.87+0.58\\
+&=1.45
+\end{aligned}$$
+<p>Target factors, new over current:</p>
+$$\begin{aligned}
+\text{(i) likelihood}&=\Big(\frac{0.4}{0.5}\Big)^{-3}\exp\Big\{-\frac12\Big[\frac{1.45}{0.4}-\frac{0.97}{0.5}\Big]\Big\}\\
+&=1.9531\,e^{-\frac12(3.625-1.94)}\\
+&=1.9531\,e^{-0.8425}\\
+&=1.9531(0.4306)\\
+&=0.8411\\
+\text{(ii) prior on }\mu&=\exp\Big\{-\frac12\big[(0.4)^2-0^2\big]\Big\}\\
+&=e^{-0.08}\\
+&=0.9231\\
+\text{(iii) prior on }\sigma^2&=\Big(\frac{0.4}{0.5}\Big)^{-4}\exp\Big\{-2\Big[\frac1{0.4}-\frac1{0.5}\Big]\Big\}\\
+&=2.4414\,e^{-1}\\
+&=2.4414(0.3679)\\
+&=0.8981
+\end{aligned}$$
+<p>Proposal for \(\sigma^2\): rate 8 forward, 10 in reverse, with \(\Gamma(4)=6\):</p>
+$$\begin{aligned}
+q(\sigma^{2*}\mid\sigma^{2c})&=\frac{8^4}6(0.4)^3e^{-8(0.4)}\\
+&=1.7809\\
+q(\sigma^{2c}\mid\sigma^{2*})&=\frac{10^4}6(0.5)^3e^{-10(0.5)}\\
+&=1.4037\\
+\text{(iv) ratio}&=\frac{1.4037}{1.7809}\\
+&=0.7882
+\end{aligned}$$
+<p>Proposal for \(\mu\): variance \(0.4/2=0.2\) forward, \(0.5/2=0.25\) in reverse, squared step \(0.16\) both ways:</p>
+$$\begin{aligned}
+\text{(v) ratio}&=\frac{(2\pi\cdot0.25)^{-1/2}e^{-0.16/(2\cdot0.25)}}{(2\pi\cdot0.2)^{-1/2}e^{-0.16/(2\cdot0.2)}}\\
+&=\sqrt{\frac{0.2}{0.25}}\,e^{-0.32+0.40}\\
+&=0.8944(1.0833)\\
+&=0.9689
+\end{aligned}$$
+<p>Multiply:</p>
+$$\begin{aligned}
+0.8411\times0.9231&=0.7764\\
+0.7764\times0.8981&=0.6973\\
+0.6973\times0.7882&=0.5496\\
+0.5496\times0.9689&=0.5326\\
+\alpha&=\min\{1,\ 0.5326\}\\
+&=0.53
+\end{aligned}$$
+<div class="answer-box"><p>\(\alpha=0.53\)</p></div>
+</div>
+<p class="note">Reverse \(\mu\) variance uses the state being returned to, \(\sigma^{2c}\). Without any proposal ratio you'd get 0.70.</p>
+<h2>(c) · \(q^*_{\sigma^2}\) <span class="marks">[6]</span></h2>
+<div class="script">
+<p>Log joint:</p>
+$$\begin{aligned}
+\log p(x,y,\mu,\sigma^2)&=-\frac{n+m}2\log\sigma^2-\frac{Q(\mu)}{2\sigma^2}\\
+&\quad-\frac12(\mu-2)^2-(3+1)\log\sigma^2-\frac2{\sigma^2}+\text{const}
+\end{aligned}$$
+<p>Keep the \(\sigma^2\) terms and take \(E_\mu\):</p>
+$$\begin{aligned}
+\log q^*_{\sigma^2}(\sigma^2)&=-\Big(3+\frac{n+m}2+1\Big)\log\sigma^2-\frac{2+\frac12E_\mu[Q(\mu)]}{\sigma^2}+\text{const}
+\end{aligned}$$
+<p>Use \(E_\mu[(c-\mu)^2]=(c-E[\mu])^2+V[\mu]\):</p>
+$$\begin{aligned}
+E_\mu[Q(\mu)]&=\sum_i(x_i-E[\mu])^2+nV[\mu]+\frac12\Big[\sum_j(y_j-E[\mu])^2+mV[\mu]\Big]
+\end{aligned}$$
+<p>The kernel is \((\sigma^2)^{-\text{shape}-1}e^{-\text{scale}/\sigma^2}\):</p>
+<div class="answer-box"><p>\(q^*_{\sigma^2}=\text{Inverse-Gamma}\Big(3+\dfrac{n+m}2,\ 2+\dfrac12E_\mu[Q(\mu)]\Big)\) with \(E_\mu[Q]\) as above</p></div>
+<p>Numbers:</p>
+$$\begin{aligned}
+\textstyle\sum_i(x_i-2.1)^2&=0+0.16+0.25+0.04\\
+&=0.45\\
+\textstyle\sum_j(y_j-2.1)^2&=0.49+0.49\\
+&=0.98\\
+E_\mu[Q]&=0.45+4(0.05)+\tfrac12\big[0.98+2(0.05)\big]\\
+&=0.65+0.54\\
+&=1.19\\
+\text{shape}&=3+\tfrac62\\
+&=6\\
+\text{scale}&=2+\tfrac12(1.19)\\
+&=2.595\\
+E[\sigma^2]&=\frac{\text{scale}}{\text{shape}-1}\\
+&=\frac{2.595}5\\
+&=0.52
+\end{aligned}$$
+<div class="answer-box"><p>Inverse-Gamma\((6,\ 2.60)\), \(E[\sigma^2]=0.52\)</p></div>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+\(4\sigma^2\) in the \(y\) exponent · \(A\), \(B\) · both power-of-\(\sigma^2\) factors · both proposal ratios with the parameter changing · product and min · \(V[\mu]\) in the rate · ½ on the \(y\) sum · Inverse-Gamma, not Gamma.</div>
+<h2 class="q-part">Part B</h2>
+<div class="box">
+<p><strong>Question B</strong> (10 marks). A plant makes a polymer in \(J=4\) batches, with \(n_j=5\) viscosity readings per batch. Write \(y_{ij}\) for reading \(i\) of batch \(j\), \(\bar y_j\) for the batch mean, and \(\theta_j\) for the true mean viscosity of batch \(j\).</p>
+<p><strong>Model:</strong> given all parameters, the \(y_{ij}\) are independent with</p>
+$$y_{ij}\mid\theta_j,\tau\sim\text{Normal}\Big(\theta_j,\ \frac1\tau\Big),\qquad\theta_j\mid\mu,\tau_\theta\sim\text{Normal}\Big(\mu,\ \frac1{\tau_\theta}\Big)\quad(j=1,\dots,J,\ \text{independent}).$$
+<p><strong>Prior:</strong> \(\mu\), \(\tau\), \(\tau_\theta\) independent, with \(\mu\sim\text{Normal}(10,\ 25)\), \(\tau\sim\text{Gamma}(2,\ 1)\), \(\tau_\theta\sim\text{Gamma}(3,\ 2)\) (shape, rate).</p>
+<p>(a) Derive the conditional distribution \(p(\mu\mid\theta_1,\dots,\theta_J,\tau_\theta,\tau,y)\). If it is a known distribution, identify the distribution name and its parameters. <span class="marks">[4]</span><br>
+(b) Suppose \(\theta=(9.2,\ 10.5,\ 8.8,\ 11.1)\) and \(\tau_\theta=1.5\). Evaluate the mean and variance of the distribution in (a). <span class="marks">[2]</span><br>
+(c) Give, with name and parameters, the full conditionals of \(\theta_j\) and of \(\tau_\theta\). One line of reasoning each is enough. <span class="marks">[2]</span><br>
+(d) Briefly describe a Gibbs sampling scheme for \((\theta_1,\dots,\theta_J,\mu,\tau,\tau_\theta)\), and say what the conditional of \(\theta_j\) tells you about how much each batch is pulled toward \(\mu\). <span class="marks">[2]</span></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · \(p(\mu\mid\theta,\tau_\theta,\tau,y)\) <span class="marks">[4]</span></h2>
+<div class="script">
+<p>Keep factors containing \(\mu\): the \(J\) priors of \(\theta_j\) and the prior of \(\mu\). With \(m_0=10\), \(\kappa_0=\frac1{25}=0.04\):</p>
+$$\begin{aligned}
+p(\mu\mid\cdot)&\propto\prod_{j=1}^J\exp\Big\{-\frac{\tau_\theta}2(\theta_j-\mu)^2\Big\}\exp\Big\{-\frac{\kappa_0}2(\mu-m_0)^2\Big\}
+\end{aligned}$$
+<p>Expand and collect:</p>
+$$\begin{aligned}
+\text{exponent}&=-\frac{\tau_\theta}2\Big[J\mu^2-2\mu\sum_j\theta_j\Big]-\frac{\kappa_0}2\big[\mu^2-2m_0\mu\big]+\text{const}\\
+&=-\frac12\Big[(J\tau_\theta+\kappa_0)\mu^2-2\Big(\tau_\theta\sum_j\theta_j+\kappa_0m_0\Big)\mu\Big]+\text{const}\\
+&=-\frac A2\mu^2+B\mu+\text{const}
+\end{aligned}$$
+<p>with \(A=\kappa_0+J\tau_\theta\) and \(B=\kappa_0m_0+\tau_\theta\sum_j\theta_j\). Complete the square:</p>
+<div class="answer-box"><p>\(\mu\mid\cdot\sim\text{Normal}\Big(\dfrac{0.4+\tau_\theta\sum_j\theta_j}{0.04+J\tau_\theta},\ \dfrac1{0.04+J\tau_\theta}\Big)\)</p></div>
+</div>
+<p class="note">No \(y_{ij}\) in it: the data reach \(\mu\) only through the \(\theta_j\).</p>
+<h2>(b) · Numbers <span class="marks">[2]</span></h2>
+<div class="script">
+$$\begin{aligned}
+\textstyle\sum_j\theta_j&=9.2+10.5+8.8+11.1\\
+&=39.6\\
+A&=0.04+4(1.5)\\
+&=6.04\\
+B&=0.4+1.5(39.6)\\
+&=59.8\\
+\text{mean}&=\frac{59.8}{6.04}\\
+&=9.90\\
+\text{variance}&=\frac1{6.04}\\
+&=0.17
+\end{aligned}$$
+<div class="answer-box"><p>Mean \(9.90\), variance \(0.17\)</p></div>
+</div>
+<h2>(c) · Other conditionals <span class="marks">[2]</span></h2>
+<div class="script">
+<p><strong>\(\theta_j\):</strong> keep batch \(j\)'s likelihood and the prior of \(\theta_j\), using \(\sum_i(y_{ij}-\theta_j)^2=\text{const}+n_j(\bar y_j-\theta_j)^2\):</p>
+$$\begin{aligned}
+p(\theta_j\mid\cdot)&\propto\exp\Big\{-\frac\tau2\sum_i(y_{ij}-\theta_j)^2-\frac{\tau_\theta}2(\theta_j-\mu)^2\Big\}\\
+\theta_j\mid\cdot&\sim\text{Normal}\Big(\frac{n_j\tau\bar y_j+\tau_\theta\mu}{n_j\tau+\tau_\theta},\ \frac1{n_j\tau+\tau_\theta}\Big)
+\end{aligned}$$
+<p><strong>\(\tau_\theta\):</strong> keep \(\tau_\theta^{J/2}\) and its Gamma prior:</p>
+$$\begin{aligned}
+p(\tau_\theta\mid\cdot)&\propto\tau_\theta^{J/2}e^{-\frac{\tau_\theta}2\sum_j(\theta_j-\mu)^2}\tau_\theta^{3-1}e^{-2\tau_\theta}\\
+\tau_\theta\mid\cdot&\sim\text{Gamma}\Big(3+\frac J2,\ 2+\frac12\sum_j(\theta_j-\mu)^2\Big)
+\end{aligned}$$
+</div>
+<h2>(d) · Gibbs and shrinkage <span class="marks">[2]</span></h2>
+<div class="script">
+<ol><li>Choose starting values for \(\theta_j\), \(\mu\), \(\tau\), \(\tau_\theta\).</li><li>For \(t=1,\dots,T\): draw each \(\theta_j^{(t)}\); then \(\mu^{(t)}\) using the new \(\theta\); then \(\tau^{(t)}\) using the new \(\theta\); then \(\tau_\theta^{(t)}\) using the new \(\theta\) and \(\mu\).</li><li>Discard burn-in and average functions of the remaining draws.</li></ol>
+<p>Shrinkage: the conditional mean of \(\theta_j\) is \(w\bar y_j+(1-w)\mu\) with</p>
+$$\begin{aligned}
+w&=\frac{n_j\tau}{n_j\tau+\tau_\theta}
+\end{aligned}$$
+<p>A large \(\tau_\theta\) makes \(w\) small and pulls \(\theta_j\) toward \(\mu\); a small \(\tau_\theta\) leaves each batch near its own mean.</p>
+</div>
+<p class="note">Also needed for the scheme: \(\tau\mid\theta,y\sim\text{Gamma}\big(2+\frac N2,\ 1+\frac12\sum_j\sum_i(y_{ij}-\theta_j)^2\big)\), \(N=20\).</p>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+No \(y\) in the \(\mu\) conditional · \(A\), \(B\) · Normal with mean and variance · 9.90, 0.17 · \(\theta_j\) and \(\tau_\theta\) conditionals · newest values, burn-in · \(w\) and shrinkage.</div>
+<h2 class="q-part">Part C</h2>
+<div class="box">
+<p><strong>Question C</strong> (8 marks). A binomial experiment gives \(y=1\) success in 4 trials, with a Uniform(0,1) prior on the success probability \(p\). The posterior is known up to a constant: \(p(p\mid y)\propto\tilde f(p)=p(1-p)^3\) on \((0,1)\), and \(Z=\int_0^1\tilde f(p)\,dp=0.05\).</p>
+<p>(a) Give a rejection sampler for \(p\mid y\) that uses Uniform(0,1) candidates, and find the smallest valid \(M\) by calculus. <span class="marks">[2]</span><br>
+(b) Find the probability that one candidate is accepted. <span class="marks">[1]</span></p>
+<p>The sampler was run until 2000 draws were accepted, with this output (real R output):</p>
+<pre class="rout"><span class="cmd">&gt; set.seed(2818)
+&gt; ft &lt;- function(p) p*(1-p)^3
+&gt; M &lt;- ft(1/4)
+&gt; draws &lt;- numeric(2000); tries &lt;- 0; k &lt;- 0
+&gt; while (k &lt; 2000) {
++   tries &lt;- tries + 1
++   cand &lt;- runif(1)
++   if (runif(1) &lt;= ft(cand)/M) { k &lt;- k + 1; draws[k] &lt;- cand }
++ }
+&gt; round(c(M = M, tries = tries, rate = 2000/tries), 4)</span>
+        M     tries      rate
+   0.1055 4200.0000    0.4762
+<span class="cmd">&gt; ph &lt;- mean(draws &gt; 0.5)
+&gt; round(c(mean = mean(draws), sd = sd(draws), phat = ph), 4)</span>
+  mean     sd   phat
+0.3334 0.1815 0.1950 </pre>
+<p>(c) What does <code>mean(draws &gt; 0.5)</code> estimate? Give its Monte Carlo standard error and an approximate 95% interval. Is the MC standard error the posterior standard deviation? <span class="marks">[2]</span></p>
+<p>(d) The posterior of another parameter \(\theta\) is sampled by random-walk Metropolis, \(\theta^*\sim N(\theta^c,2.5^2)\), from three starting values \(0.5\), \(4\) and \(25\) (chains <code>c1</code>, <code>c2</code>, <code>c3</code>, 1000 iterations each). The trace plots and the ACF of <code>c1</code> over iterations 101–1000 are below, with R output.</p>
+<figure class="plot">
+<img src="../assets/img/l28-traces.png" alt="Left: trace plots of three chains over 1000 iterations. Chain c3 starts at 25 and falls to about 5 by iteration 30; chains c1 and c2 start at 0.5 and 4 and rise to about 4 within a few iterations. After about iteration 50 all three overlap and fluctuate between about 1.5 and 8 with no trend. Right: ACF of chain c1 over iterations 101 to 1000: bars fall from 1 at lag 0 to 0.65 at lag 1, 0.43 at lag 2, 0.27 at lag 3, and are inside the dashed band from about lag 7.">
+<figcaption>Question C(d). Left: three chains from dispersed starts. Right: ACF of <code>c1</code>, iterations 101–1000.</figcaption>
+</figure>
+<pre class="rout"><span class="cmd">&gt; round(c(acc.c1 = mean(diff(chs[,1]) != 0), acc.c2 = mean(diff(chs[,2]) != 0), acc.c3 = mean(diff(chs[,3]) != 0)), 2)</span>
+acc.c1 acc.c2 acc.c3
+  0.47   0.44   0.44
+<span class="cmd">&gt; early &lt;- chs[1:100, ]; late &lt;- chs[101:1000, ]
+&gt; round(apply(early, 2, sd), 2)</span>
+  c1   c2   c3
+1.20 1.42 5.74
+<span class="cmd">&gt; round(sd(as.vector(early)), 2)</span>
+[1] 3.7
+<span class="cmd">&gt; round(apply(late, 2, sd), 2)</span>
+  c1   c2   c3
+1.13 1.11 1.23
+<span class="cmd">&gt; round(sd(as.vector(late)), 2)</span>
+[1] 1.16
+<span class="cmd">&gt; x &lt;- late[, 1]
+&gt; round(c(n = length(x), mean = mean(x), sd = sd(x), rho1 = acf(x, plot = FALSE)$acf[2]), 2)</span>
+     n   mean     sd   rho1
+900.00   4.19   1.13   0.65 </pre>
+<p>(i) With the BGR statistic \(\hat R=B/W\) (\(B\) the sd of the pooled draws, \(W\) the average within-chain sd), compute \(\hat R\) for iterations 1–100 and for 101–1000 and say what you conclude about burn-in. <span class="marks">[1]</span><br>
+(ii) Compute the effective sample size of <code>c1</code> over 101–1000 and the standard error of its mean, and compare with the naive \(s/\sqrt n\). <span class="marks">[1]</span><br>
+(iii) Is the step size 2.5 too small, about right or too large? Give the evidence from the output. <span class="marks">[1]</span></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · Rejection sampler <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Draw \(P\sim U(0,1)\) (so \(g=1\)) and independently \(U\sim U(0,1)\). Accept \(P\) if \(U\le\tilde f(P)/M\), otherwise repeat. Smallest \(M\):</p>
+$$\begin{aligned}
+\tilde f'(p)&=(1-p)^3-3p(1-p)^2\\
+&=(1-p)^2(1-4p)=0\\
+p^*&=\tfrac14\quad(p=1\text{ gives }\tilde f=0)\\
+M&=\tfrac14\big(\tfrac34\big)^3\\
+&=\tfrac{27}{256}\\
+&=0.1055
+\end{aligned}$$
+<p>\(\tilde f'\gt0\) for \(p\lt\frac14\) and \(\tilde f'\lt0\) for \(p\gt\frac14\), so it is a maximum.</p>
+<div class="answer-box"><p>\(M=27/256=0.11\)</p></div>
+</div>
+<h2>(b) · Acceptance probability <span class="marks">[1]</span></h2>
+<div class="script">
+$$\begin{aligned}
+P(\text{accept})&=\frac ZM\\
+&=\frac{0.05}{0.1055}\\
+&=0.47
+\end{aligned}$$
+<div class="answer-box"><p>\(P(\text{accept})=0.47\)</p></div>
+</div>
+<h2>(c) · Monte Carlo SE <span class="marks">[2]</span></h2>
+<div class="script">
+<p><code>mean(draws &gt; 0.5)</code> estimates \(P(p\gt0.5\mid y)\). The draws are independent:</p>
+$$\begin{aligned}
+\text{SE}&=\sqrt{\frac{\hat p(1-\hat p)}N}\\
+&=\sqrt{\frac{0.195(0.805)}{2000}}\\
+&=0.0089\\
+\text{95\% interval}&=0.195\pm1.96(0.0089)\\
+&=(0.18,\ 0.21)
+\end{aligned}$$
+<p>No: the MC SE measures the error of \(\hat p\) and shrinks like \(1/\sqrt N\). The posterior sd of \(p\) (0.18 here) is a property of the posterior and doesn't shrink with \(N\).</p>
+<div class="answer-box"><p>SE \(=0.01\), 95% interval \((0.18,\ 0.21)\)</p></div>
+</div>
+<h2>(d) · Diagnostics <span class="marks">[3]</span></h2>
+<div class="script">
+<p><strong>(i)</strong> Iterations 1–100, then 101–1000:</p>
+$$\begin{aligned}
+W&=\frac{1.20+1.42+5.74}3=2.79\\
+\hat R&=\frac{3.70}{2.7867}\\
+&=1.33\\
+W&=\frac{1.13+1.11+1.23}3=1.16\\
+\hat R&=\frac{1.16}{1.1567}\\
+&=1.00
+\end{aligned}$$
+<p>\(1.33\gt1.05\): iterations 1–100 aren't stationary. \(1.00\lt1.05\): 101–1000 can be pooled. A burn-in of 100 is safe.</p>
+<p><strong>(ii)</strong></p>
+$$\begin{aligned}
+\text{ESS}&=900\times\frac{1-0.65}{1+0.65}\\
+&=190.91\\
+\text{SE}&=\frac{1.13}{\sqrt{190.91}}\\
+&=\frac{1.13}{13.82}\\
+&=0.08\\
+\text{SE}_{\text{naive}}&=\frac{1.13}{\sqrt{900}}\\
+&=0.04
+\end{aligned}$$
+<p>The honest SE is twice the naive one.</p>
+<p><strong>(iii)</strong> About right: acceptance 0.47, 0.44, 0.44 sit in the usual 0.2–0.5 band, the trace looks like a hairy caterpillar, and the ACF is inside the band by about lag 7.</p>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Algorithm with \(M\) · calculus · \(Z/M\) · estimate named · SE and interval · MC SE vs posterior sd · both \(\hat R\) · ESS, SE, comparison · verdict with evidence.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0028-topic5-review.html#challenge">Lesson 28, exam-style question</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

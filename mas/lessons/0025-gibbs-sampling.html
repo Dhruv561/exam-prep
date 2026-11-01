@@ -396,7 +396,7 @@ N.seq[j] &lt;- rpois(1, 16 * (1 - p.seq[j])) + x.seq[j]</span></pre>
   <div class="why">The label's full conditional is Bayes' rule with the current parameters: prior \(\pi_k\), likelihood \(f_k(x_i)\), normalised over \(k\): the responsibility. EM <em>averages</em> over this distribution (E-step); Gibbs <em>draws</em> from it. It is a discrete conditional, exactly like \(M\) in the coal example: "evaluate every value, divide by the total".</div>
 </div>
 
-<h2>9 · Exam-style question</h2>
+<h2 id="challenge">9 · Exam-style question</h2>
 <p><strong>Setup</strong> (fresh model; 11 marks, about 25 minutes, FX-82).</p>
 <div class="box">
 <p><strong>Model:</strong> given \((\mu,\tau)\), the observations \(x_1,\dots,x_n\) and \(y_1,\dots,y_m\) are all independent with</p>
@@ -457,6 +457,8 @@ P(\mu>1\mid x,y)&amp;\approx\frac1N\sum_{t=T_0+1}^{T}\mathbf 1\{\mu^{(t)}>1\}\qu
 
 <p><strong>(d)</strong> <em>[1 mark.]</em> Each draw is made from an exact full conditional. Used as an MH proposal, a full conditional makes the acceptance probability exactly 1 (the proposal ratio cancels the target ratio), so every draw is accepted and there is nothing to tune. <span class="marks">(Marks: 1.)</span></p>
 <p><strong>Total 11.</strong></p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0025-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>10 · Score yourself</h2>
 <div class="tablewrap"><table>
