@@ -60,6 +60,9 @@
 ## Worked solutions (added 1 Nov)
 - `worked/00NN-challenge-full-solution.html`: one exam-script page per lesson with an exam-level question (lessons 1-13, 16-29; 14, 15 have none), plus `worked/index.html`. Same layout as `../diff/worked`: red-rule text is what you write, grey notes are not, one step per line, 2 d.p. finals. Each lesson's question section links to its page. Lesson 21 covers Parts A-B, Lesson 28 Parts A-C; the interleaved quiz items (21 Part C, 28 Part D) stay as quizzes with their own explanations.
 
+## Exam flow map (added 1 Nov)
+- `reference/exam-flow.html` (engine `assets/exam-flow.js`, content `assets/exam-flow-data.js`, layout by dagre from cdnjs): overview of 15 topics, then one flow chart per topic where every arrow is a trigger. 157 nodes, 41 drill scenarios (fresh, patterns only). Facts come from `cheat-sheet/horizontal-side{1,2}.tex`. No line joins the GLM/overdispersion stream to MCMC, per the user's request; the only GLM-to-Bayes links are the Poisson-Gamma/NegBin note and mixtures. To edit: add `N`/`E`/`X`/`D` calls in the data file; every fork needs labelled edges and every drill path must follow real edges.
+
 ## Plan
 Conventions: `BinReg_1` PDF page = slide number (slide 41 = LR confidence region). In R output, convert ordered factors (e.g. `esoph`) to unordered ones to avoid the off-syllabus .L/.Q contrasts.
 
