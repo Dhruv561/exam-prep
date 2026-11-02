@@ -112,4 +112,6 @@
 
 18. reference/arbitrage-tables.html built 26 Oct: every arbitrage (futures/forwards A1–A9, options B1–B11 incl. binomial + futures options, swaps C1, limits D) in the handwritten-notes table format (0 | T columns; options split S_T>K / S_T<=K; proof table then trade table). KaTeX 0 errors. Extras beyond slides/notes: calendar spread (Tute 3 Q5), American parity violation tables with early-exercise column (slides give formula only), B10 binomial mispricing trade tables.
 
+20. reference/theory-bank.html built 3 Nov: skimmable theory and derivation Q&A, split view, tier dots, source chips, filters, search, last-hour list. User asked for exam questions with their solutions in here, so this page is the one exception to the off-limits rule; exam answers are the key's points condensed, not verbatim. KaTeX 0 errors, no overflow at 1366px.
+
 19. reference/past-exam-analysis.html built 28 Oct: topic mark % across 5 finals (2025 S2 past exam, 2026 practice, 2025 S1, 2022 S1, Sample), usual Q order, rough 2026 65-mark budget (30/70 split). Excluded studocu AI "Final Exam", DER101, 2021 practice, MSTs.
