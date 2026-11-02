@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Square Root Link Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 6 · Exam-level challenge · Full written solution</div>
+<h1>Poisson with a square-root link, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<div class="box">
+<p>A café counts customers \(y_i\) arriving in 12 half-hour windows, two windows at each of six staffing levels \(x_i\in\{1,\dots,6\}\). (Simulated data.) Model: \(Y_i\sim\text{Poisson}(\mu_i)\) independently, \(\sqrt{\mu_i}=\beta_0+\beta_1x_i\).</p>
+<pre class="rout"><span class="cmd">&gt; rbind(x, y)</span>
+  [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12]
+x    1    1    2    2    3    3    4    4    5     5     6     6
+y    4    3    6    5    6    5    5    9   12    11    22    20
+<span class="cmd">&gt; fit1 &lt;- glm(y ~ x, family = poisson(link = "sqrt"))
+&gt; summary(fit1)</span>
+
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  1.17320    0.32914   3.564 0.000365 ***
+x            0.48818    0.08452   5.776 7.64e-09 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 42.1435  on 11  degrees of freedom
+Residual deviance:  7.0132  on 10  degrees of freedom
+AIC: 57.447
+
+Number of Fisher Scoring iterations: 4
+
+<span class="cmd">&gt; fit0 &lt;- glm(y ~ 1, family = poisson(link = "sqrt"))
+&gt; summary(fit0)$coef</span>
+            Estimate Std. Error z value     Pr(&gt;|z|)
+(Intercept)        3  0.1443376 20.78461 6.065113e-96</pre>
+<p>(a) State the three components of this GLM. Is the link canonical? Justify.<br>
+(b) Write the log-likelihood as a function of \(\beta\) and derive the score equations.<br>
+(c) Give the IWLS working response \(z_i\) and weight \(W_{ii}\). Simplify \(W_{ii}\) as far as possible.<br>
+(d) Find the Fisher information \(\mathcal I(\beta)\). Use it, with \(\sum x_i=42\) and \(\sum x_i^2=182\), to reproduce both standard errors of <code>fit1</code>. Why don't you need \(\hat\beta\)?<br>
+(e) For the intercept-only model <code>fit0</code>, show that \(\hat\beta_0=\sqrt{\bar y}\) and \(\text{SE}(\hat\beta_0)=1/(2\sqrt n)\), and check against the printout. Starting from \(\beta_0^{0}=2\), carry out one IWLS step.<br>
+(f) Find the observed information \(J(\beta)\). Is Newton–Raphson the same algorithm as Fisher scoring here? Explain in 2–3 sentences.</p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · The three components</h2>
+<div class="script">
+<ol><li>Random: \(Y_i\sim\text{Poisson}(\mu_i)\) independently, an exponential family with \(\theta=\log\mu\), \(b(\theta)=e^\theta\), \(a(\phi)=1\).</li><li>Linear predictor: \(\eta_i=\beta_0+\beta_1x_i\).</li><li>Link: \(g(\mu_i)=\sqrt{\mu_i}=\eta_i\).</li></ol>
+<p>The canonical link is \((b')^{-1}\):</p>
+$$\begin{aligned}
+b'(\theta)&=e^\theta=\mu\\
+(b')^{-1}(\mu)&=\log\mu\ne\sqrt\mu
+\end{aligned}$$
+<div class="answer-box"><p>Not canonical</p></div>
+</div>
+<h2>(b) · Log-likelihood and score equations</h2>
+<div class="script">
+<p>\(\mu_i=\eta_i^2\), so</p>
+$$\begin{aligned}
+\ell(\beta)&=\sum_i\big[y_i\log\mu_i-\mu_i-\log y_i!\big]\\
+&=\sum_i\big[2y_i\log\eta_i-\eta_i^2-\log y_i!\big]
+\end{aligned}$$
+<p>Differentiate with \(\partial\eta_i/\partial\beta_j=x_{ij}\):</p>
+$$\begin{aligned}
+\frac{\partial\ell}{\partial\beta_j}&=\sum_i\Big(\frac{2y_i}{\eta_i}-2\eta_i\Big)x_{ij}\\
+&=\sum_i\frac{2(y_i-\eta_i^2)}{\eta_i}\,x_{ij}\\
+&=\sum_i\frac{2(y_i-\mu_i)}{\sqrt{\mu_i}}\,x_{ij}
+\end{aligned}$$
+<div class="answer-box"><p>\(\displaystyle\sum_i\frac{y_i-\hat\mu_i}{\sqrt{\hat\mu_i}}=0\) and \(\displaystyle\sum_i\frac{(y_i-\hat\mu_i)x_i}{\sqrt{\hat\mu_i}}=0\)</p></div>
+</div>
+<h2>(c) · Working response and weight</h2>
+<div class="script">
+$$\begin{aligned}
+g'(\mu)&=\frac1{2\sqrt\mu}\\
+z_i&=\eta_i+(y_i-\mu_i)g'(\mu_i)\\
+&=\eta_i+\frac{y_i-\mu_i}{2\sqrt{\mu_i}}\\
+&=\eta_i+\frac{y_i-\eta_i^2}{2\eta_i}\\
+&=\frac{\eta_i}2+\frac{y_i}{2\eta_i}\\[6pt]
+W_{ii}&=\frac1{g'(\mu_i)^2\,v(\mu_i)}\\
+&=\frac1{\frac1{4\mu_i}\cdot\mu_i}\\
+&=4
+\end{aligned}$$
+<div class="answer-box"><p>\(z_i=\dfrac{\eta_i}2+\dfrac{y_i}{2\eta_i}\), \(W_{ii}=4\) for every \(i\) and every iteration</p></div>
+</div>
+<h2>(d) · Fisher information and SEs</h2>
+<div class="script">
+$$\begin{aligned}
+\mathcal I(\beta)&=\frac{X^TWX}{a(\phi)}\\
+&=4X^TX\\
+X^TX&=\begin{pmatrix}12&42\\42&182\end{pmatrix}\\
+\det(X^TX)&=12(182)-42^2\\
+&=2184-1764\\
+&=420\\
+\mathcal I^{-1}&=\frac1{4(420)}\begin{pmatrix}182&-42\\-42&12\end{pmatrix}\\
+&=\frac1{1680}\begin{pmatrix}182&-42\\-42&12\end{pmatrix}
+\end{aligned}$$
+<p>SEs are the square roots of the diagonal:</p>
+$$\begin{aligned}
+\text{SE}(\hat\beta_0)&=\sqrt{\frac{182}{1680}}\\
+&=\sqrt{0.10833}\\
+&=0.3291\quad\checkmark\\
+\text{SE}(\hat\beta_1)&=\sqrt{\frac{12}{1680}}\\
+&=\sqrt{0.007143}\\
+&=0.0845\quad\checkmark
+\end{aligned}$$
+<p>\(\hat\beta\) isn't needed because \(W=4I\) doesn't depend on \(\mu\), so \(\mathcal I\) is the same at every \(\beta\).</p>
+</div>
+<h2>(e) · Intercept-only model</h2>
+<div class="script">
+<p>\(\eta_i=\beta_0\), so \(\mu_i=\beta_0^2\) for all \(i\). The score equation:</p>
+$$\begin{aligned}
+\sum_i\frac{2(y_i-\beta_0^2)}{\beta_0}&=0\\
+\sum_iy_i&=n\beta_0^2\\
+\hat\beta_0&=\sqrt{\bar y}\\
+&=\sqrt{108/12}\\
+&=\sqrt9\\
+&=3\quad\checkmark
+\end{aligned}$$
+<p>With \(X=\mathbf 1\):</p>
+$$\begin{aligned}
+\mathcal I&=4n\\
+\text{SE}(\hat\beta_0)&=\frac1{\sqrt{4n}}\\
+&=\frac1{2\sqrt n}\\
+&=\frac1{2\sqrt{12}}\\
+&=0.1443\quad\checkmark
+\end{aligned}$$
+<p>IWLS with constant weights and only an intercept: the update is the mean of \(z_i\).</p>
+$$\begin{aligned}
+\beta_0^{1}&=\bar z\\
+&=\frac{\beta_0^0}2+\frac{\bar y}{2\beta_0^0}\\
+&=\frac22+\frac9{2(2)}\\
+&=1+2.25\\
+&=3.25
+\end{aligned}$$
+<div class="answer-box"><p>\(\beta_0^1=3.25\)</p></div>
+</div>
+<p class="note">Next steps: 3.0096, 3.00002. It is Newton's method for \(\sqrt9\).</p>
+<h2>(f) · Observed information</h2>
+<div class="script">
+<p>From the score in (b):</p>
+$$\begin{aligned}
+\frac{\partial^2\ell}{\partial\beta_j\partial\beta_k}&=\sum_i\Big(-\frac{2y_i}{\eta_i^2}-2\Big)x_{ij}x_{ik}\\
+J(\beta)&=X^T\operatorname{diag}\Big(2+\frac{2y_i}{\eta_i^2}\Big)X
+\end{aligned}$$
+<p>Check by expectation, using \(\mathbb E[y_i]=\eta_i^2\):</p>
+$$\begin{aligned}
+\mathbb E\Big[2+\frac{2y_i}{\eta_i^2}\Big]&=2+2=4\quad\Rightarrow\quad\mathcal I=4X^TX\ \checkmark
+\end{aligned}$$
+<p>\(J\) depends on the data through \(y_i\), so \(J\ne\mathcal I\) in general, and Newton–Raphson takes different steps from Fisher scoring. This happens because the link isn't canonical: the \(y\) term of \(\ell\) is \(2y_i\log\eta_i\), not linear in \(\beta\). Both reach the same \(\hat\beta\).</p>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Three components and why not canonical · \(\ell\) in \(\eta\) · score equations · \(z_i\) and \(W_{ii}=4\) · \(4X^TX\), inverse, both SEs · \(\hat\beta_0=\sqrt{\bar y}\) · 3.25 · \(J\) contains \(y\), so NR ≠ Fisher scoring.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0006-glm-likelihood-iwls.html#challenge">Lesson 6, exam-level challenge</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

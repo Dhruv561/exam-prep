@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topic 4 Review Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 21 · Exam-style question · Full written solution</div>
+<h1>Topic 4 review, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<h2 class="q-part">Part A</h2>
+<div class="box">
+<p><strong>Question A</strong> (12 marks). A hospital network monitors \(n\) wards for bloodstream infections. Ward \(i\) records \(X_i\) infections over \(t_i\) hundred patient-days. The exposures \(t_i\) are known. Some wards are <em>standard</em> and some are <em>high-risk</em>, but the type is not recorded. For \(i=1,\dots,n\), independently,</p>
+$$\begin{aligned}
+Z_i&amp;\sim\text{Categorical}(\pi,1-\pi)\\
+X_i\mid Z_i=1&amp;\sim\text{Poisson}(t_i\lambda_1)\quad\text{(standard)}\\
+X_i\mid Z_i=2&amp;\sim\text{Poisson}(t_i\lambda_2)\quad\text{(high-risk)}
+\end{aligned}$$
+<p>where \(\lambda_k\) is the infection rate per hundred patient-days. The Poisson\((\mu)\) pmf is \(f(x;\mu)=\mu^xe^{-\mu}/x!\). We aim to obtain the MLE of \(\theta=(\pi,\lambda_1,\lambda_2)\) by EM. Let \(X=(X_1,\dots,X_n)\) and \(Z=(Z_1,\dots,Z_n)\). Your answers may contain \(P(Z_i=k\mid X_i,\theta^0)\) once you have given its formula.</p>
+<p>(a) Write down the complete-data likelihood \(P(X,Z\mid\theta)\) and the complete-data log-likelihood, with the log pmfs expanded. <span class="marks">[2]</span><br>
+(b) Derive \(Q(\theta,\theta^0)=E_{Z\mid X,\theta^0}[\log P(X,Z\mid\theta)]\). <span class="marks">[2]</span><br>
+(c) Give the E-step. Show that \(P(Z_i=1\mid X_i,\theta^0)\) does not depend on the factor \(t_i^{x_i}/x_i!\), and simplify it. <span class="marks">[2]</span><br>
+(d) Derive the M-step updates for \(\pi\), \(\lambda_1\) and \(\lambda_2\). <span class="marks">[4]</span><br>
+(e) Six wards give</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>ward \(i\)</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr>
+<tr><th>\(t_i\)</th><td>2</td><td>4</td><td>1</td><td>5</td><td>3</td><td>2</td></tr>
+<tr><th>\(x_i\)</th><td>1</td><td>9</td><td>0</td><td>4</td><td>7</td><td>2</td></tr>
+</table></div>
+<p style="margin-bottom:0">With \(\theta^0=(\pi^0,\lambda_1^0,\lambda_2^0)=(0.6,\ 0.5,\ 2)\), carry out one EM iteration. Give the six \(P(Z_i=1\mid X_i,\theta^0)\) and \(\hat\pi\), \(\hat\lambda_1\), \(\hat\lambda_2\), each to 2 d.p. <span class="marks">[2]</span></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · Complete-data likelihood and log-likelihood <span class="marks">[2]</span></h2>
+<div class="script">
+$$\begin{aligned}
+P(X,Z\mid\theta)&=\prod_{i=1}^n\Big[\pi\frac{(t_i\lambda_1)^{x_i}e^{-t_i\lambda_1}}{x_i!}\Big]^{I(Z_i=1)}\Big[(1-\pi)\frac{(t_i\lambda_2)^{x_i}e^{-t_i\lambda_2}}{x_i!}\Big]^{I(Z_i=2)}
+\end{aligned}$$
+<p>Take logs, with \(\log(t_i\lambda_k)^{x_i}=x_i\log t_i+x_i\log\lambda_k\):</p>
+$$\begin{aligned}
+\log P(X,Z\mid\theta)&=\sum_{i=1}^n\Big\{I(Z_i=1)\big[\log\pi+x_i\log t_i\\
+&\qquad\qquad+x_i\log\lambda_1-t_i\lambda_1-\log x_i!\big]\\
+&\qquad+I(Z_i=2)\big[\log(1-\pi)+x_i\log t_i\\
+&\qquad\qquad+x_i\log\lambda_2-t_i\lambda_2-\log x_i!\big]\Big\}
+\end{aligned}$$
+</div>
+<h2>(b) · \(Q(\theta,\theta^0)\) <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Given \(X\) only the indicators are random:</p>
+$$\begin{aligned}
+E_{Z\mid X,\theta^0}[I(Z_i=k)]&=P(Z_i=k\mid X_i,\theta^0)
+\end{aligned}$$
+<p>So, by linearity:</p>
+$$\begin{aligned}
+Q(\theta,\theta^0)&=\sum_{i=1}^n\Big\{P(Z_i=1\mid X_i,\theta^0)\big[\log\pi+x_i\log t_i\\
+&\qquad\qquad+x_i\log\lambda_1-t_i\lambda_1-\log x_i!\big]\\
+&\qquad+P(Z_i=2\mid X_i,\theta^0)\big[\log(1-\pi)+x_i\log t_i\\
+&\qquad\qquad+x_i\log\lambda_2-t_i\lambda_2-\log x_i!\big]\Big\}
+\end{aligned}$$
+</div>
+<h2>(c) · E-step <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Bayes' rule at \(\theta^0\), with \(f\) the Poisson pmf:</p>
+$$\begin{aligned}
+P(Z_i=1\mid X_i,\theta^0)&=\frac{\pi^0f(x_i;t_i\lambda_1^0)}{\pi^0f(x_i;t_i\lambda_1^0)+(1-\pi^0)f(x_i;t_i\lambda_2^0)}
+\end{aligned}$$
+<p>Each density contains the same factor:</p>
+$$\begin{aligned}
+f(x_i;t_i\lambda_k^0)&=\frac{t_i^{x_i}}{x_i!}(\lambda_k^0)^{x_i}e^{-t_i\lambda_k^0}
+\end{aligned}$$
+<p>So \(t_i^{x_i}/x_i!\) cancels:</p>
+$$\begin{aligned}
+P(Z_i=1\mid X_i,\theta^0)&=\frac{\pi^0(\lambda_1^0)^{x_i}e^{-t_i\lambda_1^0}}{\pi^0(\lambda_1^0)^{x_i}e^{-t_i\lambda_1^0}+(1-\pi^0)(\lambda_2^0)^{x_i}e^{-t_i\lambda_2^0}}\\
+&=\frac1{1+\dfrac{1-\pi^0}{\pi^0}\Big(\dfrac{\lambda_2^0}{\lambda_1^0}\Big)^{x_i}e^{-t_i(\lambda_2^0-\lambda_1^0)}}
+\end{aligned}$$
+<p>and \(P(Z_i=2\mid X_i,\theta^0)=1-P(Z_i=1\mid X_i,\theta^0)\).</p>
+</div>
+<h2>(d) · M-step <span class="marks">[4]</span></h2>
+<div class="script">
+<p>Write \(\gamma_{ik}=P(Z_i=k\mid X_i,\theta^0)\), fixed numbers here.</p>
+<p><strong>\(\pi\):</strong></p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\pi}&=\sum_i\Big[\frac{\gamma_{i1}}\pi-\frac{\gamma_{i2}}{1-\pi}\Big]=0\\
+(1-\pi)\sum_i\gamma_{i1}&=\pi\sum_i\gamma_{i2}\\
+\sum_i\gamma_{i1}&=\pi\sum_i(\gamma_{i1}+\gamma_{i2})=n\pi\\
+\hat\pi&=\frac1n\sum_i\gamma_{i1}
+\end{aligned}$$
+<p><strong>\(\lambda_1\):</strong> terms are \(\sum_i\gamma_{i1}(x_i\log\lambda_1-t_i\lambda_1)\):</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\lambda_1}&=\sum_i\gamma_{i1}\Big(\frac{x_i}{\lambda_1}-t_i\Big)\\
+&=\frac1{\lambda_1}\sum_i\gamma_{i1}x_i-\sum_i\gamma_{i1}t_i=0\\
+\hat\lambda_1&=\frac{\sum_i\gamma_{i1}x_i}{\sum_i\gamma_{i1}t_i}
+\end{aligned}$$
+<p>Maximum: \(\partial^2Q/\partial\lambda_1^2=-\sum_i\gamma_{i1}x_i/\lambda_1^2\lt0\).</p>
+<p><strong>\(\lambda_2\):</strong> the same steps with component 2's terms:</p>
+$$\begin{aligned}
+\hat\lambda_2&=\frac{\sum_i\gamma_{i2}x_i}{\sum_i\gamma_{i2}t_i}
+\end{aligned}$$
+</div>
+<h2>(e) · One iteration <span class="marks">[2]</span></h2>
+<div class="script">
+<p>\(\dfrac{1-\pi^0}{\pi^0}=\dfrac23\), \(\dfrac{\lambda_2^0}{\lambda_1^0}=4\), \(\lambda_2^0-\lambda_1^0=1.5\), so</p>
+$$\begin{aligned}
+\gamma_{i1}&=\frac1{1+\tfrac23\,4^{x_i}e^{-1.5t_i}}
+\end{aligned}$$
+<div class="tablewrap"><table class="ledger"><tr><th>\(i\)</th><th>\(t_i\)</th><th>\(x_i\)</th><th>\(\tfrac23 4^{x_i}e^{-1.5t_i}\)</th><th>\(\gamma_{i1}\)</th><th>\(\gamma_{i1}x_i\)</th><th>\(\gamma_{i1}t_i\)</th></tr><tr><td>1</td><td>2</td><td>1</td><td>0.1328</td><td>0.8828</td><td>0.8828</td><td>1.7656</td></tr><tr><td>2</td><td>4</td><td>9</td><td>433.19</td><td>0.0023</td><td>0.0207</td><td>0.0092</td></tr><tr><td>3</td><td>1</td><td>0</td><td>0.1488</td><td>0.8705</td><td>0</td><td>0.8705</td></tr><tr><td>4</td><td>5</td><td>4</td><td>0.0944</td><td>0.9137</td><td>3.6550</td><td>4.5687</td></tr><tr><td>5</td><td>3</td><td>7</td><td>121.34</td><td>0.0082</td><td>0.0572</td><td>0.0245</td></tr><tr><td>6</td><td>2</td><td>2</td><td>0.5311</td><td>0.6531</td><td>1.3063</td><td>1.3063</td></tr><tr><td><strong>Sum</strong></td><td>17</td><td>23</td><td></td><td><strong>3.3307</strong></td><td><strong>5.9220</strong></td><td><strong>8.5449</strong></td></tr></table></div>
+<p>Since \(\gamma_{i2}=1-\gamma_{i1}\), component 2's sums are totals minus component 1's:</p>
+$$\begin{aligned}
+\hat\pi&=\frac{3.3307}6\\
+&=0.56\\
+\hat\lambda_1&=\frac{5.9220}{8.5449}\\
+&=0.69\\
+\hat\lambda_2&=\frac{23-5.9220}{17-8.5449}\\
+&=\frac{17.0780}{8.4551}\\
+&=2.02
+\end{aligned}$$
+<div class="answer-box"><p>\(\gamma_{i1}=(0.88,\ 0.00,\ 0.87,\ 0.91,\ 0.01,\ 0.65)\), \(\hat\pi=0.56\), \(\hat\lambda_1=0.69\), \(\hat\lambda_2=2.02\)</p></div>
+</div>
+<p class="note">\(\ell\) rises from −12.36 to −12.01.</p>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Indicators with \(\pi\), \(1-\pi\) · \(x_i\log t_i\) split · \(E[I]=P\) · \(t_i^{x_i}/x_i!\) cancels, \(t_i\) stays in the exponential · \(\hat\lambda_k\) denominator is \(\sum\gamma_{ik}t_i\), not \(\sum\gamma_{ik}\) · six responsibilities · three estimates.</div>
+<h2 class="q-part">Part B</h2>
+<div class="box">
+<p><strong>Question B</strong> (12 marks). Daily temperature anomalies \(X_1,\dots,X_{150}\) (°C) at a coastal station are thought to come from two weather regimes. An analyst fits \(Z_i\sim\text{Categorical}(\pi_1,\pi_2)\), \(X_i\mid Z_i=k\sim N(\mu_k,2)\) (variance known, 2), using the lecturer's <code>mixture.EM</code>, <code>EM.iter</code>, <code>compute.log.lik</code> and <code>compute.prob.x.z</code> from <a href="../extra-notes/EM-updated.qmd">EM-updated.qmd</a>, unchanged (including <code>dnorm(X, mean=mu.curr[k], sd=sqrt(2))*pi.curr[k]</code>). The data were simulated, so the true labels <code>Z</code> are available for checking.</p>
+<pre class="rout"><span class="cmd">&gt; EM1 &lt;- mixture.EM(X, pi.init=c(0.5,0.5), mu.init=c(-1,1))
+&gt; EM2 &lt;- mixture.EM(X, pi.init=c(0.5,0.5), mu.init=c(4,-3))
+&gt; EM3 &lt;- mixture.EM(X, pi.init=c(0.4,0.6), mu.init=c(1,1))
+&gt; EM4 &lt;- mixture.EM(X, pi.init=c(0.9,0.1), mu.init=c(-1,0), max.iter=3)
+&gt; fin &lt;- function(e) round(c(pi = e$pi.curr, mu = e$mu.curr,
++          ill = tail(e$log_liks, 1), n.ll = length(e$log_liks)), 4)
+&gt; cbind(EM1 = fin(EM1), EM2 = fin(EM2), EM3 = fin(EM3), EM4 = fin(EM4))</span>
+           EM1       EM2       EM3       EM4
+pi1     0.2863    0.7137    0.4000    0.5846
+pi2     0.7137    0.2863    0.6000    0.4154
+mu1    -2.1092    2.4676    1.1571   -0.3280
+mu2     2.4677   -2.1093    1.1571    3.2470
+ill  -340.4358 -340.4358 -429.7943 -364.6746
+n.ll   16.0000   16.0000    3.0000    4.0000
+<span class="cmd">&gt; round(EM4$log_liks, 4)</span>
+[1] -568.5457 -391.5751 -374.0468 -364.6746
+<span class="cmd">&gt; round(mean(X), 4)</span>
+[1] 1.1571
+<span class="cmd">&gt; xnew &lt;- c(-0.5, 0.4, 1.2)
+&gt; prob.x.z &lt;- compute.prob.x.z(xnew, EM1$pi.curr, EM1$mu.curr)$prob.x.z
+&gt; round(prob.x.z, 4)</span>
+       [,1]   [,2]
+[1,] 0.0423 0.0223
+[2,] 0.0167 0.0691
+[3,] 0.0052 0.1347
+<span class="cmd">&gt; P_ik &lt;- compute.prob.x.z(X, EM1$pi.curr, EM1$mu.curr)$prob.x.z
+&gt; P_ik &lt;- P_ik / rowSums(P_ik)
+&gt; cluster &lt;- ifelse(P_ik[, 1] &gt; 0.5, 1, 2)
+&gt; table(true = Z, cluster)</span>
+    cluster
+true   1   2
+   1  38   9
+   2   3 100</pre>
+<p>(a) Inside <code>EM.iter</code>, what does <code>P_ik = prob.x.z / rowSums(prob.x.z)</code> compute, and what is <code>sum(P_ik)</code> for these data? <span class="marks">[2]</span><br>
+(b) Which run's estimates would you report as the MLE? Explain what happened in each of the other three runs, quoting numbers from the output. <span class="marks">[4]</span><br>
+(c) Using the printed <code>prob.x.z</code>, compute \(P(Z=1\mid X=-0.5)\) at EM1's estimates, and classify all three new days. <span class="marks">[2]</span><br>
+(d) Using EM1's estimates, find the anomaly \(c\) below which a day is assigned to regime 1. <span class="marks">[2]</span><br>
+(e) From the table, give the misclassification rate. Why can't any rule based on \(x\) alone get it to zero? <span class="marks">[2]</span></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · What P_ik is <span class="marks">[2]</span></h2>
+<div class="script">
+<p><code>prob.x.z[i, k]</code> is the joint \(\pi_k^0f(x_i;\mu_k^0,2)=P(X_i=x_i,Z_i=k\mid\theta^0)\), and <code>rowSums</code> is \(P(X_i=x_i\mid\theta^0)\). So, by Bayes' rule:</p>
+$$\begin{aligned}
+\texttt{P\_ik}[i,k]&=\frac{P(X_i=x_i,Z_i=k\mid\theta^0)}{P(X_i=x_i\mid\theta^0)}\\
+&=P(Z_i=k\mid X_i=x_i,\theta^0)
+\end{aligned}$$
+<p>That is the E-step. Each row sums to 1, so:</p>
+<div class="answer-box"><p><code>sum(P_ik)</code> \(=n=150\)</p></div>
+</div>
+<h2>(b) · Which run <span class="marks">[4]</span></h2>
+<div class="script">
+<p>Report EM1 (EM2 is the same fit): its final \(\ell=-340.44\) is the highest, and the MLE maximises \(\ell\). \(\hat\pi=(0.29,\ 0.71)\), \(\hat\mu=(-2.11,\ 2.47)\).</p>
+<ul><li><strong>EM2: label switching.</strong> Same \(\ell=-340.44\), with \(\hat\pi\) and \(\hat\mu\) in swapped order.</li><li><strong>EM3: stuck.</strong> \(\mu_1^0=\mu_2^0=1\) makes every \(\gamma_{ik}=\pi_k^0\), so \(\hat\pi=(0.4,\ 0.6)\) is unchanged and both means equal \(\bar x=1.16\). \(\ell=-429.79\) is a stationary point, not the MLE.</li><li><strong>EM4: stopped by <code>max.iter</code>.</strong> <code>n.ll</code> \(=4=\) <code>max.iter</code> \(+1\) and the trace is still rising (\(-374.05\to-364.67\), a gain of 9.37). It hadn't converged.</li></ul>
+</div>
+<h2>(c) · Classify the new days <span class="marks">[2]</span></h2>
+<div class="script">
+$$\begin{aligned}
+P(Z=1\mid X=-0.5)&=\frac{0.0423}{0.0423+0.0223}=0.65\\
+P(Z=1\mid X=0.4)&=\frac{0.0167}{0.0167+0.0691}=0.19\\
+P(Z=1\mid X=1.2)&=\frac{0.0052}{0.0052+0.1347}=0.04
+\end{aligned}$$
+<p>Rule: regime 1 if \(P(Z=1\mid X)\gt0.5\).</p>
+<div class="answer-box"><p>\(-0.5\to\) regime 1; \(0.4\) and \(1.2\to\) regime 2</p></div>
+</div>
+<h2>(d) · The boundary <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Assign to regime 1 when \(\hat\pi_1f(x;\hat\mu_1,2)\gt\hat\pi_2f(x;\hat\mu_2,2)\). Equal variances, so the constants cancel. Take logs:</p>
+$$\begin{aligned}
+\log\hat\pi_1-\frac{(x-\hat\mu_1)^2}4&\gt\log\hat\pi_2-\frac{(x-\hat\mu_2)^2}4\\
+(x-\hat\mu_2)^2-(x-\hat\mu_1)^2&\gt4\log\frac{\hat\pi_2}{\hat\pi_1}\\
+2x(\hat\mu_1-\hat\mu_2)+\hat\mu_2^2-\hat\mu_1^2&\gt4\log\frac{\hat\pi_2}{\hat\pi_1}
+\end{aligned}$$
+<p>Divide by \(2(\hat\mu_1-\hat\mu_2)\lt0\), which flips the inequality:</p>
+$$\begin{aligned}
+x&\lt\frac{\hat\mu_1+\hat\mu_2}2+\frac{2\log(\hat\pi_2/\hat\pi_1)}{\hat\mu_1-\hat\mu_2}
+\end{aligned}$$
+<p>Numbers:</p>
+$$\begin{aligned}
+c&=\frac{-2.1092+2.4677}2+\frac{2\log(0.7137/0.2863)}{-2.1092-2.4677}\\
+&=0.1793+\frac{2(0.9134)}{-4.5769}\\
+&=0.1793-0.3991\\
+&=-0.22
+\end{aligned}$$
+<div class="answer-box"><p>\(c=-0.22\)</p></div>
+</div>
+<h2>(e) · Misclassification <span class="marks">[2]</span></h2>
+<div class="script">
+$$\begin{aligned}
+\text{rate}&=\frac{9+3}{150}\\
+&=0.08
+\end{aligned}$$
+<p>The regimes overlap: \(N(-2.11,2)\) and \(N(2.47,2)\) are only about 3.2 SDs apart, so some days of each regime fall on the wrong side of \(c\). Given only \(x\), the rule already picks the more probable regime, so the remaining errors are tail draws.</p>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Bayes' rule named · \(n=150\) · highest \(\ell\) · label switching, equal starts, <code>max.iter</code> each with numbers · responsibilities and rule · inequality flip · 8% and overlap.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0021-topic4-review.html#challenge">Lesson 21, exam-style question</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

@@ -257,7 +257,7 @@ pH           -0.3778921  0.06750531</pre>
   <div class="why">With \(m_i=1\), \(\operatorname{Var}Y_i=p_i(1-p_i)\) is forced by the mean: a 0/1 variable can't vary more than that, so there is no overdispersion to detect, and \(D\approx\chi^2_{n-p}\) fails because each \(m_i\hat p_i&lt;5\). Overdispersion needs grouped data, \(m_i&gt;1\) (<a href="0010-overdispersion.html">Lesson 10</a>). (c) does the arithmetic right but on a meaningless \(\hat\phi\). (d): large \(n\) doesn't help, since the counts per row stay at 1.</div>
 </div>
 
-<h2>4 · Exam-level challenge (21 + 4 marks, about 40 minutes)</h2>
+<h2 id="challenge">4 · Exam-level challenge (21 + 4 marks, about 40 minutes)</h2>
 <p>Write full answers on paper, with a sentence of explanation for every number, then open the steps one at a time.</p>
 <div class="box">
 <p><strong>Question 1</strong> (21 marks). R's <code>MASS::epil</code> comes from a clinical trial of the anti-epileptic drug progabide in 59 patients. For each patient we use:</p>
@@ -387,6 +387,8 @@ df \(=(s,\ n-p_{m2})=\boxed{(1,\ 55)}\) [1]. Using <code>phi1</code> gives 2.533
 
 <details><summary>Question 2: ignoring overdispersion [4]</summary><div>
 <p>The estimates \(\hat\beta\) (and fitted values) are still fine: the score equations, and so \(\hat\beta\), don't depend on \(\phi\) [1]. But \(\operatorname{Var}\hat\beta=\phi(X^TWX)^{-1}\), and the Poisson fit sets \(\phi=1\), so variances are underestimated by the factor \(\phi\) and SEs by \(\sqrt\phi\) [1]. So CIs are too narrow, z-values too large and p-values too small; likewise χ² tests on unscaled deviance differences are too significant, since \(\Delta D/\phi\), not \(\Delta D\), is approximately χ² [1]. The result: predictors that don't matter look significant and the chosen model is too complex (e.g. <code>trt</code> in <code>m1</code>: p = 0.020 as Poisson, 0.49 allowing for \(\phi\)) [1] (<a href="../lectures/Overdispersion_Quasilikelihood_LMS-1.pdf#page=13">slide 13</a>).</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0013-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>5 · Score yourself</h2>
 <p>Use your first attempts. Each miss points to the place to revisit.</p>

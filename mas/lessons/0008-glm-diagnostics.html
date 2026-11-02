@@ -210,7 +210,7 @@ $$C_i \approx \frac{r_{SP}^2(i)}{p}\cdot\frac{H_{ii}}{1-H_{ii}} = \frac{r_P^2(i)
 <details><summary>Why is a half-normal plot used, and why isn't it straight?</summary><div>
 <p>We only care about large values in either direction, so we plot sorted \(|r|\), which puts every point in one tail and doubles the resolution there (Faraway p. 166). Leverages and Cook's distances aren't normal, and GLM residuals are only roughly normal, so the plot curves. The signal is a jump or kink at the top end (slide 20).</p></div></details>
 
-<h2>5 · Exam-level challenge</h2>
+<h2 id="challenge">5 · Exam-level challenge</h2>
 <p>Do this on paper in about 20 minutes, then open the steps one at a time.</p>
 <div class="box">
 <p>Native bees were trapped at 30 urban sites. \(y\) is the number of bees caught, <code>flowers</code> is floral cover (%), and <code>dist</code> is the distance to bushland (km). (Simulated data.)</p>
@@ -283,6 +283,8 @@ Site 7 for comparison: \(r_P = 3.8714/2.4756 = 1.564\), so \(C_7 = \dfrac{1.564^
 Quasi-Poisson: \(r_{SP}(19) = \dfrac{r_P}{\sqrt{(1-h)\hat\phi}} = \dfrac{4.187}{\sqrt{0.9513\times1.6221}} = \dfrac{4.187}{1.2422} = \boxed{3.370}\) (R: <code>3.370267</code>). It's still large, so site 19 remains an outlier after allowing for overdispersion.</p></div></details>
 <details><summary>Step 6: part (f), the residual plot</summary><div>
 <p>The deviance residuals scatter evenly around 0 with no trend or curve against \(\hat\eta\), so the log-linear form looks adequate. The spread is roughly constant, which is consistent with the Poisson variance function. Two things stand out: site 19 at the top (≈3.4), and one point far to the right (\(\hat\eta = 3.24\), site 30) that sits on zero, which matches its high leverage and small residual.</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0008-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>6 · Before you close this tab</h2>
 <details><summary>Retrieval: write these from memory, then check</summary><div>

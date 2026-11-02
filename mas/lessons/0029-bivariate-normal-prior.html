@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bivariate Normal Prior</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+  .explain { border-left: 3px solid var(--rule); padding: .1rem 0 .1rem .9rem; margin: 1.2rem 0; }
+  .explain > p:first-child strong { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .4rem 1rem .6rem; margin: 1.2rem 0; }
+  .answer-box > p:first-child { font-family: Inter, system-ui, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); margin-bottom: .2rem; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 29 · Topic 5: Bayesian inference &amp; computation (extra)</div>
+<h1>A bivariate Normal prior: Gibbs, MH and CAVI on one model</h1>
+<p class="lede">Lessons 24, 25 and 27 used independent priors or a \(\mu\mid\tau\) prior. Here the two means are correlated <em>a priori</em>, so the prior has a cross term \(\mu_1\mu_2\). That one term is the only new thing. It links two otherwise separate problems, and it changes every step of the Bayes question.</p>
+
+<div class="mission">Why this matters for 10 Nov: this model has been examined (2020 Q4) and you met it again in Assignment 4. The skeleton is the usual one: a Gibbs conditional, a numeric MH acceptance with an asymmetric proposal, then CAVI. All numbers below are new.</div>
+
+<h2>1 · The stem and the prior kernel</h2>
+<div class="box">
+<p><strong>Model.</strong> Independently, \(x_i\mid\mu_1\sim N(\mu_1,\sigma_x^2)\), \(i=1,\dots,n\), and \(y_j\mid\mu_2\sim N(\mu_2,\sigma_y^2)\), \(j=1,\dots,m\), with both variances known.</p>
+<p><strong>Prior.</strong> \((\mu_1,\mu_2)^T\sim N(0,\Sigma)\), with density</p>
+$$p(\mu)=\frac1{2\pi|\Sigma|^{1/2}}\exp\Big\{-\tfrac12\mu^T\Sigma^{-1}\mu\Big\}.$$
+</div>
+
+<p>Write \(\Lambda=\Sigma^{-1}\) for the prior precision matrix. Invert with the \(2\times2\) rule, then multiply out:</p>
+$$\begin{aligned}
+\Sigma=\begin{pmatrix}s_{11}&s_{12}\\s_{12}&s_{22}\end{pmatrix}\ &\Rightarrow\ \Lambda=\frac1{s_{11}s_{22}-s_{12}^2}\begin{pmatrix}s_{22}&-s_{12}\\-s_{12}&s_{11}\end{pmatrix}\\
+\mu^T\Lambda\mu&=\Lambda_{11}\mu_1^2+2\Lambda_{12}\mu_1\mu_2+\Lambda_{22}\mu_2^2\\
+p(\mu)&\propto\exp\Big\{-\tfrac12\big(\Lambda_{11}\mu_1^2+2\Lambda_{12}\mu_1\mu_2+\Lambda_{22}\mu_2^2\big)\Big\}
+\end{aligned}$$
+
+<p><strong>Worked example for §1–§5.</strong> Take \(\Sigma=\begin{pmatrix}2&1\\1&1\end{pmatrix}\), \(x=(1,2,3)\), \(y=(0,2)\), \(\sigma_x^2=\sigma_y^2=1\). Then:</p>
+$$\begin{aligned}
+|\Sigma|&=2(1)-1^2=1\\
+\Lambda&=\begin{pmatrix}1&-1\\-1&2\end{pmatrix}\\
+p(\mu)&\propto\exp\Big\{-\tfrac12\big(\mu_1^2-2\mu_1\mu_2+2\mu_2^2\big)\Big\}
+\end{aligned}$$
+
+<div class="trap"><strong>Four slips</strong><br>
+(1) Using \(\Sigma\) in the exponent instead of \(\Sigma^{-1}\).<br>
+(2) Writing the cross term once: it is \(2\Lambda_{12}\mu_1\mu_2\), because the off-diagonal appears twice in \(\mu^T\Lambda\mu\).<br>
+(3) Sign: a positive \(s_{12}\) gives a <em>negative</em> \(\Lambda_{12}\).<br>
+(4) Treating \(\Lambda_{11}\) as \(1/s_{11}\). Here \(1/s_{11}=0.5\), but \(\Lambda_{11}=1\).</div>
+
+<div class="quiz num" data-answer="-0.5" data-tol="0.005">
+  <p class="q"><strong>1.</strong> For \(\Sigma=\begin{pmatrix}3&1\\1&1\end{pmatrix}\), give \(\Lambda_{12}\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}|\Sigma|&amp;=3(1)-1=2\\\Lambda_{12}&amp;=\frac{-s_{12}}{|\Sigma|}=-\frac12=\textbf{-0.50}\end{aligned}$$</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> \(\Lambda=\begin{pmatrix}3&-1\\-1&2\end{pmatrix}\). Which is the prior kernel?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\exp\{-\tfrac12(3\mu_1^2-\mu_1\mu_2+2\mu_2^2)\}\)</button>
+    <button class="opt" data-key="b">\(\exp\{-\tfrac12(3\mu_1^2+2\mu_1\mu_2+2\mu_2^2)\}\)</button>
+    <button class="opt" data-key="c">\(\exp\{-\tfrac12(3\mu_1^2-2\mu_1\mu_2+2\mu_2^2)\}\)</button>
+  </div>
+  <div class="why">The cross term is \(2\Lambda_{12}\mu_1\mu_2=-2\mu_1\mu_2\). (a) counts it once. (b) has the wrong sign.</div>
+</div>
+
+<h2>2 · Gibbs: the full conditional</h2>
+<p>Use the recipe from <a href="0025-gibbs-sampling.html">Lesson 25</a>: keep factors containing \(\mu_1\), then complete the square. The \(y\) likelihood has no \(\mu_1\), so it drops. The data \(y\) still affect \(\mu_1\), but only through the current \(\mu_2\).</p>
+$$\begin{aligned}
+p(\mu_1\mid\mu_2,x,y)&\propto\prod_{i=1}^np(x_i\mid\mu_1)\cdot p(\mu_1,\mu_2)\\
+&\propto\exp\Big\{-\frac{\sum_i(x_i-\mu_1)^2}{2\sigma_x^2}\Big\}\exp\Big\{-\tfrac12\big(\Lambda_{11}\mu_1^2+2\Lambda_{12}\mu_1\mu_2\big)\Big\}\\
+&\propto\exp\Big\{-\tfrac12\Big[\Big(\frac n{\sigma_x^2}+\Lambda_{11}\Big)\mu_1^2-2\Big(\frac{\sum_ix_i}{\sigma_x^2}-\Lambda_{12}\mu_2\Big)\mu_1\Big]\Big\}
+\end{aligned}$$
+<p>A kernel \(\exp\{-\tfrac12(A\mu^2-2B\mu)\}\) is \(N(B/A,\ 1/A)\). So:</p>
+<div class="answer-box"><p>Full conditionals</p>
+$$\begin{aligned}
+\mu_1\mid\mu_2,x,y&\sim N\Big(\frac{\sum_ix_i/\sigma_x^2-\Lambda_{12}\mu_2}{n/\sigma_x^2+\Lambda_{11}},\ \frac1{n/\sigma_x^2+\Lambda_{11}}\Big)\\
+\mu_2\mid\mu_1,x,y&\sim N\Big(\frac{\sum_jy_j/\sigma_y^2-\Lambda_{12}\mu_1}{m/\sigma_y^2+\Lambda_{22}},\ \frac1{m/\sigma_y^2+\Lambda_{22}}\Big)
+\end{aligned}$$
+</div>
+<p>In the worked example \(\sum x_i=6\), \(\sum y_j=2\), \(n=3\), \(m=2\):</p>
+$$\begin{aligned}
+A_1&=3+1=4\\
+B_1&=6-(-1)\mu_2=6+\mu_2\\
+\mu_1\mid\mu_2,x,y&\sim N\Big(\frac{6+\mu_2}4,\ \frac14\Big)\\
+A_2&=2+2=4\\
+B_2&=2+\mu_1\\
+\mu_2\mid\mu_1,x,y&\sim N\Big(\frac{2+\mu_1}4,\ \frac14\Big)
+\end{aligned}$$
+<p><strong>Quick check.</strong> The prior conditional is \(\mu_1\mid\mu_2\sim N(\mu_2 s_{12}/s_{22},\ 1/\Lambda_{11})=N(\mu_2,1)\). Treat that as a prior on \(\mu_1\) and use the ordinary conjugate update: precision \(1+3=4\), mean \((1\cdot\mu_2+6)/4\). Same answer.</p>
+<p><strong>Effect of the sign.</strong> The conditional mean moves with \(-\Lambda_{12}\mu_2\), and \(-\Lambda_{12}\) has the sign of \(s_{12}\). Positive prior correlation pulls \(\mu_1\) up when \(\mu_2\) is high. Negative prior correlation pushes it down.</p>
+<p><strong>Gibbs scheme.</strong> Start from \((\mu_1^{(0)},\mu_2^{(0)})\). At step \(t\), draw \(\mu_1^{(t)}\) from its conditional given \(\mu_2^{(t-1)}\), then draw \(\mu_2^{(t)}\) given the <em>new</em> \(\mu_1^{(t)}\). Discard a burn-in and use the rest.</p>
+
+<div class="quiz num" data-answer="2" data-tol="0.005">
+  <p class="q"><strong>3.</strong> Worked example: give the mean of \(\mu_1\mid\mu_2=2,x,y\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}\text{mean}&amp;=\frac{6+2}4\\&amp;=\textbf{2.00}\end{aligned}$$</div>
+</div>
+
+<div class="quiz num" data-answer="1.6" data-tol="0.005">
+  <p class="q"><strong>4.</strong> Same model, but now \(\sigma_x^2=2\). Give the mean of \(\mu_1\mid\mu_2=1,x,y\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}A_1&amp;=\frac32+1=2.5\\B_1&amp;=\frac62+1(1)=4\\\text{mean}&amp;=\frac4{2.5}\\&amp;=\textbf{1.60}\end{aligned}$$Only the \(x\) precision changes. The prior term \(\Lambda_{11}\) doesn't get divided by \(\sigma_x^2\).</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>5.</strong> The prior has \(s_{12}&lt;0\). What happens to \(E[\mu_1\mid\mu_2,x,y]\) as \(\mu_2\) rises?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">It rises</button>
+    <button class="opt" data-key="b">It falls</button>
+    <button class="opt" data-key="c">It doesn't change</button>
+  </div>
+  <div class="why">\(s_{12}&lt;0\) gives \(\Lambda_{12}&gt;0\), so the term \(-\Lambda_{12}\mu_2\) in the numerator falls as \(\mu_2\) rises.</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain why (2–3 sentences)</strong></p>
+<p>In the conditional of \(\mu_1\), the factor \(p(y\mid\mu_2)\) is dropped. Does this mean \(y\) tells us nothing about \(\mu_1\)?</p>
+<details><summary>Model answer</summary><div><p>No. The factor drops only because \(\mu_2\) is held fixed, so it is a constant in \(\mu_1\). In the joint posterior, \(y\) informs \(\mu_2\), and the prior cross term passes that information to \(\mu_1\). If \(s_{12}=0\), the link disappears and the two problems separate.</p></div></details>
+</div>
+
+<h2>3 · MH with an asymmetric block proposal</h2>
+<p>Use the ledger from <a href="0024-metropolis-hastings.html">Lesson 24</a>. The target is likelihood times prior. The constant \(1/(2\pi|\Sigma|^{1/2})\) is the same at both points, so it cancels. Keep the cross term.</p>
+<p><strong>Setup.</strong> Current \((\mu_1^c,\mu_2^c)=(2,1)\), proposed \((\mu_1^*,\mu_2^*)=(1,0)\). The proposal draws independently \(\mu_1^*\sim N(1,4)\) and \(\mu_2^*\sim N(\mu_2^c,1)\).</p>
+<p>Work with \(\log\) ratios, new minus current. Let \(Q=\mu_1^2-2\mu_1\mu_2+2\mu_2^2\).</p>
+<table class="ledger">
+<tr><th>Factor</th><th>Current \((2,1)\)</th><th>Proposed \((1,0)\)</th><th>New − current</th></tr>
+<tr><td>\(-\tfrac12\sum_i(x_i-\mu_1)^2\)</td><td>\(-\tfrac12(2)=-1\)</td><td>\(-\tfrac12(5)=-2.5\)</td><td>\(-1.5\)</td></tr>
+<tr><td>\(-\tfrac12\sum_j(y_j-\mu_2)^2\)</td><td>\(-\tfrac12(2)=-1\)</td><td>\(-\tfrac12(4)=-2\)</td><td>\(-1\)</td></tr>
+<tr><td>\(-\tfrac12Q\)</td><td>\(-\tfrac12(4-4+2)=-1\)</td><td>\(-\tfrac12(1)=-0.5\)</td><td>\(+0.5\)</td></tr>
+</table>
+$$\begin{aligned}
+\log\frac{\pi(\mu^*)}{\pi(\mu^c)}&=-1.5-1+0.5\\
+&=-2
+\end{aligned}$$
+<p>Now the proposal. The \(\mu_2\) part is a Normal random walk, and \((\mu_2^*-\mu_2^c)^2\) is the same in both directions, so it cancels. The \(\mu_1\) part is independent of the current state, so it doesn't cancel:</p>
+$$\begin{aligned}
+q(\mu_1^c)&\propto\exp\Big\{-\frac{(2-1)^2}{2(4)}\Big\}=e^{-1/8}\\
+q(\mu_1^*)&\propto\exp\Big\{-\frac{(1-1)^2}{2(4)}\Big\}=1\\
+\log\frac{q(\mu^c\mid\mu^*)}{q(\mu^*\mid\mu^c)}&=-\frac18-0=-0.125\\
+\log(\text{ratio})&=-2-0.125=-2.125\\
+\alpha&=\min\{1,\ e^{-2.125}\}\\
+&=0.12
+\end{aligned}$$
+<p>On the FX-82: enter <code>e^(-2.125)</code>. Writing the exponents down first avoids rounding in the middle.</p>
+
+<div class="quiz num" data-answer="0.15" data-tol="0.005">
+  <p class="q"><strong>6.</strong> Same current and proposed values, but now \(\mu_1^*\sim N(2,4)\). Give \(\alpha\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">The target ratio is unchanged at \(-2\). Only the \(\mu_1\) proposal changes:$$\begin{aligned}\log q(\mu_1^c)&amp;=-\frac{(2-2)^2}8=0\\\log q(\mu_1^*)&amp;=-\frac{(1-2)^2}8=-0.125\\\log(\text{ratio})&amp;=-2+0.125=-1.875\\\alpha&amp;=e^{-1.875}\\&amp;=\textbf{0.15}\end{aligned}$$</div>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>7.</strong> Which part of the proposal can you cancel without calculating?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(\mu_2^*\sim N(\mu_2^c,1)\), because a Normal random walk is symmetric</button>
+    <button class="opt" data-key="b">\(\mu_1^*\sim N(1,4)\), because it doesn't depend on the current state</button>
+    <button class="opt" data-key="c">Neither, because block proposals never cancel</button>
+  </div>
+  <div class="why">An independent proposal is not symmetric: it compares \(q(\mu_1^c)\) with \(q(\mu_1^*)\), which usually differ. That is the classic slip in this question.</div>
+</div>
+
+<h2>4 · CAVI: both factors</h2>
+<p>Take \(q(\mu_1,\mu_2)=q_1(\mu_1)q_2(\mu_2)\). As in <a href="0027-variational-inference-cavi.html">Lesson 27</a>, \(\log q_1^*\) is the expectation of the log joint over \(q_2\), keeping terms in \(\mu_1\):</p>
+$$\begin{aligned}
+\log q_1^*(\mu_1)&=E_{\mu_2}[\log p(\mu_1,\mu_2,x,y)]+\text{const}\\
+&=-\frac{\sum_i(x_i-\mu_1)^2}{2\sigma_x^2}-\tfrac12\big(\Lambda_{11}\mu_1^2+2\Lambda_{12}\mu_1E[\mu_2]\big)+\text{const}\\
+&=-\tfrac12\Big[\Big(\frac n{\sigma_x^2}+\Lambda_{11}\Big)\mu_1^2-2\Big(\frac{\sum_ix_i}{\sigma_x^2}-\Lambda_{12}E[\mu_2]\Big)\mu_1\Big]+\text{const}
+\end{aligned}$$
+<p>This is the Gibbs conditional with \(\mu_2\) replaced by \(E[\mu_2]\). The \(\mu_2^2\) term is a constant for \(q_1\), so no \(V[\mu_2]\) appears. That differs from the \(\mu,\tau\) model, where \((x-\mu)^2\) forces \(V[\mu]\) in.</p>
+<div class="answer-box"><p>CAVI factors</p>
+$$\begin{aligned}
+q_1^*&=N\Big(\frac{\sum_ix_i/\sigma_x^2-\Lambda_{12}E[\mu_2]}{n/\sigma_x^2+\Lambda_{11}},\ \frac1{n/\sigma_x^2+\Lambda_{11}}\Big)\\
+q_2^*&=N\Big(\frac{\sum_jy_j/\sigma_y^2-\Lambda_{12}E[\mu_1]}{m/\sigma_y^2+\Lambda_{22}},\ \frac1{m/\sigma_y^2+\Lambda_{22}}\Big)
+\end{aligned}$$
+</div>
+<p><strong>The fixed point.</strong> The variances never change, and only the means iterate. At convergence \(m_1=E[\mu_1]\) and \(m_2=E[\mu_2]\) solve a \(2\times2\) system:</p>
+$$\begin{aligned}
+m_1&=\frac{6+m_2}4\\
+m_2&=\frac{2+m_1}4\\
+4m_1-m_2&=6\\
+-m_1+4m_2&=2\\
+15m_1&=26\quad\text{(4 times first + second)}\\
+m_1&=\frac{26}{15}=1.73\\
+m_2&=\frac{2+1.73}4=0.93
+\end{aligned}$$
+<p><strong>Compare with the exact posterior.</strong> The exact posterior is bivariate Normal with precision matrix \(P\):</p>
+$$\begin{aligned}
+P&=\Lambda+\begin{pmatrix}n/\sigma_x^2&0\\0&m/\sigma_y^2\end{pmatrix}=\begin{pmatrix}4&-1\\-1&4\end{pmatrix}\\
+P^{-1}&=\frac1{15}\begin{pmatrix}4&1\\1&4\end{pmatrix}\\
+\text{exact means}&=P^{-1}\begin{pmatrix}6\\2\end{pmatrix}=\begin{pmatrix}1.73\\0.93\end{pmatrix}\\
+\text{exact }\operatorname{Var}(\mu_1\mid x,y)&=\frac4{15}=0.27\\
+\text{VI variance}&=\frac14=0.25
+\end{aligned}$$
+<p>The means are exact. The variance is too small, because \(q\) has no correlation term. VI reports the variance of \(\mu_1\) with \(\mu_2\) held fixed (\(1/P_{11}\)), which is the Gibbs conditional variance. The true marginal variance also includes the uncertainty in \(\mu_2\). The ratio is \(1-\rho^2\), with \(\rho=\tfrac14\) here, so the gap grows as the posterior correlation grows.</p>
+
+<div class="quiz num" data-answer="1.75" data-tol="0.005">
+  <p class="q"><strong>8.</strong> Worked example: at \(E[\mu_2]=1\), give the mean of \(q_1^*\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}\text{mean}&amp;=\frac{6+1}4\\&amp;=\textbf{1.75}\end{aligned}$$</div>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>9.</strong> Why does \(q_1^*\) contain no \(V[\mu_2]\)?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">Because \(\mu_1\) and \(\mu_2\) are independent in the posterior</button>
+    <button class="opt" data-key="b">Because \(\mu_2\) only meets \(\mu_1\) linearly; the \(\mu_2^2\) term is a constant in \(\mu_1\)</button>
+    <button class="opt" data-key="c">Because \(V[\mu_2]=0\) under \(q_2\)</button>
+  </div>
+  <div class="why">Only \(E[\mu_1\mu_2]=\mu_1E[\mu_2]\) involves both variables. \(E[\mu_2^2]\) contains \(V[\mu_2]\), but it joins the constant. (a) is false, since the posterior correlation is \(\tfrac14\). (c) is false, since \(V[\mu_2]=\tfrac14\).</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain why (2–3 sentences)</strong></p>
+<p>Gibbs and CAVI share the conditional variance \(1/4\). Why does Gibbs still recover the right marginal variance when CAVI doesn't?</p>
+<details><summary>Model answer</summary><div><p>Gibbs redraws \(\mu_2\) at each step, so the conditional mean of \(\mu_1\) moves around. The spread of \(\mu_1\) across draws then includes both the conditional variance and the variation in that mean. CAVI fixes \(\mu_2\) at its expectation, so the second part is lost and \(q_1\) has only the conditional variance.</p></div></details>
+</div>
+
+<h2>5 · Reading the R output</h2>
+<p>Real output for the worked example. The chains ran 20,000 steps from the code below, and <code>k</code> keeps steps 1001 onward.</p>
+<pre class="rout">&gt; for (t in 2:N) {
++   m1[t] &lt;- rnorm(1, (6 + m2[t-1])/4, sqrt(1/4))
++   m2[t] &lt;- rnorm(1, (2 + m1[t])/4, sqrt(1/4))
++ }
+&gt; round(c(mean(m1[k]), mean(m2[k]), var(m1[k]), var(m2[k]),
++         cor(m1[k], m2[k]), mean(m1[k] &gt; m2[k]),
++         acf(m1[k], plot=FALSE)$acf[2]), 3)
+[1] 1.730 0.934 0.264 0.265 0.246 0.897 0.058
+
+&gt; # MH: s proposed from N(1,4) and N(current m2,1); same summaries, no P(m1 &gt; m2)
+&gt; round(acc/(N-1), 3)
+[1] 0.173
+&gt; round(c(colMeans(th[k,]), apply(th[k,],2,var), cor(th[k,])[1,2],
++         acf(th[k,1], plot=FALSE)$acf[2]), 3)
+[1] 1.738 0.913 0.266 0.265 0.257 0.769</pre>
+<p>What to read off:</p>
+<ul>
+  <li>Both samplers agree with the exact means \((1.73,0.93)\), variances \(0.27\) and correlation \(0.25\).</li>
+  <li>The code uses <code>sqrt(1/4)</code> because <code>rnorm</code> takes a standard deviation, not a variance.</li>
+  <li><code>m2[t]</code> uses the new <code>m1[t]</code>, which is what makes it Gibbs.</li>
+  <li>Gibbs has lag-1 autocorrelation \(0.058\) and MH has \(0.769\), because MH stays put on about 83% of steps.</li>
+</ul>
+
+<div class="quiz num" data-answer="2481" data-tol="25">
+  <p class="q"><strong>10.</strong> The chains keep \(19{,}000\) draws. Using \(\text{ESS}\approx n(1-\hat\rho_1)/(1+\hat\rho_1)\), give the ESS for \(\mu_1\) under MH (nearest 10).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">$$\begin{aligned}\text{ESS}&amp;\approx\frac{19000(1-0.769)}{1+0.769}\\&amp;=\frac{4389}{1.769}\\&amp;\approx\textbf{2480}\end{aligned}$$The same formula gives about \(16{,}900\) for Gibbs, so Gibbs is much more efficient here.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>11.</strong> What does <code>mean(m1[k] &gt; m2[k])</code> estimate?</p>
+  <div class="opts">
+    <button class="opt" data-key="a">\(E[\mu_1-\mu_2\mid x,y]\)</button>
+    <button class="opt" data-key="b">\(P(\mu_1&gt;\mu_2)\) under the prior</button>
+    <button class="opt" data-key="c">\(P(\mu_1&gt;\mu_2\mid x,y)\)</button>
+  </div>
+  <div class="why">It is the posterior mean of an indicator. As a check: \(\mu_1-\mu_2\) has posterior mean \(0.8\) and variance \(\tfrac{4+4-2}{15}=0.4\), so the exact value is \(\Phi(1.26)=0.90\).</div>
+</div>
+
+<h2 id="challenge">6 · Exam question, cold (17 marks, about 40 minutes)</h2>
+<div class="box">
+<p><strong>Model.</strong> Independently, \(x_i\mid\mu_1\sim N(\mu_1,2)\) for \(i=1,\dots,4\), and \(y_j\mid\mu_2\sim N(\mu_2,1)\) for \(j=1,\dots,6\).</p>
+<p><strong>Prior.</strong> \((\mu_1,\mu_2)^T\sim N(0,\Sigma)\) with \(\Sigma=\begin{pmatrix}1&-1\\-1&2\end{pmatrix}\).</p>
+<p><strong>Data.</strong> \(x=(2,3,1,4)\), \(y=(1,2,0,1,2,0)\).</p>
+<p>(a) Find \(\Sigma^{-1}\) and write the prior kernel with the exponent multiplied out. <span class="marks">[2]</span></p>
+<p>(b) Derive \(p(\mu_1\mid\mu_2,x,y)\) and \(p(\mu_2\mid\mu_1,x,y)\). Name each distribution and give its parameters as functions of the other mean. <span class="marks">[4]</span></p>
+<p>(c) For current values \((\mu_1^c,\mu_2^c)=(1,1)\), propose independently \(\mu_1^*\sim N(\mu_2^c,1)\) and \(\mu_2^*\sim N(0,4)\). Compute the acceptance probability for the proposed values \((\mu_1^*,\mu_2^*)=(1.5,0)\). <span class="marks">[5]</span></p>
+<p>(d) Use a mean-field family \(q(\mu_1,\mu_2)=q_1(\mu_1)q_2(\mu_2)\) and CAVI. Derive \(q_1^*\) and \(q_2^*\), then find \(E[\mu_1]\) and \(E[\mu_2]\) at convergence. <span class="marks">[4]</span></p>
+<p>(e) Give the exact posterior variance of \(\mu_1\), compare it with the variance under \(q_1^*\), and explain the difference. <span class="marks">[2]</span></p>
+</div>
+
+<details><summary>Part (a) solution [2]</summary><div>
+$$\begin{aligned}
+|\Sigma|&=1(2)-(-1)^2=1\\
+\Sigma^{-1}&=\begin{pmatrix}2&1\\1&1\end{pmatrix}\quad\textit{[1]}\\
+p(\mu_1,\mu_2)&\propto\exp\Big\{-\tfrac12\big(2\mu_1^2+2\mu_1\mu_2+\mu_2^2\big)\Big\}\quad\textit{[1]}
+\end{aligned}$$
+</div></details>
+
+<details><summary>Part (b) solution [4]</summary><div>
+<p>Keep the \(x\) likelihood and the prior. Here \(\sum x_i=10\), \(n=4\), \(\sigma_x^2=2\).</p>
+$$\begin{aligned}
+p(\mu_1\mid\mu_2,x,y)&\propto\exp\Big\{-\frac{\sum_i(x_i-\mu_1)^2}{4}\Big\}\exp\Big\{-\tfrac12\big(2\mu_1^2+2\mu_1\mu_2\big)\Big\}\quad\textit{[1]}\\
+&\propto\exp\Big\{-\tfrac12\big[(2+2)\mu_1^2-2(5-\mu_2)\mu_1\big]\Big\}\\
+\mu_1\mid\mu_2,x,y&\sim N\Big(\frac{5-\mu_2}4,\ \frac14\Big)\quad\textit{[1]}
+\end{aligned}$$
+<p>Keep the \(y\) likelihood and the prior. Here \(\sum y_j=6\), \(m=6\), \(\sigma_y^2=1\).</p>
+$$\begin{aligned}
+p(\mu_2\mid\mu_1,x,y)&\propto\exp\Big\{-\frac{\sum_j(y_j-\mu_2)^2}{2}\Big\}\exp\Big\{-\tfrac12\big(2\mu_1\mu_2+\mu_2^2\big)\Big\}\quad\textit{[1]}\\
+&\propto\exp\Big\{-\tfrac12\big[(6+1)\mu_2^2-2(6-\mu_1)\mu_2\big]\Big\}\\
+\mu_2\mid\mu_1,x,y&\sim N\Big(\frac{6-\mu_1}7,\ \frac17\Big)\quad\textit{[1]}
+\end{aligned}$$
+</div></details>
+
+<details><summary>Part (c) solution [5]</summary><div>
+<p>Sums of squares, using \(\sigma_x^2=2\) (divide by 4) and \(\sigma_y^2=1\) (divide by 2) <em>[1]</em>:</p>
+$$\begin{aligned}
+\sum_i(x_i-1)^2&=1+4+0+9=14\\
+\sum_i(x_i-1.5)^2&=0.25+2.25+0.25+6.25=9\\
+\sum_j(y_j-1)^2&=0+1+1+0+1+1=4\\
+\sum_j(y_j-0)^2&=1+4+0+1+4+0=10
+\end{aligned}$$
+<p>Log likelihood ratio <em>[1]</em> and log prior ratio <em>[1]</em>, new minus current:</p>
+$$\begin{aligned}
+\text{likelihood}&=\frac{14-9}4+\frac{4-10}2=1.25-3=-1.75\\
+Q(1,1)&=2+2+1=5\\
+Q(1.5,0)&=4.5+0+0=4.5\\
+\text{prior}&=-\tfrac12(4.5-5)=0.25\\
+\text{target}&=-1.75+0.25=-1.5
+\end{aligned}$$
+<p>Proposal. Forward, \(\mu_1^*\) has mean \(\mu_2^c=1\). Reverse, \(\mu_1^c\) has mean \(\mu_2^*=0\). This is the trap: the reverse mean uses the <em>proposed</em> \(\mu_2\). <em>[1]</em></p>
+$$\begin{aligned}
+\log q(\mu^*\mid\mu^c)&=-\frac{(1.5-1)^2}2-\frac{0^2}8=-0.125\\
+\log q(\mu^c\mid\mu^*)&=-\frac{(1-0)^2}2-\frac{1^2}8=-0.625\\
+\text{proposal}&=-0.625-(-0.125)=-0.5\\
+\log(\text{ratio})&=-1.5-0.5=-2\\
+\alpha&=\min\{1,\ e^{-2}\}=0.14\quad\textit{[1]}
+\end{aligned}$$
+</div></details>
+
+<details><summary>Part (d) solution [4]</summary><div>
+<p>Take expectations of the \(\mu_1\) and \(\mu_2\) terms; the cross term becomes linear <em>[1]</em>:</p>
+$$\begin{aligned}
+\log q_1^*(\mu_1)&=-\tfrac12\big[4\mu_1^2-2(5-E[\mu_2])\mu_1\big]+\text{const}\\
+q_1^*&=N\Big(\frac{5-E[\mu_2]}4,\ \frac14\Big)\quad\textit{[1]}\\
+\log q_2^*(\mu_2)&=-\tfrac12\big[7\mu_2^2-2(6-E[\mu_1])\mu_2\big]+\text{const}\\
+q_2^*&=N\Big(\frac{6-E[\mu_1]}7,\ \frac17\Big)\quad\textit{[1]}
+\end{aligned}$$
+<p>Solve the fixed point, with \(m_1=E[\mu_1]\) and \(m_2=E[\mu_2]\):</p>
+$$\begin{aligned}
+4m_1+m_2&=5\\
+m_1+7m_2&=6\\
+27m_1&=29\quad\text{(7 times first - second)}\\
+m_1&=\frac{29}{27}=1.07\\
+m_2&=\frac{19}{27}=0.70\quad\textit{[1]}
+\end{aligned}$$
+</div></details>
+
+<details><summary>Part (e) solution [2]</summary><div>
+$$\begin{aligned}
+P&=\begin{pmatrix}4&1\\1&7\end{pmatrix}\\
+|P|&=4(7)-1=27\\
+\operatorname{Var}(\mu_1\mid x,y)&=\frac7{27}=0.26\quad\textit{[1]}
+\end{aligned}$$
+<p>\(q_1^*\) has variance \(0.25\), slightly smaller. The mean-field family has no correlation, so it gives the variance of \(\mu_1\) with \(\mu_2\) fixed, and it misses the part of the marginal variance due to uncertainty in \(\mu_2\). <em>[1]</em></p>
+</div></details>
+
+<p class="marks">Marks: (a) 2 · (b) 4 · (c) 5 · (d) 4 · (e) 2 = 17. Mark split is my own choice, not from a past paper.</p>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0029-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
+
+<p><strong>Primary source:</strong> <a href="../lectures/MCMC-3.pdf">MCMC slides</a> (MH and Gibbs), <a href="../lectures/VI-2.pdf">VI slides</a> (CAVI), <a href="../tutes/2026_MAST30027_week11.html">tute week 11</a> (bivariate Normal conditionals), <a href="../tutes/2026_MAST30027_week12.html">tute week 12</a> (mean-field on a bivariate Normal).</p>
+
+<div class="ask">💬 Ask me in the terminal about anything that felt shaky. Paste or photograph your page for the exam question and I'll mark it out of 17.</div>
+
+<div class="nav">
+  <span>Previous: <a href="0028-topic5-review.html">Lesson 28, Topic 5 mixed review</a> · See also: <a href="0024-metropolis-hastings.html">Lesson 24</a>, <a href="0025-gibbs-sampling.html">Lesson 25</a>, <a href="0027-variational-inference-cavi.html">Lesson 27</a></span>
+  <span></span>
+</div>
+
+<div class="score" data-score></div>
+</main>
+</body>
+</html>

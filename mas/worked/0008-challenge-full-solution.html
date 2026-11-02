@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bee Diagnostics Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 8 · Exam-level challenge · Full written solution</div>
+<h1>Bee diagnostics, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<div class="box">
+<p>Native bees were trapped at 30 urban sites. \(y\) is the number of bees caught, <code>flowers</code> is floral cover (%), and <code>dist</code> is the distance to bushland (km). (Simulated data.)</p>
+<pre class="rout"><span class="cmd">&gt; mb &lt;- glm(y ~ flowers + dist, family = poisson, data = bees)
+&gt; summary(mb)</span>
+Coefficients:
+             Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)  0.975761   0.204367   4.775 1.80e-06 ***
+flowers      0.028392   0.003491   8.133 4.18e-16 ***
+dist        -0.115097   0.038472  -2.992  0.00277 **
+
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 96.487  on 29  degrees of freedom
+Residual deviance: 41.149  on 27  degrees of freedom
+AIC: 146.06
+
+<span class="cmd">&gt; i &lt;- c(7, 19, 30)
+&gt; cbind(bees[i, c("flowers", "dist", "y")], mu = fitted(mb)[i], h = hatvalues(mb)[i])</span>
+   flowers dist  y      mu      h
+7       68  9.5 10  6.1286 0.4128
+19      26  2.2 13  4.3091 0.0487
+30      88  2.0 25 25.6367 0.8297
+<span class="cmd">&gt; round(rstudent(mb)[i], 3)</span>
+     7     19     30
+ 1.941  3.496 -0.305
+<span class="cmd">&gt; sum(residuals(mb, type = "pearson")^2) / mb$df.residual</span>
+[1] 1.622108
+<span class="cmd">&gt; qchisq(0.95, 27)</span>
+[1] 40.11327
+<span class="cmd">&gt; rbind(all = coef(mb), drop7 = coef(update(mb, subset = -7)),
++       drop19 = coef(update(mb, subset = -19)), drop30 = coef(update(mb, subset = -30)))</span>
+       (Intercept) flowers    dist
+all         0.9758  0.0284 -0.1151
+drop7       1.1807  0.0272 -0.1762
+drop19      0.7870  0.0305 -0.1032
+drop30      0.9354  0.0304 -0.1238</pre>
+<figure class="plot">
+<img src="../assets/img/0008-bees-panel.png" alt="Four diagnostic panels for the bee model. Top left: deviance residuals against eta-hat, scattered evenly around zero between about -2 and 2 with no trend; one point near 3.4 at eta-hat 1.5, and one point far to the right at eta-hat 3.2 with residual near zero. Top right: half-normal plot of jack-knife residuals, smooth up to about 2.1 (site 1), then site 19 at 3.5. Bottom left: half-normal plot of leverages, flat below 0.12 except site 7 at 0.41 and site 30 at 0.83. Bottom right: half-normal plot of Cook's distances, flat below 0.15 except site 19 at 0.31 and site 7 at about 1.0.">
+<figcaption>Same four panels for <code>mb</code>: <code>plot(predict(mb), residuals(mb))</code>, then <code>halfnorm</code> of <code>rstudent</code>, <code>hatvalues</code> and <code>cooks.distance</code>.</figcaption>
+</figure>
+<p>(a) State \(n\) and \(p\). Which sites have high leverage by the \(2p/n\) rule?<br>
+(b) For site 19, compute \(r_P\), \(r_D\) and \(r_{SD}\). Use the slide 18 approximation to check the printed <code>rstudent</code> value.<br>
+(c) Compute Cook's distance for site 30. Site 30 has the highest leverage, so why is its Cook's distance smaller than site 7's?<br>
+(d) Using the plots and the drop-one table, classify sites 7, 19 and 30 as outlier, high leverage only, or influential. Justify each in one sentence.<br>
+(e) What does the line giving <code>1.622108</code> compute? Together with the residual deviance, what does it suggest? If you refit with <code>quasipoisson</code>, what is site 19's studentised Pearson residual?<br>
+(f) What does the residuals-vs-\(\hat\eta\) panel tell you about the model's assumptions?</p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · \(n\), \(p\), leverage rule</h2>
+<div class="script">
+$$\begin{aligned}
+n&=29+1=30\\
+p&=30-27=3\\
+\frac{2p}n&=\frac{6}{30}=0.2
+\end{aligned}$$
+<p>\(h_7=0.41\gt0.2\) and \(h_{30}=0.83\gt0.2\); \(h_{19}=0.05\) doesn't.</p>
+<div class="answer-box"><p>High leverage: sites 7 and 30</p></div>
+</div>
+<h2>(b) · Site 19</h2>
+<div class="script">
+<p>Pearson residual:</p>
+$$\begin{aligned}
+r_P&=\frac{y-\hat\mu}{\sqrt{\hat\mu}}\\
+&=\frac{13-4.3091}{\sqrt{4.3091}}\\
+&=\frac{8.6909}{2.0758}\\
+&=4.19
+\end{aligned}$$
+<p>Deviance residual:</p>
+$$\begin{aligned}
+d&=2\Big[y\log\frac y{\hat\mu}-(y-\hat\mu)\Big]\\
+&=2\Big[13\log\frac{13}{4.3091}-8.6909\Big]\\
+&=2\big[14.3549-8.6909\big]\\
+&=11.328\\
+r_D&=+\sqrt{11.328}\quad(y\gt\hat\mu)\\
+&=3.37
+\end{aligned}$$
+<p>Studentised (\(\phi=1\)):</p>
+$$\begin{aligned}
+r_{SD}&=\frac{r_D}{\sqrt{1-h}}\\
+&=\frac{3.3657}{\sqrt{1-0.0487}}\\
+&=\frac{3.3657}{0.9754}\\
+&=3.45
+\end{aligned}$$
+<p>Slide 18 approximation for the jack-knife residual:</p>
+$$\begin{aligned}
+r_J&\approx\sqrt{r_D^2+\frac{h\,r_P^2}{1-h}}\\
+&=\sqrt{11.328+\frac{0.0487(4.1867)^2}{0.9513}}\\
+&=\sqrt{11.328+0.897}\\
+&=\sqrt{12.225}\\
+&=3.50\quad\checkmark\ \text{(R: 3.496)}
+\end{aligned}$$
+<div class="answer-box"><p>\(r_P=4.19\), \(r_D=3.37\), \(r_{SD}=3.45\)</p></div>
+</div>
+<h2>(c) · Cook's distance for site 30</h2>
+<div class="script">
+$$\begin{aligned}
+r_P&=\frac{25-25.6367}{\sqrt{25.6367}}\\
+&=\frac{-0.6367}{5.0633}\\
+&=-0.1257\\
+C_{30}&=\frac{r_P^2\,h}{p\,(1-h)^2}\\
+&=\frac{(0.1257)^2(0.8297)}{3(0.1703)^2}\\
+&=\frac{0.01312}{0.08701}\\
+&=0.15
+\end{aligned}$$
+<p>Site 7 for comparison:</p>
+$$\begin{aligned}
+r_P&=\frac{10-6.1286}{\sqrt{6.1286}}\\
+&=\frac{3.8714}{2.4756}\\
+&=1.564\\
+C_7&=\frac{(1.564)^2(0.4128)}{3(0.5872)^2}\\
+&=\frac{1.0095}{1.0344}\\
+&=0.98
+\end{aligned}$$
+<p>Cook's distance needs leverage and a residual. Site 30 lies almost exactly on the fitted surface (\(y=25\), \(\hat\mu=25.6\)), so its tiny residual offsets its huge leverage.</p>
+<div class="answer-box"><p>\(C_{30}=0.15\lt C_7=0.98\)</p></div>
+</div>
+<h2>(d) · Classify the three sites</h2>
+<div class="script">
+<ul><li><strong>Site 19: outlier.</strong> Jack-knife residual 3.50 jumps clear in the half-normal plot, but leverage 0.05 is ordinary and dropping it changes the coefficients only modestly (flowers 0.0284 → 0.0305).</li><li><strong>Site 30: high leverage only.</strong> \(h=0.83\) is largest but its residual is near zero, and dropping it moves little (dist −0.115 → −0.124).</li><li><strong>Site 7: influential.</strong> Cook's 0.98 is clear of the rest, and dropping it changes the dist coefficient by about 50% (−0.115 → −0.176).</li></ul>
+</div>
+<p class="note">Check site 7's data and report the fit with and without it. Don't just delete it.</p>
+<h2>(e) · The dispersion line</h2>
+<div class="script">
+<p>It computes the Pearson estimate:</p>
+$$\begin{aligned}
+\hat\phi&=\frac{X^2}{n-p}=1.62
+\end{aligned}$$
+<p>The deviance agrees: \(41.15\gt\chi^2_{27}(0.95)=40.11\). Both suggest mild overdispersion.</p>
+<p>Quasi-Poisson studentised Pearson residual:</p>
+$$\begin{aligned}
+r_{SP}&=\frac{r_P}{\sqrt{\hat\phi(1-h)}}\\
+&=\frac{4.1867}{\sqrt{1.6221(0.9513)}}\\
+&=\frac{4.1867}{1.2422}\\
+&=3.37
+\end{aligned}$$
+<div class="answer-box"><p>\(r_{SP}(19)=3.37\): still large, so site 19 stays an outlier</p></div>
+</div>
+<h2>(f) · Residuals vs \(\hat\eta\)</h2>
+<div class="script">
+<p>Deviance residuals scatter evenly around 0 with no trend or curve, so the log-linear form looks adequate. The spread is roughly constant, consistent with the Poisson variance function. Site 19 stands out at the top, and site 30 sits far right on zero, matching its high leverage and small residual.</p>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+\(2p/n=0.2\) · all three residuals with signs · \(C=r_P^2h/[p(1-h)^2]\) · "leverage and residual" · three classifications with evidence · \(\hat\phi\) and \(r_{SP}\) · no pattern in the residual plot.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0008-glm-diagnostics.html#challenge">Lesson 8, exam-level challenge</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

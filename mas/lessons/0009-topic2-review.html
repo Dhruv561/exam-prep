@@ -348,7 +348,7 @@ AIC: 73.149
 <p>The Wald test uses the curvature of \(\ell\) at \(\hat\beta_{b2}\) only (a quadratic approximation), while the LRT uses the actual drop in \(\ell\) between the two fits. They agree asymptotically, not exactly, and the conclusion is the same here. No LRT between links: <code>b1</code> and <code>b3</code> have the same predictors and different links, so neither is a special case of the other. Use AIC: \(69.27&lt;73.15\) favours the logit, though both fit badly (Q8), so neither link fixes the problem.</p></div></details>
 </div>
 
-<h2>4 · Exam-level challenge (15 marks, about 25 minutes)</h2>
+<h2 id="challenge">4 · Exam-level challenge (15 marks, about 25 minutes)</h2>
 <p>Write full answers on paper, with a sentence of explanation for every number, then open the steps one at a time.</p>
 <div class="box">
 <p>Continue with <span class="exhibit-tag">Exhibit B</span>. A second model replaces water hardness with a separate effect for each area.</p>
@@ -439,6 +439,8 @@ CI: \(2.334347\pm1.96(0.05832)=(2.22004,\ 2.44866)\), so \(\boxed{(9.21,\ 11.57)
 <strong>Row 14: influential.</strong> High leverage (it's the hardest-water area) <em>and</em> a sizeable residual, so Cook's 0.77 is by far the largest. Dropping it makes the Water effect 40% stronger (−0.00324 → −0.00454). Report it, check the data, and don't delete it just because it's influential.</p></div></details>
 <details><summary>Step 6: part (f), why the totals match</summary><div>
 <p>For the Poisson with its canonical log link, the score equations are \(X^T(y-\hat\mu)=0\) (<a href="0006-glm-likelihood-iwls.html">Lesson 6, §5</a>). The offset sits inside \(\hat\mu\), not in \(X\), so this still holds. The intercept column gives \(\sum_i\hat\mu_i=\sum_iy_i\), and the <code>WorkNonManual</code> dummy gives \(\sum_{\text{NonManual}}\hat\mu_i=\sum_{\text{NonManual}}y_i\) (135). Subtracting, the Manual totals match too (559). The <code>Water</code> column gives another: \(\sum_i\text{Water}_i\,\hat\mu_i=\sum_i\text{Water}_i\,y_i\) (R: both 58465). With a non-canonical link (e.g. <code>link = "sqrt"</code>) these sums would not match exactly.</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0009-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>5 · Score yourself</h2>
 <p>Use your first attempts. Each miss points to the place to revisit before Topic 3.</p>

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CAVI Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 27 · Exam-style question · Full written solution</div>
+<h1>Normal–Gamma CAVI, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<p><strong>Setup</strong> (fresh model; 8 marks, about 18 minutes, FX-82 not needed, 2 d.p. if you evaluate).</p>
+<div class="box">
+<p><strong>Model:</strong> \(x_1,\dots,x_n\) are independent, \(x_i\mid\mu,\tau\sim\text{Normal}(\mu,\ 1/\tau)\).</p>
+<p><strong>Prior:</strong> \(\mu\) and \(\tau\) are independent a priori, with</p>
+$$\mu\sim\text{Normal}\Big(2,\ \frac1{0.25}\Big),\qquad\tau\sim\text{Gamma}(3,\ 2).$$
+<p>Approximate the posterior with \(q(\mu,\tau)=q_\mu(\mu)\,q_\tau(\tau)\), chosen by coordinate ascent variational inference (CAVI), where \(q^*_j(\theta_j)\propto\exp\{E_{-j}[\log p(x,\mu,\tau)]\}\).</p>
+</div>
+<ol type="a">
+  <li>Derive \(q^*_\tau(\tau)\). If it is a known distribution, identify the distribution name and its parameters. The parameters may contain \(E_\mu[\mu]\) and \(V_\mu[\mu]\). <span class="marks">[3]</span></li>
+  <li>Derive \(q^*_\mu(\mu)\). If it is a known distribution, identify the distribution name and its parameters. The parameters may contain \(E_\tau[\tau]\). <span class="marks">[3]</span></li>
+  <li>The resulting \(q^*\) will usually have a smaller posterior variance than the true posterior. Briefly explain why, and name one situation where this is a serious problem. <span class="marks">[2]</span></li>
+</ol>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · \(q^*_\tau(\tau)\) <span class="marks">[3]</span></h2>
+<div class="script">
+<p>Log joint. Keep terms with \(\tau\); the prior of \(\mu\) has none:</p>
+$$\begin{aligned}
+\log p(x,\mu,\tau)&=\frac n2\log\tau-\frac\tau2\sum_i(x_i-\mu)^2+\log p(\mu)\\
+&\quad+(3-1)\log\tau-2\tau+\text{const}\\
+\log q^*_\tau(\tau)&=E_\mu[\log p(x,\mu,\tau)]+\text{const}\\
+&=\Big(\frac n2+2\Big)\log\tau-\tau\Big[2+\frac12\sum_iE_\mu[(x_i-\mu)^2]\Big]+\text{const}
+\end{aligned}$$
+<p>The trick:</p>
+$$\begin{aligned}
+E_\mu[(x_i-\mu)^2]&=(x_i-E_\mu[\mu])^2+V_\mu[\mu]\\
+\sum_iE_\mu[(x_i-\mu)^2]&=\sum_i(x_i-E_\mu[\mu])^2+nV_\mu[\mu]
+\end{aligned}$$
+<p>This is a \(\tau^{(3+n/2)-1}e^{-(\cdot)\tau}\) kernel:</p>
+<div class="answer-box"><p>\(q^*_\tau(\tau)=\text{Gamma}\Big(3+\dfrac n2,\ 2+\dfrac12\Big[\sum_i(x_i-E_\mu[\mu])^2+nV_\mu[\mu]\Big]\Big)\)</p></div>
+</div>
+<h2>(b) · \(q^*_\mu(\mu)\) <span class="marks">[3]</span></h2>
+<div class="script">
+<p>\(\tau\) appears linearly, so it becomes \(E[\tau]\). Prior precision is 0.25:</p>
+$$\begin{aligned}
+\log q^*_\mu(\mu)&=E_\tau\Big[-\frac\tau2\sum_i(x_i-\mu)^2-\frac{0.25}2(\mu-2)^2\Big]+\text{const}\\
+&=-\frac{E[\tau]}2\sum_i(x_i-\mu)^2-\frac{0.25}2(\mu-2)^2+\text{const}
+\end{aligned}$$
+<p>Expand, with \(\sum_ix_i=n\bar x\):</p>
+$$\begin{aligned}
+&=-\frac12\Big[\big(nE[\tau]+0.25\big)\mu^2-2\big(n\bar xE[\tau]+0.5\big)\mu\Big]+\text{const}\\
+&=-\frac{nE[\tau]+0.25}2\Big(\mu-\frac{n\bar xE[\tau]+0.5}{nE[\tau]+0.25}\Big)^2+\text{const}
+\end{aligned}$$
+<div class="answer-box"><p>\(q^*_\mu(\mu)=\text{Normal}\Big(\dfrac{n\bar xE_\tau[\tau]+0.5}{nE_\tau[\tau]+0.25},\ \dfrac1{nE_\tau[\tau]+0.25}\Big)\)</p></div>
+</div>
+<p class="note">\(E_\tau[\tau]=a^*/b^*\) from (a). Precision is \(\kappa_0+nE[\tau]\), not \((\kappa_0+n)E[\tau]\): the prior is independent of \(\tau\) here.</p>
+<h2>(c) · Too-small variance <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Mean-field forces \(\mu\) and \(\tau\) to be independent in \(q\), and \(\text{KL}(q\|p)\) penalises \(q\) heavily for putting mass where the posterior has little. So \(q\) concentrates inside the true posterior and the posterior dependence, with the uncertainty it carries, is lost.</p>
+<p>It is a serious problem when parameters are strongly correlated, or whenever credible intervals need the right spread.</p>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Log joint with \(\tau\) terms · \(E[(x_i-\mu)^2]\) trick with \(V[\mu]\) · shape \(3+n/2\) · Gamma name and parameters · \(E[\tau]\) replaces \(\tau\) · complete the square · Normal(mean, variance) · independence and KL.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0027-variational-inference-cavi.html#challenge">Lesson 27, exam-style question</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

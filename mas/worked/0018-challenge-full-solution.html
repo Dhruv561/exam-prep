@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tilt Sensors Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 18 · Exam-style question · Full written solution</div>
+<h1>Tilt sensors, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<div class="box">
+<p><strong>Setup</strong> (fresh model, past-paper shape; 12 marks). A tilt sensor is bolted to each of \(n\) machines. If it was mounted the right way round, it reads \(+\mu\) plus noise. If it was mounted reversed, it reads \(-\mu\) plus noise. Nobody recorded which. For \(i=1,\dots,n\):</p>
+$$\begin{aligned}
+Z_i&amp;\sim\text{Categorical}(\pi,1-\pi)\\
+X_i\mid Z_i=1&amp;\sim N(\mu,\sigma^2)\\
+X_i\mid Z_i=2&amp;\sim N(-\mu,\sigma^2)
+\end{aligned}$$
+<p>with \(\mu&gt;0\) and \(\theta=(\pi,\mu,\sigma^2)\). Twist: <strong>\(\mu\) and \(\sigma^2\) are both shared by the two components</strong>, with opposite signs on \(\mu\).</p>
+<ol type="a">
+  <li>Derive \(Q(\theta,\theta^0)\), with the log densities expanded. <span class="marks">[3]</span></li>
+  <li>Show that the E-step simplifies to \(P(Z_i=1\mid X_i,\theta^0)=\dfrac{\pi^0}{\pi^0+(1-\pi^0)\,e^{-2\mu^0x_i/(\sigma^2)^0}}\). <span class="marks">[2]</span></li>
+  <li>Derive the M-step updates \(\hat\pi\), \(\hat\mu\) and \(\hat\sigma^2\). Show that \(\hat\sigma^2=\frac1n\sum_ix_i^2-\hat\mu^2\). <span class="marks">[5]</span></li>
+  <li>With \(x=(2.5,\ -1.0,\ 0.5,\ 3.0,\ -2.0)\) and \(\theta^0=(0.6,\ 2,\ 4)\), carry out one EM iteration. Give \(\hat\pi\), \(\hat\mu\) and \(\hat\sigma^2\) to 2 d.p. <span class="marks">[2]</span></li>
+</ol>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · \(Q(\theta,\theta^0)\) <span class="marks">[3]</span></h2>
+<div class="script">
+<p>Complete-data likelihood:</p>
+$$\begin{aligned}
+P(X,Z\mid\theta)&=\prod_{i=1}^n\big[\pi f(x_i;\mu,\sigma^2)\big]^{I(Z_i=1)}\big[(1-\pi)f(x_i;-\mu,\sigma^2)\big]^{I(Z_i=2)}
+\end{aligned}$$
+<p>Take logs:</p>
+$$\begin{aligned}
+\log P(X,Z\mid\theta)&=\sum_{i=1}^n\Big\{I(Z_i=1)\Big[\log\pi-\tfrac12\log(2\pi\sigma^2)-\frac{(x_i-\mu)^2}{2\sigma^2}\Big]\\
+&\qquad+I(Z_i=2)\Big[\log(1-\pi)-\tfrac12\log(2\pi\sigma^2)-\frac{(x_i+\mu)^2}{2\sigma^2}\Big]\Big\}
+\end{aligned}$$
+<p>Only the indicators are random, and \(E_{Z\mid X,\theta^0}[I(Z_i=k)]=P(Z_i=k\mid X_i,\theta^0)=:\gamma_{ik}\):</p>
+$$\begin{aligned}
+Q(\theta,\theta^0)&=\sum_{i=1}^n\Big\{\gamma_{i1}\Big[\log\pi-\tfrac12\log(2\pi\sigma^2)-\frac{(x_i-\mu)^2}{2\sigma^2}\Big]\\
+&\qquad+\gamma_{i2}\Big[\log(1-\pi)-\tfrac12\log(2\pi\sigma^2)-\frac{(x_i+\mu)^2}{2\sigma^2}\Big]\Big\}
+\end{aligned}$$
+</div>
+<h2>(b) · E-step <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Equal normalising constants cancel:</p>
+$$\begin{aligned}
+\gamma_{i1}&=\frac{\pi^0e^{-(x_i-\mu^0)^2/(2(\sigma^2)^0)}}{\pi^0e^{-(x_i-\mu^0)^2/(2(\sigma^2)^0)}+(1-\pi^0)e^{-(x_i+\mu^0)^2/(2(\sigma^2)^0)}}
+\end{aligned}$$
+<p>Divide top and bottom by \(e^{-(x_i-\mu^0)^2/(2(\sigma^2)^0)}\):</p>
+$$\begin{aligned}
+\gamma_{i1}&=\frac{\pi^0}{\pi^0+(1-\pi^0)e^{-[(x_i+\mu^0)^2-(x_i-\mu^0)^2]/(2(\sigma^2)^0)}}
+\end{aligned}$$
+<p>Use \((x+\mu)^2-(x-\mu)^2=4\mu x\):</p>
+$$\begin{aligned}
+\gamma_{i1}&=\frac{\pi^0}{\pi^0+(1-\pi^0)e^{-4\mu^0x_i/(2(\sigma^2)^0)}}\\
+&=\frac{\pi^0}{\pi^0+(1-\pi^0)e^{-2\mu^0x_i/(\sigma^2)^0}}
+\end{aligned}$$
+</div>
+<h2>(c) · M-step <span class="marks">[5]</span></h2>
+<div class="script">
+<p><strong>\(\pi\).</strong> Terms in \(\pi\): \(\sum_i[\gamma_{i1}\log\pi+\gamma_{i2}\log(1-\pi)]\).</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\pi}&=\sum_i\Big[\frac{\gamma_{i1}}\pi-\frac{\gamma_{i2}}{1-\pi}\Big]=0\\
+(1-\pi)\sum_i\gamma_{i1}&=\pi\sum_i\gamma_{i2}\\
+\sum_i\gamma_{i1}&=\pi\sum_i(\gamma_{i1}+\gamma_{i2})=n\pi\\
+\hat\pi&=\frac1n\sum_i\gamma_{i1}
+\end{aligned}$$
+<p><strong>\(\mu\).</strong> Both components contribute:</p>
+$$\begin{aligned}
+Q_\mu&=-\frac1{2\sigma^2}\sum_i\big[\gamma_{i1}(x_i-\mu)^2+\gamma_{i2}(x_i+\mu)^2\big]\\
+\frac{\partial Q}{\partial\mu}&=\frac1{\sigma^2}\sum_i\big[\gamma_{i1}(x_i-\mu)-\gamma_{i2}(x_i+\mu)\big]\\
+&=\frac1{\sigma^2}\Big[\sum_i(\gamma_{i1}-\gamma_{i2})x_i-\mu\sum_i(\gamma_{i1}+\gamma_{i2})\Big]\\
+&=\frac1{\sigma^2}\Big[\sum_i(\gamma_{i1}-\gamma_{i2})x_i-n\mu\Big]=0\\
+\hat\mu&=\frac1n\sum_i(\gamma_{i1}-\gamma_{i2})x_i\\
+&=\frac1n\sum_i(2\gamma_{i1}-1)x_i
+\end{aligned}$$
+<p><strong>\(\sigma^2\).</strong> Using \(\gamma_{i1}+\gamma_{i2}=1\):</p>
+$$\begin{aligned}
+Q_{\sigma^2}&=-\frac12\sum_i\Big[\log\sigma^2+\frac{\gamma_{i1}(x_i-\mu)^2+\gamma_{i2}(x_i+\mu)^2}{\sigma^2}\Big]\\
+\frac{\partial Q}{\partial\sigma^2}&=-\frac12\Big[\frac n{\sigma^2}-\frac{\sum_i[\gamma_{i1}(x_i-\mu)^2+\gamma_{i2}(x_i+\mu)^2]}{(\sigma^2)^2}\Big]=0\\
+\hat\sigma^2&=\frac1n\sum_i\big[\gamma_{i1}(x_i-\hat\mu)^2+\gamma_{i2}(x_i+\hat\mu)^2\big]
+\end{aligned}$$
+<p>Simplify, expanding one summand:</p>
+$$\begin{aligned}
+\gamma_{i1}(x_i-\hat\mu)^2+\gamma_{i2}(x_i+\hat\mu)^2&=x_i^2-2\hat\mu(\gamma_{i1}-\gamma_{i2})x_i+\hat\mu^2\\
+\sum_i[\cdots]&=\sum_ix_i^2-2\hat\mu\sum_i(\gamma_{i1}-\gamma_{i2})x_i+n\hat\mu^2\\
+&=\sum_ix_i^2-2\hat\mu(n\hat\mu)+n\hat\mu^2\quad(\text{the }\hat\mu\text{ equation})\\
+&=\sum_ix_i^2-n\hat\mu^2\\
+\hat\sigma^2&=\frac1n\sum_ix_i^2-\hat\mu^2
+\end{aligned}$$
+</div>
+<h2>(d) · One iteration <span class="marks">[2]</span></h2>
+<div class="script">
+<p>\(2\mu^0/(\sigma^2)^0=4/4=1\), so \(\gamma_{i1}=\dfrac{0.6}{0.6+0.4e^{-x_i}}\).</p>
+<div class="tablewrap"><table class="ledger"><tr><th>\(x_i\)</th><th>\(0.4e^{-x_i}\)</th><th>\(\gamma_{i1}\)</th><th>\((2\gamma_{i1}-1)x_i\)</th></tr><tr><td>2.5</td><td>0.032834</td><td>0.9481</td><td>2.2406</td></tr><tr><td>−1.0</td><td>1.087313</td><td>0.3556</td><td>0.2888</td></tr><tr><td>0.5</td><td>0.242612</td><td>0.7121</td><td>0.2121</td></tr><tr><td>3.0</td><td>0.019915</td><td>0.9679</td><td>2.8072</td></tr><tr><td>−2.0</td><td>2.955622</td><td>0.1687</td><td>1.3250</td></tr></table></div>
+$$\begin{aligned}
+\hat\pi&=\frac{0.9481+0.3556+0.7121+0.9679+0.1687}5\\
+&=\frac{3.1524}5\\
+&=0.63\\
+\hat\mu&=\frac{2.2406+0.2888+0.2121+2.8072+1.3250}5\\
+&=\frac{6.8737}5\\
+&=1.37\\
+\textstyle\sum_ix_i^2&=6.25+1+0.25+9+4\\
+&=20.5\\
+\hat\sigma^2&=\frac{20.5}5-1.3747^2\\
+&=4.1-1.8898\\
+&=2.21
+\end{aligned}$$
+<div class="answer-box"><p>\(\hat\pi=0.63\), \(\hat\mu=1.37\), \(\hat\sigma^2=2.21\)</p></div>
+</div>
+<p class="note">\(\ell\) rises from −10.94 to −10.28, as it must. Use the unrounded \(\hat\mu=1.3747\) in \(\hat\sigma^2\).</p>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+\(-\mu\) in component 2 · \(E[I]=P\) · difference of squares \(4\mu x\) · \(\hat\pi\) · both components in \(\partial Q/\partial\mu\) · pooled \(\hat\sigma^2\) and the shortcut · \(\gamma\)'s and three numbers.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0018-m-step-derivations.html#challenge">Lesson 18, exam-style question</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

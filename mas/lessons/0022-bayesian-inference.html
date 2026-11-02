@@ -239,6 +239,159 @@ p(\sigma^2\mid x)&amp;\propto(\sigma^2)^{-n/2}e^{-\frac{S}{2\sigma^2}}\cdot(\sig
   <div class="why">\(a_n=2+6/2=5\), \(b_n=3+4.1/2=5.05\): Inv-Gamma(5, 5.05). Sheet mean \(b_n/(a_n-1)=5.05/4=\)<strong>1.26</strong>. In precision form, \(\tau\mid x\sim\text{Gamma}(5,5.05)\) has mean \(0.99\), and \(1/0.99=1.01\ne1.26\): that's the trap.</div>
 </div>
 
+<h2>5b · Predictive with unknown precision: a Student-\(t\)</h2>
+<p>In §3 the variance was known and the mean unknown, so the predictive stayed Normal. Now swap them: the mean \(\mu\) is known and the precision \(\tau\) is unknown. The posterior above, \(\tau\mid x\sim\text{Gamma}(a_n,b_n)\) with \(a_n=a+\frac n2\) and \(b_n=b+\frac S2\), goes into the predictive integral. A new reading is \(\tilde x\mid\tau\sim N(\mu,1/\tau)\). Writing \(\tilde x\) as "mean plus noise" no longer helps, because the unknown is the noise size, so here you integrate. The trick is from <a href="0015-kernels-and-conjugacy.html">Lesson 15</a>: never do the integral, recognise a Gamma kernel and use its constant.</p>
+<p><strong>Step 1: write both densities in full.</strong> Keep every constant. This is a density you are computing, so \(\propto\) would lose the answer's normalising term.</p>
+$$\begin{aligned}
+p(\tilde x\mid x)&amp;=\int_0^\infty p(\tilde x\mid\tau)\,p(\tau\mid x)\,d\tau\\
+&amp;=\int_0^\infty\sqrt{\frac{\tau}{2\pi}}\,e^{-\frac\tau2(\tilde x-\mu)^2}\cdot\frac{b_n^{a_n}}{\Gamma(a_n)}\,\tau^{a_n-1}e^{-b_n\tau}\,d\tau
+\end{aligned}$$
+<p><strong>Step 2: pull out everything without \(\tau\), then collect the powers and exponents.</strong></p>
+$$\begin{aligned}
+p(\tilde x\mid x)&amp;=\frac{b_n^{a_n}}{\Gamma(a_n)\sqrt{2\pi}}\int_0^\infty\tau^{\frac12}\,\tau^{a_n-1}\,e^{-\frac\tau2(\tilde x-\mu)^2}\,e^{-b_n\tau}\,d\tau\\
+&amp;=\frac{b_n^{a_n}}{\Gamma(a_n)\sqrt{2\pi}}\int_0^\infty\tau^{(a_n+\frac12)-1}\exp\Big\{-\Big[b_n+\frac{(\tilde x-\mu)^2}{2}\Big]\tau\Big\}\,d\tau
+\end{aligned}$$
+<p><strong>Step 3: match the Gamma constant.</strong> The integrand is a Gamma kernel, shape \(c=a_n+\frac12\), rate \(d=b_n+\frac12(\tilde x-\mu)^2\). Since a Gamma density integrates to 1, \(\int_0^\infty\tau^{c-1}e^{-d\tau}\,d\tau=\Gamma(c)/d^{\,c}\):</p>
+$$\begin{aligned}
+p(\tilde x\mid x)&amp;=\frac{b_n^{a_n}}{\Gamma(a_n)\sqrt{2\pi}}\cdot\frac{\Gamma(a_n+\frac12)}{\big[b_n+\frac12(\tilde x-\mu)^2\big]^{a_n+\frac12}}
+\end{aligned}$$
+<p><strong>Step 4: factor \(b_n\) out of the bracket.</strong></p>
+$$\begin{aligned}
+\Big[b_n+\frac{(\tilde x-\mu)^2}{2}\Big]^{a_n+\frac12}&amp;=b_n^{a_n+\frac12}\Big[1+\frac{(\tilde x-\mu)^2}{2b_n}\Big]^{a_n+\frac12}\\
+p(\tilde x\mid x)&amp;=\frac{b_n^{a_n}}{b_n^{a_n+\frac12}}\cdot\frac{\Gamma(a_n+\frac12)}{\Gamma(a_n)\sqrt{2\pi}}\Big[1+\frac{(\tilde x-\mu)^2}{2b_n}\Big]^{-(a_n+\frac12)}\\
+&amp;=\frac{\Gamma(a_n+\frac12)}{\Gamma(a_n)\sqrt{2\pi b_n}}\Big[1+\frac{(\tilde x-\mu)^2}{2b_n}\Big]^{-(a_n+\frac12)}
+\end{aligned}$$
+<p><strong>Step 5: match the three-parameter \(t\).</strong> The density is given if this is asked (it isn't on the formula sheet). I write it \(t(\nu,c,d)\) with location \(c\) and scale \(d\). The assignment writes \(t(\nu,a,b)\), but here \(a,b\) already mean the prior:</p>
+$$p(z\mid\nu,c,d)=\frac{\Gamma(\frac{\nu+1}2)}{\Gamma(\frac\nu2)\sqrt{\pi\nu d}}\Big[1+\frac{(z-c)^2}{\nu d}\Big]^{-\frac{\nu+1}2}$$
+<p>Match the exponent first, then the denominator of the fraction inside:</p>
+$$\begin{aligned}
+\frac{\nu+1}2&amp;=a_n+\frac12\quad\Rightarrow\quad\nu=2a_n\\
+\nu d&amp;=2b_n\quad\Rightarrow\quad d=\frac{2b_n}{2a_n}=\frac{b_n}{a_n}\\
+c&amp;=\mu\\
+\sqrt{\pi\nu d}&amp;=\sqrt{2\pi b_n}\quad\text{(the constant agrees, a check)}
+\end{aligned}$$
+<div class="answer-box"><p>Normal with known mean, Gamma posterior on \(\tau\)</p>
+$$\tilde x\mid x\ \sim\ t\Big(\nu=2a_n,\ \ c=\mu,\ \ d=\frac{b_n}{a_n}\Big),\qquad E[\tilde x\mid x]=\mu\ \ (\nu&gt;1),\qquad\text{Var}(\tilde x\mid x)=\frac{b_n}{a_n-1}\ \ (a_n&gt;1)$$
+</div>
+<p>The variance needs no \(t\) formula. Condition on \(\tau\) (Eve's law, <a href="0014-probability-toolkit.html">Lesson 14</a>):</p>
+$$\begin{aligned}
+\text{Var}(\tilde x\mid x)&amp;=E\big[\text{Var}(\tilde x\mid\tau)\mid x\big]+\text{Var}\big(E[\tilde x\mid\tau]\mid x\big)\\
+&amp;=E\Big[\frac1\tau\,\Big|\,x\Big]+\text{Var}(\mu\mid x)\\
+&amp;=\frac{b_n}{a_n-1}+0
+\end{aligned}$$
+<p>That is the §5 Inv-Gamma mean: \(1/\tau=\sigma^2\mid x\sim\text{Inv-Gamma}(a_n,b_n)\). The scale \(d=b_n/a_n=1/E[\tau\mid x]\) is the plug-in variance, and it is <em>not</em> the variance of the \(t\). A prior \(\sigma^2\sim\text{Inv-Gamma}(a,b)\) gives the same predictive, since it is the same model.</p>
+<div class="tablewrap"><table>
+<tr><th></th><th>§3: \(\mu\) unknown, \(\tau\) known</th><th>§5b: \(\mu\) known, \(\tau\) unknown</th></tr>
+<tr><td>Averaged over</td><td>\(\mu\mid x\sim N(m_n,1/\kappa_n)\)</td><td>\(\tau\mid x\sim\text{Gamma}(a_n,b_n)\)</td></tr>
+<tr><td>Method</td><td>\(\tilde x=\mu+\varepsilon\), independent Normals add</td><td>Gamma integral</td></tr>
+<tr><td>Predictive</td><td>\(N(m_n,\ 1/\kappa_n+1/\tau)\)</td><td>\(t(2a_n,\ \mu,\ b_n/a_n)\)</td></tr>
+<tr><td>Tails</td><td>Exponential, like \(e^{-z^2}\)</td><td>Polynomial, like \(|z|^{-(2a_n+1)}\)</td></tr>
+</table></div>
+
+<h3>Worked example</h3>
+<p>Six readings \(N(50,1/\tau)\), known mean 50, with \(S=\sum_i(x_i-50)^2=8\). Prior \(\tau\sim\text{Gamma}(1,2)\).</p>
+$$\begin{aligned}
+a_n&amp;=1+\frac62=4\\
+b_n&amp;=2+\frac82=6\\
+\nu&amp;=2(4)=8\\
+d&amp;=\frac64=1.50\\
+\tilde x\mid x&amp;\sim t(8,\ 50,\ 1.50)\\
+\text{Var}(\tilde x\mid x)&amp;=\frac6{4-1}=2.00
+\end{aligned}$$
+<p>The density at \(\tilde x=52\). The Gammas are hand-doable: \(\Gamma(z+1)=z\Gamma(z)\) and \(\Gamma(\frac12)=\sqrt\pi\) (neither is on the sheet), and the \(\sqrt\pi\) cancels:</p>
+$$\begin{aligned}
+\Gamma(4.5)&amp;=3.5\times2.5\times1.5\times0.5\times\sqrt\pi=6.5625\sqrt\pi\\
+\Gamma(4)&amp;=3!=6\\
+\frac{\Gamma(4.5)}{\Gamma(4)\sqrt{2\pi(6)}}&amp;=\frac{6.5625\sqrt\pi}{6\sqrt{12\pi}}=\frac{6.5625}{6\sqrt{12}}=0.3157\\
+1+\frac{(52-50)^2}{2(6)}&amp;=\frac43\\
+p(52\mid x)&amp;=0.3157\times(4/3)^{-4.5}=0.3157\times0.2740=0.09
+\end{aligned}$$
+<p>The plug-in \(N(50,1.5)\) gives \(0.0858\) at 52 against the \(t\)'s \(0.0865\): nearly the same. At \(\tilde x=54\) it gives \(0.0016\) against \(0.0070\), so the \(t\) is about 4.4 times larger out there. (Both \(t\) values confirmed by integrating \(\tau\) out numerically.)</p>
+
+<div class="explain">
+<p><strong>Why the tails are heavier</strong></p>
+<p>The predictive is a <em>scale mixture</em> of Normals: each plausible \(\tau\) contributes a Normal, and small values of \(\tau\) contribute wide ones. Those wide Normals dominate far from \(\mu\), so tail probability falls polynomially, not like \(e^{-z^2}\). As the data grow, \(a_n\to\infty\), the posterior on \(\tau\) concentrates, and \(t(2a_n,\mu,b_n/a_n)\) tends to the Normal with that fixed variance.</p>
+</div>
+
+<div class="trap"><strong>Trap</strong><br>Three lost marks here. (1) Dropping \(\sqrt\tau\) from the Normal density: the shape is then \(a_n\), not \(a_n+\frac12\). It is a constant in \(\tilde x\) but not in \(\tau\), and \(\tau\) is what you integrate. (2) \(\nu=a_n\) instead of \(2a_n\). (3) Calling \(b_n/a_n\) the predictive variance: it is the scale. The variance is \(b_n/(a_n-1)\), which is larger.</div>
+
+<div class="quiz num" data-answer="1.67" data-tol="0.01">
+  <p class="q"><strong>9a.</strong> Eight measurements \(N(\mu,1/\tau)\) with known \(\mu\) and \(S=\sum(x_i-\mu)^2=14\). Prior \(\tau\sim\text{Gamma}(2,3)\). The predictive is \(t(\nu,\mu,d)\). Give the scale \(d\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(a_n=2+\frac82=6\), \(b_n=3+\frac{14}2=10\), so \(\nu=12\) and \(d=b_n/a_n=10/6=\)<strong>1.67</strong>. The tempting \(2.00\) is \(b_n/(a_n-1)\), the next question's answer.</div>
+</div>
+
+<div class="quiz num" data-answer="2.00" data-tol="0.01">
+  <p class="q"><strong>9b.</strong> Same model as Q9a. Give \(\text{Var}(\tilde x\mid x)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(E[1/\tau\mid x]=\dfrac{b_n}{a_n-1}=\dfrac{10}{5}=\)<strong>2.00</strong>, which also equals \(\dfrac{\nu d}{\nu-2}=\dfrac{12(1.667)}{10}\). There is no \(\mu\) term because \(\mu\) is known.</div>
+</div>
+
+<div class="explain">
+<p><strong>Explain (2–3 sentences): Q9c</strong></p>
+<p>An analyst plugs in \(\hat\tau=E[\tau\mid x]\) and reports the predictive \(N(\mu,1/\hat\tau)\). What does this ignore, and which way does it mislead 95% intervals? When does it stop mattering?</p>
+<details><summary>Model answer</summary><div>
+<p>It treats \(\tau\) as known, ignoring posterior uncertainty about the noise level, which is what \(\int p(\tilde x\mid\tau)p(\tau\mid x)\,d\tau\) averages over. Its variance \(b_n/a_n\) is below the true \(b_n/(a_n-1)\) and its tails are too light, so its intervals are too narrow and undercover. The gap vanishes as \(n\to\infty\), when \(a_n\) grows and the posterior on \(\tau\) concentrates.</p></div></details>
+</div>
+
+<h3>Exam-style question (10 marks, about 22 minutes)</h3>
+<div class="box">
+<p><strong>Model:</strong> \(x_1,\dots,x_n\) are independent, \(x_i\mid\tau\sim\text{Normal}(10,\ 1/\tau)\), with the mean known.</p>
+<p><strong>Prior:</strong> \(\tau\sim\text{Gamma}(3,\ 1)\).</p>
+<p><strong>Data:</strong> \(n=4\), \(S=\sum_i(x_i-10)^2=6\).</p>
+</div>
+<ol type="a">
+  <li>Derive \(p(\tau\mid x)\). Identify the distribution and its parameters as numbers. <span class="marks">[2]</span></li>
+  <li>Show that the posterior predictive for a new observation \(\tilde x\) is \(t(\nu,c,d)\), with density as in Step 5, and give \(\nu,c,d\). <span class="marks">[4]</span></li>
+  <li>Evaluate \(p(\tilde x=12\mid x)\). <span class="marks">[2]</span></li>
+  <li>Find \(\text{Var}(\tilde x\mid x)\) and compare it with the plug-in variance \(1/E[\tau\mid x]\). Explain the difference in one sentence. <span class="marks">[2]</span></li>
+</ol>
+<details><summary>Marking-key solution</summary><div>
+<p><strong>(a)</strong> <em>[1 mark: kernel.]</em></p>
+$$\begin{aligned}
+p(\tau\mid x)&amp;\propto\tau^{n/2}e^{-\frac\tau2S}\cdot\tau^{3-1}e^{-\tau}\\
+&amp;=\tau^{2}e^{-3\tau}\cdot\tau^{2}e^{-\tau}\\
+&amp;=\tau^{5-1}e^{-4\tau}
+\end{aligned}$$
+<p><em>[1 mark: name and parameters.]</em></p>
+<div class="answer-box"><p>(a)</p>
+$$\tau\mid x\sim\text{Gamma}(5,\ 4)$$
+</div>
+<p><strong>(b)</strong> <em>[1 mark: predictive integral with both densities in full.]</em></p>
+$$\begin{aligned}
+p(\tilde x\mid x)&amp;=\int_0^\infty\sqrt{\frac\tau{2\pi}}\,e^{-\frac\tau2(\tilde x-10)^2}\cdot\frac{4^5}{\Gamma(5)}\,\tau^{4}e^{-4\tau}\,d\tau\\
+&amp;=\frac{4^5}{\Gamma(5)\sqrt{2\pi}}\int_0^\infty\tau^{5.5-1}\exp\Big\{-\Big[4+\frac{(\tilde x-10)^2}2\Big]\tau\Big\}\,d\tau
+\end{aligned}$$
+<p><em>[1 mark: Gamma constant.]</em></p>
+$$\begin{aligned}
+p(\tilde x\mid x)&amp;=\frac{4^5}{\Gamma(5)\sqrt{2\pi}}\cdot\frac{\Gamma(5.5)}{\big[4+\frac12(\tilde x-10)^2\big]^{5.5}}
+\end{aligned}$$
+<p><em>[1 mark: factor out the 4.]</em></p>
+$$\begin{aligned}
+p(\tilde x\mid x)&amp;=\frac{\Gamma(5.5)}{\Gamma(5)\sqrt{8\pi}}\Big[1+\frac{(\tilde x-10)^2}{8}\Big]^{-5.5}
+\end{aligned}$$
+<p><em>[1 mark: match.]</em> \(\frac{\nu+1}2=5.5\) gives \(\nu=10\); \(\nu d=8\) gives \(d=0.8\); and \(\sqrt{\pi\nu d}=\sqrt{8\pi}\) ✓.</p>
+<div class="answer-box"><p>(b)</p>
+$$\tilde x\mid x\sim t(10,\ 10,\ 0.80)$$
+</div>
+<p><strong>(c)</strong> <em>[1 mark: constant.]</em></p>
+$$\begin{aligned}
+\Gamma(5.5)&amp;=4.5\times3.5\times2.5\times1.5\times0.5\times\sqrt\pi=29.53125\sqrt\pi\\
+\frac{\Gamma(5.5)}{\Gamma(5)\sqrt{8\pi}}&amp;=\frac{29.53125}{24\sqrt8}=0.4350
+\end{aligned}$$
+<p><em>[1 mark: value.]</em></p>
+$$\begin{aligned}
+1+\frac{(12-10)^2}{8}&amp;=1.5\\
+p(12\mid x)&amp;=0.4350\times1.5^{-5.5}=0.4350\times0.1075=0.05
+\end{aligned}$$
+<p><strong>(d)</strong> <em>[1 mark: both numbers.]</em></p>
+$$\begin{aligned}
+\text{Var}(\tilde x\mid x)&amp;=\frac{b_n}{a_n-1}=\frac44=1.00\\
+\frac1{E[\tau\mid x]}&amp;=\frac{4}{5}=0.80
+\end{aligned}$$
+<p><em>[1 mark: reason.]</em> The predictive variance is larger because it averages \(1/\tau\) over the posterior, including uncertainty about \(\tau\), and \(E[1/\tau]&gt;1/E[\tau]\). <span class="marks">(Marks: 2 + 4 + 2 + 2. Mark split self-assigned.)</span></p>
+<p>(c) confirmed by numerical integration: \(0.0468\).</p></div></details>
+
 <h2>6 · A joint prior \(p(\mu,\tau)=p(\mu\mid\tau)\,p(\tau)\)</h2>
 <p>Recent papers write the prior in two stages: the precision first, then a mean whose spread is scaled by it. Model: \(x_i\mid\mu,\tau\overset{iid}{\sim}N(\mu,1/\tau)\). Prior:</p>
 $$\mu\mid\tau\sim N\Big(m_0,\ \frac1{\kappa_0\tau}\Big),\qquad\tau\sim\text{Gamma}(a,b).$$
@@ -324,7 +477,7 @@ $$\begin{aligned}
   <div class="why">Here the unknown is the label \(Z_i\): prior \(P(Z_i=k)=\pi_k\), likelihood \(f_k(x_i)=p(x_i\mid Z_i=k)\), marginal \(\sum_j\pi_jf_j(x_i)=p(x_i)\), posterior \(\gamma_{ik}\). Same rule as \(p(\theta\mid x)=p(x\mid\theta)p(\theta)/p(x)\), with a discrete unknown instead of a parameter.</div>
 </div>
 
-<h2>8 · Exam-style question</h2>
+<h2 id="challenge">8 · Exam-style question</h2>
 <p><strong>Setup</strong> (fresh model; 12 marks, about 28 minutes, FX-82, 2 d.p.).</p>
 <div class="box">
 <p><strong>Model:</strong> \(x_1,\dots,x_n\) are independent, \(x_i\mid\mu,\tau\sim\text{Normal}(\mu,\ 1/\tau)\).</p>
@@ -391,6 +544,8 @@ $$\tau\mid x\sim\text{Gamma}\Big(\frac{n-1}2,\ \frac S2\Big),\quad\text{proper i
 <p><em>[1 mark: name, parameters, and the condition.]</em> Shape \(\frac{n-1}2&gt;0\) needs \(n\ge2\), and rate \(S/2&gt;0\) needs the data not all equal. The posterior is proper under improper priors, but only under that condition. (With \(n=6\), \(S=5.4\): Gamma(2.5, 2.7), mean 0.93.) <span class="marks">(Marks: 1 + 1 + 1.)</span></p>
 <p><strong>Total 12.</strong> Typical lost marks: dropping the \(\tau\) in the prior variance \(\frac{1}{2\tau}\) (so \(A=(n+2)\) not \((n+2)\tau\)); reporting the variance as \(1/A\) with \(\tau\) forgotten in (b); using \(\text{sd}=0.0625\) in the interval; "shape \(n/2\)" in (d) because the \(\mu\)-integral's \(\tau^{-1/2}\) was missed.</p></details>
 
+<p><strong>Full written solution:</strong> <a href="../worked/0022-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
+
 <h2>9 · Score yourself</h2>
 <div class="tablewrap"><table>
 <tr><th>If you missed…</th><th>Go back to</th></tr>
@@ -399,12 +554,13 @@ $$\tau\mid x\sim\text{Gamma}\Big(\frac{n-1}2,\ \frac S2\Big),\quad\text{proper i
 <tr><td>Q5, Q6</td><td>§3–4: predictive simulation = draw \(\theta\), then draw \(\tilde x\) from it; iterated variance</td></tr>
 <tr><td>Q7, Q8</td><td>§4: Gamma\((a+\sum y,\ b+n)\); weight \(b/(b+n)\); MLE variance \(\hat\lambda/n\)</td></tr>
 <tr><td>Q9</td><td>§5: Inv-Gamma mean \(b_n/(a_n-1)\), not \(1/E\tau\)</td></tr>
+<tr><td>Q9a, Q9b, Q9c</td><td>§5b: match the Gamma constant; \(\nu=2a_n\), scale \(b_n/a_n\), variance \(b_n/(a_n-1)\)</td></tr>
 <tr><td>Q10</td><td>§6: the \(b_n\) cross term; \(\kappa_0\) is a prior sample size</td></tr>
 <tr><td>Q11, Q12</td><td>§7: BUGS second argument is precision; improper prior needs a proper-posterior check</td></tr>
 </table></div>
 
 <details><summary>Retrieval: write these from memory, then check</summary><div>
-<p>(1) Bayes' rule for \(\theta\), and what \(\propto\) drops. (2) Normal–Normal: \(\kappa_n=\kappa_0+n\tau\), \(m_n=(\kappa_0m_0+n\tau\bar x)/\kappa_n\), weight on \(m_0\). (3) Poisson–Gamma: Gamma\((a+\sum y_i,\ b+n)\). (4) Normal precision: Gamma\((a+n/2,\ b+S/2)\); variance: Inv-Gamma with the same numbers. (5) Normal–Gamma joint: \(\mu\mid\tau,x\sim N(m_n,1/((n+\kappa_0)\tau))\), \(b_n\) with the cross term. (6) Predictive: posterior variance \(+\ \sigma^2\); simulate \(\theta\) then \(\tilde x\). (7) 95% interval: mean \(\pm1.96\) sd. (8) Gamma: mean \(a/b\), variance \(a/b^2\); Inv-Gamma mean \(b/(a-1)\).</p></div></details>
+<p>(1) Bayes' rule for \(\theta\), and what \(\propto\) drops. (2) Normal–Normal: \(\kappa_n=\kappa_0+n\tau\), \(m_n=(\kappa_0m_0+n\tau\bar x)/\kappa_n\), weight on \(m_0\). (3) Poisson–Gamma: Gamma\((a+\sum y_i,\ b+n)\). (4) Normal precision: Gamma\((a+n/2,\ b+S/2)\); variance: Inv-Gamma with the same numbers. (5) Normal–Gamma joint: \(\mu\mid\tau,x\sim N(m_n,1/((n+\kappa_0)\tau))\), \(b_n\) with the cross term. (6) Predictive: posterior variance \(+\ \sigma^2\); simulate \(\theta\) then \(\tilde x\). (7) 95% interval: mean \(\pm1.96\) sd. (8) Gamma: mean \(a/b\), variance \(a/b^2\); Inv-Gamma mean \(b/(a-1)\). (9) Unknown precision, known mean: \(\tilde x\mid x\sim t(2a_n,\mu,b_n/a_n)\), variance \(b_n/(a_n-1)\); derive it with \(\int_0^\infty\tau^{c-1}e^{-d\tau}\,d\tau=\Gamma(c)/d^{\,c}\).</p></div></details>
 
 <h2>10 · Homework</h2>
 <ol>

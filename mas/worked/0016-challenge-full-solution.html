@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poisson Mixture Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 16 · Exam-style question · Full written solution</div>
+<h1>Poisson mixture, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<div class="box">
+<p><strong>Setup</strong> (written in the shape of a past paper; fresh numbers). Counts \(x=(0,\ 3,\ 5,\ 1)\) follow a two-component Poisson mixture: \(Z_i\sim\text{Categorical}(\pi,1-\pi)\), \(X_i\mid Z_i=1\sim\text{Poisson}(1)\), \(X_i\mid Z_i=2\sim\text{Poisson}(4)\). Only \(\pi\) is unknown. Two EM runs from different starting values (one stopped early) report \(\hat\pi=0.3\) and \(\hat\pi=0.6\). Pick the one with the higher \(\ell(\pi)\).</p>
+<p>The component pmf values you'll need, which don't depend on \(\pi\):</p>
+<div class="tablewrap"><table class="ledger">
+<tr><th>\(x\)</th><th>\(f_1(x)=e^{-1}/x!\)</th><th>\(f_2(x)=4^xe^{-4}/x!\)</th></tr>
+<tr><td>0</td><td>0.367879</td><td>0.018316</td></tr>
+<tr><td>3</td><td>0.061313</td><td>0.195367</td></tr>
+<tr><td>5</td><td>0.003066</td><td>0.156293</td></tr>
+<tr><td>1</td><td>0.367879</td><td>0.073263</td></tr>
+</table></div>
+<p>Here you <em>can't</em> cancel \(x!\): the log-likelihood needs the actual densities, not ratios. At \(\pi=0.3\) the four terms \(\log[0.3f_1+0.7f_2]\) are \(-2.0941,\ -1.8634,\ -2.2043,\ -1.8223\), so \(\ell(0.3)=-7.98\).</p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>Compute \(\ell(0.6)\) and pick the run</h2>
+<div class="script">
+<p>The log goes outside the inner sum:</p>
+$$\begin{aligned}
+\ell(\pi)&=\sum_i\log\big[\pi f_1(x_i)+(1-\pi)f_2(x_i)\big]
+\end{aligned}$$
+<p>At \(\pi=0.6\):</p>
+<div class="tablewrap"><table class="ledger"><tr><th>\(x\)</th><th>\(0.6f_1\)</th><th>\(0.4f_2\)</th><th>sum</th><th>log</th></tr><tr><td>0</td><td>0.220727</td><td>0.007326</td><td>0.228054</td><td>−1.4782</td></tr><tr><td>3</td><td>0.036788</td><td>0.078147</td><td>0.114935</td><td>−2.1634</td></tr><tr><td>5</td><td>0.001840</td><td>0.062517</td><td>0.064357</td><td>−2.7433</td></tr><tr><td>1</td><td>0.220727</td><td>0.029305</td><td>0.250033</td><td>−1.3862</td></tr></table></div>
+$$\begin{aligned}
+\ell(0.6)&=-1.4782-2.1634-2.7433-1.3862\\
+&=-7.77\\
+\ell(0.3)&=-7.98
+\end{aligned}$$
+<p>\(-7.77\gt-7.98\).</p>
+<div class="answer-box"><p>Use \(\hat\pi=0.6\)</p></div>
+</div>
+<h2>Classify \(x_2=3\)</h2>
+<div class="script">
+<p>Using the \(x=3\) line of the table:</p>
+$$\begin{aligned}
+P(Z_2=1\mid X_2=3)&=\frac{0.6(0.061313)}{0.6(0.061313)+0.4(0.195367)}\\
+&=\frac{0.036788}{0.114935}\\
+&=0.32\\
+P(Z_2=2\mid X_2=3)&=1-0.32\\
+&=0.68
+\end{aligned}$$
+<div class="answer-box"><p>\(0.68\gt0.5\): assign \(x_2=3\) to cluster 2</p></div>
+</div>
+<h2>Why choose the larger \(\ell\)?</h2>
+<div class="script">
+<p>The MLE maximises the observed-data log-likelihood \(\ell(\theta)\). EM only guarantees \(\ell\) never decreases, so different starts can stop at different local maxima, or early. So compare runs on \(\ell\) and keep the higher: here \(\hat\pi=0.6\).</p>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+The log outside the sum · actual densities, \(x!\) not cancelled · \(-7.77\) vs \(-7.98\) · both probabilities and the rule · "EM reaches local maxima, the MLE maximises \(\ell\)".</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0016-mixture-models-and-responsibilities.html#challenge">Lesson 16, exam-style question</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

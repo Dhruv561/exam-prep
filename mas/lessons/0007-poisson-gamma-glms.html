@@ -290,7 +290,7 @@ log(nitrogen + 1)  1   1.5159        42    0.89019 <b>82.719</b> 1.761e-11 ***
 
 <p>Coming in Topic 3: for overdispersed counts, the quasi-Poisson model estimates \(\phi\) just like this, and the exam's F test is exactly this formula.</p>
 
-<h2>5 · Exam-level challenge</h2>
+<h2 id="challenge">5 · Exam-level challenge</h2>
 <p>Do this on paper in about 20 minutes, then open the steps one at a time.</p>
 <div class="box">
 <p>A water utility records the time (hours) to repair 50 burst mains. Predictors: <code>diam</code> (pipe diameter, cm), <code>soil</code> (factor: clay, loam, sand; baseline clay) and <code>depth</code> (m). Repair times are positive and right-skewed, with spread growing with the mean, so a gamma GLM with log link is fitted. (Simulated data.)</p>
@@ -358,6 +358,8 @@ $$F = \frac{(8.4640 - 7.1464)/2}{0.1578778} = \frac{0.6588}{0.1579} = 4.17 \;\si
 <p>Prefer <strong>model1</strong>: (i) the F test in (c) rejects dropping soil (F = 4.17 &gt; 3.20, p = 0.022); (ii) \(\text{AIC}_1 = 231.49 &lt; 236.17 = \text{AIC}_2\). (You might go further and drop <code>depth</code>, since \(t = -0.34\).) Neither soil dummy alone tells the whole story (sand is not significant on its own), which is why the factor is tested as a block on 2 df.</p></div></details>
 <details><summary>Step 6: part (f)</summary><div>
 <p>\(\hat\eta = 1.128416 + 0.025575(40) - 0.158320 - 0.037300(1.5) = 1.128416 + 1.023000 - 0.158320 - 0.055950 = 1.937146\), which matches R's 1.937164 up to rounding. \(\hat\mu = e^{1.937164} = \boxed{6.94\text{ hours}}\). CI: \(1.937164\pm1.96(0.08737868) = (1.7659,\ 2.1084)\), and exponentiating gives \(\boxed{(5.85,\ 8.24)}\) hours. Build the CI on the \(\eta\) scale and transform the endpoints. Don't use \(\hat\mu\pm1.96\,\text{se}\).</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0007-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>6 · Before you close this tab</h2>
 <details><summary>Retrieval: write these from memory, then check</summary><div>

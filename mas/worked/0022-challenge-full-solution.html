@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Normal Normal Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 22 · Exam-style question · Full written solution</div>
+<h1>Normal mean with a joint prior, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<p><strong>Setup</strong> (fresh model; 12 marks, about 28 minutes, FX-82, 2 d.p.).</p>
+<div class="box">
+<p><strong>Model:</strong> \(x_1,\dots,x_n\) are independent, \(x_i\mid\mu,\tau\sim\text{Normal}(\mu,\ 1/\tau)\).</p>
+<p><strong>Prior:</strong> \(p(\mu,\tau)=p(\mu\mid\tau)\,p(\tau)\) with</p>
+$$\mu\mid\tau\sim\text{Normal}\Big(1,\ \frac1{2\tau}\Big),\qquad\tau\sim\text{Gamma}(3,\ 2).$$
+</div>
+<ol type="a">
+  <li>Derive the conditional distribution \(p(\mu\mid\tau,x)\). If it is a known distribution, identify the distribution name and its parameters. <span class="marks">[4]</span></li>
+  <li>Suppose \(n=6\) and \(\bar x=3.4\). For \(\tau=2\), find the posterior mean of \(\mu\) and a 95% credible interval for \(\mu\). Show your work. <span class="marks">[3]</span></li>
+  <li>Write the posterior mean in (a) as a weighted average of the prior mean and \(\bar x\), and give the two weights. Briefly explain what happens to the weights as \(n\to\infty\). <span class="marks">[2]</span></li>
+  <li>An analyst instead uses the priors \(p(\mu\mid\tau)\propto1\) and \(p(\tau)\propto1/\tau\). Are these priors proper? Derive \(p(\tau\mid x)\), identify it, and state when it is a proper distribution. Let \(S=\sum_i(x_i-\bar x)^2\). <span class="marks">[3]</span></li>
+</ol>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · \(p(\mu\mid\tau,x)\) <span class="marks">[4]</span></h2>
+<div class="script">
+<p>Keep only the \(\mu\) terms of likelihood × prior. Prior variance \(\frac1{2\tau}\) gives \(e^{-\tau(\mu-1)^2}\):</p>
+$$\begin{aligned}
+p(\mu\mid\tau,x)&\propto p(x\mid\mu,\tau)\,p(\mu\mid\tau)\\
+&\propto\exp\Big\{-\frac\tau2\sum_i(x_i-\mu)^2\Big\}\exp\big\{-\tau(\mu-1)^2\big\}
+\end{aligned}$$
+<p>Expand and collect:</p>
+$$\begin{aligned}
+\text{exponent}&=-\frac\tau2\Big[n\mu^2-2\mu\sum_ix_i\Big]-\tau\big[\mu^2-2\mu\big]+\text{const}\\
+&=-\frac\tau2(n+2)\mu^2+\tau\big(n\bar x+2\big)\mu+\text{const}\\
+&=-\frac A2\mu^2+B\mu+\text{const}
+\end{aligned}$$
+<p>where</p>
+$$\begin{aligned}
+A&=(n+2)\tau\\
+B&=\tau(n\bar x+2)
+\end{aligned}$$
+<p>Complete the square:</p>
+$$\begin{aligned}
+p(\mu\mid\tau,x)&\propto\exp\Big\{-\frac A2\Big(\mu-\frac BA\Big)^2\Big\}\\
+\frac BA&=\frac{\tau(n\bar x+2)}{(n+2)\tau}=\frac{n\bar x+2}{n+2}\\
+\frac1A&=\frac1{(n+2)\tau}
+\end{aligned}$$
+<div class="answer-box"><p>\(\mu\mid\tau,x\sim\text{Normal}\Big(\dfrac{n\bar x+2}{n+2},\ \dfrac1{(n+2)\tau}\Big)\)</p></div>
+</div>
+<h2>(b) · Numbers at \(\tau=2\) <span class="marks">[3]</span></h2>
+<div class="script">
+$$\begin{aligned}
+E[\mu\mid\tau,x]&=\frac{6(3.4)+2}{6+2}\\
+&=\frac{22.4}8\\
+&=2.80\\
+\operatorname{Var}(\mu\mid\tau,x)&=\frac1{8(2)}\\
+&=0.0625\\
+\text{sd}&=0.25\\
+\text{95\% interval}&=2.80\pm1.96(0.25)\\
+&=2.80\pm0.49
+\end{aligned}$$
+<div class="answer-box"><p>Posterior mean \(2.80\), 95% credible interval \((2.31,\ 3.29)\)</p></div>
+</div>
+<h2>(c) · Weighted average <span class="marks">[2]</span></h2>
+<div class="script">
+$$\begin{aligned}
+E[\mu\mid\tau,x]&=\frac{n\bar x+2}{n+2}\\
+&=\frac2{n+2}\cdot1+\frac n{n+2}\cdot\bar x
+\end{aligned}$$
+<p>Weight \(\frac2{n+2}\) on the prior mean 1 and \(\frac n{n+2}\) on \(\bar x\) (0.25 and 0.75 at \(n=6\)). The prior acts like 2 extra observations at 1. As \(n\to\infty\), \(\frac2{n+2}\to0\) and \(\frac n{n+2}\to1\): the posterior mean tends to \(\bar x\) and the prior is washed out.</p>
+</div>
+<p class="note">Check: \(0.25(1)+0.75(3.4)=2.80\) ✓.</p>
+<h2>(d) · Improper priors <span class="marks">[3]</span></h2>
+<div class="script">
+<p>Both are improper:</p>
+$$\begin{aligned}
+\int_{-\infty}^\infty1\,d\mu&=\infty\\
+\int_0^\infty\tau^{-1}\,d\tau&=\infty
+\end{aligned}$$
+<p>Use \(\sum_i(x_i-\mu)^2=S+n(\bar x-\mu)^2\):</p>
+$$\begin{aligned}
+p(\mu,\tau\mid x)&\propto\tau^{n/2}e^{-\frac\tau2[S+n(\bar x-\mu)^2]}\tau^{-1}
+\end{aligned}$$
+<p>Integrate out \(\mu\) with the Normal normalising constant:</p>
+$$\begin{aligned}
+p(\tau\mid x)&\propto\tau^{\frac n2-1}e^{-\frac{\tau S}2}\int_{-\infty}^\infty e^{-\frac{n\tau}2(\mu-\bar x)^2}\,d\mu\\
+&=\tau^{\frac n2-1}e^{-\frac{\tau S}2}\sqrt{\frac{2\pi}{n\tau}}\\
+&\propto\tau^{\frac{n-1}2-1}e^{-\frac S2\tau}
+\end{aligned}$$
+<div class="answer-box"><p>\(\tau\mid x\sim\text{Gamma}\Big(\dfrac{n-1}2,\ \dfrac S2\Big)\), proper iff \(n\ge2\) and \(S\gt0\)</p></div>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+\(\tau\) kept in the prior variance · \(A\), \(B\) · Normal(mean, variance) · 0.25 as sd, not 0.0625 · weights and \(n\to\infty\) · both improper · \(\tau^{-1/2}\) from the integral, so shape \((n-1)/2\).</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0022-bayesian-inference.html#challenge">Lesson 22, exam-style question</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

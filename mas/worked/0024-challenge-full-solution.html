@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metropolis Hastings Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 24 · Exam-style question · Full written solution</div>
+<h1>Metropolis–Hastings acceptance, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<p><strong>Setup</strong> (fresh model; 12 marks, about 28 minutes, FX-82, 2 d.p.).</p>
+<div class="box">
+<p><strong>Model:</strong> \(x_1,\dots,x_5\) are independent, \(x_i\mid\mu,\tau\sim\text{Normal}(\mu,\ 1/\tau)\), with observed values \(0.5,\ 1.0,\ 1.5,\ 2.0,\ 1.0\) (so \(\bar x=1.2\) and \(\sum_i(x_i-\bar x)^2=1.30\)).</p>
+<p><strong>Prior:</strong> \(\mu\) and \(\tau\) independent, \(\mu\sim\text{Normal}(0,\ 4)\), \(\tau\sim\text{Gamma}(3,\ 2)\) (shape, rate).</p>
+<p><strong>Metropolis–Hastings:</strong> For the current values \((\mu^c,\tau^c)\), propose new values \((\mu^*,\tau^*)\) as follows: \(\tau^*\sim\text{Gamma}(\text{shape}=2,\ \text{rate}=2/\tau^c)\) and, independently, \(\mu^*\sim\text{Normal}(\text{mean}=\mu^c,\ \text{variance}=0.5)\).</p>
+</div>
+<ol type="a">
+  <li>Write down the target \(\pi(\mu,\tau)\) for the algorithm, up to a constant of proportionality. <span class="marks">[3]</span></li>
+  <li>Compute the acceptance probability when \((\mu^c,\tau^c)=(1,\ 1.5)\) and \((\mu^*,\tau^*)=(1.5,\ 1)\). Show your work. <span class="marks">[6]</span></li>
+  <li>Briefly explain why the proposal for \(\mu\) did not need to appear in your answer to (b). <span class="marks">[1]</span></li>
+  <li>In a long run the acceptance rate is 2%. Suggest one change to the algorithm, and say what you expect it to do to the acceptance rate and to the quality of the draws. <span class="marks">[2]</span></li>
+</ol>
+<p>Note: the Gamma(shape \(\nu\), rate \(\beta\)) density is \(\frac{\beta^\nu}{\Gamma(\nu)}x^{\nu-1}e^{-\beta x}\) for \(x&gt;0\), and \(\Gamma(2)=1\).</p>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · The target <span class="marks">[3]</span></h2>
+<div class="script">
+<p>\(\sum_i(x_i-\mu)^2=S+n(\bar x-\mu)^2=1.30+5(1.2-\mu)^2=:Q(\mu)\), and \(\pi\) is likelihood × priors:</p>
+$$\begin{aligned}
+\pi(\mu,\tau)&=p(x\mid\mu,\tau)\,p(\mu)\,p(\tau)\\
+&\propto\tau^{5/2}\exp\Big\{-\frac\tau2Q(\mu)\Big\}\exp\Big\{-\frac{\mu^2}{8}\Big\}\tau^{3-1}e^{-2\tau}
+\end{aligned}$$
+<div class="answer-box"><p>\(\pi(\mu,\tau)\propto\tau^{9/2}\exp\Big\{-\dfrac\tau2\big[1.30+5(1.2-\mu)^2\big]-\dfrac{\mu^2}8-2\tau\Big\}\)</p></div>
+</div>
+<h2>(b) · Acceptance probability <span class="marks">[6]</span></h2>
+<div class="script">
+$$\begin{aligned}
+\alpha&=\min\Big\{1,\ \frac{\pi(\mu^*,\tau^*)}{\pi(\mu^c,\tau^c)}\cdot\frac{q(\mu^c,\tau^c\mid\mu^*,\tau^*)}{q(\mu^*,\tau^*\mid\mu^c,\tau^c)}\Big\}
+\end{aligned}$$
+<p>\(Q\) at both points:</p>
+$$\begin{aligned}
+Q(\mu^c)&=1.30+5(1.2-1)^2\\
+&=1.50\\
+Q(\mu^*)&=1.30+5(1.2-1.5)^2\\
+&=1.75
+\end{aligned}$$
+<p>Likelihood ratio, new over current:</p>
+$$\begin{aligned}
+\text{(i)}&=\Big(\frac{\tau^*}{\tau^c}\Big)^{5/2}\exp\Big\{-\tfrac12\big[\tau^*Q(\mu^*)-\tau^cQ(\mu^c)\big]\Big\}\\
+&=\Big(\frac1{1.5}\Big)^{2.5}\exp\Big\{-\tfrac12\big[1.75-2.25\big]\Big\}\\
+&=0.3629\,e^{0.25}\\
+&=0.3629(1.2840)\\
+&=0.4660
+\end{aligned}$$
+<p>Prior ratios:</p>
+$$\begin{aligned}
+\text{(ii) }\mu&=\exp\Big\{-\frac{1.5^2-1^2}8\Big\}\\
+&=e^{-0.15625}\\
+&=0.8553\\
+\text{(iii) }\tau&=\Big(\frac{\tau^*}{\tau^c}\Big)^2e^{-2(\tau^*-\tau^c)}\\
+&=\Big(\frac1{1.5}\Big)^2e^{1}\\
+&=0.4444(2.7183)\\
+&=1.2081
+\end{aligned}$$
+<p>Proposal for \(\tau\). Rates: forward \(2/\tau^c=1.3333\), reverse \(2/\tau^*=2\). The density is \(\beta^2xe^{-\beta x}\):</p>
+$$\begin{aligned}
+q_\tau(\tau^*\mid\tau^c)&=(1.3333)^2(1)e^{-1.3333}\\
+&=1.7778(0.2636)\\
+&=0.4686\\
+q_\tau(\tau^c\mid\tau^*)&=2^2(1.5)e^{-3}\\
+&=6(0.049787)\\
+&=0.2987\\
+\text{(iv) ratio}&=\frac{0.2987}{0.4686}\\
+&=0.6375
+\end{aligned}$$
+<p>The \(\mu\) proposal ratio is 1 (see (c)). Multiply:</p>
+$$\begin{aligned}
+0.4660\times0.8553&=0.3986\\
+0.3986\times1.2081&=0.4815\\
+0.4815\times0.6375&=0.3070\\
+\alpha&=\min\{1,\ 0.3070\}\\
+&=0.31
+\end{aligned}$$
+<div class="answer-box"><p>\(\alpha=0.31\)</p></div>
+</div>
+<p class="note">Common slips: no proposal ratio gives 0.48; forward over reverse gives 0.76; shape 3 instead of \(3-1\) in the prior.</p>
+<h2>(c) · Why the \(\mu\) proposal vanishes <span class="marks">[1]</span></h2>
+<div class="script">
+<p>It is a Normal centred at the current value with the same variance 0.5 both ways, so \(q_\mu(\mu^*\mid\mu^c)=q_\mu(\mu^c\mid\mu^*)\): a symmetric random walk, so its ratio is 1.</p>
+</div>
+<h2>(d) · 2% acceptance <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Steps are too large, so proposals mostly land where \(\pi\) is much smaller. Reduce the proposal spread (e.g. \(\mu\) variance from 0.5 to 0.05, and a larger Gamma shape for \(\tau\) so it concentrates near \(\tau^c\)).</p>
+<p>That raises the acceptance rate and gives more distinct draws. Don't overdo it: very small steps are accepted nearly always but move slowly, giving high autocorrelation and a small effective sample size.</p>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+\(\tau^{5/2}\) kept · both priors · \(\alpha\) with reverse over forward · rate changes between directions · symmetric \(\mu\) proposal · product and min · smaller steps, with the trade-off.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0024-metropolis-hastings.html#challenge">Lesson 24, exam-style question</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

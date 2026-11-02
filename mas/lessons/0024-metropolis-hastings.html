@@ -348,7 +348,7 @@ ESS      1.02  94.64  45.42</pre>
   <div class="why">Precisions add (Lesson 22 §2): \(\kappa_n=\kappa_0+n\tau=0.5+8(2)=16.5\). Variance \(1/16.5=0.0606\), sd \(=\)<strong>0.25</strong> (\(0.2462\)). A chain whose sd is much smaller than this, say 0.05, has not explored the posterior (step size too small, or too short). A chain with an sd far larger has probably not burnt in.</div>
 </div>
 
-<h2>8 · Exam-style question</h2>
+<h2 id="challenge">8 · Exam-style question</h2>
 <p><strong>Setup</strong> (fresh model; 12 marks, about 28 minutes, FX-82, 2 d.p.).</p>
 <div class="box">
 <p><strong>Model:</strong> \(x_1,\dots,x_5\) are independent, \(x_i\mid\mu,\tau\sim\text{Normal}(\mu,\ 1/\tau)\), with observed values \(0.5,\ 1.0,\ 1.5,\ 2.0,\ 1.0\) (so \(\bar x=1.2\) and \(\sum_i(x_i-\bar x)^2=1.30\)).</p>
@@ -412,6 +412,8 @@ $$\begin{aligned}
 
 <p><strong>(d)</strong> <em>[1 mark: change; 1 mark: effect.]</em> A 2% acceptance rate means proposals mostly land where \(\pi\) is much smaller, so the steps are too large. Reduce the spread of the proposal (for example the variance of the \(\mu\) proposal from 0.5 to 0.05, and the Gamma shape of the \(\tau\) proposal increased so it concentrates around \(\tau^c\)). That should raise the acceptance rate, and with it the number of distinct draws. Don't go too far: very small steps are accepted nearly always but move slowly, giving strongly autocorrelated draws and a small effective sample size, so aim for an intermediate rate. <span class="marks">(Marks: 1 + 1.)</span></p>
 <p><strong>Total 12.</strong></p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0024-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>9 · Score yourself</h2>
 <div class="tablewrap"><table>

@@ -317,7 +317,7 @@ $$\text{ELBO}=-\frac12\Big[\Lambda_{11}\big(s_1^2+(m_1-\mu_1)^2\big)+\Lambda_{22
   <div class="why">Gibbs-with-expectations: the shape counts the \(\tau\) powers, unchanged (the independent prior on \(\mu\) has no \(\tau\), so no \(+\tfrac12\)); the expected squared residuals are \(\sum_i(x_i-E[\mu])^2+nV[\mu]\). The family stays Gamma because the log kernel stays \((\cdot-1)\log\tau-(\cdot)\tau\). Shape \(\tfrac{n+1}2\) belongs to the <em>joint</em> prior of §3.</div>
 </div>
 
-<h2>7 · Exam-style question</h2>
+<h2 id="challenge">7 · Exam-style question</h2>
 <p><strong>Setup</strong> (fresh model; 8 marks, about 18 minutes, FX-82 not needed, 2 d.p. if you evaluate).</p>
 <div class="box">
 <p><strong>Model:</strong> \(x_1,\dots,x_n\) are independent, \(x_i\mid\mu,\tau\sim\text{Normal}(\mu,\ 1/\tau)\).</p>
@@ -386,6 +386,8 @@ $$q^*_\mu(\mu)=\text{Normal}\Big(\frac{n\bar x\,E_\tau[\tau]+0.5}{n\,E_\tau[\tau
 <details><summary>Model answer</summary><div>
 <p>CAVI only guarantees a local optimum, and the ELBO is the quantity being maximised, so among several runs the one with the highest ELBO is the closest to the posterior. Here \(m^*\) and \(a^*\) are fixed by the data and prior and \(v^*,b^*\) have a single fixed point, so every start reaches the same optimum (the lecture's two runs both end at ELBO \(-69.14251\)) (<a href="../extra-notes/VI-3.pdf">VI-3</a>).</p></div></details>
 </div>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0027-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>8 · Score yourself</h2>
 <div class="tablewrap"><table>

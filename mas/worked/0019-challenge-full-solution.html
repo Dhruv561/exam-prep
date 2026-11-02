@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Call Centre Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 19 · Exam-style question · Full written solution</div>
+<h1>Call centre windows, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<div class="box">
+<p><strong>Setup</strong> (fresh model; 12 marks, about 28 minutes). A call centre records the number of calls \(X_i\) in each of \(n\) ten-minute windows. Busy windows have three times the call rate of quiet ones. For windows \(i=1,\dots,m\) the type was not recorded:</p>
+$$\begin{aligned}
+Z_i&amp;\sim\text{Categorical}(\pi,1-\pi)\\
+X_i\mid Z_i=1&amp;\sim\text{Poisson}(\lambda)\quad\text{(quiet)}\\
+X_i\mid Z_i=2&amp;\sim\text{Poisson}(3\lambda)\quad\text{(busy)}
+\end{aligned}$$
+<p>Windows \(i=m+1,\dots,n\) fell during an advertised promotion and are known to be busy: \(X_i\sim\text{Poisson}(3\lambda)\), with no \(Z_i\). All \(X_i\) are independent, \(\theta=(\pi,\lambda)\), \(X=(X_1,\dots,X_n)\), \(Z=(Z_1,\dots,Z_m)\). Your answers may contain \(P(Z_i=k\mid X_i,\theta^0)\).</p>
+<ol type="a">
+  <li>Derive \(Q(\theta,\theta^0)=E_{Z\mid X,\theta^0}[\log P(X,Z\mid\theta)]\), with the log pmfs expanded. <span class="marks">[4]</span></li>
+  <li>Derive the M-step for \(\pi\). <span class="marks">[2]</span></li>
+  <li>Derive the M-step for \(\lambda\). <span class="marks">[3]</span></li>
+  <li>\(m=4\) with \(x_{1:4}=(1,\ 4,\ 2,\ 6)\), and \(n-m=2\) promotion windows with \(x_5=5\), \(x_6=7\). With \(\theta^0=(0.5,\ 1.5)\), compute \(P(Z_i=1\mid X_i,\theta^0)\) for \(i=1,\dots,4\), then \(\hat\pi\) and \(\hat\lambda\) (2 d.p.). <span class="marks">[3]</span></li>
+</ol>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · \(Q(\theta,\theta^0)\) <span class="marks">[4]</span></h2>
+<div class="script">
+<p>Mixture windows get indicators; promotion windows contribute their Poisson\((3\lambda)\) pmf with no \(\pi\):</p>
+$$\begin{aligned}
+P(X,Z\mid\theta)&=\prod_{i=1}^m\Big[\pi\frac{\lambda^{x_i}e^{-\lambda}}{x_i!}\Big]^{I(Z_i=1)}\Big[(1-\pi)\frac{(3\lambda)^{x_i}e^{-3\lambda}}{x_i!}\Big]^{I(Z_i=2)}\\
+&\qquad\times\prod_{i=m+1}^n\frac{(3\lambda)^{x_i}e^{-3\lambda}}{x_i!}
+\end{aligned}$$
+<p>Take logs, with \(\log(3\lambda)^{x_i}=x_i\log3+x_i\log\lambda\):</p>
+$$\begin{aligned}
+\log P(X,Z\mid\theta)&=\sum_{i=1}^m\Big\{I(Z_i=1)\big[\log\pi+x_i\log\lambda-\lambda-\log x_i!\big]\\
+&\qquad+I(Z_i=2)\big[\log(1-\pi)+x_i\log3+x_i\log\lambda\\
+&\qquad\qquad-3\lambda-\log x_i!\big]\Big\}\\
+&\quad+\sum_{i=m+1}^n\big[x_i\log3+x_i\log\lambda-3\lambda-\log x_i!\big]
+\end{aligned}$$
+<p>Take the expectation with \(E_{Z\mid X,\theta^0}[I(Z_i=k)]=P(Z_i=k\mid X_i,\theta^0)=:\gamma_{ik}\). The last sum isn't random:</p>
+$$\begin{aligned}
+Q(\theta,\theta^0)&=\sum_{i=1}^m\Big\{\gamma_{i1}\big[\log\pi+x_i\log\lambda-\lambda-\log x_i!\big]\\
+&\qquad+\gamma_{i2}\big[\log(1-\pi)+x_i\log3+x_i\log\lambda-3\lambda-\log x_i!\big]\Big\}\\
+&\quad+\sum_{i=m+1}^n\big[x_i\log3+x_i\log\lambda-3\lambda-\log x_i!\big]
+\end{aligned}$$
+<p>with, by Bayes' rule,</p>
+$$\begin{aligned}
+\gamma_{i1}&=\frac{\pi^0(\lambda^0)^{x_i}e^{-\lambda^0}}{\pi^0(\lambda^0)^{x_i}e^{-\lambda^0}+(1-\pi^0)(3\lambda^0)^{x_i}e^{-3\lambda^0}}\\
+\gamma_{i2}&=1-\gamma_{i1}
+\end{aligned}$$
+</div>
+<h2>(b) · M-step for \(\pi\) <span class="marks">[2]</span></h2>
+<div class="script">
+$$\begin{aligned}
+\frac{\partial Q}{\partial\pi}&=\sum_{i=1}^m\Big[\frac{\gamma_{i1}}\pi-\frac{\gamma_{i2}}{1-\pi}\Big]=0\\
+(1-\pi)\sum_{i=1}^m\gamma_{i1}&=\pi\sum_{i=1}^m\gamma_{i2}\\
+\sum_{i=1}^m\gamma_{i1}&=\pi\sum_{i=1}^m(\gamma_{i1}+\gamma_{i2})\\
+&=\pi m\\
+\hat\pi&=\frac1m\sum_{i=1}^m\gamma_{i1}
+\end{aligned}$$
+</div>
+<p class="note">Divide by \(m\), not \(n\): promotion windows have no \(Z\), so they carry no information on \(\pi\).</p>
+<h2>(c) · M-step for \(\lambda\) <span class="marks">[3]</span></h2>
+<div class="script">
+<p>\(\lambda\) is in both components and in the promotion windows:</p>
+$$\begin{aligned}
+\frac{\partial Q}{\partial\lambda}&=\sum_{i=1}^m\Big[\gamma_{i1}\Big(\frac{x_i}\lambda-1\Big)+\gamma_{i2}\Big(\frac{x_i}\lambda-3\Big)\Big]+\sum_{i=m+1}^n\Big(\frac{x_i}\lambda-3\Big)\\
+&=\frac1\lambda\sum_{i=1}^m(\gamma_{i1}+\gamma_{i2})x_i+\frac1\lambda\sum_{i=m+1}^nx_i-\sum_{i=1}^m(\gamma_{i1}+3\gamma_{i2})-3(n-m)\\
+&=\frac1\lambda\sum_{i=1}^nx_i-\sum_{i=1}^m(\gamma_{i1}+3\gamma_{i2})-3(n-m)=0\\
+\hat\lambda&=\frac{\sum_{i=1}^nx_i}{\sum_{i=1}^m(\gamma_{i1}+3\gamma_{i2})+3(n-m)}
+\end{aligned}$$
+<p>Maximum: \(\partial^2Q/\partial\lambda^2=-\sum_ix_i/\lambda^2\lt0\).</p>
+</div>
+<h2>(d) · One iteration <span class="marks">[3]</span></h2>
+<div class="script">
+<p>Dividing top and bottom of \(\gamma_{i1}\) by its numerator:</p>
+$$\begin{aligned}
+\gamma_{i1}&=\frac1{1+\frac{1-\pi^0}{\pi^0}3^{x_i}e^{-2\lambda^0}}\\
+&=\frac1{1+3^{x_i}e^{-3}}\quad(\pi^0=0.5,\ \lambda^0=1.5)
+\end{aligned}$$
+<p>With \(e^{-3}=0.049787\):</p>
+$$\begin{aligned}
+x_1=1:\quad&\frac1{1+3(0.049787)}=\frac1{1.149361}=0.87\\
+x_2=4:\quad&\frac1{1+81(0.049787)}=\frac1{5.032753}=0.20\\
+x_3=2:\quad&\frac1{1+9(0.049787)}=\frac1{1.448084}=0.69\\
+x_4=6:\quad&\frac1{1+729(0.049787)}=\frac1{37.294773}=0.03
+\end{aligned}$$
+<p>Then, using \(\gamma_{i1}+3\gamma_{i2}=3-2\gamma_{i1}\):</p>
+$$\begin{aligned}
+\hat\pi&=\frac{0.8700+0.1987+0.6906+0.0268}4\\
+&=\frac{1.7861}4\\
+&=0.45\\
+\textstyle\sum_{i\le4}(3-2\gamma_{i1})&=12-2(1.7861)\\
+&=8.4277\\
+\hat\lambda&=\frac{1+4+2+6+5+7}{8.4277+3(2)}\\
+&=\frac{25}{14.4277}\\
+&=1.73
+\end{aligned}$$
+<div class="answer-box"><p>\(\gamma_{i1}=(0.87,\ 0.20,\ 0.69,\ 0.03)\), \(\hat\pi=0.45\), \(\hat\lambda=1.73\)</p></div>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Promotion term with no \(\pi\) and no indicator · \(x_i\log3\) kept · \(E[I]=P\) · \(\hat\pi\) over \(m\) · \(\hat\lambda\) with \(3(n-m)\) · cancelled E-step · all six \(x_i\) in the numerator.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0019-em-exam-twists.html#challenge">Lesson 19, exam-style question</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

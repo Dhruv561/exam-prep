@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bulb Lifetimes Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 17 · Exam-style question · Full written solution</div>
+<h1>Bulb lifetimes, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<div class="box">
+<p><strong>Setup</strong> (fresh model, past-paper shape; about 12 marks). The lifetimes \(X_1,\dots,X_n\) (years) of bulbs from two production lines are independent. Line 2's bulbs fail at twice line 1's rate. For \(i=1,\dots,n\):</p>
+$$\begin{aligned}
+Z_i&amp;\sim\text{Categorical}(\pi,1-\pi)\\
+X_i\mid Z_i=1&amp;\sim\text{Exponential}(\lambda)\\
+X_i\mid Z_i=2&amp;\sim\text{Exponential}(2\lambda)
+\end{aligned}$$
+<p>with \(f(x;\lambda)=\lambda e^{-\lambda x}\), \(x&gt;0\) (formula sheet, rate form). The parameters are \(\theta=(\pi,\lambda)\). Note the twist: <strong>one \(\lambda\) appears in both components</strong>.</p>
+<ol type="a">
+  <li>Write the complete-data likelihood \(P(X,Z\mid\theta)\) using indicators. <span class="marks">[2]</span></li>
+  <li>Derive \(Q(\theta,\theta^0)=E_{Z\mid X,\theta^0}[\log P(X,Z\mid\theta)]\), with the log densities expanded. <span class="marks">[3]</span></li>
+  <li>Give the E-step: \(P(Z_i=1\mid X_i,\theta^0)\) in terms of \(\theta^0=(\pi^0,\lambda^0)\), simplified. <span class="marks">[2]</span></li>
+  <li>With \(n=3\), \(x=(0.2,\ 1.5,\ 0.6)\) and \(\theta^0=(0.4,\ 1)\), compute the three \(P(Z_i=1\mid X_i,\theta^0)\) and \(\ell(\theta^0)\), each to 2 d.p. <span class="marks">[3]</span></li>
+  <li>Without doing the M-step, what can you say about \(\ell(\theta^1)\), where \(\theta^1\) is the next EM iterate? Justify in one or two sentences. <span class="marks">[2]</span></li>
+</ol>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · Complete-data likelihood <span class="marks">[2]</span></h2>
+<div class="script">
+<p>For each \(i\) exactly one indicator is 1:</p>
+$$\begin{aligned}
+P(X,Z\mid\theta)&=\prod_{i=1}^n\big[P(Z_i=1)\,P(X_i\mid Z_i=1)\big]^{I(Z_i=1)}\\
+&\qquad\times\big[P(Z_i=2)\,P(X_i\mid Z_i=2)\big]^{I(Z_i=2)}\\
+&=\prod_{i=1}^n\big[\pi\lambda e^{-\lambda x_i}\big]^{I(Z_i=1)}\big[(1-\pi)2\lambda e^{-2\lambda x_i}\big]^{I(Z_i=2)}
+\end{aligned}$$
+</div>
+<h2>(b) · \(Q(\theta,\theta^0)\) <span class="marks">[3]</span></h2>
+<div class="script">
+<p>Take logs:</p>
+$$\begin{aligned}
+\log P(X,Z\mid\theta)&=\sum_{i=1}^n\Big\{I(Z_i=1)\big[\log\pi+\log\lambda-\lambda x_i\big]\\
+&\qquad+I(Z_i=2)\big[\log(1-\pi)+\log2+\log\lambda-2\lambda x_i\big]\Big\}
+\end{aligned}$$
+<p>Only the indicators are random given \(X\). The expectation of an indicator is a probability:</p>
+$$\begin{aligned}
+E_{Z\mid X,\theta^0}\big[I(Z_i=k)\big]&=P(Z_i=k\mid X_i,\theta^0)
+\end{aligned}$$
+<p>So by linearity:</p>
+$$\begin{aligned}
+Q(\theta,\theta^0)&=\sum_{i=1}^n\Big\{P(Z_i=1\mid X_i,\theta^0)\big[\log\pi+\log\lambda-\lambda x_i\big]\\
+&\qquad+P(Z_i=2\mid X_i,\theta^0)\big[\log(1-\pi)+\log2+\log\lambda-2\lambda x_i\big]\Big\}
+\end{aligned}$$
+</div>
+<h2>(c) · E-step <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Bayes' rule at \(\theta^0\):</p>
+$$\begin{aligned}
+P(Z_i=1\mid X_i,\theta^0)&=\frac{\pi^0\lambda^0e^{-\lambda^0x_i}}{\pi^0\lambda^0e^{-\lambda^0x_i}+(1-\pi^0)2\lambda^0e^{-2\lambda^0x_i}}
+\end{aligned}$$
+<p>Divide top and bottom by \(\lambda^0e^{-\lambda^0x_i}\):</p>
+$$\begin{aligned}
+P(Z_i=1\mid X_i,\theta^0)&=\frac{\pi^0}{\pi^0+2(1-\pi^0)e^{-\lambda^0x_i}}\\
+P(Z_i=2\mid X_i,\theta^0)&=1-P(Z_i=1\mid X_i,\theta^0)
+\end{aligned}$$
+</div>
+<h2>(d) · Numbers <span class="marks">[3]</span></h2>
+<div class="script">
+<p>With \(\pi^0=0.4\), \(\lambda^0=1\): \(P(Z_i=1\mid X_i,\theta^0)=\dfrac{0.4}{0.4+1.2e^{-x_i}}\).</p>
+$$\begin{aligned}
+x_1=0.2:\quad&\frac{0.4}{0.4+1.2(0.818731)}=\frac{0.4}{1.382477}=0.29\\
+x_2=1.5:\quad&\frac{0.4}{0.4+1.2(0.223130)}=\frac{0.4}{0.667756}=0.60\\
+x_3=0.6:\quad&\frac{0.4}{0.4+1.2(0.548812)}=\frac{0.4}{1.058574}=0.38
+\end{aligned}$$
+<p>Incomplete log-likelihood, with the actual densities:</p>
+$$\begin{aligned}
+\ell(\theta^0)&=\sum_{i=1}^3\log\big[0.4e^{-x_i}+0.6(2)e^{-2x_i}\big]\\
+&=\sum_{i=1}^3\log\big[0.4e^{-x_i}+1.2e^{-2x_i}\big]
+\end{aligned}$$
+<div class="tablewrap"><table class="ledger"><tr><th>\(x_i\)</th><th>\(0.4e^{-x_i}\)</th><th>\(1.2e^{-2x_i}\)</th><th>sum</th><th>log</th></tr><tr><td>0.2</td><td>0.327492</td><td>0.804384</td><td>1.131876</td><td>0.1239</td></tr><tr><td>1.5</td><td>0.089252</td><td>0.059744</td><td>0.148996</td><td>−1.9038</td></tr><tr><td>0.6</td><td>0.219525</td><td>0.361433</td><td>0.580958</td><td>−0.5431</td></tr></table></div>
+$$\begin{aligned}
+\ell(\theta^0)&=0.1239-1.9038-0.5431\\
+&=-2.32
+\end{aligned}$$
+<div class="answer-box"><p>Responsibilities \((0.29,\ 0.60,\ 0.38)\), \(\ell(\theta^0)=-2.32\)</p></div>
+</div>
+<p class="note">A positive log term is fine: continuous densities can exceed 1.</p>
+<h2>(e) · \(\ell(\theta^1)\) <span class="marks">[2]</span></h2>
+<div class="script">
+<p>\(\ell(\theta^1)\ge\ell(\theta^0)=-2.32\). For all \(\theta\), \(\ell(\theta)\ge Q(\theta,\theta^0)+C\) with equality at \(\theta^0\), and the M-step maximises \(Q\):</p>
+$$\begin{aligned}
+\ell(\theta^1)&\ge Q(\theta^1,\theta^0)+C\\
+&\ge Q(\theta^0,\theta^0)+C\\
+&=\ell(\theta^0)
+\end{aligned}$$
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Indicators as exponents · factor 2 kept in the density · \(E[I]=P\) · Bayes' rule at \(\theta^0\) with the simplification · three responsibilities · \(\ell\) with log outside the sum · monotonicity with reason.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0017-em-algorithm-q-function.html#challenge">Lesson 17, exam-style question</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

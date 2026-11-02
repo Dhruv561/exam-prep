@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bivariate Prior Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 29 · Exam-style question · Full written solution</div>
+<h1>Bivariate Normal prior, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<div class="box">
+<p><strong>Model.</strong> Independently, \(x_i\mid\mu_1\sim N(\mu_1,2)\) for \(i=1,\dots,4\), and \(y_j\mid\mu_2\sim N(\mu_2,1)\) for \(j=1,\dots,6\).</p>
+<p><strong>Prior.</strong> \((\mu_1,\mu_2)^T\sim N(0,\Sigma)\) with \(\Sigma=\begin{pmatrix}1&-1\\-1&2\end{pmatrix}\).</p>
+<p><strong>Data.</strong> \(x=(2,3,1,4)\), \(y=(1,2,0,1,2,0)\).</p>
+<p>(a) Find \(\Sigma^{-1}\) and write the prior kernel with the exponent multiplied out. <span class="marks">[2]</span></p>
+<p>(b) Derive \(p(\mu_1\mid\mu_2,x,y)\) and \(p(\mu_2\mid\mu_1,x,y)\). Name each distribution and give its parameters as functions of the other mean. <span class="marks">[4]</span></p>
+<p>(c) For current values \((\mu_1^c,\mu_2^c)=(1,1)\), propose independently \(\mu_1^*\sim N(\mu_2^c,1)\) and \(\mu_2^*\sim N(0,4)\). Compute the acceptance probability for the proposed values \((\mu_1^*,\mu_2^*)=(1.5,0)\). <span class="marks">[5]</span></p>
+<p>(d) Use a mean-field family \(q(\mu_1,\mu_2)=q_1(\mu_1)q_2(\mu_2)\) and CAVI. Derive \(q_1^*\) and \(q_2^*\), then find \(E[\mu_1]\) and \(E[\mu_2]\) at convergence. <span class="marks">[4]</span></p>
+<p>(e) Give the exact posterior variance of \(\mu_1\), compare it with the variance under \(q_1^*\), and explain the difference. <span class="marks">[2]</span></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · \(\Sigma^{-1}\) and prior kernel <span class="marks">[2]</span></h2>
+<div class="script">
+$$\begin{aligned}
+|\Sigma|&=1(2)-(-1)^2\\
+&=1\\
+\Sigma^{-1}&=\frac11\begin{pmatrix}2&1\\1&1\end{pmatrix}\\
+p(\mu_1,\mu_2)&\propto\exp\Big\{-\tfrac12\mu^T\Sigma^{-1}\mu\Big\}\\
+&=\exp\Big\{-\tfrac12\big(2\mu_1^2+2\mu_1\mu_2+\mu_2^2\big)\Big\}
+\end{aligned}$$
+</div>
+<h2>(b) · Full conditionals <span class="marks">[4]</span></h2>
+<div class="script">
+<p><strong>\(\mu_1\).</strong> Keep the \(x\) likelihood and the prior. \(\sum_ix_i=10\), \(n=4\), variance 2:</p>
+$$\begin{aligned}
+p(\mu_1\mid\mu_2,x,y)&\propto\exp\Big\{-\frac{\sum_i(x_i-\mu_1)^2}4\Big\}\exp\Big\{-\tfrac12\big(2\mu_1^2+2\mu_1\mu_2\big)\Big\}\\
+&\propto\exp\Big\{-\tfrac12\Big[2\mu_1^2-10\mu_1+2\mu_1^2+2\mu_1\mu_2\Big]\Big\}\\
+&=\exp\Big\{-\tfrac12\big[4\mu_1^2-2(5-\mu_2)\mu_1\big]\Big\}
+\end{aligned}$$
+<p>Precision 4, so the variance is \(\frac14\) and the mean is \(\frac{5-\mu_2}4\).</p>
+<p><strong>\(\mu_2\).</strong> Keep the \(y\) likelihood and the prior. \(\sum_jy_j=6\), \(m=6\), variance 1:</p>
+$$\begin{aligned}
+p(\mu_2\mid\mu_1,x,y)&\propto\exp\Big\{-\frac{\sum_j(y_j-\mu_2)^2}2\Big\}\exp\Big\{-\tfrac12\big(2\mu_1\mu_2+\mu_2^2\big)\Big\}\\
+&\propto\exp\Big\{-\tfrac12\Big[6\mu_2^2-12\mu_2+2\mu_1\mu_2+\mu_2^2\Big]\Big\}\\
+&=\exp\Big\{-\tfrac12\big[7\mu_2^2-2(6-\mu_1)\mu_2\big]\Big\}
+\end{aligned}$$
+<div class="answer-box"><p>\(\mu_1\mid\mu_2,x,y\sim N\Big(\dfrac{5-\mu_2}4,\ \dfrac14\Big)\) and \(\mu_2\mid\mu_1,x,y\sim N\Big(\dfrac{6-\mu_1}7,\ \dfrac17\Big)\)</p></div>
+</div>
+<h2>(c) · Acceptance probability <span class="marks">[5]</span></h2>
+<div class="script">
+<p>Sums of squares:</p>
+$$\begin{aligned}
+\textstyle\sum_i(x_i-1)^2&=1+4+0+9=14\\
+\textstyle\sum_i(x_i-1.5)^2&=0.25+2.25+0.25+6.25=9\\
+\textstyle\sum_j(y_j-1)^2&=0+1+1+0+1+1=4\\
+\textstyle\sum_j(y_j-0)^2&=1+4+0+1+4+0=10
+\end{aligned}$$
+<p>Log likelihood ratio, new minus current (\(x\) divides by 4, \(y\) by 2):</p>
+$$\begin{aligned}
+\text{likelihood}&=\frac{14-9}4+\frac{4-10}2\\
+&=1.25-3\\
+&=-1.75
+\end{aligned}$$
+<p>Log prior ratio, with \(R(\mu)=2\mu_1^2+2\mu_1\mu_2+\mu_2^2\):</p>
+$$\begin{aligned}
+R(1,1)&=2+2+1=5\\
+R(1.5,0)&=4.5+0+0=4.5\\
+\text{prior}&=-\tfrac12(4.5-5)\\
+&=0.25\\
+\text{target}&=-1.75+0.25\\
+&=-1.5
+\end{aligned}$$
+<p>Proposal. Forward, \(\mu_1^*\) has mean \(\mu_2^c=1\). Reverse, \(\mu_1^c\) has mean \(\mu_2^*=0\):</p>
+$$\begin{aligned}
+\log q(\mu^*\mid\mu^c)&=-\frac{(1.5-1)^2}2-\frac{0^2}8+\text{const}\\
+&=-0.125+\text{const}\\
+\log q(\mu^c\mid\mu^*)&=-\frac{(1-0)^2}2-\frac{1^2}8+\text{const}\\
+&=-0.625+\text{const}\\
+\text{proposal}&=-0.625-(-0.125)\\
+&=-0.5
+\end{aligned}$$
+<p>Combine:</p>
+$$\begin{aligned}
+\log(\text{ratio})&=-1.5-0.5\\
+&=-2\\
+\alpha&=\min\{1,\ e^{-2}\}\\
+&=0.14
+\end{aligned}$$
+<div class="answer-box"><p>\(\alpha=0.14\)</p></div>
+</div>
+<p class="note">The trap: the reverse mean uses the proposed \(\mu_2^*\).</p>
+<h2>(d) · CAVI <span class="marks">[4]</span></h2>
+<div class="script">
+<p>Take expectations in the same exponents; the cross term becomes linear:</p>
+$$\begin{aligned}
+\log q_1^*(\mu_1)&=-\tfrac12\big[4\mu_1^2-2(5-E[\mu_2])\mu_1\big]+\text{const}\\
+q_1^*&=N\Big(\frac{5-E[\mu_2]}4,\ \frac14\Big)\\
+\log q_2^*(\mu_2)&=-\tfrac12\big[7\mu_2^2-2(6-E[\mu_1])\mu_2\big]+\text{const}\\
+q_2^*&=N\Big(\frac{6-E[\mu_1]}7,\ \frac17\Big)
+\end{aligned}$$
+<p>At convergence, with \(m_1=E[\mu_1]\), \(m_2=E[\mu_2]\):</p>
+$$\begin{aligned}
+4m_1+m_2&=5\\
+m_1+7m_2&=6\\
+28m_1+7m_2&=35\quad(7\times\text{first})\\
+27m_1&=29\quad(\text{subtract second})\\
+m_1&=\frac{29}{27}=1.07\\
+m_2&=5-4\Big(\frac{29}{27}\Big)=\frac{19}{27}=0.70
+\end{aligned}$$
+<div class="answer-box"><p>\(E[\mu_1]=1.07\), \(E[\mu_2]=0.70\)</p></div>
+</div>
+<h2>(e) · Exact variance <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Exact posterior precision matrix, the coefficients of the quadratic:</p>
+$$\begin{aligned}
+P&=\begin{pmatrix}4&1\\1&7\end{pmatrix}\\
+|P|&=4(7)-1\\
+&=27\\
+\operatorname{Var}(\mu_1\mid x,y)&=\frac7{27}\\
+&=0.26
+\end{aligned}$$
+<p>\(q_1^*\) has variance \(0.25\), slightly smaller. The mean-field family has no correlation, so it gives the variance of \(\mu_1\) with \(\mu_2\) fixed and misses the part due to uncertainty in \(\mu_2\).</p>
+<div class="answer-box"><p>Exact \(0.26\) vs \(q_1^*\) \(0.25\)</p></div>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+\(\Sigma^{-1}\) and kernel · both conditionals with precision · reverse proposal mean · \(\alpha\) · \(E[\mu_2]\) in \(q_1^*\) · fixed point solved · \(7/27\) and why mean-field is smaller.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0029-bivariate-normal-prior.html#challenge">Lesson 29, exam-style question</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

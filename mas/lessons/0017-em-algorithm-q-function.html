@@ -407,7 +407,7 @@ ill     -326.57 -326.57 -378.32</pre>
 <p>EM is a hill-climbing method: each iteration increases the incomplete log-likelihood, but only until it reaches a stationary point near the starting value, which may be a local maximum (or, like EM3, a point where the components coincide) rather than the global one. Running EM from several different initial values and keeping the run with the highest final incomplete log-likelihood gives the best available estimate of the MLE. Runs that differ only by a relabelling of components have the same \(\ell\) and are equally good.</p></div></details>
 </div>
 
-<h2>8 · Exam-style practice</h2>
+<h2 id="challenge">8 · Exam-style practice</h2>
 <p><strong>Setup</strong> (fresh model, past-paper shape; about 12 marks). The lifetimes \(X_1,\dots,X_n\) (years) of bulbs from two production lines are independent. Line 2's bulbs fail at twice line 1's rate. For \(i=1,\dots,n\):</p>
 $$\begin{aligned}
 Z_i&amp;\sim\text{Categorical}(\pi,1-\pi)\\
@@ -476,6 +476,8 @@ x_3=0.6:\quad&amp;\frac{0.4}{0.4+1.2\times0.548812}=\frac{0.4}{1.058574}=0.38
 <p>\(\ell(\theta^0)=-2.32\) (Q12's table). R check: <code>a &lt;- 0.4*dexp(x, 1); b &lt;- 0.6*dexp(x, 2)</code> gives <code>a/(a+b)</code> \(=0.2893,\ 0.5990,\ 0.3779\) and <code>sum(log(a+b))</code> \(=-2.323033\).</p>
 <p><strong>(e)</strong> \(\ell(\theta^1)\ge\ell(\theta^0)=-2.32\). EM never decreases the incomplete log-likelihood: \(\ell(\theta)\ge Q(\theta,\theta^0)+C\) for all \(\theta\) with equality at \(\theta^0\) (Jensen), and the M-step chooses \(\theta^1\) to maximise \(Q(\theta,\theta^0)\), so \(\ell(\theta^1)\ge Q(\theta^1,\theta^0)+C\ge Q(\theta^0,\theta^0)+C=\ell(\theta^0)\).</p>
 <p><em>Lesson 18 finishes this question</em>: because \(\lambda\) appears in both components, \(\partial Q/\partial\lambda\) collects terms from both, which is the twist the M-step marks are for.</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0017-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>9 · Score yourself</h2>
 <div class="tablewrap"><table>

@@ -176,7 +176,7 @@ $$\text{SE}_{\text{true}} \approx \sqrt{\hat\phi}\;\text{SE}_{\text{Pois}},\qqua
 <h2>5 · The fix, in one line</h2>
 <p>Keep the Poisson/binomial mean and variance <em>shape</em>, but free the scale: \(\operatorname{Var}Y_i = \phi\,v(\mu_i)\) with \(\phi\) estimated by \(\hat\phi = X^2/(n-p)\) (<a href="../annotated-slides/Overdispersion_Quasilikelihood_annotated.pdf#page=19">annotated p. 19</a>). That's quasi-Poisson / quasi-binomial: same \(\hat\beta\), SEs \(\times\sqrt{\hat\phi}\), \(t\) instead of \(z\), and F tests instead of \(\chi^2\). Why it's legitimate without a full distribution is <a href="0011-quasi-likelihood-theory.html">Lesson 11</a>; reading its R output is <a href="0012-quasi-poisson-binomial-output.html">Lesson 12</a>. (Alternative: a different distribution, e.g. negative binomial with \(\operatorname{Var}Y = \mu + \alpha\mu^2\), <a href="../annotated-slides/Overdispersion_Quasilikelihood_annotated.pdf#page=5">annotated p. 5</a>.)</p>
 
-<h2>6 · Exam-level challenge</h2>
+<h2 id="challenge">6 · Exam-level challenge</h2>
 <p>Do this on paper in about 12 minutes, then open the steps one at a time.</p>
 <div class="box">
 <p>A council ecologist counts weeds in 60 one-square-metre quadrats along a creek. Predictors: <code>treat</code> (control, mulch, spray; baseline control), <code>shade</code> (% canopy cover) and <code>slope</code> (ground slope, degrees). (Simulated data.)</p>
@@ -239,6 +239,8 @@ AIC: 439.64
 <p>Allowing for it, with \(\hat\phi\) from modelB: \(\sqrt{3.402144} = 1.8445\), so \(\text{SE} = 0.009071\times1.8445 = 0.01673\) and \(z = -0.024270/0.01673 = -1.45\). \(|z| &lt; 1.96\): <code>slope</code> is not significant, and the conclusion flips. (The F test of Lesson 12 agrees: \(F = 7.1659/3.402144 = 2.11\) on (1, 55) df, p = 0.15.)</p></div></details>
 <details><summary>Step 5: part (e)</summary><div>
 <p>The estimates are fine (\(\phi\) cancels from the estimating equations), but the Poisson model assumes Var = \(\mu\) while the data have Var \(\approx 3.4\mu\). So \(\operatorname{Var}\hat\beta\) is understated by a factor of about 3.4, the SEs by \(\sqrt{3.4}\approx1.84\): \(z\) values too big, p-values too small, CIs too narrow, and the \(\chi^2\) LRT too significant. Here that makes <code>slope</code> look important (p = 0.007) when, allowing for overdispersion, it isn't (and even <code>shade</code> drops to \(|z| = 3.364/1.8445 = 1.82\)).</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0010-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>7 · Before you close this tab</h2>
 <details><summary>Retrieval: write these from memory, then check</summary><div>

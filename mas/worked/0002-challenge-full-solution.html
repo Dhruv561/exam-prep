@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Readmissions Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 2 · Exam-level challenge · Full written solution</div>
+<h1>Hospital readmissions, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<div class="box">
+<p>A hospital records 30-day readmissions. Patients are grouped by age (years) and whether they got a follow-up phone call after discharge (<code>call</code> = 1) or not (0). In each group \(m_i = 60\) and \(Y_i\) is the number readmitted.</p>
+<div class="tablewrap"><pre style="margin:0;font-size:.8rem">&gt; model &lt;- glm(cbind(readmit, 60 - readmit) ~ age + call, family = binomial, data = rd)
+Coefficients:
+             Estimate Std. Error z value Pr(>|z|)
+(Intercept) -3.60777    0.69089  -5.222 1.77e-07 ***
+age          0.04422    0.01012   4.367 1.26e-05 ***
+call        -0.92544    0.22463  -4.120 3.79e-05 ***
+
+&gt; vcov(model)
+            (Intercept)           age          call
+(Intercept)  0.47733   -0.0068487   -0.0079756
+age         -0.0068487  0.00010251  -0.00017631
+call        -0.0079756 -0.00017631   0.050459</pre></div>
+<p>(a) Write down the model and its log-likelihood \(\ell(\beta)\).<br>
+(b) Estimate the readmission probability for a 70-year-old who got a call.<br>
+(c) Give a 95% CI for that probability.<br>
+(d) By what percentage do the odds of readmission change for a patient 15 years older, all else equal? Give a 95% CI.<br>
+(e) Interpret the <code>call</code> coefficient as an odds ratio with a 95% CI, in one sentence.</p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · Model and log-likelihood</h2>
+<div class="script">
+<p>\(Y_i\sim\text{Bin}(60,p_i)\) independently, with logit link:</p>
+$$\begin{aligned}
+\log\frac{p_i}{1-p_i}&=\eta_i\\
+&=\beta_0+\beta_1\text{age}_i+\beta_2\text{call}_i
+\end{aligned}$$
+<p>Log-likelihood, using \(\log\frac{p_i}{1-p_i}=\eta_i\) and \(\log(1-p_i)=-\log(1+e^{\eta_i})\):</p>
+$$\begin{aligned}
+\ell(\beta)&=c+\sum_i\big[y_i\log p_i+(60-y_i)\log(1-p_i)\big]\\
+&=c+\sum_i\big[y_i\eta_i+60\log(1-p_i)\big]\\
+&=c+\sum_i\big[y_i\eta_i-60\log(1+e^{\eta_i})\big]
+\end{aligned}$$
+</div>
+<p class="note">Distribution, independence, link and linear predictor: each is usually a mark.</p>
+<h2>(b) · Point estimate</h2>
+<div class="script">
+<p>With \(x_0=(1,\ 70,\ 1)\):</p>
+$$\begin{aligned}
+\hat\eta_0&=-3.60777+70(0.04422)-0.92544\\
+&=-3.60777+3.09540-0.92544\\
+&=-1.4378\\
+\hat p_0&=\frac{e^{-1.4378}}{1+e^{-1.4378}}\\
+&=0.19
+\end{aligned}$$
+<div class="answer-box"><p>\(\hat p_0=0.19\)</p></div>
+</div>
+<h2>(c) · CI for that probability</h2>
+<div class="script">
+<p>\(x_0^TVx_0\) is the three variances plus twice each covariance:</p>
+$$\begin{aligned}
+\operatorname{Var}\hat\eta_0&=V_{00}+70^2V_{11}+V_{22}+2(70)V_{01}+2V_{02}+2(70)V_{12}\\
+&=0.47733+4900(0.00010251)+0.050459\\
+&\quad+140(-0.0068487)+2(-0.0079756)+140(-0.00017631)\\
+&=0.47733+0.50230+0.05046-0.95882-0.01595-0.02468\\
+&=0.03064\\
+\text{se}(\hat\eta_0)&=\sqrt{0.03064}=0.1750
+\end{aligned}$$
+<p>CI on the \(\eta\) scale:</p>
+$$\begin{aligned}
+\text{CI}&=-1.4378\pm1.96(0.1750)\\
+&=-1.4378\pm0.3431\\
+&=(-1.7809,\ -1.0948)
+\end{aligned}$$
+<p>Transform each end:</p>
+$$\begin{aligned}
+\frac{e^{-1.7809}}{1+e^{-1.7809}}&=0.14\\
+\frac{e^{-1.0948}}{1+e^{-1.0948}}&=0.25
+\end{aligned}$$
+<div class="answer-box"><p>95% CI for \(p_0\): \((0.14,\ 0.25)\)</p></div>
+</div>
+<p class="note">Don't drop the covariances: without them se = 1.02 and the CI is about (0.03, 0.63).</p>
+<h2>(d) · 15 years older</h2>
+<div class="script">
+<p>The log-odds change by \(15\beta_1\):</p>
+$$\begin{aligned}
+15\hat\beta_1&=15(0.04422)=0.6633\\
+e^{0.6633}&=1.94\\
+\text{se}(15\hat\beta_1)&=15(0.01012)=0.1518\\
+\text{CI}&=0.6633\pm1.96(0.1518)\\
+&=(0.3658,\ 0.9608)\\
+\text{exp}&\Rightarrow(1.44,\ 2.61)
+\end{aligned}$$
+<div class="answer-box"><p>Odds rise by 94% (95% CI: 44% to 161%)</p></div>
+</div>
+<h2>(e) · The call coefficient</h2>
+<div class="script">
+$$\begin{aligned}
+e^{-0.92544}&=0.40\\
+\text{CI}&=-0.92544\pm1.96(0.22463)\\
+&=(-1.3657,\ -0.4852)\\
+\text{exp}&\Rightarrow(0.26,\ 0.62)
+\end{aligned}$$
+<p>Holding age fixed, a follow-up call multiplies the odds of readmission by an estimated 0.40 (95% CI 0.26 to 0.62), i.e. about 60% lower odds.</p>
+</div>
+<p class="note">The CI excludes 1, consistent with \(|z|=4.12\gt1.96\).</p>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Bin(60, \(p_i\)), logit, \(\eta_i\) · \(\ell(\beta)\) · \(\hat\eta_0\) then \(\hat p_0\) · six terms in the variance · CI on \(\eta\) then transformed · 15 × coefficient and 15 × se · "holding age fixed" in the sentence.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0002-binomial-regression.html#challenge">Lesson 2, exam-level challenge</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

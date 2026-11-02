@@ -1,0 +1,99 @@
+% ===================== PAGE 3: CUT TO FIT PAGES 1 AND 2 =====================
+% Holding page: the exam allows one A4 sheet, double-sided, so this page does not go in.
+% To drop it, delete the marked lines at the end of mas-cheat-sheet.tex.
+% This page has room, so lines may not overlap here, unlike pages 1 and 2.
+\lineskip=0.6pt \lineskiplimit=0pt \normallineskip=0.6pt \normallineskiplimit=0pt
+\topic{PAGE 3: CUT FROM PAGES 1 AND 2}
+Holding page. Exam notes are one A4 sheet, double-sided, so this does not go in as it stands.
+% ---------- prerequisites ----------
+\topic{PREREQUISITES}
+\hd{Confidence intervals:} \bh{Pivot:} function of data and $\theta$ with fully known distribution.
+\sk{\renewcommand{\arraystretch}{1.1}%
+\begin{tabular}{@{}|p{38pt}|p{92pt}|@{}}\hline
+\rowcolor{hdr}Want&95\% CI\\\hline
+$\mu$, $\sigma$ known&$\bar x\pm z\,\sigma/\sqrt n$\\\hline
+$\mu$, $\sigma$ unk.&$\bar x\pm t_{n-1}\,s/\sqrt n$\\\hline
+$\mu_X{-}\mu_Y$, equal var&$\bar x-\bar y\pm t_{n+m-2}\,s_p\sqrt{1/n+1/m}$\\\hline
+$p$&$\hat p\pm z\sqrt{\hat p(1-\hat p)/n}$\\\hline
+$\sigma^2$ ($\chi^2_{n-1}$ $c$)&$[(n-1)s^2/c_{.975},\ (n-1)s^2/c_{.025}]$\\\hline
+New $X^*$ (PI)&$\bar x\pm t_{n-1}\,s\sqrt{1+1/n}$\\\hline
+\end{tabular}}
+\bx
+\hd{Tests, estimators:} $H_1$: effect. \bh{Test statistic:} known distribution under $H_0$. Statistical $\ne$ practical significance. \bh{Unbiased:} Bias 0. $(n-1)S^2/\sigma^2\sim\chi^2_{n-1}$ for Normal data.
+\sk\hd{Model terms:} Test a factor by one LRT on $L-1$ df, not its separate $z$ values. Observational data show \bh{association, not causation}. A predictor that flips sign is “not significant in the presence of the others”.
+\sk\bh{Bivariate Normal pdf:} $f(x)=\frac{1}{2\pi|\Sigma|^{1/2}}\exp\{-\frac12(x-\mu)\T\Sigma\inv(x-\mu)\}$.
+\sk\bh{More cutoffs:} $\chi^2_{df}(.95)$: 8: 15.51, 25: 37.65. $\chi^2_{df}(.99)$: 2: 9.21, 3: 11.34. $\Phi(1)=.84$, $\Phi(2)=.98$. $t_{60}(.975)=2.00$.
+% ---------- likelihood, binomial ----------
+\topic{LIKELIHOOD \& BINOMIAL REGRESSION}
+\hd{More MLE rows:}\par
+{\renewcommand{\arraystretch}{1.1}%
+\begin{tabular}{@{}|p{50pt}|p{42pt}|p{37pt}|@{}}\hline
+\rowcolor{hdr}iid $X_i\sim$&MLE&$I(\theta)$\\\hline
+Bernoulli$(p)$&$\bar x$&$n/(p(1{-}p))$\\\hline
+$\theta x^{\theta-1}$ on (0,1)&$-n/\sum\log x_i$&$n/\theta^2$\\\hline
+$\frac x\theta e^{-x^2/2\theta}$&$\sum x_i^2/2n$&$n/\theta^2$\\\hline
+\end{tabular}}
+\bx
+\hd{Logit information, one predictor:}
+\dm{I(\beta)=\begin{pmatrix}\sum m_ip_iq_i&\sum m_ix_ip_iq_i\\\sum m_ix_ip_iq_i&\sum m_ix_i^2p_iq_i\end{pmatrix},\ q_i=1-p_i}
+\bh{Probit:} $I=X\T WX$, $W_{ii}=m_i\varphi(\eta_i)^2/[\Phi(\eta_i)(1-\Phi(\eta_i))]$.
+% ---------- GLM ----------
+\topic{GLMs: DEVIANCE, IWLS, DIAGNOSTICS}
+\hd{Why the deviance (Poisson):} $l_S=\sum[y_i\log y_i-y_i-\log y_i!]$, $\hat l=\sum[y_i\log\hmu_i-\hmu_i-\log y_i!]$; double the gap.
+\bx
+\hd{IWLS, other families in full:}\par
+{\renewcommand{\arraystretch}{1.08}%
+\begin{tabular}{@{}|p{34pt}|p{54pt}|p{40pt}|@{}}\hline
+\rowcolor{hdr}Family, link&$z_i$&$W_{ii}$\\\hline
+Poisson, $\sqrt{\ }$&$\eta/2+y/(2\eta)$&4\\\hline
+Binom, cloglog&$\eta+\frac{y-\mu}{m(1-p)L}$&$m(1-p)L^2/p$\\\hline
+Gamma, $1/\mu$&$\eta-(y-\mu)/\mu^2$&$\mu^2$\\\hline
+Gamma, identity&$y$&$1/\mu^2$\\\hline
+IG, $1/\mu$&$\eta-(y-\mu)/\mu^2$&$\mu$\\\hline
+\end{tabular}}
+Cloglog: $L=e^\eta=-\log(1-p)$.
+% ---------- overdispersion ----------
+\topic{OVERDISPERSION \& QUASI-LIKELIHOOD}
+\hd{Quasi-score in full:} \m{u_i=\frac{Y_i-\mu_i}{\phi v(\mu_i)}}: $\E u=0$, $\Var u=\frac1{\phi v}$, $-\E\frac{\partial u}{\partial\mu}=\frac1{\phi v}=\E u^2$, same as $\partial\log L/\partial\mu$.
+% ---------- R output ----------
+\topic{READING R OUTPUT}
+\li\bh{Deviance Residuals} (old R): want median near 0, roughly symmetric.
+\li\bh{Std. Error:} $\sqrt{V_{jj}}=\sqrt{[I(\hb)\inv]_{jj}}$.
+\li\bh{Interaction tested twice:} $z$ from Fisher information $\sim\Nor(0,1)$, and $\Delta D\sim\chi^2_1$. Prefer $\Delta D$.
+% ---------- EM ----------
+\topic{MIXTURES \& EM}
+\li Exp$(\lambda)$, Exp$(2\lambda)$: $P_{i1}=\pi/[\pi+2(1-\pi)e^{-\lambda x_i}]$.
+\li $\Nor(\mu,1)$, $\Nor(2\mu,4)$: $\hmu=\frac1n\sum(P_{i1}+\frac12P_{i2})x_i$.
+\li $K=3$: $N_k/\pi_k=c$ for all $k$, sum gives $c=n$.
+\li\bh{Is it a maximum?} $Q''_\mu=-N_k/\sigma_k^2$; $Q''_\pi=-N_1/\pi^2-N_2/(1-\pi)^2$; $Q''_{\sigma^2}=-N_k/2\hat\sigma_k^4$.
+\li\bh{Overlap:} $\pik$ less decisive, EM slower and more start-sensitive. Do not compare log-lik across different data.
+\li`length(log_liks)` $=$ iterations $+1$.
+% ---------- Bayes ----------
+\topic{BAYES}
+\li\bh{In $\lambda$:} Poisson likelihood is $\lambda^{\sum y_i}e^{-n\lambda}$, Exp is $\lambda^ne^{-\lambda\sum y_i}$: Gamma kernels. Exp(rate $b$) = Gamma$(1,b)$.
+\li\bh{Exp-Gamma mean:} weight $\frac b{b+\sum x_i}$ on $a/b$, rest on $n/\sum x_i$.
+\li\bh{Predictive $t$:} known mean $\mu_0$, $\tau|x\sim\Ga(a^*,b^*)$: 3-parameter $t$, $\nu=2a^*$, location $\mu_0$, scale$^2$ $s^2=b^*/a^*$, pdf $\propto(1+\frac{(x-\mu_0)^2}{\nu s^2})^{-(\nu+1)/2}$.
+\li\bh{Spike prior:} $p(x|\gamma)=\int p(x|\mu)p(\mu|\gamma)d\mu$.
+\li\bh{Conjugate exp family:} $f=\alpha(x)e^{x\theta+\beta(\theta)}$, prior $\propto e^{\gamma\theta+\delta\beta(\theta)}$: posterior $(\gamma+x,\delta+1)$.
+\li\bh{Joint prior} $\mu|\tau$, $\tau$: exact posterior (VI box), so sample $\tau$ then $\mu$, no MCMC.
+% ---------- simulation ----------
+\topic{SIMULATION}
+\bh{Why rejection works:} $(X,Y)$ is uniform under $kh$ (density $1/k$); points kept are uniform under $f$, so $X\sim f$.
+% ---------- MCMC ----------
+\topic{MCMC}
+\bh{Why it works (not examinable):} detailed balance $\pi(\theta)p(\theta\to\theta')=\pi(\theta')p(\theta'\to\theta)$ makes $\pi$ stationary; aperiodic, irreducible: limiting; ergodic: averages converge.
+\sk\bh{MH derivation, $x\sim\Nor(\mu,1)$, $\mu\sim\Nor(0,1)$, random walk:} $\log\frac{\pi(\mu')}{\pi(\mu)}=-\frac12[(x-\mu')^2+\mu'^2]+\frac12[(x-\mu)^2+\mu^2]$; $A=\min(1,e^{\text{this}})$.
+\sk\bh{Gibbs $\mu$ derivation:} $p(\mu|\tau,x)\propto\exp\{-\frac\tau2\sum(x_i-\mu)^2-\frac\kappa2(\mu-m)^2\}\propto\exp\{-\frac12(n\tau+\kappa)\mu^2+(\tau n\bar x+\kappa m)\mu\}$: $A=n\tau+\kappa$, $B=\tau n\bar x+\kappa m$.
+\sk\bh{Exp change point:} $\lambda_1|\cdot\sim\Ga(a_1+M,b_1+S_M)$, $\lambda_2|\cdot\sim\Ga(a_2+n-M,b_2+S_n-S_M)$, $S_m=\sum_1^my_i$; $p(m|\cdot)\propto(\lambda_1/\lambda_2)^me^{-(\lambda_1-\lambda_2)S_m}$.
+\sk\bh{Discrete $\mu\in\{0,1\}$:} $P(\mu=1|\theta)=f(\theta,1)/[f(\theta,0)+f(\theta,1)]$.
+% ---------- VI ----------
+\topic{VARIATIONAL INFERENCE}
+\bh{CAVI $\tau$ derivation:} $\log q_\tau^*=\E_\mu[\log p(x|\mu,\tau)+\log p(\mu|\tau)+\log p(\tau)]+c$
+$=(\frac n2+\frac12+a_0-1)\log\tau-\tau[b_0+\frac12\sum\E(x_i-\mu)^2+\frac{\lambda_0}2\E(\mu-\mu_0)^2]+c$: power of $\log\tau$ is $a^*-1$, coefficient of $-\tau$ is $b^*$.
+\sk\bh{ELBO, Normal-Gamma:} $\E[\log p(x,\mu,\tau)]-\E\log q_\mu-\E\log q_\tau$, with $\E\log q_\mu=-\frac12\log\sigma^{2*}+c$, $\E\log q_\tau=\log b^*-\log\Gamma(a^*)+(a^*-1)\psi(a^*)-a^*$.
+\sk\bh{ELBO, bivariate target,} up to a constant, $q_i=\Nor(m_i,s_i^2)$: $-\frac12[\Lambda_{11}(s_1^2+(m_1-\mu_1)^2)+\Lambda_{22}(s_2^2+(m_2-\mu_2)^2)+2\Lambda_{12}(m_1-\mu_1)(m_2-\mu_2)]+\frac12\log s_1^2+\frac12\log s_2^2$.
+\sk\bh{Bivariate prior} (Gibbs row): $q_1^*=\Nor(B/A,1/A)$ with $\mu_2$ replaced by $\E\mu_2$.
+\sk\bh{Variance form:} $\sigma^2\sim\IG(a_0,b_0)$, $\mu|\sigma^2\sim\Nor(\mu_0,\sigma^2/\lambda_0)$.
+% ---------- exam checks ----------
+\topic{EXAM CHECKS}
+\li $\Nor$(mean, variance), Gamma(shape, rate), $\IG$(shape, scale).

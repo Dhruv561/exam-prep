@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wales Rate Model Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 9 · Exam-level challenge · Full written solution</div>
+<h1>Malformation rates, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<h2>Exhibit used</h2>
+<h3><span class="exhibit-tag">Exhibit B</span>Malformations in South Wales (Poisson rate model)</h3>
+<p>The <code>cns</code> data (faraway) count births with central nervous system malformations in 8 areas of South Wales, split by whether the father's job was manual or non-manual: 16 rows. <code>Water</code> is the water hardness of the area (the same for both rows of an area). Faraway analyses these data as a multinomial in <a href="../books/Faraway%20(2016)%20Extending%20the%20linear%20model%20with%20R.pdf#page=152">§7.4, p. 136</a>. Here we model the malformation <em>rate per birth</em>, with <code>births</code> = all births in that row.</p>
+<pre class="rout"><span class="cmd">&gt; wales</span>
+            Area      Work Water births malf
+1        Cardiff NonManual   110   4110   19
+2        Newport NonManual   100   1523    8
+3        Swansea NonManual    95   2408   14
+4     GlamorganE NonManual    42   3189   26
+5     GlamorganW NonManual    39   1995   16
+6     GlamorganC NonManual   161   4863   25
+7      MonmouthV NonManual    83   2380   18
+8  MonmouthOther NonManual   122   1613    9
+9        Cardiff    Manual   110   9502   78
+10       Newport    Manual   100   4634   24
+11       Swansea    Manual    95   5579   53
+12    GlamorganE    Manual    42  13362  145
+13    GlamorganW    Manual    39   8279   84
+14    GlamorganC    Manual   161   7868   65
+15     MonmouthV    Manual    83  10048   86
+16 MonmouthOther    Manual   122   3196   24
+<span class="cmd">&gt; w1 &lt;- glm(malf ~ offset(log(births)) + Water + Work, family = poisson, data = wales)
+&gt; summary(w1)</span>
+
+Coefficients:
+                Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)   -4.4439057  0.0893739 -49.723  &lt; 2e-16 ***
+Water         -0.0032376  0.0009645  -3.357 0.000788 ***
+WorkNonManual -0.3365296  0.0967662  -3.478 0.000506 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 40.728  on 15  degrees of freedom
+Residual deviance: 12.271  on 13  degrees of freedom
+AIC: 102.52
+
+Number of Fisher Scoring iterations: 4
+
+<span class="cmd">&gt; range(fitted(w1))</span>
+[1]   9.11967 137.04193
+<span class="cmd">&gt; pchisq(deviance(w1), df.residual(w1), lower.tail = FALSE)</span>
+[1] 0.5055752</pre>
+
+
+<div class="box">
+<p>Continue with <span class="exhibit-tag">Exhibit B</span>. A second model replaces water hardness with a separate effect for each area.</p>
+<pre class="rout"><span class="cmd">&gt; w2 &lt;- glm(malf ~ offset(log(births)) + Area + Work, family = poisson, data = wales)
+&gt; summary(w2)</span>
+
+Coefficients:
+                  Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)       -4.85220    0.10406 -46.630  &lt; 2e-16 ***
+AreaGlamorganC     0.01783    0.14651   0.122 0.903151
+AreaGlamorganE     0.33726    0.12741   2.647 0.008121 **
+AreaGlamorganW     0.27806    0.14277   1.948 0.051466 .
+AreaMonmouthOther -0.02702    0.20154  -0.134 0.893332
+AreaMonmouthV      0.12612    0.14143   0.892 0.372535
+AreaNewport       -0.33284    0.20391  -1.632 0.102614
+AreaSwansea        0.16298    0.15885   1.026 0.304919
+WorkNonManual     -0.34319    0.09699  -3.538 0.000403 ***
+---
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 40.7279  on 15  degrees of freedom
+Residual deviance:  3.0604  on  7  degrees of freedom
+AIC: 105.31
+
+<span class="cmd">&gt; predict(w1, newdata = data.frame(Water = 40, Work = "Manual", births = 1000),
++         type = "link", se.fit = TRUE)</span>
+$fit
+       1
+2.334347 
+
+$se.fit
+[1] 0.05832038
+
+$residual.scale
+[1] 1
+
+<span class="cmd">&gt; i &lt;- c(10, 12, 14)
+&gt; cbind(wales[i, ], mu = round(fitted(w1)[i], 3), h = round(hatvalues(w1)[i], 4),
++       rj = round(rstudent(w1)[i], 4))</span>
+         Area   Work Water births malf      mu      h      rj
+10    Newport Manual   100   4634   24  39.390 0.0828 -2.7461
+12 GlamorganE Manual    42  13362  145 137.042 0.4454  0.9081
+14 GlamorganC Manual   161   7868   65  54.894 0.4198  1.7613
+<span class="cmd">&gt; round(residuals(w1, type = "pearson")[c(12, 14)], 4)</span>
+    12     14
+0.6798 1.3640
+<span class="cmd">&gt; rbind(all = coef(w1), drop10 = coef(update(w1, subset = -10)),
++       drop14 = coef(update(w1, subset = -14)))</span>
+       (Intercept)        Water WorkNonManual
+all      -4.443906 -0.003237559    -0.3365296
+drop10   -4.437201 -0.002958134    -0.3698600
+drop14   -4.369583 -0.004543881    -0.2881511
+<span class="cmd">&gt; tapply(fitted(w1), wales$Work, sum); tapply(wales$malf, wales$Work, sum)</span>
+   Manual NonManual
+      559       135
+   Manual NonManual
+      559       135
+<span class="cmd">&gt; qchisq(0.95, df = c(6, 7))</span>
+[1] 12.59159 14.06714</pre>
+<p>(a) Explain what the offset does in <code>w1</code>. Interpret the <code>WorkNonManual</code> coefficient as a rate ratio with a 95% CI, in one sentence. <em>[3]</em><br>
+(b) Explain why <code>w1</code> is nested in <code>w2</code>, even though <code>Water</code> does not appear in <code>w2</code>. Test <code>w1</code> against <code>w2</code>: state \(H_0\), the statistic, its df and your conclusion. Does AIC agree? <em>[3]</em><br>
+(c) Find the maximised log-likelihoods of <code>w1</code> and <code>w2</code>, and check that they give the same \(\ell_{\text{sat}}\). <em>[2]</em><br>
+(d) Estimate the malformation rate per 1000 births for families of manual workers in an area with water hardness 40, with a 95% CI. Check \(\hat\eta\) by hand. <em>[2]</em><br>
+(e) For row 10, compute \(r_P\), \(r_D\) and \(r_{SD}\). Compute Cook's distance for row 14. Classify rows 10, 12 and 14 as outlier, high leverage only, or influential, one sentence each. <em>[3]</em><br>
+(f) Explain why the two <code>tapply</code> lines print identical numbers. Name one other sum that must match in the same way. <em>[2]</em></p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · Offset and rate ratio <span class="marks">[3]</span></h2>
+<div class="script">
+<p>The expected count is proportional to births:</p>
+$$\begin{aligned}
+\lambda_i&=\text{births}_i\times\text{rate}_i\\
+\log\lambda_i&=\log(\text{births}_i)+x_i^T\beta
+\end{aligned}$$
+<p><code>offset(log(births))</code> adds \(\log(\text{births}_i)\) to \(\eta_i\) with coefficient fixed at 1 (not estimated, not counted in \(p\)). So the model is for the rate per birth, and each \(e^{\beta_j}\) is a rate ratio.</p>
+$$\begin{aligned}
+e^{-0.33653}&=0.71\\
+\text{CI}&=-0.33653\pm1.96(0.09677)\\
+&=-0.33653\pm0.18966\\
+&=(-0.5262,\ -0.1469)\\
+\text{exp}&\Rightarrow(0.59,\ 0.86)
+\end{aligned}$$
+<p>For the same water hardness, the malformation rate for non-manual workers' families is estimated at 0.71 times that of manual workers (95% CI 0.59 to 0.86).</p>
+</div>
+<h2>(b) · Nesting and LRT <span class="marks">[3]</span></h2>
+<div class="script">
+<p><code>Water</code> takes one value per area, so \(\beta_W\times\) <code>Water</code> is one particular set of area effects. <code>w1</code> is <code>w2</code> with the 8 area effects forced onto a straight line in hardness.</p>
+$$\begin{aligned}
+p_{w2}&=16-7=9\\
+p_{w1}&=16-13=3\\
+s&=9-3=6
+\end{aligned}$$
+<p>\(H_0\): area differences are explained by water hardness alone.</p>
+$$\begin{aligned}
+\text{LR}&=12.271-3.060\\
+&=9.21\\
+\chi^2_6(0.95)&=12.59
+\end{aligned}$$
+<p>\(9.21\lt12.59\), so don't reject. AIC agrees: \(102.52\lt105.31\).</p>
+<div class="answer-box"><p>The simpler <code>w1</code> is enough</p></div>
+</div>
+<h2>(c) · Log-likelihoods <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Poisson: \(\phi=1\), so use \(p\).</p>
+$$\begin{aligned}
+\hat\ell_{w1}&=3-\frac{102.52}2=-48.26\\
+\hat\ell_{w2}&=9-\frac{105.31}2=-43.66\\
+\ell_{\text{sat}}&=-48.26+\frac{12.271}2=-42.12\\
+\ell_{\text{sat}}&=-43.655+\frac{3.0604}2=-42.12\quad\checkmark
+\end{aligned}$$
+<div class="answer-box"><p>\(\hat\ell_{w1}=-48.26\), \(\hat\ell_{w2}=-43.66\), both give \(\ell_{\text{sat}}=-42.12\)</p></div>
+</div>
+<h2>(d) · Rate per 1000 births <span class="marks">[2]</span></h2>
+<div class="script">
+$$\begin{aligned}
+\hat\eta&=-4.44391+40(-0.0032376)+\log1000\\
+&=-4.44391-0.12950+6.90776\\
+&=2.33435\quad\checkmark\\
+e^{\hat\eta}&=e^{2.334347}\\
+&=10.32
+\end{aligned}$$
+<p>With <code>births = 1000</code>, \(e^{\hat\eta}\) is the expected count per 1000 births.</p>
+$$\begin{aligned}
+\text{CI}&=2.334347\pm1.96(0.05832)\\
+&=2.334347\pm0.11431\\
+&=(2.2200,\ 2.4487)\\
+\text{exp}&\Rightarrow(9.21,\ 11.57)
+\end{aligned}$$
+<div class="answer-box"><p>10.32 per 1000 births, 95% CI \((9.21,\ 11.57)\)</p></div>
+</div>
+<h2>(e) · Diagnostics <span class="marks">[3]</span></h2>
+<div class="script">
+<p>Row 10:</p>
+$$\begin{aligned}
+r_P&=\frac{24-39.390}{\sqrt{39.390}}\\
+&=\frac{-15.390}{6.2761}\\
+&=-2.45\\
+d&=2\Big[24\log\frac{24}{39.390}-(24-39.390)\Big]\\
+&=2\big[-11.891+15.390\big]\\
+&=6.998\\
+r_D&=-\sqrt{6.998}\quad(y\lt\hat\mu)\\
+&=-2.65\\
+r_{SD}&=\frac{-2.6454}{\sqrt{1-0.0828}}\\
+&=\frac{-2.6454}{0.9577}\\
+&=-2.76
+\end{aligned}$$
+<p>Row 14:</p>
+$$\begin{aligned}
+C_{14}&=\frac{r_P^2\,h}{p(1-h)^2}\\
+&=\frac{(1.3640)^2(0.4198)}{3(1-0.4198)^2}\\
+&=\frac{0.7810}{1.0099}\\
+&=0.77
+\end{aligned}$$
+<p>Leverage threshold \(2p/n=6/16=0.375\), exceeded by rows 12 and 14.</p>
+<ul><li><strong>Row 10: outlier.</strong> Jack-knife residual −2.75 is large but leverage 0.08 is ordinary, and dropping it barely moves Water (−0.00324 → −0.00296).</li><li><strong>Row 12: high leverage only.</strong> \(h=0.45\) but \(r_P=0.68\) is small, so it pulls little.</li><li><strong>Row 14: influential.</strong> High leverage and a sizeable residual, Cook's 0.77, and dropping it strengthens the Water effect by 40% (−0.00324 → −0.00454).</li></ul>
+</div>
+<h2>(f) · Why the totals match <span class="marks">[2]</span></h2>
+<div class="script">
+<p>Poisson with canonical log link: the score equations are</p>
+$$\begin{aligned}
+X^T(y-\hat\mu)&=0
+\end{aligned}$$
+<p>The offset sits in \(\hat\mu\), not \(X\), so this still holds. Intercept column and <code>WorkNonManual</code> column:</p>
+$$\begin{aligned}
+\sum_i\hat\mu_i&=\sum_iy_i\\
+\sum_{\text{NonManual}}\hat\mu_i&=\sum_{\text{NonManual}}y_i
+\end{aligned}$$
+<p>Subtracting gives the Manual totals too.</p>
+<div class="answer-box"><p>Another matching sum, from the Water column: \(\sum_i\text{Water}_i\,\hat\mu_i=\sum_i\text{Water}_i\,y_i\)</p></div>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Coefficient fixed at 1 · rate ratio sentence · \(s=6\), 9.21 vs 12.59 · \(\ell_{\text{sat}}\) twice · \(\log1000\) in \(\hat\eta\) · signs on residuals · Cook's 0.77 · three classifications · \(X^T(y-\hat\mu)=0\).</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0009-topic2-review.html#challenge">Lesson 9, exam-level challenge</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

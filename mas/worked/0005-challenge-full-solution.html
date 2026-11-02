@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Negative Binomial Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 5 · Exam-level challenge · Full written solution</div>
+<h1>Negative binomial family, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<div class="box">
+<p>Let \(Y\) have the negative binomial distribution with mean \(\mu&gt;0\) and <em>known</em> size \(r&gt;0\):</p>
+$$P(Y=y) = \frac{\Gamma(y+r)}{\Gamma(r)\,y!}\left(\frac{r}{r+\mu}\right)^{\!r}\left(\frac{\mu}{r+\mu}\right)^{\!y},\qquad y = 0,1,2,\dots$$
+<p>(a) Show that \(Y\) is from an exponential family, identifying \(\theta\), \(\phi\), \(a(\phi)\), \(b(\theta)\) and \(c(y,\phi)\). [4]<br>
+(b) Use the exponential-family lemma to find \(\mathbb EY\) and \(\operatorname{Var}Y\). [2]<br>
+(c) Find the variance function. With \(r = 3\) and \(\mu = 6\), compute \(\operatorname{Var}Y\) and compare it with a Poisson of the same mean. [2]<br>
+(d) Obtain the canonical link. Why might a log link be preferred in practice? [2]<br>
+(e) For independent \(Y_1,\dots,Y_n\) with the canonical link \(\theta_i = x_i^T\beta\), show that the score for \(\beta\) is \(X^T(y-\mu)\). [2]<br>
+(f) Faraway (§8.1) says the negative binomial is <em>not</em> a member of the exponential family. Reconcile this with (a) in 2–3 sentences. [1]</p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · Exponential-family form <span class="marks">[4]</span></h2>
+<div class="script">
+<p>The support does not depend on \(\mu\). Taking logs:</p>
+$$\begin{aligned}
+\log f(y)&=y\log\frac{\mu}{\mu+r}+r\log\frac{r}{\mu+r}+\log\Gamma(y+r)-\log\Gamma(r)-\log y!
+\end{aligned}$$
+<p>Match to \(\log f=\dfrac{y\theta-b(\theta)}{a(\phi)}+c(y,\phi)\). The coefficient of \(y\) gives</p>
+$$\begin{aligned}
+\theta&=\log\frac{\mu}{\mu+r}\\
+\phi&=1,\quad a(\phi)=\phi
+\end{aligned}$$
+<p>Rewrite the parameter-only term in \(\theta\):</p>
+$$\begin{aligned}
+e^\theta&=\frac{\mu}{\mu+r}\\
+1-e^\theta&=\frac{r}{\mu+r}\\
+r\log\frac{r}{\mu+r}&=r\log(1-e^\theta)=-b(\theta)
+\end{aligned}$$
+<div class="answer-box"><p>\(\theta=\log\dfrac{\mu}{\mu+r}\), \(\phi=1\), \(a(\phi)=\phi\), \(b(\theta)=-r\log(1-e^\theta)\), \(c(y,\phi)=\log\Gamma(y+r)-\log\Gamma(r)-\log y!\)</p></div>
+</div>
+<p class="note">\(\theta\lt0\). \(c\) contains \(r\), which is fine because \(r\) is known.</p>
+<h2>(b) · Mean and variance <span class="marks">[2]</span></h2>
+<div class="script">
+$$\begin{aligned}
+b'(\theta)&=\frac{re^\theta}{1-e^\theta}\\
+&=r\cdot\frac{\mu/(\mu+r)}{r/(\mu+r)}\\
+&=\mu\\[6pt]
+b''(\theta)&=\frac{re^\theta(1-e^\theta)+re^{2\theta}}{(1-e^\theta)^2}\\
+&=\frac{re^\theta}{(1-e^\theta)^2}\\
+&=\frac{re^\theta}{1-e^\theta}\cdot\frac1{1-e^\theta}\\
+&=\mu\cdot\frac{\mu+r}{r}\\
+&=\mu+\frac{\mu^2}r
+\end{aligned}$$
+<div class="answer-box"><p>\(\mathbb EY=b'(\theta)=\mu\), \(\operatorname{Var}Y=a(\phi)b''(\theta)=\mu+\mu^2/r\)</p></div>
+</div>
+<h2>(c) · Variance function <span class="marks">[2]</span></h2>
+<div class="script">
+$$\begin{aligned}
+v(\mu)&=b''(\theta)\text{ in terms of }\mu=\mu+\frac{\mu^2}r\\
+\operatorname{Var}Y&=6+\frac{6^2}3\\
+&=6+12\\
+&=18
+\end{aligned}$$
+<div class="answer-box"><p>\(v(\mu)=\mu+\mu^2/r\). \(\operatorname{Var}Y=18\), three times the Poisson's 6</p></div>
+</div>
+<h2>(d) · Canonical link <span class="marks">[2]</span></h2>
+<div class="script">
+<p>The canonical link sets \(g(\mu)=\theta\):</p>
+$$\begin{aligned}
+g(\mu)&=\log\frac{\mu}{\mu+r}
+\end{aligned}$$
+<p>This \(g\) only takes negative values, so \(x^T\beta\lt0\) would be needed for every \(x\), which fitting can't guarantee. A log link maps \((0,\infty)\) onto all of \(\mathbb R\), so any \(\beta\) is valid, and \(e^{\beta_j}\) is a multiplicative effect on the mean.</p>
+</div>
+<h2>(e) · Score under the canonical link <span class="marks">[2]</span></h2>
+<div class="script">
+<p>\(\phi=1\) and \(\theta_i=x_i^T\beta\):</p>
+$$\begin{aligned}
+\ell(\beta)&=\sum_i\big[y_ix_i^T\beta-b(x_i^T\beta)+c(y_i)\big]\\
+\frac{\partial\ell}{\partial\beta}&=\sum_i\big[y_ix_i-b'(x_i^T\beta)x_i\big]\\
+&=\sum_i(y_i-\mu_i)x_i\\
+&=X^T(y-\mu)
+\end{aligned}$$
+</div>
+<h2>(f) · Reconciling with Faraway <span class="marks">[1]</span></h2>
+<div class="script">
+<p>Faraway means the negative binomial with \(r\) unknown. Then \(r\) sits inside \(b\) and inside \(c\) and can't be split off as a dispersion \(a(\phi)\) dividing \(y\theta-b(\theta)\), so the form fails. With \(r\) known, as here, it is a one-parameter exponential family with \(\phi=1\).</p>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+Coefficient of \(y\) gives \(\theta\) · \(b\) written in \(\theta\), not \(\mu\) · \(b'\) and \(b''\) converted back to \(\mu\) · 18 vs 6 · \(g=\theta\) with the sign problem · \(X^T(y-\mu)\) · \(r\) known vs unknown.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0005-exponential-families.html#challenge">Lesson 5, exam-level challenge</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

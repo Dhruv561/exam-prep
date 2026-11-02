@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Water Mains Solution</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  /* What goes on the exam paper vs. commentary you don't write. */
+  .script { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; margin: 1rem 0; }
+  .script > :first-child { margin-top: 0; } .script > :last-child { margin-bottom: 0; }
+  .script .katex-display { overflow-x: auto; overflow-y: hidden; text-align: left; }
+  .note { font-family: Inter, system-ui, sans-serif; font-size: .82rem; color: var(--muted); margin: -.4rem 0 1.2rem 1.2rem; }
+  .note::before { content: "Not written: "; font-weight: 600; }
+  .legend { font-family: Inter, system-ui, sans-serif; font-size: .85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; vertical-align: -1px; }
+  .legend .w::before { background: var(--accent); }
+  .legend .n::before { background: var(--rule); }
+  .answer-box { border: 2px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  .answer-box > :first-child { margin-top: 0; } .answer-box > :last-child { margin-bottom: 0; }
+  .marks { font-family: Inter, system-ui, sans-serif; font-size: .78rem; color: var(--muted); }
+  .exhibit-tag { font-family: Inter, system-ui, sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-right: .3rem; }
+  .q-part { margin-top: 2.2rem; }
+  figure.plot { margin: .8rem 0; } figure.plot img { max-width: 100%; height: auto; display: block; }
+  table.ledger th { text-transform: none; letter-spacing: 0; }
+  @media print { .note { display: none; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="kicker">Lesson 7 · Exam-level challenge · Full written solution</div>
+<h1>Burst water mains, written out as an exam answer</h1>
+<p class="lede">Everything inside the red rule is what goes on your paper. The grey notes explain the reasoning, and you don't write them. Printing this page hides the notes. Final answers are to 2 d.p., as the exam asks.</p>
+
+<div class="box">
+<p>A water utility records the time (hours) to repair 50 burst mains. Predictors: <code>diam</code> (pipe diameter, cm), <code>soil</code> (factor: clay, loam, sand; baseline clay) and <code>depth</code> (m). Repair times are positive and right-skewed, with spread growing with the mean, so a gamma GLM with log link is fitted. (Simulated data.)</p>
+<pre class="rout"><span class="cmd">&gt; model1 &lt;- glm(hours ~ diam + soil + depth, family = Gamma(link = "log"), data = mains)
+&gt; summary(model1)</span>
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)  1.128416   0.272809   4.136 0.000152 ***
+diam         0.025575   0.003715   6.884 1.51e-08 ***
+soilloam    -0.487491   0.164317  -2.967 0.004805 **
+soilsand    -0.158320   0.127691  -1.240 0.221452
+depth       -0.037300   0.108466  -0.344 0.732533
+---
+(Dispersion parameter for Gamma family taken to be 0.1578778)
+
+    Null deviance: 17.2773  on 49  degrees of freedom
+Residual deviance:  7.1464  on 45  degrees of freedom
+AIC: 231.49
+
+<span class="cmd">&gt; model2 &lt;- glm(hours ~ diam + depth, family = Gamma(link = "log"), data = mains)
+&gt; summary(model2)</span>
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)  1.020869   0.297651   3.430  0.00127 **
+diam         0.025233   0.004217   5.984 2.85e-07 ***
+depth       -0.055332   0.123897  -0.447  0.65722
+---
+(Dispersion parameter for Gamma family taken to be 0.2069351)
+
+    Null deviance: 17.277  on 49  degrees of freedom
+Residual deviance:  8.464  on 47  degrees of freedom
+AIC: 236.17
+
+<span class="cmd">&gt; sum(residuals(model1, type = "pearson")^2)</span>
+[1] 7.104503
+<span class="cmd">&gt; predict(model1, newdata = data.frame(diam = 40, soil = "sand", depth = 1.5),
++         type = "link", se.fit = TRUE)</span>
+$fit
+       1
+1.937164
+$se.fit
+[1] 0.08737868
+<span class="cmd">&gt; qf(0.95, df1 = 2, df2 = c(45, 47))</span>
+[1] 3.204317 3.195056</pre>
+<p>(a) What are \(n\) and \(p\) for model1? Show that the printed dispersion 0.1578778 is the Pearson estimate, and say what it implies about the coefficient of variation of repair times.<br>
+(b) Interpret the <code>soilloam</code> coefficient as a multiplicative effect, with a 95% CI.<br>
+(c) Test whether soil type is needed, given diameter and depth. State the statistic, its distribution and df, and your conclusion.<br>
+(d) Explain why the test in (c) is not \(\chi^2\), and why the residual deviance 7.1464 on 45 df cannot be used to check model1's fit.<br>
+(e) Find the maximised log-likelihood of each model. Which model do you prefer? Give two quantitative reasons.<br>
+(f) Predict the mean repair time for a 40 cm main in sandy soil at 1.5 m depth, with a 95% CI. Check \(\hat\eta\) by hand.</p>
+</div>
+
+<p class="legend"><span class="w">Write this</span><span class="n">Don't write this</span></p>
+<h2>(a) · \(n\), \(p\), dispersion</h2>
+<div class="script">
+$$\begin{aligned}
+n&=49+1=50\\
+p&=50-45=5\quad\text{(intercept, diam, 2 soil dummies, depth)}\\
+\hat\phi&=\frac{X^2}{n-p}\\
+&=\frac{7.104503}{45}\\
+&=0.157878\quad\checkmark
+\end{aligned}$$
+<p>So the printed dispersion is the Pearson estimate. For a gamma GLM \(\operatorname{Var}Y=\phi\mu^2\), so</p>
+$$\begin{aligned}
+\text{CV}&=\frac{\text{sd}(Y)}{\mu}\\
+&=\sqrt\phi\\
+&=\sqrt{0.1579}\\
+&=0.40
+\end{aligned}$$
+<div class="answer-box"><p>\(n=50\), \(p=5\). The sd of repair time is about 40% of its mean, whatever the mean</p></div>
+</div>
+<h2>(b) · soilloam as a multiplier</h2>
+<div class="script">
+<p>Log link, so \(e^{\beta}\) multiplies the mean:</p>
+$$\begin{aligned}
+e^{-0.487491}&=0.61\\
+\text{CI for }\beta&=-0.487491\pm1.96(0.164317)\\
+&=-0.487491\pm0.3221\\
+&=(-0.8096,\ -0.1654)\\
+\text{exp}&\Rightarrow(0.45,\ 0.85)
+\end{aligned}$$
+<div class="answer-box"><p>Mean repair time in loam is about 0.61 times that in clay (95% CI 0.45 to 0.85), same diameter and depth</p></div>
+</div>
+<p class="note">\(t_{45}(0.975)=2.01\) in place of 1.96 is also fine, since \(\phi\) is estimated.</p>
+<h2>(c) · Is soil needed?</h2>
+<div class="script">
+<p>\(H_0\): both soil coefficients are 0 (model2 nested in model1), \(s=47-45=2\).</p>
+$$\begin{aligned}
+F&=\frac{(D_2-D_1)/s}{\hat\phi_1}\\
+&=\frac{(8.4640-7.1464)/2}{0.1578778}\\
+&=\frac{0.6588}{0.1578778}\\
+&=4.17
+\end{aligned}$$
+<p>Under \(H_0\), \(F\sim F_{2,45}\), and \(4.17\gt F_{2,45}(0.95)=3.20\).</p>
+<div class="answer-box"><p>Reject \(H_0\): soil type is needed</p></div>
+</div>
+<p class="note">\(\hat\phi\) is the bigger model's, and the denominator df is the bigger model's residual df.</p>
+<h2>(d) · Why not \(\chi^2\), and why no fit test</h2>
+<div class="script">
+<p>\(\phi\) is unknown and is replaced by \(\hat\phi\), which has its own sampling error. Dividing by \(\hat\phi\) gives an approximate \(F\), not \(\chi^2_s/s\); treating \(\hat\phi\) as known would overstate significance.</p>
+<p>For fit, \(D/\phi\approx\chi^2_{n-p}\) needs \(\phi\) known. Here \(\hat\phi\) comes from the same residuals, so any lack of fit is absorbed into it and there is no independent yardstick:</p>
+$$\begin{aligned}
+\frac{D}{\hat\phi}&=\frac{7.1464}{0.1579}=45.27\approx45\text{ by construction}
+\end{aligned}$$
+</div>
+<h2>(e) · Log-likelihoods and choice</h2>
+<div class="script">
+<p>The gamma AIC counts \(\phi\) as a parameter, so use \(p+1\):</p>
+$$\begin{aligned}
+\hat\ell_1&=(5+1)-\frac{231.49}2\\
+&=6-115.745\\
+&=-109.75\\
+\hat\ell_2&=(3+1)-\frac{236.17}2\\
+&=4-118.085\\
+&=-114.09
+\end{aligned}$$
+<p>Prefer model1:</p>
+<ol><li>The F test in (c) rejects dropping soil (\(4.17\gt3.20\)).</li><li>AIC: \(231.49\lt236.17\).</li></ol>
+<div class="answer-box"><p>\(\hat\ell_1=-109.75\), \(\hat\ell_2=-114.09\). Prefer model1</p></div>
+</div>
+<h2>(f) · Prediction with CI</h2>
+<div class="script">
+$$\begin{aligned}
+\hat\eta&=1.128416+40(0.025575)-0.158320+1.5(-0.037300)\\
+&=1.128416+1.023000-0.158320-0.055950\\
+&=1.9371\quad\checkmark\ \text{(R: 1.937164)}\\
+\hat\mu&=e^{1.937164}\\
+&=6.94
+\end{aligned}$$
+<p>CI on the \(\eta\) scale with R's <code>se.fit</code>:</p>
+$$\begin{aligned}
+\text{CI}&=1.937164\pm1.96(0.08737868)\\
+&=1.937164\pm0.1713\\
+&=(1.7659,\ 2.1084)\\
+\text{exp}&\Rightarrow(5.85,\ 8.24)
+\end{aligned}$$
+<div class="answer-box"><p>\(\hat\mu=6.94\) hours, 95% CI \((5.85,\ 8.24)\)</p></div>
+</div>
+<div class="trap"><strong>Lines a marker looks for</strong><br>
+\(\hat\phi=X^2/(n-p)\) · CV \(=\sqrt\phi\) · \(e^\beta\) CI · \(F\) with bigger model's \(\hat\phi\) and \((2,45)\) df · \(\hat\phi\) estimated means F, no fit test · \(p+1\) in the gamma AIC · CI built on \(\eta\) then transformed.</div>
+<div class="nav">
+  <span>Back to: <a href="../lessons/0007-poisson-gamma-glms.html#challenge">Lesson 7, exam-level challenge</a></span>
+  <span>All solutions: <a href="index.html">worked solutions index</a></span>
+</div>
+
+</main>
+<script>
+  renderMathInElement(document.body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}], throwOnError: false });
+</script>
+</body>
+</html>

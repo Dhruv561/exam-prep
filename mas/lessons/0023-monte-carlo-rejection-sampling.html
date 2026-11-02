@@ -26,7 +26,7 @@
 <h1>Monte Carlo and rejection sampling</h1>
 <p class="lede">The goal: given a target density you can only write down up to a constant, build a rejection sampler for it using only uniform random numbers, find the smallest envelope constant \(M\) by calculus, and state its acceptance probability. Along the way you will turn posterior draws into estimates, with an error bar, by averaging.</p>
 
-<div class="mission">Why this matters on 10 Nov: past papers ask "provide a rejection sampling algorithm using only a uniform generator for \(f(x)\propto\dots\) on an interval, and minimise the probability of rejection" (2018, 7 marks), "describe how to simulate from the posterior predictive" (2017), "estimate the posterior mean and sd from 10,000 draws" (2014/15), and they show R code with a <code>while</code> loop simulating a discrete random variable and ask what it does (2017). All four are in this lesson. About 50 minutes, paper and FX-82. Assumed: <a href="0022-bayesian-inference.html">Lesson 22</a> (posterior \(\propto\) likelihood \(\times\) prior, posterior predictive: draw \(\theta\), then \(\tilde x\)), <a href="0015-kernels-and-conjugacy.html">Lesson 15</a> (kernels). R is read-only: you interpret code and output, you don't write it.</div>
+<div class="mission">Why this matters on 10 Nov: past papers ask "provide a rejection sampling algorithm using only a uniform generator for \(f(x)\propto\dots\) on an interval, and minimise the probability of rejection" (2018, 7 marks), "describe how to simulate from the posterior predictive" (2017), "estimate the posterior mean and sd from 10,000 draws" (2014/15), and they show R code with a <code>while</code> loop simulating a discrete random variable and ask what it does (2017). All four are in this lesson. It also covers the reverse question from older papers (given an algorithm, find the pdf of its output and the number of tries), hidden-cdf loops and expected comparisons, and an exact spike-and-slab posterior sampler (2021 special). About 80 minutes, paper and FX-82. Assumed: <a href="0022-bayesian-inference.html">Lesson 22</a> (posterior \(\propto\) likelihood \(\times\) prior, posterior predictive: draw \(\theta\), then \(\tilde x\)), <a href="0015-kernels-and-conjugacy.html">Lesson 15</a> (kernels). R is read-only: you interpret code and output, you don't write it.</div>
 
 <h2>1 · Monte Carlo: averages of draws estimate expectations</h2>
 <p>Notation follows <a href="0022-bayesian-inference.html">Lesson 22</a>: \(\theta\) is the parameter, \(p(\theta\mid x)\) the posterior. Suppose you can't compute \(E[g(\theta)\mid x]\) by integration but you can draw \(\theta^{(1)},\dots,\theta^{(N)}\) independently from \(p(\theta\mid x)\). The law of large numbers says (<a href="../lectures/MC_methods_LMS-2.pdf#page=3">slide 3</a>; <a href="../extra-notes/sampling_example-1.pdf">sampling_example</a>):</p>
@@ -354,7 +354,7 @@ P(\text{accept})&amp;=\frac ZM=\frac{0.000758}{0.002224}=0.34
   <div class="why">Each \(x_i\) uses its own \(\theta_i\) from <code>rbeta</code>, so the \(x_i\) are draws from the marginal \(\int p(x\mid\theta)p(\theta)d\theta\). The mean of the indicator <code>x == 0</code> estimates \(P(X=0)=B(2,13)/B(2,3)=0.0659\) (the tute's \(10^6\)-draw run gave \(0.0662\)). \(\theta=0\) has probability zero; with a fixed \(\theta\) you would use <code>rbinom(10000, 10, 0.4)</code>.</div>
 </div>
 
-<h2>8 · Exam-style question</h2>
+<h2 id="challenge">8 · Exam-style question</h2>
 <p><strong>Setup</strong> (fresh; 10 marks, about 23 minutes, FX-82, 2 d.p.).</p>
 <div class="box">
 <p>The random variable \(X\) has density \(f(x)\propto\tilde f(x)=x^2(2-x)\) for \(0&lt;x&lt;2\), and \(f(x)=0\) otherwise. You have access only to a generator of independent \(U(0,1)\) random numbers.</p>
@@ -436,7 +436,306 @@ $$\begin{aligned}
   <div class="why">\(M=a^ae^{-(a-1)}/\Gamma(a)\): \(a=1.5\) gives \(1.5^{1.5}e^{-0.5}/\Gamma(1.5)=1.837(0.6065)/0.8862=1.26\) (acceptance 0.80), while \(a=6\) gives \(6^6e^{-5}/120=46656(0.006738)/120=2.62\) (acceptance 0.38). As \(a\) grows the Gamma becomes bell-shaped with a mode away from 0 and the monotone Exponential envelope is a poor fit. \(M\) is free of the rate \(b\) but not of \(a\).</div>
 </div>
 
-<h2>9 · Score yourself</h2>
+<h2>9 · Find the pdf of an algorithm's output</h2>
+<p>§4 gave you the target and asked for the algorithm. This question runs the other way: you are handed an algorithm and asked what it produces. Old papers ask this often, always with two uniforms and an acceptance condition. The tool is one line of conditional probability.</p>
+<div class="answer-box"><p>Recipe: \(U,V\sim U(0,1)\) independent; accept event \(A\); deliver \(X=d(U,V)\)</p>
+<ol class="steps">
+<li>\(P(A)\): the point \((U,V)\) is uniform on the unit square, so \(P(A)\) is the <strong>area</strong> of the accepted region.</li>
+<li>Write the output's cdf as a conditional probability: \(P(X\le x)=P(X\le x\mid A)=\dfrac{P(X\le x,\ A)}{P(A)}\).</li>
+<li>The numerator is the area of the part of the accepted region where \(X\le x\). Integrate out the variable you are not delivering.</li>
+<li>Differentiate to get the pdf, and state its support.</li>
+<li>Tries: each pass succeeds independently with probability \(P(A)\), so the number of passes \(T\) is Geometric\((P(A))\) on \(\{1,2,\dots\}\), with \(P(T=t)=(1-P(A))^{t-1}P(A)\) and \(E[T]=1/P(A)\).</li>
+</ol></div>
+<p><strong>Worked example 1: deliver the uniform itself.</strong> Generate \(U,V\). If \(V\le U^2\), deliver \(X=U\); otherwise repeat.</p>
+<p>Step 1, the accepted area:</p>
+$$\begin{aligned}
+P(A)&amp;=P(V\le U^2)\\
+&amp;=\int_0^1P(V\le u^2)\,du\\
+&amp;=\int_0^1u^2\,du\\
+&amp;=\frac13
+\end{aligned}$$
+<p>Steps 2–3, for \(0&lt;x&lt;1\):</p>
+$$\begin{aligned}
+P(X\le x)&amp;=\frac{P(U\le x,\ V\le U^2)}{P(A)}\\
+&amp;=3\int_0^xu^2\,du\\
+&amp;=x^3
+\end{aligned}$$
+<p>Step 4: differentiating, \(f(x)=3x^2\) on \((0,1)\). Step 5: \(T\sim\text{Geometric}(1/3)\), so \(E[T]=3\) passes per delivered value. (Simulated from \(2\times10^6\) passes: acceptance \(0.333\), mean of the output \(0.750\), against the exact \(\int_0^13x^3dx=0.75\).)</p>
+<p>This is §4 in disguise. Accepting when \(V\le h(U)\) with \(0\le h\le1\) is a rejection sampler with \(g=U(0,1)\), \(\tilde f=h\) and \(M=1\), so the output has density \(h/\int h\), and \(P(A)=Z/M=\int h\).</p>
+<p><strong>Worked example 2: deliver a transformation.</strong> Generate \(U,V\). If \(U&gt;V^2\), deliver \(X=V^2\); otherwise repeat. Now the delivered value depends on \(V\), so integrate out \(U\).</p>
+$$\begin{aligned}
+P(A)&amp;=P(U&gt;V^2)\\
+&amp;=\int_0^1(1-v^2)\,dv\\
+&amp;=\frac23
+\end{aligned}$$
+<p>For \(0&lt;x&lt;1\), turn the event \(X\le x\) into an event about \(V\) first:</p>
+$$\begin{aligned}
+P(X\le x)&amp;=\frac{P(V^2\le x,\ U&gt;V^2)}{P(A)}\\
+&amp;=\frac32\,P(V\le\sqrt x,\ U&gt;V^2)\\
+&amp;=\frac32\int_0^{\sqrt x}(1-v^2)\,dv\\
+&amp;=\frac32\Big(\sqrt x-\frac{x^{3/2}}3\Big)\\
+&amp;=\frac{3x^{1/2}-x^{3/2}}2
+\end{aligned}$$
+<p>Differentiate:</p>
+$$\begin{aligned}
+f(x)&amp;=\frac12\Big(\frac32x^{-1/2}-\frac32x^{1/2}\Big)\\
+&amp;=\frac34\cdot\frac{1-x}{\sqrt x},\quad0&lt;x&lt;1
+\end{aligned}$$
+<p>Check: \(F(1)=(3-1)/2=1\). \(T\sim\text{Geometric}(2/3)\), so \(E[T]=3/2\).</p>
+<div class="trap"><strong>Trap</strong><br>(1) "\(X=U\), so \(X\) is uniform": the delivered \(U\) is conditioned on acceptance, so it is not. (2) Forgetting to divide by \(P(A)\): check that your cdf reaches 1. (3) A decreasing transformation flips the inequality: with \(X=1/U^2\), \(\{X\le x\}=\{U\ge x^{-1/2}\}\). (4) If the region's shape changes part-way, the pdf is piecewise: see §12.</div>
+<div class="quiz num" data-answer="4" data-tol="0.01">
+  <p class="q"><strong>13.</strong> Generate \(U,V\). If \(V\le U^3\), deliver \(U\); otherwise repeat. What is the expected number of passes per delivered value (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">\(P(A)=\int_0^1u^3\,du=\tfrac14\), so \(T\sim\text{Geometric}(\tfrac14)\) and \(E[T]=\)<strong>4.00</strong>.</div>
+</div>
+<div class="quiz num" data-answer="0.69" data-tol="0.006">
+  <p class="q"><strong>14.</strong> Generate \(U,V\). If \(V\le1-U^2\), deliver \(X=U\); otherwise repeat. Find \(P(X\le0.5)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">
+  $$\begin{aligned}
+  P(A)&amp;=\int_0^1(1-u^2)\,du=\frac23\\
+  P(X\le0.5)&amp;=\frac32\int_0^{0.5}(1-u^2)\,du\\
+  &amp;=\frac32\Big(0.5-\frac{0.125}3\Big)\\
+  &amp;=\textbf{0.69}
+  \end{aligned}$$
+  Without the conditioning you would answer \(0.5\).</div>
+</div>
+<div class="quiz num" data-answer="0.88" data-tol="0.006">
+  <p class="q"><strong>15.</strong> Generate \(U,V\). If \(V\le U^2\), deliver \(X=1/U^2\); otherwise repeat. Find \(P(X\le4)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">From worked example 1, the accepted \(U\) has cdf \(u^3\). \(1/U^2\) is decreasing in \(U\), so the inequality flips:
+  $$\begin{aligned}
+  P(X\le4)&amp;=P(U\ge\tfrac12)\\
+  &amp;=1-(\tfrac12)^3\\
+  &amp;=\textbf{0.88}
+  \end{aligned}$$
+  (Exact \(0.875\).)</div>
+</div>
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Why is the number of passes geometric, and why does the delivered value not depend on how many passes it took?</p>
+<details><summary>Model answer</summary><div>
+<p>Each pass uses fresh uniforms, so passes are independent with the same success probability \(P(A)\), and \(T\) counts passes up to and including the first success. That is the definition of a geometric variable on \(\{1,2,\dots\}\). Because the passes are independent and identically distributed, the accepted pass is just one draw of \((U,V)\) conditioned on \(A\), whichever pass it was, so \(X\) has the same distribution for every value of \(T\).</p></div></details>
+</div>
+
+<h2>10 · Reading unusual <code>while</code> loops</h2>
+<p>§2 used the cdf inside the loop. An exam can hide the cdf: the code shows only a formula, and you must say what distribution comes out. First look at <strong>where the uniform is drawn</strong>. That decides which of the two rules below applies.</p>
+<div class="tablewrap"><table>
+<tr><th>Code shape</th><th>What is random</th><th>Rule</th></tr>
+<tr><td><code>U</code> drawn once, before the loop</td><td>one number, compared with a rising threshold</td><td><strong>subtract</strong>: \(P(Y=y)=t(y)-t(y-1)\)</td></tr>
+<tr><td><code>runif(1)</code> inside the condition</td><td>a new number at every check</td><td><strong>multiply</strong>: independent checks, so geometric</td></tr>
+</table></div>
+<p><strong>One uniform, a stopping rule.</strong> Read this function:</p>
+<pre class="rout"><span class="cmd">Y.sim &lt;- function() {
+  U &lt;- runif(1)
+  Y &lt;- 0
+  while (U &gt; (Y + 1) / (Y + 3)) {
+    Y &lt;- Y + 1
+  }
+  return(Y)
+}</span></pre>
+<p>Let \(t(y)=\dfrac{y+1}{y+3}\), which rises towards 1. The loop stops at the first \(y\) with \(U\le t(y)\), so \(Y\le y\) exactly when \(U\le t(y)\). So \(t\) <em>is</em> the cdf: \(P(Y\le y)=t(y)\). The pmf is the difference of neighbouring thresholds:</p>
+$$\begin{aligned}
+P(Y=0)&amp;=t(0)=\frac13\\
+P(Y=y)&amp;=t(y)-t(y-1)\\
+&amp;=\frac{y+1}{y+3}-\frac{y}{y+2}\\
+&amp;=\frac{(y+1)(y+2)-y(y+3)}{(y+2)(y+3)}\\
+&amp;=\frac{2}{(y+2)(y+3)},\quad y=0,1,2,\dots
+\end{aligned}$$
+<p>So \(P(Y=1)=\tfrac16\), \(P(Y=2)=\tfrac1{10}\), and \(P(Y\le2)=t(2)=0.60\). (Simulated, \(2\times10^5\) runs: \(0.333,\ 0.165,\ 0.100\), and \(0.598\).)</p>
+<p><strong>A new uniform at every check.</strong></p>
+<pre class="rout"><span class="cmd">Y &lt;- 1
+while (runif(1) &lt; 0.3) Y &lt;- Y + 1</span></pre>
+<p>Each check continues with probability \(0.3\), independently of the others. Reaching \(Y=y\) needs \(y-1\) continues and then one stop:</p>
+$$\begin{aligned}
+P(Y=y)&amp;=0.3^{\,y-1}\times0.7,\quad y=1,2,\dots
+\end{aligned}$$
+<p>This is Geometric(0.7) counting trials, mean \(1/0.7=1.43\). If the code starts at <code>Y &lt;- 0</code>, it counts failures before the first stop, on \(\{0,1,\dots\}\), with mean one less. Check the starting value and the direction of the inequality before you name the distribution.</p>
+<div class="answer-box"><p>Expected number of comparisons</p>
+<p>A sampler for a finite pmf tests intervals in some order. A value tested \(j\)th costs \(j\) comparisons, except the last value, which is the <code>else</code> branch and shares the cost of the value before it. So with \(K\) values, the expected number is \(\sum_j\min(j,K-1)\,p_{(j)}\), where \(p_{(j)}\) is the probability tested \(j\)th.</p></div>
+<p>Both functions below sample \(P(1,2,3,4)=(0.15,\ 0.45,\ 0.30,\ 0.10)\):</p>
+<pre class="rout"><span class="cmd">f1 &lt;- function() {                   f2 &lt;- function() {
+  U &lt;- runif(1)                        U &lt;- runif(1)
+  if (U &lt; 0.15) return(1)              if (U &lt; 0.45) return(2)
+  else if (U &lt; 0.60) return(2)         else if (U &lt; 0.75) return(3)
+  else if (U &lt; 0.90) return(3)         else if (U &lt; 0.90) return(1)
+  else return(4)                       else return(4)
+}                                    }</span></pre>
+<p><strong>Same distribution:</strong> each value owns an interval of the same length in both functions (value 2 has length \(0.45\) in each). A uniform lands in an interval with probability equal to its length, and only length matters, not position. <strong>Different speed:</strong></p>
+$$\begin{aligned}
+\text{f1}:&amp;\quad1(0.15)+2(0.45)+3(0.30)+3(0.10)=2.25\\
+\text{f2}:&amp;\quad1(0.45)+2(0.30)+3(0.15)+3(0.10)=1.80
+\end{aligned}$$
+<p><strong>Why descending order is fastest.</strong> Take two neighbouring tests with probabilities \(p_a\) at cost \(c\) and \(p_b\) at cost \(c+1\). Swapping them changes the expected cost by:</p>
+$$\begin{aligned}
+\Delta&amp;=\big[c\,p_b+(c+1)p_a\big]-\big[c\,p_a+(c+1)p_b\big]\\
+&amp;=p_a-p_b
+\end{aligned}$$
+<p>So a swap saves time exactly when the less likely value was tested first. Any order with such a pair can be improved, so the best order tests probabilities from largest to smallest.</p>
+<p>The cdf loop of §2 tests \(x=0,1,2,\dots\), so returning \(x\) costs \(x+1\) comparisons and the expected cost is \(E[X]+1\): for Poisson(2), \(3.00\).</p>
+<div class="quiz num" data-answer="0.10" data-tol="0.005">
+  <p class="q"><strong>16.</strong> <code>U &lt;- runif(1); Y &lt;- 1; while (U &gt; Y / (Y + 2)) Y &lt;- Y + 1</code>. Find \(P(Y=3)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">One uniform, so subtract thresholds, with \(t(y)=y/(y+2)\):
+  $$\begin{aligned}
+  P(Y=3)&amp;=t(3)-t(2)\\
+  &amp;=\frac35-\frac24\\
+  &amp;=\textbf{0.10}
+  \end{aligned}$$</div>
+</div>
+<div class="quiz num" data-answer="0.14" data-tol="0.006">
+  <p class="q"><strong>17.</strong> <code>Y &lt;- 0; while (runif(1) &lt; 0.6) Y &lt;- Y + 1</code>. Find \(P(Y=2)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">A new uniform at each check, so multiply: two continues, then a stop. \(P(Y=2)=0.6^2\times0.4=\)<strong>0.14</strong> (exact \(0.144\)).</div>
+</div>
+<div class="quiz num" data-answer="0.80" data-tol="0.01">
+  <p class="q"><strong>18.</strong> A sampler tests values with probabilities in the order \(0.1,\ 0.2,\ 0.2\), and the last value (probability \(0.5\)) is the <code>else</code>. How many expected comparisons does descending order save (2 d.p.)?</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">
+  $$\begin{aligned}
+  \text{given}:&amp;\quad1(0.1)+2(0.2)+3(0.2)+3(0.5)=2.60\\
+  \text{descending}:&amp;\quad1(0.5)+2(0.2)+3(0.2)+3(0.1)=1.80\\
+  \text{saving}:&amp;\quad2.60-1.80=\textbf{0.80}
+  \end{aligned}$$
+  Remember the <code>else</code> costs the same as the test before it.</div>
+</div>
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Two loops look almost identical, but one draws <code>U</code> before the loop and the other calls <code>runif(1)</code> in the condition. Why do you subtract for the first and multiply for the second?</p>
+<details><summary>Model answer</summary><div>
+<p>With one \(U\), every check reuses the same number, so the checks are dependent: \(\{Y=y\}\) is the single event that \(U\) lies between two neighbouring thresholds, and its probability is the interval's length. With <code>runif(1)</code> in the condition, each check uses an independent number, so \(\{Y=y\}\) is a sequence of independent outcomes and its probability is a product.</p></div></details>
+</div>
+
+<h2>11 · Spike-and-slab: an exact posterior sampler, no MCMC</h2>
+<p>Sometimes a parameter either takes a special value exactly or varies. A <strong>spike-and-slab prior</strong> adds an indicator \(\gamma\). This looks like an MCMC problem, but the posterior can be sampled exactly by composition, the same idea as the posterior predictive in §6.</p>
+<div class="box">
+<p><strong>Model:</strong> \(X\mid\mu\sim N(\mu,4)\). <strong>Prior:</strong> \(\gamma=1\) with probability \(0.6\), \(\gamma=0\) otherwise. If \(\gamma=1\), \(\mu\sim N(2,12)\) (the slab). If \(\gamma=0\), \(\mu=2\) exactly (the spike). <strong>Data:</strong> \(x=6\).</p>
+</div>
+<p><strong>Plan.</strong> Factor the joint posterior as \(p(\mu,\gamma\mid x)=p(\gamma\mid x)\,p(\mu\mid\gamma,x)\). If you can sample each factor, draw \(\gamma\) first and then \(\mu\) given \(\gamma\).</p>
+<p><strong>Step 1: marginal likelihoods.</strong> Integrate \(\mu\) out under each value of \(\gamma\). Write \(X=\mu+\varepsilon\) with \(\varepsilon\sim N(0,4)\) independent of \(\mu\); independent Normals add, so variances add (the Normal convolution):</p>
+$$\begin{aligned}
+X\mid\gamma=1&amp;\sim N(2,\ 12+4)=N(2,16)\\
+X\mid\gamma=0&amp;\sim N(2,4)\quad(\mu\text{ is fixed, so only the noise varies})
+\end{aligned}$$
+<p>Evaluate each density at \(x=6\):</p>
+$$\begin{aligned}
+p(x=6\mid\gamma=1)&amp;=\frac{1}{\sqrt{2\pi\times16}}\exp\Big\{-\frac{(6-2)^2}{2\times16}\Big\}\\
+&amp;=\frac{e^{-0.5}}{\sqrt{32\pi}}\\
+&amp;=0.0605\\
+p(x=6\mid\gamma=0)&amp;=\frac{1}{\sqrt{2\pi\times4}}\exp\Big\{-\frac{(6-2)^2}{2\times4}\Big\}\\
+&amp;=\frac{e^{-2}}{\sqrt{8\pi}}\\
+&amp;=0.0270
+\end{aligned}$$
+<p><strong>Step 2: Bayes' rule for \(\gamma\).</strong></p>
+$$\begin{aligned}
+P(\gamma=1\mid x)&amp;=\frac{0.6\times0.0605}{0.6\times0.0605+0.4\times0.0270}\\
+&amp;=\frac{0.0363}{0.0471}\\
+&amp;=0.77
+\end{aligned}$$
+<p><strong>Step 3: conjugacy for \(\mu\) given \(\gamma=1\)</strong> (<a href="0022-bayesian-inference.html">Lesson 22</a>). Precisions add:</p>
+$$\begin{aligned}
+\frac1{v_n}&amp;=\frac1{12}+\frac14=\frac13\\
+v_n&amp;=3\\
+m_n&amp;=v_n\Big(\frac{2}{12}+\frac{6}{4}\Big)\\
+&amp;=3\times\frac53\\
+&amp;=5
+\end{aligned}$$
+<p>So \(\mu\mid\gamma=1,x\sim N(5,3)\), and given \(\gamma=0\), \(\mu=2\) with certainty. The posterior of \(\mu\) is a mixture of a Normal and a point mass.</p>
+<div class="answer-box"><p>Algorithm for \(S\) posterior draws</p>
+<ol class="steps">
+<li>For \(s=1,\dots,S\), draw \(\gamma^{(s)}\sim\text{Bernoulli}(0.77)\).</li>
+<li>If \(\gamma^{(s)}=1\), draw \(\mu^{(s)}\sim N(5,3)\).</li>
+<li>If \(\gamma^{(s)}=0\), set \(\mu^{(s)}=2\).</li>
+</ol></div>
+<p><strong>Why it is valid.</strong> Each pair \((\gamma^{(s)},\mu^{(s)})\) has density \(p(\gamma\mid x)\,p(\mu\mid\gamma,x)=p(\mu,\gamma\mid x)\), so the \(\mu^{(s)}\) alone are draws from the marginal \(p(\mu\mid x)\). The draws are independent, so there is no burn-in and no autocorrelation, and MH isn't needed. This is the composition of §6 with \(\gamma\) as the first stage, and a mixture model's "label first" too.</p>
+<pre class="rout"><span class="cmd">&gt; set.seed(2331)
+&gt; N &lt;- 10000
+&gt; g &lt;- rbinom(N, 1, 0.77)
+&gt; mu &lt;- ifelse(g == 1, rnorm(N, 5, sqrt(3)), 2)
+&gt; mean(mu)</span>
+[1] 4.294898
+<span class="cmd">&gt; mean(mu == 2)</span>
+[1] 0.2349</pre>
+<p>Reading it: <code>rnorm</code> takes the sd, hence <code>sqrt(3)</code>. <code>mean(mu)</code> estimates the exact posterior mean \(0.77(5)+0.23(2)=4.31\). <code>mean(mu == 2)</code> estimates \(P(\mu=2\mid x)=0.23\), which has positive probability only because of the spike.</p>
+<div class="trap"><strong>Trap</strong><br>(1) Comparing likelihoods at one \(\mu\): the slab has no single \(\mu\), so you need the marginal \(p(x\mid\gamma=1)\). (2) Dropping \(1/\sqrt{2\pi v}\): the two marginals have different variances, so their constants differ and must stay. Only a factor common to both can cancel. (3) Using the prior \(0.6\) in step 1 of the algorithm: draw \(\gamma\) from its <em>posterior</em>.</div>
+<div class="quiz num" data-answer="0.69" data-tol="0.006">
+  <p class="q"><strong>19.</strong> \(X\mid\mu\sim N(\mu,1)\). Prior: \(\gamma=1\) with probability \(0.5\), then \(\mu\sim N(0,3)\); \(\gamma=0\), then \(\mu=0\). You observe \(x=2\). Find \(P(\gamma=1\mid x)\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">Marginals: \(X\mid\gamma=1\sim N(0,4)\), \(X\mid\gamma=0\sim N(0,1)\). The prior odds are 1 and \(\sqrt{2\pi}\) is common, so:
+  $$\begin{aligned}
+  \frac{P(\gamma=1\mid x)}{P(\gamma=0\mid x)}&amp;=\frac{\tfrac12e^{-4/8}}{e^{-4/2}}\\
+  &amp;=\tfrac12e^{1.5}\\
+  &amp;=2.24\\
+  P(\gamma=1\mid x)&amp;=\frac{2.24}{3.24}=\textbf{0.69}
+  \end{aligned}$$</div>
+</div>
+<div class="quiz num" data-answer="1.50" data-tol="0.01">
+  <p class="q"><strong>20.</strong> Same model. Find the mean of \(\mu\mid\gamma=1,x=2\) (2 d.p.).</p>
+  <div class="numrow"><input aria-label="Your answer"></div>
+  <div class="why">
+  $$\begin{aligned}
+  \frac1{v_n}&amp;=\frac13+1=\frac43\\
+  v_n&amp;=\frac34\\
+  m_n&amp;=\frac34\Big(0+\frac21\Big)=\textbf{1.50}
+  \end{aligned}$$</div>
+</div>
+<div class="explain">
+<p><strong>Explain (2–3 sentences)</strong></p>
+<p>Why does the algorithm draw \(\gamma\) first and then \(\mu\), rather than running MCMC?</p>
+<details><summary>Model answer</summary><div>
+<p>Conjugacy lets us integrate \(\mu\) out exactly, so \(p(\gamma\mid x)\) is a known Bernoulli and \(p(\mu\mid\gamma,x)\) is a known Normal or a point mass. Drawing them in sequence produces exact, independent draws from \(p(\mu,\gamma\mid x)\) by composition. MCMC would only add burn-in and autocorrelation to a problem that doesn't need them.</p></div></details>
+</div>
+
+<h2>12 · Exam-style question: what does this algorithm produce?</h2>
+<p><strong>Setup</strong> (fresh; 10 marks, about 23 minutes, FX-82, 2 d.p.).</p>
+<div class="box">
+<p>A random number \(X\) is generated as follows. (1) Generate \(U\) and \(V\) independently from \(U(0,1)\). (2) If \(UV&lt;\tfrac12\), deliver \(X=U\); otherwise go to (1).</p>
+</div>
+<ol type="a">
+  <li>Show that a single pass delivers a value with probability \(\tfrac12(1+\log2)\). <span class="marks">[2]</span></li>
+  <li>Find the cdf and the pdf of \(X\). <span class="marks">[4]</span></li>
+  <li>Let \(T\) be the number of passes needed to deliver one value. State the distribution of \(T\) and evaluate \(E[T]\). <span class="marks">[2]</span></li>
+  <li>The algorithm is changed to deliver \(Y=U^2\) instead. Find \(P(Y\le0.25)\). <span class="marks">[2]</span></li>
+</ol>
+<details><summary>Marking-key solution</summary><div>
+<p><strong>(a)</strong> <em>[1 mark: condition on \(U\), and spot the two cases.]</em> Given \(U=u\), we need \(V&lt;\frac1{2u}\). This bound is at least 1 when \(u\le\tfrac12\), so acceptance is then certain:</p>
+$$\begin{aligned}
+P\big(V&lt;\tfrac1{2u}\big)&amp;=\begin{cases}1&amp;0&lt;u\le\tfrac12\\[2pt]\dfrac1{2u}&amp;\tfrac12&lt;u&lt;1\end{cases}
+\end{aligned}$$
+<p><em>[1 mark: integrate.]</em></p>
+$$\begin{aligned}
+P(A)&amp;=\int_0^{1/2}1\,du+\int_{1/2}^1\frac1{2u}\,du\\
+&amp;=\frac12+\frac12\big[\log u\big]_{1/2}^1\\
+&amp;=\frac12+\frac12\log2\\
+&amp;=\frac12(1+\log2)=0.85
+\end{aligned}$$
+<p><strong>(b)</strong> Write \(A=P(A)\). <em>[1 mark: conditional probability.]</em> \(P(X\le x)=P(U\le x,\ UV&lt;\tfrac12)/A\). <em>[1 mark: \(x\le\tfrac12\).]</em></p>
+$$\begin{aligned}
+F(x)&amp;=\frac{1}{A}\int_0^x1\,du=\frac xA,\quad0&lt;x\le\tfrac12
+\end{aligned}$$
+<p><em>[1 mark: \(x&gt;\tfrac12\).]</em></p>
+$$\begin{aligned}
+F(x)&amp;=\frac1A\Big(\frac12+\int_{1/2}^x\frac1{2u}\,du\Big)\\
+&amp;=\frac1A\Big(\frac12+\frac12\log(2x)\Big)\\
+&amp;=\frac{1+\log(2x)}{1+\log2},\quad\tfrac12&lt;x&lt;1
+\end{aligned}$$
+<p><em>[1 mark: differentiate both pieces.]</em></p>
+<div class="answer-box"><p>(b)</p>
+$$f(x)=\begin{cases}\dfrac{2}{1+\log2}=1.18&amp;0&lt;x\le\tfrac12\\[8pt]\dfrac{1}{(1+\log2)\,x}&amp;\tfrac12&lt;x&lt;1\end{cases}$$
+</div>
+<p>Check: \(F(1)=1\), and both pieces give \(F(\tfrac12)=1/(1+\log2)=0.59\).</p>
+<p><strong>(c)</strong> <em>[1 mark.]</em> Passes are independent, each succeeding with probability \(A\), so \(T\sim\text{Geometric}(A)\) on \(\{1,2,\dots\}\). <em>[1 mark.]</em> \(E[T]=1/A=2/(1+\log2)=1.18\).</p>
+<p><strong>(d)</strong> <em>[1 mark: convert the event.]</em> \(U&gt;0\), so \(\{Y\le0.25\}=\{U\le0.5\}\). <em>[1 mark: use (b).]</em></p>
+$$\begin{aligned}
+P(Y\le0.25)&amp;=F(0.5)\\
+&amp;=\frac{1}{1+\log2}\\
+&amp;=0.59
+\end{aligned}$$
+<p><strong>Total 10.</strong> Simulation check (\(2\times10^6\) passes): acceptance \(0.847\) (exact \(0.847\)); \(P(X\le0.25)=0.295\) (exact \(0.295\)); \(P(X\le0.75)=0.830\) (exact \(0.830\)). Typical lost marks: using \(1/(2u)\) on all of \((0,1)\), which gives a divergent integral; a single-formula pdf; not dividing by \(A\).</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0023-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
+
+<h2>13 · Score yourself</h2>
 <div class="tablewrap"><table>
 <tr><th>If you missed…</th><th>Go back to</th></tr>
 <tr><td>Q1–Q3</td><td>§1: average of indicators; s.e. \(=\text{sd}/\sqrt N\); posterior sd is not the MC s.e.</td></tr>
@@ -445,9 +744,12 @@ $$\begin{aligned}
 <tr><td>Q6, Q8</td><td>§4: acceptance \(=Z/M\) not \(1/M\); \(M\ge\sup\tilde f/g\) is needed for exactness</td></tr>
 <tr><td>Q7, Q12</td><td>§5: \(M=a^ae^{-(a-1)}/\Gamma(a)\); maximise \(\tilde f/g\) with calculus</td></tr>
 <tr><td>Q9, Q10, Q11</td><td>§6–7: composition (draw \(\theta\) then \(\tilde x\); label then \(x\)); Poisson–Gamma from Lesson 22</td></tr>
+<tr><td>Q13–Q15</td><td>§9: area for \(P(A)\), divide by it, flip for a decreasing transform; \(E[T]=1/P(A)\)</td></tr>
+<tr><td>Q16–Q18</td><td>§10: one uniform subtracts, a new uniform multiplies; the <code>else</code> costs the same as the test before it</td></tr>
+<tr><td>Q19–Q20</td><td>§11: marginal likelihoods keep their constants; Bayes for \(\gamma\); conjugacy for \(\mu\); draw \(\gamma\) then \(\mu\)</td></tr>
 </table></div>
 
-<h2>10 · Homework</h2>
+<h2>14 · Homework</h2>
 <ol>
   <li><strong>Tute week 9, Q1</strong> (<code>tutes/2026_MAST30027_week9_questions.qmd</code>). \(X\mid\theta\sim\text{Bin}(10,\theta)\), \(\theta\sim\text{Beta}(2,3)\). (a) Write, in words, the two-step simulation. (b) The tute's \(10^6\)-draw output is \(\hat p(0)=0.066230\). Compute the exact \(P(X=0)\) by hand from \(\int_0^1(1-\theta)^{10}\,6\theta(1-\theta)^2d\theta\) and decide whether the simulation is consistent with it. (c) Estimate \(P(X\ge8)\) from the tute's table, where \(\hat p(8),\hat p(9),\hat p(10)=0.054031,\ 0.029951,\ 0.011128\).</li>
   <li><strong>Tute week 9, Q2</strong> (truncated exponential on \((0,1)\)), the algorithm and interpretation parts: (a) the rectangular-envelope sampler, its \(M\) and acceptance probability; (b) the inverse-CDF alternative (you did it in §3); (c) the tute's solution output has sample mean \(0.4160\) and variance \(0.0784\) from 10,000 draws; the exact mean is \(0.418\). Is that consistent? Use the Monte Carlo s.e.</li>

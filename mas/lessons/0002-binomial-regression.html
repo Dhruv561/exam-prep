@@ -187,7 +187,7 @@ so \(\text{se}(\hat\eta_0) = 0.1851\).</p>
   <div class="why">Coefficients act additively on \(\eta = g(p)\). The odds-ratio reading \(e^{\beta}\) belongs to the logit only, because only there is \(\eta\) the log-odds.</div>
 </div>
 
-<h2>5 · Exam-level challenge</h2>
+<h2 id="challenge">5 · Exam-level challenge</h2>
 <p>Solve it on paper, then open the steps one at a time. This is the shape and length of an R-output question.</p>
 <div class="box">
 <p>A hospital records 30-day readmissions. Patients are grouped by age (years) and whether they got a follow-up phone call after discharge (<code>call</code> = 1) or not (0). In each group \(m_i = 60\) and \(Y_i\) is the number readmitted.</p>
@@ -231,6 +231,8 @@ $$\begin{aligned}
 <details><summary>Step 5: part (e)</summary><div>
 <p>\(e^{-0.92544} = 0.396\), CI \(\exp(-0.92544 \pm 1.96\times0.22463) = (0.255,\ 0.616)\). "Holding age fixed, patients who got a follow-up call had an estimated 60% lower odds of readmission (95% CI: 38% to 74% lower)."</p>
 <p>The CI excludes 1, which matches \(|z| = 4.12 > 1.96\). Wald tests and the likelihood-ratio test are next lesson.</p></div></details>
+
+<p><strong>Full written solution:</strong> <a href="../worked/0002-challenge-full-solution.html">every line you would write in the exam, part by part</a>.</p>
 
 <h2>6 · Before you close this tab</h2>
 <details><summary>Retrieval: from memory, write the logit log-likelihood, \(\mathcal I(\beta)\), and the three-step CI for \(p\)</summary><div>
