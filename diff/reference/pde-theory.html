@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDE Theory</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+body.ref main { max-width: 60rem; }
+.toc { columns: 2; font-family: Inter, system-ui, sans-serif; font-size: .88rem; }
+.toc li { margin: .15rem 0; }
+.say { font-style: italic; }
+</style>
+</head>
+<body class="ref">
+<main>
+
+<div class="kicker">MAST20030 · Reference · Topic 5</div>
+<h1>PDE theory (everything except solving)</h1>
+<p class="lede">Definitions, theorems, short-answer sentences and facts from lectures 20–27 that sit around separation of variables. Lecture conventions: $u_t=\alpha u_{xx}$, $u_{tt}=c^2u_{xx}$, $\nabla^2u=0$, with $\frac{\dot T}{\alpha T}=\frac{X''}{X}=\lambda$.</p>
+
+<div class="mission">Why: the "classify", "is it genuine? justify", "which series converge uniformly", "which harmonics are missing" and "heat vs wave" parts are recurring short marks. None of it is on the formula sheet.</div>
+
+<ol class="toc">
+<li><a href="#describe">Describing a PDE</a></li>
+<li><a href="#bvp">BVP facts</a></li>
+<li><a href="#super">Superposition &amp; eigenfunctions</a></li>
+<li><a href="#steady">Steady state &amp; transient</a></li>
+<li><a href="#cases">Which case oscillates / decays</a></li>
+<li><a href="#conv">Convergence toolkit</a></li>
+<li><a href="#genuine">Formal, genuine, weak</a></li>
+<li><a href="#modes">Normal modes &amp; frequencies</a></li>
+<li><a href="#heatwave">Heat vs wave sentences</a></li>
+<li><a href="#out">Not assessed</a></li>
+</ol>
+
+<h2 id="describe">1 · Describing a PDE</h2>
+<ul>
+<li><strong>Order:</strong> the order of the highest derivative.</li>
+<li><strong>Linear:</strong> $u$ and its derivatives appear only to the first power, with coefficients that depend on the independent variables only. $u\,u_x$ or $e^{u}$ make it non-linear.</li>
+<li><strong>Homogeneous:</strong> every term contains $u$. A source $q(x)$ makes it inhomogeneous.</li>
+<li><strong>Type:</strong> for $Au_{xx}+Bu_{xy}+Cu_{yy}+\text{lower order}=0$, look at the sign of $B^2-4AC$. Only the second-order terms count.</li>
+</ul>
+$$B^2-4AC\lt0 \;\Rightarrow\; \text{elliptic (Laplace)}$$
+$$B^2-4AC=0 \;\Rightarrow\; \text{parabolic (heat)}$$
+$$B^2-4AC\gt0 \;\Rightarrow\; \text{hyperbolic (wave)}$$
+<ul>
+<li>If the PDE is written with $2B\,u_{xy}$, the test becomes $B^2-AC$. Variable coefficients can change the type by region: $y\,u_{xx}+u_{yy}=0$ is elliptic for $y\gt0$ and hyperbolic for $y\lt0$.</li>
+<li><strong>Number of ICs:</strong> first order in $t$ needs 1 IC, $u(x,0)$. Second order in $t$ needs 2, $u(x,0)$ and $u_t(x,0)$. Laplace needs none.</li>
+<li><strong>IBVP:</strong> a PDE together with its ICs and BCs.</li>
+<li>A PDE's general solution contains arbitrary <em>functions</em>, not just constants.</li>
+</ul>
+
+<h2 id="bvp">2 · BVP facts</h2>
+<ul>
+<li>Unlike an IVP, a linear BVP can have $0$, $1$ or $\infty$ solutions.</li>
+<li>A homogeneous BVP always has $y=0$. It has a non-trivial solution only at eigenvalues.</li>
+<li>General solution = one particular solution + all homogeneous solutions. If no particular solution exists, there is no solution.</li>
+</ul>
+<div class="box">Example (L20): $y''+y=0$ on $(0,2\pi)$. With $y(0)=y(2\pi)=0$ you get $y=B\sin x$, which is not unique. With $y(0)=1,\ y(2\pi)=0$ there is no solution.</div>
+
+<h2 id="super">3 · Superposition &amp; eigenfunctions</h2>
+<ul>
+<li><strong>Superposition principle:</strong> for a linear homogeneous PDE with homogeneous BCs, any sum of solutions is a solution. The SoV series is only a <strong>formal</strong> solution until convergence is checked.</li>
+<li>$-\frac{d^2}{dx^2}$ is <strong>self-adjoint</strong>, $\langle Tf,g\rangle=\langle f,Tg\rangle$. That gives real eigenvalues and orthogonal eigenfunctions, which is why you can find coefficients by orthogonality.</li>
+</ul>
+$$\langle f,g\rangle=\frac1L\int_{-L}^{L}f^*\,g\,dx$$
+<p>$J_0$ is orthogonal <strong>with weight $r$</strong>:</p>
+$$\int_0^a J_0(k_mr)\,J_0(k_nr)\,r\,dr=0,\quad m\ne n$$
+$$\int_0^a J_0^2(k_nr)\,r\,dr=\frac{a^2}{2}J_1^2(k_na)$$
+
+<h2 id="steady">4 · Steady state &amp; transient</h2>
+$$u=u_S(x)+u_T(x,t)$$
+$$u_T\to0 \;\Rightarrow\; u\to u_S$$
+<ul>
+<li>$u_S$ satisfies the PDE with $u_t=0$ and the inhomogeneous BCs. It depends <strong>only on the BCs, not on the IC</strong>. In 2D, $\nabla^2u_S=0$ (Laplace).</li>
+<li>$u_T$ satisfies the PDE with homogeneous BCs and the modified IC $u_T(x,0)=f(x)-u_S(x)$.</li>
+<li><strong>N–N (insulated), no source:</strong> $u$ tends to the mean of the IC.</li>
+</ul>
+$$u\to\frac1L\int_0^Lf(x)\,dx$$
+<ul>
+<li><strong>Unequal fluxes, no source:</strong> no steady state (heat keeps accumulating). <strong>Wave:</strong> never has a steady state.</li>
+<li><strong>Large $t$:</strong> the lowest mode dominates. The decay time scale is $\frac{1}{\alpha k_1^2}$.</li>
+</ul>
+$$u\approx u_S+C_1e^{-\alpha k_1^2t}X_1(x)$$
+<div class="box"><strong>Sketch rules.</strong> At $t=0$ draw $f$. Every $t\gt0$ curve is smooth and obeys the BCs (pinned value, or zero slope at an insulated end). High modes die first, and the curve tends to $u_S$.</div>
+
+<h2 id="cases">5 · Which case oscillates or decays</h2>
+<p>This depends on your sign convention, so state it in the line where you separate. With $\frac{\dot T}{\alpha T}=\frac{X''}{X}=\lambda$ or $\frac{\ddot T}{c^2T}=\frac{X''}{X}=\lambda$:</p>
+<ul>
+<li><strong>$\lambda=-k^2\lt0$:</strong> heat gives $e^{-\alpha k^2t}$ (decays) and wave gives $\cos ckt,\ \sin ckt$ (oscillates). This is the only case with a non-trivial $X$.</li>
+<li><strong>$\lambda=k^2\gt0$:</strong> heat gives $e^{\alpha k^2t}$ (grows) and wave gives $e^{\pm ckt}$ (no oscillation). The BCs make $X$ trivial.</li>
+<li><strong>$\lambda=0$:</strong> trivial, except in the N–N case, where $X_0=1$.</li>
+</ul>
+<div class="trap">The booklet, tutes and the 2022/2023 papers sometimes write $X''+\lambda X=0$ or $=-\lambda$. Then the signs flip and $\lambda\gt0$ oscillates.</div>
+
+<h2 id="conv">6 · Convergence toolkit</h2>
+<p><strong>Pointwise:</strong> for each fixed $x$,</p>
+$$\lim_{N\to\infty}S_N(x)=S(x)$$
+<p><strong>Uniform on $D$:</strong></p>
+$$\lim_{N\to\infty}\,\max_{x\in D}\,\big|S_N(x)-S(x)\big|=0$$
+<ul>
+<li>Uniform implies pointwise, but not the other way round.</li>
+<li><strong>Key argument:</strong> if the terms are continuous but the sum is discontinuous, the convergence is <strong>not uniform</strong>.</li>
+</ul>
+<div class="box"><strong>Weierstrass M-test.</strong> If $\max_D|w_n|\le a_n$, where $a_n$ has no $x$ or $t$ in it, and $\sum a_n$ converges, then $\sum w_n$ converges uniformly on $D$.</div>
+<div class="trap">If the best bound gives a divergent $\sum a_n$ (e.g. $\sum\frac1n$), the test is inconclusive. That does not prove non-uniform convergence. Use the discontinuity argument instead.</div>
+<div class="box"><strong>Term-by-term differentiation (L25).</strong> Suppose each $w_n$ is continuously differentiable, $\sum w_n$ converges uniformly and $\sum w_n'$ converges uniformly. Then
+$$\frac{d}{dt}\sum w_n=\sum w_n'$$
+<strong>Term-by-term integration:</strong> uniform convergence of $\sum w_n$ is enough.</div>
+<div class="box"><strong>Fourier pointwise (Dirichlet's condition, L17).</strong> If $f$ is piecewise $C^1$ on $(-L,L]$, the series converges to the periodic extension $F(x)$ where $F$ is continuous. At a jump it converges to the average:
+$$\tfrac12\big[F(x^-)+F(x^+)\big]$$
+</div>
+<div class="box"><strong>Fourier uniform (L17).</strong> If $f'$ is piecewise continuous <strong>and</strong> the periodic extension $F$ is continuous on $\mathbb R$ (check the ends $\pm L$), the series converges uniformly to $F$. If $F$ jumps, convergence is not uniform.</div>
+<p><strong>Gibbs:</strong> if $F$ jumps, the partial sums overshoot by about $9\%$ of the jump on each side, however many terms you take.</p>
+<p><strong>Coefficient decay tells you the smoothness of $F$:</strong></p>
+<ul>
+<li>$\sim\frac1n$: $F$ jumps. Not uniform, Gibbs.</li>
+<li>$\sim\frac1{n^2}$: $F$ is continuous with corners. Uniform, no Gibbs.</li>
+<li>$\sim\frac1{n^3}$ or faster: both $F$ and $F'$ are continuous.</li>
+</ul>
+
+<h2 id="genuine">7 · Formal, genuine, weak</h2>
+<ul>
+<li><strong>Formal:</strong> the SoV series, with convergence ignored. The term-by-term differentiated series satisfies the PDE.</li>
+<li><strong>Genuine:</strong> the series <strong>and every derivative in the PDE</strong> converge uniformly, so term-by-term differentiation is valid and the series really satisfies the PDE.</li>
+<li><strong>Weak:</strong> a formal solution that isn't genuine. Name it only; the theory isn't assessed.</li>
+</ul>
+<h3>Proof that the heat series is genuine (D–D)</h3>
+<p>Fix $T\gt0$ and set $D=\{0\le x\le L,\ t\ge T\}$.</p>
+$$|C_n|\le\frac2L\int_0^L|f|\,dx=M$$
+$$|u_n|\le M\,e^{-\alpha k_n^2T}$$
+$$|\partial_xu_n|\le M\,k_n\,e^{-\alpha k_n^2T}$$
+$$|\partial_x^2u_n|\le M\,k_n^2\,e^{-\alpha k_n^2T}$$
+$$|\partial_tu_n|=\alpha\,|\partial_x^2u_n|$$
+<p>Each bound has the form $M'n^pe^{-cn^2T}$. Use the ratio test:</p>
+$$\frac{(n+1)^pe^{-c(n+1)^2T}}{n^pe^{-cn^2T}}=\left(1+\tfrac1n\right)^pe^{-c(2n+1)T}$$
+$$\left(1+\tfrac1n\right)^pe^{-c(2n+1)T}\to0\lt1$$
+<p>So by the M-test each series converges uniformly on $D$, term-by-term differentiation is valid, and $u$ is genuine for $t\ge T$. Since $T\gt0$ was arbitrary, $u$ is genuine for all $t\gt0$.</p>
+<div class="trap"><strong>Why it fails at $t=0$:</strong> the exponential equals $1$, so nothing decays. If the IC jumps, or doesn't match the BCs, the series shows Gibbs there (continuous terms, discontinuous sum).</div>
+<p><strong>Which series are uniform on $t\ge0$:</strong> if the differentiated series has coefficients $\sim\frac1{n^2}$ or faster, it is uniform by the M-test. If they are $\sim\frac1n$ and the matching extension jumps, it is not uniform.</p>
+<h3>Wave</h3>
+<p>There is no decaying factor, so moving to $t\ge T$ gains nothing. For $u_{xx}$ and $u_{tt}$ to converge uniformly you need:</p>
+$$\sum k_n^2\,|b_n|\lt\infty$$
+<ul>
+<li><strong>Plucked string:</strong> $b_n\sim\frac1{n^2}$. So $u$ converges uniformly, the M-test fails for $u_x$, and $u_{xx}$ diverges. The kink is never smoothed, so it is only a weak solution.</li>
+<li><strong>Any finite sum of normal modes is genuine.</strong></li>
+</ul>
+
+<h2 id="modes">8 · Normal modes &amp; frequencies</h2>
+<p><strong>Normal mode</strong> (L27): one term of the wave series. Every point oscillates at the same frequency.</p>
+$$u_n=\big(a_n\cos\omega_nt+b_n\sin\omega_nt\big)\sin k_nx$$
+<p><strong>Normal (resonant) frequencies:</strong></p>
+$$\omega_n=c\,k_n=\frac{n\pi c}{L}$$
+<p><strong>Fundamental:</strong></p>
+$$\omega_1=\frac{\pi c}{L}$$
+<p><strong>Harmonics</strong> are integer multiples of the fundamental:</p>
+$$\omega_n=n\,\omega_1$$
+<p><strong>In Hz:</strong></p>
+$$f_n=\frac{\omega_n}{2\pi}=\frac{nc}{2L}$$
+<p><strong>Period of the whole motion:</strong></p>
+$$\frac{2\pi}{\omega_1}=\frac{2L}{c}$$
+<ul>
+<li><strong>Nodes:</strong> mode $n$ has $n-1$ interior nodes, at the zeros of $\sin k_nx$.</li>
+<li><strong>Missing harmonics:</strong> on $(0,1)$, plucking at $\ell$ removes mode $n$ exactly when $n\ell\in\mathbb Z$, because the pluck point is a node of that mode. $\ell=\frac12$ removes all even $n$; $\ell=\frac13$ removes $n=3,6,9,\dots$ If both ICs are non-zero, a mode is missing only if $a_n=b_n=0$.</li>
+</ul>
+<h3>Rectangular drum</h3>
+<p>The dispersion relation (frequency vs wavenumbers):</p>
+$$\omega_{m,n}^2=c^2\big(k_{x,m}^2+k_{y,n}^2\big)$$
+$$k_{x,m}=\frac{m\pi}{L_x},\quad k_{y,n}=\frac{n\pi}{L_y}$$
+<ul>
+<li><strong>Degenerate frequencies:</strong> different $(m,n)$ give the same $\omega$. On a square, $(m,n)$ and $(n,m)$ always match.</li>
+<li>A drum's overtones are not integer multiples of $\omega_{1,1}$, so they aren't harmonics and the motion isn't periodic.</li>
+</ul>
+<h3>Circular drum (axisymmetric)</h3>
+$$\omega_n=\frac{c\,j_n}{a}$$
+$$j_1\approx2.405,\quad j_2\approx5.520,\quad j_3\approx8.654$$
+<ul>
+<li>$\frac{\omega_2}{\omega_1}\approx2.30$, which isn't an integer.</li>
+<li>For heat on a disc, the slowest decay rate is $\alpha\left(\frac{j_1}{a}\right)^2$.</li>
+</ul>
+
+<h2 id="heatwave">9 · Heat vs wave (model sentences)</h2>
+<div class="box">
+<p><strong>Heat (parabolic):</strong> <span class="say">"The factors $e^{-\alpha k_n^2t}$ damp the high-frequency modes immediately, so jumps and kinks in the IC are smoothed for every $t\gt0$, and $u$ tends to the steady state."</span></p>
+<p><strong>Wave (hyperbolic):</strong> <span class="say">"The modes oscillate without decay, so jumps and kinks aren't smoothed. They travel at speed $c$, reflect at the ends and recur with period $\frac{2L}{c}$, and there's no steady state."</span></p>
+</div>
+<ul>
+<li><strong>Effect of $c$:</strong> doubling $c$ doubles the propagation speed and halves the period.</li>
+<li><strong>Genuine?</strong> Heat: yes for $t\gt0$. Wave: only if the IC is very smooth; a kinked or jumping IC gives a weak solution.</li>
+</ul>
+
+<h2 id="out">10 · Not assessed</h2>
+<ul>
+<li>The theory of weak solutions (just recognise the name).</li>
+<li>Uniqueness and energy-functional proofs. The lectures only say that every PDE in the course has a unique solution whenever the conditions allow a genuine one.</li>
+<li>Deriving the heat equation from Fourier's law.</li>
+<li>"Total heat" parts (not in 2025).</li>
+<li>Kac's "can one hear the shape of a drum?" (L27 aside).</li>
+</ul>
+
+<div class="nav">
+<span>Lessons: <a href="../lessons/0023-convergence-gibbs-uniform.html">23</a> · <a href="../lessons/0027-bvps-eigenvalue-problems.html">27</a> · <a href="../lessons/0029-inhomogeneous-bcs-steady-transient.html">29</a> · <a href="../lessons/0031-wave-equation-normal-modes.html">31</a> · <a href="../lessons/0032-radial-bessel-genuine-solutions.html">32</a></span>
+<span>Also: <a href="topic5-cheatsheet.html">Topic 5 sheet</a> · <a href="definitions.html">Definitions</a> · <a href="bcs-from-text.html">Words → BCs</a></span>
+</div>
+</main>
+</body>
+</html>
