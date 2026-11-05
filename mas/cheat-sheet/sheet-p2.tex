@@ -35,7 +35,7 @@ $=Q(\theta,\theta^0)+C$, $C=-\sum q\log q$. Equality at $\theta^0$, as $P(X,Z|\t
 \li $\Nor(\mu,\sigma^2)$, $\Nor(-\mu,\sigma^2)$: $P_{i1}=\pi/[\pi+(1-\pi)e^{-2\mu x_i/\sigma^2}]$; $\hmu=\frac1n\sum(2P_{i1}-1)x_i$; \m{\hat\sigma^2=\frac1n\sum x_i^2-\hmu^2}.
 \li Zero-inflated Poisson: $x_i=0$: $P_{i1}=\pi/[\pi+(1-\pi)e^{-\lambda}]$; $x_i>0$: 0. Binomial: $\pi/[\pi+(1-\pi)(1-p)^{m_i}]$; $\hat p=\sum x_i/\sum P_{i2}m_i$.
 \sk\bh{Mixture moments:} $K=2$ between term $=\pi_1\pi_2(\mu_1-\mu_2)^2$. Poisson: $\Var X=\bar\lambda+\pi_1\pi_2(\lambda_1-\lambda_2)^2$, so intercept-only $\hphi\approx\Var X/\E X$. Exposure $t$: $t\bar\lambda+t^2\pi_1\pi_2(\lambda_1-\lambda_2)^2$. Zero-inflated: $\E X=(1-\pi)\lambda$, $\Var X=\E X(1+\pi\lambda)$.
-\sk\bh{Cutoffs:} Poisson, $\lambda_1<\lambda_2$: cluster 1 if $x<\frac{\log(\pi_1/\pi_2)+\lambda_2-\lambda_1}{\log(\lambda_2/\lambda_1)}$. Same mean, $\sigma_1<\sigma_2$: cluster 2 if $|x|>c$, $c^2=\log\frac{\pi_1\sigma_2}{\pi_2\sigma_1}\big/\big(\frac1{2\sigma_1^2}-\frac1{2\sigma_2^2}\big)$. Misclassified: $\pi_1P(x>c|1)+\pi_2P(x\le c|2)$.
+\sk\bh{Cutoffs:} Poisson, $\lambda_1<\lambda_2$: cluster 1 if $x<\frac{\log(\pi_1/\pi_2)+\lambda_2-\lambda_1}{\log(\lambda_2/\lambda_1)}$. Same mean $\mu$, $\sigma_1<\sigma_2$: cluster 2 if $|x-\mu|>c$, $c^2=\log\frac{\pi_1\sigma_2}{\pi_2\sigma_1}\big/\big(\frac1{2\sigma_1^2}-\frac1{2\sigma_2^2}\big)$. Misclassified: $\pi_1P(x>c|1)+\pi_2P(x\le c|2)$.
 \sk\bh{By hand:} $\sum P_{i2}x_i=\sum x_i-\sum P_{i1}x_i$. Pooled $\hat\sigma^2=(N_1\hat\sigma_1^2+N_2\hat\sigma_2^2)/n$. Variance update uses the \warn{new} mean.
 \sk\bh{Choose $K$:} $l$ always rises with $K$: use AIC, $p=K-1$ + component parameters (known values not counted).
 \bx

@@ -45,7 +45,7 @@ Completeness audit: 1,546 items across all three pages, none missing. Correctnes
 
 One error fixed: the same-mean cutoff read $|x|>c$, which holds only for mean 0; it is now $|x-\mu|>c$. Also tightened: $AIC_B-AIC_A$ with $\phi$, the fitted-count checks for `cbind` binomial, the `colSums` bug gloss, "se far off" when covariances are dropped, the undefined $\tau^2$ in the cluster formula, 0/1 $D$ as logit only, the `rstudent` gloss, $n$ from null df needing an intercept, `drop1` with interactions, $\bar X\approx$ Normal, the two ESS targets, and $D_B/(n-p_B)$ as approximate.
 
-These fixes are in the horizontal files only. The portrait sheet still has the old wording.
+These fixes are in the horizontal files only, so the portrait sheet still has the old wording, except the same-mean cutoff, which was fixed there too on 2 Nov 2026.
 
 Left as they are: "`step`/`drop1` do not work" on quasi fits is the course wording, though R's `drop1` does run. No source was found for the two marks claims ("Marks:", "A correct unfinished ledger still scores"). The $H_{ii}>2p/n$ and Cook near 1 rules are not in the slides.
 
