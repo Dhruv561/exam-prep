@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BCs From Words</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/quiz.js"></script>
+<style>
+body.ref main { max-width: 60rem; }
+td:first-child { width: 42%; }
+.ex .q { font-style: italic; }
+.ok { font-family: Inter, system-ui, sans-serif; font-size: .8rem; color: var(--muted); }
+.toc { columns: 2; font-family: Inter, system-ui, sans-serif; font-size: .88rem; }
+.toc li { margin: .15rem 0; }
+</style>
+</head>
+<body class="ref">
+<main>
+
+<div class="kicker">MAST20030 · Reference · Topics 5–6</div>
+<h1>Words → boundary &amp; initial conditions</h1>
+<p class="lede">Every phrase a PDE question can use to hide a BC or IC, what it becomes, and the hidden conditions nobody states. Lecture conventions: $u_t=\alpha u_{xx}$, $u_{tt}=c^2u_{xx}$, $\nabla^2u=0$.</p>
+
+<div class="mission">Why: the lecturer lists "text → IC/BC modelling" as examinable, and masked 2026 Q6 (18 marks) has a very long intro. Getting a BC wrong costs the whole question, since the eigenfunctions come from the BCs. Nothing here is on the formula sheet.</div>
+
+<ol class="toc">
+<li><a href="#method">The 5-step method</a></li>
+<li><a href="#count">Count the conditions</a></li>
+<li><a href="#master">Master keyword table</a></li>
+<li><a href="#heat">Heat: rods, wires, plates</a></li>
+<li><a href="#wave">Wave: strings, drums</a></li>
+<li><a href="#laplace">Steady state / Laplace: rectangles, polar</a></li>
+<li><a href="#hidden">Hidden conditions</a></li>
+<li><a href="#infinite">Infinite domains (Fourier transform)</a></li>
+<li><a href="#rare">Rare / recognise only</a></li>
+<li><a href="#next">BCs → $X$ conditions → eigenfunctions</a></li>
+<li><a href="#traps">Traps</a></li>
+<li><a href="#examples">10 worked translations</a></li>
+<li><a href="#drill">Drill (16 Qs)</a></li>
+<li><a href="#template">Exam write-up template</a></li>
+</ol>
+
+<h2 id="method">1 · The 5-step method</h2>
+<ol class="steps">
+<li><strong>Physics → PDE.</strong> Temperature / concentration → heat. Displacement of string / membrane → wave. "Steady", "equilibrium", "potential" → Laplace. "Infinitely long" → Fourier transform.</li>
+<li><strong>Domain → list every boundary.</strong> Each end, each edge, $r=0$, $r=a$, $\theta$ edges, $\pm\infty$. Write the list before reading for conditions.</li>
+<li><strong>Match one sentence to each boundary.</strong> Ask what the sentence fixes: the <em>value</em> (Dirichlet), the <em>slope / heat flow</em> (Neumann), a <em>relation</em> between them (Robin).</li>
+<li><strong>Fill the gaps with hidden conditions.</strong> Boundaries with no sentence: bounded at $r=0$, periodic in $\theta$, decay at $\infty$ (§7).</li>
+<li><strong>Time.</strong> "Initially / at $t=0$" → IC (heat 1, wave 2). "For $t\gt0$ / from then on / suddenly" → BC. "After a long time" → steady state $u_t=0$.</li>
+</ol>
+<p>Then check: right number of conditions (§2), each BC written "for $t\gt0$", each IC "for $0\lt x\lt L$", and whether each BC is homogeneous (RHS $=0$). If not, you need $u=u_S+v$.</p>
+
+<h2 id="count">2 · Count the conditions first</h2>
+<p>Rule: each spatial variable with a 2nd derivative needs <strong>2</strong> conditions; time needs <strong>1</strong> (heat) or <strong>2</strong> (wave); Laplace needs none. If the words give fewer, the rest are hidden (§7).</p>
+<table>
+<tr><th>Problem</th><th>BCs</th><th>ICs</th></tr>
+<tr><td>1D heat, rod $0\le x\le L$</td><td>2 (one per end)</td><td>1: $u(x,0)$</td></tr>
+<tr><td>1D wave, string</td><td>2 (one per end)</td><td>2: $u(x,0)$, $u_t(x,0)$</td></tr>
+<tr><td>Laplace, rectangle</td><td>4 (one per edge)</td><td>0</td></tr>
+<tr><td>2D heat / wave, rectangle</td><td>4</td><td>1 / 2</td></tr>
+<tr><td>Laplace, full disc $r\lt a$</td><td>$r=a$ + <em>bounded at $r=0$</em> + <em>periodic in $\theta$</em></td><td>0</td></tr>
+<tr><td>Laplace, annulus $a\lt r\lt b$</td><td>$r=a$, $r=b$ + <em>periodic in $\theta$</em></td><td>0</td></tr>
+<tr><td>Laplace, wedge / semicircle / quarter-disc</td><td>2 straight edges + curved edge + <em>bounded at $r=0$</em></td><td>0</td></tr>
+<tr><td>Laplace, semi-annulus (2022, 2024 papers)</td><td>4 edges, nothing hidden</td><td>0</td></tr>
+<tr><td>Axisymmetric heat / drum on disc</td><td>$r=a$ + <em>bounded at $r=0$</em> (no $\theta$)</td><td>1 / 2</td></tr>
+<tr><td>Infinite line (FT)</td><td><em>$u,u_x\to0$ as $|x|\to\infty$</em></td><td>1 / 2</td></tr>
+</table>
+
+<h2 id="master">3 · Master keyword table</h2>
+<table>
+<tr><th>The sentence fixes / describes…</th><th>Typical words</th><th>Becomes</th></tr>
+<tr><td>the <strong>value</strong> on the boundary</td><td>held, kept, maintained, fixed at, set to, in contact with a bath / reservoir, ice, boiling water, pinned, clamped, tied</td><td>Dirichlet: $u=g$</td></tr>
+<tr><td>the <strong>heat flow / slope</strong></td><td>insulated, no heat flows, adiabatic, reflecting, zero flux, flux $q$, heat supplied / extracted at rate $q$, gradient $c$, free end</td><td>Neumann: $u_x=g$ (normal derivative)</td></tr>
+<tr><td>a <strong>relation</strong> value ↔ flow</td><td>Newton's law of cooling, exposed to air / surroundings at $T_s$, loses heat at a rate proportional to the temperature difference, radiates, convects, attached to a spring</td><td>Robin: $u_x+\beta u=g$</td></tr>
+<tr><td>the domain <strong>closes on itself</strong></td><td>full disc, annulus, ring, closed loop, "around the circle"</td><td>periodic</td></tr>
+<tr><td>a point / infinity with <strong>no physical wall</strong></td><td>centre of disc, "infinitely long", "very long", outside a cylinder</td><td>bounded / decays</td></tr>
+<tr><td>the <strong>sides or faces</strong></td><td>insulated except at its ends, laterally insulated, curved surface insulated, faces insulated, thin</td><td><strong>not a BC</strong>: sets the dimension</td></tr>
+<tr><td>what happens <strong>inside</strong> the body</td><td>heat generated, source, sink, lateral heat loss, damping, gravity</td><td><strong>not a BC</strong>: extra PDE term</td></tr>
+<tr><td>the state at the <strong>start</strong></td><td>initially, at $t=0$, released, plucked, struck, taken from an oven</td><td>IC</td></tr>
+<tr><td>the state at the <strong>end</strong></td><td>steady state, equilibrium, after a long time, eventually, as $t\to\infty$</td><td>$u_t=0$: ODE / Laplace</td></tr>
+</table>
+
+<h2 id="heat">4 · Heat equation (temperature $u$)</h2>
+
+<h3>4a · Dirichlet: value fixed</h3>
+<table>
+<tr><th>Words</th><th>Condition</th></tr>
+<tr><td>"end held / kept / maintained at temperature $T_0$"</td><td>$u(0,t)=T_0$</td></tr>
+<tr><td>"quenched in ice", "packed in ice", "in iced water" (°C)</td><td>$u=0$</td></tr>
+<tr><td>"immersed in boiling water" (°C)</td><td>$u=100$</td></tr>
+<tr><td>"in perfect thermal contact with a large bath / reservoir at $T_0$"</td><td>$u=T_0$</td></tr>
+<tr><td>"held at the initial temperature"</td><td>$u=$ the IC value there</td></tr>
+<tr><td>"heated instantaneously and held at $T_0$" (lecture Problem 3)</td><td>$u(0,t)=T_0$ for $t\gt0$; IC unchanged</td></tr>
+<tr><td>"edge $y=b$ has temperature $f(x)$"</td><td>$u(x,b)=f(x)$</td></tr>
+<tr><td>"end temperature rises steadily / oscillates / decays"</td><td>$u(0,t)=kt$, $\;T_0+A\cos\omega t$, $\;e^{-t}$ (time-dependent, §4f)</td></tr>
+</table>
+
+<h3>4b · Neumann: heat flow fixed</h3>
+<table>
+<tr><th>Words</th><th>Condition</th></tr>
+<tr><td>"insulated end", "perfectly insulated", "no heat flows through", "thermally isolated", "adiabatic", "reflecting", "zero flux"</td><td>$u_x=0$ at that end</td></tr>
+<tr><td>"temperature gradient $c$ at $x=a$"</td><td>$u_x(a,t)=c$ (no sign game)</td></tr>
+<tr><td>"heat supplied / pumped in at rate $q$"</td><td>$x=0$: $u_x=-q/K$; $\;x=L$: $u_x=q/K$</td></tr>
+<tr><td>"heat extracted / escapes at rate $q$"</td><td>$x=0$: $u_x=q/K$; $\;x=L$: $u_x=-q/K$</td></tr>
+<tr><td>insulated edge of a plate / rim of a disc</td><td>$u_x$, $u_y$ or $u_r=0$ (derivative <em>across</em> the edge)</td></tr>
+</table>
+<div class="box">
+<p><strong>Flux sign rule (derive, don't memorise).</strong> Fourier's law: heat flux in the $+x$ direction is $-Ku_x$. With $n$ the outward normal:</p>
+$$K\,\frac{\partial u}{\partial n}=\text{heat flux into the body}$$
+<p>At $x=L$ the outward normal is $+x$, at $x=0$ it is $-x$:</p>
+$$\begin{aligned}
+&x=L: && \frac{\partial u}{\partial n}=u_x(L,t) &&\Rightarrow\ u_x(L,t)=\frac{q_{\text{in}}}{K}\\
+&x=0: && \frac{\partial u}{\partial n}=-u_x(0,t) &&\Rightarrow\ u_x(0,t)=-\frac{q_{\text{in}}}{K}
+\end{aligned}$$
+<p>Sanity check: heat flows hot → cold. Heat entering at $x=0$ means the rod is hottest at $x=0$, so $u$ decreases there: $u_x(0,t)\lt0$ ✓. If no $K$ is given, take $K=1$.</p>
+</div>
+
+<h3>4c · Robin: Newton's law of cooling at an end</h3>
+<p>"Exposed to / loses heat to surroundings at $T_s$ at a rate proportional to the temperature difference":</p>
+$$\begin{aligned}
+&-K\frac{\partial u}{\partial n}=h\,(u-T_s) &&\text{heat out}=h\times\text{excess temperature}\\
+&x=L:\quad u_x(L,t)=-\beta\,\big(u(L,t)-T_s\big) &&\beta=h/K\gt0\\
+&x=0:\quad u_x(0,t)=\beta\,\big(u(0,t)-T_s\big) &&\text{sign flips at the left end}
+\end{aligned}$$
+<p>Limits: $\beta\to\infty$ gives $u=T_s$ (perfect contact, Dirichlet); $\beta\to0$ gives insulated. Homogeneous only if $T_s=0$. A pure-maths stem may just say "Robin", e.g. $y(0)-y'(0)=0$.</p>
+
+<h3>4d · Not BCs: these change the PDE or its dimension</h3>
+<table>
+<tr><th>Words</th><th>Effect</th></tr>
+<tr><td>"insulated except at its ends", "laterally insulated", "curved surface insulated", "thin rod / wire"</td><td>heat flows only along $x$: 1D, $u_t=\alpha u_{xx}$. Says nothing about the ends.</td></tr>
+<tr><td>"faces of the plate insulated", "thin plate"</td><td>2D: $u_t=\alpha\nabla^2u$ in the plane</td></tr>
+<tr><td>"heat generated uniformly at rate $q$"</td><td>$u_t=\alpha u_{xx}+q$ (parabolic $u_S$)</td></tr>
+<tr><td>"heat generated at a rate proportional to $x$"</td><td>$u_t=\alpha u_{xx}+cx$ (cubic $u_S$; 2021 paper had $-18x$)</td></tr>
+<tr><td>"heat absorbed / sink"</td><td>$-q$ term</td></tr>
+<tr><td>"lateral surface loses heat to a medium at $T_s$"</td><td>$u_t=\alpha u_{xx}-\beta(u-T_s)$</td></tr>
+</table>
+
+<h3>4e · Initial conditions</h3>
+<table>
+<tr><th>Words</th><th>IC</th></tr>
+<tr><td>"initially heated to $f(x)$", "initial temperature distribution $f$"</td><td>$u(x,0)=f(x)$</td></tr>
+<tr><td>"initially at uniform temperature $T_1$", "taken out of an oven at $T_1$"</td><td>$u(x,0)=T_1$</td></tr>
+<tr><td>"initially at zero / at the temperature of ice"</td><td>$u(x,0)=0$</td></tr>
+<tr><td>"initial temperature shown in the figure" (2023)</td><td>piecewise-linear formula read off the graph</td></tr>
+<tr><td>"has been in a steady state with ends at $A$, $B$ for a long time; at $t=0$ …"</td><td>IC = <em>old</em> steady state: $u(x,0)=A+\frac{(B-A)x}{L}$; BCs = <em>new</em> ones</td></tr>
+</table>
+<p>IC and BC may disagree at a corner (e.g. IC $20$, end in ice). That is allowed: heat smooths it instantly.</p>
+
+<h3>4f · Time-dependent BCs</h3>
+<p>"Machine sets the end temperature to $g(t)$" → $u(0,t)=g(t)$. No steady state exists. Method: subtract a $w(x,t)$, linear in $x$, matching both BCs. Then $v=u-w$ has homogeneous BCs and a source term $-w_t$. Recognise it; older papers used this.</p>
+
+<h2 id="wave">5 · Wave equation (displacement $u$)</h2>
+<h3>5a · BCs</h3>
+<table>
+<tr><th>Words</th><th>Condition</th></tr>
+<tr><td>"fixed / pinned / clamped / tied / fastened at both ends", "held fixed at the boundary" (drum)</td><td>$u=0$</td></tr>
+<tr><td>"end moved / shaken as $h(t)$"</td><td>$u(0,t)=h(t)$, e.g. $A\sin\omega t$</td></tr>
+<tr><td>"free end", "loose end", "attached to a ring that slides without friction on a vertical rod"</td><td>$u_x=0$</td></tr>
+<tr><td>"end attached to a spring (constant $k$), tension $T$"</td><td>$u_x(L,t)=-\frac{k}{T}u(L,t)$ (Robin, recognise only)</td></tr>
+</table>
+<h3>5b · ICs (always two)</h3>
+<table>
+<tr><th>Words</th><th>IC</th></tr>
+<tr><td>"released from rest", "let go", "initially at rest", "not moving", "starts from rest"</td><td>$u_t(x,0)=0$</td></tr>
+<tr><td>"in its equilibrium / rest position", "undisturbed", "flat", "horizontal"</td><td>$u(x,0)=0$</td></tr>
+<tr><td>"pulled / deformed / displaced into the shape $f(x)$"</td><td>$u(x,0)=f(x)$</td></tr>
+<tr><td>"struck / hit by a hammer", "given initial velocity $g(x)$"</td><td>$u_t(x,0)=g(x)$</td></tr>
+<tr><td>"struck sharply at the point $x_0$"</td><td>$u_t(x,0)=v_0\,\delta(x-x_0)$ (recognise)</td></tr>
+</table>
+<p>"Plucked at $x=\ell$ to height $A$" = two straight segments $(0,0)\to(\ell,A)\to(L,0)$, released from rest:</p>
+$$u(x,0)=\begin{cases}\dfrac{Ax}{\ell}, & 0\le x\le\ell\\[6pt] \dfrac{A(L-x)}{L-\ell}, & \ell\le x\le L\end{cases}\qquad u_t(x,0)=0$$
+<p>Plucked at the centre: put $\ell=\frac{L}{2}$.</p>
+<h3>5c · Not BCs</h3>
+<p>"Air resistance / damping proportional to velocity" → $u_{tt}+\gamma u_t=c^2u_{xx}$. "Gravity" → $-g$ term. "Elastic foundation" → $-ku$ term. Recognise only.</p>
+
+<h2 id="laplace">6 · Steady state / Laplace</h2>
+<p>Trigger words: "steady-state temperature", "equilibrium", "after a long time", "electrostatic potential", "time-independent". Set $u_t=0$; the IC is not used (except Neumann–Neumann, §9).</p>
+<h3>6a · Rectangle $0\le x\le a$, $0\le y\le b$</h3>
+<table>
+<tr><th>Edge</th><th>Held at $f$</th><th>Insulated</th></tr>
+<tr><td>left, $x=0$</td><td>$u(0,y)=f(y)$</td><td>$u_x(0,y)=0$</td></tr>
+<tr><td>right, $x=a$</td><td>$u(a,y)=f(y)$</td><td>$u_x(a,y)=0$</td></tr>
+<tr><td>bottom, $y=0$</td><td>$u(x,0)=f(x)$</td><td>$u_y(x,0)=0$</td></tr>
+<tr><td>top, $y=b$</td><td>$u(x,b)=f(x)$</td><td>$u_y(x,b)=0$</td></tr>
+</table>
+<p>"Edge along the $x$-axis" = bottom. Several non-zero edges → superpose, one non-zero edge per sub-problem.</p>
+<h3>6b · Polar shapes</h3>
+<table>
+<tr><th>Words</th><th>Domain and conditions</th></tr>
+<tr><td>"circular plate / disc of radius $a$, rim at $f(\theta)$"</td><td>$u(a,\theta)=f(\theta)$, bounded at $r=0$, $2\pi$-periodic</td></tr>
+<tr><td>"annulus / ring-shaped plate"</td><td>$u(a,\theta)$, $u(b,\theta)$ given, periodic, <strong>no</strong> boundedness</td></tr>
+<tr><td>"semicircular plate", "the diameter"</td><td>$0\le\theta\le\pi$: diameter = $\theta=0$ and $\theta=\pi$; bounded at $r=0$; <strong>no</strong> periodicity</td></tr>
+<tr><td>"quarter-disc", "sector / wedge of angle $\alpha$"</td><td>edges $\theta=0$, $\theta=\alpha$, arc $r=a$; bounded at $r=0$</td></tr>
+<tr><td>"semi-annulus" (2022, 2024)</td><td>$a\lt r\lt b$, $0\le\theta\le\pi$: four edges</td></tr>
+<tr><td>"outside a cylinder of radius $a$"</td><td>$r\gt a$: bounded as $r\to\infty$, periodic</td></tr>
+<tr><td>"axisymmetric", "radially symmetric", "independent of $\theta$"</td><td>$u=u(r)$ or $u(r,t)$: no $\theta$ conditions</td></tr>
+</table>
+<p>Insulated in polar: arc → $u_r=0$. Straight edge → $\frac1r u_\theta=0$, i.e. $u_\theta=0$. Never $u_r=0$ on a straight edge.</p>
+
+<h2 id="hidden">7 · Hidden conditions (never in the words)</h2>
+<ol class="steps">
+<li><strong>Bounded at $r=0$</strong> whenever the centre is in the domain (disc, semicircle, wedge, drum). Kills $\ln r$, $r^{-n}$, $Y_0$. Write $|u(0,t)|\lt\infty$.</li>
+<li><strong>$2\pi$-periodic in $\theta$</strong> when $\theta$ goes fully round (disc, annulus, exterior): $u(r,-\pi)=u(r,\pi)$ and $u_\theta(r,-\pi)=u_\theta(r,\pi)$. Forces integer $n$.</li>
+<li><strong>Bounded / decays at infinity</strong>: exterior ($r\to\infty$), semi-infinite strip ($x\to\infty$), infinite line ($u,u_x\to0$ so the FT exists).</li>
+<li><strong>Non-trivial</strong>: $T(t)\not\equiv0$, which is what lets $u(0,t)=0$ become $X(0)=0$.</li>
+</ol>
+
+<h2 id="infinite">8 · Infinite domains (Topic 6)</h2>
+<table>
+<tr><th>Words</th><th>Set-up</th></tr>
+<tr><td>"infinitely long rod / string", "very long", "effectively infinite", $x\in\mathbb{R}$</td><td>no end BCs; $u,u_x\to0$ as $|x|\to\infty$; ICs as usual; FT in $x$</td></tr>
+<tr><td>"infinite strip $0\lt y\lt 1$", "copper strip of effectively infinite length"</td><td>$u(x,0)$, $u(x,1)$ given; $u\to0$ as $|x|\to\infty$; FT in $x$</td></tr>
+<tr><td>"semi-infinite rod $x\gt0$, end held at 0 / insulated"</td><td>odd / even extension to $\mathbb{R}$, then FT (recognise)</td></tr>
+</table>
+
+<h2 id="rare">9 · Rare / recognise only</h2>
+<ul>
+<li><strong>Closed loop / ring of wire, length $2L$</strong> → periodic in $x$: $u(-L,t)=u(L,t)$, $u_x(-L,t)=u_x(L,t)$.</li>
+<li><strong>Symmetric about the centre</strong> → $u_x(\frac L2,t)=0$, so you may solve on half the rod.</li>
+<li><strong>Two rods joined, perfect contact</strong> → $u$ continuous and $K_1u_x=K_2u_x$ at the joint.</li>
+<li><strong>Both ends insulated</strong> → total heat conserved, $u\to\frac1L\int_0^L f\,dx$ (mean of IC). 2023 Q6 asked this.</li>
+<li><strong>Both ends Neumann, net flux in $\ne0$</strong> → no steady state (heat piles up).</li>
+<li><strong>All-Neumann Laplace</strong> → solution never unique (add any constant) and needs zero net flux, $\oint\frac{\partial u}{\partial n}\,ds=0$. An old paper asked exactly "why never unique".</li>
+</ul>
+
+<h2 id="next">10 · BCs → $X$ conditions → eigenfunctions</h2>
+<p>Only <strong>homogeneous</strong> BCs transfer to $X$ (with $u=X(x)T(t)$, $T\not\equiv0$):</p>
+$$\begin{aligned}
+&u(a,t)=0 &&\Rightarrow\ X(a)=0\\
+&u_x(a,t)=0 &&\Rightarrow\ X'(a)=0\\
+&u_x(L,t)+\beta u(L,t)=0 &&\Rightarrow\ X'(L)+\beta X(L)=0\\
+&\text{periodic} &&\Rightarrow\ \Theta(-\pi)=\Theta(\pi),\ \Theta'(-\pi)=\Theta'(\pi)\\
+&\text{bounded at }0 &&\Rightarrow\ |R(0)|\lt\infty
+\end{aligned}$$
+<p>Inhomogeneous ($u=T_0\ne0$, $u_x=q\ne0$, $T_s\ne0$): split $u=u_S+v$. Then $v$ gets the <strong>same type</strong> of BC with RHS $0$, and IC $f-u_S$.</p>
+<table>
+<tr><th>BC pair on $[0,L]$ (lecture $\lambda=-k^2$)</th><th>Eigenfunctions</th></tr>
+<tr><td>D–D: value, value</td><td>$\sin\frac{n\pi x}{L}$, $n\ge1$</td></tr>
+<tr><td>N–N: insulated, insulated</td><td>$1,\ \cos\frac{n\pi x}{L}$, $n\ge0$</td></tr>
+<tr><td>D–N: value at $0$, insulated at $L$</td><td>$\sin\frac{(2n-1)\pi x}{2L}$, $n\ge1$</td></tr>
+<tr><td>N–D: insulated at $0$, value at $L$</td><td>$\cos\frac{(2n-1)\pi x}{2L}$, $n\ge1$</td></tr>
+<tr><td>periodic on $[-L,L]$</td><td>$1,\ \cos\frac{n\pi x}{L},\ \sin\frac{n\pi x}{L}$</td></tr>
+</table>
+
+<h2 id="traps">11 · Traps</h2>
+<div class="trap"><strong>Read these twice</strong>
+<ol>
+<li>"Insulated <em>except at its ends</em>" describes the sides (1D). The ends' BCs are in a different sentence.</li>
+<li>"Fixed" string → $u=0$. "Fixed temperature $T_0$" → $u=T_0$, not $0$.</li>
+<li>"Released from <em>rest</em>" = zero <em>velocity</em>. "In its <em>rest position</em>" = zero <em>displacement</em>.</li>
+<li>Wave needs two ICs. If you see one, the other is a phrase like "from rest" or "from equilibrium".</li>
+<li>Flux and Newton-cooling signs flip between $x=0$ and $x=L$. Run the hot → cold sanity check.</li>
+<li>"Insulated" → derivative, never value. "Held at 0" → value, never derivative.</li>
+<li>Lateral heat loss and heat generation are PDE terms, not BCs.</li>
+<li>Full disc: add boundedness and periodicity yourself. Annulus: periodicity only. Semicircle / wedge: boundedness only.</li>
+<li>Polar straight edge insulated → $u_\theta=0$, not $u_r=0$.</li>
+<li>Check which end is $x=0$. Rod on $[-L,L]$? Re-label before using the eigen-table.</li>
+<li>"After a long time" → $u_S$, IC unused, except N–N (mean of IC).</li>
+<li>Write domains: BCs "$t\gt0$", ICs "$0\lt x\lt L$". These are often a mark.</li>
+</ol></div>
+
+<h2 id="examples">12 · Ten worked translations</h2>
+<p>Cover the answer, write the IBVP, then reveal. Reason on the right = what a marker wants.</p>
+
+<div class="box ex">
+<p class="q"><strong>E1.</strong> A thin rod $0\le x\le2$ has its curved surface insulated and is initially at uniform temperature $20$. From $t=0$ its left end is kept in iced water and heat is pumped into its right end at constant rate $3$ (take $K=1$).</p>
+<details><summary>Answer</summary><div>
+$$\begin{aligned}
+&u_t=\alpha u_{xx}, && 0\lt x\lt2,\ t\gt0 &&\text{curved surface insulated}\Rightarrow\text{1D}\\
+&u(0,t)=0, && t\gt0 &&\text{iced water}\\
+&u_x(2,t)=3, && t\gt0 &&\text{heat in at }x=L\Rightarrow u_x=q/K\\
+&u(x,0)=20, && 0\lt x\lt2 &&\text{uniform initial temperature}
+\end{aligned}$$
+<p>Inhomogeneous, so split: $u_S=3x$ (check $u_S(0)=0$, $u_S'(2)=3$).</p>
+</div></details>
+</div>
+
+<div class="box ex">
+<p class="q"><strong>E2.</strong> A laterally insulated rod $0\le x\le1$ is initially at $50$ throughout. Its left end is held at $50$; its right end is exposed to air at $20$ and loses heat at a rate proportional to the temperature difference, constant $\beta=2$.</p>
+<details><summary>Answer</summary><div>
+$$\begin{aligned}
+&u(0,t)=50, && t\gt0 &&\text{held}\\
+&u_x(1,t)=-2\big(u(1,t)-20\big), && t\gt0 &&\text{Newton cooling at }x=L\\
+&u(x,0)=50, && 0\lt x\lt1 &&\text{initial}
+\end{aligned}$$
+<p>Sign check via the steady state $u_S=A+Bx$:</p>
+$$\begin{aligned}
+&u_S(0)=50 &&\Rightarrow\ A=50\\
+&B=-2(50+B-20) &&\text{Robin at }x=1\\
+&3B=-60 &&\text{rearrange}\\
+&u_S=50-20x &&u_S(1)=30\text{, between }20\text{ and }50\ ✓
+\end{aligned}$$
+</div></details>
+</div>
+
+<div class="box ex">
+<p class="q"><strong>E3.</strong> A rod $0\le x\le L$, insulated except at its ends, has had its ends at $0$ and $100$ for a long time. At $t=0$ the hot end is suddenly insulated; the cold end stays at $0$.</p>
+<details><summary>Answer</summary><div>
+$$\begin{aligned}
+&u(0,t)=0, && t\gt0 &&\text{cold end unchanged}\\
+&u_x(L,t)=0, && t\gt0 &&\text{hot end now insulated}\\
+&u(x,0)=\frac{100x}{L}, && 0\lt x\lt L &&\text{old steady state (a line)}
+\end{aligned}$$
+<p>D–N eigenfunctions $\sin\frac{(2n-1)\pi x}{2L}$; $u\to0$ as $t\to\infty$.</p>
+</div></details>
+</div>
+
+<div class="box ex">
+<p class="q"><strong>E4.</strong> A string of length $\pi$ is tied at $x=0$. Its end $x=\pi$ is attached to a ring that slides without friction on a vertical pole. It is pulled into the shape $\sin\frac x2$ and let go.</p>
+<details><summary>Answer</summary><div>
+$$\begin{aligned}
+&u(0,t)=0, && t\gt0 &&\text{tied}\\
+&u_x(\pi,t)=0, && t\gt0 &&\text{free end (ring)}\\
+&u(x,0)=\sin\tfrac x2, && 0\lt x\lt\pi &&\text{pulled into shape}\\
+&u_t(x,0)=0, && 0\lt x\lt\pi &&\text{let go = from rest}
+\end{aligned}$$
+<p>D–N, and the IC is the $n=1$ mode, so $u=\sin\frac x2\cos\frac{ct}{2}$.</p>
+</div></details>
+</div>
+
+<div class="box ex">
+<p class="q"><strong>E5.</strong> A guitar string $0\le x\le L$, pinned at both ends, lies in its equilibrium position. At $t=0$ its middle half is struck so that it moves with speed $v_0$.</p>
+<details><summary>Answer</summary><div>
+$$\begin{aligned}
+&u(0,t)=u(L,t)=0, && t\gt0 &&\text{pinned}\\
+&u(x,0)=0, && 0\lt x\lt L &&\text{equilibrium position}\\
+&u_t(x,0)=\begin{cases}v_0, & \frac L4\lt x\lt\frac{3L}4\\ 0, & \text{otherwise}\end{cases} &&  &&\text{struck middle half}
+\end{aligned}$$
+</div></details>
+</div>
+
+<div class="box ex">
+<p class="q"><strong>E6.</strong> Steady temperature in the square plate $0\le x,y\le1$, faces insulated. The bottom and left edges are kept at $0$, the top edge is insulated, and the right edge has temperature $y(2-y)$.</p>
+<details><summary>Answer</summary><div>
+$$\begin{aligned}
+&u_{xx}+u_{yy}=0, && 0\lt x,y\lt1 &&\text{steady, faces insulated}\Rightarrow\text{2D}\\
+&u(x,0)=0 &&  &&\text{bottom}\\
+&u(0,y)=0 &&  &&\text{left}\\
+&u_y(x,1)=0 &&  &&\text{top insulated}\\
+&u(1,y)=y(2-y) &&  &&\text{right}
+\end{aligned}$$
+<p>Homogeneous pair is in $y$ (D–N), so $Y_n=\sin\frac{(2n-1)\pi y}{2}$, $X_n=\sinh\frac{(2n-1)\pi x}{2}$.</p>
+</div></details>
+</div>
+
+<div class="box ex">
+<p class="q"><strong>E7.</strong> Steady temperature in the quarter-disc $0\le r\le2$, $0\le\theta\le\frac\pi2$. The edge along the $x$-axis is held at $0$, the edge along the $y$-axis is insulated, and the curved edge is at $\sin\theta$.</p>
+<details><summary>Answer</summary><div>
+$$\begin{aligned}
+&u(r,0)=0 &&  &&x\text{-axis edge is }\theta=0\\
+&u_\theta\big(r,\tfrac\pi2\big)=0 &&  &&\text{insulated straight edge}\\
+&u(2,\theta)=\sin\theta &&  &&\text{curved edge}\\
+&|u(0,\theta)|\lt\infty &&  &&\text{hidden: centre in domain}
+\end{aligned}$$
+<p>No periodicity ($\theta$ stops at $\frac\pi2$). $\Theta_n=\sin(2n-1)\theta$, $R=r^{2n-1}$, so $u=\frac r2\sin\theta$.</p>
+</div></details>
+</div>
+
+<div class="box ex">
+<p class="q"><strong>E8.</strong> A circular drumskin of radius $1$ is clamped at its rim and vibrates axisymmetrically. It is initially flat and is struck so that it has velocity $g(r)$.</p>
+<details><summary>Answer</summary><div>
+$$\begin{aligned}
+&u_{tt}=c^2\Big(u_{rr}+\frac1r u_r\Big), && 0\le r\lt1,\ t\gt0 &&\text{axisymmetric: no }\theta\\
+&u(1,t)=0, && t\gt0 &&\text{clamped rim}\\
+&|u(0,t)|\lt\infty, && t\gt0 &&\text{hidden}\\
+&u(r,0)=0 &&  &&\text{initially flat}\\
+&u_t(r,0)=g(r) &&  &&\text{struck}
+\end{aligned}$$
+</div></details>
+</div>
+
+<div class="box ex">
+<p class="q"><strong>E9.</strong> A very long, thin, insulated wire has initial temperature $e^{-x^2}$.</p>
+<details><summary>Answer</summary><div>
+$$\begin{aligned}
+&u_t=\alpha u_{xx}, && x\in\mathbb{R},\ t\gt0 &&\text{"very long"}\Rightarrow\text{whole line}\\
+&u(x,0)=e^{-x^2}, && x\in\mathbb{R} &&\text{initial}\\
+&u,\ u_x\to0 && \text{as }|x|\to\infty &&\text{hidden: FT must exist}
+\end{aligned}$$
+</div></details>
+</div>
+
+<div class="box ex">
+<p class="q"><strong>E10.</strong> A rod $0\le x\le1$, insulated except at its ends, is initially at $0$. From $t=0$ the temperature of the left end is raised steadily, $u=t$, and the right end is insulated.</p>
+<details><summary>Answer</summary><div>
+$$\begin{aligned}
+&u(0,t)=t, && t\gt0 &&\text{time-dependent Dirichlet}\\
+&u_x(1,t)=0, && t\gt0 &&\text{insulated}\\
+&u(x,0)=0, && 0\lt x\lt1 &&\text{initial}
+\end{aligned}$$
+<p>No steady state. $w=t$ matches both BCs, so $v=u-t$ solves $v_t=\alpha v_{xx}-1$ with homogeneous D–N BCs.</p>
+</div></details>
+</div>
+
+<h2 id="drill">13 · Drill</h2>
+<div class="score" data-score></div>
+
+<div class="quiz" data-answer="c">
+<p class="q"><strong>D1.</strong> "The rod is insulated except at its ends." This gives…</p>
+<div class="opts">
+<button class="opt" data-key="a">$u_x=0$ at both ends</button>
+<button class="opt" data-key="b">$u=0$ at both ends</button>
+<button class="opt" data-key="c">the 1D heat equation; no BC yet</button>
+<button class="opt" data-key="d">a Robin condition at both ends</button>
+</div>
+<div class="why">It describes the sides: heat flows only along $x$. The ends need their own sentences.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q"><strong>D2.</strong> "Heat is extracted from the end $x=0$ at rate $2$" ($K=1$).</p>
+<div class="opts">
+<button class="opt" data-key="a">$u_x(0,t)=2$</button>
+<button class="opt" data-key="b">$u_x(0,t)=-2$</button>
+<button class="opt" data-key="c">$u(0,t)=-2$</button>
+<button class="opt" data-key="d">$u_x(0,t)=0$</button>
+</div>
+<div class="why">Heat in $=-2=K\,\partial u/\partial n=-u_x(0,t)$, so $u_x(0,t)=2$. Check: heat leaves on the left, so the rod is colder there and $u$ increases with $x$.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+<p class="q"><strong>D3.</strong> "The end $x=L$ is in perfect thermal contact with a large bath at $40$."</p>
+<div class="opts">
+<button class="opt" data-key="a">$u_x(L,t)=40$</button>
+<button class="opt" data-key="b">$u(L,t)=40$</button>
+<button class="opt" data-key="c">$u_x(L,t)+u(L,t)=40$</button>
+<button class="opt" data-key="d">$u(x,0)=40$</button>
+</div>
+<div class="why">Perfect contact with a large reservoir fixes the value: Dirichlet.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+<p class="q"><strong>D4.</strong> "The end $x=1$ cools into air at $15$ by Newton's law, constant $\beta$" ($K=1$).</p>
+<div class="opts">
+<button class="opt" data-key="a">$u_x(1,t)=\beta\,(u(1,t)-15)$</button>
+<button class="opt" data-key="b">$u_x(1,t)=-\beta\,(u(1,t)-15)$</button>
+<button class="opt" data-key="c">$u(1,t)=15$</button>
+<button class="opt" data-key="d">$u_x(1,t)=-15\beta$</button>
+</div>
+<div class="why">Right end: $u_x(L)=-\beta(u-T_s)$. If the end is hotter than the air, $u$ must drop towards it, so $u_x\lt0$ ✓.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+<p class="q"><strong>D5.</strong> "The string is released from rest in the shape $f(x)$."</p>
+<div class="opts">
+<button class="opt" data-key="a">$u(x,0)=0$, $\;u_t(x,0)=f(x)$</button>
+<button class="opt" data-key="b">$u(x,0)=f(x)$ only</button>
+<button class="opt" data-key="c">$u(0,t)=f$, $\;u_t(x,0)=0$</button>
+<button class="opt" data-key="d">$u(x,0)=f(x)$, $\;u_t(x,0)=0$</button>
+</div>
+<div class="why">"From rest" = zero velocity; "in the shape" = initial displacement. Wave always needs both.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q"><strong>D6.</strong> "The string is in its rest position when it is hit, giving it velocity $g(x)$."</p>
+<div class="opts">
+<button class="opt" data-key="a">$u(x,0)=0$, $\;u_t(x,0)=g(x)$</button>
+<button class="opt" data-key="b">$u(x,0)=g(x)$, $\;u_t(x,0)=0$</button>
+<button class="opt" data-key="c">$u_t(x,0)=0$, $\;u_t(x,0)=g(x)$</button>
+<button class="opt" data-key="d">$u(x,0)=g(x)$, $\;u_t(x,0)=g(x)$</button>
+</div>
+<div class="why">"Rest position" = zero displacement (not zero velocity). Hit → velocity.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+<p class="q"><strong>D7.</strong> "The end $x=L$ is attached to a ring free to slide on a frictionless vertical rod."</p>
+<div class="opts">
+<button class="opt" data-key="a">$u(L,t)=0$</button>
+<button class="opt" data-key="b">$u_t(L,t)=0$</button>
+<button class="opt" data-key="c">$u_x(L,t)=0$</button>
+<button class="opt" data-key="d">$u_{xx}(L,t)=0$</button>
+</div>
+<div class="why">No vertical force at a frictionless ring, so the string meets the rod flat: free end, Neumann.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+<p class="q"><strong>D8.</strong> Steady temperature in a disc of radius $a$, rim kept at $f(\theta)$. Besides $u(a,\theta)=f(\theta)$ you need…</p>
+<div class="opts">
+<button class="opt" data-key="a">nothing</button>
+<button class="opt" data-key="b">bounded at $r=0$ only</button>
+<button class="opt" data-key="c">$2\pi$-periodic in $\theta$ only</button>
+<button class="opt" data-key="d">bounded at $r=0$ and $2\pi$-periodic in $\theta$</button>
+</div>
+<div class="why">Centre in domain → bounded. $\theta$ goes fully round → periodic. Neither is stated.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+<p class="q"><strong>D9.</strong> Steady temperature in the full annulus $1\lt r\lt2$. Hidden conditions:</p>
+<div class="opts">
+<button class="opt" data-key="a">bounded at $r=0$ and periodic</button>
+<button class="opt" data-key="b">periodic only</button>
+<button class="opt" data-key="c">bounded at $r=0$ only</button>
+<button class="opt" data-key="d">none</button>
+</div>
+<div class="why">$r=0$ is not in the domain, so $\ln r$ and $r^{-n}$ stay. $\theta$ goes fully round → periodic.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+<p class="q"><strong>D10.</strong> Semicircular plate $0\le r\le a$, $0\le\theta\le\pi$; "the diameter is held at $0$".</p>
+<div class="opts">
+<button class="opt" data-key="a">$u(a,\theta)=0$</button>
+<button class="opt" data-key="b">$u(r,0)=u(r,\pi)=0$ and periodic in $\theta$</button>
+<button class="opt" data-key="c">$u(r,0)=u(r,\pi)=0$ and bounded at $r=0$</button>
+<button class="opt" data-key="d">$u_\theta(r,0)=u_\theta(r,\pi)=0$</button>
+</div>
+<div class="why">The diameter is the two straight edges $\theta=0,\pi$. Centre in domain → bounded. $\theta$ stops at $\pi$ → no periodicity.</div>
+</div>
+
+<div class="quiz" data-answer="a">
+<p class="q"><strong>D11.</strong> "Heat is generated inside the rod at a rate proportional to the distance from $x=0$."</p>
+<div class="opts">
+<button class="opt" data-key="a">$u_t=\alpha u_{xx}+cx$</button>
+<button class="opt" data-key="b">$u_x(0,t)=cx$</button>
+<button class="opt" data-key="c">$u(x,0)=cx$</button>
+<button class="opt" data-key="d">$u_t=\alpha u_{xx}-cu$</button>
+</div>
+<div class="why">"Inside" → source term in the PDE, not a BC. Linear source → cubic $u_S$.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+<p class="q"><strong>D12.</strong> Both ends of a rod $[0,L]$ are insulated; initial temperature $f(x)$. After a long time…</p>
+<div class="opts">
+<button class="opt" data-key="a">$u\to0$</button>
+<button class="opt" data-key="b">$u\to f(x)$</button>
+<button class="opt" data-key="c">$u\to\frac1L\int_0^Lf\,dx$</button>
+<button class="opt" data-key="d">no limit exists</button>
+</div>
+<div class="why">No heat enters or leaves, so the total is conserved and spreads evenly: the $n=0$ term $\frac{a_0}{2}$.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+<p class="q"><strong>D13.</strong> "A thin wire is bent into a closed circular loop of length $2L$" (arc length $-L\le x\le L$).</p>
+<div class="opts">
+<button class="opt" data-key="a">$u(-L,t)=u(L,t)=0$</button>
+<button class="opt" data-key="b">$u(-L,t)=u(L,t)$, $\;u_x(-L,t)=u_x(L,t)$</button>
+<button class="opt" data-key="c">$u_x(-L,t)=u_x(L,t)=0$</button>
+<button class="opt" data-key="d">bounded at $x=0$</button>
+</div>
+<div class="why">$x=-L$ and $x=L$ are the same physical point: value and flux must match. Periodic.</div>
+</div>
+
+<div class="quiz" data-answer="d">
+<p class="q"><strong>D14.</strong> A rod $[0,L]$ has been at steady state with ends at $0$ and $10$. At $t=0$ the right end is put in ice. The IC is…</p>
+<div class="opts">
+<button class="opt" data-key="a">$u(x,0)=0$</button>
+<button class="opt" data-key="b">$u(x,0)=10$</button>
+<button class="opt" data-key="c">$u(L,0)=0$</button>
+<button class="opt" data-key="d">$u(x,0)=\frac{10x}{L}$</button>
+</div>
+<div class="why">IC = the old steady state (a line from $0$ to $10$). New BCs: $u(0,t)=u(L,t)=0$.</div>
+</div>
+
+<div class="quiz" data-answer="b">
+<p class="q"><strong>D15.</strong> The straight edge $\theta=\alpha$ of a wedge is insulated.</p>
+<div class="opts">
+<button class="opt" data-key="a">$u_r(r,\alpha)=0$</button>
+<button class="opt" data-key="b">$u_\theta(r,\alpha)=0$</button>
+<button class="opt" data-key="c">$u(r,\alpha)=0$</button>
+<button class="opt" data-key="d">$u(\alpha,\theta)=0$</button>
+</div>
+<div class="why">Insulated = zero derivative <em>across</em> the edge. Across a ray $\theta=\alpha$ means the $\theta$-direction: $\frac1r u_\theta=0$.</div>
+</div>
+
+<div class="quiz" data-answer="c">
+<p class="q"><strong>D16.</strong> "The lateral surface loses heat to surroundings at temperature $0$ at a rate proportional to its temperature."</p>
+<div class="opts">
+<button class="opt" data-key="a">$u_x(0,t)=-\beta u(0,t)$ and $u_x(L,t)=-\beta u(L,t)$</button>
+<button class="opt" data-key="b">$u(0,t)=u(L,t)=0$</button>
+<button class="opt" data-key="c">$u_t=\alpha u_{xx}-\beta u$</button>
+<button class="opt" data-key="d">$u(x,0)=0$</button>
+</div>
+<div class="why">Lateral = along the whole length, so it is a loss term in the PDE. Ends still need their own BCs.</div>
+</div>
+
+<h2 id="template">14 · Exam write-up template</h2>
+<p>For "write down the IBVP": one line per condition, domain on each, quoted phrase as the reason.</p>
+$$\begin{aligned}
+&u_t=\alpha u_{xx}, && 0\lt x\lt L,\ t\gt0 &&\text{PDE}\\
+&u(0,t)=\dots, && t\gt0 &&\text{BC: "left end in ice"}\\
+&u_x(L,t)=\dots, && t\gt0 &&\text{BC: "right end insulated"}\\
+&u(x,0)=f(x), && 0\lt x\lt L &&\text{IC: "initially heated to }f\text{"}
+\end{aligned}$$
+<p>Then say whether the BCs are homogeneous. If not, state $u=u_S+v$ before separating.</p>
+
+<div class="nav">
+<span>Lessons: <a href="../lessons/0027-bvps-eigenvalue-problems.html">27</a> · <a href="../lessons/0028-heat-equation-separation.html">28</a> · <a href="../lessons/0029-inhomogeneous-bcs-steady-transient.html">29</a> · <a href="../lessons/0030-laplace-equation-rectangle-polar.html">30</a> · <a href="../lessons/0031-wave-equation-normal-modes.html">31</a> · <a href="../lessons/0032-radial-bessel-genuine-solutions.html">32</a> · <a href="../lessons/0038-ft-pdes-and-mixed-exam-set.html">38</a></span>
+<span>Also: <a href="topic5-cheatsheet.html">Topic 5 sheet</a> · <a href="topic6-cheatsheet.html">Topic 6 sheet</a> · <a href="pde-theory.html">PDE theory</a> · <a href="exam-2026-prediction.html">2026 prediction</a></span>
+</div>
+</main>
+</body>
+</html>
