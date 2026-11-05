@@ -49,6 +49,10 @@ These fixes are in the horizontal files only, so the portrait sheet still has th
 
 Left as they are: "`step`/`drop1` do not work" on quasi fits is the course wording, though R's `drop1` does run. No source was found for the two marks claims ("Marks:", "A correct unfinished ledger still scores"). The $H_{ii}>2p/n$ and Cook near 1 rules are not in the slides.
 
+## Residual meanings (both sheets)
+
+Added plain meanings to the response, Pearson, deviance and studentised lines, and "big = outlier" and "= influential" to jack-knife and Cook. To fit, cut "Large leverage need not mean actual influence" (Classify covers it), folded "Mean leverage $p/n$" into the $\sum H_{ii}$ line, and dropped "working response" from the last R line on landscape side 1. Tightening side 1 line spacing to $-1.5$pt pushed a table row past the frame, so it stays at $-1.35$pt.
+
 ## Checked
 
 44 numeric checks passed on the new formulas: proposal ratios, $P_{i1}$ forms, cutoffs, mixture moments, Cook and jack-knife forms, $x_0^TVx_0$, IWLS weights, NegBin and geometric $b$, ESS relations, Gibbs lag-1 $=\rho^2$. They were run in a throwaway script, so rerun them if the formulas change.
