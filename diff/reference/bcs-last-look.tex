@@ -1,0 +1,162 @@
+% Words -> BCs/ICs: one-page last look before the exam. Condensed from bcs-from-text.html.
+% Build: tectonic bcs-last-look.tex
+\documentclass[9pt]{extarticle}
+\usepackage[a4paper,margin=9mm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{multicol}
+\usepackage{tabularx}
+\usepackage[table]{xcolor}
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=1.3em}
+\definecolor{acc}{HTML}{1F4E79}
+\definecolor{warn}{HTML}{B03A2E}
+\definecolor{hdr}{HTML}{E8EEF5}
+\newcommand{\hd}[1]{\par\medskip{\color{acc}\bfseries\large #1}\par\vspace{1pt}{\color{acc}\hrule}\vspace{3pt}}
+\newcommand{\w}[1]{{\color{warn}\bfseries #1}}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\setlength{\parindent}{0pt}
+\setlength{\columnsep}{6mm}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.18}
+\pagestyle{empty}
+
+\begin{document}
+{\LARGE\bfseries\color{acc} Words $\to$ boundary \& initial conditions}\hfill{\small MAST20030 · read before the exam}
+\vspace{2pt}{\color{acc}\hrule height 1pt}
+
+\begin{multicols}{2}
+
+\hd{1 · Method}
+\begin{enumerate}
+\item \textbf{PDE:} temperature $\to$ heat; displacement $\to$ wave; ``steady / equilibrium'' $\to$ Laplace; ``infinitely long'' $\to$ FT.
+\item \textbf{List every boundary first:} each end / edge, $r=0$, $\theta$ edges, $\pm\infty$.
+\item \textbf{One sentence per boundary.} Fixes the \emph{value} $\to$ Dirichlet. Fixes the \emph{slope / heat flow} $\to$ Neumann. A \emph{relation} $\to$ Robin.
+\item \textbf{Unmatched boundary $\to$ hidden condition:} bounded, periodic, decay.
+\item \textbf{Time:} ``initially'' $\to$ IC. ``For $t>0$ / suddenly'' $\to$ BC. ``After a long time'' $\to$ $u_t=0$.
+\end{enumerate}
+
+\hd{2 · Count the conditions}
+\begin{tabularx}{\linewidth}{@{}lL@{}}
+\rowcolor{hdr}Problem & Needs\\
+1D heat & 2 BCs + 1 IC\\
+1D wave & 2 BCs + \w{2 ICs}\\
+Laplace, rectangle & 4 BCs (one per edge)\\
+Laplace, full disc & $r=a$ + \w{bounded at $r=0$} + \w{periodic}\\
+Laplace, annulus & $r=a$, $r=b$ + \w{periodic}\\
+Semicircle / wedge & 2 straight edges + arc + \w{bounded at $r=0$}\\
+Semi-annulus & 4 edges, nothing hidden\\
+Axisymmetric disc & $r=a$ + \w{bounded at $r=0$}, no $\theta$\\
+Infinite line (FT) & \leavevmode\w{$u,u_x\to0$ as $|x|\to\infty$}\\
+\end{tabularx}
+
+\hd{3 · Heat: phrase $\to$ BC}
+\begin{tabularx}{\linewidth}{@{}Ll@{}}
+\rowcolor{hdr}Words & Condition\\
+held / kept at $T_0$, bath, reservoir & $u=T_0$\\
+ice ($0$), boiling water ($100$) & $u=0$, $u=100$\\
+insulated, no heat flow, adiabatic, reflecting & $u_x=0$\\
+temperature gradient $c$ & $u_x=c$\\
+heat \emph{in} at rate $q$ & $u_x(0)=-\frac qK$, $\ u_x(L)=\frac qK$\\
+heat \emph{out} at rate $q$ & signs flip\\
+Newton cooling into air at $T_s$ & $u_x(L)=-\beta(u-T_s)$\\
+ & $u_x(0)=+\beta(u-T_s)$\\
+end temperature set to $g(t)$ & $u(0,t)=g(t)$\\
+wire bent into a closed loop & periodic\\
+\end{tabularx}
+
+\smallskip
+\textbf{Sign rule:} $K\,\dfrac{\partial u}{\partial n}=$ heat flux \emph{into} the body ($n$ outward: $+x$ at $L$, $-x$ at $0$). Check: heat flows hot $\to$ cold. No $K$ given $\Rightarrow K=1$.
+
+\smallskip
+\textbf{Not BCs} (change the PDE):\\
+``insulated except at its ends'', ``laterally insulated'', ``faces insulated'' $\to$ just 1D / 2D.\\
+``heat generated'' $q$ or $\propto x$ $\to$ $+q$ or $+cx$ in the PDE.\\
+``lateral surface loses heat'' $\to$ $-\beta(u-T_s)$ in the PDE.
+
+\hd{4 · Heat ICs}
+``initially $f(x)$'' $\to u(x,0)=f$. ``Uniform $T_1$'' / ``from an oven at $T_1$'' $\to u(x,0)=T_1$.\\
+``Steady with ends at $A,B$ for a long time; at $t=0$ \ldots'' $\to$ IC $=$ \emph{old} steady state $A+\frac{(B-A)x}{L}$, BCs $=$ \emph{new} ones.\\
+IC and BC may disagree at a corner: fine.
+
+\hd{5 · Wave}
+\begin{tabularx}{\linewidth}{@{}Ll@{}}
+\rowcolor{hdr}Words & Condition\\
+fixed, pinned, clamped, tied & $u=0$\\
+free end, ring on frictionless rod & $u_x=0$\\
+end shaken as $h(t)$ & $u=h(t)$\\
+released / let go / from rest & $u_t(x,0)=0$\\
+rest / equilibrium position, flat & $u(x,0)=0$\\
+pulled into shape $f$ & $u(x,0)=f(x)$\\
+struck, given velocity $g$ & $u_t(x,0)=g(x)$\\
+\end{tabularx}
+
+\smallskip
+Plucked at $x=\ell$ to height $A$, from rest:
+\[
+u(x,0)=\begin{cases}\dfrac{Ax}{\ell}, & 0\le x\le\ell\\[6pt]\dfrac{A(L-x)}{L-\ell}, & \ell\le x\le L\end{cases}
+\]
+
+\hd{6 · Laplace, polar, hidden}
+Rectangle: insulated left / right $\to u_x=0$; top / bottom $\to u_y=0$.\\
+Polar: insulated arc $\to u_r=0$; insulated straight edge $\to$ \w{$u_\theta=0$}.\\
+Semicircle: ``diameter'' $=$ edges $\theta=0$ and $\theta=\pi$.\\
+\textbf{Bounded at $r=0$} (centre in domain): kills $\ln r$, $r^{-n}$, $Y_0$.\\
+\textbf{Periodic} ($\theta$ fully round):
+\[
+\begin{aligned}
+u(r,-\pi)&=u(r,\pi)\\
+u_\theta(r,-\pi)&=u_\theta(r,\pi)
+\end{aligned}
+\]
+Exterior $r>a$: bounded as $r\to\infty$.
+
+\hd{7 · ``After a long time''}
+Set $u_t=0$; IC not used, except:\\
+both ends insulated $\to u\to\frac1L\int_0^L f\,dx$ (mean of IC);\\
+both Neumann, net flux in $\ne0$ $\to$ no steady state;\\
+all-Neumann Laplace $\to$ unique only up to a constant.
+
+\hd{8 · Then}
+Homogeneous BCs transfer ($T\not\equiv0$):
+\[
+\begin{aligned}
+u(a,t)=0&\ \Rightarrow\ X(a)=0\\
+u_x(a,t)=0&\ \Rightarrow\ X'(a)=0
+\end{aligned}
+\]
+Inhomogeneous $\to u=u_S+v$; $v$ gets the \emph{same type} with RHS $0$, IC $f-u_S$.
+
+\begin{tabularx}{\linewidth}{@{}lL@{}}
+\rowcolor{hdr}BCs on $[0,L]$ & Eigenfunctions\\
+D--D & $\sin\frac{n\pi x}{L}$, $n\ge1$\\
+N--N & $1,\ \cos\frac{n\pi x}{L}$, $n\ge0$\\
+D--N & $\sin\frac{(2n-1)\pi x}{2L}$, $n\ge1$\\
+N--D & $\cos\frac{(2n-1)\pi x}{2L}$, $n\ge1$\\
+periodic $[-L,L]$ & $1,\ \cos\frac{n\pi x}{L},\ \sin\frac{n\pi x}{L}$\\
+\end{tabularx}
+
+\hd{9 · Traps}
+\begin{enumerate}
+\item ``Insulated \emph{except at its ends}'' describes the sides, not the ends.
+\item Fixed string $\to u=0$. Fixed \emph{temperature} $T_0\to u=T_0$.
+\item ``From rest'' $=$ velocity $0$. ``Rest position'' $=$ displacement $0$.
+\item Wave always needs two ICs; find the hidden one.
+\item Flux and Newton signs flip between $x=0$ and $x=L$.
+\item Sources and lateral loss go in the PDE, not the BCs.
+\item Disc: bounded + periodic. Annulus: periodic only. Wedge: bounded only.
+\item Check which end is $x=0$ before using the eigen-table.
+\end{enumerate}
+
+\hd{10 · Write it like this}
+\[
+\begin{aligned}
+&u_t=\alpha u_{xx}, && 0<x<L,\ t>0\\
+&u(0,t)=\ldots, && t>0 \quad\text{``in ice''}\\
+&u_x(L,t)=\ldots, && t>0 \quad\text{``insulated''}\\
+&u(x,0)=f(x), && 0<x<L
+\end{aligned}
+\]
+Domains on every line. Then say: homogeneous or not.
+
+\end{multicols}
+\end{document}
