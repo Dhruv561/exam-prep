@@ -1,0 +1,191 @@
+% ODE shapes to recognise on sight: last look before the exam. Built from topic1/2/5/6 cheatsheets + lectures.
+% Build: tectonic ode-shapes-last-look.tex
+\documentclass[9pt]{extarticle}
+\usepackage[a4paper,margin=9mm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{multicol}
+\usepackage{tabularx}
+\usepackage[table]{xcolor}
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=1.3em}
+\definecolor{acc}{HTML}{1F4E79}
+\definecolor{warn}{HTML}{B03A2E}
+\definecolor{hdr}{HTML}{E8EEF5}
+\newcommand{\hd}[1]{\par\smallskip{\color{acc}\bfseries\large #1}\par\vspace{1pt}{\color{acc}\hrule}\vspace{2pt}}
+\setlength{\jot}{1.5pt}
+\newcommand{\w}[1]{{\color{warn}\bfseries #1}}
+\newcommand{\spot}[1]{\textbf{Spot:} #1\par}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\setlength{\parindent}{0pt}
+\setlength{\columnsep}{6mm}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.18}
+\setlength{\abovedisplayskip}{3pt}\setlength{\belowdisplayskip}{3pt}
+\setlength{\abovedisplayshortskip}{2pt}\setlength{\belowdisplayshortskip}{2pt}
+\pagestyle{empty}
+
+\begin{document}
+{\LARGE\bfseries\color{acc} ODE shapes to recognise on sight}\hfill{\small MAST20030 · read before the exam}
+\vspace{2pt}{\color{acc}\hrule height 1pt}
+
+\begin{multicols}{2}
+
+\hd{0 · Which method? (look at the coefficients)}
+\begin{tabularx}{\linewidth}{@{}Ll@{}}
+\rowcolor{hdr}You see & Do\\
+constant coefficients & $e^{\lambda t}$ (§2)\\
+every term $t^m y^{(m)}$ & Euler, $t^n$ (§3)\\
+Euler $+\,k^2r^2R$ & Bessel, $J_0,Y_0$ (§4)\\
+$y''-ty=0$ & Airy: series or FT (§5)\\
+polynomial coefficients & power series (§6)\\
+one solution $v$ given & reduction of order (on sheet)\\
+const.\ coeff.\ + $\delta$ / $H$ / piecewise, ICs at $0$ & Laplace transform\\
+$x\in\mathbb{R}$, $x\,y$ term or $\delta$ forcing & Fourier transform (§10)\\
+forcing given as a Fourier series & term by term (§9)\\
+\end{tabularx}
+
+\hd{1 · First order}
+\spot{$y'+f(t)\,y=g(t)$ (divide by the $y'$ coefficient first).}
+\[
+I=e^{\int f\,dt},\qquad (Iy)'=Ig,\qquad y=\frac1I\Big(\int Ig\,dt+C\Big)
+\]
+Quick $I$: $f=\frac at\to t^a$; $\ f=2t\to e^{t^2}$; $\ f=\tan t\to\sec t$.\\
+\spot{$y'=f(t)\,g(y)$ (separable): $\displaystyle\int\frac{dy}{g(y)}=\int f\,dt$.}
+\spot{$y'=ky$: $\ y=Ce^{kt}$. Heat time ODE $\dot T=-\alpha k^2T\Rightarrow T=e^{-\alpha k^2t}$.}
+
+\hd{2 · Constant coefficients}
+\spot{$ay''+by'+cy=0$. Trial $e^{\lambda t}$: $\ a\lambda^2+b\lambda+c=0$.}
+\[
+y=\begin{cases}
+C_1e^{\lambda_1t}+C_2e^{\lambda_2t}, & \lambda_1\ne\lambda_2\text{ real}\\
+(C_1+C_2t)\,e^{\lambda t}, & \text{repeated}\\
+e^{\alpha t}(C_1\cos\beta t+C_2\sin\beta t), & \alpha\pm i\beta
+\end{cases}
+\]
+\textbf{Separation-of-variables ODEs, write instantly:}
+\[
+\begin{aligned}
+X''+k^2X=0&\ \Rightarrow\ A\cos kx+B\sin kx\\
+X''-k^2X=0&\ \Rightarrow\ A\cosh kx+B\sinh kx\\
+X''=0&\ \Rightarrow\ Ax+B\\
+\ddot T+c^2k^2T=0&\ \Rightarrow\ A\cos ckt+B\sin ckt\\
+\dot T+\alpha k^2T=0&\ \Rightarrow\ Ce^{-\alpha k^2t}
+\end{aligned}
+\]
+$\cosh/\sinh$ on a finite interval; zero at $y=b$ $\Rightarrow\sinh k(b-y)$. On $[0,\infty)$ with boundedness $\Rightarrow e^{-kx}$ only.
+
+\hd{3 · Euler (Cauchy--Euler)}
+\spot{$at^2y''+bty'+cy=0$: power of $t$ $=$ order of derivative, every term.}
+\[
+y=t^n\ \Rightarrow\ an(n-1)+bn+c=0
+\]
+\[
+y=\begin{cases}
+C_1t^{n_1}+C_2t^{n_2}, & n_1\ne n_2\text{ real}\\
+t^n(C_1+C_2\ln t), & \text{repeated}\\
+t^{\alpha}\big(C_1\cos(\beta\ln t)+C_2\sin(\beta\ln t)\big), & \alpha\pm i\beta
+\end{cases}
+\]
+\textbf{Polar Laplace} ($\Theta=\cos n\theta,\sin n\theta$):
+\[
+\begin{aligned}
+r^2R''+rR'-n^2R=0&\ \Rightarrow\ Ar^n+Br^{-n}\quad(n\ge1)\\
+r^2R''+rR'=0\quad(n=0)&\ \Rightarrow\ A+B\ln r
+\end{aligned}
+\]
+Centre in domain $\Rightarrow B=0$. Forcing $t^k\to At^k$; resonance $\times(\ln t)^s$.
+
+\hd{4 · Bessel, order 0}
+\spot{Euler shape plus an extra $k^2r^2R$ (or $R''+\frac1rR'+k^2R=0$).}
+\[
+\begin{gathered}
+r^2R''+rR'+k^2r^2R=0\\
+R=A\,J_0(kr)+B\,Y_0(kr)
+\end{gathered}
+\]
+\[
+J_0(s)=\sum_{m=0}^{\infty}\frac{(-1)^m}{(m!)^2}\Big(\frac s2\Big)^{2m},\qquad J_0(0)=1
+\]
+$Y_0\sim\ln r$ at $0$ $\Rightarrow B=0$ if the centre is in the domain.\\
+$R(a)=0\Rightarrow J_0(ka)=0\Rightarrow k_n=\dfrac{z_n}{a}$, $z_n$ the zeros of $J_0$ ($z_1\approx2.40$).\\
+Comes from heat / wave on a disc (time present). Order $n$: $(k^2r^2-n^2)R\to J_n,Y_n$ (recognise only).
+
+\hd{5 · Airy}
+\spot{$y''-ty=0$ (no $y'$, coefficient $t$).}
+Series: $t\,y$ shifts by $3$, so $c_2=0$ is forced:
+\[
+c_{m+3}=\frac{c_m}{(m+3)(m+2)}
+\]
+Two chains, $t^{3k}$ (from $c_0$) and $t^{3k+1}$ (from $c_1$); $R=\infty$.\\
+FT version (sheet rules $(ik)^2\hat y$, $\ i\hat y'$):
+\[
+-k^2\hat y-i\hat y'=0\ \Rightarrow\ \hat y=Ae^{ik^3/3}\ \Rightarrow\ y=\frac1{2\pi}\int_{-\infty}^{\infty}e^{ik^3/3+ikx}\,dk
+\]
+
+\hd{6 · Power-series families}
+\spot{$(a+\alpha t^2)y''+bty'+cy=0$.}
+\[
+c_{m+2}=-\frac{\alpha m(m-1)+bm+c}{a(m+2)(m+1)}\,c_m
+\]
+Polynomial solution: numerator $=0$ at $m=k$. Radius $\ge$ distance to nearest complex zero of the $y''$ coefficient; here $R=\sqrt{|a/\alpha|}$.\\
+\spot{$p\,t\,y''+q\,y'+\ldots$ (singular at $0$): only $c_0$ free, one series solution.}
+\[
+\operatorname{wr}=C\,t^{-q/p},\qquad y_2=y_1\int\frac{\operatorname{wr}}{y_1^2}\,dt
+\]
+$q/p=1\Rightarrow y_2\sim\ln t$. Indicial ($t^\lambda$ trial): $\lambda(p\lambda-p+q)=0$.
+
+\hd{7 · Wronskian / Abel}
+Standard form $y''+f_1y'+f_0y=0$:
+\[
+\begin{aligned}
+\operatorname{wr}&=y_1y_2'-y_1'y_2\\
+\operatorname{wr}(t)&=\operatorname{wr}(t_0)\,e^{-\int_{t_0}^{t}f_1}\\
+\Big(\frac{y_2}{y_1}\Big)'&=\frac{\operatorname{wr}}{y_1^2}
+\end{aligned}
+\]
+For two solutions, wr is never $0$ or always $0$.
+
+\hd{8 · Systems $\mathbf y'=A\mathbf y$}
+\[
+\begin{gathered}
+\lambda^2-(\operatorname{tr}A)\lambda+\det A=0\\
+\mathbf y=C_1\mathbf v_1e^{\lambda_1t}+C_2\mathbf v_2e^{\lambda_2t}
+\end{gathered}
+\]
+$y''+by'+cy=0\leftrightarrow A=\begin{pmatrix}0&1\\-c&-b\end{pmatrix}$, $\ \mathbf y=(y,y')$.\\
+Eigenvector: row $(p,q)$ of $A-\lambda I\Rightarrow\mathbf v=(q,-p)$.\\
+$\det<0$ saddle. $\det>0$: $\operatorname{tr}^2>4\det$ node, $\operatorname{tr}^2<4\det$ spiral, $\operatorname{tr}=0$ centre. $\operatorname{tr}<0$ stable.
+
+\hd{9 · Particular solutions}
+\begin{tabularx}{\linewidth}{@{}Ll@{}}
+\rowcolor{hdr}Forcing & Trial\\
+$e^{kt}$ & $Ae^{kt}$\\
+degree-$m$ polynomial & full degree-$m$ polynomial\\
+$\cos\omega t$ or $\sin\omega t$ & $A\cos\omega t+B\sin\omega t$\\
+Euler with $t^k$ & $At^k$\\
+\end{tabularx}
+\w{Resonance:} trial already solves the homogeneous ODE ($s$-fold root) $\Rightarrow\times t^s$ (Euler: $\times(\ln t)^s$).
+\[
+y''+\omega^2y=\cos\omega t\ \Rightarrow\ y_p=\frac{t}{2\omega}\sin\omega t
+\]
+Fourier forcing, $s(x)=\sum s_n\cos nx$:
+\[
+\begin{gathered}
+y''-ky=s(x)\\
+y=\sum_n\frac{-s_n}{n^2+k}\cos nx
+\end{gathered}
+\]
+Steady state with source: $u_S''=-q/\alpha$, integrate twice.
+
+\hd{10 · Fourier-transform ODEs}
+Pair (not on sheet): $e^{-a|x|}\leftrightarrow\dfrac{2a}{a^2+k^2}$.
+\[
+y''-a^2y=-\delta(x)\ \Rightarrow\ y=\frac{e^{-a|x|}}{2a}
+\]
+$y^{(n)}\pm x\,y=0$: the $x\,y$ term becomes $i\hat y'$, so you get a first-order ODE in $k$. Solve it with an integrating factor, then leave $y$ as an inverse-FT integral.
+
+\hd{Not in this year's lectures}
+Legendre, Hermite, Bernoulli, full Frobenius. If one appears, the question will give the method.
+
+\end{multicols}
+\end{document}
